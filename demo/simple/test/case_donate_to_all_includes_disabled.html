@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://lmsdev.racp.edu.au" />
+<title>test_06_atp_search</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">test_06_atp_search</td></tr>
+</thead><tbody>
+<!--Refresh the page (in case the user navigated through pagination)-->
+<tr>
+	<td>refreshAndWait</td>
+	<td></td>
+	<td></td>
+</tr>
+<!--Pause while the data and DOM is loaded-->
+<tr>
+	<td>pause</td>
+	<td>1000</td>
+	<td></td>
+</tr>
+<!--We need at least 2 pages of listing-->
+<tr>
+	<td>assertElementPresent</td>
+	<td>//span[@id='navigate-right-links' and contains(@style, 'display: inline')]</td>
+	<td></td>
+</tr>
+<!---->
+<!--Ensure that 1st record on 2nd page is 'disabled'-->
+<tr>
+	<td>call</td>
+	<td>markPageAsCurrent</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>navigate-right-next-page</td>
+	<td></td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>pauseUntilPageRefreshed</td>
+	<td></td>
+</tr>
+<!--Don't store objects/DOM elements in storedVars, because they get transformed to text!-->
+<tr>
+	<td>getEval</td>
+	<td>topEnableDisable= this.browserbot.findElement( &quot;//td[@class='enableDisable']/a[1]&quot; )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>topEnableDisable.textContent!='enable'</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>//td[@class='enableDisable']/a[1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementPresent</td>
+	<td>//td[@class='enableDisable']/a[1][text()='enable']</td>
+	<td>2000</td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>call</td>
+	<td>markPageAsCurrent</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>navigate-left-first-page</td>
+	<td></td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>pauseUntilPageRefreshed</td>
+	<td></td>
+</tr>
+<!---->
+<!--Following uses XPath which has '(' in front of '//', therefore I need to use selector prefix xpath=-->
+<tr>
+	<td>storeEval</td>
+	<td>this.browserbot.findElement( &quot;xpath=(//td[@class='totalAmount'])[last()]&quot; ).textContent</td>
+	<td>bottomTotalDonation</td>
+</tr>
+<tr>
+	<td>answerOnNextPrompt</td>
+	<td>3</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>donate-to-all</td>
+	<td></td>
+</tr>
+<!--stored variables are always strings, therefore if I accessed it as storedVars.bottomLastDonation, I'll have to cast it.-->
+<!--If I used waitForCondition with selenium.browserbot.findElement( "xpath=.."), that fails while the page is being refreshed-->
+<!--Must have 'xpath=' in the following, because I need () around //td and Selenium doesn't autodetect '(//td...)' as XPath-->
+<tr>
+	<td>waitForElementPresent</td>
+	<td>xpath=(//td[@class='totalAmount'])[last()][text()=${bottomTotalDonation}+3]</td>
+	<td>6000</td>
+</tr>
+</tbody></table>
+</body>
+</html>

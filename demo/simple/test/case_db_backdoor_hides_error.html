@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://lmsdev.racp.edu.au" />
+<title>case_shared_db_via_backdoor_hides_error</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">case_shared_db_via_backdoor_hides_error</td></tr>
+</thead><tbody>
+<tr>
+	<td>storeEval</td>
+	<td>3</td>
+	<td>MAX_DISPLAYED_ITEMS</td>
+</tr>
+<!--Refresh the page (in case the user navigated through pagination). That will navigate to the 1st page.-->
+<tr>
+	<td>refreshAndWait</td>
+	<td></td>
+	<td></td>
+</tr>
+<!--Pause while the data and DOM is loaded.-->
+<tr>
+	<td>pause</td>
+	<td>1000</td>
+	<td></td>
+</tr>
+<!---->
+<!--Read XML-->
+<tr>
+	<td>storeEval</td>
+	<td>new (this.browserbot.getCurrentWindow().DOMParser)</td>
+	<td>parser</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>this.browserbot.findElement( &quot;xml&quot; ).textContent</td>
+	<td>xmlString</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>storedVars.parser.parseFromString( storedVars.xmlString , 'text/xml' )</td>
+	<td>xmlTree</td>
+</tr>
+<tr>
+	<td>assertNotEval</td>
+	<td>storedVars.xmlTree.documentElement.nodeName</td>
+	<td>parseerror</td>
+</tr>
+<!--parseFromString() returns XMLDocument - see http://dom.spec.whatwg.org/#concept-document-->
+<tr>
+	<td>storeEval</td>
+	<td>storedVars.xmlTree.getElementsByTagName('item')</td>
+	<td>items</td>
+</tr>
+<!---->
+<tr>
+	<td>for</td>
+	<td>i=0; i&lt;storedVars.items.length; i++</td>
+	<td>i</td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>${i}&gt;0 &amp;&amp; ${i}%${MAX_DISPLAYED_ITEMS}==0</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>//table[@id='charities' and count(.//tr)=${MAX_DISPLAYED_ITEMS}+1 ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>markPageAsCurrent</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//span[@id='navigate-right-links' and contains(@style, 'display: inline') ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>navigate-right-next-page</td>
+	<td></td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>pauseUntilPageRefreshed</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>storedVars.items[${i}].getAttribute('name')</td>
+	<td>name</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>storedVars.items[${i}].getAttribute('lastAmount')</td>
+	<td>lastAmount</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>storedVars.items[${i}].getAttribute('totalAmount')</td>
+	<td>totalAmount</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>storedVars.items[${i}].getAttribute('enabled')=='true' ? 'disable' : 'enable'</td>
+	<td>enabled</td>
+</tr>
+<!--XPath  index to a collection of HTML elements starts at 1, not at 0. If I calculated this in XPath, then I use 'mod' instead of '%'-->
+<tr>
+	<td>storeEval</td>
+	<td>${i}%${MAX_DISPLAYED_ITEMS} +2</td>
+	<td>xpathRowIndex</td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>qs{ &quot;xpath=( //table[@id='charities']//tr )[&quot; +$xpathRowIndex+ &quot;] /td[@class='name' and text()=&quot; +xpath_escape_quote( unescape_xml(storedVars.name) )+ &quot;]&quot; }</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>xpath=( //table[@id='charities']//tr )[${xpathRowIndex}] /td[@class='lastAmount' and text()='${lastAmount}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>xpath=( //table[@id='charities']//tr )[${xpathRowIndex}] /td[@class='totalAmount' and text()='${totalAmount}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>xpath=( //table[@id='charities']//tr )[${xpathRowIndex}] /td[@class='enableDisable' and a/text()='${enabled}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFor</td>
+	<td></td>
+	<td></td>
+</tr>
+<!--Verify this is the last page and how many rows-->
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//span[@id='navigate-right-links' and contains(@style, 'display: none') ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>qs{&quot;//table[@id='charities' and count(.//tr)=&quot;+($items.length%$MAX_DISPLAYED_ITEMS+1)+&quot; ]&quot; }</td>
+	<td></td>
+</tr>
+<!---->
+<!--Ensure that there are no extra items on the screen.-->
+<!--Compare number of items on the screen to ${items.length}%${MAX_DISPLAYED_ITEMS}-->
+<!--Ensure it's the last page - there are no > and >> navigation arrows-->
+</tbody></table>
+</body>
+</html>

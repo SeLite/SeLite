@@ -1,0 +1,4 @@
+content selite-misc chrome/content/
+
+# custom extension(s)
+overlay chrome://selenium-ide/content/selenium-ide-overlay.xul chrome://selite-misc/content/extensions/extension-loader.xul

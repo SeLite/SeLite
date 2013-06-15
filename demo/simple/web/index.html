@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script type="text/javascript">
+        "use strict";
+        //<![CDATA[
+        // In case you test this with various versions of Firefox, the IndexedDb instance may not be compatible between them.
+        // If you need to remove your IndexedDb instance(s), on Linux they are at ~/.mozilla/firefox/*.default/indexedDB/
+        // See https://developer.mozilla.org/en-US/docs/IndexedDB/Using_IndexedDB#Getting_data_from_the_database
+        var dbRequest = indexedDB.open("dataManipulationErrorSimple", 1);
+        dbRequest.onerror = function(event) {
+           alert("Please allow the web app to use IndexedDB");
+        };
+        dbRequest.onupgradeneeded= function(e) {
+            console.log("running onupgradeneeded");
+            var db= e.target.result;
+            if( !db.objectStoreNames.contains("charity") ) {
+                var store= db.createObjectStore("charity", { keyPath: "id", autoIncrement: true });  
+                store.createIndex("name", "name", { unique: true });
+            }
+        };
+        var db;
+        dbRequest.onsuccess = function(event) {
+           db = this.result;
+           db.onerror = function(event) {
+             alert("IndexedDb error: " + event.target.errorCode);
+           };
+           showAll( true );
+        };
+        
+        var MAX_DISPLAYED_ITEMS= 3;
+        var firstIdToDisplay= -1;
+        var SHOW_LAST_PAGE_RECORD_ID= 999999; // An unrealistic ID that will never be reached
+        
+        // Constructor of an object that will be stored in IndexedDb
+        function Charity( name, initialAmount ) {
+            if( !name ) {
+                throw new Error("Charity() requires parameter name");
+            }
+            this.name= name;
+            this.lastAmount= 0;
+            this.totalAmount= initialAmount || 0;
+            this.enabled= true;
+        }
+        
+        /** @return an object store for 'items' */
+        function objectStore() {
+            return db.transaction( ['charity'], 'readwrite').objectStore('charity');
+        }
+        
+        function appendCell( row, text, className, textIsHtml ) {
+            textIsHtml= textIsHtml || false;
+            var cell= row.insertCell(-1);
+            if( !textIsHtml ) {
+                cell.appendChild( document.createTextNode(text) );
+            }
+            else {
+                cell.innerHTML= text;
+            }
+            cell.className= className;
+        }
+        
+        /** @param item Object of type Charity.
+         * */
+        function addRow( item, items ) {
+            var charitiesTable= document.getElementById('charities');//@TODO Following shouldn't be needed - I delete whenever switching between the pages
+            if( charitiesTable.rows.length==MAX_DISPLAYED_ITEMS+1 ) { // +1 because of the header row
+                charitiesTable.deleteRow( 1 );
+                items.shift();
+            }
+            items.push( item );
+            
+            var newRow= charitiesTable.insertRow(-1);
+            appendCell( newRow, item.name, "name" );
+            appendCell( newRow, item.lastAmount, 'lastAmount' );
+            appendCell( newRow, item.totalAmount, 'totalAmount' );
+            appendCell( newRow, item.enabled
+                ? '<a href="javascript:donate(' +item.id+ ')">donate</a>'
+                : '<i>disabled</i>',
+                'donate', true );
+            appendCell( newRow, '<a href="javascript:enableDisable(' +item.id+ ')">'+
+                (item.enabled
+                    ? 'disable'
+                    : 'enable'
+                ) +'</a>',
+                'enableDisable', true );
+            appendCell( newRow, '<a href="javascript:rename(' +item.id+ ')">rename</a>', 'rename', true );
+            appendCell( newRow, '<a href="javascript:remove(' +item.id+ ')">delete</a>', 'remove', true );
+        }
+        
+        /** Clear the data rows in the table */
+        function clearRows() {
+            var charitiesTable= document.getElementById('charities');
+            // Delete all rows, except for the first one (headers). Do it in reverse, because charitiesTable.rows.length decreases as you remove row by row
+            for( var i=charitiesTable.rows.length-1; i>0; i-- ) {
+                charitiesTable.deleteRow( i );
+            }
+        }
+        
+        /** @param modifiedOrJustLoaded boolean Whether the data was modified, or the page was just loaded/refreshed
+         *  (not by the navigation arrows <<, <, >, >>). If true, then this reads all data (not just data needed to show the current page)
+         *  and it updates XML and SQLite export. Optional, false by default.
+         *  @param passedFirstIdToDisplay int ID of the first record to display on the list. Pass a negative value if to display the very first ID.
+         *  Pass an unrealistic very high number to display the last records, so that the last record in the DB is the last on the list and the
+         *  list shows as many records as we allow. If passedFirstIdToDisplay>=0 and there is no record with such ID, then it shows
+         *  a page that starts with (or contains) a record with the nearest higher ID.
+         *  Optional; if not set or null, then the function uses global firstIdToDisplay instead.
+         *  @param pageShiftDirection boolean, optional; if true, then this will move 1 page forward; if false, then this moves 1 page backwards.
+         *  The function updates global firstIdToDisplay to ID of the record listed first on the page it shows, as per navigation.
+         * */
+        function showAll( modifiedOrJustLoaded, passedFirstIdToDisplay, pageShiftDirection ) {
+            if( typeof modifiedOrJustLoaded =='undefined' ) {
+                modifiedOrJustLoaded= false;
+            }
+            if( typeof passedFirstIdToDisplay !='undefined' && passedFirstIdToDisplay!==null ) {
+                firstIdToDisplay= passedFirstIdToDisplay;
+            }
+            if( typeof pageShiftDirection =='undefined' ) {
+                pageShiftDirection= null; // Below I use strict comparison pageShiftDirection!==null, because it can also be false
+            }
+            
+            clearRows();
+            var itemsToDisplay= []; // FIFO buffer, where we load items as they come, until we reach the required ID as until we position required ID
+                // as close to the beginning of items[] as possible. If items.length reaches MAX_DISPLAYED_ITEMS, then we remove the oldest item
+                // as we add a new one. I'm not using IDBKeyRange because cursors don't allow me to reverse the iteration order
+            var itemsToDisplayCollected= false; // Will become true one whe have itemsToDisplay[] that we need. We'll still continue iterating, to fill itemsToExport[]
+            
+            var itemsToExport= [];
+            var xml= '';
+            
+            // Hide all navigation links
+            navigationLinks( false, false );
+            navigationLinks( true, false );
+            
+            // Following depends on the records sorted by id, and id being unique
+            // We iterate from the first to the last item, because we need to
+            // - detect whether to show the << and >> arrows
+            // - generate/update XML export
+            objectStore().openCursor().onsuccess= function(event) {
+                var cursor= event.target.result;
+                if( cursor ) {
+                    var item= cursor.value;
+                    itemsToExport.push( item );
+                    
+                    if( !itemsToDisplayCollected ) {
+                        if( itemsToDisplay.length==MAX_DISPLAYED_ITEMS ) { // Already listing a full page
+                            if( pageShiftDirection!==null ) {
+                                if( pageShiftDirection ) {
+                                    if( firstIdToDisplay<0 // We are listing the first page (if firstIdToDisplay<0)
+                                     || itemsToDisplay[0].id>=firstIdToDisplay // We are listing the page that was displayed before this showAll() was called (if items[0].id>=firstIdToDisplay).
+                                    ) { // So the just loaded item will be the first one on the page to show.
+                                        firstIdToDisplay= item.id;
+                                        pageShiftDirection= null;
+                                    }
+                                }
+                                else {
+                                    if( firstIdToDisplay<0 // We are listing the first page. Can't reverse backwards. Listing is done.
+                                    || item.id>=firstIdToDisplay // The loaded (unshown) item used to be the first one on the page displayed before showAll()
+                                                                   // We're showing the page before that. Listing is done.
+                                    ) {
+                                        firstIdToDisplay= itemsToDisplay[0].id; // Mark ID of the 1st record listed
+                                        navigationLinks( true, true );
+                                        itemsToDisplayCollected= true;
+                                        cursor.continue();
+                                        return;
+                                    }
+                                }
+                            }
+                            else {
+                                if( firstIdToDisplay<0 || itemsToDisplay[0].id>=firstIdToDisplay ) { // Displaying the wanted page. Listing is done
+                                    firstIdToDisplay= itemsToDisplay[0].id; // Mark ID of the 1st record listed
+                                    navigationLinks( true, true );
+                                    itemsToDisplayCollected= true;
+                                    cursor.continue();
+                                    return;
+                                }
+                            }
+                            clearRows();
+                            itemsToDisplay= [];
+                            navigationLinks( false, true );
+                        }
+                        addRow( item, itemsToDisplay );
+                    }
+                    cursor.continue(); // This causes asynchronous processing
+                }
+                else {// There are no more records.
+                    if( !itemsToDisplayCollected ) {
+                        if( itemsToDisplay.length>0 ) {
+                            firstIdToDisplay= itemsToDisplay[0].id; // Mark ID of the 1st record listed
+                        }
+                    }
+                    updateExports(itemsToExport);
+                }
+            };
+        }
+        
+        /** @param direction False if enabling/disabling left-pointing navigation links (to the previous/first page).
+         *  True if for right-pointing links (to the next/last page).
+         *  @param enable Whether to enable or disable the links in the given direction
+         * */
+        function navigationLinks( direction, enable ) {
+            var directionWord= direction
+                ? 'right'
+                : 'left';
+            document.getElementById( 'navigate-' +directionWord+ '-links' ).style.display= enable
+                ? 'inline'
+                : 'none';
+            document.getElementById( 'navigate-' +directionWord+ '-no-links' ).style.display= enable
+                ? 'none'
+                : 'inline';
+        }
+        
+        /** Prompt the user for a value.
+         *  @param string text to show as the title of the prompt window
+         *  @param mixed defaultValue empty string by default
+         *  @param string fieldName Name of the field. 'value' by default.
+         *  @param bool numericField Whether the field will be validated and cast to a number; false by default.
+         *  @return mixed string the entered value; number if numericField==true; null if the user clicked at Cancel button.
+         *  Safari doesn't differentiate between entering an empty text and hitting Cancel, therefore in either of this cases this function
+         *  doesn't show a prompt again. If it did, it would have to repeat prompt() for up to a fixed maximum number of times;
+         *  otherwise in Safari it wouldn't let the user cancel the prompt - they would have to type a non-empty value to get out of it.
+         * */
+        function promptNonEmpty( text, defaultValue, fieldName, numericField ) {
+            defaultValue= defaultValue || '';
+            fieldName= fieldName || 'value';
+            numericField= numericField || false;
+            var amount= prompt(text, defaultValue );
+            if( amount===null ) { // The user clicked at Cancel. (That may not work in Safari)
+                return null;
+            }
+            amount= amount.trim();
+            if( amount==='' ) {
+                alert( 'Please enter a non-empty ' +fieldName+ '. Try again.' );
+                return null;
+            }
+            amount= amount.trim();
+            if( numericField ) {
+                amount= parseFloat(amount);
+                if( isNaN(amount) ) {
+                    alert( 'Please enter a whole or decimal number. Try again.' );
+                    return null;
+                }
+            }
+            return amount;
+        }
+        
+        function donate( id ) {
+            objectStore().openCursor( IDBKeyRange.only(id) ).onsuccess= function(event) {
+                var cursor= event.target.result;
+                if( cursor ) {
+                    var amount= promptNonEmpty('Enter the amount to donate to ' +cursor.value.name, cursor.value.lastAmount, 'amount', true );
+                    if( amount===null ) { // The user clicked at Cancel. (That may not work in Safari)
+                        return;
+                    }
+                    cursor.value.lastAmount= amount;
+                    cursor.value.totalAmount+= amount;
+                    cursor.update( cursor.value ).onsuccess= function(event) {
+                        showAll( true );
+                    };
+                }
+            };
+        }
+        
+        /** This has a bug - it adds the donation to all charities, including disabled ones.
+        *   The bug is here by purpose, to demonstrate how SeLite and a good test script can detect it.
+        * */
+        function donateAll() {
+            var amount= promptNonEmpty('Enter the amount to donate to all charities', 0, 'amount', true );
+            if( amount===null ) { // The user clicked at Cancel. (That may not work in Safari)
+                return;
+            }
+            
+            // Following ensures that I run showAll() only after all records were updated. Let's hope Javascript auto-synchronizes these variables.
+            var numberOfAsynchronousRequests= 0;
+            var iterationActive= true;
+            
+            objectStore().openCursor().onsuccess= function(event) {
+                var cursor= event.target.result;
+                if( cursor ) {
+                    cursor.value.lastAmount= amount;
+                    cursor.value.totalAmount+= amount;
+                    numberOfAsynchronousRequests++;
+                    cursor.update( cursor.value ).onsuccess= function(event) {
+                        if( --numberOfAsynchronousRequests==0 && !iterationActive ) {
+                            showAll( true );
+                        }
+                    };
+                    cursor.continue();
+                }
+                else {
+                    if( numberOfAsynchronousRequests==0 ) {
+                        showAll( true );
+                    }
+                    iterationActive= false;
+                }
+            }
+        }
+        
+        function rename( id ) {
+            objectStore().openCursor( IDBKeyRange.only(id) ).onsuccess= function(event) {
+                var cursor= event.target.result;
+                if( cursor ) {
+                    var newName= promptNonEmpty('Enter the new name', cursor.value.name, 'name' );
+                    if( newName===null ) { // The user clicked at Cancel. (That may not work in Safari)
+                        return;
+                    }
+                    cursor.value.name= newName;
+                    cursor.update( cursor.value ).onsuccess= function(event) {
+                        showAll( true );
+                    };
+                }
+            };
+        }
+        
+        function enableDisable( id ) {
+            var store= objectStore();
+            store.openCursor( IDBKeyRange.only(id) ).onsuccess= function(event) {
+                var cursor= event.target.result;
+                if( cursor ) {
+                    cursor.value.enabled= !cursor.value.enabled;
+                    store.put( cursor.value ).onsuccess= function(event) {
+                        showAll( true );
+                    };
+                }
+            }
+        }
+        
+        function remove( id ) {
+            if( confirm("Are you sure you want to remove this record?") ) {
+                objectStore().delete(id).onsuccess= function(event) {
+                    showAll( true,
+                        id==firstIdToDisplay
+                        ? firstIdToDisplay+1
+                        : firstIdToDisplay
+                    );
+                };
+            }
+        }
+        
+        /** It creates a new item.
+         * */
+        function add( item ) {
+            objectStore().add( item ).onsuccess= function(event) {
+                showAll( true, SHOW_LAST_PAGE_RECORD_ID ); // The new item is added to the end, so we show the last page
+            }
+        }
+        
+        function askAndAdd() {
+            var name= prompt('Enter charity name', '');
+            if( name===null ) { // This may not work in Safari
+                return;
+            }
+            name= name.trim();
+            if( name=='' ) {
+                alert( 'Please enter a non-empty name. Try again.' );
+                return;
+            }
+            add( new Charity(name) );
+        }
+        
+        function removeAll() {
+            if( confirm( "Are you sure you want to remove all records?") ) {
+                objectStore().clear().onsuccess= function(event) {
+                    showAll( true, -1 );
+                };
+            }
+        }
+        
+        var ampRegex= /&/g;
+        var lowerThanRegex= /</g;
+        var greaterThanRegex= />/g;
+        var quoteRegex= /"/g;
+        
+        /** @param string xml XML to escape, e.g. when displaying it on a webpage
+        *   @param bool asParameterValue Optional; if true, then it replaces quotes with XML escape.
+        * */
+        function escapeXml( xml, asParameterValue ) {
+            var escaped= xml.replace(ampRegex, '&amp;').replace(lowerThanRegex, '&lt;').replace(greaterThanRegex, '&gt;');
+            if( asParameterValue ) {
+                escaped= escaped.replace( quoteRegex, '&quot;' );
+            }
+            return escaped;
+        }
+        
+        /** @param items array of item objects
+        * */
+        function updateExports(items) {
+            // IndexedDB doesn't reuse autogenerated IDs, even if I delete the last created ID.
+            // So we can safely export the data only if we didn't delete any consecutive records past
+            // the current last record - i.e. if the existing last record is the latest record ever created.
+            
+            // When I displayed the export by storing it to element.textContent, it ignored new lines. So I store it as innerHTML.
+            // I also want it to look good, so I present it as 2 tables. I add a space to contents of each cell, so that then
+            // I can use element.textContent to read the contents of the whole table and use it as XML/SQL. Without the extra space(s)
+            // element.textContent is concatenated text of the table cells.
+            // SQL export puts all rows in one statement. That will fail if it is over SQLite limit - unlikely for demo purposes.
+            var xmlRows= [], sqlRows= [];
+            var apostropheGlobalRegex= /'/g;
+            
+            for( var i=0; i<items.length; i++ ) {
+                var item= items[i];
+                xmlRows.push( [
+                    '&lt;item <strong>id</strong>="' +item.id+ '" ',
+                    '<strong>name</strong>="' +escapeXml( escapeXml(item.name, true) )+ '"',
+                    '<strong>lastAmount</strong>="' +item.lastAmount+ '"',
+                    '<strong>totalAmount</strong>="' +item.totalAmount+ '"',
+                    '<strong>enabled</strong>="' +item.enabled+ '"/&gt;'
+                ] );
+                sqlRows.push( [
+                    "" +item.id+ ",",
+                    "'" +item.name.replace(apostropheGlobalRegex, "''")+"',",
+                    "" +item.lastAmount+ ',',
+                    "" +item.totalAmount+ ',',
+                    "" +(item.enabled ? 1 : 0)
+                ] );
+           }
+            // There must be no space between first <td> and escaped <?xml... header.
+            // That's because demo test parses .textContent as XML, and that fails if there's any leading whitespace.
+            var xmlTableHtml= '<table>'+
+                '<tr><td colspan="5">' +escapeXml('<?xml version="1.0" encoding="UTF-8"?>')+ '<br/>'+escapeXml('<items>')+ ' </td></tr>';
+            for( var i=0; i<xmlRows.length; i++ ) {
+                xmlTableHtml+= '<tr>';
+                var row= xmlRows[i];
+                for( var j=0; j<row.length; j++ ) {
+                    xmlTableHtml+= '<td> ' +row[j]+ ' </td>';
+                }
+                xmlTableHtml+= '</tr>';
+            }
+            xmlTableHtml+= '<tr><td colspan="5">' +escapeXml('</items>')+ '</td></tr></table>';
+            document.getElementById('xml').innerHTML= xmlTableHtml;
+            
+            var sqlTableHtml= '<table>'+
+                '<tr>'+
+                    '<td>CREATE TABLE charities<br/>(<strong>id</strong> INTEGER<br/> PRIMARY KEY<br/> AUTOINCREMENT, </td>'+
+                    '<td><br/> <strong>name</strong> VARCHAR(255)<br/> NOT NULL, </td>'+
+                    '<td><br/> <strong>lastAmount</strong> NUMERIC<br/> NOT NULL<br/> DEFAULT 0, </td>'+
+                    '<td><br/> <strong>totalAmount</strong> NUMERIC<br/> NOT NULL<br/> DEFAULT 0, </td>'+
+                    '<td><br/> <strong>enabled</strong> INTEGER<br/> NOT NULL<br/> DEFAULT 1); </td>'+
+                '</tr>';
+            if( sqlRows.length>0 ) {
+                sqlTableHtml+=
+                    '<tr>'+
+                        '<td> INSERT INTO charities<br/> (<strong>id</strong>, </td>'+
+                        '<td><br/> <strong>name</strong>, </td>'+
+                        '<td><br/> <strong>lastAmount</strong>, </td>'+
+                        '<td><br/> <strong>totalAmount</strong>, </td>'+
+                        '<td><br/> <strong>enabled</strong>) <br/>VALUES</td>'+
+                    '</tr>';
+                for( var i=0; i<sqlRows.length; i++ ) {
+                    sqlTableHtml+= '<tr>';
+                    var row= sqlRows[i];
+                    for( var j=0; j<row.length; j++) {
+                        sqlTableHtml+= '<td> ';
+                        if( j==0 ) {
+                            sqlTableHtml+= '(';
+                        }
+                        sqlTableHtml+= escapeXml(row[j]);
+                        if( j==row.length-1 ) {
+                            sqlTableHtml+= i==sqlRows.length-1
+                                ? ');'
+                                : '),'
+                        }
+                        sqlTableHtml+= ' </td>';
+                    }
+                    sqlTableHtml+= '</tr>';
+                }
+            }
+            sqlTableHtml+= '</table>';
+            document.getElementById('sqlite').innerHTML= sqlTableHtml;
+            //alert( document.getElementById('xml').textContent );
+        }
+        
+        /** @param type boolean true if this should show/hide XML export; false if it should show/hide SQLite export
+         * */
+        function toggleExport(type) {
+            var divId= type
+                ? 'xml'
+                : 'sqlite';
+            var div= document.getElementById(divId);
+            div.style.display= div.style.display=='none'
+                ? 'block'
+                : 'none';
+        }
+        
+        //]]>
+        </script>
+        <style type="text/css">
+            #charities th { text-align: left; }
+            #charities .name { width: 10em;} /* This is so that the column width doesn't change when the user navigates between the pages. */
+            #charities, #xml table, #sqlite table {
+                border: 0px;
+                border-collapse: collapse;
+            }
+            #charitiesDiv {
+                height: 15em;
+                min-height: 15em;
+            }
+            #charities th, #charities td,
+            #xml td,#sqlite td
+            {
+                padding: 0.5em;
+                vertical-align: top;
+            }
+            #charities tr:nth-child(odd),
+            #xml tr:nth-child(1),
+            #xml tr:nth-child(2n),
+            #sqlite tr:nth-child(1), #sqlite tr:nth-child(2),
+            #sqlite tr:nth-child(2n+4) {
+                background-color: lightgray;
+            }
+            #controls td {
+                background-color: lightgray;
+            }
+            #xml {
+                min-height: 10em;
+            }
+            #footer-spacer {
+                min-height: 2em;
+            }
+            .footer {
+                font-size: 50%;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="charitiesDiv">
+            <table id="charities">
+                <tr class="header">
+                    <th class="name">Charity</th>
+                    <th class="lastAmount">Last<br/>donation</th>
+                    <th class="totalAmount">Total of<br/>donations</th>
+                    <th class="donate">Donate</th>
+                    <th class="enableDisable">Toggle<br/>enable</th>
+                    <th class="rename">Rename</th>
+                    <th class="remove">Delete</th>
+                </tr>
+            </table>
+        </div>
+        <table id="controls">
+            <tr>
+                <td>
+                    <span id="navigate-left-links">
+                        <a id="navigate-left-first-page" href="javascript:showAll( false, -1 )" title="First page">&lt;&lt;</a>
+                        <a id="navigate-left-previous-page" href="javascript:showAll( false, null, false )" title="Previous page">&lt;</a>
+                    </span>
+                    <span id="navigate-left-no-links" style="display:none">
+                        &lt;&lt; &lt;
+                    </span>
+                </td>
+                <td>
+                    <span id="navigate-right-links">
+                        <a id="navigate-right-next-page" href="javascript:showAll( false, null, true )" title="Next page">&gt;</a>
+                        <a id="navigate-right-last-page" href="javascript:showAll( false, SHOW_LAST_PAGE_RECORD_ID )" title="Last page">&gt;&gt;</a>
+                    </span>
+                    <span id="navigate-right-no-links" style="display:none">
+                          &gt; &gt;&gt;
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <a id="new" href="javascript:askAndAdd()">New</a>
+                </td>
+                <td>
+                    <a id="donate-to-all" href="javascript:donateAll()">Donate all</a>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <a id="delete-all" href="javascript:removeAll()">Delete all</a>
+                </td>
+                <td>&#160;
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <a id="export" href="javascript:toggleExport(true)">Toggle XML</a>
+                </td>
+                <td>
+                    <a id="export" href="javascript:toggleExport(false)">Toggle SQLite</a>
+                </td>
+        </table>
+        <div id="xml" style="display:none"></div>
+        <div id="sqlite" style="display:none"></div>
+        <div id="footer-spacer"></div>
+        <div>
+            This is Simple demo for <a href="https://code.google.com/p/selite">SeLite</a>. It has an intentional bug:
+            <ul>
+                <li>in order to donate to a specific charity only, it has to be enabled</li>
+                <li>however, 'Donate all' donates to all charities, including disabled ones</li>
+            </ul>
+        </div>
+        <div class="footer">
+            Copyright 2013 Peter Kehl
+            <br/>See <a href="http://www.gnu.org/licenses/gpl.html">GNU GPL License version 3</a>.
+        </div>
+    </body>
+</html>

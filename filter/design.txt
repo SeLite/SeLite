@@ -1,0 +1,28 @@
+      Run
+calls Usage
+calls Task[]
+  calls run.apply( Filter, App )
+    calls filter.process( app, run )
+
+CharSequenceManager
+has     CharSequence sequence
+        extends CharSequenceContinuous
+-------
+
+Change
+CharSequenceContinuous constructor to accept: available heap, max. matcheable length (in char)
+--------
+
+
+heap
+|....|....|....|....|....|....|
+
+FilterReplace.process(App, Run)
+- if start() is past bufferedLength-matcheableLength, then ignore the match
+- whether there was any match in the current buffer, or whether the last match was past  bufferedLength-matcheableLength, delete 0..bufferedLength-matcheableLength from the buffer, keep the rest in the buffer, and append up to  bufferedLength-matcheableLength more characters from input file
+- using separate threads - see TODO in FilterReplace
+
+CharSequenceManager
+- add abstract int highestMatcheableIndex()
+-- in CharSequenceManagerInMemory: return buffer.length()-1
+-- in CharSequenceManagerInFile: return bufferedLength-matcheableLength (+-1)

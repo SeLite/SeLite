@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://lmsdev.racp.edu.au" />
+<title>case_populate</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">case_populate</td></tr>
+</thead><tbody>
+<!--Refresh the page (in case the user navigated through pagination)-->
+<tr>
+	<td>refreshAndWait</td>
+	<td></td>
+	<td></td>
+</tr>
+<!--Pause while the data and DOM is loaded-->
+<tr>
+	<td>pause</td>
+	<td>1000</td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>script</td>
+	<td>create</td>
+	<td>name</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>this.browserbot.findElement( &quot;//html&quot; ).innerHTML</td>
+	<td>wholePageHtml</td>
+</tr>
+<tr>
+	<td>answerOnNextPrompt</td>
+	<td>${name}</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>new</td>
+	<td></td>
+</tr>
+<!--waitForCondition (unlike getEval etc.) can't use this.browserbot. It must use selenium.browserbot.-->
+<tr>
+	<td>waitForCondition</td>
+	<td>selenium.browserbot.findElement( &quot;//html&quot; ).innerHTML!=storedVars['wholePageHtml']</td>
+	<td>2000</td>
+</tr>
+<!--Sometimes the next assert didn't register the new row, so I added a pause here-->
+<tr>
+	<td>pause</td>
+	<td>100</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>//td[@class='name'][last()][text()='${name}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endScript</td>
+	<td></td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>call</td>
+	<td>create</td>
+	<td>name='SeLite'</td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>create</td>
+	<td>name='Selenium IDE'</td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>create</td>
+	<td>name='Mozilla'</td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>create</td>
+	<td>name='Linux'</td>
+</tr>
+</tbody></table>
+</body>
+</html>

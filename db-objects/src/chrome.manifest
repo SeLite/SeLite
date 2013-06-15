@@ -1,0 +1,4 @@
+content selite-db-objects chrome/content/
+
+# custom extension(s)
+overlay chrome://selite-db-storage/content/extensions/extension-loader.xul chrome://selite-db-objects/content/extensions/extension-loader.xul

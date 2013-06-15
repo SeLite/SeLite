@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<!DOCTYPE window [
+<!ENTITY % opt SYSTEM "chrome://selenium-ide/locale/options.dtd">
+%opt;
+<!ENTITY % side SYSTEM "chrome://selenium-ide/locale/selenium-ide.dtd">
+%side;
+]>
+
+<overlay id="se_bootstrap_options_overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
+<script type="application/x-javascript" src="chrome://selite-bootstrap/content/ui/ovOptions.js"/>
+
+	<tabbox id="optionsTabbox" flex="1">
+		<tabs id="optionsTabs" orient="horizontal">
+			<tab id="SeBootstrapTab" label="SeBootstrap"/>
+		</tabs>
+		<tabpanels id="general">
+			<tabpanel id="SeBootstrap" orient="vertical">
+				<vbox>
+					<hbox align="center">
+                        <!-- TODO: Following was copied from File Logging extension.
+                            It used to use &logConsole.label; &fileMenu.label; which rendered as 'Log File'. Find out how to change it. -->
+						<description>Selenium Core extension</description>
+						<textbox id="se_bootstrap_scriptFileName" multiline="false" flex="1"/>
+						<button label="&options.browse;" oncommand="chooseScriptFile('se_bootstrap_scriptFileName')"/>
+					</hbox>
+					<description class="tip">Select a file or enter a full path to one file only. Leave empty to stop reloading the script.</description>
+				</vbox>
+			</tabpanel>
+		</tabpanels>
+	</tabbox>
+
+</overlay>

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<overlay id="seBootstrap_extension_loader_overlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+         xmlns:html="http://www.w3.org/1999/xhtml">
+    <script type="application/x-javascript" src="chrome://selenium-ide/content/api.js"/>
+    <script type="application/x-javascript" src="chrome://sidefilelogger/content/setup/pluginframework.js"/>
+    <script type="application/x-javascript" src="chrome://selite-bootstrap/content/setup/setup.js"/>
+    <html:script type="application/javascript">
+        var ide_api = new API();
+        ide_api.addPlugin("bootstrap@selite.googlecode.com");
+        //@Todo
+        ide_api.addPluginProvidedUserExtension("chrome://selite-bootstrap/content/extensions/se_bootstrap.js");
+    </html:script>
+</overlay>

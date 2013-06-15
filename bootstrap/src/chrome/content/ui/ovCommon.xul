@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!DOCTYPE window [
+<!ENTITY % seleniumIdeDTD SYSTEM "chrome://selenium-ide/locale/selenium-ide.dtd">
+%seleniumIdeDTD;
+]>
+<overlay id="se_bootstrap_overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<hbox align="center" id="seBootstrapOptions">
+		<toolbarbutton id="se_bootstrapOptions" label="Bootstrap" type="menu" class="console-button">
+			<menupopup id="se_bootstrapOptionsPopup" >
+				<menuitem label="Show Options..." oncommand='window.openDialog("chrome://selenium-ide/content/optionsDialog.xul", "options", "chrome,modal,resizable", null, "se-bootstrap");'/>
+			</menupopup>
+		</toolbarbutton>
+	</hbox>
+</overlay>
