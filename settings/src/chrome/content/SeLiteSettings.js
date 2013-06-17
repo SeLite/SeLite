@@ -736,7 +736,7 @@ SeLiteSettings.Module.prototype.removeSet= function( setName ) {
         }
         else
         if( this.prefsBranch.prefHasUserValue(setName+fieldName) ) {
-            this.prefsBranch.clearUserPref( setName+fieldName ); // @TODO Choice and multi-value - for those use deleteBranch()
+            this.prefsBranch.clearUserPref( setName+fieldName );
         }
     }
 };
