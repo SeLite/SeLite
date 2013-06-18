@@ -614,7 +614,7 @@ function treeClickHandler( event ) {
     tree.boxObject.getCellAt(event.clientX, event.clientY, row, column, pseudoElementHit );
     
     if( row.value>=0 && column.value ) {
-        var rowProperties= tree.view.getRowProperties(row.value); // This requires Mozilla 22+. See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeBoxObject
+        var rowProperties= tree.view.getRowProperties(row.value); // This requires Gecko 22+ (Firefox 22+). See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeBoxObject
         var moduleName= propertiesPart( rowProperties, RowLevel.MODULE );
         var module= modules[moduleName];
         var moduleRows= treeRows[moduleName];
@@ -749,7 +749,7 @@ function treeClickHandler( event ) {
                             treeChildren.parentNode.setAttribute('open', 'true');
                         }
                         tree.boxObject.ensureRowIsVisible( row.value+1 );
-                        tree.startEditing( row.value+1, treeColumn(treeColumnElements.value) ); //@TODO
+                        tree.startEditing( row.value+1, treeColumn(treeColumnElements.value) );
                     }
                     if( cellText===DELETE_THE_VALUE ) {
                         var clickedOptionKey= propertiesPart( rowProperties, RowLevel.OPTION );
