@@ -614,6 +614,7 @@ function treeClickHandler( event ) {
     tree.boxObject.getCellAt(event.clientX, event.clientY, row, column, pseudoElementHit );
     
     if( row.value>=0 && column.value ) {
+        var modifiedPreferences= false;
         var rowProperties= tree.view.getRowProperties(row.value); // This requires Gecko 22+ (Firefox 22+). See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeBoxObject
         var moduleName= propertiesPart( rowProperties, RowLevel.MODULE );
         var module= modules[moduleName];
@@ -630,6 +631,7 @@ function treeClickHandler( event ) {
                 }
                 var selectedSetName= propertiesPart( rowProperties, RowLevel.SET );
                 module.setSelectedSetName( selectedSetName );
+                modifiedPreferences= true;
                 
                 for( var setName in moduleRows ) {
                     var treeRow= moduleRows[setName][SeLiteSettings.SET_SELECTION_ROW];
@@ -680,6 +682,7 @@ function treeClickHandler( event ) {
                             : field.removeValue( setName, clickedOptionKey );
                     }
                 }
+                modifiedPreferences= true;
             }
             var field;
             if( column.value.element==treeColumnElements.value || column.value.element==treeColumnElements.action ) {
@@ -700,6 +703,7 @@ function treeClickHandler( event ) {
                     var setName= prompt('Enter the new set name');
                     if( setName ) {
                         module.createSet( setName );
+                        SeLiteSettings.savePrefFile(); // Must save here, before reload()
                         window.location.reload();
                     }
                 }
@@ -710,6 +714,7 @@ function treeClickHandler( event ) {
                         return;
                     }
                     module.removeSet( setName);
+                    SeLiteSettings.savePrefFile(); // Must save here, before reload()
                     window.location.reload();
                 }
                 if( (cellText===ADD_NEW_VALUE || cellText===DELETE_THE_VALUE) ) {
@@ -757,9 +762,13 @@ function treeClickHandler( event ) {
                         delete moduleRows[setName][field.name][ clickedOptionKey ];
                         treeChildren.removeChild( clickedTreeRow.parentNode );
                         field.removeValue( setName, clickedOptionKey );
+                        modifiedPreferences= true;
                     }
                 }
             }
+        }
+        if( modifiedPreferences ) {
+            SeLiteSettings.savePrefFile();
         }
     }
 }
@@ -848,6 +857,7 @@ function setCellText( row, col, value ) {
         }
         field.addValue( setName, value );
     }
+    SeLiteSettings.savePrefFile();
 }
 
 /* @var allowSets bool Whether to show the column for selection of a set. If we're only showing one module, this is module.allowSets.

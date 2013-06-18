@@ -196,11 +196,13 @@ SeLiteSettings.Field.prototype.setValue= function( setName, value ) {
         : '';
     this.setPref( setNameDot+ this.name, value );
 };
+/** Set a field (with the given field and key name) to the given value. It doesn't call nsIPrefService.savePrefFile().
+ * */
 SeLiteSettings.Field.prototype.setPref= function( setFieldKeyName, value ) {
     this.module.prefsBranch.setCharPref( setFieldKeyName, value );
 };
 
-/** Only to be used with multivalued or choice fields.
+/** Only to be used with multivalued or choice fields. It doesn't call nsIPrefService.savePrefFile().
  * @param string setName May be empty.
  * @param mixed key as used to generate the preference name (key), appened after fieldName and a dot. String or number.
  * For non-choice multivalued fields it's also used as the value stored in preferences; and for Int
@@ -224,6 +226,7 @@ SeLiteSettings.Field.prototype.addValue= function( setName, key ) {
     this.setPref( setNameDot+ this.name+ '.' +key, value );
 };
 /** Only to be used with multivalued or choice fields. If the key was not set, then this returns without failing.
+ * It doesn't call nsIPrefService.savePrefFile().
  * @param string setName May be empty.
  * @param mixed key as used to generate the preference name (key), appened after fieldName and a dot. String or number.
  * */
@@ -454,9 +457,13 @@ SeLiteSettings.Module= function( name, fields, allowSets, defaultSetName, defini
     this.prefsBranch= prefs.getBranch( this.name+'.' );
 };
 
+SeLiteSettings.savePrefFile= function() {
+    prefs.savePrefFile( null );
+};
+
 /** Get an existing module with the same name, or the passed one. If there is an existing module, this checks that
  *  fields and other parameters are equal, otherwise it fails.
- *  If the module is new, this registers it.
+ *  If createOrUpdate is true (by default), this (re)registers the module, which calls nsIPrefService.savePrefFile().
  * @param module Object instance of SeLiteSettings.Module that you want to register (or an equal one)
  *  @param createOrUpdate Boolean, optional, true by default; whether to create or update any existing sets by calling module.createOrUpdate()
  *  @return An existing equal Module instance, if any; given module otherwise.
@@ -559,7 +566,8 @@ SeLiteSettings.Module.prototype.selectedSetName= function() {
     return null;
 };
 
-/** @param string name of the set to become selected (active), including a trailing dot '.'
+/** It sets a selected set for the module. It doesn't call nsIPrefService.savePrefFile().
+ *  @param string name of the set to become selected (active), including a trailing dot '.'
  *  @throws If the module doesn't allow sets.
  * */
 SeLiteSettings.Module.prototype.setSelectedSetName= function( setName ) {
@@ -654,6 +662,7 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function( setName ) {
  * Create the main & only set, if module was created with allowSets=false.
  * Create a default set, if module was was created with allowSets==true and defaultSetName!=null.
  * If the module was registered already, update the only set or any existing sets (depending on allowSets and defaultSetName as above).
+ * It calls nsIPrefService.savePrefFile().
  * */
 SeLiteSettings.Module.prototype.register= function() {
     if( this.definitionJavascriptFile ) {
@@ -678,6 +687,7 @@ SeLiteSettings.Module.prototype.register= function() {
     else {
         this.createSet();
     }
+    prefs.savePrefFile( null );
 };
 
 /** (Re)create a set of the given name - create it, or add any missing fields.
