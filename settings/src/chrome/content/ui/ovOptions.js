@@ -230,7 +230,7 @@ function generateTreeColumns( allowModules ) {
     treecols.appendChild( splitter );
     
     treecol= treeColumnElements.value= document.createElementNS( XUL_NS, 'treecol');
-    treecol.setAttribute('label', 'Text/Number');
+    treecol.setAttribute('label', 'Value');
     treecol.setAttribute('editable', 'true');
     treecol.setAttribute( 'flex', '1');
     treecol.setAttribute( 'ordinal', '7');
@@ -312,7 +312,7 @@ function treeCell( treeRow, level ) {
  *  @param string another field (optional)
  *  @param string another field (optional)
  *  ....
- *  @return the target parent[field][field2][...]
+ *  @return the target parent[field][field2][...]@TODO move to SeLite Misc?
  * */
 function subcontainer( parent, fieldOrFields ) {
     var object= parent;
