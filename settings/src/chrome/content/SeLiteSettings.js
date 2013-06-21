@@ -276,6 +276,9 @@ SeLiteSettings.Field.Int.prototype.generateDefaultValue= function() { return 0; 
 SeLiteSettings.Field.Int.prototype.setPref= function( setFieldKeyName, value ) {
     this.module.prefsBranch.setIntPref( setFieldKeyName, value );
 };
+/** This works even if one or both parameters are strings - it transforms them into numbers.
+ *  We need this for XUL GUI setCellText handler.
+ * */
 SeLiteSettings.Field.Int.prototype.compareValues= function( firstValue, secondValue ) {
     return compareAsNumbers(firstValue, secondValue );
 }

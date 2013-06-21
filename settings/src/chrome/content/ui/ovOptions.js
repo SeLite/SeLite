@@ -825,7 +825,7 @@ function setCellText( row, col, value ) {
 
     var cell= treeCell( treeRow, RowLevel.FIELD );
     //@TODO custom field validation?
-    if( field instanceof SeLiteSettings.Field.Int || field instanceof SeLiteSettings.Field.Choice.Int ) {
+    if( field instanceof SeLiteSettings.Field.Int ) {
         var numericValue= Number(value);
         if( isNaN(numericValue) || numericValue!==Math.round(numericValue) ) { // Can't compare using value===Number.NaN
             alert( "This field accepts integer (whole numbers) only." );
@@ -849,7 +849,7 @@ function setCellText( row, col, value ) {
         }
         if( rowAfterNewPosition===null && SeLiteSettings.NEW_VALUE_ROW in fieldTreeRows && objectKeys(fieldTreeRows).length===3 ) {
             // there's no other existing value, and the row being edited is a new one (it didn't have a real value set yet)
-            if( fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW]!==treeRow ) {
+            if( fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW]!==treeRow || oldKey!==SeLiteSettings.NEW_VALUE_ROW ) {
                 throw new Error( "This assumes that if fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW] is set, then that's the row we're just editing." );
             }
             rowAfterNewPosition= treeRow;
