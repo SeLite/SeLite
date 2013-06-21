@@ -269,6 +269,7 @@ var modules= {};
     *             - one: SeLiteSettings.FIELD_TREECHILDREN => <treechildren> element/object for this field, that contains <treeitem><treerow> levels for each option
     *             - zero or more: string key => <treerow> element/object for the row that contains a value/option
     *             - zero or one: SeLiteSettings.NEW_VALUE_ROW => <treerow> element/object for the row that contains a value that the user will only have to fill in
+    *               (that is, a row dynamically created but with no value specified yet).
     *          }
            }
            ...
@@ -814,7 +815,7 @@ function setCellText( row, col, value ) {
         var oldKey= propertiesPart( rowProperties, RowLevel.OPTION );
         if( value===oldKey ) { //setCellText() is called after editing, even if there was no change
             return;
-        }
+        }alert( 'value ' +value+ '\n' +objectToString(fieldTreeRows, 3, false, ['XULElement', '']) );
         if( value in fieldTreeRows ) {
             alert( "Values must be unique. Another entry for this field already has same value " +value );
             return false;
@@ -835,19 +836,31 @@ function setCellText( row, col, value ) {
         field.setValue( setName, value );
     }
     else {
-        var rowAfterNewPosition= null; // It may be null - then append the new row at the end; if same as treeRow, then the new value stays in treeRow
+        var rowAfterNewPosition= null; // It may be null - then append the new row at the end; if same as treeRow, then the new value stays in treeRow.
+            // If the new value still fits at the original position, then rowAfterNewPosition will be treeRow.
+        //alert( objectToString(fieldTreeRows, 3, false, ['XULElement', '']) );
         for( var otherKey in fieldTreeRows ) {
-            if( otherKey!==SeLiteSettings.FIELD_MAIN_ROW && otherKey!==SeLiteSettings.FIELD_TREECHILDREN && field.compareValues(otherKey, value)>=0 ) {
+            // Following check also excludes SeLiteSettings.NEW_VALUE_ROW, because we don't want to compare it to real values. 
+            //!==SeLiteSettings.FIELD_MAIN_ROW && otherKey!==SeLiteSettings.FIELD_TREECHILDREN 
+            if( SeLiteSettings.reservedNames().indexOf(otherKey)<0 && field.compareValues(otherKey, value)>=0 ) {
                 rowAfterNewPosition= fieldTreeRows[otherKey];
                 break;
             }
+        }
+        if( rowAfterNewPosition===null && SeLiteSettings.NEW_VALUE_ROW in fieldTreeRows && objectKeys(fieldTreeRows).length===3 ) {
+            // there's no other existing value, and the row being edited is a new one (it didn't have a real value set yet)
+            if( fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW]!==treeRow ) {
+                throw new Error( "This assumes that if fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW] is set, then that's the row we're just editing." );
+            }
+            rowAfterNewPosition= treeRow;
         }
         if( rowAfterNewPosition!==treeRow ) { // Repositioning - remove treeRow, create a new treeRow
             var treeChildren= fieldTreeRows[SeLiteSettings.FIELD_TREECHILDREN];
             treeChildren.removeChild( treeRow.parentNode );
             var pair= {};
             pair[ value ]= value;
-            var treeItem= generateTreeItem( module, setName, field, pair, RowLevel.OPTION );
+            var treeItem= generateTreeItem( module, setName, field, pair, RowLevel.OPTION ); // This sets 'properties' and it adds an entry to moduleRows[setName][fieldName][value]
+                // (which is same as fieldTreeRows[value] here).
             // Firefox 22.b04 and 24.0a1 doesn't handle parent.insertBefore(newItem, null), even though it should - https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore
             if(true){//@TODO cleanup
                 if( rowAfterNewPosition!==null ) {
@@ -865,7 +878,7 @@ function setCellText( row, col, value ) {
             }
             treeItem.focus();
         }
-        else {
+        else { // No repositioning - just update 'properties' attribute
             fieldTreeRows[value]= treeRow;
             var propertiesPrefix= rowProperties.substr(0, /*length:*/rowProperties.length-oldKey.length); // That includes a trailing space
             treeRow.setAttribute( 'properties', propertiesPrefix+value );
@@ -875,7 +888,6 @@ function setCellText( row, col, value ) {
             field.removeValue( setName, oldKey );
         }
         field.addValue( setName, value );
-        alert( objectToString(moduleRows, 3, false, ['XULElement', '']) );
     }
     SeLiteSettings.savePrefFile();
 }
