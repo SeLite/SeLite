@@ -425,6 +425,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         treerow.appendChild( treecell);
         if( rowLevel===RowLevel.SET && module.allowSets) {
             subcontainer( treeRows, module.name, setName )[ SeLiteSettings.SET_SELECTION_ROW ]= treerow;
+            //alert( 'after SET_SELECTION_ROW:\n' +objectToString(treeRows, 4) );
             var thisSetSelected= setName==module.selectedSetName();
             treecell.setAttribute('value', ''+thisSetSelected );
             treecell.setAttribute('editable', ''+!thisSetSelected ); // I allow to select an unselected set, but not to de-select a selected set
@@ -443,9 +444,11 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         else {
             subcontainer( treeRows, module.name, setName, fieldName )[ SeLiteSettings.FIELD_MAIN_ROW ]= treerow;
         }
+        //alert( 'after RowLevel.FIELD:\n' +objectToString(treeRows, 4) );
     }
     if( rowLevel===RowLevel.OPTION ) {
         subcontainer( treeRows, module.name, setName, fieldName )[ key ]= treerow;
+        //alert( 'after RowLevel.OPTION:\n' +objectToString(treeRows, 4) );
     }
     
     // Cell for checkbox (if the field is boolean or a choice):
@@ -540,6 +543,7 @@ function generateSets( moduleChildren, module ) {
     }
 }
 
+var treeRowsReported= false; //@TODO remove
 function generateFields( setChildren, module, setName, setFields ) {
     for( var fieldName in setFields ) {
         var fieldValueOrPairs= setFields[fieldName];
@@ -571,6 +575,9 @@ function generateFields( setChildren, module, setName, setFields ) {
                 fieldChildren.appendChild( optionItem );
             }
             treeRows[ module.name ][ setName ][ fieldName ][ SeLiteSettings.FIELD_TREECHILDREN ]= fieldChildren;
+            /*if( !treeRowsReported )
+                alert( 'after generateFields():\n' +objectToString(treeRows, 3, false, ['XULElement', '']) );
+            treeRowsReported= true;/**/
         }
     }
 }
@@ -619,6 +626,7 @@ function treeClickHandler( event ) {
         var moduleName= propertiesPart( rowProperties, RowLevel.MODULE );
         var module= modules[moduleName];
         var moduleRows= treeRows[moduleName];
+        //alert( objectToString(moduleRows, 3, false, ['XULElement', '']) );
 
         if( column.value!=null && row.value>=0 ) {
             var cellIsEditable= tree.view.isEditable(row.value, column.value);
@@ -732,6 +740,9 @@ function treeClickHandler( event ) {
                         for( var key in moduleRows[setName][field.name] ) {
                             if( SeLiteSettings.reservedNames().indexOf(key)<0 ) {
                                 previouslyFirstValueRow= moduleRows[setName][field.name][key];
+                                if( !(previouslyFirstValueRow instanceof XULElement) || previouslyFirstValueRow.tagName!=='treerow' || previouslyFirstValueRow.parentNode.tagName!=='treeitem' ) {
+                                    throw Error();
+                                }
                                 break;
                             }
                         }
@@ -790,8 +801,15 @@ function setCellText( row, col, value ) {
     var treeRow;
     if( !field.multivalued ) {
         treeRow= treeRowOrContainer;
+        // @TODO Docs Can't use treeRow.constructor.name here - because it's a native object.
+        if( !(treeRow instanceof XULElement) || treeRow.tagName!=='treerow') {
+            throw new Error( 'treeRow should be an instance of XULElement for a <treerow>.');
+        }
     }
     else {
+        if( treeRowOrContainer.constructor.name!=='Object' ) {
+            throw new Error( "treeRowOrContainer should be an instance of Object - e.g. an anonymous object." );
+        }
         var oldKey= propertiesPart( rowProperties, RowLevel.OPTION );
         if( value===oldKey ) { //setCellText() is called after editing, even if there was no change
             return;
@@ -856,6 +874,7 @@ function setCellText( row, col, value ) {
             field.removeValue( setName, oldKey );
         }
         field.addValue( setName, value );
+        alert( objectToString(moduleRows, 3, false, ['XULElement', '']) );
     }
     SeLiteSettings.savePrefFile();
 }

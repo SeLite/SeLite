@@ -90,25 +90,32 @@ var OBJECT_TO_STRING_INDENTATION= "  ";
  *  @param object object to present
  *  @param int recursionDepth How many deeper layers of objects/arrays to show details of; 0 by default (no deeper objects).
  *  @param bool includeFunctions Whether to include functions; false by default.
+ *  @param array leafClassNames Names of classes (that would match [sub[sub...]]object.constructor.name) that are excluded from deeper recursive processing.
+ *  Use 'Object' to exclude listing of fields of anonymous objects. E.g. ['MyBigClass', 'Object' ] will not list any fields of instances of MyBigClass or anonymous objects.
+ *  Use '' for some internal Firefox/XUL/XPCOM? objects.
  *  @param array higherObjects Optional; array of objects/arrays that are being processed by the direct/indirect caller of this function
- *  (i.e. recursive array/object reference).
+ *  (i.e. recursive array/object reference). For internal use only - only set when this function calls itself recursively.
  *  @return string
  */
-function objectToString( object, recursionDepth, includeFunctions, higherObjects ) {
-    if( typeof object ==='undefined' || object===null || typeof object ==='string' ) {
+function objectToString( object, recursionDepth, includeFunctions, leafClassNames, higherObjects ) {
+    if( typeof object!=='object' || object===null ) {
         return ''+object;
     }
+    leafClassNames= leafClassNames || [];
     higherObjects= higherObjects || [];
     higherObjects.push(object);
+    var isLeafClass= leafClassNames.indexOf(object.constructor.name)>=0;
     var result= '';
-    if( object instanceof Array ) {
-        for( var j=0; j<object.length; j++ ) {
-            result+= objectFieldToString( object, j, recursionDepth, includeFunctions, higherObjects, result=='' );
+    if( !isLeafClass ) {
+        if( object instanceof Array ) {
+            for( var j=0; j<object.length; j++ ) {
+                result+= objectFieldToString( object, j, recursionDepth, includeFunctions, leafClassNames, higherObjects, result=='' );
+            }
         }
-    }
-    else {
-        for( var field in object ) {
-            result+= objectFieldToString( object, field, recursionDepth, includeFunctions, higherObjects, result=='' );
+        else {
+            for( var field in object ) {
+                result+= objectFieldToString( object, field, recursionDepth, includeFunctions, leafClassNames, higherObjects, result=='' );
+            }
         }
     }
     higherObjects.pop();
@@ -117,11 +124,16 @@ function objectToString( object, recursionDepth, includeFunctions, higherObjects
     if( result!=='' ) {
         result= "\n" +OBJECT_TO_STRING_INDENTATION+result+ "\n";
     }
+    if( isLeafClass ) {
+        result= '...';
+    }
     if( object instanceof Array ) {
         var resultPrefix= 'array';
     }
     else {
-        var resultPrefix= (object.constructor.name!=='' ? 'object ' +object.constructor.name : 'object with anonymous constructor');
+        var resultPrefix= object.constructor.name!==''
+            ? 'object '+object.constructor.name
+            : 'object of unknown class';
     }
     result= resultPrefix+ " {" +result+ "}"
     return result;
@@ -129,9 +141,9 @@ function objectToString( object, recursionDepth, includeFunctions, higherObjects
 
 /*** @private/internal
  */
-function objectFieldToString( object, field, recursionDepth, includeFunctions, higherObjects, firstItem ) {
+function objectFieldToString( object, field, recursionDepth, includeFunctions, leafClassNames, higherObjects, firstItem ) {
         var result= '';
-        if( !includeFunctions && typeof object[field]=='function' ) {
+        if( !includeFunctions && typeof object[field]==='function' ) {
             return '';
         }
         if( !firstItem ) {
@@ -146,8 +158,8 @@ function objectFieldToString( object, field, recursionDepth, includeFunctions, h
                 (higherObjects.length-higherObjectLevel) + ' level(s) above.]';
         }
         else
-        if( typeof object[field] =='object' && recursionDepth>0 ) {
-            result+= objectToString( object[field], recursionDepth-1, includeFunctions, higherObjects );
+        if( typeof object[field]==='object' && recursionDepth>0 ) {
+            result+= objectToString( object[field], recursionDepth-1, includeFunctions, leafClassNames, higherObjects );
         }
         else {
             if( object[field] instanceof Array ) {
@@ -769,7 +781,8 @@ function loginManagerPassword( hostname, username ) {
 }
 
 var EXPORTED_SYMBOLS= [ "item", "itemOrNull", "itemGeneric", "objectToString",
-    "objectFieldToString", "rowsToString", "timestampInSeconds", "isEmptyObject",
+    //"objectFieldToString",
+     "rowsToString", "timestampInSeconds", "isEmptyObject",
     "objectsMerge", "objectCopyFields", "objectClone", "objectDeleteFields",
     "arrayClone", "objectReverse", "objectValues", "objectKeys", "objectValueToField",
     "collectByColumn", "RecordGroup", "collectByColumnRecord", "getField",
