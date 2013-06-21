@@ -797,28 +797,29 @@ function setCellText( row, col, value ) {
     var field= module.fields[fieldName];
 
     var moduleRows= treeRows[moduleName];
-    var treeRowOrContainer= moduleRows[setName][fieldName];
+    var fieldTreeRows= null; // Only non-null if field.multivalued==true
     var treeRow;
     if( !field.multivalued ) {
-        treeRow= treeRowOrContainer;
+        treeRow= moduleRows[setName][fieldName];
         // @TODO Docs Can't use treeRow.constructor.name here - because it's a native object.
         if( !(treeRow instanceof XULElement) || treeRow.tagName!=='treerow') {
             throw new Error( 'treeRow should be an instance of XULElement for a <treerow>.');
         }
     }
     else {
-        if( treeRowOrContainer.constructor.name!=='Object' ) {
-            throw new Error( "treeRowOrContainer should be an instance of Object - e.g. an anonymous object." );
+        fieldTreeRows= moduleRows[setName][fieldName];
+        if( fieldTreeRows.constructor.name!=='Object' ) {
+            throw new Error( "fieldTreeRows should be an instance of Object - e.g. an anonymous object." );
         }
         var oldKey= propertiesPart( rowProperties, RowLevel.OPTION );
         if( value===oldKey ) { //setCellText() is called after editing, even if there was no change
             return;
         }
-        if( value in treeRowOrContainer ) {
+        if( value in fieldTreeRows ) {
             alert( "Values must be unique. Another entry for this field already has same value " +value );
             return false;
         }
-        treeRow= treeRowOrContainer[oldKey];
+        treeRow= fieldTreeRows[oldKey];
     }
 
     var cell= treeCell( treeRow, RowLevel.FIELD );
@@ -835,14 +836,14 @@ function setCellText( row, col, value ) {
     }
     else {
         var rowAfterNewPosition= null; // It may be null - then append the new row at the end; if same as treeRow, then the new value stays in treeRow
-        for( var otherKey in treeRowOrContainer ) {
+        for( var otherKey in fieldTreeRows ) {
             if( otherKey!==SeLiteSettings.FIELD_MAIN_ROW && otherKey!==SeLiteSettings.FIELD_TREECHILDREN && field.compareValues(otherKey, value)>=0 ) {
-                rowAfterNewPosition= treeRowOrContainer[otherKey];
+                rowAfterNewPosition= fieldTreeRows[otherKey];
                 break;
             }
         }
         if( rowAfterNewPosition!==treeRow ) { // Repositioning - remove treeRow, create a new treeRow
-            var treeChildren= treeRowOrContainer[SeLiteSettings.FIELD_TREECHILDREN];
+            var treeChildren= fieldTreeRows[SeLiteSettings.FIELD_TREECHILDREN];
             treeChildren.removeChild( treeRow.parentNode );
             var pair= {};
             pair[ value ]= value;
@@ -865,11 +866,11 @@ function setCellText( row, col, value ) {
             treeItem.focus();
         }
         else {
-            treeRowOrContainer[value]= treeRow;
+            fieldTreeRows[value]= treeRow;
             var propertiesPrefix= rowProperties.substr(0, /*length:*/rowProperties.length-oldKey.length); // That includes a trailing space
             treeRow.setAttribute( 'properties', propertiesPrefix+value );
         }
-        delete treeRowOrContainer[oldKey];
+        delete fieldTreeRows[oldKey];
         if( oldKey!==SeLiteSettings.NEW_VALUE_ROW ) {
             field.removeValue( setName, oldKey );
         }
