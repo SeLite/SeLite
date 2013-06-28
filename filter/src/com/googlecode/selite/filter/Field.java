@@ -23,6 +23,7 @@ import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.Argument;
 import net.sourceforge.argparse4j.inf.ArgumentType;
 import net.sourceforge.argparse4j.inf.Namespace;
+import net.sourceforge.argparse4j.inf.ArgumentParserException;
 
 /** There are two different types of usage of instances of Field:
  *  - runtime fields (parameters), defined mostly in Run class
@@ -82,7 +83,9 @@ public abstract class Field<T> {
      */
     protected void registerWithParser( ArgumentParser parser ) {}
 
-    protected Argument registerChoices( ArgumentParser parser, final T... choices ) { return registerChoices(parser, name, choices); }
+    protected Argument registerChoices( ArgumentParser parser, final T... choices ) {
+        return registerChoices(parser, "--" +name, choices);
+    }
     
     /** Register a list of choices. A commandline value will be matched against toString() of those choices, and a matched choice will be used.
      * Since Run#get(Field) caches results of Field#get(Run), there's no need to pre-load the strings and targets of choices here.
@@ -92,7 +95,7 @@ public abstract class Field<T> {
         Argument arg= parser.addArgument( paramName );
         assert choices.length>0;
         arg.type( new ArgumentType<T>() {
-            public T convert( ArgumentParser parser, Argument arg, String text ) {
+            public T convert( ArgumentParser parser, Argument arg, String text ) throws ArgumentParserException {
                 for( T choice: choices ) {
                     if( choice.toString().equals(text) ) {
                         return choice;
@@ -101,7 +104,6 @@ public abstract class Field<T> {
                 return null;
             }
         } );
-        arg.choices( choices );
         return arg;
     }
     

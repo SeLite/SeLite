@@ -32,6 +32,7 @@ import static net.sourceforge.argparse4j.impl.Arguments.storeTrue;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
+import net.sourceforge.argparse4j.inf.FeatureControl;
 import net.sourceforge.argparse4j.inf.Namespace;
 import org.reflections.Reflections;
 
@@ -88,7 +89,7 @@ public class Run {
         public Usage defaultValue() { return Usage.DATA; }
         
         protected void registerWithParser( ArgumentParser parser ) {
-            registerChoices( parser, Usage.values() ).setDefault(Usage.ALL);
+            registerChoices( parser, Usage.values() ).setDefault(Usage.ALL).help("Transformation type");
         }
     }
     public static final Field<Usage> USAGE= new UsageField();
@@ -97,7 +98,7 @@ public class Run {
         DbField() { super( "db" ); }
         
         protected void registerWithParser( ArgumentParser parser ) {
-            registerChoices( parser, Db.values() ).setDefault(Db.POSTGRES);
+            registerChoices( parser, Db.values() ).setDefault(Db.POSTGRES).help("Source DB type");
         }
     }
     public static final Field<Db> DB= new DbField();
@@ -185,6 +186,7 @@ public class Run {
                 throw e;
             }
         }*/
+        parser.addArgument( "class" );
         parser.addArgument( "input" );
         parser.addArgument( "output" );
         for( Field field: Field.fields ) {
@@ -199,7 +201,7 @@ public class Run {
         }
         Class<App> appSubclass;
         try {
-            appSubclass= (Class<App>)Class.forName( args[0] );
+            appSubclass= (Class<App>)Class.forName( parsed.getString("class") );
         }
         catch( ClassNotFoundException e) {
             throw new RuntimeException(e);
@@ -220,9 +222,7 @@ public class Run {
         }
         final Usage usage= get(USAGE);
         final Db db= get(DB);
-        if( db==null ) {
-            System.err.println( "Please run with --db (mysql|postgres[ql])" );
-        }
+        assert usage!=null && db!=null;
         
         app.initialiseRun( this );
         
