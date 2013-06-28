@@ -107,21 +107,9 @@ public class Run {
             
     public static final class DbField extends FieldSingleton<Db> {
         DbField() { super( "db" ); }
-    
-        /** @overrides Field#parse(Run)
-         */
-        public Db get( Run run ) {
-            switch( (""+this.argValue(run, "db")).toLowerCase() ) {
-                case "mysql":
-                    return Db.MYSQL;
-                case "postgres":
-                case "postgresql":
-                    return Db.POSTGRES;
-                case "mssql":
-                    return Db.MSSQL;
-                default:
-                    return null;
-            }
+        
+        protected void registerWithParser( ArgumentParser parser ) {
+            parser.addArgument( "db" ).type(Db.class);//@TODO
         }
     }
     public static final Field<Db> DB= new DbField();
@@ -166,7 +154,11 @@ public class Run {
     public Namespace parsed() { return parsed; }
     
     protected ArgumentParser createParser() {
-        return ArgumentParsers.newArgumentParser("java com.googlecode.selite.filter.Run");
+        return ArgumentParsers.newArgumentParser("java com.googlecode.selite.filter.Run")
+            .defaultHelp(true)
+            .description("SeLiteFilter serves to transform SQL from other RDBMs to SQLite. It's a part of SeLite, a family of tools for test automation of DB-driven web applications. See https://code.google.com/p/selite.")
+            .epilog("SeLiteFilter is a free software under GNU GPL License version 3. See http://www.gnu.org/licenses/gpl.html")
+            .version("${prog} 0.1");
     }
     
     /** This gets Reflections object, which scans the classes in your implementation.
@@ -205,15 +197,17 @@ public class Run {
                 throw e;
             }
         }*/
+        parser.addArgument( "input" );
+        parser.addArgument( "output" );
+        for( Field field: Field.fields ) {
+            field.registerWithParser(parser);
+        }
         try {
             parsed= parser.parseArgs( args );
         }
         catch( ArgumentParserException e ) {
             parser.handleError(e);
             return;
-        }
-        for( Field field: Field.fields ) {
-            field.registerWithParser(parser);
         }
         Class<App> appSubclass;
         try {

@@ -44,7 +44,7 @@ public abstract class Field<T> {
     
     /** @return Non-null string name only for instances of FieldNonSingleton; null for instances of FieldSingleton.
      */
-    public String name() { return name; }
+    public final String name() { return name; }
     
     static final Set<Field> fields= new HashSet<Field>();
     
@@ -65,10 +65,11 @@ public abstract class Field<T> {
     }
     
     public final String toString() {
-        return getClass().getName()+ ":" +name();
+        return name;
     }
     
-    /** See Run#get(Field).
+    /** Get the value of this field. Used by Run#get(Field), which caches the values.
+     *  Default implementation gets it from run.parsed() for this.name().
      */
     public T get( Run run ) {
         return (T)run.parsed().get( name );
