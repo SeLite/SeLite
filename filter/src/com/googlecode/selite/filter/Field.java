@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.Collections;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.Argument;
+import net.sourceforge.argparse4j.inf.ArgumentType;
 import net.sourceforge.argparse4j.inf.Namespace;
 
 /** There are two different types of usage of instances of Field:
@@ -78,18 +79,30 @@ public abstract class Field<T> {
     /** Each subclass that wants to parse commandline parameters
      *  should use override this method. It will be called once on each instance, and that's how the Field
      *  implementation can update the parser to support any command line parameters it needs.
-     *  Your subclass can for example call Field::register( parser, Class<?>, String, String );
      */
     protected void registerWithParser( ArgumentParser parser ) {}
+
+    protected Argument registerChoices( ArgumentParser parser, final T... choices ) { return registerChoices(parser, name, choices); }
     
-    /** @param help Optional, it can be null
+    /** Register a list of choices. A commandline value will be matched against toString() of those choices, and a matched choice will be used.
+     * Since Run#get(Field) caches results of Field#get(Run), there's no need to pre-load the strings and targets of choices here.
+     * @TODO case-insensitive
      */
-    protected static void register( ArgumentParser parser, Class<?> paramType, String paramName, String help ) {
+    protected Argument registerChoices( ArgumentParser parser, String paramName, final T... choices ) {
         Argument arg= parser.addArgument( paramName );
-        arg.type( paramType );
-        if( help!=null ) {
-            arg.help( help );
-        }
+        assert choices.length>0;
+        arg.type( new ArgumentType<T>() {
+            public T convert( ArgumentParser parser, Argument arg, String text ) {
+                for( T choice: choices ) {
+                    if( choice.toString().equals(text) ) {
+                        return choice;
+                    }
+                }
+                return null;
+            }
+        } );
+        arg.choices( choices );
+        return arg;
     }
     
     public abstract boolean equals( Object other );

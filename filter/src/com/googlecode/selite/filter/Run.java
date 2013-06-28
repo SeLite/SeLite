@@ -73,7 +73,6 @@ public class Run {
     }
     
     protected Run() {}
-    //@TODO    args= Collections.unmodifiableList( Arrays.asList(givenArgs) );
     
     private void initialiseSequenceManager( Usage usage ) {
         sequenceManager= usage.requiresAllInHeap()
@@ -87,20 +86,9 @@ public class Run {
     public static final class UsageField extends FieldSingleton<Usage> {
         UsageField() { super( "usage" ); }
         public Usage defaultValue() { return Usage.DATA; }
-    
-        /** @overrides Field#parse(Run)
-         */
-        public Usage get( Run run ) {
-            assert false : "TODO";
-            switch( "" ) {
-                case "schema":
-                    return Usage.SCHEMA;
-                case "data":
-                    return Usage.DATA;
-                case "all":
-                default:
-                    return Usage.ALL;
-            }
+        
+        protected void registerWithParser( ArgumentParser parser ) {
+            registerChoices( parser, Usage.values() ).setDefault(Usage.ALL);
         }
     }
     public static final Field<Usage> USAGE= new UsageField();
@@ -109,7 +97,7 @@ public class Run {
         DbField() { super( "db" ); }
         
         protected void registerWithParser( ArgumentParser parser ) {
-            parser.addArgument( "db" ).type(Db.class);//@TODO
+            registerChoices( parser, Db.values() ).setDefault(Db.POSTGRES);
         }
     }
     public static final Field<Db> DB= new DbField();
