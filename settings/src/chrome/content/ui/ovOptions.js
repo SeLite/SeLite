@@ -815,7 +815,7 @@ function setCellText( row, col, value ) {
         var oldKey= propertiesPart( rowProperties, RowLevel.OPTION );
         if( value===oldKey ) { //setCellText() is called after editing, even if there was no change
             return;
-        }alert( 'value ' +value+ '\n' +objectToString(fieldTreeRows, 3, false, ['XULElement', '']) );
+        }//alert( 'value ' +value+ '\n' +objectToString(fieldTreeRows, 3, false, ['XULElement', '']) );
         if( value in fieldTreeRows ) {
             alert( "Values must be unique. Another entry for this field already has same value " +value );
             return false;
@@ -847,7 +847,7 @@ function setCellText( row, col, value ) {
                 break;
             }
         }
-        if( rowAfterNewPosition===null && SeLiteSettings.NEW_VALUE_ROW in fieldTreeRows && objectKeys(fieldTreeRows).length===3 ) {
+        if( rowAfterNewPosition===null && fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW] && objectKeys(fieldTreeRows).length===3 ) {
             // there's no other existing value, and the row being edited is a new one (it didn't have a real value set yet)
             if( fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW]!==treeRow || oldKey!==SeLiteSettings.NEW_VALUE_ROW ) {
                 throw new Error( "This assumes that if fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW] is set, then that's the row we're just editing." );

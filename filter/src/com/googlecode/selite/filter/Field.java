@@ -19,6 +19,9 @@ package com.googlecode.selite.filter;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Collections;
+import net.sourceforge.argparse4j.inf.ArgumentParser;
+import net.sourceforge.argparse4j.inf.Argument;
+import net.sourceforge.argparse4j.inf.Namespace;
 
 /** There are two different types of usage of instances of Field:
  *  - runtime fields (parameters), defined mostly in Run class
@@ -43,7 +46,7 @@ public abstract class Field<T> {
      */
     public String name() { return name; }
     
-    private static final Set<Field> fields= new HashSet<Field>();
+    static final Set<Field> fields= new HashSet<Field>();
     
     /** Non-public. We only allow two direct subclasses - FieldSingleton and FieldNonSingleton,
      *  which both enforce contract of equals(Object) and hashCode().
@@ -65,33 +68,27 @@ public abstract class Field<T> {
         return getClass().getName()+ ":" +name();
     }
     
-    /** @return Non-null on success; null if there was no relevant value.
+    /** See Run#get(Field).
      */
-    public T defaultValue() { return null; }
-    public boolean canParse() { return false; }
-    
-    /** @return Value of argument, if given on commandline; null otherwise.
-     */
-    protected final String argValue( Run run, String argName ) {
-        String argNameFlag= "--" +argName;
-        for( int i=0; i<run.args().size(); i++ ) {
-            if( run.args().get(i).equals(argNameFlag) ) {
-                if( i+1<run.args().size() ) {
-                    return run.args().get(i+1);
-                }
-                throw new IllegalStateException( "Missing a value for listed argument " +argName );
-            }
-        }
-        return null;
+    public T get( Run run ) {
+        return (T)run.parsed().get( name );
     }
     
-    /** It parses the string as a value for this field
-     *  @param run must be non-null
-     *  @return Non-null on success; null if there was no relevant value.
+    /** Each subclass that wants to parse commandline parameters
+     *  should use override this method. It will be called once on each instance, and that's how the Field
+     *  implementation can update the parser to support any command line parameters it needs.
+     *  Your subclass can for example call Field::register( parser, Class<?>, String, String );
      */
-    protected T parse( Run run ) {
-        assert canParse() : "Do not call parse() on non-parseable Field instance, or instantiate it as parseable.";
-        return null;
+    protected void registerWithParser( ArgumentParser parser ) {}
+    
+    /** @param help Optional, it can be null
+     */
+    protected static void register( ArgumentParser parser, Class<?> paramType, String paramName, String help ) {
+        Argument arg= parser.addArgument( paramName );
+        arg.type( paramType );
+        if( help!=null ) {
+            arg.help( help );
+        }
     }
     
     public abstract boolean equals( Object other );

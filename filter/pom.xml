@@ -1,0 +1,41 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.googlecode.selite</groupId>
+  <artifactId>SeLiteFilter</artifactId>
+  <version>0.1</version>
+  <packaging>jar</packaging>
+
+  <name>SeLiteFilter</name>
+  <url>https://code.google.com/p/selite/</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.7</maven.compiler.source>
+    <maven.compiler.target>1.7</maven.compiler.target>
+  </properties>
+
+  <build>
+    <sourceDirectory>src</sourceDirectory>
+  </build>
+
+  <dependencies>
+    <!--<dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>-->
+    <dependency>
+      <groupId>net.sourceforge.argparse4j</groupId>
+      <artifactId>argparse4j</artifactId>
+      <version>0.4.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.reflections</groupId>
+      <artifactId>reflections</artifactId>
+     <version>0.9.9-RC1</version>
+    </dependency>
+  </dependencies>
+</project>

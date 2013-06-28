@@ -25,16 +25,19 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import static net.sourceforge.argparse4j.impl.Arguments.storeTrue;
+import net.sourceforge.argparse4j.ArgumentParsers;
+import net.sourceforge.argparse4j.inf.ArgumentParser;
+import net.sourceforge.argparse4j.inf.ArgumentParserException;
+import net.sourceforge.argparse4j.inf.Namespace;
+import org.reflections.Reflections;
 
 /** Not thread-safe - that's fine.
  */
-public final class Run {
-    /** @var args Commandline argument(s), if any.
-     */
-    private final List<String> args;
-    
+public class Run {
     /** It serves as a cache.
      */
     private final Map<Field, Object> appFields= new HashMap<Field, Object>();
@@ -47,8 +50,6 @@ public final class Run {
      *  Filter(s) applicable by given run. Only valid once set. */
     int maxMatchLength() { return maxMatchLength; }
     
-    public List<String> args() { return args; }
-    
     /** @return mutable map
      */
     protected Map<Field, Object> appFields() { return appFields; }
@@ -59,31 +60,25 @@ public final class Run {
      */
     public CharSequenceManager sequenceManager() { return sequenceManager; }
     
+    /** This calls field.get(this) once per field; then it caches the result.
+     *  @return (cached) result of field.get(this)
+     */
     public <T> T get( Field<T> field ) {
         if( appFields.containsKey(field) ) {
             return (T)appFields.get(field);
         }
-        T value;
-        if( field.canParse() ) {
-            value= field.parse( this );
-        }
-        else {
-            value= field.defaultValue();
-        }
-        if( value!=null ) {
-            appFields.put( field, value );
-        }
+        T value= field.get( this );
+        appFields.put( field, value );
         return value;
     }
     
-    private Run( String givenArgs[] ) {
-        args= Collections.unmodifiableList( Arrays.asList(givenArgs) );
-    }
+    protected Run() {}
+    //@TODO    args= Collections.unmodifiableList( Arrays.asList(givenArgs) );
     
     private void initialiseSequenceManager( Usage usage ) {
         sequenceManager= usage.requiresAllInHeap()
-            ? new CharSequenceManagerInMemory( args.get(1), args.get(2), this )
-            : new CharSequenceManagerContinuous( args.get(1), args.get(2), this );
+            ? new CharSequenceManagerInMemory( parsed.getString("input"), parsed.getString("output"), this )
+            : new CharSequenceManagerContinuous( parsed.getString("input"), parsed.getString("output"), this );
         if( !(sequenceManager instanceof CharSequenceManagerInMemory) && usage.requiresAllInHeap() ) {
             throw new IllegalStateException();
         }
@@ -92,12 +87,12 @@ public final class Run {
     public static final class UsageField extends FieldSingleton<Usage> {
         UsageField() { super( "usage" ); }
         public Usage defaultValue() { return Usage.DATA; }
-        public boolean canParse() { return true; }
     
         /** @overrides Field#parse(Run)
          */
-        protected Usage parse( Run run ) {
-            switch( (""+this.argValue(run, "usage")).toLowerCase() ) {
+        public Usage get( Run run ) {
+            assert false : "TODO";
+            switch( "" ) {
                 case "schema":
                     return Usage.SCHEMA;
                 case "data":
@@ -112,11 +107,10 @@ public final class Run {
             
     public static final class DbField extends FieldSingleton<Db> {
         DbField() { super( "db" ); }
-        public boolean canParse() { return true; }
     
         /** @overrides Field#parse(Run)
          */
-        protected Db parse( Run run ) {
+        public Db get( Run run ) {
             switch( (""+this.argValue(run, "db")).toLowerCase() ) {
                 case "mysql":
                     return Db.MYSQL;
@@ -162,12 +156,65 @@ public final class Run {
                 : (int)value;
     }
     
+    /** This gets set to result of createParser(). It's effectively final
+     *  - set only once during process().
+     */
+    private ArgumentParser parser;
+    public ArgumentParser parser() { return parser; }
+    
+    private Namespace parsed;
+    public Namespace parsed() { return parsed; }
+    
+    protected ArgumentParser createParser() {
+        return ArgumentParsers.newArgumentParser("java com.googlecode.selite.filter.Run");
+    }
+    
+    /** This gets Reflections object, which scans the classes in your implementation.
+     *  Run.process(String[]) uses it to locate custom subclasses of Field class. That
+     *  loads those subclasses, so they can register themselves, and then Run.process(String[])
+     *  creates 
+     */
+    protected Reflections reflections() {
+        return new Reflections();
+    }
+    
     public static void main( String args[] ) throws IOException {
-        if( args.length<5 ) {
-            System.err.println( "Run with at least four arguments, in this order: <full name of subclass of com.googlecode.selite.filter.App> input-file output-file --db (mysql|postgres[ql])" );
+        new Run().process( args );
+    }
+    
+    protected void process( String args[] ) throws IOException {
+        // We don't use the result of the following. It only serves to load all subclasses of Field, so that
+        // they create any singleton instances, which get automaticall registered in Fields.field. That allows
+        // us here to iterate over Field.fields and register them with the parser.
+        //Set<Class<? extends com.googlecode.selite.filter.Field>> fieldSubTypes =
+        reflections().getSubTypesOf(com.googlecode.selite.filter.Field.class);
+        
+        parser= createParser();
+        /*for( Class<? extends com.googlecode.selite.filter.Field> fieldType: fieldSubTypes ) {
+            try {
+                java.lang.reflect.Method registerWithParser= fieldType.getDeclaredMethod( "registerWithParser", new Class<?>[] {ArgumentParser.class} );
+                try {
+                    registerWithParser.invoke( null, parser );
+                }
+                catch( Exception e ) {
+                    throw new RuntimeException(e);
+                }
+            }
+            catch( NoSuchMethodException e ) {}// Nothing to do - the Field subclass didn't declare registerWithParser(ArgumentParser).
+            catch( SecurityException e ) {
+                throw e;
+            }
+        }*/
+        try {
+            parsed= parser.parseArgs( args );
+        }
+        catch( ArgumentParserException e ) {
+            parser.handleError(e);
             return;
         }
-        
+        for( Field field: Field.fields ) {
+            field.registerWithParser(parser);
+        }
         Class<App> appSubclass;
         try {
             appSubclass= (Class<App>)Class.forName( args[0] );
@@ -189,21 +236,20 @@ public final class Run {
         catch( IllegalAccessException e ) {
             throw new RuntimeException(e);
         }
-        final Run run= new Run( args );
-        final Usage usage= run.get(USAGE);
-        final Db db= run.get(DB);
+        final Usage usage= get(USAGE);
+        final Db db= get(DB);
         if( db==null ) {
             System.err.println( "Please run with --db (mysql|postgres[ql])" );
         }
         
-        app.initialiseRun( run );
+        app.initialiseRun( this );
         
-        run.initialiseSequenceManager( usage );
+        initialiseSequenceManager( usage );
         
-        run.maxMatchLength= 0;
+        maxMatchLength= 0;
         for( Filter filter: usage.filters() ) {
-            filter.initialise( app, run );
-            run.maxMatchLength= Math.max( run.maxMatchLength, filter.maxMatchLength( app, run ) );
+            filter.initialise( app, this );
+            maxMatchLength= Math.max( maxMatchLength, filter.maxMatchLength(app, this) );
         }
         
         assert usage.filters().size()>0;
@@ -213,18 +259,18 @@ public final class Run {
         int lengthToWrite;
         doloop:
         do {
-            int pastMatcheable= !run.sequenceManager.allWasRead()
-                ? run.sequenceManager.input().length()-run.maxMatchLength()+1
-                : run.sequenceManager.input().length();
-            pastMatcheable= Filter.processMultiple( filters, app, run, pastMatcheable );
+            int pastMatcheable= !sequenceManager.allWasRead()
+                ? sequenceManager.input().length()-maxMatchLength()+1
+                : sequenceManager.input().length();
+            pastMatcheable= Filter.processMultiple( filters, app, this, pastMatcheable );
             if( pastMatcheable<0 ) {
                 throw new IllegalStateException( "All filters are scan-only. You need at least one filter that is not scan-only." );
             }
-            StringBuffer output= run.sequenceManager.output();
+            StringBuffer output= sequenceManager.output();
             lengthToWrite= pastMatcheable;
             assert lengthToWrite>=0;
             if( lengthToWrite>0 ) {
-                run.sequenceManager.writeComplete(lengthToWrite); // That deletes the written part off output
+                sequenceManager.writeComplete(lengthToWrite); // That deletes the written part off output
                 /*debugWrittenSoFar+= lengthToWrite;
                 if( debugWrittenSoFar==95608832 ) {
                     boolean stop= true;
@@ -233,17 +279,17 @@ public final class Run {
             else {
                 boolean stop= true;
             }
-            if( !run.sequenceManager.inMemory() ) {
-                run.sequenceManager.swap(run);
+            if( !sequenceManager.inMemory() ) {
+                sequenceManager.swap(this);
             }
-            boolean didAdvance= !run.sequenceManager.allWasRead() && run.sequenceManager.advanceInput( 0, run ); // @TODO remove parameter lengthToWrite to CharSequenceContinuous.advance()
-            assert didAdvance || run.sequenceManager.allWasRead() || lengthToWrite==0;
-            if( run.sequenceManager.allWasRead() /*&& !didAdvance*/ ) {
+            boolean didAdvance= !sequenceManager.allWasRead() && sequenceManager.advanceInput( 0, this ); // @TODO remove parameter lengthToWrite to CharSequenceContinuous.advance()
+            assert didAdvance || sequenceManager.allWasRead() || lengthToWrite==0;
+            if( sequenceManager.allWasRead() /*&& !didAdvance*/ ) {
                 boolean stop= true;
             }
-        } while( (!run.sequenceManager.allWasRead() || lengthToWrite>0) && !run.sequenceManager.inMemory() ); //@TODO This assumes that if we use in-memory sequence manager, the whole input was loaded in memory
+        } while( (!sequenceManager.allWasRead() || lengthToWrite>0) && !sequenceManager.inMemory() ); //@TODO This assumes that if we use in-memory sequence manager, the whole input was loaded in memory
         
-        run.sequenceManager.save( run );
+        sequenceManager.save( this );
     }
     
 }

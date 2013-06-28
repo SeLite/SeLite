@@ -17,7 +17,8 @@
 package com.googlecode.selite.filter;
 
 public abstract class FieldNonSingleton<T> extends Field<T>{
-    /** The names needs to be unique among an actual subclass of FieldNonSingleton.
+    
+    /** The name needs to be unique among an actual subclass of FieldNonSingleton.
      */
     protected FieldNonSingleton( String givenName ) {
         super( givenName );

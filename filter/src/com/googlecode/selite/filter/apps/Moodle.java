@@ -34,24 +34,21 @@ public class Moodle extends AppListedTables {
     public static final class TablePrefix extends FieldSingleton<String> {
         TablePrefix() { super( "tablePrefix" ); }
         public String defaultValue() { return "mdl_"; }
-        public boolean canParse() { return true; }
     }
-    public static final Field<String> TALBE_PREFIX= new TablePrefix();
+    public static final Field<String> TABLE_PREFIX= new TablePrefix();
     
     public static final class ExportTableName extends FieldSingleton<String> {
         ExportTableName() { super( "exportTableName" ); }
         public String defaultValue() { return "export_user"; }
-        public boolean canParse() { return true; }
     }
     public static final Field<String> EXPORT_TABLE_NAME= new ExportTableName(); // @TODO may not be needed; or make it more general, not Moodle-specific
     
     public static final class Version extends FieldSingleton<GeneralVersion> {
         private Version() { super( "version" ); }
-        public boolean canParse() { return true; }
         
-        protected GeneralVersion parse( Run run ) {
+        public GeneralVersion get( Run run ) {
             // @TODO Following depends on DB type and export type (separate INSERTs, compound INSERTs). The column order may differ, too.
-            String prefix= run.get(TALBE_PREFIX);
+            String prefix= TABLE_PREFIX.get( run );
             // Matching .e.g INSERT INTO mdl_config (id, name, value) VALUES (182, 'version', '2007101530');
             Pattern versionPattern= Pattern.compile( "INSERT\\s+INTO\\s+" +prefix+ "config\\s*\\(id,\\s*name,\\s*value\\)\\s*VALUES\\s*\\(\\d+,\\s*'version',\\s*'(\\d+)'\\);" );
 
@@ -67,7 +64,7 @@ public class Moodle extends AppListedTables {
     public static final Field<GeneralVersion> VERSION= new Version();
     
     protected Collection<String> removedTablePrefixes( Run run ) {
-        String tbPrefix= run.get(TALBE_PREFIX);
+        String tbPrefix= TABLE_PREFIX.get( run );
         String exportTbName= run.get(EXPORT_TABLE_NAME);
         
         // Let's try to keep table names/name prefixes here sorted alphabetically.
@@ -116,7 +113,7 @@ public class Moodle extends AppListedTables {
         } ) );
     }
     protected Collection<String> keptTablePrefixes( Run run ) {
-        String tbPrefix= run.get(TALBE_PREFIX);
+        String tbPrefix= run.get(TABLE_PREFIX);
         return new ArrayList<String>( Arrays.asList( new String[] {
             tbPrefix+"course_modules", tbPrefix+"grade_grades", tbPrefix+"grade_items",
             tbPrefix+"questionnaire", tbPrefix+"user_preferences"
