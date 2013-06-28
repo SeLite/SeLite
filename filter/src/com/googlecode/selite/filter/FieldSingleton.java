@@ -17,8 +17,8 @@
 package com.googlecode.selite.filter;
 
 public class FieldSingleton<T> extends Field<T> {
-    protected FieldSingleton( String givenName ) {
-        super( givenName );
+    protected FieldSingleton( Class<T> givenClass, String givenName ) {
+        super( givenClass, givenName );
     }
     
     public final boolean equals( Object other ) {

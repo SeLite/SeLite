@@ -20,8 +20,8 @@ public abstract class FieldNonSingleton<T> extends Field<T>{
     
     /** The name needs to be unique among an actual subclass of FieldNonSingleton.
      */
-    protected FieldNonSingleton( String givenName ) {
-        super( givenName );
+    protected FieldNonSingleton( Class<T> givenClass, String givenName ) {
+        super( givenClass, givenName );
     }
     
     public final boolean equals( Object other ) {

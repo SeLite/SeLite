@@ -28,7 +28,7 @@ public abstract class App {
         supposed to be part of the matched contents. It must not contain any capturing groups - so use noncapturing ones only (?...).
      */
     public static final class RemovedTableNamesPattern extends FieldSingleton<String> {
-        RemovedTableNamesPattern() { super("removedTableNamesPattern"); }
+        RemovedTableNamesPattern() { super( String.class, "removedTableNamesPattern"); }
     };
     public static final Field<String> REMOVED_TABLE_NAMES_PATTERN= new RemovedTableNamesPattern();
     
@@ -38,13 +38,13 @@ public abstract class App {
         supposed to be part of the matched contents. It must not contain any capturing groups - so use noncapturing ones only (?...).
      */
     public static final class RemovedViewNamesPattern extends FieldSingleton<String> {
-        RemovedViewNamesPattern() { super("removedViewNamesPattern"); }
+        RemovedViewNamesPattern() { super( String.class, "removedViewNamesPattern"); }
     };
     public static final Field<String> REMOVED_VIEW_NAMES_PATTERN= new RemovedViewNamesPattern();
     
     /** Number of characters of the longest matcheable sequence for any filter. */
     public static final class MaxMatchLength extends FieldSingleton<Integer> {
-        MaxMatchLength() { super("maxMatchLength"); }
+        MaxMatchLength() { super( Integer.class, "maxMatchLength"); }
         private static final Integer value= 1000000; //@TODO This must be less than CharSequenceContinuous.maxLengthToBuffer
         public Integer defaultValue() { return value; }
     };

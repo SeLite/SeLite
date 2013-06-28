@@ -32,19 +32,19 @@ public class Moodle extends AppListedTables {
     public Moodle() {}
     
     public static final class TablePrefix extends FieldSingleton<String> {
-        TablePrefix() { super( "tablePrefix" ); }
+        TablePrefix() { super( String.class, "tablePrefix" ); }
         public String defaultValue() { return "mdl_"; }
     }
     public static final Field<String> TABLE_PREFIX= new TablePrefix();
     
     public static final class ExportTableName extends FieldSingleton<String> {
-        ExportTableName() { super( "exportTableName" ); }
+        ExportTableName() { super( String.class, "exportTableName" ); }
         public String defaultValue() { return "export_user"; }
     }
     public static final Field<String> EXPORT_TABLE_NAME= new ExportTableName(); // @TODO may not be needed; or make it more general, not Moodle-specific
     
     public static final class Version extends FieldSingleton<GeneralVersion> {
-        private Version() { super( "version" ); }
+        private Version() { super( GeneralVersion.class, "version" ); }
         
         public GeneralVersion get( Run run ) {
             // @TODO Following depends on DB type and export type (separate INSERTs, compound INSERTs). The column order may differ, too.
