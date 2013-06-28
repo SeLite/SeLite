@@ -94,6 +94,7 @@ public abstract class Field<T> {
     }
     
     /** @param defaultValue If null, then this doesn't set the default value (which will be then null by default, anyway).
+     *  @TODO would it make more sense to have a parameter 'required' rather than 'optional'?
      */
     protected Argument registerSimple( ArgumentParser parser, boolean optional, T defaultValue ) {
         String paramName= optional

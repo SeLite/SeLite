@@ -86,7 +86,6 @@ public class Run {
     
     public static final class UsageField extends FieldSingleton<Usage> {
         UsageField() { super( Usage.class, "usage" ); }
-        public Usage defaultValue() { return Usage.DATA; }
         
         protected void registerWithParser( ArgumentParser parser ) {
             registerChoices( parser, true, Usage.values() ).setDefault(Usage.ALL).help("Transformation type");
@@ -96,9 +95,8 @@ public class Run {
             
     public static final class DbField extends FieldSingleton<Db> {
         DbField() { super( Db.class, "db" ); }
-        
         protected void registerWithParser( ArgumentParser parser ) {
-            registerChoices( parser, true, Db.values() ).setDefault(Db.POSTGRES).help("Source DB type");
+            registerChoices( parser, false, Db.values() ).help("Source DB type");
         }
     }
     public static final Field<Db> DB= new DbField();
@@ -114,8 +112,9 @@ public class Run {
     /** Size of heap memory reserve in *bytes*. */
     public static final class HeapReserve extends FieldSingleton<Integer> {
         HeapReserve() { super( Integer.class, "heapReserve"); }
-        private static final Integer value=1000000;
-        public Integer defaultValue() { return value; }
+        protected void registerWithParser( ArgumentParser parser ) {
+            registerSimple( parser, true, 1000000 );
+        }
     }
     public static final Field<Integer> heapReserve= new HeapReserve();
     

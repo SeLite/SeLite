@@ -27,19 +27,24 @@ import com.googlecode.selite.filter.Field;
 import com.googlecode.selite.filter.FieldSingleton;
 import com.googlecode.selite.filter.GeneralVersion;
 import com.googlecode.selite.filter.Run;
+import net.sourceforge.argparse4j.inf.ArgumentParser;
 
 public class Moodle extends AppListedTables {
     public Moodle() {}
     
     public static final class TablePrefix extends FieldSingleton<String> {
         TablePrefix() { super( String.class, "tablePrefix" ); }
-        public String defaultValue() { return "mdl_"; }
+        protected void registerWithParser( ArgumentParser parser ) {
+            registerSimple( parser, true, "mdl_" );
+        }
     }
     public static final Field<String> TABLE_PREFIX= new TablePrefix();
     
     public static final class ExportTableName extends FieldSingleton<String> {
         ExportTableName() { super( String.class, "exportTableName" ); }
-        public String defaultValue() { return "export_user"; }
+        protected void registerWithParser( ArgumentParser parser ) {
+            registerSimple( parser, true, "export_user" );
+        }
     }
     public static final Field<String> EXPORT_TABLE_NAME= new ExportTableName(); // @TODO may not be needed; or make it more general, not Moodle-specific
     

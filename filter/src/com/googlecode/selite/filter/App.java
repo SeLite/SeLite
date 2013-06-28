@@ -16,6 +16,8 @@
 */
 package com.googlecode.selite.filter;
 
+import net.sourceforge.argparse4j.inf.ArgumentParser;
+
 public abstract class App {
     /** Put any custom Field entries into run.appFields() as appropriate for version indicated by version().
      */
@@ -45,8 +47,10 @@ public abstract class App {
     /** Number of characters of the longest matcheable sequence for any filter. */
     public static final class MaxMatchLength extends FieldSingleton<Integer> {
         MaxMatchLength() { super( Integer.class, "maxMatchLength"); }
-        private static final Integer value= 1000000; //@TODO This must be less than CharSequenceContinuous.maxLengthToBuffer
-        public Integer defaultValue() { return value; }
+        //@TODO Following default value must be less than CharSequenceContinuous.maxLengthToBuffer
+        protected void registerWithParser( ArgumentParser parser ) {
+            registerSimple( parser, true, 1000000 );
+        }
     };
     public static final Field<Integer> MAX_MATCH_LENGTH= new MaxMatchLength();
     
