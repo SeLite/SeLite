@@ -285,6 +285,21 @@ function compareAllFieldsOneWay( firstContainer, secondContainer, strict, method
     }
 }
 
+// We implement custom iteration order, because 3.1 of ECMA-262: "The mechanics and order of enumerating the properties [...] is not specified."
+// See http://stackoverflow.com/questions/648139/is-the-order-of-fields-in-a-javascript-object-predictable-when-looping-through-t
+// and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators
+// I've tried a yield-based function arrayItemGenerator(fieldNames) and 
+// var result= {}; result.__iterator__= arrayItemGenerator(fieldNames); or result.__iterator__= Iterator( fieldNames );
+// That worked when debugging it separately, but not as a part of SeLiteSettings. 
+function IterableArray( array ) {
+    this.array= array; //@TODO Make this hidden, so 'array' can be a key of a valid item
+}
+IterableArray.prototype.__iterator__= function() {
+    for( var i=0; i<this.array.length; i++ ) {
+        yield this.array[i];
+    }
+}
+
 /** Sort fields in object by keys (keys are always strings).
  *  @param object object serving as an associative array
  *  @param function compareFunction Function that compares two keys. Optional; by default case-sensitive string comparison.
@@ -299,7 +314,7 @@ function sortByKeys( object, compareFunction ) {
         fieldNames.push(name);
     }
     fieldNames.sort( compareFunction );
-    var result= {};
+    var result= new IterableArray( fieldNames );
     for( var i=0; i<fieldNames.length; i++ ) {
         var name= fieldNames[i];
         result[ name ]= object[ name ];
