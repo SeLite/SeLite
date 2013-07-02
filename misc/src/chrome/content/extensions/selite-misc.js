@@ -16,6 +16,10 @@
 */
 "use strict";
 
+var runningAsComponent= (typeof window==='undefined' || window && window.location && window.location.protocol=='chrome:');
+// runningAsComponent is false when loaded via <script src="file://..."> or <script src="http://..."> rather than via Components.utils.import().
+// Used for debugging; limited (because when it's not loaded via Components.utils.import() it can't access other components).
+
 /** @param mixed Container - object or array
  *  @param mixed Field - string field name, or integer/integer string index of the item
  *  @param Any further parameters are treated as chained 'subfields' - useful for traversing deeper array/object/mixed structures
@@ -285,18 +289,33 @@ function compareAllFieldsOneWay( firstContainer, secondContainer, strict, method
     }
 }
 
+var SELITE_MISC_ITERABLE_ARRAY_KEYS= "SELITE_MISC_ITERABLE_ARRAY_KEYS";
+
+// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/watch.
+// I could also just have a setter but it's more hassle: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_Objects#Defining_getters_and_setters
+function IterableArrayKeysWatchThrow( id, oldValue, newValue ) {
+    throw new Error( "This property " +id+ " is special and must not be re-set on instances of IterableArray." );
+}
 // We implement custom iteration order, because 3.1 of ECMA-262: "The mechanics and order of enumerating the properties [...] is not specified."
 // See http://stackoverflow.com/questions/648139/is-the-order-of-fields-in-a-javascript-object-predictable-when-looping-through-t
 // and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators
+// Especially, standard order of entries in an Object with numeric keys mixed positive & negative didn't get sorted in Firefox 22.
 // I've tried a yield-based function arrayItemGenerator(fieldNames) and 
 // var result= {}; result.__iterator__= arrayItemGenerator(fieldNames); or result.__iterator__= Iterator( fieldNames );
 // That worked when debugging it separately, but not as a part of SeLiteSettings. 
-function IterableArray( array ) {
-    this.array= array; //@TODO Make this hidden, so 'array' can be a key of a valid item
+function IterableArray( keys ) {
+    this[SELITE_MISC_ITERABLE_ARRAY_KEYS]= typeof keys!=='undefined'
+        ? keys
+        : [];
+    // I don't check (this.ITERABLE_ARRAY_KEYS instanceof Array), because that didn't work well between XPCOM and XUL. @TODO check
+    if( typeof this[SELITE_MISC_ITERABLE_ARRAY_KEYS]!=='object' || this[SELITE_MISC_ITERABLE_ARRAY_KEYS].constructor.name!='Array' || !(this[SELITE_MISC_ITERABLE_ARRAY_KEYS] instanceof Array) ) {
+        throw new Error("IterableArray(keys) expects keys to be an array, or undefined.");
+    }
+    this.watch( SELITE_MISC_ITERABLE_ARRAY_KEYS, IterableArrayKeysWatchThrow );
 }
 IterableArray.prototype.__iterator__= function() {
-    for( var i=0; i<this.array.length; i++ ) {
-        yield this.array[i];
+    for( var i=0; i<this[SELITE_MISC_ITERABLE_ARRAY_KEYS].length; i++ ) {
+        yield this[SELITE_MISC_ITERABLE_ARRAY_KEYS][i];
     }
 }
 
@@ -769,9 +788,10 @@ function PrototypedObject( prototype ) {
     https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsILoginManager
     https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsILoginInfo
 */
-var loginManagerInstance = Components.classes["@mozilla.org/login-manager;1"].
-    getService(Components.interfaces.nsILoginManager);
-
+if( runningAsComponent ) {
+    var loginManagerInstance = Components.classes["@mozilla.org/login-manager;1"].
+        getService(Components.interfaces.nsILoginManager);
+}
 /** This retrieves a web form password for a user. It doesn't work with .htaccess/HTTP authentication
     (that can be retrieved too, see the docs).
     @param string hostname in form 'https://server-name.some.domain'. It can use http or https and it contain the port (if not standard),

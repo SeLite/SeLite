@@ -14,7 +14,9 @@
 */
 "use strict";
 
-var runningAsComponent= (typeof window==='undefined' || window && window.location && window.location.protocol=='chrome:'); // When set to false, this can be loaded via <script src="file://..."> rather than via Components.utils.import(). Used for limited debugging only. Can't use <script src="chrome://...">
+var runningAsComponent= (typeof window==='undefined' || window && window.location && window.location.protocol=='chrome:');
+// runningAsComponent is false when loaded via <script src="file://..."> or <script src="http://..."> rather than via Components.utils.import().
+// Used for debugging; limited (because when it's not loaded via Components.utils.import() it can't access other components).
 
 // Whether this file is being loaded.
 var loadingPackageDefinition= true;

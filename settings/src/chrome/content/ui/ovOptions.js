@@ -546,7 +546,7 @@ function generateSets( moduleChildren, module ) {
 
 var treeRowsReported= false; //@TODO remove
 function generateFields( setChildren, module, setName, setFields ) {
-    for( var fieldName in setFields ) {
+    for( var fieldName in setFields ) {//@TODO potential IterableArray
         var fieldValueOrPairs= setFields[fieldName];
         var field= fieldName in module.fields
             ? module.fields[fieldName]
@@ -564,7 +564,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                 ? field.choicePairs
                 : fieldValueOrPairs;
             
-            for( var key in pairsToList ) {
+            for( var key in pairsToList ) {////@TODO potential IterableArray
                 var pair= {};
                 pair[key]= pairsToList[key];
                 var optionItem= generateTreeItem(module, setName, field, pair,
@@ -642,7 +642,7 @@ function treeClickHandler( event ) {
                 module.setSelectedSetName( selectedSetName );
                 modifiedPreferences= true;
                 
-                for( var setName in moduleRows ) {
+                for( var setName in moduleRows ) {//@TODO potential IterableArray
                     var treeRow= moduleRows[setName][SeLiteSettings.SET_SELECTION_ROW];
                     var cell= treeCell( treeRow, RowLevel.SET, true );
                     cell.setAttribute( 'editable', ''+(setName!==selectedSetName) );
@@ -738,7 +738,7 @@ function treeClickHandler( event ) {
                         var treeItem= generateTreeItem(module, setName, field, pair, RowLevel.OPTION, false, /*Don't show the initial value:*/true );
                         
                         var previouslyFirstValueRow= null;
-                        for( var key in moduleRows[setName][field.name] ) {
+                        for( var key in moduleRows[setName][field.name] ) {//@TODO potential IterableArray 
                             if( SeLiteSettings.reservedNames().indexOf(key)<0 ) {
                                 previouslyFirstValueRow= moduleRows[setName][field.name][key];
                                 if( !(previouslyFirstValueRow instanceof XULElement) || previouslyFirstValueRow.tagName!=='treerow' || previouslyFirstValueRow.parentNode.tagName!=='treeitem' ) {
@@ -839,7 +839,7 @@ function setCellText( row, col, value ) {
         var rowAfterNewPosition= null; // It may be null - then append the new row at the end; if same as treeRow, then the new value stays in treeRow.
             // If the new value still fits at the original position, then rowAfterNewPosition will be treeRow.
         //alert( objectToString(fieldTreeRows, 3, false, ['XULElement', '']) );
-        for( var otherKey in fieldTreeRows ) {
+        for( var otherKey in fieldTreeRows ) {//@TODO potential IterableArray
             // Following check also excludes SeLiteSettings.NEW_VALUE_ROW, because we don't want to compare it to real values. 
             //!==SeLiteSettings.FIELD_MAIN_ROW && otherKey!==SeLiteSettings.FIELD_TREECHILDREN 
             if( SeLiteSettings.reservedNames().indexOf(otherKey)<0 && field.compareValues(otherKey, value)>=0 ) {
@@ -995,7 +995,7 @@ window.addEventListener( "load", function(e) {
     tree.setAttribute( 'rows', '25'); //@TODO
     settingsBox.appendChild( tree );
     
-    for( var moduleName in modules ) {
+    for( var moduleName in modules ) {//@TODO potential IterableArray
         var module= modules[moduleName];
         allowSets= allowSets || module.allowSets;
         
