@@ -1274,7 +1274,7 @@ function $X(xpath, contextNode) {
                 evalResult= evalResult.toString();
             }
             else {
-                evalResult= this.robustNullReplacementString;
+                evalResult= this.robustNullToken;//@TODO sel;ite-misc-ide as a separate extension, or as a part of SelBlocks Global
             }
             LOG.debug( '...qs{}... transformed to: ' +prefix+evalResult+postfix);
             return prefix+evalResult+postfix;

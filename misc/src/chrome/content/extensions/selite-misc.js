@@ -65,7 +65,7 @@ function itemGeneric( containerAndFields, nullReplacement, targetNullReplacement
         if( item instanceof Array ) {
             if( typeof field !=='number' ) { // It may be a numeric string
                 field= new Number(field);
-                if( field.toString()=='NaN' ) {
+                if( isNaN(field) ) {
                     return nullReplacement;
                 }
                 field= field.valueOf();
@@ -289,17 +289,113 @@ function compareAllFieldsOneWay( firstContainer, secondContainer, strict, method
     }
 }
 
-var SELITE_MISC_ITERABLE_ARRAY_KEYS= "SELITE_MISC_ITERABLE_ARRAY_KEYS";
+var SELITE_MISC_SORTED_OBJECT_KEYS= "SELITE_MISC_SORTED_OBJECT_KEYS";
+var SELITE_MISC_SORTED_OBJECT_COMPARE= "SELITE_MISC_SORTED_OBJECT_COMPARE";
 
+var SortedObjectProxyHandler= {
+    set: function(target, key, value) {
+        var keys= target[SELITE_MISC_SORTED_OBJECT_KEYS];
+        if( keys.indexOf(key)<0 ) {
+            var sortCompare= target[SELITE_MISC_SORTED_OBJECT_COMPARE];
+            if( !sortCompare ) {
+                keys.push(key);
+            }
+            else { // Locate the index to insert at, using a binary quick sort-like search
+                //@TODO Something bad in the below inactive code in false branch. For now I use brute force:
+                if( true ) {
+                    keys.push( key );
+                    keys.sort( sortCompare );
+                }
+                else {
+                    var start= 0, end= keys.length-1; // 0-based indexes into keys[]
+                    while( start<end ) {
+                        var middle= Math.ceil( (start+end)/2 ); // Same as Math.round() for our purpose
+                        if( sortCompare.call(key, keys[middle])<=0 ) { // key <= keys[middle], as determined by sortCompare
+                            // Because of rounding, we need the following check; otherwise the loop would never finish if end-start==1 in this branch
+                            if( end===middle ) {
+                                end--; // that should be now the same as start
+                                continue;
+                            }
+                            end= middle;
+                        }
+                        else {
+                            start= middle;
+                        }
+                    }
+                    // If keys[] is empty, end will be -1. Therefore I use start.
+                    // If start==keys.length-1, the new item fits either before current last item, or after it. That's why the following extra check.
+                    if( start<keys.length-1 || keys.length>0 && sortCompare.call(key, keys[keys.length-1])<=0
+                    ) {
+                        alert( "keys: [" +keys+ "]; start=" +start+ ", end=" +end+ "; inserting key " +key+ " @ " +start);
+                        keys.splice( start, 0, key );
+                    }
+                    else {
+                        alert( "keys: [" +keys+ "]; start=" +start+ ", end=" +end+ "; inserting key " +key+ " @ end; sortCompare(key, last)=" +sortCompare.call(key, keys[keys.length-1]) );
+                        keys.push( key );
+                    }
+                }
+            }
+        }
+        target[key]= value;
+    },
+    deleteProperty: function(target, name) {
+        var index= target[SELITE_MISC_SORTED_OBJECT_KEYS].indexOf(name);
+        // index may be -1 - because a user can legally invoke: delete myObject.nonExistingProperty
+        if( index>=0 ) {
+            target[SELITE_MISC_SORTED_OBJECT_KEYS].splice( index, 1);
+        }
+        delete target[name];
+    },
+    enumerate: function( target ) {
+        return target[SELITE_MISC_SORTED_OBJECT_KEYS];
+    },
+    // See a comment for 'for(prop in proxy)' at https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy and https://bugzilla.mozilla.org/show_bug.cgi?id=783829
+    iterate: function( target ) {
+        return target[SELITE_MISC_SORTED_OBJECT_KEYS];
+    },
+    keys: function( target ) {
+        return target[SELITE_MISC_SORTED_OBJECT_KEYS];
+    }
+};
+
+/**This creates an object that manages/preserves order of the fields.
+   Especially useful if you have keys that are negative numbers (they get transformed to strings, but that doesn't matter here much).
+   Order of such keys didn't get preserved in Firefox 22. That complies with 
+   3.1 of ECMA-262: "The mechanics and order of enumerating the properties [...] is not specified."
+   There are 3 possibilities of ordering the fields:
+   - client-managed, no re-positioning (other than on removal of an item). A new entry is added to the end of the list items.
+   - auto-ordered, with automatic re-shuffling - A new entry is added to where it belongs to, based on sortCompare().
+// See http://stackoverflow.com/questions/648139/is-the-order-of-fields-in-a-javascript-object-predictable-when-looping-through-t
+// and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators
+I don't subclass Proxy - because it didn't work - the handler functions were not called.
+Also, in order to subclass Proxy, my constructor had to invoke Proxy.constructor.call(this, target, SortedObjectProxyHandler).
+ * @param mixed sortCompare Either
+ * - a function for auto-ordering
+ * - bool true if it should auto-order by compareNatural
+ * - false to just honour client-given order
+ * @returns {undefined}
+ */
+function sortedObject( sortCompare ) {
+    if( typeof sortCompare==='undefined' ) {
+        sortCompare= false;
+    }
+    if( sortCompare===true ) {
+        sortCompare= compareNatural;
+    }
+    if( sortCompare && typeof sortCompare!=='function' ) {
+        throw new Error("SortedObect() requires parameter sortCompare to be a function or boolean, if specified.");
+    }
+    var target= {};
+    target[SELITE_MISC_SORTED_OBJECT_COMPARE]= sortCompare;
+    target[SELITE_MISC_SORTED_OBJECT_KEYS]= [];
+    return new Proxy( target, SortedObjectProxyHandler );
+}
+ 
 // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/watch.
 // I could also just have a setter but it's more hassle: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_Objects#Defining_getters_and_setters
 function IterableArrayKeysWatchThrow( id, oldValue, newValue ) {
     throw new Error( "This property " +id+ " is special and must not be re-set on instances of IterableArray." );
 }
-// We implement custom iteration order, because 3.1 of ECMA-262: "The mechanics and order of enumerating the properties [...] is not specified."
-// See http://stackoverflow.com/questions/648139/is-the-order-of-fields-in-a-javascript-object-predictable-when-looping-through-t
-// and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators
-// Especially, standard order of entries in an Object with numeric keys mixed positive & negative didn't get sorted in Firefox 22.
 // I've tried a yield-based function arrayItemGenerator(fieldNames) and 
 // var result= {}; result.__iterator__= arrayItemGenerator(fieldNames); or result.__iterator__= Iterator( fieldNames );
 // That worked when debugging it separately, but not as a part of SeLiteSettings. 
@@ -376,6 +472,26 @@ function compareAsNumbers( first, second ) {
             ? -1
             : +1
           );
+}
+
+/** A blend of compareCaseInsensitively() and compareAsNumbers().
+ *  Non-numeric strings are sorted case insensitively. Numbers are sorted among themselves. Numbers will be before non-numeric strings.
+ *  @return a negative, 0 or positive number, depending on whether first is less
+ *  than, equal to or greater than second, in the order as described above.
+ * */
+function compareNatural( first ,second ) {
+    firstNumber= Number(first); // This works if it is already a number
+    secondNumber= Number(second);
+    
+    if( !isNaN(firstNumber) && !isNaN(secondNumber) ) {
+        return firstNumber===firstNumber
+            ? 0
+            : (firstNumber<firstNumber
+                ? -1
+                : +1
+              );
+    }
+    return compareCaseInsensitively( first, second );
 }
 
 /** @return an anonymous object, which has all fields from obj, and any
@@ -497,6 +613,7 @@ function objectValues( obj, asObject ) {
 }
 
 /** @return array containing string keys that are names of fields/entries in given object obj
+ *  @TODO Replace by Object.keys(obj)
  * */
 function objectKeys( obj ) {
     var result= [];
@@ -825,5 +942,6 @@ var EXPORTED_SYMBOLS= [ "item", "itemOrNull", "itemGeneric", "objectToString",
     "setFields", "random", "xpath_escape_quote", "unescape_xml",
     "PrototypedObject", "loginManagerPassword",
     "compareAllFields", "compareAllFieldsOneWay", "sortByKeys",
-    "compareAsNumbers", "compareCaseInsensitively"
+    "compareAsNumbers", "compareCaseInsensitively", "compareNatural",
+    "sortedObject"
 ];

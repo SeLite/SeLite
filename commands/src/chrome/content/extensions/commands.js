@@ -47,7 +47,7 @@ Selenium.prototype.doTypeRobust= function(target, value) {
         LOG.info( 'typeRobust skipped, since target was empty/0/false.' );
     }
     else
-    if( isRobustNull(target) ) {
+    if( isRobustNull(target) ) {//@TODO This depends on selite-misc-ide. Move to SelBlocks Global.
         LOG.info( 'typeRobust skipped, since target was null.' );
     }
     else

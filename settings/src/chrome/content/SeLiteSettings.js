@@ -633,11 +633,14 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function( setName ) {
                 var indexOfDot= child.indexOf('.');
                 if( indexOfDot>0 ) {
                     var fieldName= child.substring(0, indexOfDot );
-                    if( this.fields[fieldName] && (this.fields[fieldName].multivalued || this.fields[fieldName] instanceof SeLiteSettings.Field.Choice) ) {
+                    var field= this.fields[fieldName];
+                    if( field && (field.multivalued || field instanceof SeLiteSettings.Field.Choice) ) {
                         if( !result[fieldName]
-                        || typeof result[fieldName]!=='object' // In case there is an orphan/sick single value for fieldName itself, e.g. after you change field definition from single-value to multivalued
+                            || typeof result[fieldName]!=='object' // In case there is an orphan/sick single value for fieldName itself, e.g. after you change field definition from single-value to multivalued
                         ) {
-                            result[fieldName]= {};
+                            result[fieldName]= field.multivalued && !(field instanceof SeLiteSettings.Field.Choice)
+                                ? new SortedObject( field.compareValues )
+                                : {};
                         }
                         var key= child.substring( indexOfDot+1 );
                         result[fieldName][ key ]= value;
@@ -653,11 +656,10 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function( setName ) {
         var field= this.fields[fieldName];
         if( field.multivalued || field instanceof SeLiteSettings.Field.Choice ) {
             if( !result[fieldName] ) {
-                result[fieldName]= {};
+                result[fieldName]= field.multivalued && !(field instanceof SeLiteSettings.Field.Choice)
+                    ? new SortedObject( field.compareValues )
+                    : {};
             }
-        }
-        if( field.multivalued && !(field instanceof SeLiteSettings.Field.Choice) ) {
-            result[fieldName]= sortByKeys( result[fieldName], field.compareValues );
         }
     }
     return result;

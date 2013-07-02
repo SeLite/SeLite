@@ -9,7 +9,20 @@
         </script>
         <script type="text/javascript">
             "use strict";
-            document.write( "EXPORTED_SYMBOLS: " +typeof EXPORTED_SYMBOLS);
+            if( true ) {
+                //document.write( "EXPORTED_SYMBOLS: " +typeof EXPORTED_SYMBOLS);
+                var o= sortedObject( compareAsNumbers );
+                //alert( o[SELITE_MISC_SORTED_OBJECT_COMPARE] );
+                
+                o['1']= 'one';
+                o['-1']= 'minus one';
+                o['2']= 'two';
+                o['-2']= 'minus two';
+                document.write( Object.keys( o ) );
+                //alert('done');
+            }
+            document.write( '<br/><br/>' );
+            document.write( compareAsNumbers('-1', '1') );
         </script>
     </head>
     <body>

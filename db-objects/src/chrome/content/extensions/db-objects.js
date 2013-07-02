@@ -52,6 +52,11 @@ function readOnlyJoined( field ) {
 }
 
 /** Constructor of an object which represents a holder of one DB record.
+ *  It allows us to have methods to manipulate the record, without a name conflict
+ *  between names of those methods and fields of the record itself.
+ *  I would like to use use Firefox JS Proxies https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
+ *  -- try javascript:"use strict"; function MyProxy( target ) { Proxy.constructor.call(this, target, this ); } MyProxy.prototype.save= function() {}; var o=new MyProxy(); o.save()
+ *  -- No need to set MyProxy.prototype.constructor to Proxy.constructor
  *  <br/>Keys (field names) in this.record and this.original (if set) are the aliased
  *  column names, as defined in the respective DbRecordSetFormula (and as retrieved from DB).
  *  See insert().
@@ -64,7 +69,7 @@ function readOnlyJoined( field ) {
  *  set its fields later, and then use insert().
  *  DO NOT externally change existing .record field of DbRecordHolder instance after it was created,
  *  because this.record object won't be the same as plainRecord parameter passed here.
- *  this.record object links to DbRecordHolder instance (via a non-iterable field).
+ *  this.record object links to a new DbRecordHolder instance.
  **/
 function DbRecordHolder( recordSetOrFormula, plainRecord ) {
     if( recordSetOrFormula instanceof DbRecordSetFormula ) {
