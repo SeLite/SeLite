@@ -36,7 +36,7 @@ function SeLiteSettings() {
     throw new Error( "Do not instantiate SeLiteSettings");
 }
 
-SeLiteSettings.modules= {}; // Object serving as an associative array { string module.name => SeLiteSettings.Module instance }
+SeLiteSettings.modules= sortedObject(); // Object serving as an associative array { string module.name => SeLiteSettings.Module instance }
 
 SeLiteSettings.SELECTED_SET_NAME= "SELITE_SETTINGS_SELECTED_SET_NAME", // CSS also depends on its value
 
@@ -429,7 +429,7 @@ SeLiteSettings.Module= function( name, fields, allowSets, defaultSetName, defini
         // @TODO my docs I can't check (fields instanceof Array) neither (fields.constructor===Array) when this script a component. It must be caused by JS separation.
         throw new Error( 'SeLiteSettings.Module() expects an array fields, but it received ' +(typeof fields)+ ' - ' +fields);
     }
-    this.fields= {}; // Object serving as an associative array { string field name => SeLiteSettings.Field instance }
+    this.fields= sortedObject(); // Object serving as an associative array { string field name => SeLiteSettings.Field instance }
     for( var i=0; i<fields.length; i++ ) {
         var field= fields[i];
         if( !(field instanceof SeLiteSettings.Field) ) {
@@ -584,7 +584,7 @@ SeLiteSettings.Module.prototype.setSelectedSetName= function( setName ) {
 };
 
 /** @param setName Name of the set; an empty string if the module doesn't allow sets, or if you want a selected set.
- *  @return Object serving as associative array {
+ *  @return Object with sorted keys, serving as associative array {
  *      string field name => string/boolean/number ('primitive') value
  *      -- for non-choice single-value fields, and
  *      -- for fields not defined in this.fields
@@ -609,7 +609,7 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function( setName ) {
     }
     var children= this.prefsBranch.getChildList( setName, {} );
     children.sort( compareCaseInsensitively );
-    var result= {};
+    var result= sortedObject();
     var reservedNames= SeLiteSettings.reservedNames();
     
     for( var i=0; i<children.length; i++ ) {
@@ -639,7 +639,7 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function( setName ) {
                             || typeof result[fieldName]!=='object' // In case there is an orphan/sick single value for fieldName itself, e.g. after you change field definition from single-value to multivalued
                         ) {
                             result[fieldName]= field.multivalued && !(field instanceof SeLiteSettings.Field.Choice)
-                                ? new SortedObject( field.compareValues )
+                                ? sortedObject( field.compareValues )
                                 : {};
                         }
                         var key= child.substring( indexOfDot+1 );
@@ -657,7 +657,7 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function( setName ) {
         if( field.multivalued || field instanceof SeLiteSettings.Field.Choice ) {
             if( !result[fieldName] ) {
                 result[fieldName]= field.multivalued && !(field instanceof SeLiteSettings.Field.Choice)
-                    ? new SortedObject( field.compareValues )
+                    ? sortedObject( field.compareValues )
                     : {};
             }
         }

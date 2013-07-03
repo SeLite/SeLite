@@ -251,15 +251,15 @@ function generateTreeColumns( allowModules ) {
     return treecols;
 }
 
-/** Anonymous object serving as an associative array {
+/** Sorted anonymous object serving as an associative array {
  *     string module name => SeLiteSettings.Module object
  *  }
  * */
-var modules= {};
+var modules= sortedObject();
 
-/** Anynymous object serving as multi-level associative array {
+/** Sorted object (anonymous in any other respect) serving as multi-level associative array {
     *   string module name => anonymous object {
-    *      string set name (it may be an empty string) => anonymous object {
+    *      string set name (it may be an empty string) => sorted anonymous object {
     *          one or none: SeLiteSettings.SET_SELECTION_ROW => <treerow> element/object for the row that has a set selection cell
     *             - only if we show set sellection column and the module allows set selection
     *          zero or more: string field name (field is non-choice and single value) => <treerow> element/object for the row that has that field
@@ -282,7 +282,7 @@ var modules= {};
  * So when a user selects a set, I change its 'editable' attribute to false. Navigating tree using DOM functions seems to be more complex.
    2. I use this when saving a set/module/all displayed modules.
  *  * */
-var treeRows= {};
+var treeRows= sortedObject();
 
 /** Get a <treecell> element/object from a given treeRow and level
  *  @param object treeRow object/element for <treerow>
@@ -307,7 +307,7 @@ function treeCell( treeRow, level ) {
 }
 
 /** Access sub(sub...)container of given parent.
- *  If parent[field1][field2][...] is not defined, then this creates any missing chains as new anonymous objects.
+ *  If parent[field1][field2][...] is not defined, then this creates any missing chains as new anonymous naturally sorted objects.
  *  @param parent A parent container
  *  @param string field
  *  @param string another field (optional)
@@ -315,12 +315,12 @@ function treeCell( treeRow, level ) {
  *  ....
  *  @return the target parent[field][field2][...]@TODO move to SeLite Misc?
  * */
-function subcontainer( parent, fieldOrFields ) {
+function subContainer( parent, fieldOrFields ) {
     var object= parent;
     for( var i=1; i<arguments.length; i++ ) {
         var fieldName= arguments[i];
         if( typeof object[fieldName]==='undefined' ) {
-            object[fieldName]= {};
+            object[fieldName]= sortedObject();
         }
         object= object[fieldName];
     }
@@ -380,7 +380,8 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         : valueOrPair;
             
     if( field && typeof field!=='string' && !(field instanceof SeLiteSettings.Field) ) {
-        throw new Error( "Parameter field must be an instance of a subclass of SeLiteSettings.Field, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET.");
+        throw new Error( "Parameter field must be an instance of a subclass of SeLiteSettings.Field, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but it is "
+            +(typeof field==='object' ? 'an instance of ' +field.constructor.name : typeof field)+ ': ' +field );
     }
     if( typeof optionIsSelected==='undefined' ) {
         optionIsSelected= false;
@@ -425,7 +426,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         treecell= document.createElementNS( XUL_NS, 'treecell');
         treerow.appendChild( treecell);
         if( rowLevel===RowLevel.SET && module.allowSets) {
-            subcontainer( treeRows, module.name, setName )[ SeLiteSettings.SET_SELECTION_ROW ]= treerow;
+            subContainer( treeRows, module.name, setName )[ SeLiteSettings.SET_SELECTION_ROW ]= treerow;
             //alert( 'after SET_SELECTION_ROW:\n' +objectToString(treeRows, 4) );
             var thisSetSelected= setName==module.selectedSetName();
             treecell.setAttribute('value', ''+thisSetSelected );
@@ -440,15 +441,15 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     // Register treerow in treeRows[][...]
     if( rowLevel===RowLevel.FIELD ) {
         if( !field.multivalued && !(field instanceof SeLiteSettings.Field.Choice) ) {
-           subcontainer( treeRows, module.name, setName )[ fieldName ]= treerow;
+           subContainer( treeRows, module.name, setName )[ fieldName ]= treerow;
         }
         else {
-            subcontainer( treeRows, module.name, setName, fieldName )[ SeLiteSettings.FIELD_MAIN_ROW ]= treerow;
+            subContainer( treeRows, module.name, setName, fieldName )[ SeLiteSettings.FIELD_MAIN_ROW ]= treerow;
         }
         //alert( 'after RowLevel.FIELD:\n' +objectToString(treeRows, 4) );
     }
     if( rowLevel===RowLevel.OPTION ) {
-        subcontainer( treeRows, module.name, setName, fieldName )[ key ]= treerow;
+        subContainer( treeRows, module.name, setName, fieldName )[ key ]= treerow;
         //alert( 'after RowLevel.OPTION:\n' +objectToString(treeRows, 4) );
     }
     
@@ -546,7 +547,7 @@ function generateSets( moduleChildren, module ) {
 
 var treeRowsReported= false; //@TODO remove
 function generateFields( setChildren, module, setName, setFields ) {
-    for( var fieldName in setFields ) {//@TODO potential IterableArray
+    for( var fieldName in setFields ) {
         var fieldValueOrPairs= setFields[fieldName];
         var field= fieldName in module.fields
             ? module.fields[fieldName]
@@ -618,7 +619,7 @@ function treeClickHandler( event ) {
     var row= { value: -1 }; // value is 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
     var column= { value: null }; // value is instance of TreeColumn. See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeColumn
             // column.value.element is one of 'treecol' nodes created above. column.value.type can be TreeColumn.TYPE_CHECKBOX etc.
-    var pseudoElementHit= {}; // unused, but needed
+    var pseudoElementHit= {}; // unused, but needed. @TODO Move to the function call, eliminate the variable
     tree.boxObject.getCellAt(event.clientX, event.clientY, row, column, pseudoElementHit );
     
     if( row.value>=0 && column.value ) {
@@ -642,7 +643,7 @@ function treeClickHandler( event ) {
                 module.setSelectedSetName( selectedSetName );
                 modifiedPreferences= true;
                 
-                for( var setName in moduleRows ) {//@TODO potential IterableArray
+                for( var setName in moduleRows ) {
                     var treeRow= moduleRows[setName][SeLiteSettings.SET_SELECTION_ROW];
                     var cell= treeCell( treeRow, RowLevel.SET, true );
                     cell.setAttribute( 'editable', ''+(setName!==selectedSetName) );
@@ -738,7 +739,7 @@ function treeClickHandler( event ) {
                         var treeItem= generateTreeItem(module, setName, field, pair, RowLevel.OPTION, false, /*Don't show the initial value:*/true );
                         
                         var previouslyFirstValueRow= null;
-                        for( var key in moduleRows[setName][field.name] ) {//@TODO potential IterableArray 
+                        for( var key in moduleRows[setName][field.name] ) {
                             if( SeLiteSettings.reservedNames().indexOf(key)<0 ) {
                                 previouslyFirstValueRow= moduleRows[setName][field.name][key];
                                 if( !(previouslyFirstValueRow instanceof XULElement) || previouslyFirstValueRow.tagName!=='treerow' || previouslyFirstValueRow.parentNode.tagName!=='treeitem' ) {
@@ -839,7 +840,7 @@ function setCellText( row, col, value ) {
         var rowAfterNewPosition= null; // It may be null - then append the new row at the end; if same as treeRow, then the new value stays in treeRow.
             // If the new value still fits at the original position, then rowAfterNewPosition will be treeRow.
         //alert( objectToString(fieldTreeRows, 3, false, ['XULElement', '']) );
-        for( var otherKey in fieldTreeRows ) {//@TODO potential IterableArray
+        for( var otherKey in fieldTreeRows ) {
             // Following check also excludes SeLiteSettings.NEW_VALUE_ROW, because we don't want to compare it to real values. 
             //!==SeLiteSettings.FIELD_MAIN_ROW && otherKey!==SeLiteSettings.FIELD_TREECHILDREN 
             if( SeLiteSettings.reservedNames().indexOf(otherKey)<0 && field.compareValues(otherKey, value)>=0 ) {
@@ -995,7 +996,7 @@ window.addEventListener( "load", function(e) {
     tree.setAttribute( 'rows', '25'); //@TODO
     settingsBox.appendChild( tree );
     
-    for( var moduleName in modules ) {//@TODO potential IterableArray
+    for( var moduleName in modules ) {
         var module= modules[moduleName];
         allowSets= allowSets || module.allowSets;
         

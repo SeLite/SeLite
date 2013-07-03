@@ -22,7 +22,11 @@
                 //alert('done');
             }
             document.write( '<br/><br/>' );
-            document.write( compareAsNumbers('-1', '1') );
+            for( var i in o ) {
+                document.write( '' +i+ ' ' );
+            }
+            document.write( '<br/><br/>' );
+            document.write( compareAsNumbers(null, '-1', '1') );
         </script>
     </head>
     <body>

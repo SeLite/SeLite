@@ -292,7 +292,7 @@ function compareAllFieldsOneWay( firstContainer, secondContainer, strict, method
 var SELITE_MISC_SORTED_OBJECT_KEYS= "SELITE_MISC_SORTED_OBJECT_KEYS";
 var SELITE_MISC_SORTED_OBJECT_COMPARE= "SELITE_MISC_SORTED_OBJECT_COMPARE";
 
-var SortedObjectProxyHandler= {
+var sortedObjectProxyHandler= {
     set: function(target, key, value) {
         var keys= target[SELITE_MISC_SORTED_OBJECT_KEYS];
         if( keys.indexOf(key)<0 ) {
@@ -301,6 +301,9 @@ var SortedObjectProxyHandler= {
                 keys.push(key);
             }
             else { // Locate the index to insert at, using a binary quick sort-like search
+                if( typeof sortCompare!=='function' ) {
+                    throw new Error("sortedObject() and sortedObjectProxyHandler require sortCompare to be a function, if set, but it is " +typeof sortCompare+ ': ' +sortCompare);
+                }
                 // Brute-force alternative:
                 // keys.push( key );
                 // keys.sort( sortCompare );
@@ -344,10 +347,16 @@ var SortedObjectProxyHandler= {
     },
     // See a comment for 'for(prop in proxy)' at https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy and https://bugzilla.mozilla.org/show_bug.cgi?id=783829
     iterate: function( target ) {
-        return target[SELITE_MISC_SORTED_OBJECT_KEYS];
+        for( var i=0; i<target[SELITE_MISC_SORTED_OBJECT_KEYS].length; i++ ) {
+            yield target[SELITE_MISC_SORTED_OBJECT_KEYS][i];
+        }
+        //return target[SELITE_MISC_SORTED_OBJECT_KEYS];
     },
     keys: function( target ) {
         return target[SELITE_MISC_SORTED_OBJECT_KEYS];
+    },
+    has: function(target, name) {
+        return target[SELITE_MISC_SORTED_OBJECT_KEYS].indexOf(name)>=0;
     }
 };
 
@@ -361,7 +370,7 @@ var SortedObjectProxyHandler= {
 // See http://stackoverflow.com/questions/648139/is-the-order-of-fields-in-a-javascript-object-predictable-when-looping-through-t
 // and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators
 I don't subclass Proxy - because it didn't work - the handler functions were not called.
-Also, in order to subclass Proxy, my constructor had to invoke Proxy.constructor.call(this, target, SortedObjectProxyHandler).
+Also, in order to subclass Proxy, my constructor had to invoke Proxy.constructor.call(this, target, sortedObjectProxyHandler).
  * @param mixed sortCompare Either
  * - a function for auto-ordering
  * - bool true if it should auto-order by compareNatural
@@ -378,12 +387,56 @@ function sortedObject( sortCompare ) {
     if( sortCompare && typeof sortCompare!=='function' ) {
         throw new Error("SortedObect() requires parameter sortCompare to be a function or boolean, if specified.");
     }
-    var target= {};
-    target[SELITE_MISC_SORTED_OBJECT_COMPARE]= sortCompare;
-    target[SELITE_MISC_SORTED_OBJECT_KEYS]= [];
-    return new Proxy( target, SortedObjectProxyHandler );
+    var target= new SortedObjectTarget( sortCompare );
+    if( false ) {
+    Object.defineProperty( target, SELITE_MISC_SORTED_OBJECT_COMPARE, {
+      enumerable: false,      configurable: false, writable: false,
+      value: sortCompare
+    });
+    Object.defineProperty( target, SELITE_MISC_SORTED_OBJECT_KEYS, {
+      enumerable: false, configurable: false, writable: false,
+      value: []
+    });
+    } else {
+    //target[SELITE_MISC_SORTED_OBJECT_COMPARE]= sortCompare;
+    //target[SELITE_MISC_SORTED_OBJECT_KEYS]= [];
+    }
+    return new Proxy( target, sortedObjectProxyHandler );
+    //return new SortedObjectProxy( target, sortedObjectProxyHandler );
 }
- 
+
+function SortedObjectTarget( sortCompare ) {
+    this[SELITE_MISC_SORTED_OBJECT_COMPARE]= sortCompare;
+    this[SELITE_MISC_SORTED_OBJECT_KEYS]= [];
+}
+function SortedObjectTargetIterator( target ) {
+    this.target= target;
+    this.keyIndex= 0;
+}
+SortedObjectTargetIterator.prototype.next= function() {
+    if( this.keyIndex<this.target[SELITE_MISC_SORTED_OBJECT_KEYS].length ) {
+        return this.target[SELITE_MISC_SORTED_OBJECT_KEYS][ this.keyIndex++ ];
+    }
+    throw StopIteration;
+};
+SortedObjectTarget.prototype.__iterator__= function() {
+    return new SortedObjectTargetIterator(this);
+};
+/*
+function SortedObjectProxy( target, handler ) {
+    Proxy.constructor.call(this, target, handler);
+}
+function SortedObjectProxyIterator( proxy ) {
+    this.proxy= proxy;
+    this.keyIndex= 0;
+}
+SortedObjectProxyIterator.prototype.next= function() {
+    if( this.keyIndex<this.proxy)
+};
+SortedObjectProxy.prototype.__iterator__= function() {
+    
+};
+/**/
 // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/watch.
 // I could also just have a setter but it's more hassle: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_Objects#Defining_getters_and_setters
 function IterableArrayKeysWatchThrow( id, oldValue, newValue ) {
