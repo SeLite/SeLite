@@ -277,7 +277,7 @@ function compareAllFieldsOneWay( firstContainer, secondContainer, strict, method
             if( typeof first!='object' || typeof second!='object' ) { // typeof null=='object', so this is null-proof
                 throw new Error();
             }
-            if( first!==null && !first[methodName].call(first, second) ) {
+            if( first!==null && !first[methodName].call(null, first, second) ) {
                 throw new Error();
             }
         }
@@ -301,42 +301,35 @@ var SortedObjectProxyHandler= {
                 keys.push(key);
             }
             else { // Locate the index to insert at, using a binary quick sort-like search
-                //@TODO Something bad in the below inactive code in false branch. For now I use brute force:
-                if( true ) {
-                    keys.push( key );
-                    keys.sort( sortCompare );
-                }
-                else {
-                    var start= 0, end= keys.length-1; // 0-based indexes into keys[]
-                    while( start<end ) {
-                        var middle= Math.ceil( (start+end)/2 ); // Same as Math.round() for our purpose
-                        if( sortCompare.call(key, keys[middle])<=0 ) { // key <= keys[middle], as determined by sortCompare
-                            // Because of rounding, we need the following check; otherwise the loop would never finish if end-start==1 in this branch
-                            if( end===middle ) {
-                                end--; // that should be now the same as start
-                                continue;
-                            }
-                            end= middle;
-                        }
-                        else {
-                            start= middle;
-                        }
-                    }
-                    // If keys[] is empty, end will be -1. Therefore I use start.
-                    // If start==keys.length-1, the new item fits either before current last item, or after it. That's why the following extra check.
-                    if( start<keys.length-1 || keys.length>0 && sortCompare.call(key, keys[keys.length-1])<=0
-                    ) {
-                        alert( "keys: [" +keys+ "]; start=" +start+ ", end=" +end+ "; inserting key " +key+ " @ " +start);
-                        keys.splice( start, 0, key );
+                // Brute-force alternative:
+                // keys.push( key );
+                // keys.sort( sortCompare );
+                var start= 0, end= keys.length-1; // 0-based indexes into keys[]
+                while( start<end ) {
+                    var middle= Math.floor( (start+end)/2 ); // Better than Math.round() for our purpose 
+                    if( sortCompare.call(null, key, keys[middle])<=0 ) { // key <= keys[middle], as determined by sortCompare
+                        end= middle;
                     }
                     else {
-                        alert( "keys: [" +keys+ "]; start=" +start+ ", end=" +end+ "; inserting key " +key+ " @ end; sortCompare(key, last)=" +sortCompare.call(key, keys[keys.length-1]) );
-                        keys.push( key );
+                        // Because of floor(), we need the following check; otherwise the loop would never finish if end-start==1 in this branch
+                        if( start==middle ) {
+                            start++; // that should be now the same as end
+                            continue;
+                        }
+                        start= middle;
                     }
+                } // now start===end (unless keys[] is empty - then start==0, end==-1).
+                // If keys[] is empty, end will be -1. Therefore I use start.
+
+                if( start<keys.length-1 || keys.length>0 && sortCompare.call(null, key, keys[keys.length-1])<=0 ) {
+                    keys.splice( start, 0, key );
+                }
+                else {
+                    keys.push( key );
                 }
             }
         }
-        target[key]= value;
+        target[key]= value; // The key may exist already or not - either way, I set it in the target
     },
     deleteProperty: function(target, name) {
         var index= target[SELITE_MISC_SORTED_OBJECT_KEYS].indexOf(name);
@@ -470,7 +463,7 @@ function compareAsNumbers( first, second ) {
         ? 0
         : (first<second
             ? -1
-            : +1
+            : 1
           );
 }
 
