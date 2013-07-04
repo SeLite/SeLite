@@ -333,6 +333,7 @@ var sortedObjectProxyHandler= {
             }
         }
         target[key]= value; // The key may exist already or not - either way, I set it in the target
+        return true;
     },
     deleteProperty: function(target, name) {
         var index= target[SELITE_MISC_SORTED_OBJECT_KEYS].indexOf(name);
@@ -341,6 +342,7 @@ var sortedObjectProxyHandler= {
             target[SELITE_MISC_SORTED_OBJECT_KEYS].splice( index, 1);
         }
         delete target[name];
+        return true;
     },
     enumerate: function( target ) {
         return target[SELITE_MISC_SORTED_OBJECT_KEYS];
@@ -528,8 +530,8 @@ function compareAsNumbers( first, second ) {
  *  than, equal to or greater than second, in the order as described above.
  * */
 function compareNatural( first ,second ) {
-    firstNumber= Number(first); // This works if it is already a number
-    secondNumber= Number(second);
+    var firstNumber= Number(first); // This works if it is already a number
+    var secondNumber= Number(second);
     
     if( !isNaN(firstNumber) && !isNaN(secondNumber) ) {
         return firstNumber===firstNumber

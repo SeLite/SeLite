@@ -320,7 +320,7 @@ function subContainer( parent, fieldOrFields ) {
     for( var i=1; i<arguments.length; i++ ) {
         var fieldName= arguments[i];
         if( typeof object[fieldName]==='undefined' ) {
-            object[fieldName]= sortedObject();
+            object[fieldName]= sortedObject(true);
         }
         object= object[fieldName];
     }
