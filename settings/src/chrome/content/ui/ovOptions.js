@@ -810,8 +810,8 @@ function setCellText( row, col, value ) {
     }
     else {
         fieldTreeRows= moduleRows[setName][fieldName];
-        if( fieldTreeRows.constructor.name!=='Object' ) {
-            throw new Error( "fieldTreeRows should be an instance of Object - e.g. an anonymous object." );
+        if( !(fieldTreeRows instanceof SortedObjectTarget) ) {
+            throw new Error( "fieldTreeRows should be an instance of SortedObjectTarget (actually, a proxy to such an instance), but it is " +fieldTreeRows.constructor.name );
         }
         var oldKey= propertiesPart( rowProperties, RowLevel.OPTION );
         if( value===oldKey ) { //setCellText() is called after editing, even if there was no change

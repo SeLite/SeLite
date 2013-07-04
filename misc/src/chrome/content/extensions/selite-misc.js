@@ -405,6 +405,8 @@ function sortedObject( sortCompare ) {
     //return new SortedObjectProxy( target, sortedObjectProxyHandler );
 }
 
+// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators
+// and https://bugzilla.mozilla.org/show_bug.cgi?id=783829
 function SortedObjectTarget( sortCompare ) {
     this[SELITE_MISC_SORTED_OBJECT_COMPARE]= sortCompare;
     this[SELITE_MISC_SORTED_OBJECT_KEYS]= [];
@@ -989,5 +991,5 @@ var EXPORTED_SYMBOLS= [ "item", "itemOrNull", "itemGeneric", "objectToString",
     "PrototypedObject", "loginManagerPassword",
     "compareAllFields", "compareAllFieldsOneWay", "sortByKeys",
     "compareAsNumbers", "compareCaseInsensitively", "compareNatural",
-    "sortedObject"
+    "sortedObject", "SortedObjectTarget"
 ];
