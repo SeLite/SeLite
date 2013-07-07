@@ -344,14 +344,24 @@ var sortedObjectProxyHandler= {
         delete target[name];
         return true;
     },
-    enumerate: function( target ) {
-        return target[SELITE_MISC_SORTED_OBJECT_KEYS];
-    },
+    //enumerate: function( target ) {
+    //    return target[SELITE_MISC_SORTED_OBJECT_KEYS];
+    //},
+    
     // See a comment for 'for(prop in proxy)' at https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy and https://bugzilla.mozilla.org/show_bug.cgi?id=783829
     iterate: function( target ) {
-        for( var i=0; i<target[SELITE_MISC_SORTED_OBJECT_KEYS].length; i++ ) {
-            yield target[SELITE_MISC_SORTED_OBJECT_KEYS][i];
-        }
+        var i=0;
+        return {
+          next: function() {
+            if( i===target[SELITE_MISC_SORTED_OBJECT_KEYS].length ) {
+                throw StopIteration;
+            }
+            return target[SELITE_MISC_SORTED_OBJECT_KEYS][i++];
+          }
+        };
+        //for( var i=0; i<target[SELITE_MISC_SORTED_OBJECT_KEYS].length; i++ ) {
+        //    yield target[SELITE_MISC_SORTED_OBJECT_KEYS][i];
+        //}
         //return target[SELITE_MISC_SORTED_OBJECT_KEYS];
     },
     keys: function( target ) {
@@ -366,9 +376,10 @@ var sortedObjectProxyHandler= {
    Especially useful if you have keys that are negative numbers (they get transformed to strings, but that doesn't matter here much).
    Order of such keys didn't get preserved in Firefox 22. That complies with 
    3.1 of ECMA-262: "The mechanics and order of enumerating the properties [...] is not specified."
-   There are 3 possibilities of ordering the fields:
+   There are 2 possibilities of ordering the fields:
    - client-managed, no re-positioning (other than on removal of an item). A new entry is added to the end of the list items.
-   - auto-ordered, with automatic re-shuffling - A new entry is added to where it belongs to, based on sortCompare().
+   - auto-ordered, with automatic re-shuffling - A new entry is added to where it belongs to, based on sortCompare(). If sortCompare
+   is boolean true, then it uses natural sorting - see compareNatural().
 // See http://stackoverflow.com/questions/648139/is-the-order-of-fields-in-a-javascript-object-predictable-when-looping-through-t
 // and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators
 I don't subclass Proxy - because it didn't work - the handler functions were not called.
@@ -390,7 +401,7 @@ function sortedObject( sortCompare ) {
         throw new Error("SortedObect() requires parameter sortCompare to be a function or boolean, if specified.");
     }
     var target= new SortedObjectTarget( sortCompare );
-    if( false ) {
+    if( true ) {
     Object.defineProperty( target, SELITE_MISC_SORTED_OBJECT_COMPARE, {
       enumerable: false,      configurable: false, writable: false,
       value: sortCompare
@@ -404,14 +415,15 @@ function sortedObject( sortCompare ) {
     //target[SELITE_MISC_SORTED_OBJECT_KEYS]= [];
     }
     return new Proxy( target, sortedObjectProxyHandler );
+        //SortedObjectProxy( target, sortedObjectProxyHandler );
     //return new SortedObjectProxy( target, sortedObjectProxyHandler );
 }
 
 // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators
 // and https://bugzilla.mozilla.org/show_bug.cgi?id=783829
 function SortedObjectTarget( sortCompare ) {
-    this[SELITE_MISC_SORTED_OBJECT_COMPARE]= sortCompare;
-    this[SELITE_MISC_SORTED_OBJECT_KEYS]= [];
+    //this[SELITE_MISC_SORTED_OBJECT_COMPARE]= sortCompare;
+    //this[SELITE_MISC_SORTED_OBJECT_KEYS]= [];
 }
 function SortedObjectTargetIterator( target ) {
     this.target= target;
@@ -426,6 +438,15 @@ SortedObjectTargetIterator.prototype.next= function() {
 SortedObjectTarget.prototype.__iterator__= function() {
     return new SortedObjectTargetIterator(this);
 };
+
+//function SortedObjectProxy( target, sortedObjectProxyHandler ) {
+//    Proxy.constructor.call(this, target, sortedObjectProxyHandler);
+//    this.SECRET_TARGET= target;
+//}
+//SortedObjectProxy.prototype.__iterator__= function() {throw new Error();
+//    return this.SECRET_TARGET.__iterator__();
+//};
+
 /*
 function SortedObjectProxy( target, handler ) {
     Proxy.constructor.call(this, target, handler);
@@ -981,7 +1002,7 @@ function loginManagerPassword( hostname, username ) {
     }
     return null;
 }
-
+var seliteAlert= {go: null};
 var EXPORTED_SYMBOLS= [ "item", "itemOrNull", "itemGeneric", "objectToString",
     //"objectFieldToString",
      "rowsToString", "timestampInSeconds", "isEmptyObject",
@@ -993,5 +1014,5 @@ var EXPORTED_SYMBOLS= [ "item", "itemOrNull", "itemGeneric", "objectToString",
     "PrototypedObject", "loginManagerPassword",
     "compareAllFields", "compareAllFieldsOneWay", "sortByKeys",
     "compareAsNumbers", "compareCaseInsensitively", "compareNatural",
-    "sortedObject", "SortedObjectTarget"
+    "sortedObject", "SortedObjectTarget", "seliteAlert"
 ];

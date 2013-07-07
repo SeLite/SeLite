@@ -19,7 +19,7 @@ var XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 var nsIFilePicker = Components.interfaces.nsIFilePicker;
 Components.utils.import("resource://gre/modules/FileUtils.jsm" );
 Components.utils.import( "chrome://selite-misc/content/extensions/selite-misc.js" );
-
+seliteAlert.go= function(msg) { alert(msg); };
 var CREATE_NEW_SET= "Create a new set";
 var DELETE_THE_SET= "Delete the set";
 var ADD_NEW_VALUE= "Add a new value";
@@ -259,11 +259,11 @@ var modules= sortedObject();
 
 /** Sorted object (anonymous in any other respect) serving as multi-level associative array {
     *   string module name => anonymous object {
-    *      string set name (it may be an empty string) => sorted anonymous object {
+    *      string set name (it may be an empty string) => sorted object {
     *          one or none: SeLiteSettings.SET_SELECTION_ROW => <treerow> element/object for the row that has a set selection cell
     *             - only if we show set sellection column and the module allows set selection
     *          zero or more: string field name (field is non-choice and single value) => <treerow> element/object for the row that has that field
-    *          zero or more: string field name (the field is multivalue or a choice) => anonymous object {
+    *          zero or more: string field name (the field is multivalue or a choice) => anonymous or sorted object {
     *             value fields (ones with keys that are not reserved) are sorted by key, but entries with reserved keys may be at any position
     *             - one: SeLiteSettings.FIELD_MAIN_ROW => <treerow> element/object for the row that contains all options for that field
     *             - one: SeLiteSettings.FIELD_TREECHILDREN => <treechildren> element/object for this field, that contains <treeitem><treerow> levels for each option
@@ -840,7 +840,10 @@ function setCellText( row, col, value ) {
         var rowAfterNewPosition= null; // It may be null - then append the new row at the end; if same as treeRow, then the new value stays in treeRow.
             // If the new value still fits at the original position, then rowAfterNewPosition will be treeRow.
         //alert( objectToString(fieldTreeRows, 3, false, ['XULElement', '']) );
+        //var debugOtherKeys= [];
+        //alert( Object.keys(fieldTreeRows) );
         for( var otherKey in fieldTreeRows ) {
+            //debugOtherKeys.push( otherKey );
             // Following check also excludes SeLiteSettings.NEW_VALUE_ROW, because we don't want to compare it to real values. 
             //!==SeLiteSettings.FIELD_MAIN_ROW && otherKey!==SeLiteSettings.FIELD_TREECHILDREN 
             if( SeLiteSettings.reservedNames().indexOf(otherKey)<0 && field.compareValues(otherKey, value)>=0 ) {
@@ -848,6 +851,8 @@ function setCellText( row, col, value ) {
                 break;
             }
         }
+        //seliteAlert.go.call(null, 'debugOtherKeys: ['+debugOtherKeys+ '], rowAfterNewPosition found: ' +(rowAfterNewPosition==null) );
+        //seliteAlert.go.call(null, 'rowAfterNewPosition found: ' +(rowAfterNewPosition==null));
         if( rowAfterNewPosition===null && fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW] && objectKeys(fieldTreeRows).length===3 ) {
             // there's no other existing value, and the row being edited is a new one (it didn't have a real value set yet)
             if( fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW]!==treeRow || oldKey!==SeLiteSettings.NEW_VALUE_ROW ) {
