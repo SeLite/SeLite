@@ -255,7 +255,7 @@ function generateTreeColumns( allowModules ) {
  *     string module name => SeLiteSettings.Module object
  *  }
  * */
-var modules= sortedObject();
+var modules= sortedObject(true);
 
 /** Sorted object (anonymous in any other respect) serving as multi-level associative array {
     *   string module name => anonymous object {
@@ -282,7 +282,7 @@ var modules= sortedObject();
  * So when a user selects a set, I change its 'editable' attribute to false. Navigating tree using DOM functions seems to be more complex.
    2. I use this when saving a set/module/all displayed modules.
  *  * */
-var treeRows= sortedObject();
+var treeRows= sortedObject(true);
 
 /** Get a <treecell> element/object from a given treeRow and level
  *  @param object treeRow object/element for <treerow>
@@ -530,7 +530,7 @@ function generateSets( moduleChildren, module ) {
     for( var i=0; i<setNames.length; i++ ) {
         var setName= setNames[i];
         // setFields includes all fields from Preferences DB for the module name, even if they are not in the module definition
-        var setFields= module.getFieldsOfSet( setName );//alert( objectKeys(setFields) ); return;
+        var setFields= module.getFieldsOfSet( setName );
         
         var setChildren= null;
         if( module.allowSets ) {
@@ -853,7 +853,7 @@ function setCellText( row, col, value ) {
         }
         //seliteAlert.go.call(null, 'debugOtherKeys: ['+debugOtherKeys+ '], rowAfterNewPosition found: ' +(rowAfterNewPosition==null) );
         //seliteAlert.go.call(null, 'rowAfterNewPosition found: ' +(rowAfterNewPosition==null));
-        if( rowAfterNewPosition===null && fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW] && objectKeys(fieldTreeRows).length===3 ) {
+        if( rowAfterNewPosition===null && fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW] && Object.keys(fieldTreeRows).length===3 ) {
             // there's no other existing value, and the row being edited is a new one (it didn't have a real value set yet)
             if( fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW]!==treeRow || oldKey!==SeLiteSettings.NEW_VALUE_ROW ) {
                 throw new Error( "This assumes that if fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW] is set, then that's the row we're just editing." );

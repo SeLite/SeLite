@@ -291,7 +291,7 @@ function compareAllFieldsOneWay( firstContainer, secondContainer, strict, method
 
 var SELITE_MISC_SORTED_OBJECT_KEYS= "SELITE_MISC_SORTED_OBJECT_KEYS";
 var SELITE_MISC_SORTED_OBJECT_COMPARE= "SELITE_MISC_SORTED_OBJECT_COMPARE";
-
+/*
 var sortedObjectProxyHandler= {
     set: function(target, key, value) {
         var keys= target[SELITE_MISC_SORTED_OBJECT_KEYS];
@@ -370,9 +370,18 @@ var sortedObjectProxyHandler= {
     has: function(target, name) {
         return target[SELITE_MISC_SORTED_OBJECT_KEYS].indexOf(name)>=0;
     }
-};
+};/**/
 
 /**This creates an object that manages/preserves order of the fields.
+ * For now it works with for( .. in .. ) only. It doesn't keep the order when using Object.keys( .. )
+ * @param mixed sortCompare Either
+ * - a function for auto-ordering
+ * - bool true if it should auto-order by compareNatural
+ * - false to just honour client-given order (not working for now - it will honour the order, but not for e.g. mixed negative/positive number keys)
+ * @returns a new object
+ * <br/>Old docs - relevant only if Firefox supprots object proxies properly. See
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators
+   and https://bugzilla.mozilla.org/show_bug.cgi?id=783829
    Especially useful if you have keys that are negative numbers (they get transformed to strings, but that doesn't matter here much).
    Order of such keys didn't get preserved in Firefox 22. That complies with 
    3.1 of ECMA-262: "The mechanics and order of enumerating the properties [...] is not specified."
@@ -384,11 +393,6 @@ var sortedObjectProxyHandler= {
 // and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators
 I don't subclass Proxy - because it didn't work - the handler functions were not called.
 Also, in order to subclass Proxy, my constructor had to invoke Proxy.constructor.call(this, target, sortedObjectProxyHandler).
- * @param mixed sortCompare Either
- * - a function for auto-ordering
- * - bool true if it should auto-order by compareNatural
- * - false to just honour client-given order
- * @returns {undefined}
  */
 function sortedObject( sortCompare ) {
     if( typeof sortCompare==='undefined' ) {
@@ -401,30 +405,38 @@ function sortedObject( sortCompare ) {
         throw new Error("SortedObect() requires parameter sortCompare to be a function or boolean, if specified.");
     }
     var target= new SortedObjectTarget( sortCompare );
-    if( true ) {
-    Object.defineProperty( target, SELITE_MISC_SORTED_OBJECT_COMPARE, {
-      enumerable: false,      configurable: false, writable: false,
-      value: sortCompare
-    });
-    Object.defineProperty( target, SELITE_MISC_SORTED_OBJECT_KEYS, {
-      enumerable: false, configurable: false, writable: false,
-      value: []
-    });
-    } else {
-    //target[SELITE_MISC_SORTED_OBJECT_COMPARE]= sortCompare;
-    //target[SELITE_MISC_SORTED_OBJECT_KEYS]= [];
-    }
-    return new Proxy( target, sortedObjectProxyHandler );
-        //SortedObjectProxy( target, sortedObjectProxyHandler );
-    //return new SortedObjectProxy( target, sortedObjectProxyHandler );
+    return target;
+    //return new Proxy( target, sortedObjectProxyHandler );
+    //return  new SortedObjectProxy( target, sortedObjectProxyHandler );
 }
 
-// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators
-// and https://bugzilla.mozilla.org/show_bug.cgi?id=783829
 function SortedObjectTarget( sortCompare ) {
-    //this[SELITE_MISC_SORTED_OBJECT_COMPARE]= sortCompare;
-    //this[SELITE_MISC_SORTED_OBJECT_KEYS]= [];
+    Object.defineProperty( this, SELITE_MISC_SORTED_OBJECT_COMPARE, {
+      enumerable: false, configurable: false, writable: false,
+      value: sortCompare
+    });
+    /*Object.defineProperty( target, SELITE_MISC_SORTED_OBJECT_KEYS, {
+      enumerable: false, configurable: false, writable: false,
+      value: []
+    });*/
 }
+
+SortedObjectTarget.prototype.__iterator__= function() {
+    var i=0;
+    var keys= Object.keys(this);
+    if( this[SELITE_MISC_SORTED_OBJECT_COMPARE] ) {
+        keys.sort( this[SELITE_MISC_SORTED_OBJECT_COMPARE] );
+    }
+    return {
+        next: function() {
+            if(i<keys.length) {
+                return keys[i++];
+            }
+            throw StopIteration;
+        }
+    }
+};
+/*
 function SortedObjectTargetIterator( target ) {
     this.target= target;
     this.keyIndex= 0;
@@ -439,13 +451,13 @@ SortedObjectTarget.prototype.__iterator__= function() {
     return new SortedObjectTargetIterator(this);
 };
 
-//function SortedObjectProxy( target, sortedObjectProxyHandler ) {
-//    Proxy.constructor.call(this, target, sortedObjectProxyHandler);
-//    this.SECRET_TARGET= target;
-//}
-//SortedObjectProxy.prototype.__iterator__= function() {throw new Error();
-//    return this.SECRET_TARGET.__iterator__();
-//};
+function SortedObjectProxy( target, sortedObjectProxyHandler ) {
+    Proxy.constructor.call(this, target, sortedObjectProxyHandler);
+    this.SECRET_TARGET= target;
+}
+SortedObjectProxy.prototype.__iterator__= function() {throw new Error();
+    return this.SECRET_TARGET.__iterator__();
+};/**/
 
 /*
 function SortedObjectProxy( target, handler ) {
@@ -679,17 +691,6 @@ function objectValues( obj, asObject ) {
         else {
             result.push( obj[field] );
         }
-    }
-    return result;
-}
-
-/** @return array containing string keys that are names of fields/entries in given object obj
- *  @TODO Replace by Object.keys(obj)
- * */
-function objectKeys( obj ) {
-    var result= [];
-    for( var fieldName in obj ) {
-        result.push( fieldName );
     }
     return result;
 }
@@ -1007,7 +1008,7 @@ var EXPORTED_SYMBOLS= [ "item", "itemOrNull", "itemGeneric", "objectToString",
     //"objectFieldToString",
      "rowsToString", "timestampInSeconds", "isEmptyObject",
     "objectsMerge", "objectCopyFields", "objectClone", "objectDeleteFields",
-    "arrayClone", "objectReverse", "objectValues", "objectKeys", "objectValueToField",
+    "arrayClone", "objectReverse", "objectValues", "objectValueToField",
     "collectByColumn", "RecordGroup", "collectByColumnRecord", "getField",
     "acceptableCharacters", "randomChar", "randomString", "randomItem",
     "setFields", "random", "xpath_escape_quote", "unescape_xml",
