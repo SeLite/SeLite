@@ -36,7 +36,7 @@ function SeLiteSettings() {
     throw new Error( "Do not instantiate SeLiteSettings");
 }
 
-SeLiteSettings.modules= sortedObject(); // Object serving as an associative array { string module.name => SeLiteSettings.Module instance }
+SeLiteSettings.modules= sortedObject(true); // Object serving as an associative array { string module.name => SeLiteSettings.Module instance }
 
 SeLiteSettings.SELECTED_SET_NAME= "SELITE_SETTINGS_SELECTED_SET_NAME", // CSS also depends on its value
 
@@ -429,7 +429,7 @@ SeLiteSettings.Module= function( name, fields, allowSets, defaultSetName, defini
         // @TODO my docs I can't check (fields instanceof Array) neither (fields.constructor===Array) when this script a component. It must be caused by JS separation.
         throw new Error( 'SeLiteSettings.Module() expects an array fields, but it received ' +(typeof fields)+ ' - ' +fields);
     }
-    this.fields= sortedObject(); // Object serving as an associative array { string field name => SeLiteSettings.Field instance }
+    this.fields= sortedObject(true); // Object serving as an associative array { string field name => SeLiteSettings.Field instance }
     for( var i=0; i<fields.length; i++ ) {
         var field= fields[i];
         if( !(field instanceof SeLiteSettings.Field) ) {
@@ -609,7 +609,7 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function( setName ) {
     }
     var children= this.prefsBranch.getChildList( setName, {} );
     children.sort( compareCaseInsensitively );
-    var result= sortedObject();
+    var result= sortedObject(true);
     var reservedNames= SeLiteSettings.reservedNames();
     
     for( var i=0; i<children.length; i++ ) {

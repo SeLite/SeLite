@@ -825,6 +825,7 @@ function setCellText( row, col, value ) {
     }
 
     var cell= treeCell( treeRow, RowLevel.FIELD );
+    //alert( Object.keys(fieldTreeRows) );
     //@TODO custom field validation?
     if( field instanceof SeLiteSettings.Field.Int ) {
         var numericValue= Number(value);
@@ -840,10 +841,9 @@ function setCellText( row, col, value ) {
         var rowAfterNewPosition= null; // It may be null - then append the new row at the end; if same as treeRow, then the new value stays in treeRow.
             // If the new value still fits at the original position, then rowAfterNewPosition will be treeRow.
         //alert( objectToString(fieldTreeRows, 3, false, ['XULElement', '']) );
-        //var debugOtherKeys= [];
-        //alert( Object.keys(fieldTreeRows) );
+        var debugOtherKeys= [];
         for( var otherKey in fieldTreeRows ) {
-            //debugOtherKeys.push( otherKey );
+            debugOtherKeys.push( otherKey );
             // Following check also excludes SeLiteSettings.NEW_VALUE_ROW, because we don't want to compare it to real values. 
             //!==SeLiteSettings.FIELD_MAIN_ROW && otherKey!==SeLiteSettings.FIELD_TREECHILDREN 
             if( SeLiteSettings.reservedNames().indexOf(otherKey)<0 && field.compareValues(otherKey, value)>=0 ) {
@@ -851,7 +851,7 @@ function setCellText( row, col, value ) {
                 break;
             }
         }
-        //seliteAlert.go.call(null, 'debugOtherKeys: ['+debugOtherKeys+ '], rowAfterNewPosition found: ' +(rowAfterNewPosition==null) );
+        alert( 'debugOtherKeys: ['+debugOtherKeys+ '], rowAfterNewPosition found: ' +(rowAfterNewPosition==null) );
         //seliteAlert.go.call(null, 'rowAfterNewPosition found: ' +(rowAfterNewPosition==null));
         if( rowAfterNewPosition===null && fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW] && Object.keys(fieldTreeRows).length===3 ) {
             // there's no other existing value, and the row being edited is a new one (it didn't have a real value set yet)

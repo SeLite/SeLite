@@ -502,6 +502,7 @@ IterableArray.prototype.__iterator__= function() {
  *  @param object object serving as an associative array
  *  @param function compareFunction Function that compares two keys. Optional; by default case-sensitive string comparison.
  *  @return new anonymous object serving as an associative array, with all fields and values from object, but in the sorted order
+ *  @TODO remove, replace by sortedObject()
  * */
 function sortByKeys( object, compareFunction ) {
     if( !compareFunction ) {
