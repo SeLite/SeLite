@@ -722,7 +722,7 @@ SeLiteSettings.Module.prototype.createSet= function( setName ) {
                 }
             }
             else {
-                var children= prefsBranch.getChildList( setNameDot+fieldName+'.', {} );
+                var children= this.prefsBranch.getChildList( setNameDot+fieldName+'.', {} );
                 for( var child in children );
                 if( typeof child==='undefined' ) {
                     field.addValue( setNameDot, field.defaultValue );
