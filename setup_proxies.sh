@@ -7,7 +7,16 @@ cd selblocks-global/src
 
 # TODO: Make this script accept an optional parameter, which is a name of Firefox profile`
 HOME_FOLDER=~
-EXTENSION_FOLDER="$HOME_FOLDER/.mozilla/firefox/*.default"
+
+if [ "$(uname)" == "Darwin" ]; then
+   # According to http://kb.mozillazine.org/Profile_folder_-_Firefox  there are two places for Firefox profile folder on Mac OS:
+   # ~/Library/Mozilla/Firefox/Profiles/<profile folder> or ~/Library/Application Support/Firefox/Profiles/<profile folder> 
+   # But on Mac OS 10.5.8 I could see the second folder only. If you can test both, please update this/send this to me.
+   # Anyway, I don't know how to escape this for now, so if you know, fix this.
+   EXTENSION_FOLDER=$HOME_FOLDER/"'Application Support/Firefox/Profiles/*.default'"
+else
+   EXTENSION_FOLDER="$HOME_FOLDER/.mozilla/firefox/*.default"
+fi
 EXTENSION_FOLDER=`echo $EXTENSION_FOLDER`/extensions
 
 if [ ! -e $EXTENSION_FOLDER/bootstrap\@selite.googlecode.com.xpi ]
