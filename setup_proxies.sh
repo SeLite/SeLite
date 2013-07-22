@@ -19,6 +19,11 @@ else
 fi
 EXTENSION_FOLDER=`echo $EXTENSION_FOLDER`/extensions
 
+# If you haven't got any extensions in Firefox profile yet, there is no 'extensions' folder. So create it.
+if [ ! -e $EXTENSION_FOLDER 
+  mkdir $EXTENSION_FOLDER
+fi
+
 if [ ! -e $EXTENSION_FOLDER/bootstrap\@selite.googlecode.com.xpi ]
 then
   cd ../../bootstrap/src
