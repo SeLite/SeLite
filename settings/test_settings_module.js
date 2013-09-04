@@ -12,8 +12,9 @@ var module= new SeLiteSettings.Module( 'extensions.selite-settings.test',
     [mainDb, bool, appWebroot, maxNumberOfRuns, multiNumbers],
     true,
     'mainSet',
-    //'/var/www/html/selite/settings/src/chrome/content/test_settings_module.js'
-    'file:///home/pkehl/mine/selite/settings/test_settings_module.js'
+    '~/selite/settings/test_settings_module.js'
+    //@TODO If the file doesn't exist, make it report an error.
+    //'file:///home/pkehl/selite/settings/test_settings_module.js'
 );
 
 module= SeLiteSettings.register( module );
@@ -49,7 +50,7 @@ var module2= new SeLiteSettings.Module( 'extensions.selite-settings.test2',
     ],
     false,
     null,
-    '/var/www/html/selite/settings/test_settings_module.js'
+    '~/selite/settings/test_settings_module.js'
 );
 
 module2= SeLiteSettings.register( module2 );

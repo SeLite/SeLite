@@ -15,7 +15,6 @@
 "use strict";
 
 var XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
-
 var nsIFilePicker = Components.interfaces.nsIFilePicker;
 Components.utils.import("resource://gre/modules/FileUtils.jsm" );
 Components.utils.import( "chrome://selite-misc/content/extensions/selite-misc.js" );
