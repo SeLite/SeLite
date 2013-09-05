@@ -4,7 +4,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>selblocks-global@selite.googlecode.com</em:id>
     <em:name>Selenium IDE - SelBlocks Global</em:name>
-    <em:version>0.60</em:version>
+    <em:version>0.65</em:version>
     <em:creator>Chris Noe, Peter Kehl</em:creator>
     <em:description>For structured automated test scripts in Selenium-IDE</em:description>
     <em:type>2</em:type> <!--Type extension-->
@@ -13,24 +13,8 @@
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id> <!-- Firefox -->
         <em:minVersion>17.*</em:minVersion>
-        <em:maxVersion>20.*</em:maxVersion>
+        <em:maxVersion>23.*</em:maxVersion>
       </Description>
     </em:targetApplication>
-    
-    <em:requires>   
-     <Description>
-         <em:id>{a6fd85ed-e919-4a43-a5af-8da18bda539f}</em:id> <!-- Selenium -->
-         <em:minVersion>1.0.5</em:minVersion>
-         <em:maxVersion>1.*.*</em:maxVersion>
-     </Description>
-    </em:requires>   
-    <em:requires>   
-     <Description>
-         <em:id>testcase-debug-context@selite.googlecode.com</em:id>
-         <em:minVersion>1.10.0</em:minVersion>
-         <em:maxVersion>2.*.*</em:maxVersion>
-     </Description>
-     
-    </em:requires>
   </Description>
 </RDF>

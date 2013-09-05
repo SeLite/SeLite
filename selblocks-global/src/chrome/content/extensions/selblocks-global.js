@@ -1271,7 +1271,7 @@ function $X(xpath, contextNode) {
             var evalResult= eval( expression );
 
             if( evalResult!==null && typeof evalResult!=='undefined' ) {
-                evalResult= evalResult.toString();
+                evalResult= '' +evalResult;
             }
             else {
                 evalResult= this.robustNullToken;//@TODO sel;ite-misc-ide as a separate extension, or as a part of SelBlocks Global

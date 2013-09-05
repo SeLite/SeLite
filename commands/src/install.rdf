@@ -4,7 +4,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>commands@selite.googlecode.com</em:id>
     <em:name>SeLite Commands</em:name>
-    <em:version>0.5</em:version>
+    <em:version>0.55</em:version>
     <em:creator>Peter Kehl</em:creator>
     <em:description>SeLite Test Script Commands - Selenium IDE Core extension</em:description>
     <em:type>2</em:type> <!--Type extension-->
@@ -12,23 +12,8 @@
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id> <!-- Firefox -->
         <em:minVersion>17.*</em:minVersion>
-        <em:maxVersion>20.*</em:maxVersion>
+        <em:maxVersion>23.*</em:maxVersion>
       </Description>
     </em:targetApplication>
-    
-    <em:requires>   
-     <Description>
-         <em:id>{a6fd85ed-e919-4a43-a5af-8da18bda539f}</em:id> <!-- Selenium -->
-         <em:minVersion>1.10.0</em:minVersion>
-         <em:maxVersion>2.*.*</em:maxVersion>
-     </Description>  
-    </em:requires>
-    <em:requires>   
-     <Description>
-         <em:id>misc@selite.googlecode.com</em:id> <!-- SeLite Misc. -->
-         <em:minVersion>0.5</em:minVersion>
-         <em:maxVersion>1.*.*</em:maxVersion>
-     </Description>  
-    </em:requires>
   </Description>
 </RDF>
