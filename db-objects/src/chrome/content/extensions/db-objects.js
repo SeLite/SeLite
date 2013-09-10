@@ -230,6 +230,7 @@ DbRecordHolder.prototype.put= function() {
     if( typeof this.record[this.recordSetHolder.formula.table.primary]!=='undefined' ) {
         // @TODO compare to this.original
         this.update();
+        return null;
     }
     else {
         return this.insert();

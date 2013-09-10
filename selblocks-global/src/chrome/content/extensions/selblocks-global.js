@@ -304,6 +304,7 @@ function $X(xpath, contextNode) {
           if (_testfunc(stack[i]))
             return i;
         }
+        return undefined;
       }
       stack.unwindTo = function(_testfunc) {
         while (!_testfunc(stack.top()))

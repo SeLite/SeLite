@@ -78,7 +78,7 @@ DbStorage.prototype.dbFieldName= function( columnPart ) {
  **/
 DbStorage.prototype.dbFieldParts= function( query ) {
     // Make lowercase. Make one or more whitespaces be a single space - so that we can locate 'select' and 'from' etc. easily.
-    var query= query.toLowerCase().replace( /\s+/g, ' ');
+    query= query.toLowerCase().replace( /\s+/g, ' ');
     var selectStart= query.indexOf( 'select ');
     if( selectStart<0 ) {
         throw "Query \"" +query+ "\" doesn't contain SELECT.";

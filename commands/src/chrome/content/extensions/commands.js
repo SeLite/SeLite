@@ -193,6 +193,7 @@ Selenium.prototype.pauseUntilDistinctTimestamp= function( recordType, timestampP
     LOG.debug( 'pauseUntilDistinctTimestampXXX: waiting for next ' +timeOutFromNow/1000+ ' sec.' );
 
     return Selenium.decorateFunctionWithTimeout(function () {
+        // Somewhere here Firefox 23.0.1 Browser Console reports false positive 'anonymous function does not always return a value'. Ingore that.
         if( Date.now()>timestampBecomesDistinct ) {
             this.noteTimestamp( recordType, timestampPrecision );
             return true;
@@ -279,7 +280,7 @@ Selenium.prototype.randomOption= function( selectLocator, params ) {
      *  }
      *  @return DOM Element of a random <option>...</option> from within the select
      */
-    var params= params || {};
+    params= params || {};
     var select= this.page().findElement(selectLocator);
     var options= select.getElementsByTagName('option');
 
@@ -363,7 +364,7 @@ Selenium.prototype.randomText= function( locator, params, extraParams ) {
      * }
      * @return string as speficied in doTypeRandom()
      */
-    var params= params || {};
+    params= params || {};
     var type= params.type || null;
     if( type && 
         (typeof type!=='string' || ['email', 'name', 'number', 'text', 'ugly'].indexOf(type)<0)
