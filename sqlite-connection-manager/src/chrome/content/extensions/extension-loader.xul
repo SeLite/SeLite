@@ -4,7 +4,11 @@
 <overlay id="se_sqlite_connection_manager_extension_loader_overlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
          xmlns:html="http://www.w3.org/1999/xhtml">
-<!-- This exists only so that any dependent extensions, like SeLite DB Storage, may overlay it, in order to 
-     ensure that Sqlite Connection Manager is loaded first. Not sure whether it helps.
--->
+    <html:script type="application/javascript">
+        //<![CDATA[
+        "use strict";
+        Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
+        SeLiteCoreLoader.registerPlugin( 'sqlite-connection-manager@selite.googlecode.com', false );
+        //]]>
+    </html:script>
 </overlay>
