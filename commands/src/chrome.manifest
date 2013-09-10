@@ -1,4 +1,4 @@
 content selite-commands chrome/content/
 
 # custom extension(s)
-overlay chrome://selenium-ide/content/selenium-ide-overlay.xul chrome://selite-commands/content/extensions/extension-loader.xul
+overlay chrome://selite-core-loader/content/extensions/browser-overlay.xul chrome://selite-commands/content/extensions/extension-loader.xul

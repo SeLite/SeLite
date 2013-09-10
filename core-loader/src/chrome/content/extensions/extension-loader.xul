@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<overlay id="selite_core_loader_extension_loader_overlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+         xmlns:html="http://www.w3.org/1999/xhtml">
+    <script type="application/x-javascript" src="chrome://selenium-ide/content/api.js"/>
+    <html:script type="application/javascript">
+        //<![CDATA[
+        "use strict";
+        Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
+        Components.utils.import("resource://gre/modules/AddonManager.jsm");
+
+        AddonManager.getAllAddons(
+        function(aAddons) {
+            try {
+                var pluginIds= SeLiteCoreLoader.sortedPluginIds();
+            }
+            catch(e) {
+                alert(e);
+                return;
+            }
+            var failed= {}; // { string failed pluginId => exception }
+            for( var i=0; i<pluginIds.length; i++ ) {
+                var pluginId= pluginIds[i];
+                try {
+                    var ide_api = new API();
+                    ide_api.addPlugin(pluginId);
+                    ide_api.addPluginProvidedUserExtension( SeLiteCoreLoader.plugins[pluginId].url );
+                }
+                catch(e) {
+                    failed[pluginId]= e;
+                }
+            }
+            if( Object.keys(failed).length ) {
+                messageItems= [];
+                for( var pluginId in failed ) {
+                    messageItems.push( pluginId+ ': ' + failed[pluginId] );
+                }
+                alert( "SeLiteCoreLoader couldn't load plugin(s): " +messageItems+ "." );
+            }
+        });
+        //]]>
+    </html:script>
+</overlay>
