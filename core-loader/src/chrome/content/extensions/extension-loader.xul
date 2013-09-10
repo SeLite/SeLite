@@ -23,13 +23,16 @@
             var failed= {}; // { string failed pluginId => exception }
             for( var i=0; i<pluginIds.length; i++ ) {
                 var pluginId= pluginIds[i];
-                try {
-                    var ide_api = new API();
-                    ide_api.addPlugin(pluginId);
-                    ide_api.addPluginProvidedUserExtension( SeLiteCoreLoader.plugins[pluginId].url );
-                }
-                catch(e) {
-                    failed[pluginId]= e;
+                var url= SeLiteCoreLoader.plugins[pluginId].url;
+                if( url ) {
+                    try {
+                        var ide_api = new API();
+                        ide_api.addPlugin(pluginId);
+                        ide_api.addPluginProvidedUserExtension( url );
+                    }
+                    catch(e) {
+                        failed[pluginId]= e;
+                    }
                 }
             }
             if( Object.keys(failed).length ) {

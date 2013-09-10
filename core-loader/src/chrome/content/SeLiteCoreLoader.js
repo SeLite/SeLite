@@ -10,10 +10,23 @@ function SeLiteCoreLoader() {}
  * */
 SeLiteCoreLoader.plugins= {};
 
+/** Register a Firefox plugin which is a Selenium IDE core extension. It will be
+ *  initiated by SeLiteCoreLoader later, in a proper sequence - after any dependencies.
+ *  @param pluginId String, unique id of the Firefox plugin (usually in a format of an email address)
+ *  @param url String url that will be passed to Selenium's API.addPluginProvidedUserExtension(url) for initialisation.
+ *  It can be an empty string, if the plugin doesn't get initialised by SeLiteCoreLoader
+ *  - then SeLiteCoreLoader won't call API.addPluginProvidedUserExtension(url) neither API.addPlugin(pluginId).
+ *  Pass an empty string for plugins which you want to list as dependencies of other extensions
+ *  that *do* get initialised by SeLiteCoreLoader. See SeLite DB Objects and its dependency SQLite Connection Manager.
+ *  @param requisitePluginIds Array (optional) of string pluginIds of all dependencies - plugins that
+ *  have to be loaded before given pluginId. All those plugins must be installed in Firefox
+ *  and they must also call SeLiteCoreLoader.registerPlugin() - otherwise pluginId won't get loaded.
+ * */
 SeLiteCoreLoader.registerPlugin= function( pluginId, url, requisitePluginIds ) {
     if( pluginId in SeLiteCoreLoader.plugins ) {
         throw new Error("Plugin " +pluginId+ " was already registered with SeLite Core loader.");
     }
+    url= url || '';
     if( typeof requisitePluginIds==='undefined' ) {
         requisitePluginIds= [];
     }
@@ -23,6 +36,10 @@ SeLiteCoreLoader.registerPlugin= function( pluginId, url, requisitePluginIds ) {
     };
 };
 
+/** @return array of plugin IDs, sorted so that ones with no dependencies are first,
+ *  and then any plugins only depending on any previous plugins. I.e. in an order
+ *  that they can be safely loaded.
+ * */
 SeLiteCoreLoader.sortedPluginIds= function() {
     // Partial copy of SeLiteCoreLoader.plugins. Used by this function, which will remove requisite plugin ids
     // from pluginUnprocessedRequisites[xxx][], as they get processed.
