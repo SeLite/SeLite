@@ -13,7 +13,6 @@
             'chrome://selite-db-objects/content/extensions/db-objects.js',
             ['misc@selite.googlecode.com',
              'commands@selite.googlecode.com',
-             'sqlite-connection-manager@selite.googlecode.com',
              'db-storage@selite.googlecode.com'
             ] );
         //]]>

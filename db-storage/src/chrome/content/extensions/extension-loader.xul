@@ -11,10 +11,14 @@
         Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
         SeLiteCoreLoader.registerPlugin( 'db-storage@selite.googlecode.com',
             'chrome://selite-db-storage/content/extensions/db-storage.js',
+            // required:
             ['misc@selite.googlecode.com',
              'commands@selite.googlecode.com',
              'sqlite-connection-manager@selite.googlecode.com'
-            ] );
+            ],
+            // optional:
+            ['settings@selite.googlecode.com']
+        );
         //]]>
     </html:script>
 </overlay>

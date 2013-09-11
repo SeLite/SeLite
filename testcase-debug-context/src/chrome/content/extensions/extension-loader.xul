@@ -9,8 +9,9 @@
         //<![CDATA[
         "use strict";
         Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
-        SeLiteCoreLoader.registerPlugin( 'se-testcase-degug-context@selite.googlecode.com',
-            'chrome://selite-testcase-degug-context/content/extensions/se-testcase-degug-context.js'
+        SeLiteCoreLoader.registerPlugin( 'testcase-debug-context@selite.googlecode.com',
+            'chrome://selite-testcase-degug-context/content/extensions/se-testcase-degug-context.js',
+            false
         );
         //]]>
     </html:script>
