@@ -34,21 +34,32 @@ SeLiteCoreLoader.plugins= {};
  *  - then SeLiteCoreLoader won't call API.addPluginProvidedUserExtension(url) neither API.addPlugin(pluginId).
  *  Pass an empty string for plugins which you want to list as dependencies of other extensions
  *  that *do* get initialised by SeLiteCoreLoader. See SeLite DB Objects and its dependency SQLite Connection Manager.
- *  @param requisitePluginIds Array (optional) of string pluginIds of all dependencies - plugins that
+ *  @param requisitePluginIds Array of string pluginIds of all dependencies - plugins that
  *  have to be loaded before given pluginId. All those plugins must be installed in Firefox
  *  and they must also call SeLiteCoreLoader.registerPlugin() - otherwise pluginId won't get loaded.
- * */
-SeLiteCoreLoader.registerPlugin= function( pluginId, url, requisitePluginIds ) {
+ *  requisitePluginIds can be an empty array or not specified.
+ *  @param optionalRequisitePluginIds Array of string pluginIds of optional dependencies.
+ *  If they are installed, then pluginId will be initialised after any of them.
+ *  Otherwise they are ignored and no error is reported. optionalRequisitePluginIds
+ *  can be an empty array or not specified.
+**/
+SeLiteCoreLoader.registerPlugin= function( pluginId, url, requisitePluginIds, optionalRequisitePluginIds ) {
     if( pluginId in SeLiteCoreLoader.plugins ) {
         throw new Error("Plugin " +pluginId+ " was already registered with SeLite Core loader.");
     }
     url= url || '';
-    if( typeof requisitePluginIds==='undefined' ) {
-        requisitePluginIds= [];
+    requisitePluginIds= requisitePluginIds || [];
+    optionalRequisitePluginIds= optionalRequisitePluginIds || [];
+    var mergedPluginIds= requisitePluginIds.concat( optionalRequisitePluginIds );
+    for( var i=0; i<mergedPluginIds.length; i++ ) {
+        if( mergedPluginIds.indexOf(mergedPluginIds[i])!=i ) {
+            throw new Error( "SeLite Core Loader: plugin " +pluginId+ " lists a dependancy package " +mergedPluginIds[i]+ " two or more times." );
+        }
     }
     SeLiteCoreLoader.plugins[pluginId]= {
         url: url,
-        requisitePluginIds: requisitePluginIds
+        requisitePluginIds: requisitePluginIds,
+        optionalRequisitePluginIds: optionalRequisitePluginIds
     };
 };
 
@@ -62,7 +73,13 @@ SeLiteCoreLoader.sortedPluginIds= function() {
     var pluginUnprocessedRequisites= {}; // { dependant plugin id => [unprocessed requisite plugin id...] }
     for( var dependantId in SeLiteCoreLoader.plugins ) {
         pluginUnprocessedRequisites[dependantId]=
-            SeLiteCoreLoader.plugins[dependantId].requisitePluginIds.slice(0); // shallow copy
+            SeLiteCoreLoader.plugins[dependantId].requisitePluginIds.slice(0); // protective copy
+        for( var optionalPluginId of SeLiteCoreLoader.plugins[dependantId].optionalRequisitePluginIds ) {
+            if( optionalPluginId in SeLiteCoreLoader.plugins ) {
+                // optionalPluginId is among the ones that I'm initialising, therefore I treat it like a mandatory requisite
+                pluginUnprocessedRequisites[dependantId].push( optionalPluginId );
+            }
+        }
     }
     
     var unprocessedIds= Object.keys(SeLiteCoreLoader.plugins);

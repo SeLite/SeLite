@@ -1,4 +1,3 @@
 content selite-testcase-degug-context  chrome/content/
 
-# custom extension(s)
-overlay chrome://selenium-ide/content/selenium-ide-overlay.xul chrome://selite-testcase-degug-context/content/extensions/extension-loader.xul
+overlay chrome://selite-core-loader/content/extensions/browser-overlay.xul chrome://selite-testcase-degug-context/content/extensions/extension-loader.xul
