@@ -27,6 +27,13 @@ SeLiteCoreLoader.plugins= {};
 
 /** Register a Firefox plugin which is a Selenium IDE core extension. It will be
  *  initiated by SeLiteCoreLoader later, in a proper sequence - after any dependencies.
+ *  @param prototype Anonymous object in form {
+ *  pluginId, coreUrl, ideUrl,
+ *  - if neither coreUrl not ideUrl are set, then this plugin is only registered
+ *  for the purpose of being a dependency of other plugins, but it's not added via Selenium API class.
+ *    requisitePluginIds,
+optionalRequisitePluginIds, callBack
+ *  }
  *  @param pluginId String, unique id of the Firefox plugin (usually in a format of an email address)
  *  @param url String url that will be passed to Selenium's API.addPluginProvidedUserExtension(url) for initialisation.
  *  It can be an empty string, if the plugin doesn't get initialised by SeLiteCoreLoader
@@ -41,25 +48,30 @@ SeLiteCoreLoader.plugins= {};
  *  If they are installed, then pluginId will be initialised after any of them.
  *  Otherwise they are ignored and no error is reported. optionalRequisitePluginIds
  *  can be an empty array or not specified.
+ *  @param isIdeExtension Boolean, optional. Whether it's a Selenium IDE extension; otherwise it's a Selenium Core extension.
+ *  false by default.
+ *  @param callBack Function, optional. Function that will get invoked after the plugin is registered. The first parameter of
+ *  the function will be the API object.
 **/
-SeLiteCoreLoader.registerPlugin= function( pluginId, url, requisitePluginIds, optionalRequisitePluginIds ) {
-    if( pluginId in SeLiteCoreLoader.plugins ) {
-        throw new Error("Plugin " +pluginId+ " was already registered with SeLite Core loader.");
+SeLiteCoreLoader.registerPlugin= function( prototype ) {
+    var plugin= {
+        pluginId: prototype.pluginId,
+        coreUrl: prototype.coreUrl || false,
+        ideUrl: prototype.ideUrl || false,
+        requisitePluginIds: prototype.requisitePluginIds || [],
+        optionalRequisitePluginIds: prototype.optionalRequisitePluginIds || [],
+        callBack: prototype.callBack || false
+    };
+    if( plugin.pluginId in SeLiteCoreLoader.plugins ) {
+        throw new Error("Plugin " +plugin.pluginId+ " was already registered with SeLite Core loader.");
     }
-    url= url || '';
-    requisitePluginIds= requisitePluginIds || [];
-    optionalRequisitePluginIds= optionalRequisitePluginIds || [];
-    var mergedPluginIds= requisitePluginIds.concat( optionalRequisitePluginIds );
+    var mergedPluginIds= plugin.requisitePluginIds.concat( plugin.optionalRequisitePluginIds );
     for( var i=0; i<mergedPluginIds.length; i++ ) {
         if( mergedPluginIds.indexOf(mergedPluginIds[i])!=i ) {
-            throw new Error( "SeLite Core Loader: plugin " +pluginId+ " lists a dependancy package " +mergedPluginIds[i]+ " two or more times." );
+            throw new Error( "SeLite Core Loader: plugin " +plugin.pluginId+ " lists a dependancy package " +mergedPluginIds[i]+ " two or more times." );
         }
     }
-    SeLiteCoreLoader.plugins[pluginId]= {
-        url: url,
-        requisitePluginIds: requisitePluginIds,
-        optionalRequisitePluginIds: optionalRequisitePluginIds
-    };
+    SeLiteCoreLoader.plugins[plugin.pluginId]= plugin;
 };
 
 /** @return array of plugin IDs, sorted so that ones with no dependencies are first,

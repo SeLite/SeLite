@@ -38,12 +38,20 @@
             var failed= {}; // { string failed pluginId => exception }
             for( var i=0; i<pluginIds.length; i++ ) {
                 var pluginId= pluginIds[i];
-                var url= SeLiteCoreLoader.plugins[pluginId].url;
-                if( url ) {
+                var plugin= SeLiteCoreLoader.plugins[pluginId];
+                if( plugin.ideUrl || plugin.coreUrl ) {
                     try {
                         var ide_api = new API();
                         ide_api.addPlugin(pluginId);
-                        ide_api.addPluginProvidedUserExtension( url );
+                        if( plugin.ideUrl ) {
+                            ide_api.addPluginProvidedIdeExtension( plugin.ideUrl );
+                        }
+                        if( plugin.coreUrl ) {
+                            ide_api.addPluginProvidedUserExtension( plugin.coreUrl );
+                        }
+                        if( plugin.callBack ) {
+                            plugin.callBack.call( null, ide_api );
+                        }
                     }
                     catch(e) {
                         failed[pluginId]= e;
@@ -51,7 +59,7 @@
                 }
             }
             if( Object.keys(failed).length ) {
-                messageItems= [];
+                var messageItems= [];
                 for( var pluginId in failed ) {
                     messageItems.push( pluginId+ ': ' + failed[pluginId] );
                 }

@@ -3,6 +3,7 @@ content selite-bootstrap  chrome/content/
 locale selite-bootstrap  en-US chrome/locale/en-US/
 
 # custom extension(s)
-overlay chrome://selenium-ide/content/selenium-ide-overlay.xul chrome://selite-bootstrap/content/setup/setup.xul
+overlay chrome://selite-core-loader/content/extensions/browser-overlay.xul chrome://selite-bootstrap/content/extensions/extension-loader.xul
+
 overlay chrome://selenium-ide/content/selenium-ide-common.xul chrome://selite-bootstrap/content/ui/ovCommon.xul
 overlay chrome://selenium-ide/content/optionsDialog.xul chrome://selite-bootstrap/content/ui/ovOptions.xul

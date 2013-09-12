@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<overlay id="seBootstrap_core_loader_overlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+         xmlns:html="http://www.w3.org/1999/xhtml">
+    <html:script type="application/javascript">
+        //<![CDATA[
+        "use strict";
+        Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
+        SeLiteCoreLoader.registerPlugin( {
+            pluginId: 'bootstrap@selite.googlecode.com',
+            coreUrl: 'chrome://selite-bootstrap/content/extensions/se_bootstrap.js',
+            ideUrl: "chrome://selite-bootstrap/content/logic/SeBootstrap.js",
+            //@TODO dependency on test case debug context
+            callBack: function(api) {
+                // Based on PluginFramework.prototype.addPluginProvidedStringPreference() from https://addons.mozilla.org/en-US/firefox/addon/file-logging-selenium-ide/
+                api.preferences.DEFAULT_OPTIONS["se_bootstrap_scriptFileName"] = api.preferences.getString("se_bootstrap_scriptFileName", '');
+                api.preferences.save(api.preferences.DEFAULT_OPTIONS, "se_bootstrap_scriptFileName");
+            }
+        } );
+        //]]>
+    </html:script>
+</overlay>
