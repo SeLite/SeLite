@@ -7,20 +7,20 @@
     <html:script type="application/javascript">
         //<![CDATA[
         "use strict";
-        // If I run alert(...) here, that somehow upsets the rest of the flow, and
+        // @DOC If I run alert(...) here, that somehow upsets the rest of the flow, and
         // bootstrap mechanism won't run the custom (bootstrapped) file. No idea why.
         try {
             Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
         }
         catch(e) {
             Components.utils.import("resource://gre/modules/AddonManager.jsm");
-            alert('Add-on SeLite Bootstrap requires SeLite Core Loader, but it is not present it is corrupt. Therefore SeLite BootstrapCore will be disabled next time you start Firefox. Please, install SeLite Core Loader first. Then in Firefox menu > Tools > Add-ons > Extensions > SeLite Bootstrap > Enable.');
-            // Following is from https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/Add-on_Manager/Code_Samples
+            alert('Add-on SeLite Bootstrap requires SeLite Core Loader, but it is not installed. Therefore SeLite BootstrapCore will be disabled next time you start Firefox. Please, install SeLite Core Loader first. Then in Firefox menu > Tools > Add-ons > Extensions > SeLite Bootstrap > Enable.');
+            // @DOC Following is from https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/Add-on_Manager/Code_Samples
             // Do not use AddonManager.addStartupChange( AddonManager.STARTUP_CHANGE_DISABLED, 'bootstrap@selite.googlecode.com' );
             AddonManager.getAddonByID( 'bootstrap@selite.googlecode.com', function(addon) {
                 addon.userDisabled= true;
             } );
-            // Do not use 'return' statement here - it upsets Firefox, with no error/warning about it.
+            // @DOC Do not use 'return' statement here - it upsets Firefox, with no error/warning about it.
             // That 'return' statements upsets it even if there is no exception thrown
             // - that is, even if this catch(e){...} doesn't get executed at all. Probably because of "use strict";
             // That's why in the following, I have to use if( typeof SeLiteCoreLoader!=='undefined')
@@ -30,7 +30,7 @@
                 pluginId: 'bootstrap@selite.googlecode.com',
                 coreUrl: 'chrome://selite-bootstrap/content/extensions/se_bootstrap.js',
                 ideUrl: "chrome://selite-bootstrap/content/logic/SeBootstrap.js",
-                 //@TODO dependency on test case debug context
+                requisitePluginIds: ['testcase-debug-context@selite.googlecode.com'],
                 callBack: function(api) {
                     // Based on PluginFramework.prototype.addPluginProvidedStringPreference() from https://addons.mozilla.org/en-US/firefox/addon/file-logging-selenium-ide/
                     api.preferences.DEFAULT_OPTIONS["se_bootstrap_scriptFileName"] = api.preferences.getString("se_bootstrap_scriptFileName", '');

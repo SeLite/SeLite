@@ -7,8 +7,21 @@
     <html:script type="application/javascript">
         //<![CDATA[
         "use strict";
-        Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
-        SeLiteCoreLoader.registerPlugin( 'sqlite-connection-manager@selite.googlecode.com', false );
+        try {
+            Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
+        }
+        catch(e) {
+            Components.utils.import("resource://gre/modules/AddonManager.jsm");
+            alert('Add-on SeLite TestCase Debug Context requires SeLite Core Loader, but it is not installed. Therefore SeLite TestCase Debug Context will be disabled next time you start Firefox. Please, install SeLite Core Loader first. Then in Firefox menu > Tools > Add-ons > Extensions > SeLite TestCase Debug Context > Enable.');
+            AddonManager.getAddonByID( 'testcase-debug-context@selite.googlecode.com', function(addon) {
+                addon.userDisabled= true;
+            } );
+        }
+        if( typeof SeLiteCoreLoader!=='undefined') {
+            SeLiteCoreLoader.registerPlugin( {
+                pluginId: 'sqlite-connection-manager@selite.googlecode.com'
+            } );
+        }
         //]]>
     </html:script>
 </overlay>

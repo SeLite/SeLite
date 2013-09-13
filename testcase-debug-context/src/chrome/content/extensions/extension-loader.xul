@@ -8,11 +8,22 @@
     <html:script type="application/javascript">
         //<![CDATA[
         "use strict";
-        Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
-        SeLiteCoreLoader.registerPlugin( {
-            pluginId: 'testcase-debug-context@selite.googlecode.com',
-            coreUrl: 'chrome://selite-testcase-degug-context/content/extensions/se-testcase-degug-context.js',
-        } );
+        try {
+            Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
+        }
+        catch(e) {
+            Components.utils.import("resource://gre/modules/AddonManager.jsm");
+            alert('Add-on SeLite TestCase Debug Context requires SeLite Core Loader, but it is not installed. Therefore SeLite TestCase Debug Context will be disabled next time you start Firefox. Please, install SeLite Core Loader first. Then in Firefox menu > Tools > Add-ons > Extensions > SeLite TestCase Debug Context > Enable.');
+            AddonManager.getAddonByID( 'testcase-debug-context@selite.googlecode.com', function(addon) {
+                addon.userDisabled= true;
+            } );
+        }
+        if( typeof SeLiteCoreLoader!=='undefined') {
+            SeLiteCoreLoader.registerPlugin( {
+                pluginId: 'testcase-debug-context@selite.googlecode.com',
+                coreUrl: 'chrome://selite-testcase-degug-context/content/extensions/se-testcase-degug-context.js'
+            } );
+        }
         //]]>
     </html:script>
 </overlay>

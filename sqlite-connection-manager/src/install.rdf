@@ -3,7 +3,7 @@
      xmlns:em="http://www.mozilla.org/2004/em-rdf#">
   <Description about="urn:mozilla:install-manifest">
     <em:id>sqlite-connection-manager@selite.googlecode.com</em:id>
-    <em:version>0.63</em:version>
+    <em:version>0.65</em:version>
     <em:type>2</em:type>
     <!-- Target Application this extension can install into,
          with minimum and maximum supported versions. -->
@@ -16,7 +16,7 @@
     </em:targetApplication>
 
     <!-- Front End MetaData -->
-    <em:name>SQLite Connection Manager</em:name>
+    <em:name>SeLite SQLite Connection Manager</em:name>
     <em:description>Manages SQLite DB connection(s)</em:description>
     <em:creator>Peter Kehl</em:creator>
     <em:homepageURL>http://code.google.com/p/selite</em:homepageURL>
