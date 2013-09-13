@@ -14,7 +14,7 @@
         }
         catch(e) {
             Components.utils.import("resource://gre/modules/AddonManager.jsm");
-            alert('Add-on SeLite Bootstrap requires SeLite Core Loader, but it is not installed. Therefore SeLite BootstrapCore will be disabled next time you start Firefox. Please, install SeLite Core Loader first. Then in Firefox menu > Tools > Add-ons > Extensions > SeLite Bootstrap > Enable.');
+            alert('Add-on SeLite Bootstrap requires SeLite Core Loader, but it is not installed. Therefore SeLite BootstrapCore will be disabled next time you start Firefox. Please, install SeLite Core Loader first. Then apply Firefox menu > Tools > Add-ons > Extensions > SeLite Bootstrap > Enable.');
             // @DOC Following is from https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/Add-on_Manager/Code_Samples
             // Do not use AddonManager.addStartupChange( AddonManager.STARTUP_CHANGE_DISABLED, 'bootstrap@selite.googlecode.com' );
             AddonManager.getAddonByID( 'bootstrap@selite.googlecode.com', function(addon) {

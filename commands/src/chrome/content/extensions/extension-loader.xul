@@ -7,8 +7,23 @@
     <html:script type="application/javascript">
         //<![CDATA[
         "use strict";
-        Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
-        SeLiteCoreLoader.registerPlugin( 'commands@selite.googlecode.com', 'chrome://selite-commands/content/extensions/commands.js', ['misc@selite.googlecode.com'] );
+        try {
+            Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
+        }
+        catch(e) {
+            Components.utils.import("resource://gre/modules/AddonManager.jsm");
+            alert('Add-on SeLite Commands requires SeLite Core Loader, but it is not installed. Therefore SeLite Commands will be disabled next time you start Firefox. Please, install SeLite Core Loader first. Then apply Firefox menu > Tools > Add-ons > Extensions > SeLite Commands > Enable.');
+            AddonManager.getAddonByID( 'commands@selite.googlecode.com', function(addon) {
+                addon.userDisabled= true;
+            } );
+        }
+        if( typeof SeLiteCoreLoader!=='undefined') {
+            SeLiteCoreLoader.registerPlugin( {
+                pluginId: 'commands@selite.googlecode.com',
+                coreUrl: 'chrome://selite-commands/content/extensions/commands.js',
+                requisitePluginIds: ['misc@selite.googlecode.com']
+            } );
+        }
         //]]>
     </html:script>
 </overlay>

@@ -8,11 +8,23 @@
     <html:script type="application/javascript">
         //<![CDATA[
         "use strict";
-        Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
-        SeLiteCoreLoader.registerPlugin( 'selblocks-global@selite.googlecode.com',
-            'chrome://selite-selblocks-global/content/extensions/selblocks-global.js',
-            ['testcase-debug-context@selite.googlecode.com']
-        );
+        try {
+            Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
+        }
+        catch(e) {
+            Components.utils.import("resource://gre/modules/AddonManager.jsm");
+            alert('Add-on SeLite Selblocks Global requires SeLite Core Loader, but it is not installed. Therefore SeLite Selblocks Global will be disabled next time you start Firefox. Please, install SeLite Core Loader first. Then apply Firefox menu > Tools > Add-ons > Extensions > SeLite Selblocks Global > Enable.');
+            AddonManager.getAddonByID( 'selblocks-global@selite.googlecode.com', function(addon) {
+                addon.userDisabled= true;
+            } );
+        }
+        if( typeof SeLiteCoreLoader!=='undefined') {
+            SeLiteCoreLoader.registerPlugin( {
+                pluginId: 'selblocks-global@selite.googlecode.com',
+                coreUrl: 'chrome://selite-selblocks-global/content/extensions/selblocks-global.js',
+                requisitePluginIds: ['testcase-debug-context@selite.googlecode.com']
+            } );
+        }
         //]]>
     </html:script>
 </overlay>
