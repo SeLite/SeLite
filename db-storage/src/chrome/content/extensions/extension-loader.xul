@@ -8,17 +8,28 @@
     <html:script type="application/javascript">
         //<![CDATA[
         "use strict";
-        Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
-        SeLiteCoreLoader.registerPlugin( 'db-storage@selite.googlecode.com',
-            'chrome://selite-db-storage/content/extensions/db-storage.js',
-            // required:
-            ['misc@selite.googlecode.com',
-             'commands@selite.googlecode.com',
-             'sqlite-connection-manager@selite.googlecode.com'
-            ],
-            // optional:
-            ['settings@selite.googlecode.com']
-        );
+        try {
+            Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
+        }
+        catch(e) {
+            Components.utils.import("resource://gre/modules/AddonManager.jsm");
+            alert('Add-on SeLite DB Storage requires SeLite Core Loader, but it is not installed. Therefore SeLite Selblocks Global will be disabled next time you start Firefox. Please, install SeLite Core Loader first. Then apply Firefox menu > Tools > Add-ons > Extensions > SeLite DB Storage > Enable.');
+            AddonManager.getAddonByID( 'db-storage@selite.googlecode.com', function(addon) {
+                addon.userDisabled= true;
+            } );
+        }
+        if( typeof SeLiteCoreLoader!=='undefined') {
+            SeLiteCoreLoader.registerPlugin( {
+                pluginId: 'db-storage@selite.googlecode.com',
+                coreUrl: 'chrome://selite-db-storage/content/extensions/db-storage.js',
+                requisitePluginIds: [
+                    'misc@selite.googlecode.com',
+                    'commands@selite.googlecode.com',
+                    'sqlite-connection-manager@selite.googlecode.com'
+                ],
+                optionalRequisitePluginIds: ['settings@selite.googlecode.com']
+            } );
+        }
         //]]>
     </html:script>
 </overlay>

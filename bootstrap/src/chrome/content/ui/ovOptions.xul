@@ -15,7 +15,7 @@
 
 	<tabbox id="optionsTabbox" flex="1">
 		<tabs id="optionsTabs" orient="horizontal">
-			<tab id="SeBootstrapTab" label="SeBootstrap"/>
+			<tab id="SeBootstrapTab" label="SeLite Bootstrap"/>
 		</tabs>
 		<tabpanels id="general">
 			<tabpanel id="SeBootstrap" orient="vertical">
