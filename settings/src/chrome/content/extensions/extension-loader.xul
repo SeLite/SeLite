@@ -7,8 +7,21 @@
     <html:script type="application/javascript">
         //<![CDATA[
         "use strict";
-        Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
-        SeLiteCoreLoader.registerPlugin( 'settings@selite.googlecode.com', false, false );
+        try {
+            Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
+        }
+        catch(e) {
+            Components.utils.import("resource://gre/modules/AddonManager.jsm");
+            alert('Add-on SeLite Settings requires SeLite Core Loader, but it is not installed. Therefore SeLite Selblocks Global will be disabled next time you start Firefox. Please, install SeLite Core Loader first. Then apply Firefox menu > Tools > Add-ons > Extensions > SeLite Settings > Enable.');
+            AddonManager.getAddonByID( 'settings@selite.googlecode.com', function(addon) {
+                addon.userDisabled= true;
+            } );
+        }
+        if( typeof SeLiteCoreLoader!=='undefined') {
+            SeLiteCoreLoader.registerPlugin({
+                pluginId: 'settings@selite.googlecode.com',
+            });
+        }
         //]]>
     </html:script>
 </overlay>

@@ -74,66 +74,88 @@ SeLiteCoreLoader.registerPlugin= function( prototype ) {
     SeLiteCoreLoader.plugins[plugin.pluginId]= plugin;
 };
 
-/** @return array of plugin IDs, sorted so that ones with no dependencies are first,
+/** Get an array of plugin IDs, sorted so that ones with no dependencies are first,
  *  and then any plugins only depending on any previous plugins. I.e. in an order
- *  that they can be safely loaded.
+ *  that they can be safely loaded. It removes any plugins that miss any of their
+ *  required dependencies, and any plugins that require (directly or indirectly)
+ *  any of those removed plugins. It reports those removed plugins in the result.
+ *  @return Object {
+ *      sortedPluginIds: [pluginId... in the order they can be loaded],
+ *      removedPluginIds: {
+ *          string pluginId: [string missing direct dependency plugin id, ...],
+ *          ...
+ *      }
+ *  }
  * */
-SeLiteCoreLoader.sortedPluginIds= function() {
-    // Partial copy of SeLiteCoreLoader.plugins. Used by this function, which will remove requisite plugin ids
-    // from pluginUnprocessedRequisites[xxx][], as they get processed.
-    var pluginUnprocessedRequisites= {}; // { dependant plugin id => [unprocessed requisite plugin id...] }
+SeLiteCoreLoader.sortedPlugins= function() {
+    var pluginRequisites= {}; // { dependant plugin id => [requisite plugin id...], ... }
+    // I add in any optional plugin IDs, if they are installed
+    //  - so they get loaded in correct order, before the plugins that use them
     for( var dependantId in SeLiteCoreLoader.plugins ) {
-        pluginUnprocessedRequisites[dependantId]=
+        pluginRequisites[dependantId]=
             SeLiteCoreLoader.plugins[dependantId].requisitePluginIds.slice(0); // protective copy
         for( var optionalPluginId of SeLiteCoreLoader.plugins[dependantId].optionalRequisitePluginIds ) {
             if( optionalPluginId in SeLiteCoreLoader.plugins ) {
-                // optionalPluginId is among the ones that I'm initialising, therefore I treat it like a mandatory requisite
-                pluginUnprocessedRequisites[dependantId].push( optionalPluginId );
-                //throw new Error('Optional ' +optionalPluginId+ ' is present.');
+                pluginRequisites[dependantId].push( optionalPluginId );
             }
         }
     }
-      //throw new Error('pluginUnprocessedRequisites[db-storage]: ' +pluginUnprocessedRequisites['db-storage@selite.googlecode.com']);
-
-    var unprocessedIds= Object.keys(SeLiteCoreLoader.plugins);
-    //throw new Error(''+unprocessedIds);
-    var result= []; // [pluginId...] in the order from one with no dependencies, to the dependant ones
     
-    // I believe this has computational cost O(N^2), which is fine with me.
-    for( var i=0; i<unprocessedIds.length; i++ ) {
-        var pluginId=unprocessedIds[i];
-        if( !pluginUnprocessedRequisites[pluginId].length ) {
-            result.push( pluginId );
-            delete pluginUnprocessedRequisites[pluginId];
-            unprocessedIds.splice(i, 1); // remove pluginId  from unprocessedIds[]
-            
-            // Remove pluginId from dependencies of the rest of unprocessed plugins - from pluginUnprocessedRequisites[xxx][]
-            for( var dependantId in pluginUnprocessedRequisites ) {
-                var requisites= pluginUnprocessedRequisites[dependantId];
-                var index= requisites.indexOf(pluginId);
-                if( index>=0 ) {
-                    requisites.splice( index, 1 );
+    var pluginIdsWithMissingDependancies= {}; // IDs of plugins that can't be installed, with missing direct dependancies
+    
+    mainLoop: do {
+        // mutable copy of pluginRequisites. I will remove entries from it as plugins get sorted.
+        var pluginUnprocessedRequisites= {};
+        for( var key in pluginRequisites ) {
+            if( !(key in pluginIdsWithMissingDependancies) ) {
+                pluginUnprocessedRequisites[key]= pluginRequisites[key];
+            }
+        }
+
+        var unprocessedIds= []; Object.keys(SeLiteCoreLoader.plugins);
+        for( var pluginId in SeLiteCoreLoader.plugins) {
+            if( !(pluginId in pluginIdsWithMissingDependancies) ) {
+                unprocessedIds.push(pluginId);
+            }
+        }
+        
+        var sortedPluginIds= []; // [pluginId...] in the order from one with no dependencies, to the dependant ones
+
+        // I believe this has computational cost O(N^2), which is fine with me.
+        for( var i=0; i<unprocessedIds.length; i++ ) {
+            var pluginId=unprocessedIds[i];
+            if( !pluginUnprocessedRequisites[pluginId].length ) {
+                sortedPluginIds.push( pluginId );
+                delete pluginUnprocessedRequisites[pluginId];
+                unprocessedIds.splice(i, 1); // remove pluginId  from unprocessedIds[]
+
+                // Remove pluginId from dependencies of the rest of unprocessed plugins
+                // - from pluginUnprocessedRequisites[xxx][]
+                for( var dependantId in pluginUnprocessedRequisites ) {
+                    var requisites= pluginUnprocessedRequisites[dependantId];
+                    var index= requisites.indexOf(pluginId);
+                    if( index>=0 ) {
+                        requisites.splice( index, 1 );
+                    }
                 }
+
+                i= -1; // restart the loop
+                continue;
             }
-            
-            i= -1; // restart the loop
-            continue;
         }
-    }
-    if( unprocessedIds.length ) {
-        var msg= '';
-        for( var pluginId of unprocessedIds ) {
-            if( msg!=='' ) {
-                msg+= ', ';
+        if( unprocessedIds.length ) {
+            for( var pluginId of unprocessedIds ) {
+                pluginIdsWithMissingDependancies[pluginId]= pluginUnprocessedRequisites[pluginId];
             }
-            msg+= pluginId+ ' dependant on unprocessed plugin(s) [' +pluginUnprocessedRequisites[pluginId]+ ']';
+            // I restart the main loop, because there may be plugins that depend on ones I've just marked as not to be initialised
+            continue mainLoop;
         }
-        msg= "Something bad in SeLiteCoreLoader.sort(), "
-            + "or there is a cyclic dependency between plugin(s), "
-            + "or you haven't installed at least one dependency. Buggy plugin(s): " +msg+ '.' + 'Result: ' +result;
-        throw new Error( msg );
+        return {
+            pluginIdsWithMissingDependancies: pluginIdsWithMissingDependancies,
+            sortedPluginIds: sortedPluginIds
+        };
     }
-    return result;
+    while( true );
 };
         
 var EXPORTED_SYMBOLS= ['SeLiteCoreLoader'];

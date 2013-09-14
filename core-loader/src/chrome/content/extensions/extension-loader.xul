@@ -28,16 +28,23 @@
 
         AddonManager.getAllAddons(
         function(aAddons) {
-            try {
-                var pluginIds= SeLiteCoreLoader.sortedPluginIds();
+            var sortedPlugins= SeLiteCoreLoader.sortedPlugins();
+            if( Object.keys(sortedPlugins.pluginIdsWithMissingDependancies).length ) {
+                var msg= "Following Selenium IDE plugin(s) are missing their dependancy plugin(s). Therefore "+
+                    "they will be disabled next time you start Firefox. Please, install any missing "+
+                    "dependancies. Then apply Firefox menu > Tools > Add-ons > Extensions > XXX > Enable.\n";
+                for( var pluginId in sortedPlugins.pluginIdsWithMissingDependancies ) {
+                    AddonManager.getAddonByID( pluginId, function(addon) {
+                       addon.userDisabled= true;
+                    } );
+                    msg+= '\n' +pluginId+ ' depends on missing plugin(s) [' +
+                        sortedPlugins.pluginIdsWithMissingDependancies[pluginId]+ ']';
+                }
+                alert( msg );
             }
-            catch(e) {
-                alert(e);
-                return;
-            }
-            var failed= {}; // { string failed pluginId => exception }
-            for( var i=0; i<pluginIds.length; i++ ) {
-                var pluginId= pluginIds[i];
+            var failed= {}; // Object { string failed pluginId => exception }
+            for( var i=0; i<sortedPlugins.sortedPluginIds.length; i++ ) {
+                var pluginId= sortedPlugins.sortedPluginIds[i];
                 var plugin= SeLiteCoreLoader.plugins[pluginId];
                 if( plugin.ideUrl || plugin.coreUrl ) {
                     try {
