@@ -6,6 +6,7 @@
     <em:name>SeLite DB Storage</em:name>
     <em:version>0.67</em:version>
     <em:creator>Peter Kehl</em:creator>
+    <em:homepageURL>https://code.google.com/p/selite/</em:homepageURL>
     <em:description>SeLite DB Storage - lower level functionality for accessing SQLite</em:description>
     <em:type>2</em:type> <!--Type extension-->
     <em:targetApplication>

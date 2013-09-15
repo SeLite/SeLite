@@ -6,13 +6,14 @@
     <em:name>SeLite Miscellaneous</em:name>
     <em:version>0.63</em:version>
     <em:creator>Peter Kehl</em:creator>
+    <em:homepageURL>https://code.google.com/p/selite/</em:homepageURL>
     <em:description>Miscellaneous Internal Components for various parts of SeLite group of extensions</em:description>
     <em:type>2</em:type> <!--Type extension-->
     <em:targetApplication>
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id> <!-- Firefox -->
         <em:minVersion>17.*</em:minVersion>
-        <em:maxVersion>23.*</em:maxVersion>
+        <em:maxVersion>24.*</em:maxVersion>
       </Description>
     </em:targetApplication>
   </Description>

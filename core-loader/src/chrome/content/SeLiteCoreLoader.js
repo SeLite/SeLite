@@ -28,30 +28,22 @@ SeLiteCoreLoader.plugins= {};
 /** Register a Firefox plugin which is a Selenium IDE core extension. It will be
  *  initiated by SeLiteCoreLoader later, in a proper sequence - after any dependencies.
  *  @param prototype Anonymous object in form {
- *  pluginId, coreUrl, ideUrl,
- *  - if neither coreUrl not ideUrl are set, then this plugin is only registered
- *  for the purpose of being a dependency of other plugins, but it's not added via Selenium API class.
- *    requisitePluginIds,
-optionalRequisitePluginIds, callBack
+ *      pluginId: string, unique id of the Firefox plugin (often in a format of an email address)
+ *      coreUrl: string, optional; usually a chrome:// url,
+ *      ideUrl: string, optional; usually a chrome:// url,
+ *      - if neither coreUrl not ideUrl are set, then this plugin is only
+ *        registered for the purpose of being a dependency of other plugins,
+ *        but it's not added via Selenium API class.
+ *      requisitePluginIds: array (optional) of pluginIds, that are required dependencies.
+ *        Those are plugins that have to be loaded before given pluginId. All
+ *        those plugins must be installed in Firefox and they must also call
+ *        SeLiteCoreLoader.registerPlugin() - otherwise pluginId won't get loaded.
+        optionalRequisitePluginIds: array (optional) of pluginIds that are
+          optional dependencies
+        callBack: function, optional, will be called after the plugin is registered,
+            and it will be passed one parametr that is Selenium IDE API object.
  *  }
- *  @param pluginId String, unique id of the Firefox plugin (usually in a format of an email address)
- *  @param url String url that will be passed to Selenium's API.addPluginProvidedUserExtension(url) for initialisation.
- *  It can be an empty string, if the plugin doesn't get initialised by SeLiteCoreLoader
- *  - then SeLiteCoreLoader won't call API.addPluginProvidedUserExtension(url) neither API.addPlugin(pluginId).
- *  Pass an empty string for plugins which you want to list as dependencies of other extensions
- *  that *do* get initialised by SeLiteCoreLoader. See SeLite DB Objects and its dependency SQLite Connection Manager.
- *  @param requisitePluginIds Array of string pluginIds of all direct dependencies - plugins that
- *  have to be loaded before given pluginId. All those plugins must be installed in Firefox
- *  and they must also call SeLiteCoreLoader.registerPlugin() - otherwise pluginId won't get loaded.
- *  requisitePluginIds can be an empty array or not specified.
- *  @param optionalRequisitePluginIds Array of string pluginIds of optional direct dependencies.
- *  If they are installed, then pluginId will be initialised after any of them.
- *  Otherwise they are ignored and no error is reported. optionalRequisitePluginIds
- *  can be an empty array or not specified.
- *  @param isIdeExtension Boolean, optional. Whether it's a Selenium IDE extension; otherwise it's a Selenium Core extension.
- *  false by default.
- *  @param callBack Function, optional. Function that will get invoked after the plugin is registered. The first parameter of
- *  the function will be the API object.
+ *  @return void
 **/
 SeLiteCoreLoader.registerPlugin= function( prototype ) {
     var plugin= {
