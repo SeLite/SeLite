@@ -29,16 +29,32 @@
         AddonManager.getAllAddons(
         function(aAddons) {
             var sortedPlugins= SeLiteCoreLoader.sortedPlugins();
-            if( Object.keys(sortedPlugins.pluginIdsWithMissingDependancies).length ) {
+            if( Object.keys(sortedPlugins.missingDirectDependancies).length ) {
                 var msg= "Following Selenium IDE plugin(s) are missing their dependancy plugin(s). Therefore "+
                     "they will be disabled next time you start Firefox. Please, install any missing "+
-                    "dependancies. Then apply Firefox menu > Tools > Add-ons > Extensions > XXX > Enable.\n";
-                for( var pluginId in sortedPlugins.pluginIdsWithMissingDependancies ) {
+                    "dependancies. Then apply Firefox menu > Tools > Add-ons > Extensions > XXX > Enable.\n\n"+
+                    "Plugin(s) missing at least one direct dependency:\n";
+                for( var pluginId in sortedPlugins.missingDirectDependancies ) {
                     AddonManager.getAddonByID( pluginId, function(addon) {
                        addon.userDisabled= true;
                     } );
-                    msg+= '\n' +pluginId+ ' depends on missing plugin(s) [' +
-                        sortedPlugins.pluginIdsWithMissingDependancies[pluginId]+ ']';
+                    msg+= '\n' +pluginId+ ' depends on missing plugin(s): ' +
+                        sortedPlugins.missingDirectDependancies[pluginId].direct.join(', ')+ '.';
+                    if( sortedPlugins.missingDirectDependancies[pluginId].indirect.length ) {
+                        msg+= ' It also depends on disabled plugin(s): ' +
+                        sortedPlugins.missingDirectDependancies[pluginId].indirect.join(', ');
+                    }
+                    msg+= '\n';
+                }
+                if( Object.keys(sortedPlugins.missingIndirectDependancies).length ) {
+                    msg+= "\nPlugin(s) missing indirect dependencies only:\n";
+                    for( var pluginId in sortedPlugins.missingIndirectDependancies ) {
+                        AddonManager.getAddonByID( pluginId, function(addon) {
+                           addon.userDisabled= true;
+                        } );
+                        msg+= '\n' +pluginId+ ' depends on disabled plugin(s): ' +
+                            sortedPlugins.missingIndirectDependancies[pluginId].join(', ')+ '.\n';
+                    }
                 }
                 alert( msg );
             }

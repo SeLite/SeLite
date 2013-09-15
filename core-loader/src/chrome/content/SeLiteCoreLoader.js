@@ -119,14 +119,46 @@ SeLiteCoreLoader.sortedPlugins= function() {
             continue;
         }
     }
-    var pluginIdsWithMissingDependancies= {};
+    // Object { ID of plugin broken because of at least one missing direct dependancy
+    //     => Object {
+    //       direct: [pluginID of missing direct dependancy, ...]
+    //       indirect: [pluginId of disabled direct dependancy, ...]
+    //     }
+    //   ...
+    // }
+    var missingDirectDependancies= {}
+    // Object { ID of plugin broken only because of missing indirect dependancies
+    //     => [pluginID of disabled direct dependancy...]
+    //   
+    // }
+    var missingIndirectDependancies= {};
+    
     if( unprocessedIds.length ) {
         for( var pluginId of unprocessedIds ) {
-                pluginIdsWithMissingDependancies[pluginId]= pluginUnprocessedRequisites[pluginId];
+            //var isMissingDirectDependenciesOnly= true;
+            var direct= [], indirect= [];
+            for( var requisiteId of pluginUnprocessedRequisites[pluginId] ) {
+                if( requisiteId in SeLiteCoreLoader.plugins ) {
+                    indirect.push(requisiteId);
+                }
+                else {
+                    direct.push(requisiteId);
+                }
+            }
+            if( direct.length ) {
+                missingDirectDependancies[pluginId]= {
+                    direct: direct,
+                    indirect: indirect
+                };
+            }
+            else {
+                missingIndirectDependancies[pluginId]= indirect;
+            }
         }
     }
     return {
-        pluginIdsWithMissingDependancies: pluginIdsWithMissingDependancies,
+        missingDirectDependancies: missingDirectDependancies,
+        missingIndirectDependancies: missingIndirectDependancies,
         sortedPluginIds: sortedPluginIds
     };
 };
