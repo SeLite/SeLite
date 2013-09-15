@@ -80,74 +80,55 @@ SeLiteCoreLoader.registerPlugin= function( prototype ) {
  *  }
  * */
 SeLiteCoreLoader.sortedPlugins= function() {
-    var pluginRequisites= {}; // { dependant plugin id => [requisite plugin id...], ... }
+    var pluginUnprocessedRequisites= {}; // { dependant plugin id => [requisite plugin id...], ... }
     // I add in any optional plugin IDs, if they are installed
-    //  - so they get loaded in correct order, before the plugins that use them
+    //  - so they get loaded in correct order, before the plugins that use them.
+    // Later on I will remove entries from it as plugins get sorted.
     for( var dependantId in SeLiteCoreLoader.plugins ) {
-        pluginRequisites[dependantId]=
+        pluginUnprocessedRequisites[dependantId]=
             SeLiteCoreLoader.plugins[dependantId].requisitePluginIds.slice(0); // protective copy
         for( var optionalPluginId of SeLiteCoreLoader.plugins[dependantId].optionalRequisitePluginIds ) {
             if( optionalPluginId in SeLiteCoreLoader.plugins ) {
-                pluginRequisites[dependantId].push( optionalPluginId );
+                pluginUnprocessedRequisites[dependantId].push( optionalPluginId );
             }
         }
     }
     
-    var pluginIdsWithMissingDependancies= {}; // IDs of plugins that can't be installed, with missing direct dependancies
-    
-    mainLoop: do {
-        // mutable copy of pluginRequisites. I will remove entries from it as plugins get sorted.
-        var pluginUnprocessedRequisites= {};
-        for( var key in pluginRequisites ) {
-            if( !(key in pluginIdsWithMissingDependancies) ) {
-                pluginUnprocessedRequisites[key]= pluginRequisites[key];
-            }
-        }
+    var unprocessedIds= Object.keys(SeLiteCoreLoader.plugins);
+    var sortedPluginIds= []; // [pluginId...] in the order from one with no dependencies, to the dependant ones
 
-        var unprocessedIds= []; Object.keys(SeLiteCoreLoader.plugins);
-        for( var pluginId in SeLiteCoreLoader.plugins) {
-            if( !(pluginId in pluginIdsWithMissingDependancies) ) {
-                unprocessedIds.push(pluginId);
-            }
-        }
-        
-        var sortedPluginIds= []; // [pluginId...] in the order from one with no dependencies, to the dependant ones
+    // I believe this has computational cost O(N^2), which is fine with me.
+    for( var i=0; i<unprocessedIds.length; i++ ) {
+        var pluginId=unprocessedIds[i];
+        if( !pluginUnprocessedRequisites[pluginId].length ) {
+            sortedPluginIds.push( pluginId );
+            delete pluginUnprocessedRequisites[pluginId];
+            unprocessedIds.splice(i, 1); // remove pluginId  from unprocessedIds[]
 
-        // I believe this has computational cost O(N^2), which is fine with me.
-        for( var i=0; i<unprocessedIds.length; i++ ) {
-            var pluginId=unprocessedIds[i];
-            if( !pluginUnprocessedRequisites[pluginId].length ) {
-                sortedPluginIds.push( pluginId );
-                delete pluginUnprocessedRequisites[pluginId];
-                unprocessedIds.splice(i, 1); // remove pluginId  from unprocessedIds[]
-
-                // Remove pluginId from dependencies of the rest of unprocessed plugins
-                // - from pluginUnprocessedRequisites[xxx][]
-                for( var dependantId in pluginUnprocessedRequisites ) {
-                    var requisites= pluginUnprocessedRequisites[dependantId];
-                    var index= requisites.indexOf(pluginId);
-                    if( index>=0 ) {
-                        requisites.splice( index, 1 );
-                    }
+            // Remove pluginId from dependencies of the rest of unprocessed plugins
+            // - from pluginUnprocessedRequisites[xxx][]
+            for( var dependantId in pluginUnprocessedRequisites ) {
+                var requisites= pluginUnprocessedRequisites[dependantId];
+                var index= requisites.indexOf(pluginId);
+                if( index>=0 ) {
+                    requisites.splice( index, 1 );
                 }
+            }
 
-                i= -1; // restart the loop
-                continue;
-            }
+            i= -1; // restart the loop
+            continue;
         }
-        if( unprocessedIds.length ) {
-            for( var pluginId of unprocessedIds ) {
-                pluginIdsWithMissingDependancies[pluginId]= pluginUnprocessedRequisites[pluginId];
-            }
-            // I restart the main loop, because there may be plugins that depend on ones I've just marked as not to be initialised
-            continue mainLoop;
-        }
-        return {
-            pluginIdsWithMissingDependancies: pluginIdsWithMissingDependancies,
-            sortedPluginIds: sortedPluginIds
-        };
     }
-    while( true );
+    var pluginIdsWithMissingDependancies= {};
+    if( unprocessedIds.length ) {
+        for( var pluginId of unprocessedIds ) {
+                pluginIdsWithMissingDependancies[pluginId]= pluginUnprocessedRequisites[pluginId];
+        }
+    }
+    return {
+        pluginIdsWithMissingDependancies: pluginIdsWithMissingDependancies,
+        sortedPluginIds: sortedPluginIds
+    };
 };
         
 var EXPORTED_SYMBOLS= ['SeLiteCoreLoader'];
