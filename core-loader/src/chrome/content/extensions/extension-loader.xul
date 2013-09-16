@@ -30,10 +30,21 @@
         function( addons ) {
             var sortedPlugins= SeLiteCoreLoader.sortedPlugins();
             if( Object.keys(sortedPlugins.missingDirectDependancies).length ) {
-                var addonsById= {};
+                var addonsById= {}; // Object { string addOnId => Addon object }.
                 for( var addon of addons ) {
                     addonsById[ addon.id ]= addon;
                 }
+                var dependancyPluginNames= {}; // { pluginId => pluginName } - for dependancies only
+                for( var dependantId in SeLiteCoreLoader.plugins ) {
+                    var plugin= SeLiteCoreLoader.plugins[dependantId];
+                    for( var dependencyPluginId in plugin.requisitePlugins ) {
+                        dependancyPluginNames[dependencyPluginId]= plugin.requisitePlugins[dependencyPluginId];
+                    }
+                    for( var dependencyPluginId in plugin.optionalRequisitePlugins ) {
+                        dependancyPluginNames[dependencyPluginId]= plugin.optionalRequisitePlugins[dependencyPluginId];
+                    }
+                }                
+                
                 var msg= "Following Selenium IDE plugin(s) are missing their dependancy plugin(s). Therefore "+
                     "they will be disabled next time you start Firefox. Please, install any missing "+
                     "dependancies. Then apply Firefox menu > Tools > Add-ons > Extensions > XXX > Enable.\n\n"+
@@ -44,7 +55,7 @@
                         sortedPlugins.missingDirectDependancies[pluginId].direct.join(', ')+ '.';
                     if( sortedPlugins.missingDirectDependancies[pluginId].indirect.length ) {
                         msg+= ' It also depends on disabled plugin(s): ' +
-                        sortedPlugins.missingDirectDependancies[pluginId].indirect.join(', ');
+                        sortedPlugins.missingDirectDependancies[pluginId].indirect.join(', ')+ '.';
                     }
                     msg+= '\n';
                 }

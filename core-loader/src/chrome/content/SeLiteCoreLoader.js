@@ -18,9 +18,7 @@
 function SeLiteCoreLoader() {}
 
 /** Object serving as an associative array {
- *  string pluginId => object {
- *     string 'url' => plugin url (usually chrome://...)
- *     string 'requisitePluginIds' => array (possibly empty) of strings which are plugin ids of requisite plugins
+ *     string pluginId => object just like parameter prototype of SeLiteCoreLoader.registerPlugin()
  *  }
  * */
 SeLiteCoreLoader.plugins= {};
@@ -34,12 +32,12 @@ SeLiteCoreLoader.plugins= {};
  *      - if neither coreUrl not ideUrl are set, then this plugin is only
  *        registered for the purpose of being a dependency of other plugins,
  *        but it's not added via Selenium API class.
- *      requisitePluginIds: Object (optional) { string pluginId: string pluginName },
+ *      requisitePlugins: Object (optional) { string pluginId: string pluginName },
  *        of plugins that are required dependencies.
  *        Those are plugins that have to be loaded before given pluginId. All
  *        those plugins must be installed in Firefox and they must also call
  *        SeLiteCoreLoader.registerPlugin() - otherwise pluginId won't get loaded.
-        optionalRequisitePluginIds: Object (optional) { string pluginId: string pluginName },
+        optionalRequisitePlugins: Object (optional) { string pluginId: string pluginName },
           of pluginIds that are optional dependencies
         callBack: function, optional, will be called after the plugin is registered,
             and it will be passed one parametr that is Selenium IDE API object.
@@ -51,14 +49,14 @@ SeLiteCoreLoader.registerPlugin= function( prototype ) {
         pluginId: prototype.pluginId,
         coreUrl: prototype.coreUrl || false,
         ideUrl: prototype.ideUrl || false,
-        requisitePluginIds: prototype.requisitePluginIds || {},
-        optionalRequisitePluginIds: prototype.optionalRequisitePluginIds || {},
+        requisitePlugins: prototype.requisitePlugins || {},
+        optionalRequisitePlugins: prototype.optionalRequisitePlugins || {},
         callBack: prototype.callBack || false
     };
     if( plugin.pluginId in SeLiteCoreLoader.plugins ) {
         throw new Error("Plugin " +plugin.pluginId+ " was already registered with SeLite Core loader.");
     }
-    var mergedPluginIds= Object.keys(plugin.requisitePluginIds).concat( Object.keys(plugin.optionalRequisitePluginIds) );
+    var mergedPluginIds= Object.keys(plugin.requisitePlugins).concat( Object.keys(plugin.optionalRequisitePlugins) );
     for( var i=0; i<mergedPluginIds.length; i++ ) {
         if( mergedPluginIds.indexOf(mergedPluginIds[i])!=i ) {
             // This doesn't need to show human-friendly plugin names, because it should be caught by developer
@@ -86,18 +84,11 @@ SeLiteCoreLoader.sortedPlugins= function() {
     // I add in any optional plugin IDs, if they are installed
     //  - so they get loaded in correct order, before the plugins that use them.
     var pluginUnprocessedRequisites= {}; // { dependant plugin id => [requisite plugin id...], ... }
-    var dependancyPluginNames= {}; // { pluginId => pluginName } - for dependancies only
     for( var dependantId in SeLiteCoreLoader.plugins ) {
         var plugin= SeLiteCoreLoader.plugins[dependantId];
         pluginUnprocessedRequisites[dependantId]=
-            Object.keys( plugin.requisitePluginIds ).slice(0); // protective copy
-        for( var dependencyPluginId in plugin.requisitePluginIds ) {
-            dependancyPluginNames[dependencyPluginId]= plugin.requisitePluginIds[dependencyPluginId];
-        }
-        for( var dependencyPluginId in plugin.optionalRequisitePluginIds ) {
-            dependancyPluginNames[dependencyPluginId]= plugin.optionalRequisitePluginIds[dependencyPluginId];
-        }
-        for( var optionalPluginId in plugin.optionalRequisitePluginIds ) {
+            Object.keys( plugin.requisitePlugins ).slice(0); // protective copy
+        for( var optionalPluginId in plugin.optionalRequisitePlugins ) {
             if( optionalPluginId in SeLiteCoreLoader.plugins ) {
                 pluginUnprocessedRequisites[dependantId].push( optionalPluginId );
             }

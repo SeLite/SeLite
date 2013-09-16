@@ -21,7 +21,7 @@
             SeLiteCoreLoader.registerPlugin( {
                 pluginId: 'commands@selite.googlecode.com',
                 coreUrl: 'chrome://selite-commands/content/extensions/commands.js',
-                requisitePluginIds: { 'misc@selite.googlecode.com': 'SeLite Miscellaneous' }
+                requisitePlugins: { 'misc@selite.googlecode.com': 'SeLite Miscellaneous' }
             } );
         }
         //]]>

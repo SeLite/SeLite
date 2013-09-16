@@ -22,7 +22,7 @@
             SeLiteCoreLoader.registerPlugin( {
                 pluginId: 'selblocks-global@selite.googlecode.com',
                 coreUrl: 'chrome://selite-selblocks-global/content/extensions/selblocks-global.js',
-                requisitePluginIds: { 'testcase-debug-context@selite.googlecode.com': 'SeLite TestCase Debug Context' }
+                requisitePlugins: { 'testcase-debug-context@selite.googlecode.com': 'SeLite TestCase Debug Context' }
             } );
         }
         //]]>
