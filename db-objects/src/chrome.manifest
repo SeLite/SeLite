@@ -1,4 +1,4 @@
 content selite-db-objects chrome/content/
 
 # custom extension(s)
-overlay chrome://selite-core-loader/content/extensions/browser-overlay.xul chrome://selite-db-objects/content/extensions/extension-loader.xul
+overlay chrome://selite-extension-sequencer/content/extensions/browser-overlay.xul chrome://selite-db-objects/content/extensions/extension-loader.xul

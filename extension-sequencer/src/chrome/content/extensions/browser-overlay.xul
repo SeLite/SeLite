@@ -4,6 +4,6 @@
 <overlay id="selite_core_loader_browser_overlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
          xmlns:html="http://www.w3.org/1999/xhtml">
-    <!-- This exists only to ensure that SeLite Core Loader extension is loaded
+    <!-- This exists only to ensure that SeLite Extension Sequencer extension is loaded
     before other SeLite/Selenium extensions that use it. Those other extensions should overlay this file. -->
 </overlay>

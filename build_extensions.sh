@@ -14,8 +14,8 @@ zip -r ../../xpi/bootstrap.xpi *
 cd ../../commands/src
 zip -r ../../xpi/commands.xpi *
 
-cd ../../core-loader/src
-zip -r ../../xpi/core-loader.xpi *
+cd ../../extension-sequencer/src
+zip -r ../../xpi/extension-sequencer.xpi *
 
 cd ../../db-objects/src
 zip -r ../../xpi/db-objects.xpi *

@@ -1,4 +1,4 @@
 content selite-misc chrome/content/
 
 # custom extension(s)
-overlay chrome://selite-core-loader/content/extensions/browser-overlay.xul chrome://selite-misc/content/extensions/extension-loader.xul
+overlay chrome://selite-extension-sequencer/content/extensions/browser-overlay.xul chrome://selite-misc/content/extensions/extension-loader.xul

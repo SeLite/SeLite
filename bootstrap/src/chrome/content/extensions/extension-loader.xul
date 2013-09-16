@@ -10,11 +10,11 @@
         // @DOC If I run alert(...) here, that somehow upsets the rest of the flow, and
         // bootstrap mechanism won't run the custom (bootstrapped) file. No idea why.
         try {
-            Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
+            Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
         }
         catch(e) {
             Components.utils.import("resource://gre/modules/AddonManager.jsm");
-            alert('Add-on SeLite Bootstrap requires SeLite Core Loader, but it is not installed. Therefore SeLite BootstrapCore will be disabled next time you start Firefox. Please, install SeLite Core Loader first. Then apply Firefox menu > Tools > Add-ons > Extensions > SeLite Bootstrap > Enable.');
+            alert('Add-on SeLite Bootstrap requires SeLite Extension Sequencer, but it is not installed. Therefore SeLite Bootstrap will be disabled next time you start Firefox. Please, install SeLite Extension Sequencer first. Then apply Firefox menu > Tools > Add-ons > Extensions > SeLite Bootstrap > Enable.');
             // @DOC Following is from https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/Add-on_Manager/Code_Samples
             // Do not use AddonManager.addStartupChange( AddonManager.STARTUP_CHANGE_DISABLED, 'bootstrap@selite.googlecode.com' );
             AddonManager.getAddonByID( 'bootstrap@selite.googlecode.com', function(addon) {
@@ -23,10 +23,10 @@
             // @DOC Do not use 'return' statement here - it upsets Firefox, with no error/warning about it.
             // That 'return' statements upsets it even if there is no exception thrown
             // - that is, even if this catch(e){...} doesn't get executed at all. Probably because of "use strict";
-            // That's why in the following, I have to use if( typeof SeLiteCoreLoader!=='undefined')
+            // That's why in the following, I have to use if( typeof SeLiteExtensionSequencer!=='undefined')
         }
-        if( typeof SeLiteCoreLoader!=='undefined') {
-            SeLiteCoreLoader.registerPlugin( {
+        if( typeof SeLiteExtensionSequencer!=='undefined') {
+            SeLiteExtensionSequencer.registerPlugin( {
                 pluginId: 'bootstrap@selite.googlecode.com',
                 coreUrl: 'chrome://selite-bootstrap/content/extensions/se_bootstrap.js',
                 ideUrl: "chrome://selite-bootstrap/content/logic/SeBootstrap.js",

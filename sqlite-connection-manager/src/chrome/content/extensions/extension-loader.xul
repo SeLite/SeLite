@@ -8,17 +8,17 @@
         //<![CDATA[
         "use strict";
         try {
-            Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
+            Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
         }
         catch(e) {
             Components.utils.import("resource://gre/modules/AddonManager.jsm");
-            alert('Add-on SeLite SQLite Connection Manager requires SeLite Core Loader, but it is not installed. Therefore SeLite SQLite Connection Manager will be disabled next time you start Firefox. Please, install SeLite Core Loader first. Then apply Firefox menu > Tools > Add-ons > Extensions > SeLite SQLite Connection Manager > Enable.');
+            alert('Add-on SeLite SQLite Connection Manager requires SeLite Extension Sequencer, but it is not installed. Therefore SeLite SQLite Connection Manager will be disabled next time you start Firefox. Please, install SeLite Extension Sequencer first. Then apply Firefox menu > Tools > Add-ons > Extensions > SeLite SQLite Connection Manager > Enable.');
             AddonManager.getAddonByID( 'sqlite-connection-manager@selite.googlecode.com', function(addon) {
                 addon.userDisabled= true;
             } );
         }
-        if( typeof SeLiteCoreLoader!=='undefined') {
-            SeLiteCoreLoader.registerPlugin( {
+        if( typeof SeLiteExtensionSequencer!=='undefined') {
+            SeLiteExtensionSequencer.registerPlugin( {
                 pluginId: 'sqlite-connection-manager@selite.googlecode.com'
             } );
         }

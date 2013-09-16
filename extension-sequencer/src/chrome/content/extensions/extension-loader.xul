@@ -23,20 +23,24 @@
          * limitations under the License.
          */
         "use strict";
-        Components.utils.import("chrome://selite-core-loader/content/SeLiteCoreLoader.js");
+        Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
         Components.utils.import("resource://gre/modules/AddonManager.jsm");
 
+        var ide_api= new API();
+        // Register itself - so that it shows up in Selenium IDE > Options > Options > Plugins
+        ide_api.addPlugin( 'extension-sequencer@selite.googlecode.com' );
+        
         AddonManager.getAllAddons(
         function( addons ) {
-            var sortedPlugins= SeLiteCoreLoader.sortedPlugins();
+            var sortedPlugins= SeLiteExtensionSequencer.sortedPlugins();
             if( Object.keys(sortedPlugins.missingDirectDependancies).length ) {
                 var addonsById= {}; // Object { string addOnId => Addon object }.
                 for( var addon of addons ) {
                     addonsById[ addon.id ]= addon;
                 }
                 var dependancyPluginNames= {}; // { pluginId => pluginName } - for dependancies only
-                for( var dependantId in SeLiteCoreLoader.plugins ) {
-                    var plugin= SeLiteCoreLoader.plugins[dependantId];
+                for( var dependantId in SeLiteExtensionSequencer.plugins ) {
+                    var plugin= SeLiteExtensionSequencer.plugins[dependantId];
                     for( var dependencyPluginId in plugin.requisitePlugins ) {
                         dependancyPluginNames[dependencyPluginId]= plugin.requisitePlugins[dependencyPluginId];
                     }
@@ -75,24 +79,24 @@
             var failed= {}; // Object { string failed pluginId => exception }
             for( var i=0; i<sortedPlugins.sortedPluginIds.length; i++ ) {
                 var pluginId= sortedPlugins.sortedPluginIds[i];
-                var plugin= SeLiteCoreLoader.plugins[pluginId];
-                if( plugin.ideUrl || plugin.coreUrl ) {
-                    try {
-                        var ide_api = new API();
-                        ide_api.addPlugin(pluginId);
-                        if( plugin.ideUrl ) {
-                            ide_api.addPluginProvidedIdeExtension( plugin.ideUrl );
-                        }
-                        if( plugin.coreUrl ) {
-                            ide_api.addPluginProvidedUserExtension( plugin.coreUrl );
-                        }
-                        if( plugin.callBack ) {
-                            plugin.callBack.call( null, ide_api );
-                        }
+                var plugin= SeLiteExtensionSequencer.plugins[pluginId];
+                var ide_api = new API();
+                try {
+                    // I register the plugin even if it has no url. That way it
+                    // will be listed in Selenium IDE > Options > Options > Plugins.
+                    ide_api.addPlugin(pluginId);
+                    if( plugin.ideUrl ) {
+                        ide_api.addPluginProvidedIdeExtension( plugin.ideUrl );
                     }
-                    catch(e) {
-                        failed[pluginId]= e;
+                    if( plugin.coreUrl ) {
+                        ide_api.addPluginProvidedUserExtension( plugin.coreUrl );
                     }
+                    if( plugin.callBack ) {
+                        plugin.callBack.call( null, ide_api );
+                    }
+                }
+                catch(e) {
+                    failed[pluginId]= e;
                 }
             }
             if( Object.keys(failed).length ) {
@@ -100,7 +104,7 @@
                 for( var pluginId in failed ) {
                     messageItems.push( pluginId+ ': ' + failed[pluginId] );
                 }
-                alert( "SeLiteCoreLoader couldn't load plugin(s): " +messageItems+ "." );
+                alert( "SeLiteExtensionSequencer couldn't load plugin(s): " +messageItems+ "." );
             }
         });
         //]]>
