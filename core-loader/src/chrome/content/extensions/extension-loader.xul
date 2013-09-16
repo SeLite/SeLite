@@ -44,6 +44,9 @@
                         dependancyPluginNames[dependencyPluginId]= plugin.optionalRequisitePlugins[dependencyPluginId];
                     }
                 }                
+                var pluginIdToName= function(pluginId) {
+                    return dependancyPluginNames[pluginId];
+                };
                 
                 var msg= "Following Selenium IDE plugin(s) are missing their dependancy plugin(s). Therefore "+
                     "they will be disabled next time you start Firefox. Please, install any missing "+
@@ -52,10 +55,10 @@
                 for( var pluginId in sortedPlugins.missingDirectDependancies ) {
                     addonsById[pluginId].userDisabled= true;
                     msg+= '\n' +addonsById[pluginId].name+ ' depends on missing plugin(s): ' +
-                        sortedPlugins.missingDirectDependancies[pluginId].direct.join(', ')+ '.';
+                        sortedPlugins.missingDirectDependancies[pluginId].direct.map(pluginIdToName).join(', ')+ '.';
                     if( sortedPlugins.missingDirectDependancies[pluginId].indirect.length ) {
                         msg+= ' It also depends on disabled plugin(s): ' +
-                        sortedPlugins.missingDirectDependancies[pluginId].indirect.join(', ')+ '.';
+                        sortedPlugins.missingDirectDependancies[pluginId].indirect.map(pluginIdToName).join(', ')+ '.';
                     }
                     msg+= '\n';
                 }
@@ -64,7 +67,7 @@
                     for( var pluginId in sortedPlugins.missingIndirectDependancies ) {
                         addonsById[pluginId].userDisabled= true;
                         msg+= '\n' +addonsById[pluginId].name+ ' depends on disabled plugin(s): ' +
-                            sortedPlugins.missingIndirectDependancies[pluginId].join(', ')+ '.\n';
+                            sortedPlugins.missingIndirectDependancies[pluginId].map(pluginIdToName).join(', ')+ '.\n';
                     }
                 }
                 alert( msg );
