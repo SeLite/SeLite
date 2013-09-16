@@ -31,13 +31,13 @@ then
   pwd > $EXTENSION_FOLDER/bootstrap@selite.googlecode.com
 fi
 
-if [ ! -e $EXTENSION_FOLDER/\selite-core-loader@selite.googlecode.com.xpi ]
+if [ ! -e $EXTENSION_FOLDER/\core-loader@selite.googlecode.com.xpi ]
 then
   cd ../../core-loader/src
   pwd > $EXTENSION_FOLDER/core-loader@selite.googlecode.com
 fi
 
-if [ ! -e $EXTENSION_FOLDER/bootstrap\@selite.googlecode.com.xpi ]
+if [ ! -e $EXTENSION_FOLDER/settings\@selite.googlecode.com.xpi ]
 then
   cd ../../settings/src
   pwd > $EXTENSION_FOLDER/settings@selite.googlecode.com
