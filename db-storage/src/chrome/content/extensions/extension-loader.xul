@@ -22,11 +22,11 @@
             SeLiteCoreLoader.registerPlugin( {
                 pluginId: 'db-storage@selite.googlecode.com',
                 coreUrl: 'chrome://selite-db-storage/content/extensions/db-storage.js',
-                requisitePluginIds: [
-                    'misc@selite.googlecode.com',
-                    'commands@selite.googlecode.com',
-                    'sqlite-connection-manager@selite.googlecode.com'
-                ],
+                requisitePluginIds: {
+                    'misc@selite.googlecode.com': 'SeLite Miscellaneous',
+                    'commands@selite.googlecode.com': 'SeLite Commands',
+                    'sqlite-connection-manager@selite.googlecode.com': 'SeLite SQLite Connection Manager'
+                },
                 optionalRequisitePluginIds: ['settings@selite.googlecode.com']
             } );
         }

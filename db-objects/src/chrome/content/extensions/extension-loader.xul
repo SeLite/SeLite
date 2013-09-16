@@ -22,11 +22,11 @@
             SeLiteCoreLoader.registerPlugin( {
                 pluginId: 'db-objects@selite.googlecode.com',
                 coreUrl: 'chrome://selite-db-objects/content/extensions/db-objects.js',
-                requisitePluginIds: [
-                    'misc@selite.googlecode.com',
-                    'commands@selite.googlecode.com',
-                    'db-storage@selite.googlecode.com'
-                ]
+                requisitePluginIds: {
+                    'misc@selite.googlecode.com': 'SeLite Miscellaneous',
+                    'commands@selite.googlecode.com': 'SeLite Commands',
+                    'db-storage@selite.googlecode.com': 'SeLite DB Storage'
+                }
             } );
         }
         //]]>
