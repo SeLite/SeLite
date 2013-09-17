@@ -1,8 +1,7 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 
-<overlay id="seBootstrap_core_loader_overlay"
-         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
          xmlns:html="http://www.w3.org/1999/xhtml">
     <html:script type="application/javascript">
         //<![CDATA[
