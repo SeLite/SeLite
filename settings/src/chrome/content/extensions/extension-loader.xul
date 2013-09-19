@@ -17,11 +17,6 @@
                 addon.userDisabled= true;
             } );
         }
-        if( typeof SeLiteExtensionSequencer!=='undefined') {
-            SeLiteExtensionSequencer.registerPlugin({
-                pluginId: 'settings@selite.googlecode.com',
-            });
-        }
         //]]>
     </html:script>
 </overlay>

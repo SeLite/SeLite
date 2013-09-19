@@ -17,12 +17,6 @@
                 addon.userDisabled= true;
             } );
         }
-        if( typeof SeLiteExtensionSequencer!=='undefined') {
-            SeLiteExtensionSequencer.registerPlugin( {
-                pluginId: 'misc@selite.googlecode.com',
-                coreUrl: 'chrome://selite-misc/content/extensions/selite-misc-ide.js'
-            } );
-        }
         //]]>
     </html:script>
 </overlay>

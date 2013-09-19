@@ -17,13 +17,6 @@
                 addon.userDisabled= true;
             } );
         }
-        if( typeof SeLiteExtensionSequencer!=='undefined') {
-            SeLiteExtensionSequencer.registerPlugin( {
-                pluginId: 'commands@selite.googlecode.com',
-                coreUrl: 'chrome://selite-commands/content/extensions/commands.js',
-                requisitePlugins: { 'misc@selite.googlecode.com': 'SeLite Miscellaneous' }
-            } );
-        }
         //]]>
     </html:script>
 </overlay>

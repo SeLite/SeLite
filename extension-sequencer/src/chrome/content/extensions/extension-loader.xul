@@ -31,12 +31,17 @@
         
         AddonManager.getAllAddons(
         function( addons ) {
-            var sortedPlugins= SeLiteExtensionSequencer.sortedPlugins();
-            if( Object.keys(sortedPlugins.missingDirectDependancies).length ) {
-                var addonsById= {}; // Object { string addOnId => Addon object }.
-                for( var addon of addons ) {
-                    addonsById[ addon.id ]= addon;
+            var addonsById= {}; // Object { string addOnId => Addon object }.
+            for( var addon of addons ) {
+                addonsById[ addon.id ]= addon;
+                if( addon.isActive && addon.hasResource( 'chrome/content/SeLiteExtensionSequencerManifest.js') ) {
+                    Components.utils.import( addon.getResourceURI('chrome/content/SeLiteExtensionSequencerManifest.js').spec );
                 }
+            }
+            
+            var sortedPlugins= SeLiteExtensionSequencer.sortedPlugins();
+            //alert( sortedPlugins.sortedPluginIds);
+            if( Object.keys(sortedPlugins.missingDirectDependancies).length ) {
                 var dependancyPluginNames= {}; // { pluginId => pluginName } - for dependancies only
                 for( var dependantId in SeLiteExtensionSequencer.plugins ) {
                     var plugin= SeLiteExtensionSequencer.plugins[dependantId];
