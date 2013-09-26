@@ -785,10 +785,23 @@ function treeClickHandler( event ) {
     }
 }
 
-function setCellText( row, col, value ) {
+/** Gather some information about the cell, the field, set and module.
+ *  Validate the value.
+ * @param row is 0-based index among the expanded rows, not all rows.
+ * @param value new value
+ *  @return mixed On success, return the gathered information as an anonymous object {
+       module: ??,
+        rowProperties: string,
+        setName: string,
+        field: ??,
+        fieldTreeRows: ??,
+        treeRow: ??,
+        oldKey: string, the key as it was before this edit, only used when it's a multi-valued field
+ *  }
+ *  On validation failure, show an alert message and return false.
+ * */
+function gatherAndValidateCell( row, value ) {
     var tree= document.getElementById( 'settingsTree' );
-    // setCellText() gets triggered only for string/number fields and for File fields; not for checkboxes.
-    // @param row is 0-based index among the expanded rows, not all rows.
     var rowProperties= tree.view.getRowProperties(row);
 
     var moduleName= propertiesPart( rowProperties, RowLevel.MODULE );
@@ -798,8 +811,9 @@ function setCellText( row, col, value ) {
     var field= module.fields[fieldName];
 
     var moduleRows= treeRows[moduleName];
-    var fieldTreeRows= null; // Only non-null if field.multivalued==true
+    var fieldTreeRows= null; //Non-null only if field.multivalued==true
     var treeRow;
+    var oldKey;
     if( !field.multivalued ) {
         treeRow= moduleRows[setName][fieldName];
         // @TODO Docs Can't use treeRow.constructor.name here - because it's a native object.
@@ -822,9 +836,7 @@ function setCellText( row, col, value ) {
         }
         treeRow= fieldTreeRows[oldKey];
     }
-
     var cell= treeCell( treeRow, RowLevel.FIELD );
-    //alert( Object.keys(fieldTreeRows) );
     //@TODO custom field validation?
     if( field instanceof SeLiteSettings.Field.Int ) {
         var numericValue= Number(value);
@@ -833,6 +845,28 @@ function setCellText( row, col, value ) {
             return false;
         }
     }
+    return {
+        module: module,
+        rowProperties: rowProperties,
+        setName: setName,
+        field: field,
+        fieldTreeRows: fieldTreeRows,
+        treeRow: treeRow,
+        oldKey: oldKey
+    };
+}
+
+/** This - nsITreeView.setCellText() - gets triggered only for string/number fields and for File fields; not for checkboxes.
+ * @param gatheredInfo Result of  gatherAndValidateCell(..), if it was successful.
+ * * @param value new value
+ * */
+function setCellText( gatheredInfo, value ) {
+    var module= gatheredInfo.module;
+    var setName= gatheredInfo.setName;
+    var field= gatheredInfo.field;
+    var fieldTreeRows= gatheredInfo.fieldTreeRows;
+    var treeRow= gatheredInfo.treeRow;
+    var oldKey= gatheredInfo.oldKey;
     if( !field.multivalued ) {
         field.setValue( setName, value );
     }
@@ -863,7 +897,7 @@ function setCellText( row, col, value ) {
             treeChildren.removeChild( treeRow.parentNode );
             var pair= {};
             pair[ value ]= value;
-            var treeItem= generateTreeItem( module, setName, field, pair, RowLevel.OPTION ); // This sets 'properties' and it adds an entry to moduleRows[setName][fieldName][value]
+            var treeItem= generateTreeItem( module, setName, field, pair, RowLevel.OPTION ); // This sets 'properties' and it adds an entry to treeRow[value]
                 // (which is same as fieldTreeRows[value] here).
             // Firefox 22.b04 and 24.0a1 doesn't handle parent.insertBefore(newItem, null), even though it should - https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore
             if(true){//@TODO cleanup
@@ -884,7 +918,7 @@ function setCellText( row, col, value ) {
         }
         else { // No repositioning - just update 'properties' attribute
             fieldTreeRows[value]= treeRow;
-            var propertiesPrefix= rowProperties.substr(0, /*length:*/rowProperties.length-oldKey.length); // That includes a trailing space
+            var propertiesPrefix= gatheredInfo.rowProperties.substr(0, /*length:*/gatheredInfo.rowProperties.length-oldKey.length); // That includes a trailing space
             treeRow.setAttribute( 'properties', propertiesPrefix+value );
         }
         delete fieldTreeRows[oldKey];
@@ -927,10 +961,15 @@ function createTreeView(original) {
         performActionOnRow: function(action, row) { return original.performActionOnRow(action, row); },
         selectionChanged: function() { return original.selectionChanged(); },
         setCellText: function(row, col, value) {
-            // @TODO do the validation first; if failed, then don't update the text and return false?
-            var result= original.setCellText(row, col, value);
-            setCellText( row, col, value );
-            return result;
+            var gatheredInfo= gatherAndValidateCell( row, value );
+            if( gatheredInfo ) {
+                var result= original.setCellText(row, col, value);
+                // I don't use parameter col at all, because I use module definition to figure out the editable cell.
+                // If we had more than one editable cell per row, then I'd have to use parameter col.
+                setCellText( gatheredInfo, value );
+                return result;
+            }
+            return false;
         },
         setCellValue: function(row, col, value) { return original.setCellValue(row, col, value); },
         setTree: function(tree) { return original.setTree(tree); },
