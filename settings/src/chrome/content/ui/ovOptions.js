@@ -850,8 +850,7 @@ function setCellText( row, col, value ) {
                 break;
             }
         }
-        alert( 'debugOtherKeys: ['+debugOtherKeys+ '], rowAfterNewPosition found: ' +(rowAfterNewPosition==null) );
-        //seliteAlert.go.call(null, 'rowAfterNewPosition found: ' +(rowAfterNewPosition==null));
+        //alert( 'debugOtherKeys: ['+debugOtherKeys+ '], rowAfterNewPosition found: ' +(rowAfterNewPosition==null) );
         if( rowAfterNewPosition===null && fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW] && Object.keys(fieldTreeRows).length===3 ) {
             // there's no other existing value, and the row being edited is a new one (it didn't have a real value set yet)
             if( fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW]!==treeRow || oldKey!==SeLiteSettings.NEW_VALUE_ROW ) {
@@ -897,71 +896,6 @@ function setCellText( row, col, value ) {
     SeLiteSettings.savePrefFile();
 }
 
-/*function TreeView(originalView) {
-    this.originalView= originalView;
-    this.rowCount = originalView.rowCount;
-    this.selection= originalView.selection;
-    
-    this.getCellText = function(row, col) {
-        return this.originalView.getCellText( row, col );
-    };
-    this.setCellText = function(row, col, value) {
-        setCellText( row, col, value );
-        return this.originalView.setCellText( row, col, value );
-    };
-    this.getCellValue = function(row, col) {
-            return this.originalView.getCellValue(row, col);
-    };
-    this.setTree = function(treebox) {
-            this.treebox = treebox;
-            return this.originalView.setTree(treebox);
-    };
-    this.isEditable = function(row, col) {
-            return this.originalView.isEditable(row, col);;
-    };
-    this.isContainer = function(row){
-        return this.originalView.isContainer(row);
-    };
-    this.isContainerOpen= function(row){
-        return this.originalView.isContainerOpen(row);
-    };
-    this.isContainerEmpty= function(row){
-        return this.originalView.isContainerEmpty(row);
-    };
-    this.isSeparator = function(row){
-        return this.originalView.isSeparator(row);
-    };
-    this.isSorted = function(){
-        return this.originalView.isSorted(); 
-    };
-    this.getLevel = function(row){
-        return this.originalView.getLevel(row);
-    };
-    this.getParentIndex= function(row) {
-        return this.originalView.getParentIndex(row);
-    };
-    this.getImageSrc = function(row,col){
-        return this.originalView.getImageSrc(row, col);
-    };
-    this.getRowProperties = function(row,props) {
-        return this.originalView.getRowProperties(row, props);
-    };
-    this.getCellProperties = function(row,col,props){
-        return this.originalView.getCellProperties(row, col, props);
-    };
-    this.getColumnProperties = function(colid,col,props){
-        return this.originalView.getColumnProperties(colid, col, props);
-    };
-    this.cycleHeader = function(col, elem) {
-        return this.originalView.cycleHeader(col, elem);
-    }
-    this.setCellValue= function( row, col, value ) {
-        return this.originalView.setCellValue( row, col, value );
-    };
-    this.toggleOpenState= function(row) {
-        return this.originalView.toggleOpenState( row );
-    };
-}/**/
 function createTreeView(original) {
     return {
         get rowCount() { return original.rowCount; },
@@ -993,8 +927,10 @@ function createTreeView(original) {
         performActionOnRow: function(action, row) { return original.performActionOnRow(action, row); },
         selectionChanged: function() { return original.selectionChanged(); },
         setCellText: function(row, col, value) {
+            // @TODO do the validation first; if failed, then don't update the text and return false?
+            var result= original.setCellText(row, col, value);
             setCellText( row, col, value );
-            return original.setCellText(row, col, value);
+            return result;
         },
         setCellValue: function(row, col, value) { return original.setCellValue(row, col, value); },
         setTree: function(tree) { return original.setTree(tree); },
