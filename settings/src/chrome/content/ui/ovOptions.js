@@ -835,7 +835,7 @@ function gatherAndValidateCell( row, value ) {
         }
         else {
             if( value in fieldTreeRows ) {
-                //alert( "Values must be unique. Another entry for this field already has same value " +value );
+                //alert( "Values must be unique. Another entry for this field already has same value " +value ); //@TODO?
                 validationPassed= false;
             }
         }
@@ -846,7 +846,7 @@ function gatherAndValidateCell( row, value ) {
     if( field instanceof SeLiteSettings.Field.Int ) {
         var numericValue= Number(value);
         if( isNaN(numericValue) || numericValue!==Math.round(numericValue) ) { // Can't compare using value===Number.NaN
-            //alert( "This field accepts integer (whole numbers) only." );
+            //alert( "This field accepts integer (whole numbers) only." ); //@TODO?
             validationPassed= false;
         }
     }
@@ -880,12 +880,10 @@ function setCellText( gatheredInfo, value ) {
     else {
         var rowAfterNewPosition= null; // It may be null - then append the new row at the end; if same as treeRow, then the new value stays in treeRow.
             // If the new value still fits at the original position, then rowAfterNewPosition will be treeRow.
-        //alert( objectToString(fieldTreeRows, 3, false, ['XULElement', '']) );
         var debugOtherKeys= [];
         for( var otherKey in fieldTreeRows ) {
             debugOtherKeys.push( otherKey );
             // Following check also excludes SeLiteSettings.NEW_VALUE_ROW, because we don't want to compare it to real values. 
-            //!==SeLiteSettings.FIELD_MAIN_ROW && otherKey!==SeLiteSettings.FIELD_TREECHILDREN 
             if( SeLiteSettings.reservedNames().indexOf(otherKey)<0 && field.compareValues(otherKey, value)>=0 ) {
                 rowAfterNewPosition= fieldTreeRows[otherKey];
                 break;
@@ -980,7 +978,7 @@ function createTreeView(original) {
             }
             //Following didn't work in Firefox 24.0:
             //document.getElementById( 'settingsTree' ).startEditing( row, col );
-            //@TODO new - remove(); old - change to the original value
+            //@TODO new row -> gatheredInfo.treeRow.remove(); existing row -> change to the original value?
             return false;
         },
         setCellValue: function(row, col, value) { return original.setCellValue(row, col, value); },

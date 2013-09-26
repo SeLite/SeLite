@@ -6,8 +6,6 @@
     <html:script type="application/javascript">
         //<![CDATA[
         "use strict";
-        // @DOC If I run alert(...) here, that somehow upsets the rest of the flow, and
-        // bootstrap mechanism won't run the custom (bootstrapped) file. No idea why.
         try {
             Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
         }
