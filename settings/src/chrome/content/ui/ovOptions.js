@@ -897,6 +897,111 @@ function setCellText( row, col, value ) {
     SeLiteSettings.savePrefFile();
 }
 
+/*function TreeView(originalView) {
+    this.originalView= originalView;
+    this.rowCount = originalView.rowCount;
+    this.selection= originalView.selection;
+    
+    this.getCellText = function(row, col) {
+        return this.originalView.getCellText( row, col );
+    };
+    this.setCellText = function(row, col, value) {
+        setCellText( row, col, value );
+        return this.originalView.setCellText( row, col, value );
+    };
+    this.getCellValue = function(row, col) {
+            return this.originalView.getCellValue(row, col);
+    };
+    this.setTree = function(treebox) {
+            this.treebox = treebox;
+            return this.originalView.setTree(treebox);
+    };
+    this.isEditable = function(row, col) {
+            return this.originalView.isEditable(row, col);;
+    };
+    this.isContainer = function(row){
+        return this.originalView.isContainer(row);
+    };
+    this.isContainerOpen= function(row){
+        return this.originalView.isContainerOpen(row);
+    };
+    this.isContainerEmpty= function(row){
+        return this.originalView.isContainerEmpty(row);
+    };
+    this.isSeparator = function(row){
+        return this.originalView.isSeparator(row);
+    };
+    this.isSorted = function(){
+        return this.originalView.isSorted(); 
+    };
+    this.getLevel = function(row){
+        return this.originalView.getLevel(row);
+    };
+    this.getParentIndex= function(row) {
+        return this.originalView.getParentIndex(row);
+    };
+    this.getImageSrc = function(row,col){
+        return this.originalView.getImageSrc(row, col);
+    };
+    this.getRowProperties = function(row,props) {
+        return this.originalView.getRowProperties(row, props);
+    };
+    this.getCellProperties = function(row,col,props){
+        return this.originalView.getCellProperties(row, col, props);
+    };
+    this.getColumnProperties = function(colid,col,props){
+        return this.originalView.getColumnProperties(colid, col, props);
+    };
+    this.cycleHeader = function(col, elem) {
+        return this.originalView.cycleHeader(col, elem);
+    }
+    this.setCellValue= function( row, col, value ) {
+        return this.originalView.setCellValue( row, col, value );
+    };
+    this.toggleOpenState= function(row) {
+        return this.originalView.toggleOpenState( row );
+    };
+}/**/
+function createTreeView(original) {
+    return {
+        get rowCount() { return original.rowCount; },
+        get selection() { return original.selection; },
+        set selection(newValue) { return original.selection= newValue; },
+        canDrop: function(index, orientation, dataTransfer) { return original.canDrop(index, orientation, dataTransfer); },
+        cycleCell: function(row, col) { return original.cycleCell(row, col); },
+        cycleHeader: function(col) { return original.cycleHeader(col); },
+        drop: function(row, orientation, dataTransfer) { return original.drop(row, orientation, dataTransfer ); },
+        getCellProperties: function(row, col) { return original.getCellProperties(row, col); },
+        getCellText: function(row, col) { return original.getCellText(row, col); },
+        getCellValue: function(row, col) { return original.getCellValue(row, col); },
+        getColumnProperties: function(col, properties ) { return original.getColumnProperties(col, properties); },
+        getImageSrc: function(row, col) { return original.getImageSrc(row, col); },
+        getLevel: function(index) { return original.getLevel(index); },
+        getParentIndex: function(rowIndex) { return original.getParentIndex(rowIndex); },
+        getProgressMode: function(row ) { return original.getProgressMode(row); },
+        getRowProperties: function(index) { return original.getRowProperties(index); },
+        hasNextSibling: function(rowIndex, afterIndex) { return original.hasNextSibling(rowIndex, afterIndex); },
+        isContainer: function(index) { return original.isContainer(index); },
+        isContainerEmpty: function(index) { return original.isContainerEmpty(index); },
+        isContainerOpen: function(index) { return original.isContainerOpen(index); },
+        isEditable: function(row, col) { return original.isEditable(row, col); },
+        isSelectable: function(row, col) { return original.isSelectable(row, col); },
+        isSeparator: function(index) { return original.isSeparator(index); },
+        isSorted: function() { return original.isSorted(); },
+        performAction: function(action) { return original.performAction(action); },
+        performActionOnCell: function(action, row, col) { return original.performActionOnCell(action, row, col); },
+        performActionOnRow: function(action, row) { return original.performActionOnRow(action, row); },
+        selectionChanged: function() { return original.selectionChanged(); },
+        setCellText: function(row, col, value) {
+            setCellText( row, col, value );
+            return original.setCellText(row, col, value);
+        },
+        setCellValue: function(row, col, value) { return original.setCellValue(row, col, value); },
+        setTree: function(tree) { return original.setTree(tree); },
+        toggleOpenState: function(index) { return original.toggleOpenState(index); }
+    }
+}
+    
 /* @var allowSets bool Whether to show the column for selection of a set. If we're only showing one module, this is module.allowSets.
  *  If we're showing more modules, then it's true if at least one of those modules has allowSets==true.
 */
@@ -1040,7 +1145,13 @@ window.addEventListener( "load", function(e) {
     
     topTreeChildren.addEventListener( 'click', treeClickHandler );
     
-    tree.view.setCellText= setCellText;
+    //tree.view.setCellText= setCellText;
+    tree.view= createTreeView( tree.view );
+    
+    // following fails:
+    //var newView= Object.create(tree.view);
+    //newView.setCellText= setCellText;
+    //tree.view= newView;
     
     /*tree.addEventListener( 'change', function( event ) {
     // event.target, event.currentTarget and event.explicitOriginalTarget is an XULElement for <tree>.
