@@ -789,7 +789,7 @@ function treeClickHandler( event ) {
  *  Validate the value.
  * @param row is 0-based index among the expanded rows, not all rows.
  * @param value new value
- *  @return mixed On success, return the gathered information as an anonymous object {
+ *  @return mixed an anonymous object {
        module: ??,
         rowProperties: string,
         setName: string,
@@ -797,8 +797,9 @@ function treeClickHandler( event ) {
         fieldTreeRows: ??,
         treeRow: ??,
         oldKey: string, the key as it was before this edit, only used when it's a multi-valued field
+        validationPassed: boolean,
+        valueChanged: boolean
  *  }
- *  On validation failure, show an alert message and return false.
  * */
 function gatherAndValidateCell( row, value ) {
     var tree= document.getElementById( 'settingsTree' );
@@ -814,6 +815,8 @@ function gatherAndValidateCell( row, value ) {
     var fieldTreeRows= null; //Non-null only if field.multivalued==true
     var treeRow;
     var oldKey;
+    var validationPassed= true;
+    var valueChanged= true;
     if( !field.multivalued ) {
         treeRow= moduleRows[setName][fieldName];
         // @TODO Docs Can't use treeRow.constructor.name here - because it's a native object.
@@ -827,12 +830,14 @@ function gatherAndValidateCell( row, value ) {
             throw new Error( "fieldTreeRows should be an instance of SortedObjectTarget (actually, a proxy to such an instance), but it is " +fieldTreeRows.constructor.name );
         }
         var oldKey= propertiesPart( rowProperties, RowLevel.OPTION );
-        if( value===oldKey ) { //setCellText() is called after editing, even if there was no change
-            return;
-        }//alert( 'value ' +value+ '\n' +objectToString(fieldTreeRows, 3, false, ['XULElement', '']) );
-        if( value in fieldTreeRows ) {
-            alert( "Values must be unique. Another entry for this field already has same value " +value );
-            return false;
+        if( value===oldKey ) {
+            valueChanged= false; // the user finished editing a cell, but they didn't change the text
+        }
+        else {
+            if( value in fieldTreeRows ) {
+                //alert( "Values must be unique. Another entry for this field already has same value " +value );
+                validationPassed= false;
+            }
         }
         treeRow= fieldTreeRows[oldKey];
     }
@@ -841,8 +846,8 @@ function gatherAndValidateCell( row, value ) {
     if( field instanceof SeLiteSettings.Field.Int ) {
         var numericValue= Number(value);
         if( isNaN(numericValue) || numericValue!==Math.round(numericValue) ) { // Can't compare using value===Number.NaN
-            alert( "This field accepts integer (whole numbers) only." );
-            return false;
+            //alert( "This field accepts integer (whole numbers) only." );
+            validationPassed= false;
         }
     }
     return {
@@ -852,7 +857,9 @@ function gatherAndValidateCell( row, value ) {
         field: field,
         fieldTreeRows: fieldTreeRows,
         treeRow: treeRow,
-        oldKey: oldKey
+        oldKey: oldKey,
+        validationPassed: validationPassed,
+        valueChanged: valueChanged
     };
 }
 
@@ -961,14 +968,19 @@ function createTreeView(original) {
         performActionOnRow: function(action, row) { return original.performActionOnRow(action, row); },
         selectionChanged: function() { return original.selectionChanged(); },
         setCellText: function(row, col, value) {
+            // I don't use parameter col in my own methods, because I use module definition to figure out the editable cell.
+            // If we had more than one editable cell per row, then I'd have to use parameter col.
             var gatheredInfo= gatherAndValidateCell( row, value );
-            if( gatheredInfo ) {
+            if( gatheredInfo.validationPassed ) {
                 var result= original.setCellText(row, col, value);
-                // I don't use parameter col at all, because I use module definition to figure out the editable cell.
-                // If we had more than one editable cell per row, then I'd have to use parameter col.
-                setCellText( gatheredInfo, value );
+                if( gatheredInfo.valueChanged ) {
+                    setCellText( gatheredInfo, value );
+                }
                 return result;
             }
+            //Following didn't work in Firefox 24.0:
+            //document.getElementById( 'settingsTree' ).startEditing( row, col );
+            //@TODO new - remove(); old - change to the original value
             return false;
         },
         setCellValue: function(row, col, value) { return original.setCellValue(row, col, value); },
