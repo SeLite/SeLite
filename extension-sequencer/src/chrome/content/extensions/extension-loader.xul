@@ -93,7 +93,12 @@
                         ide_api.addPluginProvidedIdeExtension( plugin.ideUrl );
                     }
                     if( plugin.coreUrl ) {
-                        ide_api.addPluginProvidedUserExtension( plugin.coreUrl );
+                        if( plugin.xmlUrl ) {
+                            ide_api.addPluginProvidedUserExtension( plugin.coreUrl, plugin.xmlUrl );
+                        }
+                        else {
+                            ide_api.addPluginProvidedUserExtension( plugin.coreUrl );
+                        }
                     }
                     if( plugin.callBack ) {
                         plugin.callBack.call( null, ide_api );

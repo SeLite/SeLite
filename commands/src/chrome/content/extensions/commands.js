@@ -143,12 +143,10 @@ Selenium.prototype.distinctTimestamps= {};
 Selenium.prototype.noteTimestamp= function( recordType, timestampPrecision ) {
     /** Use to record the moment when you inserted/updated a record of given type, and you want to
      *  compare that record's timestamp (whether soon or later) as formatted on the webpage (using given precision).
-     *  This in conjunction with waitForDistinctTimestamp action make sure that you get timestamps which can be
-     *  compared as distinct.
      *  Warning: This keeps a count only of timestamps notes since you started Selenium. If you re-started it soon
-     *  after the previous run, make sure you wait for a sufficient period to get distinct new timestamps.
+     *  after the previous run which could record timestamps, make sure you wait for a sufficient period to get distinct new timestamps.
      *  @param string recordType Type/use case group of the record that you're upgrading/inserting. Records that can be compared
-     *  between each other should have same recordType. Then this assures that they get timestamps that shows up as distinct.
+     *  between each other should have same recordType. Then this assures that they get timestamps that show up as distinct.
      *  Records with different recordType can get same timestamps.
      *  @param int timestampPrecision optional; if present, it's the precision/lowest unit of the timestamp, in seconds; 1 sec by default.
      **/
@@ -169,6 +167,9 @@ Selenium.prototype.doPauseUntilDistinctTimestampMinutes= function( recordType, v
    because it's not intended to be run as Selenium command.
 */
 Selenium.prototype.pauseUntilDistinctTimestamp= function( recordType, timestampPrecision ) {
+    if( !(recordType in this.distinctTimestamps) ) {
+        LOG.info( 'pauseUntilDistinctTimestampXXX: No previous timestamp for recordType ' +recordType );
+    }
     /** @param string recordType Same record type as passed to action noteTimestamp
      *  @return true if it's safe to create a new timestamp for this type of record, and the timestamp
      *  will be distinguishable from the previous one.
@@ -176,9 +177,6 @@ Selenium.prototype.pauseUntilDistinctTimestamp= function( recordType, timestampP
      **/
     //@TODO make dontWaitForDistinctTimestamps a configuration option set via GUI?
     if( typeof dontWaitForDistinctTimestamps=='undefined' || !(recordType in this.distinctTimestamps) ) {
-        if( !(recordType in this.distinctTimestamps) ) {
-            LOG.info( 'pauseUntilDistinctTimestampXXX: No previous timestamp for recordType ' +recordType );
-        }
         // I do note a timestamp even if dontWaitForDistinctTimestamps==true, so that if sometimes later
         // dontWaitForDistinctTimestamps becomes false then I have a list of previous timestamps in hand.
         this.noteTimestamp( recordType, timestampPrecision );
@@ -192,14 +190,17 @@ Selenium.prototype.pauseUntilDistinctTimestamp= function( recordType, timestampP
     }
     LOG.debug( 'pauseUntilDistinctTimestampXXX: waiting for next ' +timeOutFromNow/1000+ ' sec.' );
 
-    return Selenium.decorateFunctionWithTimeout(function () {
-        // Somewhere here Firefox 23.0.1 Browser Console reports false positive 'anonymous function does not always return a value'. Ingore that.
-        if( Date.now()>timestampBecomesDistinct ) {
-            this.noteTimestamp( recordType, timestampPrecision );
-            return true;
-        }
-        return false;
-    }, timeOutFromNow );
+    return Selenium.decorateFunctionWithTimeout(
+        function () {
+            // Somewhere here Firefox 23.0.1 Browser Console reports false positive 'anonymous function does not always return a value'. Ingore that.
+            if( Date.now()>timestampBecomesDistinct ) {
+                this.noteTimestamp( recordType, timestampPrecision );
+                return true;
+            }
+            return false;
+        },
+        timeOutFromNow
+    );
 };
 
 /** Index (or re-index) a collection of objects by given index (or index and sub-index).

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<apidoc>
+<function name="typeRobust">
+    <param name="locator">Blah</param>
+    <comment>Blah
+    </comment>
+</function>   
+<function name="pauseUntilDistinctTimestampSeconds">
+    <param name="recordType">record type, for which you want to get a distinct timestamp</param>
+    <comment>
+               Use to record the moment when you inserted/updated a record of given type, and you want to
+       compare that record's timestamp (whether soon or later) as formatted on the webpage (using given precision).
+       This in conjunction with waitForDistinctTimestamp action make sure that you get timestamps which can be
+       compared as distinct.
+      Warning: This keeps a count only of timestamps notes since you started Selenium. If you re-started it soon
+      after the previous run which could record timestamps, make sure you wait for a sufficient period to get distinct new timestamps.
+    </comment>
+</function>
+<function name="pauseUntilDistinctTimestampMinutes">
+    <param name="recordType">string, same record type as passed to action noteTimestamp</param>
+</function>
+</apidoc>

@@ -27,8 +27,9 @@ SeLiteExtensionSequencer.plugins= {};
  *  initiated by SeLiteExtensionSequencer later, in a proper sequence - after any dependencies.
  *  @param prototype Anonymous object in form {
  *      pluginId: string, unique id of the Firefox plugin (often in a format of an email address)
- *      coreUrl: string, optional; usually a chrome:// url,
- *      ideUrl: string, optional; usually a chrome:// url,
+ *      coreUrl: string, optional - for Core extensions only; usually a chrome:// url,
+ *      xmlUrl: string, optional - for Core extensions only, used only if coreUrl is also set; usually a chrome:// url,
+ *      ideUrl: string, optional - for IDE extensions only; usually a chrome:// url,
  *      - if neither coreUrl not ideUrl are set, then this plugin is only
  *        registered for the purpose of being a dependency of other plugins,
  *        but it's not added via Selenium API class.
@@ -40,7 +41,7 @@ SeLiteExtensionSequencer.plugins= {};
         optionalRequisitePlugins: Object (optional) { string pluginId: string pluginName },
           of pluginIds that are optional dependencies
         callBack: function, optional, will be called after the plugin is registered,
-            and it will be passed one parametr that is Selenium IDE API object.
+            and it will be passed one parameter that is Selenium IDE API object.
  *  }
  *  @return void
 **/
@@ -48,6 +49,7 @@ SeLiteExtensionSequencer.registerPlugin= function( prototype ) {
     var plugin= {
         pluginId: prototype.pluginId,
         coreUrl: prototype.coreUrl || false,
+        xmlUrl: prototype.xmlUrl || false,
         ideUrl: prototype.ideUrl || false,
         requisitePlugins: prototype.requisitePlugins || {},
         optionalRequisitePlugins: prototype.optionalRequisitePlugins || {},
