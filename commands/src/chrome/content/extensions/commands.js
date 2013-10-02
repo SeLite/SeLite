@@ -16,6 +16,9 @@
 */
 "use strict";
 
+// For all Selenium actions defined here - i.e. functions with name doXXXX,
+// see their documentation at ../reference.xml
+
 // @TODO document/report this to Selenium
 // 1. As of Se IDE 1.5.0, contrary to http://release.seleniumhq.org/selenium-core/1.0/reference.html#extending-selenium
 // (documentation on how to write custom getXXX functions),
@@ -43,8 +46,8 @@ Selenium.prototype.getQs= function( target ) {
 /** @TODO eliminate? Or, keep, if we use NaN
  **/
 Selenium.prototype.doTypeRobust= function(target, value) {
-    if( !target ) {
-        LOG.info( 'typeRobust skipped, since target was empty/0/false.' );
+    if( !target || !value ) {
+        LOG.info( 'typeRobust skipped, since target or value was empty/0/false.' );
     }
     else
     if( isRobustNull(target) ) {//@TODO This depends on selite-misc-ide. Move to SelBlocks Global.
@@ -59,33 +62,33 @@ Selenium.prototype.doTypeRobust= function(target, value) {
     }
 }
 
-Selenium.prototype.doSelectRobust= function(target, value) {
-    if( !target ) {
-        LOG.info( 'selectRobust skipped, since target was empty/0/false.' );
+Selenium.prototype.doSelectRobust= function(selectLocator, optionLocator) {
+    if( !selectLocator || !optionLocator ) {
+        LOG.info( 'selectRobust skipped, since selectLocator or optionLocator was empty/0/false.' );
     }
     else
-    if( isRobustNull(target) ) {
-        LOG.info( 'selectRobust skipped, since target was null.' );
+    if( isRobustNull(selectLocator) ) {
+        LOG.info( 'selectRobust skipped, since selectLocator was null.' );
     }
     else
-    if( isRobustNull(value) ) {
-        LOG.info( 'selectRobust skipped, since value was null.' );
+    if( isRobustNull(optionLocator) ) {
+        LOG.info( 'selectRobust skipped, since optionLocator was null.' );
     }
     else {
-        this.doSelect( target, value );
+        this.doSelect( selectLocator, optionLocator );
     }
 }
 
-Selenium.prototype.doClickRobust= function(target, value) {
-    if( target==='' ) {
-        LOG.info( 'clickRobust skipped, since target was an empty string.' );
+Selenium.prototype.doClickRobust= function(locator, valueUnused) {
+    if( locator==='' ) {
+        LOG.info( 'clickRobust skipped, since locator was an empty string.' );
     }
     else
-    if( isRobustNull(target) ) {
-        LOG.info( 'clickRobust skipped, since target was null.' );
+    if( isRobustNull(locator) ) {
+        LOG.info( 'clickRobust skipped, since locator was null.' );
     }
     else {
-        this.doClick( target, value );
+        this.doClick( locator, valueUnused );
     }
 }
 
@@ -203,13 +206,6 @@ Selenium.prototype.pauseUntilDistinctTimestamp= function( recordType, timestampP
     );
 };
 
-/** Index (or re-index) a collection of objects by given index (or index and sub-index).
- *
- *  - indexBy - string name of field to index by; the objects should contain such a field;
- *    its values must be unique, unless subIndexBy is used
- *  - subIndexBy - string name of field to sub-index by, within groups or objects
- *    that had same indexBy values; subIndexBy value must be unique within those group
- */
 Selenium.prototype.doIndexBy= function( columnOrDetails, sourceVariableName ) {
     var indexBy= columnOrDetails, subIndexBy= null, resultVariableName= sourceVariableName;
     if( typeof columnOrDetails==='object' ) {
@@ -253,13 +249,6 @@ Selenium.prototype.randomElement= function( elementSetXPath ) {
 };
 
 Selenium.prototype.doClickRandom= function( radiosXPath, store ) {
-    /** This clicks at a random radio button from within a set of radio buttons identified by locator.
-     *  @param string radiosLocator XPath expression to locate the radio button(s). Don't include leading 'xpath='.
-     *  It can't be any other Selenium locator. You probably want to match them
-     *  using XPath 'contains' function, e.g. //input[ @type='radio' and contains(@id, 'feedback-') ].
-     *  @param string store Optional; name of the stored variable to store the selected value, it may include
-     *  field(s) e.g. '.field.subfield..' but the field(s) must be constant strings
-     **/
     var radio= this.randomElement( radiosXPath );
     this.browserbot.clickElement( radio );
 
@@ -294,20 +283,7 @@ Selenium.prototype.randomOption= function( selectLocator, params ) {
     return option;
 };
 
-// @TODO remove?:
 Selenium.prototype.doSelectRandom= function( selectLocator, paramsOrStore ) {
-    /** This selects a random option from within <select>...</select> identified by locator.
-     *  It doesn't select any optgroup elements.
-     *  @param string selectLocator Locator of the <select>...</select>
-     *  @param mixed paramsOrStore optional, either
-     *  - a string which is the name of the stored variable to put the selected value in (more below), or
-     *  - an object in form {
-     *     excludeFirst: true, // Whether to exclude the first option
-     *     excludeLast: true, // Whether to exclude the last option
-     *     store: string //name of the stored variable to store the selected value, it may include field(s) '.field.subfield..'
-     *     but the field(s) must be constant strings
-     *  }
-     **/
     var params= paramsOrStore || {};
     if( typeof params =='string' ) {
         params= {store: params};
@@ -543,39 +519,6 @@ Selenium.prototype.randomText= function( locator, params, extraParams ) {
 };
 
 Selenium.prototype.doTypeRandom= function( locator, paramsOrStore ) {
-    /**Type random characters into an input. It always types at least 1 character - use standard 'type' action for typing an empty string.
-     * @parameter string locator Locator of the text input
-     * @parameter mixed paramsOrStore, optional, either
-     * - string - name of the stored variable to save the value to (more below), or
-     * - an object in form {
-     *     minLength: int, if present then it must be at least 1, otherwise it's set to 1.
-     *        You can't use this function to generate an empty string.
-     *        If params.email is set, then minLength must be at least 7 (e.g. a@hi.it), otherwise it's set to 7
-     *     maxLength: int, if present then it must be at least minLength;
-     *        if not present, then input's 'maxlength' property is used; if that's not present, then 255
-     *     type: string indicating type of the field (and what it can/should accept/refuse). Possible values:
-     *         'email': When generating an email address
-     *         'name' When generating a random human name (and some random letters A-Za-z)
-     *         'number': When generating a non-negative number; see more options below
-     *         'text' When generating random word(s) (and random letter-based text)
-     *         'ugly' When generating bad characters (possibly used for SQL injection, filesystem access).
-     *                It will try to include all unique ugly characters at least once, so it may always generate more
-     *                characters than minLength, therefore leaving some combinations untested.
-     *                (Indeed, it will never overstep maxLength or input's 'maxlength' property, if maxLength isn't set.)
-     *          If type is not set, then the default characters used are: alphanumerics, space, underscore, -
-     *     decimal: true If set, then generate a decimal number. Any minLength/maxLength (or HTML maxlength property of the input)
-     *          will apply to number of letters used, i.e. to number of generated digits + 1 (for the decimal point)
-     *     scale: int If set, max length of the decimal fraction (max. number of digits right of decimal point).
-     *            It has to be higher than 0; if you pass scale: 0, it will be ignored.
-     *     max: number (int or float) maximum value (inclusive, if 'scale' permits). Optional. Applied when type='number'.
-     *           It has to be higher than zero; zero will be ignored. If used, then 'minLength', 'maxLength' (or 'maxlength' property)
-     *           will be ignored.
-     *          Indeed, if decimal is set and the result is smaller than max, then it may have more decimal places than max has.
-     *     min: number (int or float) minimum value (inclusive). Optional, but it may be only used if 'max' is set. See 'max'.
-     *     store: string name of the stored variable to store the selected value, it may include field(s) e.g. 'varX.field.subfield..'
-     *            but the field(s) must be constant strings
-     * }
-     **/
     var params= paramsOrStore || {};
     if( typeof params =='string' ) {
         params= {store: params};
@@ -590,19 +533,6 @@ Selenium.prototype.doTypeRandom= function( locator, paramsOrStore ) {
 };
 // @TODO This doesn't work well
 Selenium.prototype.doTypeRandomEmail= function( locator, params ) {
-    /** Type random email address, based on a name in the given name element.
-     *  @parameter string locator Locator of the text input where to type the generated email address
-     * @parameter mixed paramsOrStore, optional, either
-     * string - name (first or last or full) to base the email on, or
-     * object in form {
-     *    from: string locator of an element which has a name (as described above)in it; optional, you can use 'name' instead
-     *    name: string value of the name (as described above), optional; used only if 'from' is not present
-     *    store: name of the stored variable to save the value to, it may include field(s) e.g. 'varX.field.subfield..'
-     *    but the field(s) must be constant strings; optional
-     *    minLength: int as described for typeRandom action (i.e. doTypeRandom function), optional
-     *    maxLength: int as described for typeRandom action (i.e. doTypeRandom function), optional
-     * }
-     **/
     params= params || {};
     var paramsToPass= { type: 'email' };
     if( typeof params==='string' ) {

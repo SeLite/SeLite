@@ -1,14 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <apidoc>
 <function name="typeRobust">
-    <param name="locator">Blah</param>
-    <comment>Blah
+    <param name="target">identifier of the element to type the value for</param>
+    <param name="value">value to type</param>
+    <comment>This types the value in the target element, if the element exists.
+        Otherwise it just passes silently.
     </comment>
+</function>   
+<function name="selectRobust">
+    <param name="selectLocator">identifier of the element to select</param>
+    <param name="optionLocator">value to type</param>
+    <comment>This selects an option for a select list, if the select list exists.
+        Otherwise it just passes silently.
+    </comment>
+</function>   
+<function name="clickRobust">
+    <param name="locator">identifier of the element to click at</param>
+    <comment>This clicks at the element, if it exists. Otherwise it just passes silently.</comment>
 </function>   
 <function name="pauseUntilDistinctTimestampSeconds">
     <param name="recordType">record type, for which you want to get a distinct timestamp</param>
     <comment>
-               Use to record the moment when you inserted/updated a record of given type, and you want to
+       Use to record the moment when you inserted/updated a record of given type, and you want to
        compare that record's timestamp (whether soon or later) as formatted on the webpage (using given precision).
        This in conjunction with waitForDistinctTimestamp action make sure that you get timestamps which can be
        compared as distinct.
@@ -18,5 +31,151 @@
 </function>
 <function name="pauseUntilDistinctTimestampMinutes">
     <param name="recordType">string, same record type as passed to action noteTimestamp</param>
+</function>
+<function name="indexBy">
+    <param name="columnOrDetails">What to index by. Either <ul>
+            <li>string - name of the column to index by</li>
+            <li>object {<ul>
+                    <li>indexBy - string, name of the field to index by; required.
+                        Values of this field must be unique within the source,
+                        unless you also use subIndexBy.
+                    </li>
+                    <li>subIndexBy - string, name of the field to sub-index by; optional.
+                        Used to index within groups or objects that have same indexBy value.
+                        Values of this field must be unique within each group.
+                    </li>
+                    <li>target - string, name of the result stored variable; optional</li>
+                </ul>}
+            </li>
+        </ul>
+    </param>
+    <param name="sourceVariableName">Name of the stored variable which contains the source data to be indexed.
+        If <code>columnOrDetails</code> is not an object, or if <code>columnOrDetails.target</code>
+        is not set, then the result will replace the source (sourceVariableName).
+    </param>
+    <comment>Index data.
+    </comment>
+</function>   
+<function name="clickRandom">
+    <param name="radiosXPath">XPath expression to locate the radio button(s). Don't include leading 'xpath='.
+        It can't be any other Selenium locator. You probably want to match them
+        using XPath 'contains' function, e.g. //input[ @type='radio' and contains(@id, 'feedback-') ].
+    </param>
+    <param name="store">Optional; name of the stored variable to store the selected value, it may include
+        field(s) e.g. '.field.subfield..' but the field(s) must be constant strings
+    </param>
+    <comment>This clicks at a random radio button from within a set of radio buttons identified by locator.</comment>
+</function>   
+<function name="selectRandom">
+    <param name="selectLocator">Locator of <code>&lt;select&gt;...&lt;/select&gt;</code> to select an option for.</param>
+    <param name="paramsOrStore">optional, either
+        <ul>
+            <li>a string which is the name of the stored variable to put the selected value in (more below), or</li>
+            <li>an object in form { <ul>
+                <li>excludeFirst: true - Whether to exclude the first option, optional</li>
+                <li>excludeLast: true - Whether to exclude the last option, optional</li>
+                <li>store: string  - name of the stored variable to store the selected value, it may include field(s) '.field.subfield..'
+                    but the field(s) must be constant strings</li>
+                </ul>
+            </li>
+        </ul>
+    </param>
+    <comment>This selects a random option from within <code>&lt;select&gt;...&lt;/select&gt;</code> identified by locator.
+          It doesn't select any optgroup elements.
+    </comment>
+</function>
+<function name="typeRandom">
+    <comment>Type random characters into an input. It always types at least 1 character
+        - use standard 'type' action for typing an empty string.
+    </comment>
+    <param name="locator">Locator of the text input</param>
+    <param name="paramsOrStore">optional, either
+        <ul>
+            <li>string - name of the stored variable to save the value to (more below), or</li>
+            <li>an object in form {
+                <dl>
+                    <dt>minLength</dt>
+                    <dd>int, if present then it must be at least 1, otherwise it's set to 1.
+                        You can't use this function to generate an empty string.
+                        If params.email is set, then minLength must be at least 7 (e.g. a@hi.it), otherwise it's set to 7
+                    </dd>
+                    <dt>maxLength</dt>
+                    <dd>int, if present then it must be at least minLength;
+                        if not present, then input's 'maxlength' property is used; if that's not present, then 255
+                    </dd>
+                    <dt>type</dt>
+                    <dd>string indicating type of the field (and what it can/should accept/refuse). Possible values:
+                        <dl>
+                            <dt>'email'</dt><dd>when generating an email address</dd>
+                            <dt>'name'</dt><dd>when generating a random human name (and some random letters A-Za-z)</dd>
+                            <dt>'number'</dt><dd>when generating a non-negative number; see more options below</dd>
+                            <dt>'text'</dt><dd>When generating random word(s) (and random letter-based text)</dd>
+                            <dt>'ugly'</dt><dd>When generating bad characters (possibly used for SQL injection, filesystem access).
+                                It will try to include all unique ugly characters at least once, so it may always generate more
+                                characters than minLength, therefore leaving some combinations untested.
+                                (Indeed, it will never overstep maxLength or input's 'maxlength' property, if maxLength isn't set.)
+                            </dd>
+                        </dl>
+                        If type is not set, then the default characters used are: alphanumerics, space, underscore, dash -
+                    </dd>
+                    <dt>decimal</dt>
+                    <dd>boolean, optional. If true, then generate a decimal number. Any minLength/maxLength
+                       (or HTML maxlength property of the input)
+                      will apply to number of letters used, i.e. to number of generated digits + 1 (for the decimal point)
+                    </dd>
+                    <dt>scale</dt>
+                    <dd>int If set, max length of the decimal fraction (max. number of digits right of decimal point).
+                        It has to be higher than 0; if you pass scale: 0, it will be ignored.
+                    </dd>
+                    <dt>max</dt>
+                    <dd>number (int or float) maximum value (inclusive, if 'scale' permits). Optional. Applied when type='number'.
+                       It has to be higher than zero; zero will be ignored. If used, then 'minLength', 'maxLength' (or 'maxlength' property)
+                         will be ignored. Indeed, if decimal is set and the result is smaller than max, then it may have more decimal places than max has.
+                    </dd>
+                    <dt>min</dt>
+                    <dd>number (int or float) minimum value (inclusive). Optional, but it may be only used if 'max' is set. See 'max'.
+                    </dd>
+                    <dt>store</dt>
+                    <dd>string name of the stored variable to store the selected value, it may include field(s) e.g. 'varX.field.subfield..'
+                        but the field(s) must be constant strings
+                    </dd>
+                </dl>
+            </li>
+        </ul>
+    </param>
+</function>
+<function name="typeRandomEmail">
+    <param name="locator">Locator of the text input where to type the generated email address</param>
+    <param name="params">optional, either
+        <ul>
+            <li>string - name (first or last or full) to base the email on, or</li>
+            <li>object in form {
+                <dl>
+                    <dt>from</dt>
+                    <dd>string locator of an element which has a name (as described above)in it; optional, you can use 'name' instead</dd>
+                    <dt>name</dt>
+                    <dd>string value of the name (as described above), optional; used only if 'from' is not present</dd>
+                    <dt>store</dt>
+                    <dd>name of the stored variable to save the value to, it may include field(s) e.g. 'varX.field.subfield..'
+                        but the field(s) must be constant strings; optional</dd>
+                    <dt>minLength</dt>
+                    <dd>int as described for typeRandom action (i.e. doTypeRandom function), optional</dd>
+                    <dt>maxLength</dt>
+                    <dd>int as described for typeRandom action (i.e. doTypeRandom function), optional</dd>
+                </dl>
+               }
+            </li>
+        </ul>
+    </param>
+    <comment>Type random email address, based on a name already typed in another element.</comment>
+</function>
+<function name="selectMapped">
+    <comment>TODO implement + comment</comment>
+</function>
+<function name="disableJavascript">
+    <comment>Disable Javascript for the web application that is being tested</comment>
+</function>
+<function name="enableJavascript">
+    <comment>Disable Javascript for the web application that is being tested</comment>
 </function>
 </apidoc>
