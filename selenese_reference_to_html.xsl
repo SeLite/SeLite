@@ -1,4 +1,12 @@
 <?xml version='1.0' encoding="UTF-8"?>
+<!-- When debugging this in Firefox:
+- have Commands (or any other extension) from filesystem loaded via Firefox extension proxy. See setup_proxies.sh
+- cd commands/src/chrome/content/
+- ln -s ../../../../selenese_reference_to_html.xsl
+- vi reference.xml, change it to load "selenese_reference_to_html.xsl" instead of "https://selite.googlecode.com/git/selenese_reference_to_html.xsl"
+- then open chrome://selite-commands/content/reference.xml
+Somehow XSLT doesn't work when .xml file is open via file://
+-->
 <xsl:stylesheet
     version="1.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -8,7 +16,7 @@
         <html lang="en-US" dir="ltr" encoding="UTF-8">
           <head>
               <meta charset="utf-8"></meta>
-              <title>Selenese documentation</title>
+              <title><xsl:value-of select="@package-name"/> - reference of commands</title>
           </head>
           <body>
               <xsl:for-each select="function">
