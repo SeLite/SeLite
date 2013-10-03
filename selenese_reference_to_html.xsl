@@ -1,11 +1,58 @@
 <?xml version='1.0' encoding="UTF-8"?>
-<html xsl:version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-      xmlns="http://www.w3.org/1999/xhtml">
-  <head>Selenese documentation</head>
-  <body>
-      <xsl:for-each select="apidoc/function">
-          <p>Function <xsl:value-of select="@name" />
-          </p>
-      </xsl:for-each>
-  </body>
-</html>
+<xsl:stylesheet
+    version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+    <xsl:template match="apidoc">
+        <!-- Following html element must not have xmlns:xsl
+        and xmlns="http://www.w3.org/1999/xhtml", otherwise it doesn't render well.-->
+        <html lang="en-US" dir="ltr" encoding="UTF-8">
+          <head>
+              <meta charset="utf-8"></meta>
+              <title>Selenese documentation</title>
+          </head>
+          <body>
+              <xsl:for-each select="function">
+                  <h3><xsl:value-of select="@name" /></h3>
+                  <p>
+                      <dl>
+                          <xsl:apply-templates select="param"/>
+                      </dl>
+                      <xsl:apply-templates select="comment" />
+                  </p>
+              </xsl:for-each>
+          </body>
+        </html>
+    </xsl:template>
+    <xsl:template match="param">
+        <dt><xsl:value-of select="@name" /></dt>
+        <dd><xsl:apply-templates/></dd>
+    </xsl:template>
+    <!-- HTML tags to copy -->
+    <xsl:template match="br">
+        <br/>
+    </xsl:template>
+    <xsl:template match="ul">
+        <ul><xsl:apply-templates/></ul>
+    </xsl:template>
+    <xsl:template match="li">
+        <li><xsl:apply-templates/></li>
+    </xsl:template>
+    <xsl:template match="dl">
+        <dl><xsl:apply-templates/></dl>
+    </xsl:template>
+    <xsl:template match="dt">
+        <dt><xsl:apply-templates/></dt>
+    </xsl:template>
+    <xsl:template match="dd">
+        <dd><xsl:apply-templates/></dd>
+    </xsl:template>
+    <xsl:template match="code">
+        <code><xsl:apply-templates/></code>
+    </xsl:template>
+    <xsl:template match="b">
+        <b><xsl:apply-templates/></b>
+    </xsl:template>
+    <xsl:template match="i">
+        <i><xsl:apply-templates/></i>
+    </xsl:template>
+</xsl:stylesheet>

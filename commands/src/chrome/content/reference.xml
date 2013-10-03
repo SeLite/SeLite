@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <?xml-stylesheet type="text/xsl" href="https://selite.googlecode.com/git/selenese_reference_to_html.xsl"?>
+<!-- remote or even local reference to xml-stylesheet doesn't seem to work when you open this reference.xml in a browser locally via file:// -->
 <apidoc>
 <function name="typeRobust">
     <param name="target">identifier of the element to type the value for</param>
