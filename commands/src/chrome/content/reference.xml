@@ -21,39 +21,48 @@
     <comment>This clicks at the element, if it exists. Otherwise it just passes silently.</comment>
 </function>   
 <function name="pauseUntilDistinctTimestampSeconds">
-    <param name="recordType">record type, for which you want to get a distinct timestamp</param>
+    <param name="recordType">record type/group, for which you want to get a distinct timestamp.
+        Same as as passed to respective action <code>noteTimestamp</code>@TODO no action noteTimestamp - should it be an action?.</param>
     <comment>
        Use to record the moment when you inserted/updated a record of given type, and you want to
-       compare that record's timestamp (whether soon or later) as formatted on the webpage (using given precision).
-       This in conjunction with waitForDistinctTimestamp action make sure that you get timestamps which can be
-       compared as distinct.
-      Warning: This keeps a count only of timestamps notes since you started Selenium. If you re-started it soon
-      after the previous run which could record timestamps, make sure you wait for a sufficient period to get distinct new timestamps.
+       compare that record's timestamp (no matter whether soon or much later) as formatted on the webpage (using given precision).
+       This makes sure that you get timestamps which can be compared as distinct.
     </comment>
 </function>
 <function name="pauseUntilDistinctTimestampMinutes">
-    <param name="recordType">string, same record type as passed to action noteTimestamp</param>
+    <param name="recordType">string, record type/group</param>
+    <comment>Just like <code>pauseUntilDistinctTimestampSeconds</code>, but the guaranteed timestamp precision is in minutes.
+      <br/><br/>
+      Warning: This keeps a count only of timestamps notes since you started Selenium. If you re-started it soon
+      after the previous run which could record timestamps, make sure you wait for a sufficient period to get distinct new timestamps.
+      (That shouldn't be a problem with <code>pauseUntilDistinctTimestampSeconds</code>).
+    </comment>
 </function>
 <function name="indexBy">
     <param name="columnOrDetails">What to index by. Either <ul>
             <li>string - name of the column to index by</li>
-            <li>object {<ul>
-                    <li>indexBy - string, name of the field to index by; required.
-                        Values of this field must be unique within the source,
-                        unless you also use subIndexBy.
-                    </li>
-                    <li>subIndexBy - string, name of the field to sub-index by; optional.
-                        Used to index within groups or objects that have same indexBy value.
-                        Values of this field must be unique within each group.
-                    </li>
-                    <li>target - string, name of the result stored variable; optional</li>
-                </ul>}
+            <li>object
+                {<dl>
+                    <dt>indexBy</dt>
+                    <dd>string, name of the field to index by; required.
+                            Values of this field must be unique within the source,
+                            unless you also use <code>subIndexBy</code>.
+                    </dd>
+                    <dt>subIndexBy</dt>
+                    <dd>string, name of the field to sub-index by; optional.
+                            Used to index within groups or objects that have same <code>indexBy</code> value.
+                            Values of this field must be unique within each group.
+                        </dd>
+                    <dt>target</dt>
+                    <dd>string, name of the result stored variable; optional</dd>
+                </dl>
+                }
             </li>
         </ul>
     </param>
     <param name="sourceVariableName">Name of the stored variable which contains the source data to be indexed.
         If <code>columnOrDetails</code> is not an object, or if <code>columnOrDetails.target</code>
-        is not set, then the result will replace the source (sourceVariableName).
+        is not set, then the result will replace the source (<code>storedVars[sourceVariableName]</code>).
     </param>
     <comment>Index data.
     </comment>

@@ -20,22 +20,39 @@ Somehow XSLT doesn't work when .xml file is open via file://
           </head>
           <body>
               <xsl:for-each select="function">
-                  <h3><xsl:value-of select="@name" /></h3>
+                  <h3>
+                      <xsl:value-of select="@name" />
+                  </h3>
                   <p>
-                      <dl>
-                          <xsl:apply-templates select="param"/>
-                      </dl>
-                      <xsl:apply-templates select="comment" />
+                    <xsl:if test="param">
+                        Arguments:
+                        <dl>
+                            <xsl:apply-templates select="param"/>
+                        </dl>
+                    </xsl:if>
+                    <xsl:apply-templates select="comment" />
+                    <xsl:if test="return">
+                        <br/><br/>
+                        Returns:
+                        <dl>
+                            <xsl:apply-templates select="return"/>
+                        </dl>
+                    </xsl:if>
                   </p>
               </xsl:for-each>
           </body>
         </html>
     </xsl:template>
     <xsl:template match="param">
-        <dt><xsl:value-of select="@name" /></dt>
+        <dt><code><xsl:value-of select="@name" /></code></dt>
         <dd><xsl:apply-templates/></dd>
     </xsl:template>
-    <!-- HTML tags to copy -->
+    <xsl:template match="return">
+        <dt><code><xsl:value-of select="@type" /></code></dt>
+        <dd><xsl:apply-templates/></dd>
+    </xsl:template>
+    <!-- HTML tags to copy
+    -->
     <xsl:template match="br">
         <br/>
     </xsl:template>

@@ -94,9 +94,9 @@ Selenium.prototype.doClickRobust= function(locator, valueUnused) {
 
 Selenium.prototype.isTimestampSeconds= function( locator, timestampInSeconds ) {
 /** This compares the formatted timestamps, identified by locator, against timestampInSeconds.
-    This is for the lowest timestamp displayed precision unit - a second (since  Date.parse() doesn't parse milliseconds).
+    This is for the lowest timestamp displayed precision unit - a second.
     It allows for difference up to: maxTimeDifference (config value) + Selenium timeout limit +1 second (unit of the displayed precision).
-    Use with doNoteTimestamp().
+    Use with doNoteTimestamp()??
     @param string locator Locator of the element which contains the formatted timestamp
     @param int timestampInSeconds Expected timestamp in seconds (since Epoch).
  **/
@@ -105,7 +105,7 @@ Selenium.prototype.isTimestampSeconds= function( locator, timestampInSeconds ) {
 
 Selenium.prototype.isTimestampMinutes= function( locator, timestampInSeconds ) {
     /** Just like isTimestampSeconds, but this checks the timestamp with the precision of 1 minute.
-        Use with doNoteTimestamp().
+        Use with doNoteTimestamp()??
         @param string locator Locator of the element which contains the formatted timestamp
         @param int timestampInSeconds Expected timestamp in *seconds* (since Epoch).
     */
