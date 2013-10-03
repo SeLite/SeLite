@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml-stylesheet type="text/xsl" href="https://selite.googlecode.com/git/selenese_reference_to_html.xsl"?>
 <apidoc>
 <function name="typeRobust">
     <param name="target">identifier of the element to type the value for</param>
