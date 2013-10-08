@@ -1,2 +1,2 @@
 content selite-sqlite-connection-manager chrome/content/
-overlay chrome://selite-extension-sequencer/content/extensions/browser-overlay.xul chrome://selite-sqlite-connection-manager/content/extensions/extension-loader.xul
+overlay chrome://browser/content/browser.xul chrome://selite-sqlite-connection-manager/content/extensions/browser.xul

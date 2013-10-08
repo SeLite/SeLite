@@ -1,10 +1,9 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 
-<overlay id="selblocks_global_extension_loader_overlay"
+<overlay id="selite_db_storage_extension_loader_overlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
          xmlns:html="http://www.w3.org/1999/xhtml">
-    <script type="application/x-javascript" src="chrome://selenium-ide/content/api.js"/>
     <html:script type="application/javascript">
         //<![CDATA[
         "use strict";
@@ -13,8 +12,8 @@
         }
         catch(e) {
             Components.utils.import("resource://gre/modules/AddonManager.jsm");
-            alert('Add-on SeLite Selblocks Global requires SeLite Extension Sequencer, but it is not installed. Therefore SeLite Selblocks Global will be disabled next time you start Firefox. Please, install SeLite Extension Sequencer first. Then apply Firefox menu > Tools > Add-ons > Extensions > SeLite Selblocks Global > Enable.');
-            AddonManager.getAddonByID( 'selblocks-global@selite.googlecode.com', function(addon) {
+            alert('Add-on SeLite DB Storage requires SeLite Extension Sequencer, but it is not installed. Therefore SeLite Selblocks Global will be disabled next time you start Firefox. Please, install SeLite Extension Sequencer first. Then apply Firefox menu > Tools > Add-ons > Extensions > SeLite DB Storage > Enable.');
+            AddonManager.getAddonByID( 'db-storage@selite.googlecode.com', function(addon) {
                 addon.userDisabled= true;
             } );
         }

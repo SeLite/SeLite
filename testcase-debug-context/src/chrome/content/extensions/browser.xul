@@ -4,7 +4,6 @@
 <overlay id="selite_testcase_debug_context_extension_loader_overlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
          xmlns:html="http://www.w3.org/1999/xhtml">
-    <script type="application/x-javascript" src="chrome://selenium-ide/content/api.js"/>
     <html:script type="application/javascript">
         //<![CDATA[
         "use strict";
