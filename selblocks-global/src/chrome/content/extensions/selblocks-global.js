@@ -572,10 +572,10 @@ function $X(xpath, contextNode) {
     commandNames.push("label");
 
     // skip the next N commands (default is 1)
-    Selenium.prototype.doSkipNext = function(spec)
+    Selenium.prototype.doSkipNext = function(amount)
     {
       assertRunning();
-      var n = parseInt(evalWithVars(spec), 10);
+      var n = parseInt(evalWithVars(amount), 10);
       if (isNaN(n))
         n = 1;
       if (n != 0) {// if n=0, execute the next command as usual
@@ -707,9 +707,9 @@ function $X(xpath, contextNode) {
       var xmlReader = new XmlReader(xmlfile);
       xmlReader.load(xmlfile);
       xmlReader.next(); // read first <vars> and set values on storedVars
-      if (!selector && !xmlReader.EOF())
+      if (!selector && !xmlReader.EOF()) {
         notifyFatal("Multiple var sets not valid for 'loadVars'. (A specific var set can be selected: name=value.)");
-
+      }
       var result = evalWithVars(selector);
       if (typeof result != "boolean") {
         LOG.warn(fmtCmdRef(hereGlobIdx()) + ", " + selector + " is not a boolean expression");
@@ -807,12 +807,9 @@ function $X(xpath, contextNode) {
       }
     }
 
-    // This is what original SelBlocks had for doBreak()
-    // The reason for renaming it here: so that I can use the original doBreak().
-    // I couldn't tail-intercept/rename neither execute code of original doBreak() from Selenium 1.5.0 here under a different name because
-    // 1. doBreak() is not available here yet
-    // 2. can't run the code of original doBreak() here (as of Selenium IDE 1.5), because it uses global variable htmlTestRunner
-    // which is not available here.
+    // This is what original SelBlocks had for doBreak(). That was in conflict with Selenium's doBreak() (which stops the test).
+    // I could make doBreak() do either job, depending on the context - i.e. within a loop it would break the loop, otherwise
+    // it would stop the test. However, it would make tests unclear, there's no real need for it and it wasn't feasible anyway.
     Selenium.prototype.doBreakLoop = function(condExpr) {
           var loopState = dropToLoop(condExpr);
           if (loopState) {
@@ -888,13 +885,13 @@ function $X(xpath, contextNode) {
       }
     }
     Selenium.prototype.doReturn = function(value) {
-      returnFromScript(null, value);
+      returnFromScript(value);
     }
-    Selenium.prototype.doEndScript = function(scrName) {//@TODO remove scrName variable
-      returnFromScript(scrName);
+    Selenium.prototype.doEndScript = function() {
+      returnFromScript();
     }
 
-    function returnFromScript(scrName, returnVal)
+    function returnFromScript(returnVal)
     {
       assertRunning();
       var endAttrs = cmdAttrs.here();
