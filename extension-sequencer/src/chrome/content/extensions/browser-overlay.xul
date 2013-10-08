@@ -3,6 +3,23 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
          xmlns:html="http://www.w3.org/1999/xhtml">
-    <!-- This exists only to ensure that SeLite Extension Sequencer extension is loaded
-    before other SeLite/Selenium extensions that use it. Those other extensions should overlay this file. -->
+  <html:script type="application/javascript">
+    //<![CDATA[
+    "use strict";
+    Components.utils.import("resource://gre/modules/AddonManager.jsm");
+    AddonManager.getAllAddons(
+        function( addons ) {
+            var seleniumIdeFound= false;
+            for( var addon of addons ) {
+                if( addon.id=='{a6fd85ed-e919-4a43-a5af-8da18bda539f}' && addon.isActive ) {
+                    seleniumIdeFound= true;
+                }
+            }
+            if( !seleniumIdeFound ) {
+                 alert('Selenium IDE is not found or it is not enabled. SeLite Extension Sequencer is present, but it cannot load any Selenium extensions without Selenium IDE.');
+            }
+        }
+    );
+    //]]>
+  </html:script>
 </overlay>
