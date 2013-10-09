@@ -20,22 +20,32 @@
     <param name="locator">identifier of the element to click at</param>
     <comment>This clicks at the element, if it exists. Otherwise it just passes silently.</comment>
 </function>   
-<function name="pauseUntilDistinctTimestampSeconds">
-    <param name="recordType">record type/group, for which you want to get a distinct timestamp.
-        Same as as passed to respective action <code>noteTimestamp</code>@TODO no action noteTimestamp - should it be an action?.</param>
-    <comment>
-       Use to record the moment when you inserted/updated a record of given type, and you want to
-       compare that record's timestamp (no matter whether soon or much later) as formatted on the webpage (using given precision).
-       This makes sure that you get timestamps which can be compared as distinct.
+<function name="waitForDistinctTimestampMilliseconds">
+    <param name="timestampName">label/name, usually of a timestamp element or field, for which you want to get a distinct timestamp.</param>
+    <param name="precision">Precision, in milliseconds; 1 by default.</param>
+    <comment>Just like <code>waitForDistinctTimestampSeconds</code>, but guaranteed timestamp separation is the given number of milliseconds.
     </comment>
 </function>
-<function name="pauseUntilDistinctTimestampMinutes">
-    <param name="recordType">string, record type/group</param>
-    <comment>Just like <code>pauseUntilDistinctTimestampSeconds</code>, but the guaranteed timestamp precision is in minutes.
+<function name="waitForDistinctTimestampSeconds">
+    <param name="timestampName">label/name, usually of a timestamp element or field, for which you want to get a distinct timestamp.</param>
+    <comment>
+       Use to record the moment when you inserted/updated such a field, and you want this timestamp to differ from
+       <ol>
+           <li>any previous timestamps with this label, and/or</li>
+           <li>any future timestamps with this label</li>
+       </ol>
+       when comparing using given precision (1 second in this instance).
+       This makes sure that you get timestamps which can be compared as distinct.
+       So it guarantees for timestamps with same label to have at least 1 second separation between them.
+    </comment>
+</function>
+<function name="waitForDistinctTimestampMinutes">
+    <param name="timestampName">label/name, usually of a timestamp element or field, for which you want to get a distinct timestamp.</param>
+    <comment>Just like <code>waitForDistinctTimestampSeconds</code>, but the guaranteed timestamp separation is 1 minute.
       <br/><br/>
       Warning: This keeps a count only of timestamps notes since you started Selenium. If you re-started it soon
       after the previous run which could record timestamps, make sure you wait for a sufficient period to get distinct new timestamps.
-      (That shouldn't be a problem with <code>pauseUntilDistinctTimestampSeconds</code>).
+      (That shouldn't be a problem with <code>waitForDistinctTimestampSeconds</code> and <code>waitForDistinctTimestampMilliseconds</code>).
     </comment>
 </function>
 <function name="indexBy">

@@ -143,7 +143,7 @@ Selenium.prototype.timestampComparesTo= function( locator, timestampInMillisecon
  *          can have a new distinct timestamp, which can be distinguished from the last one (and any older ones) using the given precision
  *  }
  *  where timestampName is a label/name, usually of a timestamp element or field (DB column),
- *  or of a whole fieldset (DB table) if it has only one timestamp field.
+ *  or of a whole fieldset (DB table) if it has only one timestamp field (column).
  **/
 Selenium.prototype.distinctTimestamps= {};
 
@@ -168,24 +168,29 @@ Selenium.prototype.noteTimestamp= function( timestampName, timestampPrecision ) 
     };
 };
 
-Selenium.prototype.doPauseUntilDistinctTimestampMilliseconds= function( timestampName, valueIsUnused ) {
-    this.pauseUntilDistinctTimestamp( timestampName, 1 );
+/** This and similar functions have name starting with 'doWaitFor'. That way when you type 'waitForDistinctTimestamp' in Selenium IDE,
+ *  it doesn't auto-suggest '...AndWait' alternatives, which we don't want and which would confuse user. If the function name
+ *  was any doXyz that doesn't start with 'doWaitFor', Selenium IDE would auto-suggest '..AndWait' alternative.
+ * */
+Selenium.prototype.doWaitForDistinctTimestampMilliseconds= function( timestampName, precision ) {
+    precision= precision || 1;
+    this.waitForDistinctTimestamp( timestampName, precision );
 };
 
-Selenium.prototype.doPauseUntilDistinctTimestampSeconds= function( timestampName, valueIsUnused ) {
-    this.pauseUntilDistinctTimestamp( timestampName, 1000 );
+Selenium.prototype.doWaitForDistinctTimestampSeconds= function( timestampName, valueIsUnused ) {
+    this.waitForDistinctTimestamp( timestampName, 1000 );
 };
 
-Selenium.prototype.doPauseUntilDistinctTimestampMinutes= function( timestampName, valueIsUnused ) {
-    this.pauseUntilDistinctTimestamp( timestampName, 60000 );
+Selenium.prototype.doWaitForDistinctTimestampMinutes= function( timestampName, valueIsUnused ) {
+    this.waitForDistinctTimestamp( timestampName, 60000 );
 };
 
 /**I don't use prefix 'do' in the name of this function
    because it's not intended to be run as Selenium command.
 */
-Selenium.prototype.pauseUntilDistinctTimestamp= function( timestampName, timestampPrecision ) {
+Selenium.prototype.waitForDistinctTimestamp= function( timestampName, timestampPrecision ) {
     if( !(timestampName in this.distinctTimestamps) ) {
-        LOG.info( 'pauseUntilDistinctTimestampXXX: No previous timestamp for timestamp name ' +timestampName );
+        LOG.info( 'waitForDistinctTimestampXXX: No previous timestamp for timestamp name ' +timestampName );
     }
     /** @param string timestampName Same record type as passed to action noteTimestamp
      *  @return true if it's safe to create a new timestamp for this type of record, and the timestamp
@@ -205,10 +210,10 @@ Selenium.prototype.pauseUntilDistinctTimestamp= function( timestampName, timesta
     var timestampBecomesDistinct= this.distinctTimestamps[timestampName].nextDistinctTimestamp; // in milliseconds
     var timeOutFromNow= timestampBecomesDistinct-Date.now()+1100; // in milliseconds, plus a buffer
     if( timeOutFromNow<=0 ) {
-        LOG.debug( 'pauseUntilDistinctTimestampXXX: No need to wait. A distinct timestamp became available ' +(-1*timeOutFromNow/1000)+ ' sec. ago.' );
+        LOG.debug( 'waitForDistinctTimestampXXX: No need to wait. A distinct timestamp became available ' +(-1*timeOutFromNow/1000)+ ' sec. ago.' );
         return;
     }
-    LOG.debug( 'pauseUntilDistinctTimestampXXX: waiting for next ' +timeOutFromNow/1000+ ' sec.' );
+    LOG.debug( 'waitForDistinctTimestampXXX: waiting for next ' +timeOutFromNow/1000+ ' sec.' );
 
     return Selenium.decorateFunctionWithTimeout(
         function () {
