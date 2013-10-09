@@ -201,7 +201,11 @@ Selenium.prototype.waitForDistinctTimestamp= function( timestampName, timestampP
         return;
     }
     if( this.distinctTimestamps[timestampName].precision!==timestampPrecision ) {
-        //@TODO fail
+        var error= "You've called waitForDistinctTimestampXXX for timestampName='" +timestampName+
+            "', timestampPrecision=" +timestampPrecision+ "ms. But the previous timestamp for this timestampName was recorded with different precision: "+
+            this.distinctTimestamps[timestampName].precision+ 'ms.';
+        LOG.error( error );
+        throw new Error( error );
     }
     var timestampBecomesDistinct= this.distinctTimestamps[timestampName].nextDistinctTimestamp; // in milliseconds
     var timeOutFromNow= timestampBecomesDistinct-Date.now()+1100; // in milliseconds, plus a buffer
