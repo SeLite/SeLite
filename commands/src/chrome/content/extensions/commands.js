@@ -16,7 +16,7 @@
 */
 "use strict";
 
-// For all Selenium actions defined here - i.e. functions with name doXXXX,
+// For all Selenium actions and locators defined here - i.e. functions with name doXXXX, isXXXXX, getXXXXX
 // see their documentation at ../reference.xml
 
 // @TODO document/report this to Selenium
@@ -92,24 +92,26 @@ Selenium.prototype.doClickRobust= function(locator, valueUnused) {
     }
 }
 
-Selenium.prototype.isTimestampSeconds= function( locator, timestampInSeconds ) {
-/** This compares the formatted timestamps, identified by locator, against timestampInSeconds.
-    This is for the lowest timestamp displayed precision unit - a second.
-    It allows for difference up to: maxTimeDifference (config value) + Selenium timeout limit +1 second (unit of the displayed precision).
-    Use with doNoteTimestamp()??
-    @param string locator Locator of the element which contains the formatted timestamp
-    @param int timestampInSeconds Expected timestamp in seconds (since Epoch).
- **/
-    return this.timestampComparesTo( locator, timestampInSeconds );
+Selenium.prototype.isTimestampMilliseconds= function( locator, timestampInMilliseconds ) {
+    return this.timestampComparesTo( locator, timestampInMilliseconds, 1 );
 };
 
-Selenium.prototype.isTimestampMinutes= function( locator, timestampInSeconds ) {
+Selenium.prototype.isTimestampSeconds= function( locator, timestampInMilliseconds ) {
+/** This compares the formatted timestamps, identified by locator, against timestampInMilliseconds.
+    This is for the lowest timestamp displayed precision unit - a second.
+    It allows for difference up to: maxTimeDifference (config value) + Selenium timeout limit +1 second (unit of the displayed precision).
+    @param string locator Locator of the element which contains the formatted timestamp
+    @param int timestampInMilliseconds Expected timestamp in *milliseconds* (since Epoch).
+ **/
+    return this.timestampComparesTo( locator, timestampInMilliseconds );
+};
+
+Selenium.prototype.isTimestampMinutes= function( locator, timestampInMilliseconds ) {
     /** Just like isTimestampSeconds, but this checks the timestamp with the precision of 1 minute.
-        Use with doNoteTimestamp()??
         @param string locator Locator of the element which contains the formatted timestamp
-        @param int timestampInSeconds Expected timestamp in *seconds* (since Epoch).
+        @param int timestampInMilliseconds Expected timestamp in *milliseconds* (since Epoch).
     */
-   return this.timestampComparesTo( locator, timestampInSeconds, 60 );
+   return this.timestampComparesTo( locator, timestampInMilliseconds, 60000 );
 }
 
 /** Internal function, used to compare a displayed human-readable timestamp to a numeric timestamp,
@@ -117,75 +119,90 @@ Selenium.prototype.isTimestampMinutes= function( locator, timestampInSeconds ) {
     I don't use prefix 'do' or 'get' in the name of this function
     because it's not intended to be run as Selenium command/getter.
  *  @param string locator Selenium locator of the element that contains the displayed human-readable (and parsable) time stamp
- *  @param number timestampInSeconds Expected timestamp, number of seconds since Epoch
- *  @param number displayPrecisionInSeconds (Smallest) displayed time unit, in seconds; optional, its default is 60
+ *  @param number timestampInMilliseconds Expected timestamp, number of milliseconds since Epoch
+ *  @param number displayPrecisionInMilliseconds Smallest displayed time unit, in milliseconds; optional, default is 1 sec (1000ms)
  **/
-Selenium.prototype.timestampComparesTo= function( locator, timestampInSeconds, displayPrecisionInSeconds ) {
-    displayPrecisionInSeconds= displayPrecisionInSeconds || 60;
+Selenium.prototype.timestampComparesTo= function( locator, timestampInMilliseconds, displayPrecisionInMilliseconds ) {
+    displayPrecisionInMilliseconds= displayPrecisionInMilliseconds || 1000;
     var element= this.page().findElement(locator);
     var displayedTimeString= typeof element.value !=='undefined'
         ? element.value
         : element.textContent;
     var displayedTime= Date.parse( displayedTimeString );
-    var maxDifference= maxTimeDifference*1000+ Number(this.defaultTimeout)+ displayPrecisionInSeconds*1000;
-    LOG.debug( 'TimestampInSeconds: ' +timestampInSeconds+ '; DisplayedTimeString: ' +displayedTimeString+ ' is timestamp '
+    var maxDifference= maxTimeDifference+ Number(this.defaultTimeout)+ displayPrecisionInMilliseconds;
+    LOG.debug( 'timestampInMilliseconds: ' +timestampInMilliseconds+ '; DisplayedTimeString: ' +displayedTimeString+ ' is timestamp '
         +displayedTime+ ' ms; Calculated max allowed difference: ' +maxDifference+ ' ms.' );
-    return Math.abs( timestampInSeconds*1000-displayedTime) <= maxDifference;
+    return Math.abs( timestampInMilliseconds-displayedTime) <= maxDifference;
 };
 
-/** Object (serving as an associative array) {
- *  string recordType: number future timestamp (in milliseconds) when this recordType
- *      can have a new distinct timestamp, which can be distinguished from the last one (and any older ones).
- *  }.
+/** Anonymous object (serving as an associative array) {
+ *  string timestampName: anonymous object {
+ *      precision: number, the smallest unit of time displayed on the screen for respective timestamp elements
+ *      nextDistinctTimestamp: number, a nearest future timestamp (in milliseconds)
+ *          (that is, a value returned by Date.now() at that moment) when this timestampName
+ *          can have a new distinct timestamp, which can be distinguished from the last one (and any older ones) using the given precision
+ *  }
+ *  where timestampName is a label/name, usually of a timestamp element or field (DB column),
+ *  or of a whole fieldset (DB table) if it has only one timestamp field.
  **/
 Selenium.prototype.distinctTimestamps= {};
 
 /**I don't use prefix 'do' in the name of this function
    because it's not intended to be run as Selenium command.
 */
-Selenium.prototype.noteTimestamp= function( recordType, timestampPrecision ) {
+Selenium.prototype.noteTimestamp= function( timestampName, timestampPrecision ) {
     /** Use to record the moment when you inserted/updated a record of given type, and you want to
      *  compare that record's timestamp (whether soon or later) as formatted on the webpage (using given precision).
-     *  Warning: This keeps a count only of timestamps notes since you started Selenium. If you re-started it soon
-     *  after the previous run which could record timestamps, make sure you wait for a sufficient period to get distinct new timestamps.
-     *  @param string recordType Type/use case group of the record that you're upgrading/inserting. Records that can be compared
-     *  between each other should have same recordType. Then this assures that they get timestamps that show up as distinct.
-     *  Records with different recordType can get same timestamps.
-     *  @param int timestampPrecision optional; if present, it's the precision/lowest unit of the timestamp, in seconds; 1 sec by default.
+     *  <br/><br/>Warning: This keeps a count only of timestamps notes since you started Selenium IDE. If you re-started it soon
+     *  after the previous run(s) which could record timestamps, make sure you wait for a sufficient period to get distinct new timestamps.
+     *  @param string timestampName Type/use case group of the record that you're upgrading/inserting. Records that can be compared
+     *  between each other should have same timestampName. Then this assures that they get timestamps that show up as distinct.
+     *  Records with different timestampName can get same timestamps, because they are not supposed to be compared to each other.
+     *  @param int timestampPrecision optional; if present, it's the precision/lowest unit of the timestamp, in milliseconds; 1 sec (1000ms) by default.
      **/
-    timestampPrecision= Number(timestampPrecision || 1);
-    var nextDistinctTimestamp= Date.now()+ maxTimeDifference*1000 +timestampPrecision*1000+ Number(this.defaultTimeout);
-    this.distinctTimestamps[recordType]= nextDistinctTimestamp;
+    timestampPrecision= Number(timestampPrecision || 1000);
+    var nextDistinctTimestamp= Date.now()+ maxTimeDifference*1000 +timestampPrecision+ Number(this.defaultTimeout);
+    this.distinctTimestamps[timestampName]= {
+        precision: timestampPrecision,
+        nextDistinctTimestamp: nextDistinctTimestamp
+    };
 };
 
-Selenium.prototype.doPauseUntilDistinctTimestampSeconds= function( recordType, valueIsUnused ) {
-    this.pauseUntilDistinctTimestamp( recordType, 1 );
+Selenium.prototype.doPauseUntilDistinctTimestampMilliseconds= function( timestampName, valueIsUnused ) {
+    this.pauseUntilDistinctTimestamp( timestampName, 1 );
 };
 
-Selenium.prototype.doPauseUntilDistinctTimestampMinutes= function( recordType, valueIsUnused ) {
-    this.pauseUntilDistinctTimestamp( recordType, 60 );
+Selenium.prototype.doPauseUntilDistinctTimestampSeconds= function( timestampName, valueIsUnused ) {
+    this.pauseUntilDistinctTimestamp( timestampName, 1000 );
+};
+
+Selenium.prototype.doPauseUntilDistinctTimestampMinutes= function( timestampName, valueIsUnused ) {
+    this.pauseUntilDistinctTimestamp( timestampName, 60000 );
 };
 
 /**I don't use prefix 'do' in the name of this function
    because it's not intended to be run as Selenium command.
 */
-Selenium.prototype.pauseUntilDistinctTimestamp= function( recordType, timestampPrecision ) {
-    if( !(recordType in this.distinctTimestamps) ) {
-        LOG.info( 'pauseUntilDistinctTimestampXXX: No previous timestamp for recordType ' +recordType );
+Selenium.prototype.pauseUntilDistinctTimestamp= function( timestampName, timestampPrecision ) {
+    if( !(timestampName in this.distinctTimestamps) ) {
+        LOG.info( 'pauseUntilDistinctTimestampXXX: No previous timestamp for timestamp name ' +timestampName );
     }
-    /** @param string recordType Same record type as passed to action noteTimestamp
+    /** @param string timestampName Same record type as passed to action noteTimestamp
      *  @return true if it's safe to create a new timestamp for this type of record, and the timestamp
      *  will be distinguishable from the previous one.
      *  @param int timestampPrecision optional; if present, it's the precision/lowest unit of the timestamp, in seconds; 1 sec by default.
      **/
     //@TODO make dontWaitForDistinctTimestamps a configuration option set via GUI?
-    if( typeof dontWaitForDistinctTimestamps=='undefined' || !(recordType in this.distinctTimestamps) ) {
+    if( typeof dontWaitForDistinctTimestamps=='undefined' || !(timestampName in this.distinctTimestamps) ) {
         // I do note a timestamp even if dontWaitForDistinctTimestamps==true, so that if sometimes later
         // dontWaitForDistinctTimestamps becomes false then I have a list of previous timestamps in hand.
-        this.noteTimestamp( recordType, timestampPrecision );
+        this.noteTimestamp( timestampName, timestampPrecision );
         return;
     }
-    var timestampBecomesDistinct= this.distinctTimestamps[recordType]; // in milliseconds
+    if( this.distinctTimestamps[timestampName].precision!==timestampPrecision ) {
+        //@TODO fail
+    }
+    var timestampBecomesDistinct= this.distinctTimestamps[timestampName].nextDistinctTimestamp; // in milliseconds
     var timeOutFromNow= timestampBecomesDistinct-Date.now()+1100; // in milliseconds, plus a buffer
     if( timeOutFromNow<=0 ) {
         LOG.debug( 'pauseUntilDistinctTimestampXXX: No need to wait. A distinct timestamp became available ' +(-1*timeOutFromNow/1000)+ ' sec. ago.' );
@@ -195,9 +212,9 @@ Selenium.prototype.pauseUntilDistinctTimestamp= function( recordType, timestampP
 
     return Selenium.decorateFunctionWithTimeout(
         function () {
-            // Somewhere here Firefox 23.0.1 Browser Console reports false positive 'anonymous function does not always return a value'. Ingore that.
+            // Somewhere here Firefox 23.0.1 Browser Console reports a false positive bug: 'anonymous function does not always return a value'. Ingore that.
             if( Date.now()>timestampBecomesDistinct ) {
-                this.noteTimestamp( recordType, timestampPrecision );
+                this.noteTimestamp( timestampName, timestampPrecision );
                 return true;
             }
             return false;
