@@ -147,20 +147,18 @@ Selenium.prototype.timestampComparesTo= function( locator, timestampInMillisecon
  **/
 Selenium.prototype.distinctTimestamps= {};
 
-/**I don't use prefix 'do' in the name of this function
-   because it's not intended to be run as Selenium command.
-*/
+/**I don't use prefix 'do' in the name of this function because it's not intended to be run as Selenium command.
+  Use to record the moment when you inserted/updated a record of given type, and you want to
+ *  compare that record's timestamp (whether soon or later) as formatted on the webpage (using given precision).
+ *  <br/><br/>Warning: This keeps a count only of timestamps notes since you started Selenium IDE. If you re-started it soon
+ *  after the previous run(s) which could record timestamps, make sure you wait for a sufficient period to get distinct new timestamps.
+ *  @param string timestampName Type/use case group of the record that you're upgrading/inserting. Records that can be compared
+ *  between each other should have same timestampName. Then this assures that they get timestamps that show up as distinct.
+ *  Records with different timestampName can get same timestamps, because they are not supposed to be compared to each other.
+ *  @param int timestampPrecision, the precision (lowest unit) of the timestamp, in milliseconds
+ **/
 Selenium.prototype.noteTimestamp= function( timestampName, timestampPrecision ) {
-    /** Use to record the moment when you inserted/updated a record of given type, and you want to
-     *  compare that record's timestamp (whether soon or later) as formatted on the webpage (using given precision).
-     *  <br/><br/>Warning: This keeps a count only of timestamps notes since you started Selenium IDE. If you re-started it soon
-     *  after the previous run(s) which could record timestamps, make sure you wait for a sufficient period to get distinct new timestamps.
-     *  @param string timestampName Type/use case group of the record that you're upgrading/inserting. Records that can be compared
-     *  between each other should have same timestampName. Then this assures that they get timestamps that show up as distinct.
-     *  Records with different timestampName can get same timestamps, because they are not supposed to be compared to each other.
-     *  @param int timestampPrecision optional; if present, it's the precision/lowest unit of the timestamp, in milliseconds; 1 sec (1000ms) by default.
-     **/
-    timestampPrecision= Number(timestampPrecision || 1000);
+    timestampPrecision= Number(timestampPrecision);
     var nextDistinctTimestamp= Date.now()+ maxTimeDifference*1000 +timestampPrecision+ Number(this.defaultTimeout);
     this.distinctTimestamps[timestampName]= {
         precision: timestampPrecision,
@@ -187,17 +185,15 @@ Selenium.prototype.doWaitForDistinctTimestampMinutes= function( timestampName, v
 
 /**I don't use prefix 'do' in the name of this function
    because it's not intended to be run as Selenium command.
-*/
+   @param string timestampName label/name, usually of a timestamp element or field, for which you want to get a distinct timestamp.
+ *  @param int timestampPrecision, the precision (lowest unit) of the timestamp, in milliseconds.
+ *  @return true if it's safe to create a new timestamp for this type of record, and the timestamp
+ *  will be distinguishable from the previous one.
+ **/
 Selenium.prototype.waitForDistinctTimestamp= function( timestampName, timestampPrecision ) {
     if( !(timestampName in this.distinctTimestamps) ) {
         LOG.info( 'waitForDistinctTimestampXXX: No previous timestamp for timestamp name ' +timestampName );
     }
-    /** @param string timestampName Same record type as passed to action noteTimestamp
-     *  @return true if it's safe to create a new timestamp for this type of record, and the timestamp
-     *  will be distinguishable from the previous one.
-     *  @param int timestampPrecision optional; if present, it's the precision/lowest unit of the timestamp, in seconds; 1 sec by default.
-     **/
-    //@TODO make dontWaitForDistinctTimestamps a configuration option set via GUI?
     if( typeof dontWaitForDistinctTimestamps=='undefined' || !(timestampName in this.distinctTimestamps) ) {
         // I do note a timestamp even if dontWaitForDistinctTimestamps==true, so that if sometimes later
         // dontWaitForDistinctTimestamps becomes false then I have a list of previous timestamps in hand.

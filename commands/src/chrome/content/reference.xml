@@ -21,13 +21,13 @@
     <comment>This clicks at the element, if it exists. Otherwise it just passes silently.</comment>
 </function>   
 <function name="waitForDistinctTimestampMilliseconds">
-    <param name="timestampName">label/name, usually of a timestamp element or field, for which you want to get a distinct timestamp.</param>
+    <param name="timestampName">Label/name, usually of a timestamp element or field, for which you want to get a distinct timestamp.</param>
     <param name="precision">Precision, in milliseconds; 1 by default.</param>
     <comment>Just like <code>waitForDistinctTimestampSeconds</code>, but guaranteed timestamp separation is the given number of milliseconds.
     </comment>
 </function>
 <function name="waitForDistinctTimestampSeconds">
-    <param name="timestampName">label/name, usually of a timestamp element or field, for which you want to get a distinct timestamp.</param>
+    <param name="timestampName">Label/name, usually of a timestamp element or field, for which you want to get a distinct timestamp.</param>
     <comment>
        Use to record the moment when you inserted/updated such a field, and you want this timestamp to differ from
        <ol>
@@ -40,7 +40,7 @@
     </comment>
 </function>
 <function name="waitForDistinctTimestampMinutes">
-    <param name="timestampName">label/name, usually of a timestamp element or field, for which you want to get a distinct timestamp.</param>
+    <param name="timestampName">Label/name, usually of a timestamp element or field, for which you want to get a distinct timestamp.</param>
     <comment>Just like <code>waitForDistinctTimestampSeconds</code>, but the guaranteed timestamp separation is 1 minute.
       <br/><br/>
       Warning: This keeps a count only of timestamps notes since you started Selenium. If you re-started it soon
