@@ -20,32 +20,75 @@
     <param name="locator">identifier of the element to click at</param>
     <comment>This clicks at the element, if it exists. Otherwise it just passes silently.</comment>
 </function>   
-<function name="waitForDistinctTimestampMilliseconds">
-    <param name="timestampName">Label/name, usually of a timestamp element or field, for which you want to get a distinct timestamp.</param>
-    <param name="precision">Precision, in milliseconds; 1 by default.</param>
-    <comment>Just like <code>waitForDistinctTimestampSeconds</code>, but guaranteed timestamp separation is the given number of milliseconds.
+<function name="isTimestampDownToMilliseconds">
+    <param name="locator">identifier of the element to parse the timestamp from</param>
+    <param name="timestampInMilliseconds">Expected timestamp, in milliseconds, since Epoch (January 1, 1970 00:00:00 UTC)</param>
+    <comment>Parse the given element as a timestamp and compare to the given timestamp, down to precision of milliseconds.
     </comment>
 </function>
-<function name="waitForDistinctTimestampSeconds">
+<function name="isTimestampDownToSeconds">
+    <param name="locator">identifier of the element to parse the timestamp from</param>
+    <param name="timestampInMilliseconds">Expected timestamp, in <strong>milliseconds</strong>, since Epoch (January 1, 1970 00:00:00 UTC)</param>
+    <comment>Parse the given element as a timestamp and compare to the given timestamp, down to precision of seconds.
+    </comment>
+</function>
+<function name="isTimestampDownToMinutes">
+    <param name="locator">identifier of the element to parse the timestamp from</param>
+    <param name="timestampInMilliseconds">Expected timestamp, in <strong>milliseconds</strong>, since Epoch (January 1, 1970 00:00:00 UTC)</param>
+    <comment>Parse the given element as a timestamp and compare to the given timestamp, down to precision of minutes.
+    </comment>
+</function>
+<function name="isTimestampDownToPrecision">
+    <param name="locator">identifier of the element to parse the timestamp from</param>
+    <param name="timestampDetails">Anonymous object in form {
+        <dl>
+            <dt>timestamp</dt>
+            <dd>Expected timestamp, in <strong>milliseconds</strong>, since Epoch (January 1, 1970 00:00:00 UTC)</dd>
+            <dt>precision</dt>
+            <dd>Smallest displayed time unit, in milliseconds</dd>
+            <dt>validatePrecision</dt>
+            <dd>Whether to validate the precision; optional. If true, this command performs a partial validation that the smallest
+                displayed unit is not smaller than given <code>precision</code>. This validation can't eliminate 100% of such statements,
+                since it depends on the data being displayed. If the timestamp displays down to seconds and the precision is 1 minute,
+                but the displayed value happens to be a whole minute, this won't report the inconsistency.
+            </dd>
+            <dt>timezone</dt>
+            <dd>To be defined once Firefox 27 comes out.</dd>
+        </dl>
+        }
+    </param>
+    <comment>Parse the given element as a timestamp (at the given timezone, if any - to be supported with Firefox 27)
+        and compare to the given timestamp, down to given precision.
+    </comment>
+</function>
+<function name="waitForTimestampDistinctDownToMilliseconds">
     <param name="timestampName">Label/name, usually of a timestamp element or field, for which you want to get a distinct timestamp.</param>
+    <param name="precision">Precision, in milliseconds; 1 by default.</param>
+    <comment>Just like <code>waitForTimestampDistinctDownToSeconds</code>, but guaranteed timestamp separation is the given number of milliseconds.
+    </comment>
+</function>
+<function name="waitForTimestampDistinctDownToSeconds">
+    <param name="timestampName">Label/name, usually of a timestamp element or field, for which you want to get a distinct timestamp.</param>
+    <param name="precision">Precision, in seconds; 1 by default.</param>
     <comment>
        Use to record the moment when you inserted/updated such a field, and you want this timestamp to differ from
        <ol>
            <li>any previous timestamps with this label, and/or</li>
            <li>any future timestamps with this label</li>
        </ol>
-       when comparing using given precision (1 second in this instance).
+       when comparing using given precision (in seconds).
        This makes sure that you get timestamps which can be compared as distinct.
-       So it guarantees for timestamps with same label to have at least 1 second separation between them.
+       So it guarantees that timestamps with same label will have time distance between them at equal or greater than given precision.
     </comment>
 </function>
-<function name="waitForDistinctTimestampMinutes">
+<function name="waitTimestampDistinctDownToMinutes">
     <param name="timestampName">Label/name, usually of a timestamp element or field, for which you want to get a distinct timestamp.</param>
-    <comment>Just like <code>waitForDistinctTimestampSeconds</code>, but the guaranteed timestamp separation is 1 minute.
+    <param name="precision">Precision, in minutes; 1 by default.</param>
+    <comment>Just like <code>waitForTimestampDistinctDownToSeconds</code>, but the guaranteed timestamp separation is 1 minute.
       <br/><br/>
-      Warning: This keeps a count only of timestamps notes since you started Selenium. If you re-started it soon
+      Warning: This keeps a count only of timestamps notes since you started Selenium IDE. If you re-started it soon
       after the previous run which could record timestamps, make sure you wait for a sufficient period to get distinct new timestamps.
-      (That shouldn't be a problem with <code>waitForDistinctTimestampSeconds</code> and <code>waitForDistinctTimestampMilliseconds</code>).
+      (That shouldn't be a problem with <code>waitForTimestampDistinctDownToSeconds</code> and <code>waitForTimestampDistinctDownToMilliseconds</code>).
     </comment>
 </function>
 <function name="indexBy">

@@ -91,28 +91,22 @@ Selenium.prototype.doClickRobust= function(locator, valueUnused) {
         this.doClick( locator, valueUnused );
     }
 }
-
-Selenium.prototype.isTimestampMilliseconds= function( locator, timestampInMilliseconds ) {
-    return this.timestampComparesTo( locator, timestampInMilliseconds, 1 );
+Selenium.prototype.isTimestampDownToMilliseconds= function( locator, timestampInMilliseconds ) {
+    return this.timestampComparesTo( locator, timestampInMilliseconds, 1, true );
 };
 
-Selenium.prototype.isTimestampSeconds= function( locator, timestampInMilliseconds ) {
-/** This compares the formatted timestamps, identified by locator, against timestampInMilliseconds.
-    This is for the lowest timestamp displayed precision unit - a second.
-    It allows for difference up to: maxTimeDifference (config value) + Selenium timeout limit +1 second (unit of the displayed precision).
-    @param string locator Locator of the element which contains the formatted timestamp
-    @param int timestampInMilliseconds Expected timestamp in *milliseconds* (since Epoch).
- **/
-    return this.timestampComparesTo( locator, timestampInMilliseconds );
+Selenium.prototype.isTimestampDownToSeconds= function( locator, timestampInMilliseconds ) {
+    return this.timestampComparesTo( locator, timestampInMilliseconds, 1000, true );
 };
 
-Selenium.prototype.isTimestampMinutes= function( locator, timestampInMilliseconds ) {
-    /** Just like isTimestampSeconds, but this checks the timestamp with the precision of 1 minute.
-        @param string locator Locator of the element which contains the formatted timestamp
-        @param int timestampInMilliseconds Expected timestamp in *milliseconds* (since Epoch).
-    */
-   return this.timestampComparesTo( locator, timestampInMilliseconds, 60000 );
+Selenium.prototype.isTimestampDownToMinutes= function( locator, timestampInMilliseconds ) {
+   return this.timestampComparesTo( locator, timestampInMilliseconds, 60000, true );
 }
+
+Selenium.prototype.isTimestampDownToPrecision= function( locator, timestampDetails ) {
+    return this.timestampComparesTo( locator, timestampDetails.timestamp,
+        timestampDetails.precision, timestampDetails.validatePrecision, timestampDetails.timezone );
+};
 
 /** Internal function, used to compare a displayed human-readable timestamp to a numeric timestamp,
  *  allowing for difference of maxTimeDifference (sec) and this.defaultTimeout (ms) and 1x display time unit (displayPrecisionInSeconds).
@@ -120,10 +114,17 @@ Selenium.prototype.isTimestampMinutes= function( locator, timestampInMillisecond
     because it's not intended to be run as Selenium command/getter.
  *  @param string locator Selenium locator of the element that contains the displayed human-readable (and parsable) time stamp
  *  @param number timestampInMilliseconds Expected timestamp, number of milliseconds since Epoch
- *  @param number displayPrecisionInMilliseconds Smallest displayed time unit, in milliseconds; optional, default is 1 sec (1000ms)
+ *  @param number displayPrecisionInMilliseconds Smallest displayed time unit, in milliseconds
+ *  @param bool validatePrecision
+ *  @TODO Use parameter timezone. Allow both short and long names? Make it daylightsaving-friendly - don't cache the time shift.
+ *  This doesn't use timezone support in Date.parse(), because that only understands GMT, Z and US time zone abbreviations
+ *  - see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse and try 
+ *  Date.parse( "Fri, 11 Oct 2013 05:55:00 AEST" ) - it evaluates to NaN.
+ *  evaluate in a .js file, not via javascript: url: new Intl.DateTimeFormat("en-GB", {timeZone:"AEDT", timeZoneName:'short'}).format( new Date())
+ *  See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTimezoneOffset and
+ *  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat/supportedLocalesOf
  **/
-Selenium.prototype.timestampComparesTo= function( locator, timestampInMilliseconds, displayPrecisionInMilliseconds ) {
-    displayPrecisionInMilliseconds= displayPrecisionInMilliseconds || 1000;
+Selenium.prototype.timestampComparesTo= function( locator, timestampInMilliseconds, displayPrecisionInMilliseconds, validatePrecision, timezoneTODO ) {
     var element= this.page().findElement(locator);
     var displayedTimeString= typeof element.value !=='undefined'
         ? element.value
@@ -132,6 +133,12 @@ Selenium.prototype.timestampComparesTo= function( locator, timestampInMillisecon
     var maxDifference= maxTimeDifference+ Number(this.defaultTimeout)+ displayPrecisionInMilliseconds;
     LOG.debug( 'timestampInMilliseconds: ' +timestampInMilliseconds+ '; DisplayedTimeString: ' +displayedTimeString+ ' is timestamp '
         +displayedTime+ ' ms; Calculated max allowed difference: ' +maxDifference+ ' ms.' );
+    // Following works because timezone shifts are multiplies of 30min.
+    if( validatePrecision && displayedTime%displayPrecisionInMilliseconds>0 ) {
+        var msg= 'Timestamp precision validation failed. The displayed timestamp has value of precision lower than the given precision ' +displayPrecisionInMilliseconds+ 'ms. If this worked in past, then the application most likely changed. Change the precision.';
+        LOG.error();
+        throw new Error(msg);
+    }
     return Math.abs( timestampInMilliseconds-displayedTime) <= maxDifference;
 };
 
@@ -168,19 +175,21 @@ Selenium.prototype.noteTimestamp= function( timestampName, timestampPrecision ) 
 
 /** This and similar functions have name starting with 'doWaitFor'. That way when you type 'waitForDistinctTimestamp' in Selenium IDE,
  *  it doesn't auto-suggest '...AndWait' alternatives, which we don't want and which would confuse user. If the function name
- *  was any doXyz that doesn't start with 'doWaitFor', Selenium IDE would auto-suggest '..AndWait' alternative.
+ *  was any doXyz that doesn't start with 'doWaitFor', Selenium IDE would auto-suggest '..AndWait' alternative, which don't make sense.
  * */
-Selenium.prototype.doWaitForDistinctTimestampMilliseconds= function( timestampName, precision ) {
-    precision= precision || 1;
-    this.waitForDistinctTimestamp( timestampName, precision );
+Selenium.prototype.doWaitForTimestampDistinctDownToMilliseconds= function( timestampName, precisionInMilliseconds ) {
+    precisionInMilliseconds= precisionInMilliseconds || 1;
+    this.waitForDistinctTimestamp( timestampName, precisionInMilliseconds );
 };
 
-Selenium.prototype.doWaitForDistinctTimestampSeconds= function( timestampName, valueIsUnused ) {
-    this.waitForDistinctTimestamp( timestampName, 1000 );
+Selenium.prototype.doWaitForTimestampDistinctDownToSeconds= function( timestampName, precisionInSeconds ) {
+    precisionInSeconds= precisionInSeconds || 1;
+    this.waitForDistinctTimestamp( timestampName, precisionInSeconds*1000 );
 };
 
-Selenium.prototype.doWaitForDistinctTimestampMinutes= function( timestampName, valueIsUnused ) {
-    this.waitForDistinctTimestamp( timestampName, 60000 );
+Selenium.prototype.doWaitTimestampDistinctDownToMinutes= function( timestampName, precisionInMinutes ) {
+    precisionInMinutes= precisionInMinutes || 1;
+    this.waitForDistinctTimestamp( timestampName, precisionInMinutes*60000 );
 };
 
 /**I don't use prefix 'do' in the name of this function
@@ -190,19 +199,19 @@ Selenium.prototype.doWaitForDistinctTimestampMinutes= function( timestampName, v
  *  @return true if it's safe to create a new timestamp for this type of record, and the timestamp
  *  will be distinguishable from the previous one.
  **/
-Selenium.prototype.waitForDistinctTimestamp= function( timestampName, timestampPrecision ) {
+Selenium.prototype.waitForDistinctTimestamp= function( timestampName, precisionInMilliseconds ) {
     if( !(timestampName in this.distinctTimestamps) ) {
         LOG.info( 'waitForDistinctTimestampXXX: No previous timestamp for timestamp name ' +timestampName );
     }
     if( typeof dontWaitForDistinctTimestamps=='undefined' || !(timestampName in this.distinctTimestamps) ) {
         // I do note a timestamp even if dontWaitForDistinctTimestamps==true, so that if sometimes later
         // dontWaitForDistinctTimestamps becomes false then I have a list of previous timestamps in hand.
-        this.noteTimestamp( timestampName, timestampPrecision );
+        this.noteTimestamp( timestampName, precisionInMilliseconds );
         return;
     }
-    if( this.distinctTimestamps[timestampName].precision!==timestampPrecision ) {
+    if( this.distinctTimestamps[timestampName].precision!==precisionInMilliseconds ) {
         var error= "You've called waitForDistinctTimestampXXX for timestampName='" +timestampName+
-            "', timestampPrecision=" +timestampPrecision+ "ms. But the previous timestamp for this timestampName was recorded with different precision: "+
+            "', precisionInMilliseconds=" +precisionInMilliseconds+ "ms. But the previous timestamp for this timestampName was recorded with different precision: "+
             this.distinctTimestamps[timestampName].precision+ 'ms.';
         LOG.error( error );
         throw new Error( error );
@@ -219,7 +228,7 @@ Selenium.prototype.waitForDistinctTimestamp= function( timestampName, timestampP
         function () {
             // Somewhere here Firefox 23.0.1 Browser Console reports a false positive bug: 'anonymous function does not always return a value'. Ingore that.
             if( Date.now()>timestampBecomesDistinct ) {
-                this.noteTimestamp( timestampName, timestampPrecision );
+                this.noteTimestamp( timestampName, precisionInMilliseconds );
                 return true;
             }
             return false;
