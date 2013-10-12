@@ -203,9 +203,7 @@ Selenium.prototype.waitForDistinctTimestamp= function( timestampName, precisionI
     if( !(timestampName in this.distinctTimestamps) ) {
         LOG.info( 'waitForDistinctTimestampXXX: No previous timestamp for timestamp name ' +timestampName );
     }
-    if( typeof dontWaitForDistinctTimestamps=='undefined' || !(timestampName in this.distinctTimestamps) ) {
-        // I do note a timestamp even if dontWaitForDistinctTimestamps==true, so that if sometimes later
-        // dontWaitForDistinctTimestamps becomes false then I have a list of previous timestamps in hand.
+    if( !(timestampName in this.distinctTimestamps) ) {
         this.noteTimestamp( timestampName, precisionInMilliseconds );
         return;
     }
