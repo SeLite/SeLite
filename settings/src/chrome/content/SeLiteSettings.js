@@ -32,41 +32,35 @@ if( runningAsComponent ) {
     var nsIIOService= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);    
 }
 
-function SeLiteSettings() {
-    throw new Error( "Do not instantiate SeLiteSettings");
-}
+var modules= sortedObject(true); // Object serving as an associative array { string module.name => Module instance }
 
-SeLiteSettings.modules= sortedObject(true); // Object serving as an associative array { string module.name => SeLiteSettings.Module instance }
-
-SeLiteSettings.SELECTED_SET_NAME= "SELITE_SETTINGS_SELECTED_SET_NAME", // CSS also depends on its value
+var SELECTED_SET_NAME= "SELITE_SETTINGS_SELECTED_SET_NAME"; // CSS also depends on its value
 
 // SET_DEFINITION_JAVASCRIPT is an optional hidden field, which allows SeLiteSettings to load the definition automatically
-SeLiteSettings.MODULE_DEFINITION_FILE_OR_URL= "SELITE_SETTINGS_MODULE_DEFINITION_FILE_OR_URL";
+var MODULE_DEFINITION_FILE_OR_URL= "SELITE_SETTINGS_MODULE_DEFINITION_FILE_OR_URL";
 
 // Following are not field names, but they're used in the tree for metadata and for buttons that create or delete a set
-SeLiteSettings.SET_SELECTION_ROW= "SELITE_SETTINGS_SET_SELECTION_ROW";
-SeLiteSettings.FIELD_MAIN_ROW= "SELITE_SETTINGS_FIELD_MAIN_ROW";
-SeLiteSettings.FIELD_TREECHILDREN= "SELITE_SETTINGS_FIELD_TREECHILDREN";
-SeLiteSettings.NEW_VALUE_ROW= "SELITE_SETTINGS_NEW_VALUE_ROW";
-SeLiteSettings.ADD_VALUE= "SELITE_SETTINGS_ADD_VALUE";
-SeLiteSettings.OPTION_NOT_UNIQUE_CELL= "SELITE_SETTINGS_OPTION_NOT_UNIQUE_CELL";
-SeLiteSettings.OPTION_UNIQUE_CELL= "SELITE_SETTINGS_OPTION_UNIQUE_CELL";
+var SET_SELECTION_ROW= "SELITE_SETTINGS_SET_SELECTION_ROW";
+var FIELD_MAIN_ROW= "SELITE_SETTINGS_FIELD_MAIN_ROW";
+var FIELD_TREECHILDREN= "SELITE_SETTINGS_FIELD_TREECHILDREN";
+var NEW_VALUE_ROW= "SELITE_SETTINGS_NEW_VALUE_ROW";
+var ADD_VALUE= "SELITE_SETTINGS_ADD_VALUE";
+var OPTION_NOT_UNIQUE_CELL= "SELITE_SETTINGS_OPTION_NOT_UNIQUE_CELL";
+var OPTION_UNIQUE_CELL= "SELITE_SETTINGS_OPTION_UNIQUE_CELL";
 
-/** @return a new array of strings that are reserved names. Don't share an existing array - just in case a client code modifies it by mistake.
+/** An array of strings that are reserved names. For internal use only.
  * */
-SeLiteSettings.reservedNames= function() {
-    return [
-        SeLiteSettings.SELECTED_SET_NAME,
-        SeLiteSettings.MODULE_DEFINITION_FILE_OR_URL,
-        SeLiteSettings.SET_SELECTION_ROW,
-        SeLiteSettings.FIELD_MAIN_ROW,
-        SeLiteSettings.FIELD_TREECHILDREN,
-        SeLiteSettings.NEW_VALUE_ROW,
-        SeLiteSettings.ADD_VALUE,
-        SeLiteSettings.OPTION_NOT_UNIQUE_CELL,
-        SeLiteSettings.OPTION_UNIQUE_CELL
-    ];
-};
+var reservedNames= [
+    SELECTED_SET_NAME,
+    MODULE_DEFINITION_FILE_OR_URL,
+    SET_SELECTION_ROW,
+    FIELD_MAIN_ROW,
+    FIELD_TREECHILDREN,
+    NEW_VALUE_ROW,
+    ADD_VALUE,
+    OPTION_NOT_UNIQUE_CELL,
+    OPTION_UNIQUE_CELL
+];
 
 var fieldNameRegex= /^[a-zA-Z0-9_/-]+$/;
 var moduleNameRegex= /^[a-zA-Z0-9_/-][a-zA-Z0-9_/.-]*[a-zA-Z0-9_/-]$/;
@@ -96,12 +90,12 @@ function ensureFieldName( name, description, asFieldName ) {
  *  with its default value in all sets of that module.
  *  @param bool multivalued Whether the field is multivalued; false by default
  * */
-SeLiteSettings.Field= function( name, defaultValue, multivalued ) {
+var Field= function( name, defaultValue, multivalued ) {
     if( typeof name!='string' ) {
-        throw new Error( 'SeLiteSettings.Field() expects a string name ("primitive" string, not new String(..)).');
+        throw new Error( 'Field() expects a string name ("primitive" string, not new String(..)).');
     }
-    if( SeLiteSettings.reservedNames().indexOf(name)>=0 ) {
-        throw new Error( 'SeLiteSettings.Field() reserves name "' +name+ '". Do not use that as a field name.');
+    if( reservedNames.indexOf(name)>=0 ) {
+        throw new Error( 'Field() reserves name "' +name+ '". Do not use that as a field name.');
     }
     loadingPackageDefinition || ensureFieldName( name, 'field name', true );
     this.name= name;
@@ -110,7 +104,7 @@ SeLiteSettings.Field= function( name, defaultValue, multivalued ) {
         multivalued= false;
     }
     if( typeof multivalued!=='boolean') {
-        throw new Error( 'SeLiteSettings.Field() expects multivalued to be a boolean, if provided.');
+        throw new Error( 'Field() expects multivalued to be a boolean, if provided.');
     }
     this.multivalued= multivalued;
     
@@ -120,51 +114,51 @@ SeLiteSettings.Field= function( name, defaultValue, multivalued ) {
     if( defaultValue===null && !this.multivalued ) {
         defaultValue= this.generateDefaultValue();
         if( defaultValue===null && !loadingPackageDefinition ) {
-            throw new Error( "SeLiteSettings.Field() requires generateDefaultValue() to return non-null." );
+            throw new Error( "Field() requires generateDefaultValue() to return non-null." );
         }
     }
     this.defaultValue= defaultValue;
     
     if( this.defaultValue!==null && this.multivalued ) {
-        throw new Error( "SeLiteSettings.Field(..) expects defaultValue to be null, if multivalued is true.");
+        throw new Error( "Field(..) expects defaultValue to be null, if multivalued is true.");
     }
     
     if( !this.name.endsWith('.prototype') ) {
-        if( this.constructor==SeLiteSettings.Field ) {
-            throw new Error( "Can't instantiate SeLiteSettings.Field directly, except for prototype instances. name: " +this.name );
+        if( this.constructor==Field ) {
+            throw new Error( "Can't instantiate Field directly, except for prototype instances. name: " +this.name );
         }
-        if( !(this instanceof SeLiteSettings.Field.Bool) &&
-            !(this instanceof SeLiteSettings.Field.Int) &&
-            !(this instanceof SeLiteSettings.Field.String) &&
-            !(this instanceof SeLiteSettings.Field.File) &&
-            !(this instanceof SeLiteSettings.Field.SQLite) && 
-            !(this instanceof SeLiteSettings.Field.Choice.Int) && 
-            !(this instanceof SeLiteSettings.Field.Choice.String)
+        if( !(this instanceof Field.Bool) &&
+            !(this instanceof Field.Int) &&
+            !(this instanceof Field.String) &&
+            !(this instanceof Field.File) &&
+            !(this instanceof Field.SQLite) && 
+            !(this instanceof Field.Choice.Int) && 
+            !(this instanceof Field.Choice.String)
         ) {
-            throw new Error( "Can't subclass SeLiteSettings.Field outside the package. name: " +this.name );
+            throw new Error( "Can't subclass Field outside the package. name: " +this.name );
         }
         if( !loadingPackageDefinition && this.name.indexOf('.')>=0 ) {
-            throw new Error( 'SeLiteSettings.Field() expects name not to contain a dot, but it received: ' +this.name);
+            throw new Error( 'Field() expects name not to contain a dot, but it received: ' +this.name);
         }
     }
     else {
         if( !loadingPackageDefinition ) {
-            throw new Error( "Can't define instances of SeLiteSettings.Field whose name ends with '.prototype' outside the package." );
+            throw new Error( "Can't define instances of Field whose name ends with '.prototype' outside the package." );
         }
     }
-    this.module= null; // instance of SeLiteSettings.Module that this belongs to (once registered)
+    this.module= null; // instance of Module that this belongs to (once registered)
 };
 
-SeLiteSettings.Field.prototype.toString= function() {
+Field.prototype.toString= function() {
     return this.constructor.name+ '[module: ' +(this.module ? this.module.name : 'unknown')+ ', name: ' +this.name+ ']';
 };
 
-/** This is used in place of parameter defaultValue to SeLiteSettings.Field(), if that defaultValue is not set.
- *  See docs of SeLiteSettings.Field().
+/** This is used in place of parameter defaultValue to Field(), if that defaultValue is not set.
+ *  See docs of Field().
  * */
-SeLiteSettings.Field.prototype.generateDefaultValue= function() {
+Field.prototype.generateDefaultValue= function() {
     if( !loadingPackageDefinition ) {
-        throw new Error('Override generateDefaultValue() in subclasses of SeLiteSettings.Field.');
+        throw new Error('Override generateDefaultValue() in subclasses of Field.');
     }
     return null;
 };
@@ -175,24 +169,24 @@ SeLiteSettings.Field.prototype.generateDefaultValue= function() {
  *  @param string/number secondValue
  *  @return int -1, 0, or 1, see compareCaseInsensitively()
  * */
-SeLiteSettings.Field.prototype.compareValues= function( firstValue, secondValue ) {
+Field.prototype.compareValues= function( firstValue, secondValue ) {
     return compareCaseInsensitively( firstValue, secondValue );
 };
 
-SeLiteSettings.Field.prototype.registerFor= function( module ) {
-    if( !(module instanceof SeLiteSettings.Module) ) {
-        throw new Error( "SeLiteSettings.Field.registerFor(module) expects module to be an instance of SeLiteSettings.Module.");
+Field.prototype.registerFor= function( module ) {
+    if( !(module instanceof Module) ) {
+        throw new Error( "Field.registerFor(module) expects module to be an instance of Module.");
     };
     if( this.module!=null ) {
-        throw new Error( "SeLiteSettings.Field.registerFor(module) expects 'this' Field not to be registered yet, but field '" +this.name+ "' was registered already.");
+        throw new Error( "Field.registerFor(module) expects 'this' Field not to be registered yet, but field '" +this.name+ "' was registered already.");
     }
     this.module= module;
 };
 
-SeLiteSettings.Field.prototype.setDefault= function( setName ) {
+Field.prototype.setDefault= function( setName ) {
     this.setValue( setName, this.defaultValue );
 };
-SeLiteSettings.Field.prototype.setValue= function( setName, value ) {
+Field.prototype.setValue= function( setName, value ) {
     var setNameDot= setName!==''
         ? setName+'.'
         : '';
@@ -200,7 +194,7 @@ SeLiteSettings.Field.prototype.setValue= function( setName, value ) {
 };
 /** Set a field (with the given field and key name) to the given value. It doesn't call nsIPrefService.savePrefFile().
  * */
-SeLiteSettings.Field.prototype.setPref= function( setFieldKeyName, value ) {
+Field.prototype.setPref= function( setFieldKeyName, value ) {
     this.module.prefsBranch.setCharPref( setFieldKeyName, value );
 };
 
@@ -210,18 +204,18 @@ SeLiteSettings.Field.prototype.setPref= function( setFieldKeyName, value ) {
  * For non-choice multivalued fields it's also used as the value stored in preferences; and for Int
  * it transforms it into a number.
  * */
-SeLiteSettings.Field.prototype.addValue= function( setName, key ) {
+Field.prototype.addValue= function( setName, key ) {
     var setNameDot= setName!==''
         ? setName+'.'
         : '';
-    if( !(this.multivalued || this instanceof SeLiteSettings.Field.Choice) ) {
-        throw new Error( "Use SeLiteSettings.Field.addValue() only for multivalued or choice fields." );
+    if( !(this.multivalued || this instanceof Field.Choice) ) {
+        throw new Error( "Use Field.addValue() only for multivalued or choice fields." );
     }
     key= ''+key;
-    var value= this instanceof SeLiteSettings.Field.Choice
+    var value= this instanceof Field.Choice
         ? this.choicePairs[key]
         : key;
-    if( (this instanceof SeLiteSettings.Field.Int || this instanceof SeLiteSettings.Field.Choice.Int)
+    if( (this instanceof Field.Int || this instanceof Field.Choice.Int)
     && typeof value==='string' ) {
         value= Number(value);
     }
@@ -232,12 +226,12 @@ SeLiteSettings.Field.prototype.addValue= function( setName, key ) {
  * @param string setName May be empty.
  * @param mixed key as used to generate the preference name (key), appened after fieldName and a dot. String or number.
  * */
-SeLiteSettings.Field.prototype.removeValue= function( setName, key ) {
+Field.prototype.removeValue= function( setName, key ) {
     var setNameDot= setName!==''
         ? setName+'.'
         : '';
-    if( !this.multivalued && !(this instanceof SeLiteSettings.Field.Choice) ) {
-        throw new Error( "Use SeLiteSettings.Field.removeValue() only for multivalued or choice fields." );
+    if( !this.multivalued && !(this instanceof Field.Choice) ) {
+        throw new Error( "Use Field.removeValue() only for multivalued or choice fields." );
     }
     if( this.module.prefsBranch.prefHasUserValue(setNameDot+this.name+ '.' +key) ) {
         this.module.prefsBranch.clearUserPref( setNameDot+this.name+ '.' +key)
@@ -246,54 +240,54 @@ SeLiteSettings.Field.prototype.removeValue= function( setName, key ) {
 
 /** @return bool
  * */
-SeLiteSettings.Field.prototype.equals= function( other ) {
+Field.prototype.equals= function( other ) {
     return this.name===other.name
         && this.constructor==other.constructor
         && this.defaultValue===other.defaultValue; // Strict comparison is OK for primitive string/bool/int
 };
 
 // See also https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
-SeLiteSettings.Field.Bool= function( name, defaultValue ) {
-    SeLiteSettings.Field.call( this, name, defaultValue );
+Field.Bool= function( name, defaultValue ) {
+    Field.call( this, name, defaultValue );
     if( this.defaultValue!==null && typeof this.defaultValue!='boolean' ) {
-        throw new Error( "SeLiteSettings.Field.Bool(..) expects defaultValue to be a boolean (primitive), if provided.");
+        throw new Error( "Field.Bool(..) expects defaultValue to be a boolean (primitive), if provided.");
     }
 };
-SeLiteSettings.Field.Bool.prototype= new SeLiteSettings.Field('Bool.prototype');
-SeLiteSettings.Field.Bool.prototype.constructor= SeLiteSettings.Field.Bool;
-SeLiteSettings.Field.Bool.prototype.generateDefaultValue= function() { return false; };
-SeLiteSettings.Field.Bool.prototype.setPref= function( setFieldKeyName, value ) {
+Field.Bool.prototype= new Field('Bool.prototype');
+Field.Bool.prototype.constructor= Field.Bool;
+Field.Bool.prototype.generateDefaultValue= function() { return false; };
+Field.Bool.prototype.setPref= function( setFieldKeyName, value ) {
     this.module.prefsBranch.setBoolPref( setFieldKeyName, value );
 };
 
-SeLiteSettings.Field.Int= function( name, defaultValue, multivalued ) {
-    SeLiteSettings.Field.call( this, name, defaultValue, multivalued );
+Field.Int= function( name, defaultValue, multivalued ) {
+    Field.call( this, name, defaultValue, multivalued );
     if( this.defaultValue!==null && typeof this.defaultValue!='number' ) {
-        throw new Error( "SeLiteSettings.Field.Int(..) expects defaultValue to be a number (primitive), if provided.");
+        throw new Error( "Field.Int(..) expects defaultValue to be a number (primitive), if provided.");
     }
 };
-SeLiteSettings.Field.Int.prototype= new SeLiteSettings.Field('Int.prototype');
-SeLiteSettings.Field.Int.prototype.constructor= SeLiteSettings.Field.Int;
-SeLiteSettings.Field.Int.prototype.generateDefaultValue= function() { return 0; };
-SeLiteSettings.Field.Int.prototype.setPref= function( setFieldKeyName, value ) {
+Field.Int.prototype= new Field('Int.prototype');
+Field.Int.prototype.constructor= Field.Int;
+Field.Int.prototype.generateDefaultValue= function() { return 0; };
+Field.Int.prototype.setPref= function( setFieldKeyName, value ) {
     this.module.prefsBranch.setIntPref( setFieldKeyName, value );
 };
 /** This works even if one or both parameters are strings - it transforms them into numbers.
  *  We need this for XUL GUI setCellText handler.
  * */
-SeLiteSettings.Field.Int.prototype.compareValues= function( firstValue, secondValue ) {
+Field.Int.prototype.compareValues= function( firstValue, secondValue ) {
     return compareAsNumbers(firstValue, secondValue );
 }
 
-SeLiteSettings.Field.String= function( name, defaultValue, multivalued ) {
-    SeLiteSettings.Field.call( this, name, defaultValue, multivalued );
+Field.String= function( name, defaultValue, multivalued ) {
+    Field.call( this, name, defaultValue, multivalued );
     if( this.defaultValue!==null && typeof this.defaultValue!='string' ) {
-        throw new Error( "SeLiteSettings.Field.String(..) expects defaultValue to be a string ('primitive'), if provided.");
+        throw new Error( "Field.String(..) expects defaultValue to be a string ('primitive'), if provided.");
     }
 };
-SeLiteSettings.Field.String.prototype= new SeLiteSettings.Field('String.prototype');
-SeLiteSettings.Field.String.prototype.constructor= SeLiteSettings.Field.String;
-SeLiteSettings.Field.String.prototype.generateDefaultValue= function() { return ''; };
+Field.String.prototype= new Field('String.prototype');
+Field.String.prototype.constructor= Field.String;
+Field.String.prototype.generateDefaultValue= function() { return ''; };
 
 /** @param string name
  *  @param bool startInProfileFolder Whether the file picker dialog opens in user's Firefox profile folder (if the file was not set yet)
@@ -301,26 +295,26 @@ SeLiteSettings.Field.String.prototype.generateDefaultValue= function() { return 
  *  A false/null/0 key or value mean 'All files'.
  *  See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsIFilePicker#appendFilter%28%29
  * */
-SeLiteSettings.Field.File= function( name, startInProfileFolder, filters, defaultValue ) {
-    SeLiteSettings.Field.call( this, name, defaultValue );
+Field.File= function( name, startInProfileFolder, filters, defaultValue ) {
+    Field.call( this, name, defaultValue );
     this.startInProfileFolder= startInProfileFolder || false;
     if( typeof this.startInProfileFolder!='boolean' ) {
-        throw new Error( 'SeLiteSettings.Field.File() expects startInProfileFolder to be a boolean, if provided.');
+        throw new Error( 'Field.File() expects startInProfileFolder to be a boolean, if provided.');
     }
     this.filters= filters || {};
     if( typeof(this.filters)!='object' || this.filters instanceof Array ) {
-        throw new Error( 'SeLiteSettings.Field.File() expects filters to be an object serving as an associative array, if provided.');
+        throw new Error( 'Field.File() expects filters to be an object serving as an associative array, if provided.');
     }
     if( this.defaultValue!==null && typeof this.defaultValue!='string' ) {
-        throw new Error( "SeLiteSettings.Field.File(..) expects defaultValue to be a string ('primitive') - a file path, if provided.");
+        throw new Error( "Field.File(..) expects defaultValue to be a string ('primitive') - a file path, if provided.");
     }
 };
-SeLiteSettings.Field.File.prototype= new SeLiteSettings.Field('File.prototype');
-SeLiteSettings.Field.File.prototype.constructor= SeLiteSettings.Field.File;
-SeLiteSettings.Field.File.prototype.generateDefaultValue= function() { return ''; };
+Field.File.prototype= new Field('File.prototype');
+Field.File.prototype.constructor= Field.File;
+Field.File.prototype.generateDefaultValue= function() { return ''; };
 
-SeLiteSettings.Field.File.prototype.parentEquals= SeLiteSettings.Field.File.prototype.equals;
-SeLiteSettings.Field.File.prototype.equals= function( other ) {
+Field.File.prototype.parentEquals= Field.File.prototype.equals;
+Field.File.prototype.equals= function( other ) {
     if( !this.parentEquals(other)
     || this.startInProfileFolder!==other.startInProfileFolder
     || this.defaultValue!==other.defaultValue ) {
@@ -332,11 +326,11 @@ SeLiteSettings.Field.File.prototype.equals= function( other ) {
     return true;
 };
 
-SeLiteSettings.Field.SQLite= function( name, defaultValue ) {
-    SeLiteSettings.Field.File.call( this, name, true, { 'SQLite': '*.sqlite', 'any': null}, defaultValue );
+Field.SQLite= function( name, defaultValue ) {
+    Field.File.call( this, name, true, { 'SQLite': '*.sqlite', 'any': null}, defaultValue );
 };
-SeLiteSettings.Field.SQLite.prototype= new SeLiteSettings.Field.File('SQLite.prototype', false, {}, '' );
-SeLiteSettings.Field.SQLite.prototype.constructor= SeLiteSettings.Field.SQLite;
+Field.SQLite.prototype= new Field.File('SQLite.prototype', false, {}, '' );
+Field.SQLite.prototype.constructor= Field.SQLite;
 
 /** @param defaultValue It's actually a key (Preferences subfield name), not the visible integer/string value.
  *  @param choicePairs Anonymous object serving as an associative array {
@@ -345,71 +339,71 @@ SeLiteSettings.Field.SQLite.prototype.constructor= SeLiteSettings.Field.SQLite;
  *  label reflectshow it is shown when using Firefox url about:config.
  *  Also, Javascript transforms object field/key names to strings even if they were set as integer.
  * */
-SeLiteSettings.Field.Choice= function( name, defaultValue, multivalued, choicePairs ) {
-    SeLiteSettings.Field.call( this, name, defaultValue, multivalued );
+Field.Choice= function( name, defaultValue, multivalued, choicePairs ) {
+    Field.call( this, name, defaultValue, multivalued );
     if( this.defaultValue!==null && typeof this.defaultValue!='string' ) {
-        throw new Error( "SeLiteSettings.Field.Choice(..) expects defaultValue to be a string ('primitive'), if provided.");
+        throw new Error( "Field.Choice(..) expects defaultValue to be a string ('primitive'), if provided.");
     }
-    if( !loadingPackageDefinition && this.constructor==SeLiteSettings.Field.Choice ) {
-        throw new Error( "Can't define instances of SeLiteSettings.Field.Choice class itself outside the package. Use SeLiteSettings.Field.Choice.Int or SeLiteSettings.Field.Choice.String." );
+    if( !loadingPackageDefinition && this.constructor==Field.Choice ) {
+        throw new Error( "Can't define instances of Field.Choice class itself outside the package. Use Field.Choice.Int or Field.Choice.String." );
     }
     if( !loadingPackageDefinition && (typeof choicePairs!=='object' || choicePairs.constructor.name==='Array') ) {
-        throw new Error( "Instances of subclasses of SeLiteSettings.Field.Choice require choicePairs to be an anonymous object serving as an associative array." );
+        throw new Error( "Instances of subclasses of Field.Choice require choicePairs to be an anonymous object serving as an associative array." );
     }
     this.choicePairs= choicePairs;
 };
-SeLiteSettings.Field.Choice.prototype= new SeLiteSettings.Field('Choice.prototype');
-SeLiteSettings.Field.Choice.prototype.constructor= SeLiteSettings.Field.Choice;
-SeLiteSettings.Field.Choice.prototype.generateDefaultValue= function() {
+Field.Choice.prototype= new Field('Choice.prototype');
+Field.Choice.prototype.constructor= Field.Choice;
+Field.Choice.prototype.generateDefaultValue= function() {
     if( this.multivalued ) {
-        throw new Error( 'Do not use SeLiteSettings.Field.Choice.generateDefaultValue() for multivalued fields.');
+        throw new Error( 'Do not use Field.Choice.generateDefaultValue() for multivalued fields.');
     }
     for( var key in this.choicePairs ) { // Just return the first one.
         return key;
     }
     return null;
 };
-SeLiteSettings.Field.Choice.prototype.compareValues= function() {
-    throw new Error( 'Do not use SeLiteSettings.Field.Choice.compareValues(). Sort choicePairs yourself.');
+Field.Choice.prototype.compareValues= function() {
+    throw new Error( 'Do not use Field.Choice.compareValues(). Sort choicePairs yourself.');
 };
-SeLiteSettings.Field.Choice.prototype.setDefault= function() {
-    throw new Error("Do not call setDefault() on SeLiteSettings.Field.Choice family.");
+Field.Choice.prototype.setDefault= function() {
+    throw new Error("Do not call setDefault() on Field.Choice family.");
 };
-SeLiteSettings.Field.Choice.prototype.setValue= function() {
-    throw new Error("Do not call setValue() on SeLiteSettings.Field.Choice family.");
+Field.Choice.prototype.setValue= function() {
+    throw new Error("Do not call setValue() on Field.Choice family.");
 };
-SeLiteSettings.Field.Choice.prototype.setPref= SeLiteSettings.Field.prototype.setPref;
+Field.Choice.prototype.setPref= Field.prototype.setPref;
 
-SeLiteSettings.Field.Choice.Int= function( name, defaultValue, multivalued, choicePairs ) {
-    SeLiteSettings.Field.Choice.call( this, name, defaultValue, multivalued, choicePairs );
+Field.Choice.Int= function( name, defaultValue, multivalued, choicePairs ) {
+    Field.Choice.call( this, name, defaultValue, multivalued, choicePairs );
     for( var key in this.choicePairs ) {
         var value= this.choicePairs[key];
         if( typeof value!=='number' || value!==Math.round(value) ) {
-            throw new Error( 'SeLiteSettings.Field.Choice.Int() expects values in choicePairs to be integers, but for key ' +key+
+            throw new Error( 'Field.Choice.Int() expects values in choicePairs to be integers, but for key ' +key+
                 ' it has ' +(typeof value)+ ' - ' +value );
         }
     }
 };
-SeLiteSettings.Field.Choice.Int.prototype= new SeLiteSettings.Field.Choice('ChoiceInt.prototype');
-SeLiteSettings.Field.Choice.Int.prototype.constructor= SeLiteSettings.Field.Choice.Int;
-SeLiteSettings.Field.Choice.Int.prototype.setPref= SeLiteSettings.Field.Int.prototype.setPref;
+Field.Choice.Int.prototype= new Field.Choice('ChoiceInt.prototype');
+Field.Choice.Int.prototype.constructor= Field.Choice.Int;
+Field.Choice.Int.prototype.setPref= Field.Int.prototype.setPref;
 
-SeLiteSettings.Field.Choice.String= function( name, defaultValue, multivalued, choicePairs ) {
-    SeLiteSettings.Field.Choice.call( this, name, defaultValue, multivalued, choicePairs );
+Field.Choice.String= function( name, defaultValue, multivalued, choicePairs ) {
+    Field.Choice.call( this, name, defaultValue, multivalued, choicePairs );
     for( var key in this.choicePairs ) {
         var value= this.choicePairs[key];
         if( typeof value!=='string' ) {
-            throw new Error( 'SeLiteSettings.Field.Choice.String() expects values in choicePairs to be strings, but for key ' +key+
+            throw new Error( 'Field.Choice.String() expects values in choicePairs to be strings, but for key ' +key+
                 ' it has ' +(typeof value)+ ' - ' +value );
         }
     }
 };
-SeLiteSettings.Field.Choice.String.prototype= new SeLiteSettings.Field.Choice('ChoiceString.prototype');
-SeLiteSettings.Field.Choice.String.prototype.constructor= SeLiteSettings.Field.Choice.String;
+Field.Choice.String.prototype= new Field.Choice('ChoiceString.prototype');
+Field.Choice.String.prototype.constructor= Field.Choice.String;
 
 /** @param name string Name prefix for preferences/fields for this module.
  *  As per Mozilla standard, it should be dot-separated and start with 'extensions.' See Firefox url about:config.
- *  @param fields Array of SeLiteSettings.Field objects, in the order how they will be displayed.
+ *  @param fields Array of Field objects, in the order how they will be displayed.
  *  Beware: this.fields will not be an array, but an object serving as an associative array { string field name => Field object}
  *  @param allowSets bool Whether to allow multiple sets of settings for this module
  *  @param defaultSetName string Name of the default set. Optional, null by default; only allowed (but not required) if allowSets==true
@@ -419,24 +413,24 @@ SeLiteSettings.Field.Choice.String.prototype.constructor= SeLiteSettings.Field.C
  *  then the javascript file will get 'removed' from this module in the preferences - SeLiteSettings won't be able
  *  to load it automatically (unless it gets re-registered with the javascript file again).
  * */
-SeLiteSettings.Module= function( name, fields, allowSets, defaultSetName, definitionJavascriptFile ) {
+var Module= function( name, fields, allowSets, defaultSetName, definitionJavascriptFile ) {
     this.name= name;
     if( typeof this.name!='string' ) {
-        throw new Error( 'SeLiteSettings.Module() expects a string name.');
+        throw new Error( 'Module() expects a string name.');
     }
     ensureFieldName( name, 'module name');
     if( typeof fields!=='object' || !fields.constructor || fields.constructor.name!=='Array' ) {
         // @TODO my docs I can't check (fields instanceof Array) neither (fields.constructor===Array) when this script a component. It must be caused by JS separation.
-        throw new Error( 'SeLiteSettings.Module() expects an array fields, but it received ' +(typeof fields)+ ' - ' +fields);
+        throw new Error( 'Module() expects an array fields, but it received ' +(typeof fields)+ ' - ' +fields);
     }
-    this.fields= sortedObject(true); // Object serving as an associative array { string field name => SeLiteSettings.Field instance }
+    this.fields= sortedObject(true); // Object serving as an associative array { string field name => Field instance }
     for( var i=0; i<fields.length; i++ ) {
         var field= fields[i];
-        if( !(field instanceof SeLiteSettings.Field) ) {
-            throw new Error( 'SeLiteSettings.Module() expects fields to be an array of SeLiteSettings.Field instances, but item [' +i+ '] is not.');
+        if( !(field instanceof Field) ) {
+            throw new Error( 'Module() expects fields to be an array of Field instances, but item [' +i+ '] is not.');
         }
         if( field.name in this.fields ) {
-            throw new Error( 'SeLiteSettings.Module() for module name "' +name+ '" has two (or more) fields with same name "' +field.name+ '".');
+            throw new Error( 'Module() for module name "' +name+ '" has two (or more) fields with same name "' +field.name+ '".');
         }
         field.registerFor( this );
         this.fields[ field.name ]= field;
@@ -444,41 +438,41 @@ SeLiteSettings.Module= function( name, fields, allowSets, defaultSetName, defini
     
     this.allowSets= allowSets || false;
     if( typeof this.allowSets!='boolean' ) {
-        throw new Error( 'SeLiteSettings.Module() expects allowSets to be a boolean, if provided.');
+        throw new Error( 'Module() expects allowSets to be a boolean, if provided.');
     }
     this.defaultSetName= defaultSetName || null;
     if( this.defaultSetName!=null && typeof this.defaultSetName!='string' ) {
-        throw new Error( 'SeLiteSettings.Module() expects defaultSetName to be a string, if provided.');
+        throw new Error( 'Module() expects defaultSetName to be a string, if provided.');
     }
     if( this.defaultSetName!=null && !this.allowSets ) {
-        throw new Error( 'SeLiteSettings.Module() allows optional parameter defaultSetName only if allowSets is true..');
+        throw new Error( 'Module() allows optional parameter defaultSetName only if allowSets is true..');
     }
     defaultSetName===null || ensureFieldName( defaultSetName, 'defaultSetName' );
     
     this.definitionJavascriptFile= definitionJavascriptFile || null;
     if( this.definitionJavascriptFile!=null && typeof this.definitionJavascriptFile!='string') {
-        throw new Error( 'SeLiteSettings.Module() expects definitionJavascriptFile to be a string, if provided.');
+        throw new Error( 'Module() expects definitionJavascriptFile to be a string, if provided.');
     }
     this.prefsBranch= prefs.getBranch( this.name+'.' );
 };
 
-SeLiteSettings.savePrefFile= function() {
+var savePrefFile= function() {
     prefs.savePrefFile( null );
 };
 
 /** Get an existing module with the same name, or the passed one. If there is an existing module, this checks that
  *  fields and other parameters are equal, otherwise it fails.
  *  If createOrUpdate is true (by default), this (re)registers the module, which calls nsIPrefService.savePrefFile().
- * @param module Object instance of SeLiteSettings.Module that you want to register (or an equal one)
+ * @param module Object instance of Module that you want to register (or an equal one)
  *  @param createOrUpdate Boolean, optional, true by default; whether to create or update any existing sets by calling module.createOrUpdate()
  *  @return An existing equal Module instance, if any; given module otherwise.
  * */
-SeLiteSettings.register= function( module, createOrUpdate ) {
-    if( !(module instanceof SeLiteSettings.Module) ) {
-        throw new Error( 'SeLiteSettings.register() expects module to be an instance of SeLiteSettings.Module.');
+var register= function( module, createOrUpdate ) {
+    if( !(module instanceof Module) ) {
+        throw new Error( 'register() expects module to be an instance of Module.');
     }
-    if( module.name in SeLiteSettings.modules ) {
-        var existingModule= SeLiteSettings.modules[module.name];
+    if( module.name in modules ) {
+        var existingModule= modules[module.name];
         
         if( !compareAllFields(existingModule.fields, module.fields, 'equals') ) {
             throw new Error( 'There already exists a module with name "' +module.name+ '" but it has different definition.');
@@ -495,7 +489,7 @@ SeLiteSettings.register= function( module, createOrUpdate ) {
         module= existingModule;
     }
     else {
-        SeLiteSettings.modules[module.name]= module;
+        modules[module.name]= module;
     }
     if( typeof createOrUpdate=='undefined') {
         createOrUpdate= true;
@@ -542,7 +536,7 @@ function directChildList( prefsBranch, namePrefix ) {
 /**@return array of strings names of sets as they are in the preferences DB, or [''] if the module
  * doesn't allow sets
  * */
-SeLiteSettings.Module.prototype.setNames= function() {
+Module.prototype.setNames= function() {
     if( !this.allowSets ) {
         return [''];
     }
@@ -551,7 +545,7 @@ SeLiteSettings.Module.prototype.setNames= function() {
     var result= [];
     for( var i=0; i<children.length; i++ ) {
         var child= children[i];
-        if( SeLiteSettings.reservedNames().indexOf(child)<0 ) {
+        if( reservedNames.indexOf(child)<0 ) {
             result.push( child );
         }
     }
@@ -561,12 +555,12 @@ SeLiteSettings.Module.prototype.setNames= function() {
 /** @return string name of the selected (active) set, including a trailing dot '.'. Null if no set is selected.
  *  @throws If the module doesn't allow sets.
  * */
-SeLiteSettings.Module.prototype.selectedSetName= function() {
+Module.prototype.selectedSetName= function() {
     if( !this.allowSets ) {
         throw new Error( "Module '" +this.name+ "' doesn't allow sets.");
     }
-    if( this.prefsBranch.prefHasUserValue(SeLiteSettings.SELECTED_SET_NAME) ) {
-        return this.prefsBranch.getCharPref( SeLiteSettings.SELECTED_SET_NAME );
+    if( this.prefsBranch.prefHasUserValue(SELECTED_SET_NAME) ) {
+        return this.prefsBranch.getCharPref( SELECTED_SET_NAME );
     }
     return null;
 };
@@ -575,12 +569,12 @@ SeLiteSettings.Module.prototype.selectedSetName= function() {
  *  @param string name of the set to become selected (active), including a trailing dot '.'
  *  @throws If the module doesn't allow sets.
  * */
-SeLiteSettings.Module.prototype.setSelectedSetName= function( setName ) {
+Module.prototype.setSelectedSetName= function( setName ) {
     if( !this.allowSets ) {
         throw new Error( "Module '" +this.name+ "' doesn't allow sets.");
     }
     ensureFieldName( setName, 'setName' );
-    this.prefsBranch.setCharPref( SeLiteSettings.SELECTED_SET_NAME, setName );
+    this.prefsBranch.setCharPref( SELECTED_SET_NAME, setName );
 };
 
 /** @param setName Name of the set; an empty string if the module doesn't allow sets, or if you want a selected set.
@@ -595,10 +589,10 @@ SeLiteSettings.Module.prototype.setSelectedSetName= function( setName ) {
  *      including those that don't have any value in Preferences DB
  *  }
  *  It also includes fields that are not defined in this.fields. It excludes any single-value fields defined in this.fields
- *  with no value stored in the preferences (there shouldn't be any, since SeLiteSettings.loadFromJavascript()
+ *  with no value stored in the preferences (there shouldn't be any, since loadFromJavascript()
  *  reloads the javascript definition and it requires non-null default values).
  * */
-SeLiteSettings.Module.prototype.getFieldsOfSet= function( setName ) {
+Module.prototype.getFieldsOfSet= function( setName ) {
     if( typeof setName=='undefined' || setName===null ) {
         setName= this.allowSets
             ? this.selectedSetName()
@@ -610,7 +604,6 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function( setName ) {
     var children= this.prefsBranch.getChildList( setName, {} );
     children.sort( compareCaseInsensitively );
     var result= sortedObject(true);
-    var reservedNames= SeLiteSettings.reservedNames();
     
     for( var i=0; i<children.length; i++ ) {
         var child= children[i].substring( setName.length );
@@ -634,11 +627,11 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function( setName ) {
                 if( indexOfDot>0 ) {
                     var fieldName= child.substring(0, indexOfDot );
                     var field= this.fields[fieldName];
-                    if( field && (field.multivalued || field instanceof SeLiteSettings.Field.Choice) ) {
+                    if( field && (field.multivalued || field instanceof Field.Choice) ) {
                         if( !result[fieldName]
                             || typeof result[fieldName]!=='object' // In case there is an orphan/sick single value for fieldName itself, e.g. after you change field definition from single-value to multivalued
                         ) {
-                            result[fieldName]= field.multivalued && !(field instanceof SeLiteSettings.Field.Choice)
+                            result[fieldName]= field.multivalued && !(field instanceof Field.Choice)
                                 ? sortedObject( field.compareValues )
                                 : {};
                         }
@@ -654,9 +647,9 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function( setName ) {
     // Fill in any empty multivalued or choice fields:
     for( var fieldName in this.fields ) {
         var field= this.fields[fieldName];
-        if( field.multivalued || field instanceof SeLiteSettings.Field.Choice ) {
+        if( field.multivalued || field instanceof Field.Choice ) {
             if( !result[fieldName] ) {
-                result[fieldName]= field.multivalued && !(field instanceof SeLiteSettings.Field.Choice)
+                result[fieldName]= field.multivalued && !(field instanceof Field.Choice)
                     ? sortedObject( field.compareValues )
                     : {};
             }
@@ -671,12 +664,12 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function( setName ) {
  * If the module was registered already, update the only set or any existing sets (depending on allowSets and defaultSetName as above).
  * It calls nsIPrefService.savePrefFile().
  * */
-SeLiteSettings.Module.prototype.register= function() {
+Module.prototype.register= function() {
     if( this.definitionJavascriptFile ) {
-        this.prefsBranch.setCharPref( SeLiteSettings.MODULE_DEFINITION_FILE_OR_URL, this.definitionJavascriptFile );
+        this.prefsBranch.setCharPref( MODULE_DEFINITION_FILE_OR_URL, this.definitionJavascriptFile );
     }
     else {
-        this.prefsBranch.clearUserPref( SeLiteSettings.MODULE_DEFINITION_FILE_OR_URL ); // This works even if the preference doesn't exist
+        this.prefsBranch.clearUserPref( MODULE_DEFINITION_FILE_OR_URL ); // This works even if the preference doesn't exist
     }
     if( this.allowSets ) {
         var setNames= this.setNames();
@@ -685,7 +678,7 @@ SeLiteSettings.Module.prototype.register= function() {
             this.createSet( setNames[i] );
         }
         if( this.defaultSetName ) {
-            if( !this.prefsBranch.prefHasUserValue(SeLiteSettings.SELECTED_SET_NAME) ) { // @TODO Maybe better: prefs.getPrefType(..)
+            if( !this.prefsBranch.prefHasUserValue(SELECTED_SET_NAME) ) { // @TODO Maybe better: prefs.getPrefType(..)
                 this.createSet( this.defaultSetName );
                 this.setSelectedSetName( this.defaultSetName );
             }
@@ -700,12 +693,12 @@ SeLiteSettings.Module.prototype.register= function() {
 /** (Re)create a set of the given name - create it, or add any missing fields.
  *  @param setName string name of the set to create/update; optional. If empty or null, it operates on the main & only set.
  * */
-SeLiteSettings.Module.prototype.createSet= function( setName ) {
+Module.prototype.createSet= function( setName ) {
     if( typeof setName=='undefined' || setName===null ) {
         setName= '';
     }
     if( typeof setName!='string' ) {
-        throw new Error( "SeLiteSettings.Module.createOrUpdateSet(setName) expects optional setName to be a string, if provided.");
+        throw new Error( "Module.createOrUpdateSet(setName) expects optional setName to be a string, if provided.");
     }
     if( setName!=='' ) {
         ensureFieldName( setName, 'set name');
@@ -716,7 +709,7 @@ SeLiteSettings.Module.prototype.createSet= function( setName ) {
     for( var fieldName in this.fields ) {
         var field= this.fields[fieldName];
         if( !field.multivalued ) {
-            if( !(field instanceof SeLiteSettings.Field.Choice) ) {
+            if( !(field instanceof Field.Choice) ) {
                 if( !this.prefsBranch.prefHasUserValue(setNameDot+fieldName) ) {
                     field.setDefault( setName ); // That adds a dot, if necessary
                 }
@@ -735,12 +728,12 @@ SeLiteSettings.Module.prototype.createSet= function( setName ) {
 /** Remove the set of the given name.
     @param setName string name of the set to create/update. If empty, it operates on the main & only set.
  * */
-SeLiteSettings.Module.prototype.removeSet= function( setName ) {
+Module.prototype.removeSet= function( setName ) {
     if( typeof setName==='undefined' ) {
         setName= '';
     }
     if( typeof setName!='string' ) {
-        throw new Error( "SeLiteSettings.Module.createOrUpdateSet(setName) expects optional setName to be a string.");
+        throw new Error( "Module.createOrUpdateSet(setName) expects optional setName to be a string.");
     }
     if( setName!=='' ) {
         ensureFieldName( setName, 'set name');
@@ -748,7 +741,7 @@ SeLiteSettings.Module.prototype.removeSet= function( setName ) {
     }
     for( var fieldName in this.fields ) {
         var field= this.fields[fieldName];
-        if( field.multivalued || field instanceof SeLiteSettings.Field.Choice ) {
+        if( field.multivalued || field instanceof Field.Choice ) {
             this.prefsBranch.deleteBranch( setName+fieldName+'.' );
         }
         else
@@ -759,19 +752,19 @@ SeLiteSettings.Module.prototype.removeSet= function( setName ) {
 };
 
 /** Load & register the module from its Javascript file, if stored in preferences.
- *  The file will be cached - any changes will have affect only once you relad Firefox.
+ *  The file will be cached - any changes will have affect only once you reload Firefox.
  *  If called subsequently, it returns an already loaded instance.
  *  @param moduleName string Name of the preference path/prefix up to the module (including the module name), excluding the trailing dot
  *  @return Module instance
  *  @throws an error if no such preference branch, or preferences don't contain javascript file, or the javascript file doesn't exist.
  * */
-SeLiteSettings.loadFromJavascript= function( moduleName ) {
-    if( SeLiteSettings.modules[ moduleName ] ) {
-        return SeLiteSettings.modules[ moduleName ];
+var loadFromJavascript= function( moduleName ) {
+    if( modules[ moduleName ] ) {
+        return modules[ moduleName ];
     }
     var prefsBranch= prefs.getBranch( moduleName+'.' );
-    if( prefsBranch.prefHasUserValue(SeLiteSettings.MODULE_DEFINITION_FILE_OR_URL) ) {
-        var fileNameOrUrl= prefsBranch.getCharPref(SeLiteSettings.MODULE_DEFINITION_FILE_OR_URL);
+    if( prefsBranch.prefHasUserValue(MODULE_DEFINITION_FILE_OR_URL) ) {
+        var fileNameOrUrl= prefsBranch.getCharPref(MODULE_DEFINITION_FILE_OR_URL);
         var url;
         try {
             var file= new FileUtils.File(fileNameOrUrl);
@@ -794,13 +787,13 @@ SeLiteSettings.loadFromJavascript= function( moduleName ) {
     else {
         throw new Error( "Can't find module '" +moduleName+ "'.");
     }
-    if( !(moduleName in SeLiteSettings.modules) ) {
+    if( !(moduleName in modules) ) {
         throw new Error();
     }
-    return SeLiteSettings.modules[ moduleName ];
+    return modules[ moduleName ];
 };
 
-SeLiteSettings.moduleNamesFromPreferences= function( namePrefix ) {
+var moduleNamesFromPreferences= function( namePrefix ) {
     if( typeof namePrefix==='undefined' ) {
         namePrefix= '';
     }
@@ -814,8 +807,8 @@ SeLiteSettings.moduleNamesFromPreferences= function( namePrefix ) {
     
     for( var i=0; i<children.length; i++ ) {
         var child= namePrefix+ children[i];
-        if( child.endsWith(SeLiteSettings.MODULE_DEFINITION_FILE_OR_URL) ) {
-            var moduleNameLength= child.length-1-SeLiteSettings.MODULE_DEFINITION_FILE_OR_URL.length;
+        if( child.endsWith(MODULE_DEFINITION_FILE_OR_URL) ) {
+            var moduleNameLength= child.length-1-MODULE_DEFINITION_FILE_OR_URL.length;
             result.push( child.substring(0, moduleNameLength) );
         }
     }
@@ -824,4 +817,8 @@ SeLiteSettings.moduleNamesFromPreferences= function( namePrefix ) {
 
 loadingPackageDefinition= false;
 
-var EXPORTED_SYMBOLS= ['SeLiteSettings'];
+var EXPORTED_SYMBOLS= [
+    'SET_SELECTION_ROW', 'SELECTED_SET_NAME', 'FIELD_MAIN_ROW', 'OPTION_NOT_UNIQUE_CELL',
+    'OPTION_UNIQUE_CELL', 'FIELD_TREECHILDREN', 'NEW_VALUE_ROW',
+    'Field', 'Module', 'register', 'savePrefFile', 'moduleNamesFromPreferences', 'loadFromJavascript'
+];

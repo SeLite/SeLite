@@ -1,6 +1,7 @@
 "use strict";
 
-Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js");
+var SeLiteSettings= {};
+Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js", SeLiteSettings);
 
 var mainDb= new SeLiteSettings.Field.SQLite('mainDb');
 var bool= new SeLiteSettings.Field.Bool('aBooleanField', true);

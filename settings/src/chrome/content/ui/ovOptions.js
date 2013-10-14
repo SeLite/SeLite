@@ -24,7 +24,7 @@ var DELETE_THE_SET= "Delete the set";
 var ADD_NEW_VALUE= "Add a new value";
 var DELETE_THE_VALUE= "Delete the value";
 
-/** @param field Instance of SeLiteSettings.Field.File or its subclass (SeLiteSettings.prototype.Field.SQLite)
+/** @param field Instance of Field.File or its subclass (Field.SQLite)
  *  @param tree
  *  @param row int 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
         var column= { value: null }; // value is instance of TreeColumn.
@@ -251,7 +251,7 @@ function generateTreeColumns( allowModules ) {
 }
 
 /** Sorted anonymous object serving as an associative array {
- *     string module name => SeLiteSettings.Module object
+ *     string module name => Module object
  *  }
  * */
 var modules= sortedObject(true);
@@ -259,15 +259,15 @@ var modules= sortedObject(true);
 /** Sorted object (anonymous in any other respect) serving as multi-level associative array {
     *   string module name => anonymous object {
     *      string set name (it may be an empty string) => sorted object {
-    *          one or none: SeLiteSettings.SET_SELECTION_ROW => <treerow> element/object for the row that has a set selection cell
+    *          one or none: SET_SELECTION_ROW => <treerow> element/object for the row that has a set selection cell
     *             - only if we show set sellection column and the module allows set selection
     *          zero or more: string field name (field is non-choice and single value) => <treerow> element/object for the row that has that field
     *          zero or more: string field name (the field is multivalue or a choice) => anonymous or sorted object {
     *             value fields (ones with keys that are not reserved) are sorted by key, but entries with reserved keys may be at any position
-    *             - one: SeLiteSettings.FIELD_MAIN_ROW => <treerow> element/object for the row that contains all options for that field
-    *             - one: SeLiteSettings.FIELD_TREECHILDREN => <treechildren> element/object for this field, that contains <treeitem><treerow> levels for each option
+    *             - one: FIELD_MAIN_ROW => <treerow> element/object for the row that contains all options for that field
+    *             - one: FIELD_TREECHILDREN => <treechildren> element/object for this field, that contains <treeitem><treerow> levels for each option
     *             - zero or more: string key => <treerow> element/object for the row that contains a value/option
-    *             - zero or one: SeLiteSettings.NEW_VALUE_ROW => <treerow> element/object for the row that contains a value that the user will only have to fill in
+    *             - zero or one: NEW_VALUE_ROW => <treerow> element/object for the row that contains a value that the user will only have to fill in
     *               (that is, a row dynamically created but with no value specified yet).
     *          }
            }
@@ -326,15 +326,15 @@ function subContainer( parent, fieldOrFields ) {
     return object;
 }
 
-/** @param module object of SeLiteSettings.Module
+/** @param module object of Module
  *  @param setName string set name; either '' if the module doesn't allow sets; otherwise it's a set name when at field level
  *  attribute for the <treerow> nodes, so that when we handle a click event, we know what field the node is for.
- *  @param field mixed, usually an object of a subclass of SeLiteSettings.Field. If rowLevel==RowLevel.MODULE or rowLevel==RowLevel.SET,
+ *  @param field mixed, usually an object of a subclass of Field. If rowLevel==RowLevel.MODULE or rowLevel==RowLevel.SET,
  *  then field is null. It's a field present in Preferences DB but not in module definition, then it's a string name of that field.
- *  Otherwise it must be an instance of a subclass of SeLiteSettings.Field.
+ *  Otherwise it must be an instance of a subclass of Field.
  *  @param string key 'key' (used as a trailing part of field option preference name);
- *  use for fields of SeLiteSettings.Field.Choice family and for multivalued fields only. For multivalued non-choice fields it should be the same
- *  as parameter value. If the field is of a subclass of SeLiteSettings.Field.Choice, then key and value may be different.
+ *  use for fields of Field.Choice family and for multivalued fields only. For multivalued non-choice fields it should be the same
+ *  as parameter value. If the field is of a subclass of Field.Choice, then key and value may be different.
  *  @param valueOrPair
  *  For single valued non-choice fields or fields not defined in module.fields[]
  *  it is the value/label of the field as shown. Ignored if  not applicable.
@@ -344,10 +344,10 @@ function subContainer( parent, fieldOrFields ) {
  *  } where
  *  - key serves as a trailing part of field option preference name)
  *  -- for multivalued non-choice fields it should be the same as valueItself
- *  -- if the field is of a subclass of SeLiteSettings.Field.Choice, then key and valueItself may be different.
+ *  -- if the field is of a subclass of Field.Choice, then key and valueItself may be different.
  *  - valueItself is the actual value/label as displayed
  *  @param rowLevel object of RowLevel
- *  @param optionIsSelected bool Whether the option is selected. Only used when rowLevel===RowLevel.OPTION and field instanceof SeLiteSettings.Field.Choice.
+ *  @param optionIsSelected bool Whether the option is selected. Only used when rowLevel===RowLevel.OPTION and field instanceof Field.Choice.
  *  @param isNewValueRow bool Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell.
  *  It still puts the new <treerow> element to treeRows[moduleName...], so that it can be updated/removed once the user fills in the value. Optional; false by default.
  *  @return object for a new element <treeitem> with one <treerow>
@@ -379,7 +379,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         : valueOrPair;
             
     if( field && typeof field!=='string' && !(field instanceof SeLiteSettings.Field) ) {
-        throw new Error( "Parameter field must be an instance of a subclass of SeLiteSettings.Field, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but it is "
+        throw new Error( "Parameter field must be an instance of a subclass of Field, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but it is "
             +(typeof field==='object' ? 'an instance of ' +field.constructor.name : typeof field)+ ': ' +field );
     }
     if( typeof optionIsSelected==='undefined' ) {
@@ -519,7 +519,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
 }
 
 /** @param node moduleChildren <treechildren>
- *  @param object module SeLiteSettings.Module
+ *  @param object module Module
  * */
 function generateSets( moduleChildren, module ) {
     var setNames= module.setNames();
@@ -672,7 +672,7 @@ function treeClickHandler( event ) {
                         clickedCell.setAttribute( 'editable', 'false');
                         for( var otherOptionKey in moduleRows[setName][field.name] ) { // de-select the previously selected value, make editable
                             
-                            if( SeLiteSettings.reservedNames().indexOf(otherOptionKey)<0 && otherOptionKey!==clickedOptionKey ) {
+                            if( SeLiteSettings.reservedNames.indexOf(otherOptionKey)<0 && otherOptionKey!==clickedOptionKey ) {
                                 var otherOptionRow= moduleRows[setName][field.name][otherOptionKey];
                                 
                                 var otherOptionCell= treeCell( otherOptionRow, RowLevel.CHECKBOX );
@@ -739,7 +739,7 @@ function treeClickHandler( event ) {
                         
                         var previouslyFirstValueRow= null;
                         for( var key in moduleRows[setName][field.name] ) {
-                            if( SeLiteSettings.reservedNames().indexOf(key)<0 ) {
+                            if( SeLiteSettings.reservedNames.indexOf(key)<0 ) {
                                 previouslyFirstValueRow= moduleRows[setName][field.name][key];
                                 if( !(previouslyFirstValueRow instanceof XULElement) || previouslyFirstValueRow.tagName!=='treerow' || previouslyFirstValueRow.parentNode.tagName!=='treeitem' ) {
                                     throw Error();
@@ -884,7 +884,7 @@ function setCellText( gatheredInfo, value ) {
         for( var otherKey in fieldTreeRows ) {
             debugOtherKeys.push( otherKey );
             // Following check also excludes SeLiteSettings.NEW_VALUE_ROW, because we don't want to compare it to real values. 
-            if( SeLiteSettings.reservedNames().indexOf(otherKey)<0 && field.compareValues(otherKey, value)>=0 ) {
+            if( SeLiteSettings.reservedNames.indexOf(otherKey)<0 && field.compareValues(otherKey, value)>=0 ) {
                 rowAfterNewPosition= fieldTreeRows[otherKey];
                 break;
             }
@@ -1015,7 +1015,8 @@ function createTreeChildren( parent ) {
 
 var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                               .getService(Components.interfaces.nsIPromptService);
-Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js");
+var SeLiteSettings= {};
+Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js", SeLiteSettings);
 Components.utils.import("resource://gre/modules/Services.jsm");
 var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
 var nsIIOService= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);    

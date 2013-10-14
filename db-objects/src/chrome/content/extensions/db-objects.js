@@ -803,8 +803,8 @@ DbRecordSetHolder.prototype.put= function() {
     }
 };
 
-DbRecordSetHolder.prototype.delete= function() {
+DbRecordSetHolder.prototype.delete= function() { throw "TODO";
 };
 
-DbRecordSetHolder.prototype.replace= function() {
+DbRecordSetHolder.prototype.replace= function() {throw 'todo';
 };
