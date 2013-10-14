@@ -1,4 +1,4 @@
-/*  Copyright 2011, 2012 Peter Kehl
+/*  Copyright 2011, 2012, 2013 Peter Kehl
     This file is part of SeLite DbStorage.
 
     SeLite DB Storage is free software: you can redistribute it and/or modify
@@ -26,18 +26,18 @@ Components.utils.import("chrome://selite-sqlite-connection-manager/content/Sqlit
  *  but the code is procedural. The reason to have it as an object is not to
  *  have name clashes with functions in other files. See SeLite DB Objects for OOP layer on top of this.
  **/
-function DbStorage() {
-    this.dbParameters= new SQLiteConnectionParameters();
-    this.dbParameters.errorHandler= alert;
-    this.dbConnection= null;
+function Storage() {
+    this.parameters= new SQLiteConnectionParameters();
+    this.parameters.errorHandler= alert;
+    this.connection= null;
 }
 
-/** Open a new SQLite connection, as specified in dbParameters. Set it as the connection for this object.
- * Note: if you use dbConnection.clone(), it won't inherit PRAGMA locking_mode
+/** Open a new SQLite connection, as specified in parameters. Set it as the connection for this object.
+ * Note: if you use connection.clone(), it won't inherit PRAGMA locking_mode
  * @return the new connection
  */
-DbStorage.prototype.dbOpen= function() {
-    this. dbConnection= this.dbParameters.connect();
+Storage.prototype.open= function() {
+    this.connection= this.parameters.connect();
 }
 
 /** This gets the list of result column names (e.g. names after the last space, if present; otherwise after the last dot, if present)
@@ -46,15 +46,15 @@ DbStorage.prototype.dbOpen= function() {
  *  @return array of strings
  *  For internal use only.
  **/
-DbStorage.prototype.dbFieldNames= function( columnParts ) {
+Storage.prototype.fieldNames= function( columnParts ) {
     var result= [];
     for( var i=0; i<columnParts.length; i++ ) {
-        result[i]= this.dbFieldName( columnParts[i] );
+        result[i]= this.fieldName( columnParts[i] );
     }
     return result;
 }
 
-DbStorage.prototype.dbFieldName= function( columnPart ) {
+Storage.prototype.fieldName= function( columnPart ) {
     var result= columnPart.trim();
     var lastSpaceIndex= result.lastIndexOf(' ');
     if( lastSpaceIndex>0 ) {
@@ -76,7 +76,7 @@ DbStorage.prototype.dbFieldName= function( columnPart ) {
 /** This collects fields from within SELECT... FROM part of the given query.
  *  For internal use only.
  **/
-DbStorage.prototype.dbFieldParts= function( query ) {
+Storage.prototype.fieldParts= function( query ) {
     // Make lowercase. Make one or more whitespaces be a single space - so that we can locate 'select' and 'from' etc. easily.
     query= query.toLowerCase().replace( /\s+/g, ' ');
     var selectStart= query.indexOf( 'select ');
@@ -116,7 +116,7 @@ DbStorage.prototype.dbFieldParts= function( query ) {
 /** @return string SQL condition containing the given first and second condition(s), whichever of them is present.
  *   This doesn't put oval parenthesis around the condition parts.
  **/
-DbStorage.prototype.sqlAnd= function( first, second ) {
+Storage.prototype.sqlAnd= function( first, second ) {
     var firstIsSet= first || first===0;
     var secondIsSet= second || second===0;
     if( firstIsSet ) {
@@ -138,16 +138,16 @@ DbStorage.prototype.sqlAnd= function( first, second ) {
  *  @return array of objects, one per DB row, each having DB column names as fields; empty array if no matching rows
  *  @throws error on failure
  **/
-DbStorage.prototype.dbSelect= function( query, fields, bindings ) {
+Storage.prototype.select= function( query, fields, bindings ) {
     bindings= bindings || {};
     if( !fields ) {
-        fields= dbFieldNames( dbFieldParts( query ) );
+        fields= fieldNames( fieldParts( query ) );
     }
-    var stmt= this.dbConnection.createStatement( query );
+    var stmt= this.connection.createStatement( query );
     for( var field in bindings ) {
         try { stmt.params[field]= bindings[field]; }
         catch(e) {
-            throw 'dbSelect(): Cannot set field "' +field+ '" to value "' +bindings[field]+ '" - SQLite/schema limitation.';
+            throw 'select(): Cannot set field "' +field+ '" to value "' +bindings[field]+ '" - SQLite/schema limitation.';
         }
     }
     var result= [];
@@ -171,12 +171,12 @@ DbStorage.prototype.dbSelect= function( query, fields, bindings ) {
 
 /** It selects 1 row from the DB. If there are no such rows, or more than one, then it throws an error.
  *  @param string query full SQL query
- *  @param array fields Optional (unless you use SELECT * etc.); see the same parameter of dbSelect().
+ *  @param array fields Optional (unless you use SELECT * etc.); see the same parameter of select().
  *  @return Associative array (i.e. object) for the row.
  *  @throws error on failure
  **/
-DbStorage.prototype.dbSelectOne= function( query, fields, bindings ) {
-    var rows= this.dbSelect( query, fields, bindings );
+Storage.prototype.selectOne= function( query, fields, bindings ) {
+    var rows= this.select( query, fields, bindings );
     if( rows.length!=1 ) {
         throw "Query \"" +query+"\" was supposed to return one result, but it returned " +rows.length+ " of them.";
     }
@@ -184,16 +184,16 @@ DbStorage.prototype.dbSelectOne= function( query, fields, bindings ) {
 }
 
 /** @param string query SQL query
- *  @param object bindings Optional; see dbSelect()
+ *  @param object bindings Optional; see select()
  *  @return void
  *  @throws error on failure
  **/
-DbStorage.prototype.dbExecute= function( query, bindings ) {
+Storage.prototype.execute= function( query, bindings ) {
     if( bindings==null ) {
-        this.dbConnection.executeSimpleSQL( query );
+        this.connection.executeSimpleSQL( query );
     }
     else {
-        var stmt= this.dbConnection.createStatement( query );
+        var stmt= this.connection.createStatement( query );
         for( var field in bindings ) {
             stmt.params[field]= bindings[field];
         }
@@ -202,12 +202,12 @@ DbStorage.prototype.dbExecute= function( query, bindings ) {
 }
 
 /** Get one record from the DB.
- * @param object params Object just like the same-called parameter for dbGetRecords()
+ * @param object params Object just like the same-called parameter for getRecords()
  * @return object of the DB record
  * @throws error on failure, or if no such record, or if more than 1 matching record
  **/
-DbStorage.prototype.dbGetRecord= function( params ) {
-    var records= this.dbGetRecords( params );
+Storage.prototype.getRecord= function( params ) {
+    var records= this.getRecords( params );
     if( records.length!=1 ) {
         throw "Expected to find one matching record in DB, but found " +records.length+ " of them.";
     }
@@ -247,7 +247,7 @@ DbStorage.prototype.dbGetRecord= function( params ) {
  *   debugResult: optional, use true if you'd like it to show the result in a popup
  * }
  **/
-DbStorage.prototype.dbGetRecords= function( params ) {
+Storage.prototype.getRecords= function( params ) {
     var parameterNames= params.parameterNames || {};
     if( typeof params.columns=='string' ) {
         var columnsString= params.columns;
@@ -271,15 +271,15 @@ DbStorage.prototype.dbGetRecords= function( params ) {
             else
             if( params.columns[column]===true || params.columns[column]===1 ) {
                 columnsString+= column;
-                columnsList.push( this.dbFieldName(column) );
+                columnsList.push( this.fieldName(column) );
             }
             else {
-                throw new Error( "dbGetRecords(): column '" +column+ "' has an unsupported non-string alias " +params.columns[column] );
+                throw new Error( "getRecords(): column '" +column+ "' has an unsupported non-string alias " +params.columns[column] );
             }
         }
     }
     else throw new Error( "params.columns not recognised" );
-    columnsList= this.dbFieldNames( columnsList );
+    columnsList= this.fieldNames( columnsList );
     var query= "SELECT " +columnsString+ " FROM " +params.table;
 
     if( typeof params.joins !=='undefined' ) {
@@ -305,7 +305,7 @@ DbStorage.prototype.dbGetRecords= function( params ) {
             matchedValue= typeof matchedValue==='string' && matchedValue.length>1
                 && matchedValue[0]===':' && parameterNames.indexOf(matchedValue.substr(1))>=0
                 ? matchedValue // Don't quote SQLite parameters :xyz - SQLite will escape & quote automatically
-                : this.dbQuote( matchedValue );
+                : this.quote( matchedValue );
             if( matchedValue!==null ) {
                 conditionParts.push( field+ '=' +matchedValue );
             }
@@ -330,7 +330,7 @@ DbStorage.prototype.dbGetRecords= function( params ) {
         alert( query );
     }
 
-    var result= this.dbSelect( query, columnsList, params.parameters );
+    var result= this.select( query, columnsList, params.parameters );
     if( typeof params.debugResult!=='undefined' && params.debugResult ) {
         alert( rowsToString(result) );
     }
@@ -356,25 +356,25 @@ DbStorage.prototype.dbGetRecords= function( params ) {
  * @return void
  * @throws an error on failure
  **/
-DbStorage.prototype.dbUpdateRecords= function( params ) {
+Storage.prototype.updateRecords= function( params ) {
     var fieldsToProtect= typeof params.fieldsToProtect!=='undefined'
         ? params.fieldsToProtect
         : [];
-    var entries= this.dbQuoteValues( params.entries, fieldsToProtect );
+    var entries= this.quoteValues( params.entries, fieldsToProtect );
 
     var setPairs= [];
     for( var field in entries ) {
         setPairs.push( field+ '=' +entries[field] );
     }
     if( !setPairs.length ) {
-        LOG.error( 'dbUpdateRecords() requires params.entries not to be empty.' );
+        LOG.error( 'updateRecords() requires params.entries not to be empty.' );
     }
     var query= "UPDATE " +params.table+ " SET " +setPairs.join(', ');
 
     var conditionParts= [];
     if( typeof params['matching'] !=='undefined' ) {
         for( var field in params.matching ) {
-            conditionParts.push( field+ '=' +this.dbQuote( params.matching[field] ) );
+            conditionParts.push( field+ '=' +this.quote( params.matching[field] ) );
         }
     }
     if( typeof params['condition'] !=='undefined' && params['condition']!=='' && params['condition']!=null ) {
@@ -387,7 +387,7 @@ DbStorage.prototype.dbUpdateRecords= function( params ) {
     if( typeof params.debugQuery!=='undefined' && params.debugQuery ) {
         alert( query );
     }
-    var stmt= this.dbConnection.createStatement( query );
+    var stmt= this.connection.createStatement( query );
     stmt.execute();
 }
 
@@ -407,16 +407,16 @@ DbStorage.prototype.dbUpdateRecords= function( params ) {
  * @return void
  * @throws an error on failure
  */
-DbStorage.prototype.dbUpdateRecordByPrimary= function( params ) {
+Storage.prototype.updateRecordByPrimary= function( params ) {
     var primaryKey= params.primary || 'id';
     var copiedParams= objectClone( params, ['table', 'entries', 'fieldsToProtect', 'debugQuery'], ['table', 'entries'] );
     if( typeof copiedParams.entries[primaryKey] ==='undefined' ) {
-        throw new Error( "dbUpdateRecordByPrimary(): params.entries." +primaryKey+ " is not set." );
+        throw new Error( "updateRecordByPrimary(): params.entries." +primaryKey+ " is not set." );
     }
     copiedParams.entries= objectClone( copiedParams.entries );
     copiedParams.matching= new Settable().set( primaryKey, copiedParams.entries[primaryKey] );
     delete copiedParams.entries[primaryKey];
-    this.dbUpdateRecords( copiedParams );
+    this.updateRecords( copiedParams );
 }
 
 /** Delete a record in the DB, matching it by the given field and its value.
@@ -424,9 +424,9 @@ DbStorage.prototype.dbUpdateRecordByPrimary= function( params ) {
  * @return void
  * @throws an error on failure
  */
-DbStorage.prototype.dbDeleteRecordByPrimary= function( table, field, value ) {
-    var query= "DELETE FROM " +table+ " WHERE " +field+ "=" +this.dbQuote(value);
-    var stmt= this.dbConnection.createStatement( query );
+Storage.prototype.deleteRecordByPrimary= function( table, field, value ) {
+    var query= "DELETE FROM " +table+ " WHERE " +field+ "=" +this.quote(value);
+    var stmt= this.connection.createStatement( query );
     stmt.execute();
 }
 
@@ -444,11 +444,11 @@ DbStorage.prototype.dbDeleteRecordByPrimary= function( table, field, value ) {
  * @return void
  * @throws an error on failure
  */
-DbStorage.prototype.dbInsertRecord= function( params ) {
+Storage.prototype.insertRecord= function( params ) {
     var fieldsToProtect= typeof params.fieldsToProtect!=='undefined'
         ? params.fieldsToProtect
         : [];
-    var entries= this.dbQuoteValues( params.entries, fieldsToProtect );
+    var entries= this.quoteValues( params.entries, fieldsToProtect );
     var columns= [];
     var values= [];
     for( var field in entries ) {
@@ -460,7 +460,7 @@ DbStorage.prototype.dbInsertRecord= function( params ) {
     if( typeof params.debugQuery!=='undefined' && params.debugQuery ) {
         alert( query );
     }
-    var stmt= this.dbConnection.createStatement( query );
+    var stmt= this.connection.createStatement( query );
     stmt.execute();
 }
 
@@ -474,30 +474,31 @@ DbStorage.prototype.dbInsertRecord= function( params ) {
  *  @param string column Name of the column; optional - 'id' by default
  *  @return value of 'id' (or requested) column
 */
-DbStorage.prototype.dbLastInsertId= function( table, column ) {
+Storage.prototype.lastInsertId= function( table, column ) {
     column= column || 'id';
     var query= "SELECT " +column+ " FROM " +table+ " WHERE rowid=last_insert_rowid()";
-    var record= this.dbSelectOne( query, [column] );
+    var record= this.selectOne( query, [column] );
     return record[column];
 }
 
 /** This adds enclosing apostrophes and doubles any apostrophes in the given value, if it's a string.
  *  <br>It does add enclosing apostrophes around Javascript strings "null" or "NULL" etc! So use Javascript null instead.
- *  <br>For Javascript null, it returns unqouted string 'NULL'. That way we can pass values part of the result of dbQuoteValues()
+ *  <br>For Javascript null, it returns unqouted string 'NULL'. That way we can pass values part of the result of quoteValues()
  *  (which returns an array of quoted items) through Array.join(). Otherwise, if we kept Javascript null values as they were,
- *  we couldn't use Array.join(), because it uses empty strings for Javascript nulls! See functions that call dbQuoteValues().
+ *  we couldn't use Array.join(), because it uses empty strings for Javascript nulls! See functions that call quoteValues().
  */
-DbStorage.prototype.dbQuote= function( value ) {
+Storage.prototype.quote= function( value ) {
     if( value===null ) {
         return 'NULL';
     }
-    if( typeof value !="string" ) { //@TODO instanceof Array => quote each of them? Or do it in db_objects?
+    if( typeof value !="string" ) { // This allows numbers and SqlExpression instances to be unquoted. Note that objects will be transformed via toString() and unquoted.
+        //@TODO instanceof Array => quote each of them? Or do it in db_objects?
         return ''+value;
     }
     return "'" +value.replace( "'", "''" )+ "'";
 }
 
-/** Use instances of SqlExpression so that they don't get quoted/escaped by dbQuote() and dbQuoteValues().
+/** Use instances of SqlExpression so that they don't get quoted/escaped by quote() and quoteValues().
  **/
 function SqlExpression( string ) {
     this.string= string;
@@ -506,20 +507,20 @@ SqlExpression.prototype.toString= function() {
     return this.string;
 };
 
-/** This adds enclosing apostrophes and doubles any apostrophes in values in entries for SQLite. See dbQuote() for details on escaping.
+/** This adds enclosing apostrophes and doubles any apostrophes in values in entries for SQLite. See quote() for details on escaping.
  *  @param mixed entries it can be an array (created using new Array() or [...]), or an object {...} serving as an associative array
  *  @param array fieldsToProtect Optional array of strings, which are field (column) names for fields that shouldn't be quoted. Use it
  *  if passing SQL expressions for their values. fieldToProtect has only effect if entries is an object.
  *  @return new array or object, based on the original, with the treated values. Original array/object is not modified.
  **/
-DbStorage.prototype.dbQuoteValues= function( entries, fieldsToProtect ) {
+Storage.prototype.quoteValues= function( entries, fieldsToProtect ) {
     if( typeof entries !='object' ) {
-        throw "dbQuoteValues(): parameter should be an object or array, but it was " +values;
+        throw "quoteValues(): parameter should be an object or array, but it was " +values;
     }
     if( entries instanceof Array ) {
         var result= [];
         for( var i=0; i<entries.length; i++ ) {
-            result[i]= this.dbQuote( entries[i] );
+            result[i]= this.quote( entries[i] );
         }
     }
     else {
@@ -530,7 +531,7 @@ DbStorage.prototype.dbQuoteValues= function( entries, fieldsToProtect ) {
                 result[field]= entries[field];
             }
             else {
-                result[field]= this.dbQuote( entries[field] );
+                result[field]= this.quote( entries[field] );
             }
         }
     }
@@ -550,3 +551,4 @@ DbStorage.prototype.dbQuoteValues= function( entries, fieldsToProtect ) {
  *  and https://developer.mozilla.org/en/mozIStorageRow
  *  - handleResult() callback may be called several times per same statement!
  */
+var EXPORTED_SYMBOLS= ['Storage'];

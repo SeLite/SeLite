@@ -808,3 +808,5 @@ DbRecordSetHolder.prototype.delete= function() { throw "TODO";
 
 DbRecordSetHolder.prototype.replace= function() {throw 'todo';
 };
+
+var EXPORTED_SYMBOLS= [];
