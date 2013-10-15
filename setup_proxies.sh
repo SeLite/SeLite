@@ -67,12 +67,6 @@ then
   pwd > $EXTENSION_FOLDER/misc@selite.googlecode.com
 fi
 
-if [ ! -e $EXTENSION_FOLDER/db-storage\@selite.googlecode.com.xpi ]
-then
-  cd ../../db-storage/src
-  pwd > $EXTENSION_FOLDER/db-storage@selite.googlecode.com
-fi
-
 if [ ! -e $EXTENSION_FOLDER/db-objects\@selite.googlecode.com.xpi ]
 then
   cd ../../db-objects/src

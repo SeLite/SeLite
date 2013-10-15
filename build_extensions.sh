@@ -20,9 +20,6 @@ zip -r ../../xpi/extension-sequencer.xpi *
 cd ../../db-objects/src
 zip -r ../../xpi/db-objects.xpi *
 
-cd ../../db-storage/src
-zip -r ../../xpi/db-storage.xpi *
-
 cd ../../misc/src
 zip -r ../../xpi/misc.xpi *
 
