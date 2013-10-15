@@ -31,6 +31,29 @@ function ensure( condition, message ) {
     }
 }
 
+function ensureOneOf( item, choices, message ) {
+    if( !(choices instanceof Array) ) {
+        throw new Error( 'ensureOneOf() expects choices to be an array');
+    }
+    ensure( choices.indexOf(item)>=0, message );
+}
+
+function ensureType( item, typeStringOrStrings, message ) {
+    if( !(typeStringOrStrings instanceof Array) && typeof typeStringOrStrings!=='string' ) {
+        throw new Error( 'typeStringOrStrings must be a string or an array');
+    }
+    if( !(typeStringOrStrings instanceof Array) ) {
+        typeStringOrStrings= [typeStringOrStrings];
+    }
+    for( var i=0; i<typeStringOrStrings.length; i++ ) {
+        ensureOneOf( typeStringOrStrings[i], ['number', 'string', 'object', 'function', 'undefined'] );
+        if( typeof item===typeStringOrStrings[i] ) {
+            return;
+        }
+    }
+    ensure( false, message );
+}
+
 /** Validate that a parameter is an object and of a given class (or of one of given classes).
  *  @param object Object
  *  @param classes Class (that is, a constructor function), or an array of them
@@ -757,8 +780,9 @@ function objectValueToField( obj, value, strict ) {
  *  chosen column (field) values may not be unique, then it returns the entries (objects/row) within
  *  an extra enclosing array, one per each key value - even if there is just one object/row for any key value.
  *  @param array of objects or an object (serving as an associative array) of objects (or of arrays of objects);
- *  it can be a result of dbSelect() or a previous result of collectByColumn().
- *  It implies that any actual values must not be arrays themselves, because they would be
+ *  it can be a result of SeLite DB Objects - select() or a previous result of collectByColumn().
+ *  Therefore any actual values must not be arrays themselves, because then you and
+ *  existing consumers of result from this function couldn't tell them from the subindexed arrays.
  *  @param mixed columnorfieldname String name of the index key or object field, that we'll index by;
  *  or a function that returns value of such a field/key. The function accepts 1 argument which is the object to be indexed.
  *  @param bool columnvaluesunique whether the given column (field) is guaranteed to have unique values
@@ -789,7 +813,7 @@ function objectValueToField( obj, value, strict ) {
  *     ...
  *  }
  *  The result can't be an array, because Javascript arrays must have consecutive
- *  non-negative integer index range. Our data doesn't fit that.
+ *  non-negative integer index range. General data doesn't fit that.
  */
 function collectByColumn( records, columnorfieldname, columnvaluesunique,
 subindexcolumnorfieldname, result ) {
@@ -844,7 +868,9 @@ subindexcolumnorfieldname ) {
     }
     else {
         if( typeof result[columnvalue] =='undefined' ) {
-            result[columnvalue]= subindexcolumnorfieldname ? new RecordGroup() : [];
+            result[columnvalue]= subindexcolumnorfieldname
+                ? new RecordGroup()
+                : [];
         }
         if( subindexcolumnorfieldname ) {
             var subindexvalue= getField(record, subindexcolumnorfieldname);
@@ -1044,7 +1070,8 @@ function loginManagerPassword( hostname, username ) {
     }
     return null;
 }
-var EXPORTED_SYMBOLS= [ "item", "itemOrNull", "itemGeneric", "objectToString",
+var EXPORTED_SYMBOLS= [ "ensure", "ensureOneOf", "ensureType", "ensureInstance",
+    "item", "itemOrNull", "itemGeneric", "objectToString",
     //"objectFieldToString",
      "rowsToString", "timestampInSeconds", "isEmptyObject",
     "objectsMerge", "objectCopyFields", "objectClone", "objectDeleteFields",

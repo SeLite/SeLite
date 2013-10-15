@@ -526,7 +526,7 @@ function recordSetReplace( recordSet ) {
     return recordSetHolder(recordSet).replace();
 }*/
 
-/** @param mixed recordSetOrArray An array of the target records; or a RecordSet instance,
+/** @param mixed recordSet A RecordSet instance
  *  or some other object serving as an associative array,
  *  potentially a result of collectByColumn(), even if it used sub-indexing
  *  (but then the records must be instances of Record - which is so by default;
@@ -535,23 +535,23 @@ function recordSetReplace( recordSet ) {
  *  @return object the leaf record
  *  @throws Exception if position is negative, decimal or higher than the last available position
  **/
-function nthRecord( recordSetOrArray, position ) {
+function nthRecord( recordSet, position ) {
     ensure( position>=0, "nthRecord() requires non-negative position, but it was: " +position);
-    return nthRecordOrLengthOrPositionOf( recordSetOrArray, position );
+    return nthRecordOrLengthOrIndexesOf( recordSet, NTH_RECORD, position );
 }
 
-/** @param mixed recordSetOrArray An array of the target records; or a RecordSet instance,
+/** @param mixed recordSet A RecordSet instance,
  *  or some other object serving as an associative array,
  *  potentially a result of collectByColumn(), even if it used sub-indexing
  *  (but then the records must be instances of Record - which is so by default;
  *  otherwise the subindexed groups (objects serving as associative arrays) couldn't be differentiated from target objects/records).
  *  @int number of leaf records
  */
-function numberOfRecords( recordSetOrArray ) {
-    return nthRecordOrLengthOrPositionOf( recordSetOrArray, -1 );
+function numberOfRecords( recordSet ) {
+    return nthRecordOrLengthOrIndexesOf( recordSet, NUMBER_OF_RECORDS );
 }
 
-/** @param mixed recordSetOrArray An array of the target records; or a RecordSet instance,
+/** @param mixed recordSet A RecordSet instance,
  *  or some other object serving as an associative array,
  *  potentially a result of collectByColumn(), even if it used sub-indexing
  *  (but then the records must be instances of Record - which is so by default;
@@ -559,94 +559,109 @@ function numberOfRecords( recordSetOrArray ) {
  *  @param record object, record to search for.
  *  @return int 0-based index of that record if found,-1 otherwise.
  */
-function indexOfRecord( recordSetOrArray, record ) {
-    ensureInstance( record, Record, 'Record');
-    return nthRecordOrLengthOrPositionOf( recordSetOrArray, record );
+function indexesOfRecord( recordSet, record ) {
+    return nthRecordOrLengthOrIndexesOf( recordSet, INDEXES_OF_RECORD, record );
 }
 
-/** @private Implementation of nthRecord() and numberOfRecords()
- *  @param mixed recordSetOrArray just like the same parameter in nthRecord() and numberOfRecords()
+/** Acceptable values of parameter action for nthRecordOrLengthOrIndexesOf()
+ * */
+var NTH_RECORD= 'NTH_RECORD', NUMBER_OF_RECORDS='NUMBER_OF_RECORDS', INDEXES_OF_RECORD= 'INDEXES_OF_RECORD';
+
+/** @private Implementation of nthRecord() and numberOfRecords() and indexesOfRecord(). Multi-purpose function
+ *  that iterates over indexed (and optionally sub-indexed) records.
+ *  @param mixed recordSet just like the same parameter in nthRecord() and numberOfRecords()
+ *  @param string action Determines the purpose and behavious of calling this function. action must be one of:
+ *  NTH_RECORD, NUMBER_OF_RECORDS, INDEXES_OF_RECORD.
  *  @param mixed positionOrRecord Either
- *  -- int like the same parameter in nthRecord(). Extension: If it's negative here, then
- *     this returns number of leaf objects, rather the object at this position. Or
- *  -- object, record to search for. Then this function returns 0-based index of that record if found,-1 otherwise.
+ *  -- number, 0-based position across the indexed or indexed and subindexed tree, as iterated by Javascript
+ *  (which doesn't guarantee same order on every invocation); or
+ *  -- object, record to search for
+ *  @return mixed
+ *  -- if action==NTH_RECORD then it returns a record at that position
+ *  -- if action==NUMBER_OF_RECORDS, then it returns a total number of records
+ *  -- if action==INDEXES_OF_RECORD, then it returns an array with indexes of the give nrecord, if found. Precisely:
+ *  --- [index, subindex] if the record is found and subindexed
+ *  --- [index] if the record is found and indexed, but not subindexed
+ *  --- [] if the record is not found
+ *  @throws Error on failure, or if action=NTH_RECORD and positionOrRecord is equal to or higher than number of records
  **/
-function nthRecordOrLengthOrPositionOf( recordSetOrArray, positionOrRecord ) {
-    ensureInstance( recordSetOrArray, [RecordSet, Array], 'RecordSet or Array');
-    typeof positionOrRecord==='number' || ensureInstance(positionOrRecord, Record, 'Record', 'positionOrRecord must be a number, or an instance of Record.');
+function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
+    ensureType( recordSet, 'object', 'recordSet must be an object');
+    ensureType( positionOrRecord, ['number', 'object', 'undefined'], 'positionOrRecord must be a number, or an object or undefined.');
+    ensureOneOf( action, [NTH_RECORD, NUMBER_OF_RECORDS, INDEXES_OF_RECORD], 'nthRecordOrLengthOrIndexesOf() called with wrong parameter action' );
     
-    var searchByRecord= typeof positionOrRecord==='object';
-    if( !searchByRecord && positionOrRecord!=Math.round(positionOrRecord) ) {
-        throw new Error( "nthRecordOrLengthOrPositionOf() requires non-decimal position, but it was: " +position);
+    // Following three booleans reflect what we're doing.
+    var nthRecord= action===NTH_RECORD;
+    var indexesOfRecord= action===INDEXES_OF_RECORD;
+    var numberOfRecords= action===NUMBER_OF_RECORDS;
+    
+    var position= nthRecord
+        ? positionOrRecord
+        : undefined;
+    var record= indexesOfRecord  
+        ? positionOrRecord
+        : undefined;
+    
+    ensureType( record, ['object', 'undefined'] );
+    ensureType( position, ['number', 'undefined'] );
+    
+    if( nthRecord && (position<0 || position!=Math.round(position) ) ) {
+        throw new Error( "nthRecordOrLengthOrIndexesOf() requires non-decimal non-negative position, but it was: " +position);
     }
-    var returnRecord= !searchByRecord && positionOrRecord>=0;
-    if( recordSetOrArray instanceof Array ) {
-        if( searchByRecord ) {
-            return recordSetOrArray.indexOf( positionOrRecord );
-        }
-        if( !returnRecord ) {
-            return recordSetOrArray.length;
-        }
-        if( positionOrRecord<recordSetOrArray.length ) {
-            return recordSetOrArray[positionOrRecord];
-        }
-        throw new Error( 'nthRecord(): There is no item at position ' +positionOrRecord+
-            ' (starting from 0). The highest position is ' +recordSetOrArray.length-1 );
-    }
-    var currPosition= 0;
-    for( var index in recordSetOrArray ) {
-        var entry= recordSetOrArray[index];
-        if( entry instanceof Record ) { //@TODO Do this the other way - !(instanceof SPECIAL-CLASS). Then move it to shared.js. Use that special class in collectByColumn() as a constructor of THE SUBINDEXED GROUPS
-            if( /*searchByRecord &&*/ entry===positionOrRecord ) {
-                return currPosition;
-            }
-            if( currPosition===positionOrRecord ) {
-                return entry;
-            }
-            currPosition++;
-        }
-        else
+    var currPosition= 0; // only used when nthRecord is true
+    for( var index in recordSet ) {
+        var entry= recordSet[index];
         if( entry instanceof Array ) {
-            if( searchByRecord ) {
-                var foundSubPosition= recordSetOrArray.indexOf( positionOrRecord );
+            if( indexesOfRecord ) {
+                var foundSubPosition= recordSet.indexOf( record );
                 if( foundSubPosition>=0 ) {
-                    return currPosition+foundSubPosition;
+                    return [index, foundSubPosition];
                 }
             }
             else
-            if( returnRecord && positionOrRecord-currPosition <entry.length ) {
-                return entry[ positionOrRecord-currPosition ];
+            if( nthRecord && position-currPosition<entry.length ) {
+                return entry[ position-currPosition ];
             }
             currPosition+= entry.length;
         }
-        else {
+        else
+        if( entry instanceof RecordGroup ) {
             for( var subindex in entry ) {
-                if( /*searchByRecord && */entry[subindex]==positionOrRecord ) {
-                    return currPosition;
+                if( indexesOfRecord && entry[subindex]==record ) {
+                    return [index, subindex];
                 }
-                if( currPosition==positionOrRecord ) {
+                if( nthRecord && currPosition==position ) {
                     return entry[subindex];
                 }
                 currPosition++;
             }
         }
+        else {
+            if( indexesOfRecord && entry===positionOrRecord ) {
+                return [index];
+            }
+            if( nthRecord && currPosition===positionOrRecord ) {
+                return entry;
+            }
+            currPosition++;
+        }
     }
-    if( searchByRecord ) {
-        return -1;
+    if( indexesOfRecord ) {
+        return [];
     }
     else
-    if( !returnRecord ) {
+    if( numberOfRecords ) {
         return currPosition;
     }
     else {
-        throw new Error( 'nthRecord(): There is no item at position ' +positionOrRecord+
+        throw new Error( 'nthRecordOrLengthOrIndexesOf(): There is no item at position ' +position+
             ' (starting from 0). The highest position is ' +currPosition );
     }
 }
 
-function randomRecord( recordSetOrArray ) {
-    var numRecords= numberOfRecords( recordSetOrArray );
-    return nthRecord( recordSetOrArray, Math.round( Math.random()*(numRecords-1) ) );
+function randomRecord( recordSet ) {
+    var numRecords= numberOfRecords( recordSet );
+    return nthRecord( recordSet, Math.round( Math.random()*(numRecords-1) ) );
 }
 
 /** @param object formula instance of RecordSetFormula
@@ -794,7 +809,7 @@ RecordSetHolder.prototype.update= function() { throw new Error( "@TODO if need b
 RecordSetHolder.prototype.removeRecordHolder= function( recordHolder ) {
     var primaryKeyValue= recordHolder.record[this.formula.table.primary];
     delete this.holders[ primaryKeyValue ];
-    delete this.records[ indexOfRecord(this.records, recordHolder.record) ]; //@TODO This doesn't work if multi-indexed! Then we also need to delete 1st level index, if there are no subentries left.
+    delete this.records[ indexesOfRecord(this.records, recordHolder.record) ]; //@TODO This doesn't work if multi-indexed! Then we also need to delete 1st level index, if there are no subentries left.
     delete this.originals[ primaryKeyValue ];
     delete this.markedToRemove[ primaryKeyValue ];
 };
