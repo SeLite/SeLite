@@ -1,7 +1,8 @@
 Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
 SeLiteExtensionSequencer.registerPlugin( {
     pluginId: 'db-objects@selite.googlecode.com',
-    // This plugin doesn't use coreUrl: 'chrome://selite-db-objects/content/db-objects.js'
+    // This plugin doesn't use coreUrl: 'chrome://selite-db-objects/content/db-storage.js' and
+    // 'chrome://selite-db-objects/content/db-objects.js'
     // because we don't want to flood Selenium namespace. If a user wants to use this directly,
     // they can use Components.utils.import() in their Core extensions.
     requisitePlugins: {

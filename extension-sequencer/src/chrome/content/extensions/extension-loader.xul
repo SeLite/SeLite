@@ -89,15 +89,15 @@
                     // I register the plugin even if it has no url. That way it
                     // will be listed in Selenium IDE > Options > Options > Plugins.
                     ide_api.addPlugin(pluginId);
-                    if( plugin.ideUrl ) {
-                        ide_api.addPluginProvidedIdeExtension( plugin.ideUrl );
+                    for( var j=0; j<plugin.ideUrl.length; j++ ) {
+                        ide_api.addPluginProvidedIdeExtension( plugin.ideUrl[j] );
                     }
-                    if( plugin.coreUrl ) {
-                        if( plugin.xmlUrl ) {
-                            ide_api.addPluginProvidedUserExtension( plugin.coreUrl, plugin.xmlUrl );
+                    for( var j=0; j<plugin.coreUrl.length; j++ ) {
+                        if( j<plugin.xmlUrl.length ) {
+                            ide_api.addPluginProvidedUserExtension( plugin.coreUrl[j], plugin.xmlUrl[j] );
                         }
                         else {
-                            ide_api.addPluginProvidedUserExtension( plugin.coreUrl );
+                            ide_api.addPluginProvidedUserExtension( plugin.coreUrl[j] );
                         }
                     }
                     if( plugin.callBack ) {

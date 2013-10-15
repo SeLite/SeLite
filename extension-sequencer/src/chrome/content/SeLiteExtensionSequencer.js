@@ -27,9 +27,11 @@ SeLiteExtensionSequencer.plugins= {};
  *  initiated by SeLiteExtensionSequencer later, in a proper sequence - after any dependencies.
  *  @param prototype Anonymous object in form {
  *      pluginId: string, unique id of the Firefox plugin (often in a format of an email address)
- *      coreUrl: string, optional - for Core extensions only; usually a chrome:// url,
- *      xmlUrl: string, optional - for Core extensions only, used only if coreUrl is also set; usually a chrome:// url,
- *      ideUrl: string, optional - for IDE extensions only; usually a chrome:// url,
+ *      coreUrl: string, or array of strings, optional - for Core extensions only; usually a chrome:// url,
+ *      xmlUrl: string, or array of strings, optional - for Core extensions only, used only if coreUrl is also set; usually a chrome:// url;
+ *          if it's an array, then it must have the same number of entries as coreUrl (but the mey be null/false), and they will be
+ *          treated in the respective order;
+ *      ideUrl: string, or array of strings, optional - for IDE extensions only; usually a chrome:// url,
  *      - if neither coreUrl not ideUrl are set, then this plugin is only
  *        registered for the purpose of being a dependency of other plugins,
  *        but it's not added via Selenium API class.
@@ -48,13 +50,22 @@ SeLiteExtensionSequencer.plugins= {};
 SeLiteExtensionSequencer.registerPlugin= function( prototype ) {
     var plugin= {
         pluginId: prototype.pluginId,
-        coreUrl: prototype.coreUrl || false,
-        xmlUrl: prototype.xmlUrl || false,
-        ideUrl: prototype.ideUrl || false,
+        coreUrl: prototype.coreUrl || [],
+        xmlUrl: prototype.xmlUrl || [],
+        ideUrl: prototype.ideUrl || [],
         requisitePlugins: prototype.requisitePlugins || {},
         optionalRequisitePlugins: prototype.optionalRequisitePlugins || {},
         callBack: prototype.callBack || false
     };
+    if( !(plugin.coreUrl instanceof Array) ) {
+        plugin.coreUrl= [plugin.coreUrl];
+    }
+    if( !(plugin.xmlUrl instanceof Array) ) {
+        plugin.xmlUrl= [plugin.xmlUrl];
+    }
+    if( !(plugin.ideUrl instanceof Array) ) {
+        plugin.ideUrl= [plugin.ideUrl];
+    }
     if( plugin.pluginId in SeLiteExtensionSequencer.plugins ) {
         throw new Error("Plugin " +plugin.pluginId+ " was already registered with SeLite Extension Sequencer.");
     }
