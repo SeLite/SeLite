@@ -16,7 +16,8 @@
 */
 "use strict";
 
-Components.utils.import( 'chrome://selite-misc/content/extensions/selite-misc-ide.js' );
+Components.utils.import( 'chrome://selite-misc/contentselite-misc.js' );
+Components.utils.import('chrome://selite-db-objects/content/basic-storage.js');
 
 /** @param object storage of class DbStorage
  *  @param string tableNamePrefix optional
@@ -471,40 +472,6 @@ function recordOrSetHolder( recordOrSet ) {
     }
 }
 
-function select( recordOrSet ) {
-    return recordOrSetHolder(recordOrSet).select();
-}
-
-function selectOne( recordOrSet ) {
-    return recordOrSetHolder(recordOrSet).selectOne();
-}
-
-function insert( recordOrSet ) {
-    return recordOrSetHolder(recordOrSet).insert();
-}
-
-function update( recordOrSet ) {
-    recordOrSetHolder(recordOrSet).update();
-}
-
-function markToRemove( record ) {
-    recordHolder(record).markToRemove();
-}
-
-//@TODO RecordSetHolder.put() - should it be instead of replace()?
-function put( recordOrSet ) {
-    recordOrSetHolder(recordOrSet).put();
-}
-
-function remove( recordOrSet ) {
-    eecordOrSetHolder(recordOrSet).remove();
-}
-
-function randomRecord( recordSet ) {
-    var numRecords= numberOfRecords( recordSet );
-    return nthRecord( recordSet, Math.round( Math.random()*(numRecords-1) ) );
-}
-
 /** @param object formula instance of RecordSetFormula
  *  @param mixed parametersOrCondition Any parameter values whose typeof is not 'string' or 'number'
  *  will passed to formula's process() function (if set), but it won't be passed
@@ -673,7 +640,5 @@ RecordSetHolder.prototype.replace= function() {throw 'todo';
 };
 
 var EXPORTED_SYMBOLS= [ 'Db', 'Table', 'Record',
-    'RecordSetFormula', 'RecordSet',
-    'select', 'selectOne', 'insert', 'update',
-    'markToRemove', 'put', 'remove', 'randomRecord'
+    'RecordSetFormula', 'RecordSet'
 ];
