@@ -483,6 +483,7 @@ Storage.prototype.lastInsertId= function( table, column ) {
 
 /** This adds enclosing apostrophes and doubles any apostrophes in the given value, if it's a string.
  *  <br>It does add enclosing apostrophes around Javascript strings "null" or "NULL" etc! So use Javascript null instead.
+ *  Use SqlExpression if you don't want quotes to be added.
  *  <br>For Javascript null, it returns unqouted string 'NULL'. That way we can pass values part of the result of quoteValues()
  *  (which returns an array of quoted items) through Array.join(). Otherwise, if we kept Javascript null values as they were,
  *  we couldn't use Array.join(), because it uses empty strings for Javascript nulls! See functions that call quoteValues().
@@ -491,11 +492,10 @@ Storage.prototype.quote= function( value ) {
     if( value===null ) {
         return 'NULL';
     }
-    if( typeof value !="string" ) { // This allows numbers and SqlExpression instances to be unquoted. Note that objects will be transformed via toString() and unquoted.
-        //@TODO instanceof Array => quote each of them? Or do it in db_objects?
+    if( value instanceof SqlExpression ) {
         return ''+value;
     }
-    return "'" +value.replace( "'", "''" )+ "'";
+    return "'" +(''+value).replace( "'", "''" )+ "'";
 }
 
 /** Use instances of SqlExpression so that they don't get quoted/escaped by quote() and quoteValues().
@@ -551,4 +551,4 @@ Storage.prototype.quoteValues= function( entries, fieldsToProtect ) {
  *  and https://developer.mozilla.org/en/mozIStorageRow
  *  - handleResult() callback may be called several times per same statement!
  */
-var EXPORTED_SYMBOLS= ['Storage'];
+var EXPORTED_SYMBOLS= ['Storage', 'SqlExpression'];

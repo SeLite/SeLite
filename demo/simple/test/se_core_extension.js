@@ -20,19 +20,19 @@ Selenium.prototype.doBye= function(one, two) { LOG.error('bye!'); alert( this); 
 var hello= 'hi';
 var bofo= 'hu'; 
 
-var charities= new DbTable( {
+var charities= new Table( {
     db: null,//@TODO
     name: 'charities',
     columns: ['id', 'name', 'course', 'lastAmount', 'totalAmount', 'enabled']
 });
 
-var charitiesAll= new DbRecordSetFormula( {
+var charitiesAll= new RecordSetFormula( {
     table: charities,
     columns: new Settable().
         set( charities.name, DbRecordSetFormula.ALL_FIELDS )
 } );
 
-var charitiesById= new DbRecordSetFormula( {
+var charitiesById= new RecordSetFormula( {
     fetchMatching: {
         'name': ':id'
     },

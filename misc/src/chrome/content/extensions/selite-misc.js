@@ -20,6 +20,46 @@ var runningAsComponent= (typeof window==='undefined' || window && window.locatio
 // runningAsComponent is false when loaded via <script src="file://..."> or <script src="http://..."> rather than via Components.utils.import().
 // Used for debugging; limited (because when it's not loaded via Components.utils.import() it can't access other components).
 
+/** This asserts the condition to be true (compared non-strictly). If false, it fails with an error (containg the given message, if any).
+ *  It's not called assert(), so that wouldn't conflict with assert() defined by Selenium IDE.
+ * */
+function ensure( condition, message ) {
+    if( !condition ) {
+        throw message
+            ? new Error(message)
+            : new Error();
+    }
+}
+
+/** Validate that a parameter is an object and of a given class (or of one of given classes).
+ *  @param object Object
+ *  @param classes Class (that is, a constructor function), or an array of them
+ *  @param className string, optional, name of the expected class(es); even if clazz is an array, clazzName must be one string (if present)
+ *  @param message string, extra message, optional
+ * */
+function ensureInstance( object, classes, className, message ) {
+    message= message || '';
+    ensure( typeof object==='object', 'Expecting an '
+        +(className
+            ? 'instance of ' +className
+            : 'object'
+        )+ ', but ' +typeof object+ ' was given. ' +message );
+    if( typeof classes==='function' ) {
+        classes= [classes];
+    }
+    ensure( classes instanceof Array, "Parameter clazz must be a constructor method, or an array of them." );
+    for( var i=0; i<classes.length; i++ ) {
+        if( object instanceof classes[i] ) {
+            return;
+        }
+    }
+    throw new Error( 'Expecting an instance of '
+        +(className
+            ? className
+            : 'specific class(es)'
+        )+ ", but an instance of a different class was given. " +message );
+}
+
 /** @param mixed Container - object or array
  *  @param mixed Field - string field name, or integer/integer string index of the item
  *  @param Any further parameters are treated as chained 'subfields' - useful for traversing deeper array/object/mixed structures
@@ -1004,7 +1044,6 @@ function loginManagerPassword( hostname, username ) {
     }
     return null;
 }
-var seliteAlert= {go: null};
 var EXPORTED_SYMBOLS= [ "item", "itemOrNull", "itemGeneric", "objectToString",
     //"objectFieldToString",
      "rowsToString", "timestampInSeconds", "isEmptyObject",
@@ -1016,5 +1055,5 @@ var EXPORTED_SYMBOLS= [ "item", "itemOrNull", "itemGeneric", "objectToString",
     "PrototypedObject", "loginManagerPassword",
     "compareAllFields", "compareAllFieldsOneWay", "sortByKeys",
     "compareAsNumbers", "compareCaseInsensitively", "compareNatural",
-    "sortedObject", "SortedObjectTarget", "seliteAlert"
+    "sortedObject", "SortedObjectTarget"
 ];
