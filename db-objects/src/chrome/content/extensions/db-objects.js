@@ -16,8 +16,7 @@
 */
 "use strict";
 
-////This is a try without Javascript Class inheritance. If you need that, see
-// https://developer.mozilla.org/en/JavaScript/Guide/Inheritance_Revisited and https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
+Components.utils.import( 'chrome://selite-misc/content/extensions/selite-misc-ide.js' );
 
 /** @param object storage of class DbStorage
  *  @param string tableNamePrefix optional
@@ -91,11 +90,6 @@ function RecordHolder( recordSetOrFormula, plainRecord ) {
     }
 }
 
-function newRecord( recordSetOrFormula ) {
-    var recordHolder= new RecordHolder(recordSetOrFormula);
-    return recordHolder.record;
-}
-
 /*** Constructor used for data objects.
  *   @param object recordHolder of class RecordHolder
  *   @param mixed Object with the record's data, or null/false.
@@ -111,7 +105,8 @@ function Record( recordHolder, data ) {
 // This is configurable - if it ever gets in conflict with a field name in your DB table, change it here.
 Record.RECORD_TO_HOLDER_FIELD= 'RECORD_TO_HOLDER_FIELD';
 
-/** @param Record instance
+/** @private
+ *  @param Record instance
  *  @return RecordHolder for that instance.
  **/
 function recordHolder( record ) {
@@ -439,26 +434,6 @@ RecordSetFormula.prototype.selectOne= function( parametersOrCondition ) {
     return new RecordSetHolder(this, parametersOrCondition ).selectOne();
 };
 
-/** Used to generate object parts of 'columns' part of the parameter to RecordSetFormula() constructor, if your table names are not constants,
-    i.e. you have a configurable table prefix string, and you don't want to have a string variable for each table name itself, but you want
-    to refer to .name property of the table object. Then your table name is not string constant, and you can't use string runtime expressions
-    as object keys in anonymous object construction {}. That's when you can use new Settable().set( tableXYZ.name, ...).set( tablePQR.name, ...)
-    as the value of 'columns' field of RecordSetFormula()'s parameter.
-    Its usage assumes that no table name (and no value for parameter field) is 'set'.
-*/
-function Settable() {
-    if( arguments.length>0 ) {
-        throw new Error( "Constructor Settable() doesn't use any parameters." );
-    }
-}
-// I don't want method set() to show up when iterating using for( .. in..), therefore I use defineProperty():
-Object.defineProperty( Settable.prototype, 'set', {
-        value: function( field, value ) {
-            this[field]= value;
-            return this;
-        }
-} );
-
 /** RecordSet serves as an associative array, containing Record object(s), indexed by collectBycolumn(formula.indexBy, formula.indexUnique, formula.subIndexBy)
  *  for the formula of recordSetHolder. It is iterable but it doesn't guarantee the order of entries.
  *  It also keeps a non-iterable reference to recordSetHolder.
@@ -472,7 +447,8 @@ function RecordSet( recordSetHolder ) {
 // This is configurable - if it ever gets in conflict with an index key in your DB table, change it here.
 RecordSet.RECORDSET_TO_HOLDER_FIELD= 'RECORDSET_TO_HOLDER_FIELD';
 
-/** @param RecordSet instance
+/** @private
+ *  @param RecordSet instance
  *  @return RecordSetHolder for that instance.
  **/
 function recordSetHolder( recordSet ) {
@@ -480,6 +456,8 @@ function recordSetHolder( recordSet ) {
     return recordSet[RecordSet.RECORDSET_TO_HOLDER_FIELD];
 }
 
+/** @private
+ * */
 function recordOrSetHolder( recordOrSet ) {
     if( recordOrSet instanceof Record ) {
         return recordHolder(recordOrSet);
@@ -520,143 +498,6 @@ function put( recordOrSet ) {
 
 function remove( recordOrSet ) {
     eecordOrSetHolder(recordOrSet).remove();
-}
-/*
-function recordSetReplace( recordSet ) {
-    return recordSetHolder(recordSet).replace();
-}*/
-
-/** @param mixed recordSet A RecordSet instance
- *  or some other object serving as an associative array,
- *  potentially a result of collectByColumn(), even if it used sub-indexing
- *  (but then the records must be instances of Record - which is so by default;
- *  otherwise the subindexed groups (objects serving as associative arrays) couldn't be differentiated from target objects/records).
- *  @param int position 0-based position of the value to return
- *  @return object the leaf record
- *  @throws Exception if position is negative, decimal or higher than the last available position
- **/
-function nthRecord( recordSet, position ) {
-    ensure( position>=0, "nthRecord() requires non-negative position, but it was: " +position);
-    return nthRecordOrLengthOrIndexesOf( recordSet, NTH_RECORD, position );
-}
-
-/** @param mixed recordSet A RecordSet instance,
- *  or some other object serving as an associative array,
- *  potentially a result of collectByColumn(), even if it used sub-indexing
- *  (but then the records must be instances of Record - which is so by default;
- *  otherwise the subindexed groups (objects serving as associative arrays) couldn't be differentiated from target objects/records).
- *  @int number of leaf records
- */
-function numberOfRecords( recordSet ) {
-    return nthRecordOrLengthOrIndexesOf( recordSet, NUMBER_OF_RECORDS );
-}
-
-/** @param mixed recordSet A RecordSet instance,
- *  or some other object serving as an associative array,
- *  potentially a result of collectByColumn(), even if it used sub-indexing
- *  (but then the records must be instances of Record - which is so by default;
- *  otherwise the subindexed groups (objects serving as associative arrays) couldn't be differentiated from target objects/records).
- *  @param record object, record to search for.
- *  @return int 0-based index of that record if found,-1 otherwise.
- */
-function indexesOfRecord( recordSet, record ) {
-    return nthRecordOrLengthOrIndexesOf( recordSet, INDEXES_OF_RECORD, record );
-}
-
-/** Acceptable values of parameter action for nthRecordOrLengthOrIndexesOf()
- * */
-var NTH_RECORD= 'NTH_RECORD', NUMBER_OF_RECORDS='NUMBER_OF_RECORDS', INDEXES_OF_RECORD= 'INDEXES_OF_RECORD';
-
-/** @private Implementation of nthRecord() and numberOfRecords() and indexesOfRecord(). Multi-purpose function
- *  that iterates over indexed (and optionally sub-indexed) records.
- *  @param mixed recordSet just like the same parameter in nthRecord() and numberOfRecords()
- *  @param string action Determines the purpose and behavious of calling this function. action must be one of:
- *  NTH_RECORD, NUMBER_OF_RECORDS, INDEXES_OF_RECORD.
- *  @param mixed positionOrRecord Either
- *  -- number, 0-based position across the indexed or indexed and subindexed tree, as iterated by Javascript
- *  (which doesn't guarantee same order on every invocation); or
- *  -- object, record to search for
- *  @return mixed
- *  -- if action==NTH_RECORD then it returns a record at that position
- *  -- if action==NUMBER_OF_RECORDS, then it returns a total number of records
- *  -- if action==INDEXES_OF_RECORD, then it returns an array with indexes of the give nrecord, if found. Precisely:
- *  --- [index, subindex] if the record is found and subindexed
- *  --- [index] if the record is found and indexed, but not subindexed
- *  --- [] if the record is not found
- *  @throws Error on failure, or if action=NTH_RECORD and positionOrRecord is equal to or higher than number of records
- **/
-function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
-    ensureType( recordSet, 'object', 'recordSet must be an object');
-    ensureType( positionOrRecord, ['number', 'object', 'undefined'], 'positionOrRecord must be a number, or an object or undefined.');
-    ensureOneOf( action, [NTH_RECORD, NUMBER_OF_RECORDS, INDEXES_OF_RECORD], 'nthRecordOrLengthOrIndexesOf() called with wrong parameter action' );
-    
-    // Following three booleans reflect what we're doing.
-    var nthRecord= action===NTH_RECORD;
-    var indexesOfRecord= action===INDEXES_OF_RECORD;
-    var numberOfRecords= action===NUMBER_OF_RECORDS;
-    
-    var position= nthRecord
-        ? positionOrRecord
-        : undefined;
-    var record= indexesOfRecord  
-        ? positionOrRecord
-        : undefined;
-    
-    ensureType( record, ['object', 'undefined'] );
-    ensureType( position, ['number', 'undefined'] );
-    
-    if( nthRecord && (position<0 || position!=Math.round(position) ) ) {
-        throw new Error( "nthRecordOrLengthOrIndexesOf() requires non-decimal non-negative position, but it was: " +position);
-    }
-    var currPosition= 0; // only used when nthRecord is true
-    for( var index in recordSet ) {
-        var entry= recordSet[index];
-        if( entry instanceof Array ) {
-            if( indexesOfRecord ) {
-                var foundSubPosition= recordSet.indexOf( record );
-                if( foundSubPosition>=0 ) {
-                    return [index, foundSubPosition];
-                }
-            }
-            else
-            if( nthRecord && position-currPosition<entry.length ) {
-                return entry[ position-currPosition ];
-            }
-            currPosition+= entry.length;
-        }
-        else
-        if( entry instanceof RecordGroup ) {
-            for( var subindex in entry ) {
-                if( indexesOfRecord && entry[subindex]==record ) {
-                    return [index, subindex];
-                }
-                if( nthRecord && currPosition==position ) {
-                    return entry[subindex];
-                }
-                currPosition++;
-            }
-        }
-        else {
-            if( indexesOfRecord && entry===positionOrRecord ) {
-                return [index];
-            }
-            if( nthRecord && currPosition===positionOrRecord ) {
-                return entry;
-            }
-            currPosition++;
-        }
-    }
-    if( indexesOfRecord ) {
-        return [];
-    }
-    else
-    if( numberOfRecords ) {
-        return currPosition;
-    }
-    else {
-        throw new Error( 'nthRecordOrLengthOrIndexesOf(): There is no item at position ' +position+
-            ' (starting from 0). The highest position is ' +currPosition );
-    }
 }
 
 function randomRecord( recordSet ) {
@@ -831,4 +672,8 @@ RecordSetHolder.prototype.remove= function() { throw "TODO";
 RecordSetHolder.prototype.replace= function() {throw 'todo';
 };
 
-var EXPORTED_SYMBOLS= [];
+var EXPORTED_SYMBOLS= [ 'Db', 'Table', 'Record',
+    'RecordSetFormula', 'RecordSet',
+    'select', 'selectOne', 'insert', 'update',
+    'markToRemove', 'put', 'remove', 'randomRecord'
+];

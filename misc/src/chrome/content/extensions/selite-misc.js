@@ -1026,6 +1026,7 @@ function unescape_xml( param ) {
  *  -- MyClass.prototype= new ParentClass(); // or: new PrototypedObject() for 1st level children
  *  -- MyClass.prototype.constructor= MyClass;
  *  See https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
+ *  and also https://developer.mozilla.org/en/JavaScript/Guide/Inheritance_Revisited
  *  The above can be used outside of Selenium-based components - it works in Chrome, Safari, Opera, IE (as of Nov 2012).
  *  However, I haven't tested functionality of PrototypedObject() outside of Firefox.
  **/
@@ -1070,9 +1071,142 @@ function loginManagerPassword( hostname, username ) {
     }
     return null;
 }
+
+/** @param mixed recordSet A RecordSet instance
+ *  or some other object serving as an associative array,
+ *  potentially a result of collectByColumn(), even if it used sub-indexing
+ *  (but then the records must be instances of Record - which is so by default;
+ *  otherwise the subindexed groups (objects serving as associative arrays) couldn't be differentiated from target objects/records).
+ *  @param int position 0-based position of the value to return
+ *  @return object the leaf record
+ *  @throws Exception if position is negative, decimal or higher than the last available position
+ **/
+function nthRecord( recordSet, position ) {
+    ensure( position>=0, "nthRecord() requires non-negative position, but it was: " +position);
+    return nthRecordOrLengthOrIndexesOf( recordSet, NTH_RECORD, position );
+}
+
+/** @param mixed recordSet A RecordSet instance,
+ *  or some other object serving as an associative array,
+ *  potentially a result of collectByColumn(), even if it used sub-indexing
+ *  (but then the records must be instances of Record - which is so by default;
+ *  otherwise the subindexed groups (objects serving as associative arrays) couldn't be differentiated from target objects/records).
+ *  @int number of leaf records
+ */
+function numberOfRecords( recordSet ) {
+    return nthRecordOrLengthOrIndexesOf( recordSet, NUMBER_OF_RECORDS );
+}
+
+/** @param mixed recordSet A RecordSet instance,
+ *  or some other object serving as an associative array,
+ *  potentially a result of collectByColumn(), even if it used sub-indexing
+ *  (but then the records must be instances of Record - which is so by default;
+ *  otherwise the subindexed groups (objects serving as associative arrays) couldn't be differentiated from target objects/records).
+ *  @param record object, record to search for.
+ *  @return int 0-based index of that record if found,-1 otherwise.
+ */
+function indexesOfRecord( recordSet, record ) {
+    return nthRecordOrLengthOrIndexesOf( recordSet, INDEXES_OF_RECORD, record );
+}
+
+/** Acceptable values of parameter action for nthRecordOrLengthOrIndexesOf()
+ * */
+var NTH_RECORD= 'NTH_RECORD', NUMBER_OF_RECORDS='NUMBER_OF_RECORDS', INDEXES_OF_RECORD= 'INDEXES_OF_RECORD';
+
+/** @private Implementation of nthRecord() and numberOfRecords() and indexesOfRecord(). Multi-purpose function
+ *  that iterates over indexed (and optionally sub-indexed) records.
+ *  @param mixed recordSet just like the same parameter in nthRecord() and numberOfRecords()
+ *  @param string action Determines the purpose and behavious of calling this function. action must be one of:
+ *  NTH_RECORD, NUMBER_OF_RECORDS, INDEXES_OF_RECORD.
+ *  @param mixed positionOrRecord Either
+ *  -- number, 0-based position across the indexed or indexed and subindexed tree, as iterated by Javascript
+ *  (which doesn't guarantee same order on every invocation); or
+ *  -- object, record to search for
+ *  @return mixed
+ *  -- if action==NTH_RECORD then it returns a record at that position
+ *  -- if action==NUMBER_OF_RECORDS, then it returns a total number of records
+ *  -- if action==INDEXES_OF_RECORD, then it returns an array with indexes of the give nrecord, if found. Precisely:
+ *  --- [index, subindex] if the record is found and subindexed
+ *  --- [index] if the record is found and indexed, but not subindexed
+ *  --- [] if the record is not found
+ *  @throws Error on failure, or if action=NTH_RECORD and positionOrRecord is equal to or higher than number of records
+ **/
+function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
+    ensureType( recordSet, 'object', 'recordSet must be an object');
+    ensureType( positionOrRecord, ['number', 'object', 'undefined'], 'positionOrRecord must be a number, or an object or undefined.');
+    ensureOneOf( action, [NTH_RECORD, NUMBER_OF_RECORDS, INDEXES_OF_RECORD], 'nthRecordOrLengthOrIndexesOf() called with wrong parameter action' );
+    
+    // Following three booleans reflect what we're doing.
+    var nthRecord= action===NTH_RECORD;
+    var indexesOfRecord= action===INDEXES_OF_RECORD;
+    var numberOfRecords= action===NUMBER_OF_RECORDS;
+    
+    var position= nthRecord
+        ? positionOrRecord
+        : undefined;
+    var record= indexesOfRecord  
+        ? positionOrRecord
+        : undefined;
+    
+    ensureType( record, ['object', 'undefined'] );
+    ensureType( position, ['number', 'undefined'] );
+    
+    if( nthRecord && (position<0 || position!=Math.round(position) ) ) {
+        throw new Error( "nthRecordOrLengthOrIndexesOf() requires non-decimal non-negative position, but it was: " +position);
+    }
+    var currPosition= 0; // only used when nthRecord is true
+    for( var index in recordSet ) {
+        var entry= recordSet[index];
+        if( entry instanceof Array ) {
+            if( indexesOfRecord ) {
+                var foundSubPosition= recordSet.indexOf( record );
+                if( foundSubPosition>=0 ) {
+                    return [index, foundSubPosition];
+                }
+            }
+            else
+            if( nthRecord && position-currPosition<entry.length ) {
+                return entry[ position-currPosition ];
+            }
+            currPosition+= entry.length;
+        }
+        else
+        if( entry instanceof RecordGroup ) {
+            for( var subindex in entry ) {
+                if( indexesOfRecord && entry[subindex]==record ) {
+                    return [index, subindex];
+                }
+                if( nthRecord && currPosition==position ) {
+                    return entry[subindex];
+                }
+                currPosition++;
+            }
+        }
+        else {
+            if( indexesOfRecord && entry===positionOrRecord ) {
+                return [index];
+            }
+            if( nthRecord && currPosition===positionOrRecord ) {
+                return entry;
+            }
+            currPosition++;
+        }
+    }
+    if( indexesOfRecord ) {
+        return [];
+    }
+    else
+    if( numberOfRecords ) {
+        return currPosition;
+    }
+    else {
+        throw new Error( 'nthRecordOrLengthOrIndexesOf(): There is no item at position ' +position+
+            ' (starting from 0). The highest position is ' +currPosition );
+    }
+}
+
 var EXPORTED_SYMBOLS= [ "ensure", "ensureOneOf", "ensureType", "ensureInstance",
     "item", "itemOrNull", "itemGeneric", "objectToString",
-    //"objectFieldToString",
      "rowsToString", "timestampInSeconds", "isEmptyObject",
     "objectsMerge", "objectCopyFields", "objectClone", "objectDeleteFields",
     "arrayClone", "objectReverse", "objectValues", "objectValueToField",
@@ -1082,5 +1216,6 @@ var EXPORTED_SYMBOLS= [ "ensure", "ensureOneOf", "ensureType", "ensureInstance",
     "PrototypedObject", "loginManagerPassword",
     "compareAllFields", "compareAllFieldsOneWay", "sortByKeys",
     "compareAsNumbers", "compareCaseInsensitively", "compareNatural",
-    "sortedObject", "SortedObjectTarget"
+    "sortedObject", "SortedObjectTarget",
+    "nthRecord", "numberOfRecords", "indexesOfRecord"
 ];
