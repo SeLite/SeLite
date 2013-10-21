@@ -46,7 +46,7 @@ function ensureType( item, typeStringOrStrings, message ) {
         typeStringOrStrings= [typeStringOrStrings];
     }
     for( var i=0; i<typeStringOrStrings.length; i++ ) {
-        ensureOneOf( typeStringOrStrings[i], ['number', 'string', 'object', 'function', 'undefined'] );
+        ensureOneOf( typeStringOrStrings[i], ['number', 'string', 'object', 'function', 'boolean', 'undefined'] );
         if( typeof item===typeStringOrStrings[i] ) {
             return;
         }

@@ -290,34 +290,40 @@ Field.String.prototype.constructor= Field.String;
 Field.String.prototype.generateDefaultValue= function() { return ''; };
 
 /** @param string name
- *  @param bool startInProfileFolder Whether the file picker dialog opens in user's Firefox profile folder (if the file was not set yet)
+ *  @param bool startInProfileFolder Whether the file/folder picker dialog opens in user's Firefox profile folder (if the file/folder was not set yet)
  *  @param filters Optional, an object serving as an associative array of file filters { 'visible filter name': '*.extension; *.anotherExtension...', ... }
  *  A false/null/0 key or value mean 'All files'.
  *  See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsIFilePicker#appendFilter%28%29
+ *  @param defaultValue
+ *  @param bool multivalued
+ *  @param bool isFolder Whether this is for folder(s); otherwise it's for file(s)
  * */
-Field.File= function( name, startInProfileFolder, filters, defaultValue ) {
-    Field.call( this, name, defaultValue );
+Field.FileOrFolder= function( name, startInProfileFolder, filters, defaultValue, multivalued, isFolder ) {
+    Field.call( this, name, defaultValue, multivalued );
     this.startInProfileFolder= startInProfileFolder || false;
     if( typeof this.startInProfileFolder!='boolean' ) {
-        throw new Error( 'Field.File() expects startInProfileFolder to be a boolean, if provided.');
+        throw new Error( 'Field.FileOrFolder() expects startInProfileFolder to be a boolean, if provided.');
     }
     this.filters= filters || {};
     if( typeof(this.filters)!='object' || this.filters instanceof Array ) {
-        throw new Error( 'Field.File() expects filters to be an object serving as an associative array, if provided.');
+        throw new Error( 'Field.FileOrFolder() expects filters to be an object serving as an associative array, if provided.');
     }
     if( this.defaultValue!==null && typeof this.defaultValue!='string' ) {
-        throw new Error( "Field.File(..) expects defaultValue to be a string ('primitive') - a file path, if provided.");
+        throw new Error( "Field.FileOrFolder(..) expects defaultValue to be a string ('primitive') - a file path, if provided.");
     }
-};
-Field.File.prototype= new Field('File.prototype');
-Field.File.prototype.constructor= Field.File;
-Field.File.prototype.generateDefaultValue= function() { return ''; };
+    this.isFolder= isFolder || false;
+    ensureType( this.isFolder, 'boolean', "Field.FileOrFolder(..) expects isFolder to be a boolean, if provided." );
+}
+Field.FileOrFolder.prototype= new Field('FileOrFolder.prototype');
+Field.FileOrFolder.prototype.constructor= Field.FileOrFolder;
+Field.FileOrFolder.prototype.generateDefaultValue= function() { return ''; };
 
-Field.File.prototype.parentEquals= Field.File.prototype.equals;
-Field.File.prototype.equals= function( other ) {
+Field.FileOrFolder.prototype.parentEquals= Field.FileOrFolder.prototype.equals;
+Field.FileOrFolder.prototype.equals= function( other ) {
     if( !this.parentEquals(other)
     || this.startInProfileFolder!==other.startInProfileFolder
-    || this.defaultValue!==other.defaultValue ) {
+    || this.defaultValue!==other.defaultValue
+    || this.isFolder!==other.isFolder ) {
         return false;
     }
     if( !compareAllFields(this.filters, other.filters, true) ) {
@@ -325,6 +331,17 @@ Field.File.prototype.equals= function( other ) {
     }
     return true;
 };
+
+/** @param string name
+ *  @param bool startInProfileFolder See Field.FileOrFolder()
+ *  @param filters See Field.FileOrFolder()
+ * */
+Field.File= function( name, startInProfileFolder, filters, defaultValue, multivalued ) {
+    Field.FileOrFolder.call( this, name, startInProfileFolder, filters, defaultValue, multivalued, false );
+};
+Field.File.prototype= new Field('File.prototype');
+Field.File.prototype.constructor= Field.File;
+Field.File.prototype.generateDefaultValue= function() { return ''; };
 
 Field.SQLite= function( name, defaultValue ) {
     Field.File.call( this, name, true, { 'SQLite': '*.sqlite', 'any': null}, defaultValue );
@@ -818,6 +835,7 @@ var moduleNamesFromPreferences= function( namePrefix ) {
 loadingPackageDefinition= false;
 
 var EXPORTED_SYMBOLS= [
+    'reservedNames',
     'SET_SELECTION_ROW', 'SELECTED_SET_NAME', 'FIELD_MAIN_ROW', 'OPTION_NOT_UNIQUE_CELL',
     'OPTION_UNIQUE_CELL', 'FIELD_TREECHILDREN', 'NEW_VALUE_ROW',
     'Field', 'Module', 'register', 'savePrefFile', 'moduleNamesFromPreferences', 'loadFromJavascript'
