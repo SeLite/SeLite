@@ -29,11 +29,16 @@ var DELETE_THE_VALUE= "Delete the value";
  *  @param row int 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
         var column= { value: null }; // value is instance of TreeColumn.
     @param column instance of TreeColumn
+    @param bool isFolder whether it's for a folder, rather than a file
     @return void
  * */
-function chooseFile( field, tree, row, column ) {
+function chooseFile( field, tree, row, column, isFolder ) {
 	var filePicker = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
-	filePicker.init(window, "Select a file for " +field.name, nsIFilePicker.modeOpen);
+	filePicker.init(window, "Select a file for " +field.name,
+            isFolder
+            ? nsIFilePicker.modeGetFolder
+            : nsIFilePicker.modeOpen
+        );
     for( var filterName in field.filters ) {
         if( field && field.filters[filterName] ) {
             filePicker.appendFilter( filterName, field.filters[filterName]);
@@ -699,11 +704,11 @@ function treeClickHandler( event ) {
             }
             if( column.value.element==treeColumnElements.value ) {
                 if( cellIsEditable && rowProperties) {
-                    if( !(field instanceof SeLiteSettings.Field.File) ) {
+                    if( !(field instanceof SeLiteSettings.Field.FileOrFolder) ) {
                         tree.startEditing( row.value, column.value );
                     }
                     else {
-                        chooseFile( field, tree, row.value, column.value ); // On change that will trigger my custom setCellText()
+                        chooseFileOrFolder( field, tree, row.value, column.value, field.isFolder ); // On change that will trigger my custom setCellText()
                     }
                 }
             }

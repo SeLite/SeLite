@@ -131,6 +131,7 @@ var Field= function( name, defaultValue, multivalued ) {
             !(this instanceof Field.Int) &&
             !(this instanceof Field.String) &&
             !(this instanceof Field.File) &&
+            !(this instanceof Field.Folder) &&
             !(this instanceof Field.SQLite) && 
             !(this instanceof Field.Choice.Int) && 
             !(this instanceof Field.Choice.String)
@@ -342,6 +343,17 @@ Field.File= function( name, startInProfileFolder, filters, defaultValue, multiva
 Field.File.prototype= new Field('File.prototype');
 Field.File.prototype.constructor= Field.File;
 Field.File.prototype.generateDefaultValue= function() { return ''; };
+
+/** @param string name
+ *  @param bool startInProfileFolder See Field.FileOrFolder()
+ *  @param filters See Field.FileOrFolder()
+ * */
+Field.Folder= function( name, startInProfileFolder, filters, defaultValue, multivalued ) {
+    Field.FileOrFolder.call( this, name, startInProfileFolder, filters, defaultValue, multivalued, true );
+};
+Field.Folder.prototype= new Field('Folder.prototype');
+Field.Folder.prototype.constructor= Field.Folder;
+Field.Folder.prototype.generateDefaultValue= function() { return ''; };
 
 Field.SQLite= function( name, defaultValue ) {
     Field.File.call( this, name, true, { 'SQLite': '*.sqlite', 'any': null}, defaultValue );
