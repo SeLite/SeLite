@@ -32,7 +32,7 @@ var DELETE_THE_VALUE= "Delete the value";
     @param bool isFolder whether it's for a folder, rather than a file
     @return void
  * */
-function chooseFile( field, tree, row, column, isFolder ) {
+function chooseFileOrFolder( field, tree, row, column, isFolder ) {
 	var filePicker = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
 	filePicker.init(window, "Select a file for " +field.name,
             isFolder
@@ -704,7 +704,7 @@ function treeClickHandler( event ) {
             }
             if( column.value.element==treeColumnElements.value ) {
                 if( cellIsEditable && rowProperties) {
-                    if( !(field instanceof SeLiteSettings.Field.FileOrFolder) ) {
+                    if( !(field instanceof SeLiteSettings.Field.File) && !(field instanceof SeLiteSettings.Field.Folder)) {
                         tree.startEditing( row.value, column.value );
                     }
                     else {
