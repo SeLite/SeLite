@@ -194,7 +194,8 @@ Field.prototype.setValue= function( setName, value ) {
         : '';
     this.setPref( setNameDot+ this.name, value );
 };
-/** Set a field (with the given field and key name) to the given value. It doesn't call nsIPrefService.savePrefFile().
+/** Set a field (with the given field and key name) to the given value. It doesn't call nsIPrefService.savePrefFile()
+ *  but they get saved somehow anyway.
  * */
 Field.prototype.setPref= function( setFieldKeyName, value ) {
     this.module.prefsBranch.setCharPref( setFieldKeyName, value );
@@ -482,6 +483,7 @@ var Module= function( name, fields, allowSets, defaultSetName, associatesWithFol
     
     this.associatesWithFolders= associatesWithFolders || false;
     ensureType( this.associatesWithFolders, 'boolean', 'Module() expects associatesWithFolders to be a boolean, if provided.');
+    !this.associatesWithFolders || ensure(this.allowSets, 'Module() must be called with allowSets=true, if associatesWithFolders is true.' );
     
     this.definitionJavascriptFile= definitionJavascriptFile || null;
     if( this.definitionJavascriptFile!=null && typeof this.definitionJavascriptFile!='string') {
@@ -692,6 +694,9 @@ Module.prototype.getFieldsOfSet= function( setName ) {
     return result;
 };
 
+const VALUES_MANIFEST= 'SeLiteSettingsValues.js';
+const ASSOCIATIONS_MANIFEST= 'SeLiteSettingsAssociations.txt';
+
 Module.prototype.getFieldsForFolder= function( folderPath ) {
     
 };
@@ -744,22 +749,30 @@ Module.prototype.createSet= function( setName ) {
     var setNameDot= setName!==''
         ? setName+'.'
         : '';
-    for( var fieldName in this.fields ) {
-        var field= this.fields[fieldName];
-        if( !field.multivalued ) {
-            if( !(field instanceof Field.Choice) ) {
-                if( !this.prefsBranch.prefHasUserValue(setNameDot+fieldName) ) {
-                    field.setDefault( setName ); // That adds a dot, if necessary
+    if( !this.associatesWithFolders ) { // Don't populate default values for modules that associate with folders, because they inherit values
+        for( var fieldName in this.fields ) {
+            var field= this.fields[fieldName];
+            if( !field.multivalued ) {
+                if( !(field instanceof Field.Choice) ) {
+                    if( !this.prefsBranch.prefHasUserValue(setNameDot+fieldName) ) {
+                        field.setDefault( setName ); // That adds a dot, if necessary
+                    }
                 }
-            }
-            else {
-                var children= this.prefsBranch.getChildList( setNameDot+fieldName+'.', {} );
-                for( var child in children );
-                if( typeof child==='undefined' ) {
-                    field.addValue( setNameDot, field.defaultValue );
+                else {
+                    var children= this.prefsBranch.getChildList( setNameDot+fieldName+'.', {} );
+                    for( var child in children );
+                    if( typeof child==='undefined' ) {
+                        field.addValue( setNameDot, field.defaultValue );
+                    }
                 }
             }
         }
+    }
+    else {
+        ensure( setName!=='', 'Module associates with folders, therefore a set name cannot be empty.' );
+        // Since we don't populate default values of sets that associate with folders, I need to store something in preferences
+        // to represent the set. So I use an empty string value.
+        this.prefsBranch.setCharPref( setName, '');
     }
 };
 
@@ -859,5 +872,6 @@ var EXPORTED_SYMBOLS= [
     'reservedNames',
     'SET_SELECTION_ROW', 'SELECTED_SET_NAME', 'FIELD_MAIN_ROW', 'OPTION_NOT_UNIQUE_CELL',
     'OPTION_UNIQUE_CELL', 'FIELD_TREECHILDREN', 'NEW_VALUE_ROW',
-    'Field', 'Module', 'register', 'savePrefFile', 'moduleNamesFromPreferences', 'loadFromJavascript'
+    'Field', 'Module', 'register', 'savePrefFile', 'moduleNamesFromPreferences', 'loadFromJavascript',
+    'VALUES_MANIFEST', 'ASSOCIATIONS_MANIFEST'
 ];
