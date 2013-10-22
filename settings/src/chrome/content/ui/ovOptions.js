@@ -1029,9 +1029,9 @@ function createTreeChildren( parent ) {
     //treeChildren.setAttribute('tooltiptext', 'Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!... Hello World!Hello World!Hello World!Hello World!Hello World!');
     //treeChildren.setAttribute('tooltip', 'tooltip' );
     var tooltip= document.createElementNS( XUL_NS, 'tooltip');
-    tooltip.setAttribute( 'label', "Hi mate. Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate." );
-    treeChildren.appendChild(tooltip);
-    treeChildren.setAttribute('tooltip', '_child' );  // TODO in order to hid & then show tooltip, set treeChildren.setAttribute() to empty and back to '_child'
+    //tooltip.setAttribute( 'label', "Hi mate. Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate." );
+    //treeChildren.appendChild(tooltip);
+    //treeChildren.setAttribute('tooltip', '_child' );  // TODO in order to hid & then show tooltip, set treeChildren.setAttribute() to empty and back to '_child'
     if( parent.tagName!=='tree' ) {
         parent.setAttribute('container', 'true');
         parent.setAttribute('open', 'false');
