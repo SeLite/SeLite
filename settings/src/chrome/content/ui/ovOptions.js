@@ -778,7 +778,12 @@ function treeClickHandler( event ) {
                             treeChildren.parentNode.setAttribute('open', 'true');
                         }
                         tree.boxObject.ensureRowIsVisible( row.value+1 );
-                        tree.startEditing( row.value+1, treeColumn(treeColumnElements.value) );
+                        if( field instanceof SeLiteSettings.Field.FileOrFolder ) {
+                            chooseFileOrFolder( field, tree, row.value+1, column.value, field.isFolder ); // On change that will trigger my custom setCellText()
+                        }
+                        else {
+                            tree.startEditing( row.value+1, treeColumn(treeColumnElements.value) );
+                        }
                     }
                     if( cellText===DELETE_THE_VALUE ) {
                         var clickedOptionKey= propertiesPart( rowProperties, RowLevel.OPTION );
