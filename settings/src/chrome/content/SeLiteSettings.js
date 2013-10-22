@@ -437,13 +437,14 @@ Field.Choice.String.prototype.constructor= Field.Choice.String;
  *  Beware: this.fields will not be an array, but an object serving as an associative array { string field name => Field object}
  *  @param allowSets bool Whether to allow multiple sets of settings for this module
  *  @param defaultSetName string Name of the default set. Optional, null by default; only allowed (but not required) if allowSets==true
+ *  @param associatesWithFolders bool Whether the sets are to be used with folder paths (and manifest files in them)
  *  @param definitionJavascriptFile string Full path & filename (including the extension) of a javascript file which contains a 
  *  definition of this module. Optional; if present, it lets SeLiteSettings to load a definition automatically.
  *  If not set and the module was already registered with a javascript file and it gets re-registered,
  *  then the javascript file will get 'removed' from this module in the preferences - SeLiteSettings won't be able
  *  to load it automatically (unless it gets re-registered with the javascript file again).
  * */
-var Module= function( name, fields, allowSets, /*associatesWithFolders,*/ defaultSetName, definitionJavascriptFile ) {
+var Module= function( name, fields, allowSets, defaultSetName, associatesWithFolders, definitionJavascriptFile ) {
     this.name= name;
     if( typeof this.name!='string' ) {
         throw new Error( 'Module() expects a string name.');
@@ -478,6 +479,9 @@ var Module= function( name, fields, allowSets, /*associatesWithFolders,*/ defaul
         throw new Error( 'Module() allows optional parameter defaultSetName only if allowSets is true..');
     }
     defaultSetName===null || ensureFieldName( defaultSetName, 'defaultSetName' );
+    
+    this.associatesWithFolders= associatesWithFolders || false;
+    ensureType( this.associatesWithFolders, 'boolean', 'Module() expects associatesWithFolders to be a boolean, if provided.');
     
     this.definitionJavascriptFile= definitionJavascriptFile || null;
     if( this.definitionJavascriptFile!=null && typeof this.definitionJavascriptFile!='string') {

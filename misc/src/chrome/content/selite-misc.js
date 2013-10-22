@@ -38,6 +38,11 @@ function ensureOneOf( item, choices, message ) {
     ensure( choices.indexOf(item)>=0, message );
 }
 
+/** Validates that typeof item is one of 
+ *  @param item mixed
+ *  @param typeStringOrStrings string, one of: 'number', 'string', 'object', 'function', 'boolean', 'undefined'
+ *  @param message string Message to produce on validation failure, optional.
+ * */
 function ensureType( item, typeStringOrStrings, message ) {
     if( !(typeStringOrStrings instanceof Array) && typeof typeStringOrStrings!=='string' ) {
         throw new Error( 'typeStringOrStrings must be a string or an array');

@@ -16,6 +16,7 @@ var module= new SeLiteSettings.Module( 'extensions.selite-settings.test',
     [mainDb, oneFolder, files, folders, bool, appWebroot, maxNumberOfRuns, multiNumbers],
     true,
     'mainSet',
+    false,
     '~/selite/settings/test_settings_module.js'
     //@TODO If the file doesn't exist, make it report an error.
     //'file:///home/pkehl/selite/settings/test_settings_module.js'
@@ -54,6 +55,7 @@ var module2= new SeLiteSettings.Module( 'extensions.selite-settings.test2',
     ],
     false,
     null,
+    false,
     '~/selite/settings/test_settings_module.js'
 );
 
