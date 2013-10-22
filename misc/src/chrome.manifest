@@ -1,4 +1,1 @@
 content selite-misc chrome/content/
-
-# custom extension(s)
-overlay chrome://browser/content/browser.xul chrome://selite-misc/content/extensions/browser.xul
