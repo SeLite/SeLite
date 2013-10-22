@@ -155,7 +155,7 @@ Field.prototype.toString= function() {
     return this.constructor.name+ '[module: ' +(this.module ? this.module.name : 'unknown')+ ', name: ' +this.name+ ']';
 };
 
-/** This is used in place of parameter defaultValue to Field(), if that defaultValue is not set.
+/** This is used in place of parameter defaultValue to Field(), if that defaultValue is not set (or if it is null).
  *  See docs of Field().
  * */
 Field.prototype.generateDefaultValue= function() {
@@ -443,7 +443,7 @@ Field.Choice.String.prototype.constructor= Field.Choice.String;
  *  then the javascript file will get 'removed' from this module in the preferences - SeLiteSettings won't be able
  *  to load it automatically (unless it gets re-registered with the javascript file again).
  * */
-var Module= function( name, fields, allowSets, defaultSetName, definitionJavascriptFile ) {
+var Module= function( name, fields, allowSets, /*associatesWithFolders,*/ defaultSetName, definitionJavascriptFile ) {
     this.name= name;
     if( typeof this.name!='string' ) {
         throw new Error( 'Module() expects a string name.');
@@ -686,6 +686,10 @@ Module.prototype.getFieldsOfSet= function( setName ) {
         }
     }
     return result;
+};
+
+Module.prototype.getFieldsForFolder= function( folderPath ) {
+    
 };
 
 /**(re)register the name of the module against definitionJavascriptFile, if the module was created with one.
