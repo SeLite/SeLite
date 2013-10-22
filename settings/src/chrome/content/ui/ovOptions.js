@@ -1024,6 +1024,14 @@ function createTreeChildren( parent ) {
         throw new Error( 'createTreeChildren() requires parent to be an object for <treeitem> or <tree>.');
     }
     var treeChildren= document.createElementNS( XUL_NS, 'treechildren');
+    // I've tried attributes tooltip and tooltiptext on treeitem and treecell; they have no effect there.
+    // Also, I use tooltiptext rather than tooltip, because tooltiptext splits long text across multiple lines automatically.
+    //treeChildren.setAttribute('tooltiptext', 'Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!... Hello World!Hello World!Hello World!Hello World!Hello World!');
+    //treeChildren.setAttribute('tooltip', 'tooltip' );
+    var tooltip= document.createElementNS( XUL_NS, 'tooltip');
+    tooltip.setAttribute( 'label', "Hi mate. Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate." );
+    treeChildren.appendChild(tooltip);
+    treeChildren.setAttribute('tooltip', '_child' );  // TODO in order to hid & then show tooltip, set treeChildren.setAttribute() to empty and back to '_child'
     if( parent.tagName!=='tree' ) {
         parent.setAttribute('container', 'true');
         parent.setAttribute('open', 'false');
