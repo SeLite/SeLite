@@ -5,7 +5,7 @@ Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js", Se
 
 var mainDb= new SeLiteSettings.Field.SQLite('mainDb');
 var oneFolder= new SeLiteSettings.Field.Folder( 'oneFolder' );
-var files= new SeLiteSettings.Field.Folder( 'files', false, false, null, true );
+var files= new SeLiteSettings.Field.File( 'files', false, false, null, true );
 var folders= new SeLiteSettings.Field.Folder( 'folders', false, false, null, true );
 var bool= new SeLiteSettings.Field.Bool('aBooleanField', true);
 var appWebroot= new SeLiteSettings.Field.String('appWebroot', 'http://localhost/app');

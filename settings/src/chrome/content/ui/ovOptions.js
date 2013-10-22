@@ -51,11 +51,15 @@ function chooseFileOrFolder( field, tree, row, column, isFolder ) {
     var previousValue= tree.view.getCellText(row, column);
     var filePickerDirectoryIsSet= false;
     if( previousValue ) {
-        var file= new FileUtils.File(previousValue);
-        if( file.exists() ) {
+        var file= null;
+        try {
+            file= new FileUtils.File(previousValue);
+        }
+        catch(e) {}
+        if( file!=null && file.exists() ) {
             filePicker.defaultString= file.leafName;
         }
-        if( file.parent!==null && file.parent.exists() ) {
+        if( file!=null && file.parent!==null && file.parent.exists() ) {
             var localParent= Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
             localParent.initWithPath( file.parent.path );
             filePicker.displayDirectory= localParent;
@@ -69,10 +73,10 @@ function chooseFileOrFolder( field, tree, row, column, isFolder ) {
             filePicker.displayDirectory= profileDir;
         }
     }
-	var result= filePicker.show();
-	if (result== nsIFilePicker.returnOK || result== nsIFilePicker.returnReplace) {
-		tree.view.setCellText(row, column, filePicker.file.path );
-	}
+    var result= filePicker.show();
+    if (result== nsIFilePicker.returnOK || result== nsIFilePicker.returnReplace) {
+            tree.view.setCellText(row, column, filePicker.file.path );
+    }
 }
 
 /** Enumeration-like class to use symbols for tree levels and also for columns.
