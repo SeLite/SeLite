@@ -13,7 +13,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 "use strict";
-
+var console = (Components.utils.import("resource://gre/modules/devtools/Console.jsm", {})).console;
 var runningAsComponent= (typeof window==='undefined' || window && window.location && window.location.protocol=='chrome:');
 // runningAsComponent is false when loaded via <script src="file://..."> or <script src="http://..."> rather than via Components.utils.import().
 // Used for debugging; limited (because when it's not loaded via Components.utils.import() it can't access other components).

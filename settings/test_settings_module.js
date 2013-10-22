@@ -4,6 +4,7 @@ var SeLiteSettings= {};
 Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js", SeLiteSettings);
 
 var mainDb= new SeLiteSettings.Field.SQLite('mainDb');
+var oneFolder= new SeLiteSettings.Field.Folder( 'oneFolder' );
 var files= new SeLiteSettings.Field.Folder( 'files', false, false, null, true );
 var folders= new SeLiteSettings.Field.Folder( 'folders', false, false, null, true );
 var bool= new SeLiteSettings.Field.Bool('aBooleanField', true);
@@ -12,7 +13,7 @@ var maxNumberOfRuns= new SeLiteSettings.Field.Int('maxNumberOfRuns', 20);
 var multiNumbers= new SeLiteSettings.Field.Int('multiNumbers', null, true);
 
 var module= new SeLiteSettings.Module( 'extensions.selite-settings.test',
-    [mainDb, files, folders, bool, appWebroot, maxNumberOfRuns, multiNumbers],
+    [mainDb, oneFolder, files, folders, bool, appWebroot, maxNumberOfRuns, multiNumbers],
     true,
     'mainSet',
     '~/selite/settings/test_settings_module.js'
