@@ -18,13 +18,14 @@ var XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 var nsIFilePicker = Components.interfaces.nsIFilePicker;
 Components.utils.import("resource://gre/modules/FileUtils.jsm" );
 Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
+var console = (Components.utils.import("resource://gre/modules/devtools/Console.jsm", {})).console;
 
 var CREATE_NEW_SET= "Create a new set";
 var DELETE_THE_SET= "Delete the set";
 var ADD_NEW_VALUE= "Add a new value";
 var DELETE_THE_VALUE= "Delete the value";
 
-/** @param field Instance of Field.File or its subclass (Field.SQLite)
+/** @param field Instance of a subclass of Field.FileOrFolder (Field.File, Field.Folder or Field.SQLite)
  *  @param tree
  *  @param row int 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
         var column= { value: null }; // value is instance of TreeColumn.
@@ -563,7 +564,9 @@ function generateFields( setChildren, module, setName, setFields ) {
         var fieldItem= generateTreeItem(module, setName, field, singleValueOrNull, RowLevel.FIELD );
         setChildren.appendChild( fieldItem );
         
-        if( field instanceof SeLiteSettings.Field && (field.multivalued || field instanceof SeLiteSettings.Field.Choice) ) {
+        if( field instanceof SeLiteSettings.Field &&
+            (field.multivalued || field instanceof SeLiteSettings.Field.Choice)
+        ) {
             var fieldChildren= createTreeChildren( fieldItem );
             var pairsToList= field instanceof SeLiteSettings.Field.Choice
                 ? field.choicePairs
@@ -673,7 +676,7 @@ function treeClickHandler( event ) {
                     var clickedTreeRow= moduleRows[setName][field.name][ clickedOptionKey ];
                     var clickedCell= treeCell( clickedTreeRow, RowLevel.CHECKBOX );
                     
-                    if( !field.multivalued ) { // field is multivalued non-choice. Uncheck & remove the previously checked value.
+                    if( !field.multivalued ) { // TODO: revisit this comment: field is multivalued non-choice. Uncheck & remove the previously checked value.
                         clickedCell.setAttribute( 'editable', 'false');
                         for( var otherOptionKey in moduleRows[setName][field.name] ) { // de-select the previously selected value, make editable
                             
@@ -704,7 +707,7 @@ function treeClickHandler( event ) {
             }
             if( column.value.element==treeColumnElements.value ) {
                 if( cellIsEditable && rowProperties) {
-                    if( !(field instanceof SeLiteSettings.Field.File) && !(field instanceof SeLiteSettings.Field.Folder)) {
+                    if( !(field instanceof SeLiteSettings.Field.FileOrFolder) ) {
                         tree.startEditing( row.value, column.value );
                     }
                     else {
@@ -994,10 +997,12 @@ function createTreeView(original) {
     
 /* @var allowSets bool Whether to show the column for selection of a set. If we're only showing one module, this is module.allowSets.
  *  If we're showing more modules, then it's true if at least one of those modules has allowSets==true.
+ *  This will be set depending on the definition of module(s).
 */
 var allowSets= false;
 /** @var allowMultivaluedNonChoices bool Whether we allow multivalued non-choice (free text) fields.
  *  If allowMultivaluedNonChoices or allowSets, then we show 'Action' column.
+ *  This will be set depending on the definition of module(s).
  */
 var allowMultivaluedNonChoices= false;
 

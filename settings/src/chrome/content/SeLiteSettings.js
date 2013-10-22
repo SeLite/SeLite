@@ -13,7 +13,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 "use strict";
-var console = (Components.utils.import("resource://gre/modules/devtools/Console.jsm", {})).console;
+//var console = (Components.utils.import("resource://gre/modules/devtools/Console.jsm", {})).console;
 var runningAsComponent= (typeof window==='undefined' || window && window.location && window.location.protocol=='chrome:');
 // runningAsComponent is false when loaded via <script src="file://..."> or <script src="http://..."> rather than via Components.utils.import().
 // Used for debugging; limited (because when it's not loaded via Components.utils.import() it can't access other components).
@@ -127,6 +127,7 @@ var Field= function( name, defaultValue, multivalued ) {
         if( this.constructor==Field ) {
             throw new Error( "Can't instantiate Field directly, except for prototype instances. name: " +this.name );
         }
+        //@TODO Change the following to: this.constructor within Field.Bool..
         if( !(this instanceof Field.Bool) &&
             !(this instanceof Field.Int) &&
             !(this instanceof Field.String) &&
@@ -340,7 +341,7 @@ Field.FileOrFolder.prototype.equals= function( other ) {
 Field.File= function( name, startInProfileFolder, filters, defaultValue, multivalued ) {
     Field.FileOrFolder.call( this, name, startInProfileFolder, filters, defaultValue, multivalued, false );
 };
-Field.File.prototype= new Field('File.prototype');
+Field.File.prototype= new Field.FileOrFolder('File.prototype');
 Field.File.prototype.constructor= Field.File;
 Field.File.prototype.generateDefaultValue= function() { return ''; };
 
@@ -351,7 +352,7 @@ Field.File.prototype.generateDefaultValue= function() { return ''; };
 Field.Folder= function( name, startInProfileFolder, filters, defaultValue, multivalued ) {
     Field.FileOrFolder.call( this, name, startInProfileFolder, filters, defaultValue, multivalued, true );
 };
-Field.Folder.prototype= new Field('Folder.prototype');
+Field.Folder.prototype= new Field.FileOrFolder('Folder.prototype');
 Field.Folder.prototype.constructor= Field.Folder;
 Field.Folder.prototype.generateDefaultValue= function() { return ''; };
 
