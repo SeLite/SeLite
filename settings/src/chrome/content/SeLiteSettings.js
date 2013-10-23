@@ -20,7 +20,6 @@ var runningAsComponent= (typeof window==='undefined' || window && window.locatio
 
 // Whether this file is being loaded.
 var loadingPackageDefinition= true;
-
 if( runningAsComponent ) {
     // prefs is an instance of nsIPrefBranch
     var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
@@ -30,6 +29,7 @@ if( runningAsComponent ) {
     var nsIPrefBranch= Components.interfaces.nsIPrefBranch;
     var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
     var nsIIOService= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);    
+    Components.utils.import("resource://gre/modules/osfile.jsm");
 }
 
 var modules= sortedObject(true); // Object serving as an associative array { string module.name => Module instance }
@@ -694,11 +694,57 @@ Module.prototype.getFieldsOfSet= function( setName ) {
     return result;
 };
 
-const VALUES_MANIFEST= 'SeLiteSettingsValues.js';
+const VALUES_MANIFEST= 'SeLiteSettingsValues.txt';
 const ASSOCIATIONS_MANIFEST= 'SeLiteSettingsAssociations.txt';
 
 Module.prototype.getFieldsForFolder= function( folderPath ) {
+    var folder= null;
+    try {
+        folder= new FileUtils.File(folderPath);
+    }
+    catch(e) {
+        throw new Error( "Can't locate folder associated with configuration sets: " +folderPath );
+    }
+    ensure( folder!=null && folder.exists, 'Given folder does not exist.' );
+    ensure( folder.isDirectory(), 'Configuration sets can only be associated with folders, not with files.' );
     
+    // Array of string, each a full path of a folder on the path down to folderPath, including folderPath itself
+    var folderNames= [];
+    var breadCrumb= folder;
+    do {
+        folderNames.push( breadCrumb.path );
+        breadCrumb= breadCrumb.parent;
+    }
+    while( breadCrumb!==null );
+    folderNames= folderNames.reverse(); // Now they start from the root/drive folder
+    
+    // I assume manifests are in UTF-8. I could use intl.charset.default but not sure it's used much.
+    
+    // First, load values manifests.
+    for( var folder of folderNames ) {
+        try {
+            var file= new FileUtils.File( OS.File.join(folder, VALUES_MANIFEST) ); // Object of class nsIFile
+        }
+        catch( exception ) {
+            continue;
+        }
+        var fstream = Components.classes["@mozilla.org/network/file-input-stream;1"].
+                  createInstance(Components.interfaces.nsIFileInputStream);
+        var cstream = Components.classes["@mozilla.org/intl/converter-input-stream;1"].
+                      createInstance(Components.interfaces.nsIConverterInputStream);
+        fstream.init(file, -1, -1, 0);
+        cstream.init(fstream, "UTF-8", 0, 0);
+
+        var contents= "";
+        var str= {};
+        var read = 0;
+        do {
+            read = cstream.readString(0xffffffff, str); // read as much as we can and put it in str.value
+            contents += str.value;
+        } while (read != 0);
+        cstream.close(); // this closes fstream, too
+    }
+    // Second, load associations manifests. They override values from any values manifests.
 };
 
 /**(re)register the name of the module against definitionJavascriptFile, if the module was created with one.
