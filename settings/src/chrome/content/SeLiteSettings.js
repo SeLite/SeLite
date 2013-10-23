@@ -367,8 +367,8 @@ Field.SQLite.prototype.constructor= Field.SQLite;
  *  @param choicePairs Anonymous object serving as an associative array {
  *      string key => string/number ('primitive') label
  *  } It's not clear what is intuitive here. However, with this format, the type and positioning of
- *  label reflectshow it is shown when using Firefox url about:config.
- *  Also, Javascript transforms object field/key names to strings even if they were set as integer.
+ *  label reflects how it is shown when using Firefox url about:config.
+ *  Also, Javascript transforms object field/key names to strings, even if they were set to integer.
  * */
 Field.Choice= function( name, defaultValue, multivalued, choicePairs ) {
     Field.call( this, name, defaultValue, multivalued );
@@ -667,6 +667,7 @@ Module.prototype.getFieldsOfSet= function( setName ) {
                         if( !result[fieldName]
                             || typeof result[fieldName]!=='object' // In case there is an orphan/sick single value for fieldName itself, e.g. after you change field definition from single-value to multivalued
                         ) {
+                            // Field.Choice don't get sorted by 
                             result[fieldName]= field.multivalued && !(field instanceof Field.Choice)
                                 ? sortedObject( field.compareValues )
                                 : {};
@@ -680,7 +681,7 @@ Module.prototype.getFieldsOfSet= function( setName ) {
             result[ child ]= value; // anonymous, undefined field
         }
     }
-    // Fill in any empty multivalued or choice fields:
+    // @TODO for file inheritance/overriding: Fill in any empty multivalued or choice fields:
     for( var fieldName in this.fields ) {
         var field= this.fields[fieldName];
         if( field.multivalued || field instanceof Field.Choice ) {
@@ -694,8 +695,53 @@ Module.prototype.getFieldsOfSet= function( setName ) {
     return result;
 };
 
+/** Read whole contents of the file. Assume UTF-8.
+ * @param string fileName File name
+ * @return string contents; false if no such file (compare the result strictly using ===false)
+ * */
+function readFile( fileName ) {
+    try {
+        var file= new FileUtils.File( fileName ); // Object of class nsIFile
+    }
+    catch( exception ) {
+        return false;
+    }
+    var fstream = Components.classes["@mozilla.org/network/file-input-stream;1"].
+              createInstance(Components.interfaces.nsIFileInputStream);
+    var cstream = Components.classes["@mozilla.org/intl/converter-input-stream;1"].
+                  createInstance(Components.interfaces.nsIConverterInputStream);
+    fstream.init(file, -1, -1, 0);
+    cstream.init(fstream, "UTF-8", 0, 0);
+
+    var contents= "";
+    var str= {};
+    var read = 0;
+    do {
+        read = cstream.readString(0xffffffff, str); // read as much as we can and put it in str.value
+        contents += str.value;
+    } while (read != 0);
+    cstream.close(); // this closes fstream, too
+    return contents;
+}
+
 const VALUES_MANIFEST= 'SeLiteSettingsValues.txt';
 const ASSOCIATIONS_MANIFEST= 'SeLiteSettingsAssociations.txt';
+
+var commentLineRegex= /^[ \t]*#.*$/;
+/** @param string contents
+ *  @return array Line(s) without those that were purely comments, or empty lines.
+ * */
+function removeCommentsGetLines( contents ) {
+    var lines= contents.split("\n");
+    var result= [];
+    for( var j=0; j<lines.length; j++ ) {
+        var line= lines[j];
+        if( !line.match(commentLineRegex) && !line.trim()==='' ) {
+            result.push( line );
+        }
+    }
+    return result;
+}
 
 Module.prototype.getFieldsForFolder= function( folderPath ) {
     var folder= null;
@@ -721,30 +767,27 @@ Module.prototype.getFieldsForFolder= function( folderPath ) {
     // I assume manifests are in UTF-8. I could use intl.charset.default but not sure it's used much.
     
     // First, load values manifests.
-    for( var folder of folderNames ) {
-        try {
-            var file= new FileUtils.File( OS.File.join(folder, VALUES_MANIFEST) ); // Object of class nsIFile
+    for( var i=0; i<folderNames.length; i++) {
+        var folder=  folderNames[i];
+        var contents= new readFile( OS.File.join(folder, VALUES_MANIFEST) );
+        if( contents!==false ) {
+            var lines= removeCommentsGetLines(contents);
+            for( var j=0; j<lines.length; j++ ) {
+                
+            }
         }
-        catch( exception ) {
-            continue;
-        }
-        var fstream = Components.classes["@mozilla.org/network/file-input-stream;1"].
-                  createInstance(Components.interfaces.nsIFileInputStream);
-        var cstream = Components.classes["@mozilla.org/intl/converter-input-stream;1"].
-                      createInstance(Components.interfaces.nsIConverterInputStream);
-        fstream.init(file, -1, -1, 0);
-        cstream.init(fstream, "UTF-8", 0, 0);
-
-        var contents= "";
-        var str= {};
-        var read = 0;
-        do {
-            read = cstream.readString(0xffffffff, str); // read as much as we can and put it in str.value
-            contents += str.value;
-        } while (read != 0);
-        cstream.close(); // this closes fstream, too
     }
     // Second, load associations manifests. They override values from any values manifests.
+    for( var i=0; i<folderNames.length; i++) {
+        var folder=  folderNames[i];
+        var contents= new readFile( OS.File.join(folder, ASSOCIATIONS_MANIFEST) );
+        if( contents!==false ) {
+            var lines= removeCommentsGetLines(contents);
+            for( var j=0; j<lines.length; j++ ) {
+                
+            }
+        }
+    }
 };
 
 /**(re)register the name of the module against definitionJavascriptFile, if the module was created with one.
