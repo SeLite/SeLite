@@ -758,7 +758,32 @@ var valuesLineRegex=      /^([^ \t]+)\.([^. \t]+)([ \t]+([^ \t].*))?$/;
 // moduleName setName
 var associationLineRegex= /^([^ \t]+)[ \t]+([^ \t]+)$/;
 
-Module.prototype.getFieldsForFolder= function( folderPath ) {
+/** Collect manifest files (both values and associations fo set),
+ *  down from filesystem root to given folderPath. Parse them.
+ *  @param string folderPath Full path (absolute) to the folder where your test suite is.
+ *  @return anonymous object {
+ *      values: array, for values manifests, starting from the root folder, down to given folderPath;
+ *          values from same manifest file are consecutive entries
+ *          [
+ *              anonymous object {
+ *                  moduleName: string,
+ *                  fieldName: string,
+ *                  value: string
+ *              },
+ *              ...
+ *          ],
+ *      associations: array, for association manifests, starting from the root folder, down to given folderPath
+ *          associations from same manifest file are consecutive entries
+ *          [
+ *              anonymous object {
+ *                  moduleName: string,
+ *                  setName: string
+ *              },
+ *              ...
+ *          ]
+ *  }
+ * */
+function manifestsDownToFolder( folderPath ) {
     var folder= null;
     try {
         folder= new FileUtils.File(folderPath);
@@ -779,7 +804,9 @@ Module.prototype.getFieldsForFolder= function( folderPath ) {
     while( breadCrumb!==null );
     folderNames= folderNames.reverse(); // Now they start from the root/drive folder
     
-    // First, load values from values manifests.
+    var values= [];
+    var associations= [];
+    
     for( var i=0; i<folderNames.length; i++) {
         var folder=  folderNames[i];
         var contents= new readFile( OS.File.join(folder, VALUES_MANIFEST) );
@@ -788,30 +815,28 @@ Module.prototype.getFieldsForFolder= function( folderPath ) {
             for( var j=0; j<lines.length; j++ ) {
                 var parts= valuesLineRegex.exec( lines[j] );
                 if( parts ) {
-                    var moduleName= parts[1];
-                    var fieldName= parts[2];
-                    var value= parts[4]; // This is always non-null (it can be an empty string)
+                    values.push( {
+                        moduleName: parts[1],
+                        fieldName: parts[2],
+                        value: parts[4] // This is always non-null (it can be an empty string)
+                    } );
                 }
                 else {
                     //@TODO Console.error
                 }
             }
         }
-    }
-    // Second, load a 'global' set - one that is marked as active (if any).
-    throw ('@TODO' );
-    
-    // Third, load sets associated via associations manifests. They override values from any values manifests.
-    for( var i=0; i<folderNames.length; i++) {
-        var folder=  folderNames[i];
+        
         var contents= new readFile( OS.File.join(folder, ASSOCIATIONS_MANIFEST) );
         if( contents!==false ) {
             var lines= removeCommentsGetLines(contents);
             for( var j=0; j<lines.length; j++ ) {
                 var parts= associationLineRegex.exec( lines[j] );
                 if( parts ) {
-                    var moduleName= parts[1];
-                    var setName= parts[2];
+                    associations.push( {
+                        moduleName: parts[1],
+                        setName: parts[2]
+                    } );
                 }
                 else {
                     //@TODO Console.error
@@ -820,6 +845,19 @@ Module.prototype.getFieldsForFolder= function( folderPath ) {
         }
     }
     //@TODO
+};
+
+/** Calculate composition of field values, based on manifests and preferences,
+ *  down from filesystem root to given folderPath.
+ *  @param string folderPath Full path (absolute) to the folder where your test suite is.
+ * */
+Module.prototype.getFieldsDownToFolder= function( folderPath ) {
+    // First, load values from values manifests.
+    
+    // Second, load a 'global' set - one that is marked as active (if any).
+    throw ('@TODO' );
+    
+    // Third, load sets associated via associations manifests. They override values from any values manifests.
 };
 
 /**(re)register the name of the module against definitionJavascriptFile, if the module was created with one.
