@@ -614,6 +614,8 @@ Module.prototype.setSelectedSetName= function( setName ) {
 };
 
 /** @param setName Name of the set; an empty string if the module doesn't allow sets, or if you want a selected set.
+ *  @param boolean perFolder Whether this is loaded per folder, as a part of a composite configuration. If true,
+ *  then this doesn't generate entries for multivalued and Field.Choice fields that have no value in the given set.
  *  @return Object with sorted keys, serving as associative array {
  *      string field name => string/boolean/number ('primitive') value
  *      -- for non-choice single-value fields, and
@@ -628,7 +630,9 @@ Module.prototype.setSelectedSetName= function( setName ) {
  *  with no value stored in the preferences (there shouldn't be any, since loadFromJavascript()
  *  reloads the javascript definition and it requires non-null default values).
  * */
-Module.prototype.getFieldsOfSet= function( setName ) {
+Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
+    perFolder= perFolder || false;
+    ensure( !perFolder || this.associatesWithFolders, "getFieldsOfSet() accepts parameter perFolder=true only if module.associatesWithFolders is true." );
     if( typeof setName=='undefined' || setName===null ) {
         setName= this.allowSets
             ? this.selectedSetName()
@@ -667,7 +671,8 @@ Module.prototype.getFieldsOfSet= function( setName ) {
                         if( !result[fieldName]
                             || typeof result[fieldName]!=='object' // In case there is an orphan/sick single value for fieldName itself, e.g. after you change field definition from single-value to multivalued
                         ) {
-                            // Field.Choice don't get sorted by 
+                            // When presenting Field.Choice, they are not sorted by stored values but by keys from the field definition.
+                            // So I only use sortedObject for multivalued fields other than Field.Choice
                             result[fieldName]= field.multivalued && !(field instanceof Field.Choice)
                                 ? sortedObject( field.compareValues )
                                 : {};
@@ -681,14 +686,17 @@ Module.prototype.getFieldsOfSet= function( setName ) {
             result[ child ]= value; // anonymous, undefined field
         }
     }
-    // @TODO for file inheritance/overriding: Fill in any empty multivalued or choice fields:
-    for( var fieldName in this.fields ) {
-        var field= this.fields[fieldName];
-        if( field.multivalued || field instanceof Field.Choice ) {
-            if( !result[fieldName] ) {
-                result[fieldName]= field.multivalued && !(field instanceof Field.Choice)
-                    ? sortedObject( field.compareValues )
-                    : {};
+    if( !(this.associatesWithFolders && perFolder) ) {
+        // @TODO for file inheritance/overriding: Fill in any empty multivalued or choice fields.
+        for( var fieldName in this.fields ) {
+            var field= this.fields[fieldName];
+            if( field.multivalued || field instanceof Field.Choice ) {
+                if( !result[fieldName] ) {
+                    // Like above, I only use sortedObject for multivalued fields other than Field.Choice
+                    result[fieldName]= field.multivalued && !(field instanceof Field.Choice)
+                        ? sortedObject( field.compareValues )
+                        : {};
+                }
             }
         }
     }
@@ -773,7 +781,7 @@ Module.prototype.getFieldsForFolder= function( folderPath ) {
         if( contents!==false ) {
             var lines= removeCommentsGetLines(contents);
             for( var j=0; j<lines.length; j++ ) {
-                
+                //@TODO
             }
         }
     }
@@ -784,10 +792,11 @@ Module.prototype.getFieldsForFolder= function( folderPath ) {
         if( contents!==false ) {
             var lines= removeCommentsGetLines(contents);
             for( var j=0; j<lines.length; j++ ) {
-                
+                //@TODO
             }
         }
     }
+    //@TODO
 };
 
 /**(re)register the name of the module against definitionJavascriptFile, if the module was created with one.
