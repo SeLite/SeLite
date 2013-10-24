@@ -744,12 +744,19 @@ function removeCommentsGetLines( contents ) {
     var result= [];
     for( var j=0; j<lines.length; j++ ) {
         var line= lines[j];
-        if( !line.match(commentLineRegex) && !line.trim()==='' ) {
+        if( !line.test(commentLineRegex) && !line.trim()==='' ) {
             result.push( line );
         }
     }
     return result;
 }
+
+// moduleName.fieldName valueOrNothing
+// valueOrNothing can't start with whitespace
+var valuesLineRegex=      /^([^ \t]+)\.([^. \t]+)([ \t]+([^ \t].*))?$/;
+
+// moduleName setName
+var associationLineRegex= /^([^ \t]+)[ \t]+([^ \t]+)$/;
 
 Module.prototype.getFieldsForFolder= function( folderPath ) {
     var folder= null;
@@ -772,27 +779,43 @@ Module.prototype.getFieldsForFolder= function( folderPath ) {
     while( breadCrumb!==null );
     folderNames= folderNames.reverse(); // Now they start from the root/drive folder
     
-    // I assume manifests are in UTF-8. I could use intl.charset.default but not sure it's used much.
-    
-    // First, load values manifests.
+    // First, load values from values manifests.
     for( var i=0; i<folderNames.length; i++) {
         var folder=  folderNames[i];
         var contents= new readFile( OS.File.join(folder, VALUES_MANIFEST) );
         if( contents!==false ) {
             var lines= removeCommentsGetLines(contents);
             for( var j=0; j<lines.length; j++ ) {
-                //@TODO
+                var parts= valuesLineRegex.exec( lines[j] );
+                if( parts ) {
+                    var moduleName= parts[1];
+                    var fieldName= parts[2];
+                    var value= parts[4]; // This is always non-null (it can be an empty string)
+                }
+                else {
+                    //@TODO Console.error
+                }
             }
         }
     }
-    // Second, load associations manifests. They override values from any values manifests.
+    // Second, load a 'global' set - one that is marked as active (if any).
+    throw ('@TODO' );
+    
+    // Third, load sets associated via associations manifests. They override values from any values manifests.
     for( var i=0; i<folderNames.length; i++) {
         var folder=  folderNames[i];
         var contents= new readFile( OS.File.join(folder, ASSOCIATIONS_MANIFEST) );
         if( contents!==false ) {
             var lines= removeCommentsGetLines(contents);
             for( var j=0; j<lines.length; j++ ) {
-                //@TODO
+                var parts= associationLineRegex.exec( lines[j] );
+                if( parts ) {
+                    var moduleName= parts[1];
+                    var setName= parts[2];
+                }
+                else {
+                    //@TODO Console.error
+                }
             }
         }
     }
