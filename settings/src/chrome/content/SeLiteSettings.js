@@ -818,8 +818,8 @@ function manifestsDownToFolder( folderPath, dontCache ) {
     while( breadCrumb!==null );
     folderNames= folderNames.reverse(); // Now they start from the root/drive folder
     
-    var values= {};
-    var associations= {};
+    var values= sortedObject(true);
+    var associations= sortedObject(true);
     
     for( var i=0; i<folderNames.length; i++) {
         var folder=  folderNames[i];
@@ -907,58 +907,66 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
     var result= sortedObject(true);
     
     // First, load values from values manifests.
-    for( var i=0; i<manifests.values.length; i++ ) {
-        var manifest= manifests.values[i];
-        if( manifest.moduleName==this.name ) {
-            var field= manifest.fieldName in this.fields
-                ? this.fields[manifest.fieldName]
-                : null;
-            if( field && (field.multivalued || field instanceof Field.Choice) ) {
-                if( !(manifest.fieldName in result)
-                 || result[manifest.fieldName].folderPath!= "todo" // override any less local value(s) from manifest from upper folders
-                ) {
+    for( var manifestFolder in manifests.values ) {
+        for( var i=0; i<manifests.values[manifestFolder].length; i++ ) {
+            var manifest= manifests.values[manifestFolder][i];
+            if( manifest.moduleName==this.name ) {
+                var field= manifest.fieldName in this.fields
+                    ? this.fields[manifest.fieldName]
+                    : null;
+                if( field && (field.multivalued || field instanceof Field.Choice) ) {
+                    if( !(manifest.fieldName in result)
+                     || result[manifest.fieldName].folderPath!=manifestFolder // override any less local value(s) from manifest from upper folders
+                    ) {
+                        result[ manifest.fieldName ]= {
+                            entry: {}
+                        };
+                    }
+                    result[ manifest.fieldName ][ manifest.value ]=
+                        field instanceof Field.Choice && manifest.value in field.choicePairs
+                        ? field.choicePairs[ manifest.value ]
+                        : manifest.value;
+                }
+                else {
                     result[ manifest.fieldName ]= {
-                        entry: {}
+                        entry: manifest.value
                     };
                 }
-                result[ manifest.fieldName ][ manifest.value ]= field instanceof Field.Choice && manifest.value in field.choicePairs
-                    ? field.choicePairs[ manifest.value ]
-                    : manifest.value;
+                result[ manifest.fieldName ].fromPreferences= false;
+                result[ manifest.fieldName ].folderPath= manifestFolder;
             }
-            else {
-                result[ manifest.fieldName ]= {
-                    entry: manifest.value
-                };
-            }
-            result[ manifest.fieldName ].fromPreferences= false;
-            result[ manifest.fieldName ].folderPath= "TODO"; //@TODO collect in manifestsDownToFolder()
         }
     }
-    // Second, merge the 'global' set - one that is marked as active (if any) - with associated sets
-    var associations= [];
+    // Second, merge the 'global' set - one that is marked as active (if any) - with associated sets.
+    // I'm not modifying manifests.associations itself, because it can be cached & reused; I want this simple.
+    var associations= sortedObject(true);
     if( this.allowSets ) {
         var selectedSetName= this.selectedSetName();
         if( selectedSetName ) {
-            associations.push( {
+            associations['']= {
                 moduleName: this.name,
                 setName: selectedSetName,
-            });
+            };
         }
     }
-    associations= associations.concat( manifests.associations );
+    for( var manifestFolder in manifests.associations ) {
+        associations[manifestFolder]= manifests.associations[manifestFolder];
+    }
     // Third, load global set (if any) and sets associated via associations manifests. They override values from any values manifests.
-    for( var i=0; i<associations.length; i++ ) {
-        var manifest= associations[i];
-        if( manifest.moduleName==this.name ) {
-            var fields= this.getFieldsOfSet( manifest.setName, true );
-            for( var fieldName in fields ) {
-                // override any value(s) from values manifests, no matter whether from upper or lower (more local) level
-                // override any less local value(s) from global set or sets associated with upper (less local) folders
-                result[ fieldName ]= {
-                    entry: fields[fieldName],
-                    fromPreferences: true,
-                    folderPath: "todo",
-                    setName: manifest.setName
+    for( var manifestFolder in manifests.values ) {
+        for( var i=0; i<associations[manifestFolder].length; i++ ) {
+            var manifest= associations[manifestFolder][i];
+            if( manifest.moduleName==this.name ) {
+                var fields= this.getFieldsOfSet( manifest.setName, true );
+                for( var fieldName in fields ) {
+                    // override any value(s) from values manifests, no matter whether from upper or lower (more local) level
+                    // override any less local value(s) from global set or sets associated with upper (less local) folders
+                    result[ fieldName ]= {
+                        entry: fields[fieldName],
+                        fromPreferences: true,
+                        folderPath: manifestFolder,
+                        setName: manifest.setName
+                    }
                 }
             }
         }
