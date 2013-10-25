@@ -445,7 +445,7 @@ var sortedObjectProxyHandler= {
  * @param mixed sortCompare Either
  * - a function for auto-ordering
  * - bool true if it should auto-order by compareNatural
- * - false to just honour client-given order (not working for now - it will honour the order, but not for e.g. mixed negative/positive number keys)
+ * - false to just honour client-given order (not working for now - it will honour the order, but not for e.g. mixed negative/positive numeric keys)
  * @returns a new object
  * <br/>Old docs - relevant only if Firefox supprots object proxies properly. See
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators

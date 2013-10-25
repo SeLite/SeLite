@@ -618,7 +618,7 @@ Module.prototype.setSelectedSetName= function( setName ) {
  *      string field name => string/boolean/number ('primitive') value
  *      -- for non-choice single-value fields, and
  *      -- for fields not defined in this.fields
- *      string choice or (non-choice and multi-value) field name => array{
+ *      string choice or (non-choice and multi-value) field name => object serving as an associative array{
  *          string key => string/number ('primitive') label or value entered by user
  *      }
  *      -- this is present for all choice and for all non-choice multi-value fields,
@@ -871,13 +871,21 @@ function manifestsDownToFolder( folderPath, dontCache ) {
  *  previous manifests stored in the cache and it doesn't store current manifests in the cache). For use by GUI.
  *  @return Object with sorted keys, serving as an associative array. A bit similar to result of getFieldsOfset(),
  *  but with more information and more structure: {
- *      string field name => string/boolean/number ('primitive') value
- *      -- for non-choice single-value fields, and
- *      -- for fields not defined in this.fields
- *      string choice or (non-choice and multi-value) field name => array{
- *          string key => string/number ('primitive') label or value entered by user
+ *      string field name => anonymous object {
+ *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest,
+ *          setName: string set name (only valid if fromPreferences is true),
+ *          folderPath: string folder path to the manifest file (either values manifest, or associations manifest); empty if the values comes from a global (active) set
+ *          entry: either
+ *          - string/boolean/number ('primitive') value,
+ *          -- for non-choice single-value fields, and
+ *          -- for fields not defined in this.fields
+ *          or - for choice or non-choice and multi-value fields - but only for ones defined as such in module (configuration schema):
+ *          - object serving as an associative array {
+ *             string key => string/number ('primitive') label (value) loaded from module schema; if not present in the module schema,
+ *                then the label (value) is same as the key
+ *            }
  *      }
- *      -- this excludes choice and non-choice multi-value fields that don't have any value in values manifests neither in any associated preferences
+ *      It excludes any fields defined in the module (schema) with no value in values manifests neither in any associated preferences.
  *  }
  *  It also includes any values of fields that are not defined in this.fields, but are present in values manifests or associated preferences.
  *  It excludes any single-value fields defined in this.fields with no value stored in the preferences.
@@ -892,18 +900,60 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
     for( var i=0; i<manifests.values.length; i++ ) {
         var manifest= manifests.values[i];
         if( manifest.moduleName==this.name ) {
-            
+            var field= manifest.fieldName in this.fields
+                ? this.fields[manifest.fieldName]
+                : null;
+            if( field && (field.multivalued || field instanceof Field.Choice) ) {
+                if( !(manifest.fieldName in result)
+                 || result[manifest.fieldName].folderPath!= "todo" // override any less local value(s) from manifest from upper folders
+                ) {
+                    result[ manifest.fieldName ]= {
+                        entry: {}
+                    };
+                }
+                result[ manifest.fieldName ][ manifest.value ]= field instanceof Field.Choice && manifest.value in field.choicePairs
+                    ? field.choicePairs[ manifest.value ]
+                    : manifest.value;
+            }
+            else {
+                result[ manifest.fieldName ]= {
+                    entry: manifest.value
+                };
+            }
+            result[ manifest.fieldName ].fromPreferences= false;
+            result[ manifest.fieldName ].folderPath= "TODO"; //@TODO collect in manifestsDownToFolder()
         }
     }
-    // Second, load a 'global' set - one that is marked as active (if any).
-    for( var i=0; i<manifests.associations.length; i++ ) {
-        var manifest= associations.values[i];
+    // Second, merge the 'global' set - one that is marked as active (if any) - with associated sets
+    var associations= [];
+    if( this.allowSets ) {
+        var selectedSetName= this.selectedSetName();
+        if( selectedSetName ) {
+            associations.push( {
+                moduleName: this.name,
+                setName: selectedSetName,
+            });
+        }
+    }
+    associations= associations.concat( manifests.associations );
+    // Third, load global set (if any) and sets associated via associations manifests. They override values from any values manifests.
+    for( var i=0; i<associations.length; i++ ) {
+        var manifest= associations[i];
         if( manifest.moduleName==this.name ) {
-            
+            var fields= this.getFieldsOfSet( manifest.setName, true );
+            for( var fieldName in fields ) {
+                // override any value(s) from values manifests, no matter whether from upper or lower (more local) level
+                // override any less local value(s) from global set or sets associated with upper (less local) folders
+                result[ fieldName ]= {
+                    entry: fields[fieldName],
+                    fromPreferences: true,
+                    folderPath: "todo",
+                    setName: manifest.setName
+                }
+            }
         }
     }
-    
-    // Third, load sets associated via associations manifests. They override values from any values manifests.
+    return result;
 };
 
 /**(re)register the name of the module against definitionJavascriptFile, if the module was created with one.
