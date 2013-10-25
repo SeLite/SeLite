@@ -82,12 +82,10 @@ function ensureFieldName( name, description, asFieldName ) {
 
 /** @param string name Name of the field
  *  @param defaultValue mixed Default value; optional; if not set or null, then the field has a default value as fit for the particular type.
- *  If multivalued is true, then defaultValue must be null. Otherwise what would we do when
- *  - a user removes/deselects all values for the field
- *  - the module definition gets loaded
- *  That would re-activate the default values for this field, because the field has none. That is the behaviour we want for
- *  single valued fields, so that if we add a new field to the module definition Javascript, the field will get auto created
- *  with its default value in all sets of that module.
+ *  If multivalued is true, TODO.
+ *  <br/>defaultValues is only applied when creating a new configuration set.
+ *  If loading an existing configuration set which doesn't have a value for this field,
+ *  this default value is not applied - the field will stay unset.
  *  @param bool multivalued Whether the field is multivalued; false by default
  * */
 var Field= function( name, defaultValue, multivalued ) {
@@ -624,11 +622,11 @@ Module.prototype.setSelectedSetName= function( setName ) {
  *          string key => string/number ('primitive') label or value entered by user
  *      }
  *      -- this is present for all choice and for all non-choice multi-value fields,
- *      including those that don't have any value in Preferences DB
+ *      including those that don't have any value in Preferences DB,
+ *      unless this.associatesWithFolders && perFolder.
  *  }
- *  It also includes fields that are not defined in this.fields. It excludes any single-value fields defined in this.fields
- *  with no value stored in the preferences (there shouldn't be any, since loadFromJavascript()
- *  reloads the javascript definition and it requires non-null default values).
+ *  It also includes any values of fields that are not defined in this.fields, but are present in the preferences.
+ *  It excludes any single-value fields defined in this.fields with no value stored in the preferences.
  * */
 Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
     perFolder= perFolder || false;
@@ -758,9 +756,17 @@ var valuesLineRegex=      /^([^ \t]+)\.([^. \t]+)([ \t]+([^ \t].*))?$/;
 // moduleName setName
 var associationLineRegex= /^([^ \t]+)[ \t]+([^ \t]+)$/;
 
+/** Object serving as an associative array {
+ *    string absoluteFolderPath: respective result of manifestsDownToFolder(absoluteFolderPath)
+ * }
+ * */
+var cachedManifests= {};
+
 /** Collect manifest files (both values and associations fo set),
  *  down from filesystem root to given folderPath. Parse them.
  *  @param string folderPath Full path (absolute) to the folder where your test suite is.
+ *  @param bool dontCache If true, then this doesn't cache manifest files (it doesn't use any
+ *  previous result stored in the cache and it doesn't store result in the cache). For use by GUI.
  *  @return anonymous object {
  *      values: array, for values manifests, starting from the root folder, down to given folderPath;
  *          values from same manifest file are consecutive entries
@@ -783,7 +789,11 @@ var associationLineRegex= /^([^ \t]+)[ \t]+([^ \t]+)$/;
  *          ]
  *  }
  * */
-function manifestsDownToFolder( folderPath ) {
+function manifestsDownToFolder( folderPath, dontCache ) {
+    dontCache= dontCache || false;
+    if( !dontCache && folderPath in cachedManifests ) {
+        return cachedManifests[folderPath];
+    }
     var folder= null;
     try {
         folder= new FileUtils.File(folderPath);
@@ -844,18 +854,54 @@ function manifestsDownToFolder( folderPath ) {
             }
         }
     }
-    //@TODO
+    var result= {
+        values: values,
+        associations: associations
+    };
+    if( !dontCache ) {
+        cachedManifests[folderPath]= result;
+    }
+    return result;
 };
 
 /** Calculate composition of field values, based on manifests and preferences,
  *  down from filesystem root to given folderPath.
  *  @param string folderPath Full path (absolute) to the folder where your test suite is.
- * */
-Module.prototype.getFieldsDownToFolder= function( folderPath ) {
-    // First, load values from values manifests.
+ *  @param bool dontCache If true, then this doesn't cache manifest files (it doesn't use any
+ *  previous manifests stored in the cache and it doesn't store current manifests in the cache). For use by GUI.
+ *  @return Object with sorted keys, serving as an associative array. A bit similar to result of getFieldsOfset(),
+ *  but with more information and more structure: {
+ *      string field name => string/boolean/number ('primitive') value
+ *      -- for non-choice single-value fields, and
+ *      -- for fields not defined in this.fields
+ *      string choice or (non-choice and multi-value) field name => array{
+ *          string key => string/number ('primitive') label or value entered by user
+ *      }
+ *      -- this excludes choice and non-choice multi-value fields that don't have any value in values manifests neither in any associated preferences
+ *  }
+ *  It also includes any values of fields that are not defined in this.fields, but are present in values manifests or associated preferences.
+ *  It excludes any single-value fields defined in this.fields with no value stored in the preferences.
+ *  }
+* */
+Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
+    dontCache= dontCache || false;
+    var manifests= manifestsDownToFolder(dontCache);
+    var result= sortedObject(true);
     
+    // First, load values from values manifests.
+    for( var i=0; i<manifests.values.length; i++ ) {
+        var manifest= manifests.values[i];
+        if( manifest.moduleName==this.name ) {
+            
+        }
+    }
     // Second, load a 'global' set - one that is marked as active (if any).
-    throw ('@TODO' );
+    for( var i=0; i<manifests.associations.length; i++ ) {
+        var manifest= associations.values[i];
+        if( manifest.moduleName==this.name ) {
+            
+        }
+    }
     
     // Third, load sets associated via associations manifests. They override values from any values manifests.
 };
@@ -1032,5 +1078,6 @@ var EXPORTED_SYMBOLS= [
     'SET_SELECTION_ROW', 'SELECTED_SET_NAME', 'FIELD_MAIN_ROW', 'OPTION_NOT_UNIQUE_CELL',
     'OPTION_UNIQUE_CELL', 'FIELD_TREECHILDREN', 'NEW_VALUE_ROW',
     'Field', 'Module', 'register', 'savePrefFile', 'moduleNamesFromPreferences', 'loadFromJavascript',
-    'VALUES_MANIFEST', 'ASSOCIATIONS_MANIFEST'
+    'VALUES_MANIFEST', 'ASSOCIATIONS_MANIFEST',
+    'manifestsDownToFolder'
 ];
