@@ -768,25 +768,29 @@ var cachedManifests= {};
  *  @param bool dontCache If true, then this doesn't cache manifest files (it doesn't use any
  *  previous result stored in the cache and it doesn't store result in the cache). For use by GUI.
  *  @return anonymous object {
- *      values: array, for values manifests, starting from the root folder, down to given folderPath;
- *          values from same manifest file are consecutive entries
- *          [
- *              anonymous object {
- *                  moduleName: string,
- *                  fieldName: string,
- *                  value: string
- *              },
- *              ...
- *          ],
- *      associations: array, for association manifests, starting from the root folder, down to given folderPath
- *          associations from same manifest file are consecutive entries
- *          [
+ *      values: naturally sorted object (that lists more global folders first) {
+ *          string absoluteFolderPath: array of entries from a values manifest at this path
+ *               [
+ *                 anonymous object {
+ *                      moduleName: string,
+ *                      fieldName: string,
+ *                      value: string
+ *                 },
+ *                 ...
+ *               ],
+ *          ...
+ *      },
+ *      associations: naturally sorted object (that lists more global folders first) {
+ *          string absoluteFolderPath: array of entries from an association manifest at this path
+ *            [
  *              anonymous object {
  *                  moduleName: string,
  *                  setName: string
  *              },
  *              ...
- *          ]
+ *            ],
+ *          ...  
+ *      }
  *  }
  * */
 function manifestsDownToFolder( folderPath, dontCache ) {
@@ -814,8 +818,8 @@ function manifestsDownToFolder( folderPath, dontCache ) {
     while( breadCrumb!==null );
     folderNames= folderNames.reverse(); // Now they start from the root/drive folder
     
-    var values= [];
-    var associations= [];
+    var values= {};
+    var associations= {};
     
     for( var i=0; i<folderNames.length; i++) {
         var folder=  folderNames[i];
@@ -825,7 +829,10 @@ function manifestsDownToFolder( folderPath, dontCache ) {
             for( var j=0; j<lines.length; j++ ) {
                 var parts= valuesLineRegex.exec( lines[j] );
                 if( parts ) {
-                    values.push( {
+                    if( !(folder in values) ) {
+                        values[folder]= [];
+                    }
+                    values[folder].push( {
                         moduleName: parts[1],
                         fieldName: parts[2],
                         value: parts[4] // This is always non-null (it can be an empty string)
@@ -843,7 +850,10 @@ function manifestsDownToFolder( folderPath, dontCache ) {
             for( var j=0; j<lines.length; j++ ) {
                 var parts= associationLineRegex.exec( lines[j] );
                 if( parts ) {
-                    associations.push( {
+                    if( !(folder in associations) ) {
+                        associations[folder]= [];
+                    }
+                    associations[folder].push( {
                         moduleName: parts[1],
                         setName: parts[2]
                     } );
@@ -1128,6 +1138,5 @@ var EXPORTED_SYMBOLS= [
     'SET_SELECTION_ROW', 'SELECTED_SET_NAME', 'FIELD_MAIN_ROW', 'OPTION_NOT_UNIQUE_CELL',
     'OPTION_UNIQUE_CELL', 'FIELD_TREECHILDREN', 'NEW_VALUE_ROW',
     'Field', 'Module', 'register', 'savePrefFile', 'moduleNamesFromPreferences', 'loadFromJavascript',
-    'VALUES_MANIFEST', 'ASSOCIATIONS_MANIFEST',
-    'manifestsDownToFolder'
+    'VALUES_MANIFEST', 'ASSOCIATIONS_MANIFEST'
 ];
