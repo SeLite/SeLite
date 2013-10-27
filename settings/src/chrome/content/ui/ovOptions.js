@@ -562,8 +562,8 @@ function generateFields( setChildren, module, setName, setFields ) {
             ? module.fields[fieldName]
             : fieldName;
         
-        var singleValueOrNull= typeof setFields[fieldName]!=='object'
-            ? setFields[fieldName]
+        var singleValueOrNull= typeof setFields[fieldName].entry!=='object'
+            ? setFields[fieldName].entry
             : null;
         var fieldItem= generateTreeItem(module, setName, field, singleValueOrNull, RowLevel.FIELD );
         setChildren.appendChild( fieldItem );
@@ -574,7 +574,7 @@ function generateFields( setChildren, module, setName, setFields ) {
             var fieldChildren= createTreeChildren( fieldItem );
             var pairsToList= field instanceof SeLiteSettings.Field.Choice
                 ? field.choicePairs
-                : fieldValueOrPairs;
+                : fieldValueOrPairs.entry;
             
             for( var key in pairsToList ) {////@TODO potential IterableArray
                 var pair= {};
@@ -582,15 +582,12 @@ function generateFields( setChildren, module, setName, setFields ) {
                 var optionItem= generateTreeItem(module, setName, field, pair,
                     RowLevel.OPTION,
                     field instanceof SeLiteSettings.Field.Choice
-                        && typeof(fieldValueOrPairs)==='object' // This protects when the field has a sick/obsolete non-choice single value in Preferences DB, and no choice value
-                        && key in fieldValueOrPairs
+                        && typeof(fieldValueOrPairs.entry)==='object' // This protects when the field has a sick/obsolete non-choice single value in Preferences DB, and no choice value
+                        && key in fieldValueOrPairs.entry
                 );
                 fieldChildren.appendChild( optionItem );
             }
             treeRows[ module.name ][ setName ][ fieldName ][ SeLiteSettings.FIELD_TREECHILDREN ]= fieldChildren;
-            /*if( !treeRowsReported )
-                alert( 'after generateFields():\n' +objectToString(treeRows, 3, false, ['XULElement', '']) );
-            treeRowsReported= true;/**/
         }
     }
 }

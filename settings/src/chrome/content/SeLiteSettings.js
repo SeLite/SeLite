@@ -615,15 +615,17 @@ Module.prototype.setSelectedSetName= function( setName ) {
  *  @param boolean perFolder Whether this is loaded per folder, as a part of a composite configuration. If true,
  *  then this doesn't generate entries for multivalued and Field.Choice fields that have no value in the given set.
  *  @return Object with sorted keys, serving as associative array {
- *      string field name => string/boolean/number ('primitive') value
- *      -- for non-choice single-value fields, and
- *      -- for fields not defined in this.fields
- *      string choice or (non-choice and multi-value) field name => object serving as an associative array{
- *          string key => string/number ('primitive') label or value entered by user
+ *      string field name anonymous object {
+ *          entry: either
+ *          - string/boolean/number ('primitive') value
+            -- for non-choice single-value fields, and
+ *          -- for fields not defined in this.fields
+ *            or - for choice, or non-choice and multi-value field name
+ *             (including those that don't have any value in Preferences DB, unless this.associatesWithFolders && perFolder)
+ *          - object serving as an associative array{
+ *             string key => string/number ('primitive') label or value entered by user
+ *          }
  *      }
- *      -- this is present for all choice and for all non-choice multi-value fields,
- *      including those that don't have any value in Preferences DB,
- *      unless this.associatesWithFolders && perFolder.
  *  }
  *  It also includes any values of fields that are not defined in this.fields, but are present in the preferences.
  *  It excludes any single-value fields defined in this.fields with no value stored in the preferences.
@@ -667,33 +669,36 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
                     var field= this.fields[fieldName];
                     if( field && (field.multivalued || field instanceof Field.Choice) ) {
                         if( !result[fieldName]
-                            || typeof result[fieldName]!=='object' // In case there is an orphan/sick single value for fieldName itself, e.g. after you change field definition from single-value to multivalued
+                            || typeof result[fieldName].entry!=='object' // In case there is an orphan/sick single value for fieldName itself, e.g. after you change field definition from single-value to multivalued
                         ) {
                             // When presenting Field.Choice, they are not sorted by stored values but by keys from the field definition.
                             // So I only use sortedObject for multivalued fields other than Field.Choice
-                            result[fieldName]= field.multivalued && !(field instanceof Field.Choice)
-                                ? sortedObject( field.compareValues )
-                                : {};
+                            result[fieldName]= {
+                                entry: field.multivalued && !(field instanceof Field.Choice)
+                                    ? sortedObject( field.compareValues )
+                                    : {}
+                                };
                         }
                         var key= child.substring( indexOfDot+1 );
-                        result[fieldName][ key ]= value;
+                        result[fieldName].entry[ key ]= value;
                         continue;
                     }
                 }
             }
-            result[ child ]= value; // anonymous, undefined field
+            result[ child ]= {entry: value}; // anonymous, undefined field
         }
     }
     if( !(this.associatesWithFolders && perFolder) ) {
-        // @TODO for file inheritance/overriding: Fill in any empty multivalued or choice fields.
         for( var fieldName in this.fields ) {
             var field= this.fields[fieldName];
             if( field.multivalued || field instanceof Field.Choice ) {
                 if( !result[fieldName] ) {
                     // Like above, I only use sortedObject for multivalued fields other than Field.Choice
-                    result[fieldName]= field.multivalued && !(field instanceof Field.Choice)
-                        ? sortedObject( field.compareValues )
-                        : {};
+                    result[fieldName]= {
+                        entry: field.multivalued && !(field instanceof Field.Choice)
+                            ? sortedObject( field.compareValues )
+                            : {}
+                        };
                 }
             }
         }
@@ -889,11 +894,11 @@ function manifestsDownToFolder( folderPath, dontCache ) {
  *          - string/boolean/number ('primitive') value,
  *          -- for non-choice single-value fields, and
  *          -- for fields not defined in this.fields
- *          or - for choice or non-choice and multi-value fields - but only for ones defined as such in module (configuration schema):
+ *            or - for choice, or non-choice and multi-value fields - but only for ones defined as such in module (configuration schema):
  *          - object serving as an associative array {
  *             string key => string/number ('primitive') label (value) loaded from module schema; if not present in the module schema,
  *                then the label (value) is same as the key
- *            }
+ *          }
  *      }
  *      It excludes any fields defined in the module (schema) with no value in values manifests neither in any associated preferences.
  *  }
