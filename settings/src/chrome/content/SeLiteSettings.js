@@ -947,10 +947,11 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
     var associations= sortedObject(true);
     if( this.allowSets && this.selectedSetName()!==null ) {
         console.log( 'selected set for module ' +this.name+ ', for set ' +this.selectedSetName() );
-        associations['']= {
+        associations['']= [{
             moduleName: this.name,
             setName: this.selectedSetName(),
-        };
+        }];
+        console.log( objectToString(associations, 6));
     }
     // Now merge:
     for( var associationFolder in manifests.associations ) {
@@ -974,7 +975,7 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
                 }
             }
         }
-    }
+    }console.log( objectToString(result, 6));
     return result;
 };
 
