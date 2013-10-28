@@ -25,58 +25,72 @@ var DELETE_THE_SET= "Delete the set";
 var ADD_NEW_VALUE= "Add a new value";
 var DELETE_THE_VALUE= "Delete the value";
 
-/** @param field Instance of a subclass of Field.FileOrFolder (Field.File, Field.Folder or Field.SQLite)
- *  @param tree
+/** Select a file/folder for a field or a folder for which to load the configuration (via manifests).
+ *  @param field Instance of a subclass of Field.FileOrFolder (Field.File, Field.Folder or Field.SQLite), or null if no field
+ *  @param tree, used only when changing a field.
  *  @param row int 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
         var column= { value: null }; // value is instance of TreeColumn.
     @param column instance of TreeColumn
     @param bool isFolder whether it's for a folder, rather than a file
-    @return void
+    @param string currentTargetFolder Used as the default folder, when field==null
+    @return false if nothing selected, string file/folder path if selected
  * */
-function chooseFileOrFolder( field, tree, row, column, isFolder ) {
-	var filePicker = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
-	filePicker.init(window, "Select a file for " +field.name,
-            isFolder
-            ? nsIFilePicker.modeGetFolder
-            : nsIFilePicker.modeOpen
-        );
-    for( var filterName in field.filters ) {
-        if( field && field.filters[filterName] ) {
-            filePicker.appendFilter( filterName, field.filters[filterName]);
+function chooseFileOrFolder( field, tree, row, column, isFolder, currentTargetFolder ) {
+    var filePicker = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
+    filePicker.init(
+        window,
+        "Select a " +(isFolder ? "folder" : "file")+ (field ? " for " +field.name : ""),
+        isFolder
+        ? nsIFilePicker.modeGetFolder
+        : nsIFilePicker.modeOpen
+    );
+    if( field ) {
+        for( var filterName in field.filters ) {
+            if( field && field.filters[filterName] ) {
+                filePicker.appendFilter( filterName, field.filters[filterName]);
+            }
+            else { // field==false means that it should be a non-restrictive filter
+                filePicker.appendFilters( nsIFilePicker.filterAll);
+            }
         }
-        else { // field==false means that it should be a non-restrictive filter
-            filePicker.appendFilters( nsIFilePicker.filterAll);
+        var previousValue= tree.view.getCellText(row, column);
+        var filePickerDirectoryIsSet= false;
+        if( previousValue ) {
+            var file= null;
+            try {
+                file= new FileUtils.File(previousValue);
+            }
+            catch(e) {}
+            if( file!=null && file.exists() ) {
+                filePicker.defaultString= file.leafName;
+            }
+            if( file!=null && file.parent!==null && file.parent.exists() ) {
+                var localParent= Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
+                localParent.initWithPath( file.parent.path );
+                filePicker.displayDirectory= localParent;
+                filePickerDirectoryIsSet= true;
+            }
+        }
+        if( !filePickerDirectoryIsSet ) {
+            if( field.startInProfileFolder ) {
+                var profileDir= Components.classes["@mozilla.org/file/directory_service;1"].getService( Components.interfaces.nsIProperties)
+                    .get("ProfD", Components.interfaces.nsIFile);
+                filePicker.displayDirectory= profileDir;
+            }
         }
     }
-    var previousValue= tree.view.getCellText(row, column);
-    var filePickerDirectoryIsSet= false;
-    if( previousValue ) {
-        var file= null;
-        try {
-            file= new FileUtils.File(previousValue);
-        }
-        catch(e) {}
-        if( file!=null && file.exists() ) {
-            filePicker.defaultString= file.leafName;
-        }
-        if( file!=null && file.parent!==null && file.parent.exists() ) {
-            var localParent= Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
-            localParent.initWithPath( file.parent.path );
-            filePicker.displayDirectory= localParent;
-            filePickerDirectoryIsSet= true;
-        }
-    }
-    if( !filePickerDirectoryIsSet ) {
-        if( field.startInProfileFolder ) {
-            var profileDir= Components.classes["@mozilla.org/file/directory_service;1"].getService( Components.interfaces.nsIProperties)
-                .get("ProfD", Components.interfaces.nsIFile);
-            filePicker.displayDirectory= profileDir;
-        }
+    else
+    if( currentTargetFolder ) {
+        filePicker.displayDirectory= currentTargetFolder;
     }
     var result= filePicker.show();
     if (result== nsIFilePicker.returnOK || result== nsIFilePicker.returnReplace) {
+        if( field ) {
             tree.view.setCellText(row, column, filePicker.file.path );
+        }
+        return filePicker.file.path;
     }
+    return false;
 }
 
 /** Enumeration-like class to use symbols for tree levels and also for columns.
@@ -1061,9 +1075,7 @@ var nsIIOService= Components.classes["@mozilla.org/network/io-service;1"].getSer
 window.addEventListener( "load", function(e) {
     var params= document.location.search.substring(1);
     if( document.location.search ) {
-        var regex= /load/;
-        var match= regex.exec( params );
-        if( match ) {
+        if( /load/.exec( params ) ) {
             var result= {};
             if( promptService.select(
                 window,
@@ -1094,31 +1106,42 @@ window.addEventListener( "load", function(e) {
             }
             return;
         }
-        regex= /folder=([^&]*)/;
-        var match= regex.exec( params );
+        var match= /folder=([^&]*)/.exec( params );
         if( match ) {
             targetFolder= match[1];
         }
-        regex= /module=([a-zA-Z0-9_.-]+)/;
-        var match= regex.exec( params );
+        var match= /module=([a-zA-Z0-9_.-]+)/.exec( params );
+        var moduleName= null;
         if( match ) {
-            modules[ match[1] ]= SeLiteSettings.loadFromJavascript( match[1] );
-            ensure( !targetFolder || modules[match[1]].associatesWithFolders, "You're using URL with folder=" +targetFolder+
-                " and module=" +match[1]+ ", however that module doesn't allow to be associated with folders." );
+            moduleName= match[1];
+            modules[ moduleName ]= SeLiteSettings.loadFromJavascript( moduleName );
+            ensure( !targetFolder || modules[moduleName].associatesWithFolders, "You're using URL with folder=" +targetFolder+
+                " and module=" +moduleName+ ", however that module doesn't allow to be associated with folders." );
+        }
+        match= /prefix=([a-zA-Z0-9_.-]+)/.exec( params );
+        var prefix= '';
+        if( match ) {
+            prefix= match[1];
+        }
+        if( /selectFolder/.exec(params) ) {
+            var newTargetFolder= chooseFileOrFolder( null, null, null, null, true/*isFolder*/, targetFolder );
+            if( newTargetFolder ) {
+                var newLocation= "?";
+                if( moduleName ) {
+                    newLocation+= "module=" +moduleName+ "&"; //@TODO urlescape
+                }
+                if( prefix ) {
+                    newLocation+= "prefix="+prefix+ "&"; //@TODO urlescape
+                }
+                newLocation+= targetFolder= newTargetFolder; //@TODO urlescape
+                document.location= newLocation;
+            }
         }
     }
     var allowModules= false;
     if( isEmptyObject(modules) ) {
         allowModules= true;
-        var prefixName= '';
-        if( document.location.search ) {
-            regex= /prefix=([a-zA-Z0-9_.-]+)/;
-            match= regex.exec( params );
-            if( match ) {
-                prefixName= match[1];
-            }
-        }
-        var moduleNames= SeLiteSettings.moduleNamesFromPreferences( prefixName );
+        var moduleNames= SeLiteSettings.moduleNamesFromPreferences( prefix );
         for( var i=0; i<moduleNames.length; i++ ) {
             var module= SeLiteSettings.loadFromJavascript( moduleNames[i]);
             if( targetFolder===null || module.associatesWithFolders ) {
