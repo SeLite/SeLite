@@ -967,7 +967,7 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
                     // override any value(s) from values manifests, no matter whether from upper or lower (more local) level
                     // override any less local value(s) from global set or sets associated with upper (less local) folders
                     result[ fieldName ]= {
-                        entry: fields[fieldName],
+                        entry: fields[fieldName].entry,
                         fromPreferences: true,
                         folderPath: associationFolder,
                         setName: manifest.setName
