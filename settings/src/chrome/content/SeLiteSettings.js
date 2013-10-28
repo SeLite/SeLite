@@ -556,14 +556,11 @@ function directChildList( prefsBranch, namePrefix ) {
         
         var postfix= child.substring( namePrefixLength );
         var indexOfDot= postfix.indexOf('.');
-        if( indexOfDot<0 ) {
-            result.push( postfix );
-        }
-        else {
+        if( indexOfDot>0 ) {
             postfix= postfix.substring( 0, indexOfDot);
-            if( result.indexOf(postfix)<0 ) {
-                result.push( postfix );
-            }
+        }
+        if( result.indexOf(postfix)<0 ) {
+            result.push( postfix );
         }
     }
     return result;
@@ -1052,9 +1049,7 @@ Module.prototype.createSet= function( setName ) {
         ensure( setName!=='', 'Module associates with folders, therefore a set name cannot be empty.' );
         // Since we don't populate default values of sets that associate with folders, I need to store something in preferences
         // to represent the set. So I use an empty string value.
-        // @TODO 1. Don't do this if the set has any value already
-        // @TODO 2. Once the users adds the first value and reload the paeg, this breaks the listing of the sets. The set will be listed twice!
-        //this.prefsBranch.setCharPref( setName, '');
+        this.prefsBranch.setCharPref( setName, '');
     }
 };
 
