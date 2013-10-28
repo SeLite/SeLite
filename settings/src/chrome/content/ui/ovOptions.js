@@ -247,7 +247,7 @@ function generateTreeColumns( allowModules, perFolder ) {
     treecol.setAttribute( 'ordinal', '7');
     treecols.appendChild(treecol);
     
-    if( allowSets || allowMultivaluedNonChoices ) {
+    if( targetFolder===null && (allowSets || allowMultivaluedNonChoices) ) {
         splitter= document.createElementNS( XUL_NS, 'splitter' );
         splitter.setAttribute( 'ordinal', '6');
         treecols.appendChild( splitter );
@@ -511,7 +511,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         if( rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET ) {
             treecell.setAttribute( 'label',
                 !setName
-                    ? (module.allowSets
+                    ? (allowSets && module.allowSets
                         ? CREATE_NEW_SET
                         : ''
                       )
@@ -1103,6 +1103,8 @@ window.addEventListener( "load", function(e) {
         var match= regex.exec( params );
         if( match ) {
             modules[ match[1] ]= SeLiteSettings.loadFromJavascript( match[1] );
+            ensure( !targetFolder || modules[match[1]].associatesWithFolders, "You're using URL with parameter 'folder' set to " +match[1]+
+                ", however that module doesn't allow to be associated with folders." );
         }
     }
     var allowModules= false;
@@ -1118,7 +1120,10 @@ window.addEventListener( "load", function(e) {
         }
         var moduleNames= SeLiteSettings.moduleNamesFromPreferences( prefixName );
         for( var i=0; i<moduleNames.length; i++ ) {
-            modules[ moduleNames[i] ]= SeLiteSettings.loadFromJavascript( moduleNames[i]);
+            var module= SeLiteSettings.loadFromJavascript( moduleNames[i]);
+            if( targetFolder===null || module.associatesWithFolders ) {
+                modules[ moduleNames[i] ]= module;
+            }
         }
     }
     var settingsBox= document.getElementById('SeSettingsBox');
