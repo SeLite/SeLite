@@ -30,6 +30,7 @@ if( runningAsComponent ) {
     var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
     var nsIIOService= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);    
     Components.utils.import("resource://gre/modules/osfile.jsm");
+    var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 }
 
 var modules= sortedObject(true); // Object serving as an associative array { string module.name => Module instance }
@@ -943,24 +944,24 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
         }
     }
     // Second, merge the 'global' set - one that is marked as active (if any) - with associated sets.
-    // I'm not modifying manifests.associations itself, because it can be cached & reused; I want this simple.
+    // I'm not modifying manifests.associations itself, because it can be cached & reused.
+    // I merge those into a new object - associations, which will have same structure as manifests.associations.
     var associations= sortedObject(true);
-    if( this.allowSets ) {
-        var selectedSetName= this.selectedSetName();
-        if( selectedSetName ) {
-            associations['']= {
-                moduleName: this.name,
-                setName: selectedSetName,
-            };
-        }
+    if( this.allowSets && this.selectedSetName()!==null ) {
+        console.log( 'selected set for module ' +this.name+ ', for set ' +this.selectedSetName() );
+        associations['']= {
+            moduleName: this.name,
+            setName: this.selectedSetName(),
+        };
     }
-    for( var manifestFolder in manifests.associations ) {
-        associations[manifestFolder]= manifests.associations[manifestFolder];
+    // Now merge:
+    for( var associationFolder in manifests.associations ) {
+        associations[associationFolder]= manifests.associations[associationFolder];
     }
     // Third, load global set (if any) and sets associated via associations manifests. They override values from any values manifests.
-    for( var manifestFolder in manifests.values ) {
-        for( var i=0; i<associations[manifestFolder].length; i++ ) {
-            var manifest= associations[manifestFolder][i];
+    for( var associationFolder in associations ) {
+        for( var i=0; i<associations[associationFolder].length; i++ ) {
+            var manifest= associations[associationFolder][i];
             if( manifest.moduleName==this.name ) {
                 var fields= this.getFieldsOfSet( manifest.setName, true );
                 for( var fieldName in fields ) {
@@ -969,7 +970,7 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
                     result[ fieldName ]= {
                         entry: fields[fieldName],
                         fromPreferences: true,
-                        folderPath: manifestFolder,
+                        folderPath: associationFolder,
                         setName: manifest.setName
                     }
                 }

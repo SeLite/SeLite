@@ -80,7 +80,7 @@ var module= new SeLiteSettings.Module( 'extensions.selite-settings.withFolders',
      multiStrings, choiceNumbers, choiceNumbersSingle, choiceStrings, choiceStringsSingle],
     true,
     'globalSet',
-    true,
+    true, //associatesWithFolders
     '~/selite/settings/test_settings_module.js'
     );
 module= SeLiteSettings.register( module );

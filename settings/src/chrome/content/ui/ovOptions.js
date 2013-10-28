@@ -1103,8 +1103,8 @@ window.addEventListener( "load", function(e) {
         var match= regex.exec( params );
         if( match ) {
             modules[ match[1] ]= SeLiteSettings.loadFromJavascript( match[1] );
-            ensure( !targetFolder || modules[match[1]].associatesWithFolders, "You're using URL with parameter 'folder' set to " +match[1]+
-                ", however that module doesn't allow to be associated with folders." );
+            ensure( !targetFolder || modules[match[1]].associatesWithFolders, "You're using URL with folder=" +targetFolder+
+                " and module=" +match[1]+ ", however that module doesn't allow to be associated with folders." );
         }
     }
     var allowModules= false;
