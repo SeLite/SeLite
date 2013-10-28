@@ -501,6 +501,7 @@ var savePrefFile= function() {
  * @param module Object instance of Module that you want to register (or an equal one)
  *  @param createOrUpdate Boolean, optional, true by default; whether to create or update any existing sets by calling module.createOrUpdate()
  *  @return An existing equal Module instance, if any; given module otherwise.
+ *  @TODO is this needed? This is separate to Module.register()
  * */
 var register= function( module, createOrUpdate ) {
     if( !(module instanceof Module) ) {
@@ -1051,7 +1052,9 @@ Module.prototype.createSet= function( setName ) {
         ensure( setName!=='', 'Module associates with folders, therefore a set name cannot be empty.' );
         // Since we don't populate default values of sets that associate with folders, I need to store something in preferences
         // to represent the set. So I use an empty string value.
-        this.prefsBranch.setCharPref( setName, '');
+        // @TODO 1. Don't do this if the set has any value already
+        // @TODO 2. Once the users adds the first value and reload the paeg, this breaks the listing of the sets. The set will be listed twice!
+        //this.prefsBranch.setCharPref( setName, '');
     }
 };
 
