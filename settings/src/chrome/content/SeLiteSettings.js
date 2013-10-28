@@ -713,16 +713,16 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
 function readFile( fileName ) {
     try {
         var file= new FileUtils.File( fileName ); // Object of class nsIFile
+        var fstream = Components.classes["@mozilla.org/network/file-input-stream;1"].
+                  createInstance(Components.interfaces.nsIFileInputStream);
+        var cstream = Components.classes["@mozilla.org/intl/converter-input-stream;1"].
+                      createInstance(Components.interfaces.nsIConverterInputStream);
+        fstream.init(file, -1, -1, 0);
+        cstream.init(fstream, "UTF-8", 0, 0);
     }
     catch( exception ) {
         return false;
     }
-    var fstream = Components.classes["@mozilla.org/network/file-input-stream;1"].
-              createInstance(Components.interfaces.nsIFileInputStream);
-    var cstream = Components.classes["@mozilla.org/intl/converter-input-stream;1"].
-                  createInstance(Components.interfaces.nsIConverterInputStream);
-    fstream.init(file, -1, -1, 0);
-    cstream.init(fstream, "UTF-8", 0, 0);
 
     var contents= "";
     var str= {};
@@ -828,7 +828,7 @@ function manifestsDownToFolder( folderPath, dontCache ) {
     
     for( var i=0; i<folderNames.length; i++) {
         var folder=  folderNames[i];
-        var contents= new readFile( OS.File.join(folder, VALUES_MANIFEST) );
+        var contents= readFile( OS.Path.join(folder, VALUES_MANIFEST) );
         if( contents!==false ) {
             var lines= removeCommentsGetLines(contents);
             for( var j=0; j<lines.length; j++ ) {
@@ -849,7 +849,7 @@ function manifestsDownToFolder( folderPath, dontCache ) {
             }
         }
         
-        var contents= new readFile( OS.File.join(folder, ASSOCIATIONS_MANIFEST) );
+        var contents= readFile( OS.Path.join(folder, ASSOCIATIONS_MANIFEST) );
         if( contents!==false ) {
             var lines= removeCommentsGetLines(contents);
             for( var j=0; j<lines.length; j++ ) {
@@ -908,7 +908,7 @@ function manifestsDownToFolder( folderPath, dontCache ) {
 * */
 Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
     dontCache= dontCache || false;
-    var manifests= manifestsDownToFolder(dontCache);
+    var manifests= manifestsDownToFolder(folderPath, dontCache);
     var result= sortedObject(true);
     
     // First, load values from values manifests.

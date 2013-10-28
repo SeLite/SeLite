@@ -184,9 +184,11 @@ function treeColumn( element ) {
 
 /** @param allowModules bool Whether we show any module/s rather than just a specific one. If allowModules is true,
  *  there may be none, one or more modules to show.
+ *  @param perFolder bool Whether we're showing fields in per-folder mode - then we show a 'Reset' or 'Inherit' buttons and tooltips that
+ *  indicate where each field is inherited from.
  * @return node object for <treecols>
  * */
-function generateTreeColumns( allowModules ) {
+function generateTreeColumns( allowModules, perFolder ) {
     if( typeof allowModules!=='boolean' || typeof allowSets!=='boolean' || typeof allowMultivaluedNonChoices!=='boolean' ) {
         throw new Error('generateTreeColumns() requires all three parameters to be boolean.');
     }
@@ -532,17 +534,21 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
  *  @param object module Module
  * */
 function generateSets( moduleChildren, module ) {
-    var setNames= module.setNames();
+    var setNames= targetFolder===null
+        ? module.setNames()
+        : [null];
     if( !allowSets && setNames.length!==1 ) {
         throw new Error( "allowSets should be set false only if a module has the only set." );
     }
     for( var i=0; i<setNames.length; i++ ) {
         var setName= setNames[i];
         // setFields includes all fields from Preferences DB for the module name, even if they are not in the module definition
-        var setFields= module.getFieldsOfSet( setName );
+        var setFields= targetFolder===null
+            ? module.getFieldsOfSet( setName )
+            : module.getFieldsDownToFolder( targetFolder, true );
         
         var setChildren= null;
-        if( module.allowSets ) {
+        if( allowSets && module.allowSets ) {
             var setItem= generateTreeItem(module, setName, null, null, RowLevel.SET );
             moduleChildren.appendChild( setItem );
             setChildren= createTreeChildren( setItem );
@@ -1001,8 +1007,9 @@ function createTreeView(original) {
     }
 }
     
-/* @var allowSets bool Whether to show the column for selection of a set. If we're only showing one module, this is module.allowSets.
- *  If we're showing more modules, then it's true if at least one of those modules has allowSets==true.
+/* @var allowSets bool Whether to show the column for selection of a set. If we're only showing one module, this is module.allowSets
+ * if we're not showing fields per folder.
+ *  If we're showing more modules, then it's true if at least one of those modules has allowSets==true if we're not showing fields per folder.
  *  This will be set depending on the definition of module(s).
 */
 var allowSets= false;
@@ -1011,6 +1018,12 @@ var allowSets= false;
  *  This will be set depending on the definition of module(s).
  */
 var allowMultivaluedNonChoices= false;
+
+/** @var mixed Null if we're showing configuration set(s) irrelevant of a folder. Otherwise it's 
+ *  a string, absolute path to the folder we're applying the overall configuration.
+ *  This will be set depending on how this file is invoked.
+ * */
+var targetFolder= null;
 
 /** Create an object for a new <treechildren>. Add it to the parent.
  *  @return XULElement for the new <treechildren>
@@ -1081,7 +1094,12 @@ window.addEventListener( "load", function(e) {
             }
             return;
         }
-        var regex= /module=([a-zA-Z0-9_.-]+)/;
+        regex= /folder=([^&]*)/;
+        var match= regex.exec( params );
+        if( match ) {
+            targetFolder= match[1];
+        }
+        regex= /module=([a-zA-Z0-9_.-]+)/;
         var match= regex.exec( params );
         if( match ) {
             modules[ match[1] ]= SeLiteSettings.loadFromJavascript( match[1] );
@@ -1117,14 +1135,14 @@ window.addEventListener( "load", function(e) {
     
     for( var moduleName in modules ) {
         var module= modules[moduleName];
-        allowSets= allowSets || module.allowSets;
+        allowSets= allowSets || module.allowSets && targetFolder===null;
         
         for( var fieldName in module.fields ) {
             var field= module.fields[fieldName];
             allowMultivaluedNonChoices= allowMultivaluedNonChoices || field.multivalued && field instanceof SeLiteSettings.Field.Choice;
         }
     }
-    tree.appendChild( generateTreeColumns(allowModules) );
+    tree.appendChild( generateTreeColumns(allowModules,  targetFolder!==null) );
     var topTreeChildren= createTreeChildren( tree );
     
     if( allowModules ) {
@@ -1139,10 +1157,9 @@ window.addEventListener( "load", function(e) {
     else
     if( !isEmptyObject(modules) ) {
         for( var moduleName in modules ); // just get moduleName
-        allowSets= modules[moduleName].allowSets;
         
         var moduleChildren;
-        if( allowSets ) {
+        if( allowSets && modules[moduleName].allowSets ) {
             var moduleTreeItem= generateTreeItem( modules[moduleName], null, null, null, RowLevel.MODULE );
             topTreeChildren.appendChild( moduleTreeItem );
             moduleChildren= createTreeChildren( moduleTreeItem );
@@ -1154,19 +1171,7 @@ window.addEventListener( "load", function(e) {
     }
     
     topTreeChildren.addEventListener( 'click', treeClickHandler );
-    
-    //tree.view.setCellText= setCellText;
     tree.view= createTreeView( tree.view );
-    
-    // following fails:
-    //var newView= Object.create(tree.view);
-    //newView.setCellText= setCellText;
-    //tree.view= newView;
-    
-    /*tree.addEventListener( 'change', function( event ) {
-    // event.target, event.currentTarget and event.explicitOriginalTarget is an XULElement for <tree>.
-    // event.originalTarget is an HTMLInputElement with tagName 'html:input'.
-    } );*/
 }, false);
 
 /** @return nsIFile instance for a javascript file, if picked; null if none.
