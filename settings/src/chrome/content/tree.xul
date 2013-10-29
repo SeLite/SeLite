@@ -19,6 +19,11 @@ treechildren::-moz-tree-checkbox(SELITE_SETTINGS_SELECTED_SET_NAME,checked),
 treechildren::-moz-tree-checkbox(SELITE_SETTINGS_OPTION_UNIQUE_CELL,checked) {
   list-style-image: url('chrome://global/skin/radio/radio-check.gif');
 }
+
+treechildren::-moz-tree-cell-text(INHERITED) {
+    color: blue;
+    font-style: italic;
+}
 " type="text/css"?>
 <window id="yourwindow" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml">
     <tooltip id="tooltip" label="Hi mate. Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate."/>

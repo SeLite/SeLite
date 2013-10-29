@@ -234,7 +234,7 @@ function generateTreeColumns( allowModules, perFolder ) {
         treecol= treeColumnElements.selectedSet= document.createElementNS( XUL_NS, 'treecol');
         treecol.setAttribute('label', 'Active');
         treecol.setAttribute('type', 'checkbox');
-        treecol.setAttribute('editable', ''+allowSets );
+        treecol.setAttribute('editable', 'true' );
         treecol.setAttribute( 'ordinal', '3');
         treecols.appendChild(treecol);
         
@@ -246,7 +246,7 @@ function generateTreeColumns( allowModules, perFolder ) {
     treecol= treeColumnElements.checked= document.createElementNS( XUL_NS, 'treecol');
     treecol.setAttribute('label', 'True');
     treecol.setAttribute('type', 'checkbox');
-    treecol.setAttribute('editable', 'true');
+    treecol.setAttribute('editable', ''+(targetFolder===null) );
     treecol.setAttribute( 'ordinal', '5');
     treecols.appendChild(treecol);
 
@@ -256,7 +256,7 @@ function generateTreeColumns( allowModules, perFolder ) {
     
     treecol= treeColumnElements.value= document.createElementNS( XUL_NS, 'treecol');
     treecol.setAttribute('label', 'Value');
-    treecol.setAttribute('editable', 'true');
+    treecol.setAttribute('editable', ''+(targetFolder===null) );
     treecol.setAttribute( 'flex', '1');
     treecol.setAttribute( 'ordinal', '7');
     treecols.appendChild(treecol);
@@ -426,9 +426,9 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                 ? field.name
                 : field
             )
-        : '';//if( rowLevel===RowLevel.FIELD ) {alert( 'field is Field ' +(field instanceof SeLiteSettings.Field)+ ' - '+fieldName); return;}
-    /* This is why I don't allow spaces in module/set/field names. For level===RowLevel.OPTION
-     * key may contains space(s). That's why there can't be any more entries in 'properties' after key.
+        : '';
+    /* Following is why I don't allow spaces in module/set/field names. For level===RowLevel.OPTION,
+     * variable key may contains space(s). That's why there can't be any more entries in 'properties' after key:
     */
     treerow.setAttribute( 'properties',
         rowLevel.forLevel(
@@ -481,7 +481,8 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     // Cell for checkbox (if the field is boolean or a choice):
     treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
-    if( rowLevel!==RowLevel.FIELD && rowLevel!==RowLevel.OPTION
+    if( targetFolder!==null
+        || rowLevel!==RowLevel.FIELD && rowLevel!==RowLevel.OPTION
         || !(field instanceof SeLiteSettings.Field.Bool || field instanceof SeLiteSettings.Field.Choice)
         || (typeof value==='string' || typeof value==='number') && !(field instanceof SeLiteSettings.Field.Choice)
         || rowLevel===RowLevel.FIELD && field instanceof SeLiteSettings.Field.Choice
@@ -505,7 +506,8 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     // Cell for the text value:
     treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
-    if( rowLevel!==RowLevel.FIELD && rowLevel!==RowLevel.OPTION
+    if( targetFolder!==null
+        || rowLevel!==RowLevel.FIELD && rowLevel!==RowLevel.OPTION
         || typeof value=='boolean'
         || !(field instanceof SeLiteSettings.Field)
         || field.multivalued && rowLevel===RowLevel.FIELD
@@ -516,6 +518,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     if( (typeof value==='string' || typeof value==='number') && !isNewValueRow ) {
         treecell.setAttribute('label', ''+value);
     }
+    treecell.setAttribute( 'properties', 'INHERITED');
     
     if( allowSets || allowMultivaluedNonChoices ) {
         // Cell for action:
@@ -705,7 +708,7 @@ function treeClickHandler( event ) {
                                 var otherOptionRow= moduleRows[setName][field.name][otherOptionKey];
                                 
                                 var otherOptionCell= treeCell( otherOptionRow, RowLevel.CHECKBOX );
-                                if( otherOptionCell.getAttribute('value')==='true' ) {
+                                if( targetFolder===null && otherOptionCell.getAttribute('value')==='true' ) {
                                     otherOptionCell.setAttribute( 'value', 'false');
                                     otherOptionCell.setAttribute( 'editable', 'true');
                                     field.removeValue( setName, otherOptionKey );
@@ -728,11 +731,13 @@ function treeClickHandler( event ) {
             }
             if( column.value.element==treeColumnElements.value ) {
                 if( cellIsEditable && rowProperties) {
-                    if( !(field instanceof SeLiteSettings.Field.FileOrFolder) ) {
-                        tree.startEditing( row.value, column.value );
-                    }
-                    else {
-                        chooseFileOrFolder( field, tree, row.value, column.value, field.isFolder ); // On change that will trigger my custom setCellText()
+                    if( targetFolder===null ) {
+                        if( !(field instanceof SeLiteSettings.Field.FileOrFolder) ) {
+                            tree.startEditing( row.value, column.value );
+                        }
+                        else {
+                            chooseFileOrFolder( field, tree, row.value, column.value, field.isFolder ); // On change that will trigger my custom setCellText()
+                        }
                     }
                 }
             }
@@ -807,7 +812,7 @@ function treeClickHandler( event ) {
                         var clickedTreeRow= moduleRows[setName][field.name][ clickedOptionKey ];
                         delete moduleRows[setName][field.name][ clickedOptionKey ];
                         treeChildren.removeChild( clickedTreeRow.parentNode );
-                        field.removeValue( setName, clickedOptionKey );
+                        field.removeValue( setName, clickedOptionKey ); //@TODO error here
                         modifiedPreferences= true;
                     }
                 }
@@ -1152,7 +1157,7 @@ window.addEventListener( "load", function(e) {
     var settingsBox= document.getElementById('SeSettingsBox');
     var tree= document.createElementNS( XUL_NS, 'tree' );
     tree.setAttribute( 'id', 'settingsTree');
-    tree.setAttribute( 'editable', 'true');
+    tree.setAttribute( 'editable', ''+(targetFolder===null) );
     tree.setAttribute( 'seltype', 'single' );
     tree.setAttribute( 'hidecolumnpicker', 'true');
     tree.setAttribute( 'hidevscroll', 'false');
