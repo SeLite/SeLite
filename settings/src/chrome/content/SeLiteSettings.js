@@ -1024,10 +1024,10 @@ Module.prototype.createSet= function( setName ) {
     if( setName!=='' ) {
         ensureFieldName( setName, 'set name');
     }
-    var setNameDot= setName!==''
-        ? setName+'.'
-        : '';
     if( !this.associatesWithFolders ) { // Don't populate default values for modules that associate with folders, because they inherit values
+        var setNameDot= setName!==''
+            ? setName+'.'
+            : '';
         for( var fieldName in this.fields ) {
             var field= this.fields[fieldName];
             if( !field.multivalued ) {

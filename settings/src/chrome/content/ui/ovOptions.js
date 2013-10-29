@@ -246,7 +246,7 @@ function generateTreeColumns( allowModules, perFolder ) {
     treecol= treeColumnElements.checked= document.createElementNS( XUL_NS, 'treecol');
     treecol.setAttribute('label', 'True');
     treecol.setAttribute('type', 'checkbox');
-    treecol.setAttribute('editable', ''+(targetFolder===null) );
+    treecol.setAttribute('editable', ''+!perFolder );
     treecol.setAttribute( 'ordinal', '5');
     treecols.appendChild(treecol);
 
@@ -256,21 +256,37 @@ function generateTreeColumns( allowModules, perFolder ) {
     
     treecol= treeColumnElements.value= document.createElementNS( XUL_NS, 'treecol');
     treecol.setAttribute('label', 'Value');
-    treecol.setAttribute('editable', ''+(targetFolder===null) );
+    treecol.setAttribute('editable', ''+!perFolder );
     treecol.setAttribute( 'flex', '1');
     treecol.setAttribute( 'ordinal', '7');
     treecols.appendChild(treecol);
     
-    if( targetFolder===null && (allowSets || allowMultivaluedNonChoices) ) {
+    if( perFolder || allowSets || allowMultivaluedNonChoices ) {
         splitter= document.createElementNS( XUL_NS, 'splitter' );
         splitter.setAttribute( 'ordinal', '6');
         treecols.appendChild( splitter );
 
         treecol= treeColumnElements.action= document.createElementNS( XUL_NS, 'treecol');
-        treecol.setAttribute('label', 'Action');
+        treecol.setAttribute('label', perFolder
+            ? 'Set'
+            : 'Action');
         treecol.setAttribute('editable', 'false');
         treecol.setAttribute( 'flex', '1');
         treecol.setAttribute( 'ordinal', '9');
+        treecols.appendChild(treecol);
+    }
+    if( perFolder || false/*todo*/ ) {
+        splitter= document.createElementNS( XUL_NS, 'splitter' );
+        splitter.setAttribute( 'ordinal', '10');
+        treecols.appendChild( splitter );
+
+        treecol= treeColumnElements.action= document.createElementNS( XUL_NS, 'treecol');
+        treecol.setAttribute('label', perFolder
+            ? 'Manifest'
+            : 'Clear');
+        treecol.setAttribute('editable', 'false');
+        treecol.setAttribute( 'flex', '1');
+        treecol.setAttribute( 'ordinal', '11');
         treecols.appendChild(treecol);
     }
     return treecols;
@@ -376,9 +392,15 @@ function subContainer( parent, fieldOrFields ) {
  *  @param optionIsSelected bool Whether the option is selected. Only used when rowLevel===RowLevel.OPTION and field instanceof Field.Choice.
  *  @param isNewValueRow bool Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell.
  *  It still puts the new <treerow> element to treeRows[moduleName...], so that it can be updated/removed once the user fills in the value. Optional; false by default.
+ *  @param object valueCompound Anonymous object, one of entries in result of Module.getFieldsDownToFolder(..) in form {
+ *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest,
+ *          setName: string set name (only valid if fromPreferences is true),
+ *          folderPath: string folder path to the manifest file (either values manifest, or associations manifest); empty if the values comes from a global (active) set
+ *          entry: as described for Module.getFieldsDownToFolder(..)
+ *  }
  *  @return object for a new element <treeitem> with one <treerow>
  * */
-function generateTreeItem( module, setName, field, valueOrPair, rowLevel, optionIsSelected, isNewValueRow ) {
+function generateTreeItem( module, setName, field, valueOrPair, rowLevel, optionIsSelected, isNewValueRow, valueCompound ) {
     var key= null;
     if( !(rowLevel instanceof RowLevel) || rowLevel===RowLevel.CHECKBOX || rowLevel===RowLevel.ACTION ) {
         throw new Error("Parameter rowLevel must be an instance of RowLevel, but not CHECKBOX neither ACTION.");
@@ -414,6 +436,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     if( typeof isNewValueRow==='undefined' ) {
         isNewValueRow= false;
     }
+    valueCompound= valueCompound || null;
     var treeitem= document.createElementNS( XUL_NS, 'treeitem');
     var treerow= document.createElementNS( XUL_NS, 'treerow');
     treeitem.appendChild( treerow );
@@ -516,10 +539,21 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         treecell.setAttribute('editable' , 'false');
     }
     if( (typeof value==='string' || typeof value==='number') && !isNewValueRow ) {
-        treecell.setAttribute('label', ''+value);
-    }
-    treecell.setAttribute( 'properties', 'INHERITED');
-    
+        treecell.setAttribute('label', ''+value );
+        if( targetFolder!==null && valueCompound!==null ) {
+            if( valueCompound.fromPreferences ) {
+                // @TODO MY-STRING setName folderPath
+                // 2 buttons
+                // 1. to navigate to the set < setName
+                // 2. to open file:/// url to the association manifest (unless folderPath==='' which indicates an active set)
+                treecell.setAttribute( 'properties', 'INHERITED');
+            }
+            else {
+                // 1 button - to navigate to the values manifest, or to schema definition file (for default values - when folderPath===null)
+                //if( valueCompound.)
+            }
+        }
+    }    
     if( allowSets || allowMultivaluedNonChoices ) {
         // Cell for action:
         treecell= document.createElementNS( XUL_NS, 'treecell');
@@ -566,7 +600,7 @@ function generateSets( moduleChildren, module ) {
         
         var setChildren= null;
         if( allowSets && module.allowSets ) {
-            var setItem= generateTreeItem(module, setName, null, null, RowLevel.SET );
+            var setItem= generateTreeItem(module, setName, null, null, RowLevel.SET ); //@TODO
             moduleChildren.appendChild( setItem );
             setChildren= createTreeChildren( setItem );
         }
@@ -588,7 +622,7 @@ function generateFields( setChildren, module, setName, setFields ) {
         var singleValueOrNull= typeof setFields[fieldName].entry!=='object'
             ? setFields[fieldName].entry
             : null;
-        var fieldItem= generateTreeItem(module, setName, field, singleValueOrNull, RowLevel.FIELD );
+        var fieldItem= generateTreeItem(module, setName, field, singleValueOrNull, RowLevel.FIELD, false, false, setFields[fieldName] ); //@TODO
         setChildren.appendChild( fieldItem );
         
         if( field instanceof SeLiteSettings.Field &&
@@ -606,7 +640,9 @@ function generateFields( setChildren, module, setName, setFields ) {
                     RowLevel.OPTION,
                     field instanceof SeLiteSettings.Field.Choice
                         && typeof(fieldValueOrPairs.entry)==='object' // This protects when the field has a sick/obsolete non-choice single value in Preferences DB, and no choice value
-                        && key in fieldValueOrPairs.entry
+                        && key in fieldValueOrPairs.entry,
+                    false,
+                    setFields[fieldName]
                 );
                 fieldChildren.appendChild( optionItem );
             }
@@ -645,6 +681,7 @@ function propertiesPart( properties, level, otherwise ) {
 }
 
 function treeClickHandler( event ) {
+    //window.open( '?hello=yes', '_blank');
     // FYI: event.currentTarget.tagName=='tree'. However, document.getElementById('settingsTree')!=event.currentTarget
     var tree= document.getElementById('settingsTree');
     var row= { value: -1 }; // value is 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
@@ -769,6 +806,7 @@ function treeClickHandler( event ) {
                         // Add a row for a new value, right below the clicked row (i.e. at the top of all existing values)
                         var pair= {};
                         pair[ SeLiteSettings.NEW_VALUE_ROW ]= SeLiteSettings.NEW_VALUE_ROW;
+                        // Since we're editing, that means targetFolder===null, so I don't need to generate anything for navigation from folder view here.
                         var treeItem= generateTreeItem(module, setName, field, pair, RowLevel.OPTION, false, /*Don't show the initial value:*/true );
                         
                         var previouslyFirstValueRow= null;
