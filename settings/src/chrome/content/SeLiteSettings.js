@@ -633,8 +633,8 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
             : '';
     }
     var setNameWithDot= setName!==''
-        ? setName= '.'
-        : setName;
+        ? setName+ '.'
+        : '';
     var result= sortedObject(true);
     
     for( var fieldName in this.fields ) {
@@ -644,18 +644,17 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
             ? fieldName+ '.'
             : fieldName;
         var children; // An array of preference string postfixes to be appended after fieldNameWithDot
-        if( !multivalued && this.prefsBranch.prefHasUserValue(fieldName) ) {
-            children= [''];
+        if( !multivalued && this.prefsBranch.prefHasUserValue(setNameWithDot+fieldName) ) {
+            children= [setNameWithDot+fieldName];
         }
         else
-        if( !multivalued ) {
+        if( multivalued ) {
             children= this.prefsBranch.getChildList( setNameWithDot+fieldNameWithDot, {} );
         } else {
             children= [];
         }
         for( var i=0; i<children.length; i++ ) {
-            var child= children[i];
-            var prefName= setNameWithDot+child;
+            var prefName= children[i];
             var type= this.prefsBranch.getPrefType( prefName );
 
             var value= null;
@@ -679,10 +678,10 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
                             : {}
                         };
                 }
-                result[fieldName].entry[ child ]= value;
+                result[fieldName].entry[ prefName ]= value;
             }
             else {
-                result[ child ]= {
+                result[ fieldName ]= {
                     fromPreferences: true,
                     entry: value
                 };
@@ -692,7 +691,7 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
             result[ fieldName ]= {
                 fromPreferences: false,
                 entry: multivalued
-                    ? []
+                    ? {}
                     : null
             }; //@TODO?
         }
@@ -968,11 +967,13 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
                 for( var fieldName in fields ) {
                     // override any value(s) from values manifests, no matter whether from upper or lower (more local) level
                     // override any less local value(s) from global set or sets associated with upper (less local) folders
-                    result[ fieldName ]= {
-                        entry: fields[fieldName].entry,
-                        fromPreferences: fields[fieldName].fromPreferences,
-                        folderPath: associationFolder,
-                        setName: manifest.setName
+                    if( fields[fieldName].fromPreferences ) {
+                        result[ fieldName ]= {
+                            entry: fields[fieldName].entry,
+                            fromPreferences: fields[fieldName].fromPreferences,
+                            folderPath: associationFolder,
+                            setName: manifest.setName
+                        }
                     }
                 }
             }
