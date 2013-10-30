@@ -643,7 +643,7 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
         var fieldNameWithDot= multivalued
             ? fieldName+ '.'
             : fieldName;
-        var children; // An array of preference string postfixes to be appended after fieldNameWithDot
+        var children; // An array of preference string keys
         if( !multivalued && this.prefsBranch.prefHasUserValue(setNameWithDot+fieldName) ) {
             children= [setNameWithDot+fieldName];
         }
@@ -755,7 +755,7 @@ function removeCommentsGetLines( contents ) {
     var result= [];
     for( var j=0; j<lines.length; j++ ) {
         var line= lines[j];
-        if( !line.test(commentLineRegex) && !line.trim()==='' ) {
+        if( !commentLineRegex.test(line) && line.trim()!=='' ) {
             result.push( line );
         }
     }

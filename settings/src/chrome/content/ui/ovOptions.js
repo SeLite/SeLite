@@ -18,6 +18,7 @@ var XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 var nsIFilePicker = Components.interfaces.nsIFilePicker;
 Components.utils.import("resource://gre/modules/FileUtils.jsm" );
 Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
+Components.utils.import("resource://gre/modules/osfile.jsm");
 var console = (Components.utils.import("resource://gre/modules/devtools/Console.jsm", {})).console;
 
 var CREATE_NEW_SET= "Create a new set";
@@ -569,12 +570,32 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                     : DELETE_THE_SET
             );
         }
-        if( field!==null && !(field instanceof SeLiteSettings.Field.Choice) && field.multivalued ) {
-            if( rowLevel===RowLevel.FIELD ) {
-                treecell.setAttribute( 'label', ADD_NEW_VALUE );
+        if( targetFolder===null ) {
+            if( field!==null && !(field instanceof SeLiteSettings.Field.Choice) && field.multivalued ) {
+                if( rowLevel===RowLevel.FIELD ) {
+                    treecell.setAttribute( 'label', ADD_NEW_VALUE );
+                }
+                if( rowLevel===RowLevel.OPTION ) {
+                    treecell.setAttribute( 'label', DELETE_THE_VALUE );
+                }
             }
-            if( rowLevel===RowLevel.OPTION ) {
-                treecell.setAttribute( 'label', DELETE_THE_VALUE );
+        }
+        else {
+            if( rowLevel===RowLevel.FIELD ) {
+                treecell.setAttribute( 'label', valueCompound.fromPreferences
+                    ? valueCompound.setName
+                    : 'values manifest'
+                );
+                treecell= document.createElementNS( XUL_NS, 'treecell');
+                treerow.appendChild( treecell);
+                treecell.setAttribute('editable', 'false');
+                treecell.setAttribute( 'label', valueCompound.folderPath!==''
+                    ? OS.Path.join( valueCompound.folderPath, valueCompound.fromPreferences
+                            ? SeLiteSettings.ASSOCIATIONS_MANIFEST
+                            : SeLiteSettings.VALUES_MANIFEST
+                      )
+                    : 'active set'
+                );
             }
         }
     }
