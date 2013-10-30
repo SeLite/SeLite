@@ -40,7 +40,7 @@ var SELECTED_SET_NAME= "SELITE_SETTINGS_SELECTED_SET_NAME"; // CSS also depends 
 // SET_DEFINITION_JAVASCRIPT is an optional hidden field, which allows SeLiteSettings to load the definition automatically
 var MODULE_DEFINITION_FILE_OR_URL= "SELITE_SETTINGS_MODULE_DEFINITION_FILE_OR_URL";
 
-// Following are not field names, but they're used in the tree for metadata and for buttons that create or delete a set
+// Following are not field names, but they're used in the tree for 'properties' metadata and for buttons that create or delete a set
 var SET_SELECTION_ROW= "SELITE_SETTINGS_SET_SELECTION_ROW";
 var FIELD_MAIN_ROW= "SELITE_SETTINGS_FIELD_MAIN_ROW";
 var FIELD_TREECHILDREN= "SELITE_SETTINGS_FIELD_TREECHILDREN";
@@ -48,6 +48,11 @@ var NEW_VALUE_ROW= "SELITE_SETTINGS_NEW_VALUE_ROW";
 var ADD_VALUE= "SELITE_SETTINGS_ADD_VALUE";
 var OPTION_NOT_UNIQUE_CELL= "SELITE_SETTINGS_OPTION_NOT_UNIQUE_CELL";
 var OPTION_UNIQUE_CELL= "SELITE_SETTINGS_OPTION_UNIQUE_CELL";
+// Following are used to generate 'properties' in columns 'Set' and 'Manifest', when viewing fields per folder
+var ASSOCIATED_SET= 'SELITE_SETTINGS_ASSOCIATED_SET';
+var SELECTED_SET= 'SELITE_SETTINGS_SELECTED_SET';
+var VALUES_MANIFEST= 'SELITE_SETTINGS_VALUES_MANIFEST';
+var FIELD_DEFAULT= 'SELITE_SETTINGS_FIELD_DEFAULT';
 
 /** An array of strings that are reserved names. For internal use only.
  * */
@@ -60,7 +65,8 @@ var reservedNames= [
     NEW_VALUE_ROW,
     ADD_VALUE,
     OPTION_NOT_UNIQUE_CELL,
-    OPTION_UNIQUE_CELL
+    OPTION_UNIQUE_CELL,
+    ASSOCIATED_SET, SELECTED_SET, VALUES_MANIFEST, FIELD_DEFAULT
 ];
 
 var fieldNameRegex= /^[a-zA-Z0-9_/-]+$/;
@@ -743,8 +749,8 @@ function readFile( fileName ) {
     return contents;
 }
 
-const VALUES_MANIFEST= 'SeLiteSettingsValues.txt';
-const ASSOCIATIONS_MANIFEST= 'SeLiteSettingsAssociations.txt';
+const VALUES_MANIFEST_FILENAME= 'SeLiteSettingsValues.txt';
+const ASSOCIATIONS_MANIFEST_FILENAME= 'SeLiteSettingsAssociations.txt';
 
 var commentLineRegex= /^[ \t]*#.*$/;
 /** @param string contents
@@ -836,7 +842,7 @@ function manifestsDownToFolder( folderPath, dontCache ) {
     
     for( var i=0; i<folderNames.length; i++) {
         var folder=  folderNames[i];
-        var contents= readFile( OS.Path.join(folder, VALUES_MANIFEST) );
+        var contents= readFile( OS.Path.join(folder, VALUES_MANIFEST_FILENAME) );
         if( contents!==false ) {
             var lines= removeCommentsGetLines(contents);
             for( var j=0; j<lines.length; j++ ) {
@@ -857,7 +863,7 @@ function manifestsDownToFolder( folderPath, dontCache ) {
             }
         }
         
-        var contents= readFile( OS.Path.join(folder, ASSOCIATIONS_MANIFEST) );
+        var contents= readFile( OS.Path.join(folder, ASSOCIATIONS_MANIFEST_FILENAME) );
         if( contents!==false ) {
             var lines= removeCommentsGetLines(contents);
             for( var j=0; j<lines.length; j++ ) {
@@ -1155,5 +1161,6 @@ var EXPORTED_SYMBOLS= [
     'SET_SELECTION_ROW', 'SELECTED_SET_NAME', 'FIELD_MAIN_ROW', 'OPTION_NOT_UNIQUE_CELL',
     'OPTION_UNIQUE_CELL', 'FIELD_TREECHILDREN', 'NEW_VALUE_ROW',
     'Field', 'Module', 'register', 'savePrefFile', 'moduleNamesFromPreferences', 'loadFromJavascript',
-    'VALUES_MANIFEST', 'ASSOCIATIONS_MANIFEST'
+    'VALUES_MANIFEST_FILENAME', 'ASSOCIATIONS_MANIFEST_FILENAME',
+    'ASSOCIATED_SET', 'SELECTED_SET', 'VALUES_MANIFEST', 'FIELD_DEFAULT'
 ];

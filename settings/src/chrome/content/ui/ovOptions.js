@@ -394,9 +394,10 @@ function subContainer( parent, fieldOrFields ) {
  *  @param isNewValueRow bool Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell.
  *  It still puts the new <treerow> element to treeRows[moduleName...], so that it can be updated/removed once the user fills in the value. Optional; false by default.
  *  @param object valueCompound Anonymous object, one of entries in result of Module.getFieldsDownToFolder(..) in form {
- *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest,
+ *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or from field default,
  *          setName: string set name (only valid if fromPreferences is true),
- *          folderPath: string folder path to the manifest file (either values manifest, or associations manifest); empty if the values comes from a global (active) set
+ *          folderPath: string folder path to the manifest file (either values manifest, or associations manifest);
+ *              empty string '' if the value(s) come from a global (active) set; null if fromPreferences===true or if the value comes from field default
  *          entry: as described for Module.getFieldsDownToFolder(..)
  *  }
  *  @return object for a new element <treeitem> with one <treerow>
@@ -543,13 +544,23 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         treecell.setAttribute('label', ''+value );
         if( targetFolder!==null && valueCompound!==null ) {
             if( valueCompound.fromPreferences ) {
-                // @TODO MY-STRING setName folderPath
+                // A_STRING setName folderPath
                 // 2 buttons
                 // 1. to navigate to the set < setName
                 // 2. to open file:/// url to the association manifest (unless folderPath==='' which indicates an active set)
-                treecell.setAttribute( 'properties', 'INHERITED');
+                treecell.setAttribute( 'properties',
+                    (valueCompound.folderPath!==''
+                        ? SeLiteSettings.ASSOCIATED_SET
+                        : SeLiteSettings.SELECTED_SET
+                    )+' ' + valueCompound.setName+ ' ' +valueCompound.folderPath
+                );
             }
             else {
+                treecell.setAttribute( 'properties',
+                    valueCompound.folderPath!==null
+                        ? SeLiteSettings.VALUES_MANIFEST+ ' ' +valueCompound.folderPath
+                        : SeLiteSettings.FIELD_DEFAULT
+                );
                 // 1 button - to navigate to the values manifest, or to schema definition file (for default values - when folderPath===null)
                 //if( valueCompound.)
             }
@@ -591,10 +602,10 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                 treecell.setAttribute('editable', 'false');
                 treecell.setAttribute( 'label', valueCompound.folderPath!==''
                     ? OS.Path.join( valueCompound.folderPath, valueCompound.fromPreferences
-                            ? SeLiteSettings.ASSOCIATIONS_MANIFEST
-                            : SeLiteSettings.VALUES_MANIFEST
+                            ? SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME
+                            : SeLiteSettings.VALUES_MANIFEST_FILENAME
                       )
-                    : 'active set'
+                    : 'selected set'
                 );
             }
         }
