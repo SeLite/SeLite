@@ -180,7 +180,8 @@ var treeColumnElements= {
     selectedSet: null,
     checked: null,
     value: null,
-    action: null
+    action: null, // This is 'Set' in folder-based view
+    manifest: null
 };
 
 /** @param element Element for <treecol> tag, one of those stored in treeColumnElements (as applicable).
@@ -281,7 +282,7 @@ function generateTreeColumns( allowModules, perFolder ) {
         splitter.setAttribute( 'ordinal', '10');
         treecols.appendChild( splitter );
 
-        treecol= treeColumnElements.action= document.createElementNS( XUL_NS, 'treecol');
+        treecol= treeColumnElements.manifest= document.createElementNS( XUL_NS, 'treecol');
         treecol.setAttribute('label', perFolder
             ? 'Manifest'
             : 'Clear');
