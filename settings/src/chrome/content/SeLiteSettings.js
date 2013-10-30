@@ -615,11 +615,10 @@ Module.prototype.setSelectedSetName= function( setName ) {
  *  then this doesn't generate entries for multivalued and Field.Choice fields that have no value in the given set.
  *  @return Object with sorted keys, serving as associative array {
  *      string field name anonymous object {
+ *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest,
  *          entry: either
- *          - string/boolean/number ('primitive') value
-            -- for non-choice single-value fields, and
-            or - for choice, or non-choice and multi-value field name:
- *          - object serving as an associative array{
+ *          - string/boolean/number ('primitive') value, for non-choice single-value fields, and
+ *          - object serving as an associative array, for choice, or non-choice and multi-value field name, in format {
  *             string key => string/number ('primitive') label or value entered by user
  *          }
  *      }
@@ -636,8 +635,6 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
     var setNameWithDot= setName!==''
         ? setName= '.'
         : setName;
-    //var children= this.prefsBranch.getChildList( setNameWithDot, {} );
-    //children.sort( compareCaseInsensitively );
     var result= sortedObject(true);
     
     for( var fieldName in this.fields ) {
@@ -676,6 +673,7 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
                     // When presenting Field.Choice, they are not sorted by stored values but by keys from the field definition.
                     // So I only use sortedObject for multivalued fields other than Field.Choice
                     result[fieldName]= {
+                        fromPreferences: true,
                         entry: field.multivalued && !(field instanceof Field.Choice)
                             ? sortedObject( field.compareValues )
                             : {}
@@ -684,11 +682,15 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
                 result[fieldName].entry[ child ]= value;
             }
             else {
-                result[ child ]= {entry: value};
+                result[ child ]= {
+                    fromPreferences: true,
+                    entry: value
+                };
             }
         }
         if( children.length===0 ) {
             result[ fieldName ]= {
+                fromPreferences: false,
                 entry: multivalued
                     ? []
                     : null
@@ -898,13 +900,10 @@ function manifestsDownToFolder( folderPath, dontCache ) {
  *          setName: string set name (only valid if fromPreferences is true),
  *          folderPath: string folder path to the manifest file (either values manifest, or associations manifest); empty if the values comes from a global (active) set
  *          entry: either
- *          - string/boolean/number ('primitive') value,
- *          -- for non-choice single-value fields, and
-            or - for choice, or non-choice and multi-value fields - but only for ones defined as such in module (configuration schema):
- *          - object serving as an associative array {
- *             string key => string/number ('primitive') label (value) loaded from module schema; if not present in the module schema,
- *                then the label (value) is same as the key
- *          }
+ *          - string/boolean/number ('primitive') value, for non-choice single-value fields, and
+ *          - object serving as an associative array, for choice, or non-choice and multi-value field name, in format {
+ *             string key => string/number ('primitive') label or value entered by user
+ *            }
  *      }
  *  }
 * */
@@ -971,7 +970,7 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
                     // override any less local value(s) from global set or sets associated with upper (less local) folders
                     result[ fieldName ]= {
                         entry: fields[fieldName].entry,
-                        fromPreferences: true,
+                        fromPreferences: fields[fieldName].fromPreferences,
                         folderPath: associationFolder,
                         setName: manifest.setName
                     }
