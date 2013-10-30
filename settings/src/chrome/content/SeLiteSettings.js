@@ -618,16 +618,12 @@ Module.prototype.setSelectedSetName= function( setName ) {
  *          entry: either
  *          - string/boolean/number ('primitive') value
             -- for non-choice single-value fields, and
- *          -- for fields not defined in this.fields
- *            or - for choice, or non-choice and multi-value field name
- *             (including those that don't have any value in Preferences DB, unless this.associatesWithFolders && perFolder)
+            or - for choice, or non-choice and multi-value field name:
  *          - object serving as an associative array{
  *             string key => string/number ('primitive') label or value entered by user
  *          }
  *      }
  *  }
- *  It also includes any values of fields that are not defined in this.fields, but are present in the preferences.
- *  It excludes any single-value fields defined in this.fields with no value stored in the preferences.
  * */
 Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
     perFolder= perFolder || false;
@@ -637,17 +633,32 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
             ? this.selectedSetName()
             : '';
     }
-    if( setName!=='' ) {
-        setName+= '.';
-    }
-    var children= this.prefsBranch.getChildList( setName, {} );
-    children.sort( compareCaseInsensitively );
+    var setNameWithDot= setName!==''
+        ? setName= '.'
+        : setName;
+    //var children= this.prefsBranch.getChildList( setNameWithDot, {} );
+    //children.sort( compareCaseInsensitively );
     var result= sortedObject(true);
     
-    for( var i=0; i<children.length; i++ ) {
-        var child= children[i].substring( setName.length );
-        if( reservedNames.indexOf(child)<0 ) {
-            var prefName= setName+child;
+    for( var fieldName in this.fields ) {
+        var field= this.fields[fieldName];
+        var multivalued= field.multivalued || field instanceof Field.Choice;
+        var fieldNameWithDot= multivalued
+            ? fieldName+ '.'
+            : fieldName;
+        var children; // An array of preference string postfixes to be appended after fieldNameWithDot
+        if( !multivalued && this.prefsBranch.prefHasUserValue(fieldName) ) {
+            children= [''];
+        }
+        else
+        if( !multivalued ) {
+            children= this.prefsBranch.getChildList( setNameWithDot+fieldNameWithDot, {} );
+        } else {
+            children= [];
+        }
+        for( var i=0; i<children.length; i++ ) {
+            var child= children[i];
+            var prefName= setNameWithDot+child;
             var type= this.prefsBranch.getPrefType( prefName );
 
             var value= null;
@@ -660,31 +671,24 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
             else if( type==nsIPrefBranch.PREF_INT ) {
                 value= this.prefsBranch.getIntPref(prefName);
             }
-            if( !this.fields[child] ) {
-                // child may be a multivalued entry or a choice.
-                var indexOfDot= child.indexOf('.');
-                if( indexOfDot>0 ) {
-                    var fieldName= child.substring(0, indexOfDot );
-                    var field= this.fields[fieldName];
-                    if( field && (field.multivalued || field instanceof Field.Choice) ) {
-                        if( !result[fieldName]
-                            || typeof result[fieldName].entry!=='object' // In case there is an orphan/sick single value for fieldName itself, e.g. after you change field definition from single-value to multivalued
-                        ) {
-                            // When presenting Field.Choice, they are not sorted by stored values but by keys from the field definition.
-                            // So I only use sortedObject for multivalued fields other than Field.Choice
-                            result[fieldName]= {
-                                entry: field.multivalued && !(field instanceof Field.Choice)
-                                    ? sortedObject( field.compareValues )
-                                    : {}
-                                };
-                        }
-                        var key= child.substring( indexOfDot+1 );
-                        result[fieldName].entry[ key ]= value;
-                        continue;
-                    }
+            if( multivalued ) {
+                if( !result[fieldName] ) {
+                    // When presenting Field.Choice, they are not sorted by stored values but by keys from the field definition.
+                    // So I only use sortedObject for multivalued fields other than Field.Choice
+                    result[fieldName]= {
+                        entry: field.multivalued && !(field instanceof Field.Choice)
+                            ? sortedObject( field.compareValues )
+                            : {}
+                        };
                 }
+                result[fieldName].entry[ child ]= value;
             }
-            result[ child ]= {entry: value}; // anonymous, undefined field
+            else {
+                result[ child ]= {entry: value};
+            }
+        }
+        if( children.length===0 ) {
+            //result[ child ]= null; //@TODO?
         }
     }
     if( !(this.associatesWithFolders && perFolder) ) {
@@ -892,17 +896,12 @@ function manifestsDownToFolder( folderPath, dontCache ) {
  *          entry: either
  *          - string/boolean/number ('primitive') value,
  *          -- for non-choice single-value fields, and
- *          -- for fields not defined in this.fields
- *            or - for choice, or non-choice and multi-value fields - but only for ones defined as such in module (configuration schema):
+            or - for choice, or non-choice and multi-value fields - but only for ones defined as such in module (configuration schema):
  *          - object serving as an associative array {
  *             string key => string/number ('primitive') label (value) loaded from module schema; if not present in the module schema,
  *                then the label (value) is same as the key
  *          }
  *      }
- *      It excludes any fields defined in the module (schema) with no value in values manifests neither in any associated preferences.
- *  }
- *  It also includes any values of fields that are not defined in this.fields, but are present in values manifests or associated preferences.
- *  It excludes any single-value fields defined in this.fields with no value stored in the preferences.
  *  }
 * */
 Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
@@ -1024,12 +1023,13 @@ Module.prototype.createSet= function( setName ) {
     if( setName!=='' ) {
         ensureFieldName( setName, 'set name');
     }
-    if( !this.associatesWithFolders ) { // Don't populate default values for modules that associate with folders, because they inherit values
+    if( !this.associatesWithFolders ) { // Only populate default values if the module doesn't associate with folders, otherwise the set inherits values
         var setNameDot= setName!==''
             ? setName+'.'
             : '';
         for( var fieldName in this.fields ) {
             var field= this.fields[fieldName];
+            // @TODO if( field.populatesDefaultValue ) 
             if( !field.multivalued ) {
                 if( !(field instanceof Field.Choice) ) {
                     if( !this.prefsBranch.prefHasUserValue(setNameDot+fieldName) ) {
