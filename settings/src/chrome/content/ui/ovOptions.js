@@ -639,7 +639,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                 var optionItem= generateTreeItem(module, setName, field, pair,
                     RowLevel.OPTION,
                     field instanceof SeLiteSettings.Field.Choice
-                        && typeof(fieldValueOrPairs.entry)==='object' // This protects when the field has a sick/obsolete non-choice single value in Preferences DB, and no choice value
+                        && typeof(fieldValueOrPairs.entry)==='object'
                         && key in fieldValueOrPairs.entry,
                     false,
                     setFields[fieldName]

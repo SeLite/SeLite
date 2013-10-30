@@ -688,7 +688,11 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
             }
         }
         if( children.length===0 ) {
-            //result[ child ]= null; //@TODO?
+            result[ fieldName ]= {
+                entry: multivalued
+                    ? []
+                    : null
+            }; //@TODO?
         }
     }
     if( !(this.associatesWithFolders && perFolder) ) {
