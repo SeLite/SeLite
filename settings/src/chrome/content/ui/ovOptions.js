@@ -630,7 +630,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
 /** @param node moduleChildren <treechildren>
  *  @param object module Module
  * */
-function generateSets( moduleChildren, module ) {
+function generateSets( moduleChildren, module, setNameToExpand ) {
     var setNames= targetFolder===null
         ? module.setNames()
         : [null];
@@ -902,7 +902,7 @@ function treeClickHandler( event ) {
                     }
                 }
                 else {
-                    window.open( '?module=' +escape(module.name), '_blank'); //@TODO select the set <- cellProperties
+                    window.open( '?module=' +escape(module.name)+ '&set=' +escape(cellProperties), '_blank');
                 }
             }
             if( column.value.element===treeColumnElements.manifest && cellProperties!=='' ) {
@@ -1239,7 +1239,7 @@ window.addEventListener( "load", function(e) {
             }
         }
     }
-    var allowModules= false;
+    var allowModules= false; // true if we list all modules (if any); false if we just list one named in URL parameter 'module' (if any)
     if( isEmptyObject(modules) ) {
         allowModules= true;
         var moduleNames= SeLiteSettings.moduleNamesFromPreferences( prefix );
@@ -1274,6 +1274,7 @@ window.addEventListener( "load", function(e) {
     tree.appendChild( generateTreeColumns(allowModules,  targetFolder!==null) );
     var topTreeChildren= createTreeChildren( tree );
     
+    var setNameToExpand= null;
     if( allowModules ) {
         for( var moduleName in modules ) {
             var moduleTreeItem= generateTreeItem( modules[moduleName], null, null, null, RowLevel.MODULE );
@@ -1296,11 +1297,24 @@ window.addEventListener( "load", function(e) {
         else {
             moduleChildren= topTreeChildren;
         }
+        if( document.location.search ) {
+            var match= /set=([a-zA-Z0-9_.-]+)/.exec( params );
+            if( match ) {
+                setNameToExpand= unescape( match[1] );
+            }
+        }
         generateSets( moduleChildren, modules[moduleName] );
+        tree.view.toggleOpenState(0); // expand the module 
     }
     
     topTreeChildren.addEventListener( 'click', treeClickHandler );
     tree.view= createTreeView( tree.view );
+    if( setNameToExpand ) {
+        var setIndex= module.setNames().indexOf(setNameToExpand);
+        if( setIndex>=0 ) {
+            tree.view.toggleOpenState( setIndex+1 ); // expand the set
+        }
+    }
 }, false);
 
 /** @return nsIFile instance for a javascript file, if picked; null if none.
