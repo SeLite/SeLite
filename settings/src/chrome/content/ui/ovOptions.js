@@ -545,25 +545,22 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         treecell.setAttribute('label', ''+value );
         if( targetFolder!==null && valueCompound!==null ) {
             if( valueCompound.fromPreferences ) {
-                // A_STRING setName folderPath
-                // 2 buttons
-                // 1. to navigate to the set < setName
-                // 2. to open file:/// url to the association manifest (unless folderPath==='' which indicates an active set)
                 treecell.setAttribute( 'properties',
-                    (valueCompound.folderPath!==''
+                    'VALUE_CELL '
+                    +(valueCompound.folderPath!==''
                         ? SeLiteSettings.ASSOCIATED_SET
                         : SeLiteSettings.SELECTED_SET
-                    )+' ' + valueCompound.setName
+                    )
                 );
             }
             else {
                 treecell.setAttribute( 'properties',
-                    valueCompound.folderPath!==null
-                        ? valueCompound.folderPath
+                    'VALUE_CELL '
+                    +(valueCompound.folderPath!==null
+                        ? SeLiteSettings.VALUES_MANIFEST
                         : SeLiteSettings.FIELD_DEFAULT
+                     )
                 );
-                // 1 button - to navigate to the values manifest, or to schema definition file (for default values - when folderPath===null)
-                //if( valueCompound.)
             }
         }
     }    
@@ -611,7 +608,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                             ? (valueCompound.fromPreferences
                                     ? SeLiteSettings.ASSOCIATED_SET
                                     : SeLiteSettings.VALUES_MANIFEST
-                              ) +' ' +valueCompound.folderPath
+                              )
                             : ''
                       )
                     : SeLiteSettings.FIELD_DEFAULT

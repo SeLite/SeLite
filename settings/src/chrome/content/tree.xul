@@ -20,14 +20,14 @@ treechildren::-moz-tree-checkbox(SELITE_SETTINGS_OPTION_UNIQUE_CELL,checked) {
   list-style-image: url('chrome://global/skin/radio/radio-check.gif');
 }
 
-treechildren::-moz-tree-cell-text(SELITE_SETTINGS_SELECTED_SET) {
+treechildren::-moz-tree-cell-text(VALUE_CELL SELITE_SETTINGS_SELECTED_SET) {
     color: blue;
 }
 
-treechildren::-moz-tree-cell-text(SELITE_SETTINGS_VALUES_MANIFEST) {
+treechildren::-moz-tree-cell-text(VALUE_CELL SELITE_SETTINGS_VALUES_MANIFEST) {
     color: brown;
 }
-treechildren::-moz-tree-cell-text(SELITE_SETTINGS_FIELD_DEFAULT) {
+treechildren::-moz-tree-cell-text(VALUE_CELL SELITE_SETTINGS_FIELD_DEFAULT) {
     color: brown;
     font-style: italic;
 }
