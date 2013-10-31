@@ -277,7 +277,7 @@ function generateTreeColumns( allowModules, perFolder ) {
         treecol.setAttribute( 'ordinal', '9');
         treecols.appendChild(treecol);
     }
-    if( perFolder || false/*todo*/ ) {
+    if( perFolder ) {
         splitter= document.createElementNS( XUL_NS, 'splitter' );
         splitter.setAttribute( 'ordinal', '10');
         treecols.appendChild( splitter );
@@ -646,7 +646,7 @@ function generateSets( moduleChildren, module ) {
         
         var setChildren= null;
         if( allowSets && module.allowSets ) {
-            var setItem= generateTreeItem(module, setName, null, null, RowLevel.SET ); //@TODO
+            var setItem= generateTreeItem(module, setName, null, null, RowLevel.SET );
             moduleChildren.appendChild( setItem );
             setChildren= createTreeChildren( setItem );
         }
@@ -657,7 +657,6 @@ function generateSets( moduleChildren, module ) {
     }
 }
 
-var treeRowsReported= false; //@TODO remove
 function generateFields( setChildren, module, setName, setFields ) {
     for( var fieldName in setFields ) {
         var fieldValueOrPairs= setFields[fieldName];
@@ -668,7 +667,7 @@ function generateFields( setChildren, module, setName, setFields ) {
         var singleValueOrNull= typeof setFields[fieldName].entry!=='object'
             ? setFields[fieldName].entry
             : null;
-        var fieldItem= generateTreeItem(module, setName, field, singleValueOrNull, RowLevel.FIELD, false, false, setFields[fieldName] ); //@TODO
+        var fieldItem= generateTreeItem(module, setName, field, singleValueOrNull, RowLevel.FIELD, false, false, setFields[fieldName] );
         setChildren.appendChild( fieldItem );
         
         if( field instanceof SeLiteSettings.Field &&
@@ -733,8 +732,7 @@ function treeClickHandler( event ) {
     var row= { value: -1 }; // value is 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
     var column= { value: null }; // value is instance of TreeColumn. See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeColumn
             // column.value.element is one of 'treecol' nodes created above. column.value.type can be TreeColumn.TYPE_CHECKBOX etc.
-    var pseudoElementHit= {}; // unused, but needed. @TODO Move to the function call, eliminate the variable
-    tree.boxObject.getCellAt(event.clientX, event.clientY, row, column, pseudoElementHit );
+    tree.boxObject.getCellAt(event.clientX, event.clientY, row, column, {}/*unused, but needed*/ );
     
     if( row.value>=0 && column.value ) {
         var modifiedPreferences= false;
@@ -784,7 +782,7 @@ function treeClickHandler( event ) {
                     var clickedTreeRow= moduleRows[setName][field.name][ clickedOptionKey ];
                     var clickedCell= treeCell( clickedTreeRow, RowLevel.CHECKBOX );
                     
-                    if( !field.multivalued ) { // TODO: revisit this comment: field is multivalued non-choice. Uncheck & remove the previously checked value.
+                    if( !field.multivalued ) { // field is a single-valued choice. Uncheck & remove the previously checked value.
                         clickedCell.setAttribute( 'editable', 'false');
                         for( var otherOptionKey in moduleRows[setName][field.name] ) { // de-select the previously selected value, make editable
                             
@@ -1159,14 +1157,6 @@ function createTreeChildren( parent ) {
         throw new Error( 'createTreeChildren() requires parent to be an object for <treeitem> or <tree>.');
     }
     var treeChildren= document.createElementNS( XUL_NS, 'treechildren');
-    // I've tried attributes tooltip and tooltiptext on treeitem and treecell; they have no effect there.
-    // Also, I use tooltiptext rather than tooltip, because tooltiptext splits long text across multiple lines automatically.
-    //treeChildren.setAttribute('tooltiptext', 'Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!... Hello World!Hello World!Hello World!Hello World!Hello World!');
-    //treeChildren.setAttribute('tooltip', 'tooltip' );
-    var tooltip= document.createElementNS( XUL_NS, 'tooltip');
-    //tooltip.setAttribute( 'label', "Hi mate. Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate." );
-    //treeChildren.appendChild(tooltip);
-    //treeChildren.setAttribute('tooltip', '_child' );  // TODO in order to hid & then show tooltip, set treeChildren.setAttribute() to empty and back to '_child'
     if( parent.tagName!=='tree' ) {
         parent.setAttribute('container', 'true');
         parent.setAttribute('open', 'false');
@@ -1239,12 +1229,12 @@ window.addEventListener( "load", function(e) {
             if( newTargetFolder ) {
                 var newLocation= "?";
                 if( moduleName ) {
-                    newLocation+= "module=" +moduleName+ "&"; //@TODO urlescape
+                    newLocation+= "module=" +moduleName+ "&";
                 }
                 if( prefix ) {
-                    newLocation+= "prefix="+prefix+ "&"; //@TODO urlescape
+                    newLocation+= "prefix="+prefix+ "&";
                 }
-                newLocation+= targetFolder= newTargetFolder; //@TODO urlescape
+                newLocation+= "folder=" +escape(newTargetFolder);
                 document.location= newLocation;
             }
         }
