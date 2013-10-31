@@ -1214,7 +1214,7 @@ window.addEventListener( "load", function(e) {
         var match= /module=([a-zA-Z0-9_.-]+)/.exec( params );
         var moduleName= null;
         if( match ) {
-            moduleName= match[1];
+            moduleName= unescape( match[1] );
             modules[ moduleName ]= SeLiteSettings.loadFromJavascript( moduleName );
             ensure( !targetFolder || modules[moduleName].associatesWithFolders, "You're using URL with folder=" +targetFolder+
                 " and module=" +moduleName+ ", however that module doesn't allow to be associated with folders." );
@@ -1222,7 +1222,7 @@ window.addEventListener( "load", function(e) {
         match= /prefix=([a-zA-Z0-9_.-]+)/.exec( params );
         var prefix= '';
         if( match ) {
-            prefix= match[1];
+            prefix= unescape( match[1] );
         }
         if( /selectFolder/.exec(params) ) {
             var newTargetFolder= chooseFileOrFolder( null, null, null, null, true/*isFolder*/, targetFolder );
