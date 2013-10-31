@@ -553,13 +553,13 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                     (valueCompound.folderPath!==''
                         ? SeLiteSettings.ASSOCIATED_SET
                         : SeLiteSettings.SELECTED_SET
-                    )+' ' + valueCompound.setName+ ' ' +valueCompound.folderPath
+                    )+' ' + valueCompound.setName
                 );
             }
             else {
                 treecell.setAttribute( 'properties',
                     valueCompound.folderPath!==null
-                        ? SeLiteSettings.VALUES_MANIFEST+ ' ' +valueCompound.folderPath
+                        ? valueCompound.folderPath
                         : SeLiteSettings.FIELD_DEFAULT
                 );
                 // 1 button - to navigate to the values manifest, or to schema definition file (for default values - when folderPath===null)
@@ -598,9 +598,21 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                     ? valueCompound.setName
                     : 'values manifest'
                 );
+                treecell.setAttribute( 'properties', valueCompound.fromPreferences
+                    ? valueCompound.setName
+                    : ''
+                );
+                // Cell for manifest:
                 treecell= document.createElementNS( XUL_NS, 'treecell');
                 treerow.appendChild( treecell);
                 treecell.setAttribute('editable', 'false');
+                treecell.setAttribute( 'properties', valueCompound.folderPath!==null
+                    ? (valueCompound.folderPath!==''
+                            ? valueCompound.folderPath
+                            : SeLiteSettings.SELECTED_SET
+                      )
+                    : SeLiteSettings.FIELD_DEFAULT
+                );
                 treecell.setAttribute( 'label', valueCompound.folderPath!==''
                     ? OS.Path.join( valueCompound.folderPath, valueCompound.fromPreferences
                             ? SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME
@@ -725,7 +737,7 @@ function treeClickHandler( event ) {
     
     if( row.value>=0 && column.value ) {
         var modifiedPreferences= false;
-        var rowProperties= tree.view.getRowProperties(row.value); // This requires Gecko 22+ (Firefox 22+). See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeBoxObject
+        var rowProperties= tree.view.getRowProperties(row.value); // This requires Gecko 22+ (Firefox 22+). See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeView#getCellProperties%28%29
         var moduleName= propertiesPart( rowProperties, RowLevel.MODULE );
         var module= modules[moduleName];
         var moduleRows= treeRows[moduleName];
@@ -734,6 +746,7 @@ function treeClickHandler( event ) {
         if( column.value!=null && row.value>=0 ) {
             var cellIsEditable= tree.view.isEditable(row.value, column.value);
             var cellValue= tree.view.getCellValue(row.value, column.value); // For checkboxes this is true/false as toggled by the click.
+            var cellProperties= tree.view.getCellProperties( row.value, column.value ); // Space-separated properties
             var cellText= tree.view.getCellText(row.value, column.value);
             
             if( allowSets && column.value.element==treeColumnElements.selectedSet && cellIsEditable ) { // Select the clicked set, de-select previously selected set
@@ -811,81 +824,94 @@ function treeClickHandler( event ) {
                     }
                 }
             }
-            if( column.value.element==treeColumnElements.action ) {
-                if( cellText===CREATE_NEW_SET ) {
-                    var setName= prompt('Enter the new set name');
-                    if( setName ) {
-                        module.createSet( setName );
+            if( column.value.element===treeColumnElements.action ) {
+                if( cellProperties==='' ) {
+                    if( cellText===CREATE_NEW_SET ) {
+                        var setName= prompt('Enter the new set name');
+                        if( setName ) {
+                            module.createSet( setName );
+                            SeLiteSettings.savePrefFile(); // Must save here, before reload()
+                            window.location.reload();
+                        }
+                    }
+                    var setName= propertiesPart( rowProperties, RowLevel.SET );
+                    if( cellText===DELETE_THE_SET ) {
+                        if( setName===module.selectedSetName() ) {
+                            alert( "Please select (or create and select) a different set before you remove this one." );
+                            return;
+                        }
+                        module.removeSet( setName);
                         SeLiteSettings.savePrefFile(); // Must save here, before reload()
                         window.location.reload();
                     }
-                }
-                var setName= propertiesPart( rowProperties, RowLevel.SET );
-                if( cellText===DELETE_THE_SET ) {
-                    if( setName===module.selectedSetName() ) {
-                        alert( "Please select (or create and select) a different set before you remove this one." );
-                        return;
-                    }
-                    module.removeSet( setName);
-                    SeLiteSettings.savePrefFile(); // Must save here, before reload()
-                    window.location.reload();
-                }
-                if( (cellText===ADD_NEW_VALUE || cellText===DELETE_THE_VALUE) ) {
-                    if( !field.multivalued || field instanceof SeLiteSettings.Field.Choice ) {
-                        throw new Error();
-                    }
-                    var treeChildren= moduleRows[setName][field.name][SeLiteSettings.FIELD_TREECHILDREN];
-                    if( cellText===ADD_NEW_VALUE ) {
-                        // Add a row for a new value, right below the clicked row (i.e. at the top of all existing values)
-                        var pair= {};
-                        pair[ SeLiteSettings.NEW_VALUE_ROW ]= SeLiteSettings.NEW_VALUE_ROW;
-                        // Since we're editing, that means targetFolder===null, so I don't need to generate anything for navigation from folder view here.
-                        var treeItem= generateTreeItem(module, setName, field, pair, RowLevel.OPTION, false, /*Don't show the initial value:*/true );
-                        
-                        var previouslyFirstValueRow= null;
-                        for( var key in moduleRows[setName][field.name] ) {
-                            if( SeLiteSettings.reservedNames.indexOf(key)<0 ) {
-                                previouslyFirstValueRow= moduleRows[setName][field.name][key];
-                                if( !(previouslyFirstValueRow instanceof XULElement) || previouslyFirstValueRow.tagName!=='treerow' || previouslyFirstValueRow.parentNode.tagName!=='treeitem' ) {
-                                    throw Error();
-                                }
-                                break;
-                            }
+                    if( (cellText===ADD_NEW_VALUE || cellText===DELETE_THE_VALUE) ) {
+                        if( !field.multivalued || field instanceof SeLiteSettings.Field.Choice ) {
+                            throw new Error();
                         }
-                        // Firefox 22.b04 and 24.0a1 doesn't handle parent.insertBefore(newItem, null), even though it should - https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore
-                        if(true) {//@TODO test in new Firefox, choose one branch
-                            if( previouslyFirstValueRow!==null ) {
-                                treeChildren.insertBefore( treeItem, previouslyFirstValueRow.parentNode );
+                        var treeChildren= moduleRows[setName][field.name][SeLiteSettings.FIELD_TREECHILDREN];
+                        if( cellText===ADD_NEW_VALUE ) {
+                            // Add a row for a new value, right below the clicked row (i.e. at the top of all existing values)
+                            var pair= {};
+                            pair[ SeLiteSettings.NEW_VALUE_ROW ]= SeLiteSettings.NEW_VALUE_ROW;
+                            // Since we're editing, that means targetFolder===null, so I don't need to generate anything for navigation from folder view here.
+                            var treeItem= generateTreeItem(module, setName, field, pair, RowLevel.OPTION, false, /*Don't show the initial value:*/true );
+
+                            var previouslyFirstValueRow= null;
+                            for( var key in moduleRows[setName][field.name] ) {
+                                if( SeLiteSettings.reservedNames.indexOf(key)<0 ) {
+                                    previouslyFirstValueRow= moduleRows[setName][field.name][key];
+                                    if( !(previouslyFirstValueRow instanceof XULElement) || previouslyFirstValueRow.tagName!=='treerow' || previouslyFirstValueRow.parentNode.tagName!=='treeitem' ) {
+                                        throw Error();
+                                    }
+                                    break;
+                                }
+                            }
+                            // Firefox 22.b04 and 24.0a1 doesn't handle parent.insertBefore(newItem, null), even though it should - https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore
+                            if(true) {//@TODO test in new Firefox, choose one branch
+                                if( previouslyFirstValueRow!==null ) {
+                                    treeChildren.insertBefore( treeItem, previouslyFirstValueRow.parentNode );
+                                }
+                                else {
+                                    treeChildren.appendChild( treeItem );
+                                }
                             }
                             else {
-                                treeChildren.appendChild( treeItem );
+                                treeChildren.insertBefore( treeItem,
+                                    previouslyFirstValueRow!==null
+                                        ? previouslyFirstValueRow.parentNode
+                                        : null );
+                            }
+                            if( treeChildren.parentNode.getAttribute('open')!=='true' ) {
+                                treeChildren.parentNode.setAttribute('open', 'true');
+                            }
+                            tree.boxObject.ensureRowIsVisible( row.value+1 );
+                            if( field instanceof SeLiteSettings.Field.FileOrFolder ) {
+                                chooseFileOrFolder( field, tree, row.value+1, column.value, field.isFolder ); // On change that will trigger my custom setCellText()
+                            }
+                            else {
+                                tree.startEditing( row.value+1, treeColumn(treeColumnElements.value) );
                             }
                         }
-                        else {
-                            treeChildren.insertBefore( treeItem,
-                                previouslyFirstValueRow!==null
-                                    ? previouslyFirstValueRow.parentNode
-                                    : null );
-                        }
-                        if( treeChildren.parentNode.getAttribute('open')!=='true' ) {
-                            treeChildren.parentNode.setAttribute('open', 'true');
-                        }
-                        tree.boxObject.ensureRowIsVisible( row.value+1 );
-                        if( field instanceof SeLiteSettings.Field.FileOrFolder ) {
-                            chooseFileOrFolder( field, tree, row.value+1, column.value, field.isFolder ); // On change that will trigger my custom setCellText()
-                        }
-                        else {
-                            tree.startEditing( row.value+1, treeColumn(treeColumnElements.value) );
+                        if( cellText===DELETE_THE_VALUE ) {
+                            var clickedOptionKey= propertiesPart( rowProperties, RowLevel.OPTION );
+                            var clickedTreeRow= moduleRows[setName][field.name][ clickedOptionKey ];
+                            delete moduleRows[setName][field.name][ clickedOptionKey ];
+                            treeChildren.removeChild( clickedTreeRow.parentNode );
+                            field.removeValue( setName, clickedOptionKey ); //@TODO error here
+                            modifiedPreferences= true;
                         }
                     }
-                    if( cellText===DELETE_THE_VALUE ) {
-                        var clickedOptionKey= propertiesPart( rowProperties, RowLevel.OPTION );
-                        var clickedTreeRow= moduleRows[setName][field.name][ clickedOptionKey ];
-                        delete moduleRows[setName][field.name][ clickedOptionKey ];
-                        treeChildren.removeChild( clickedTreeRow.parentNode );
-                        field.removeValue( setName, clickedOptionKey ); //@TODO error here
-                        modifiedPreferences= true;
-                    }
+                }
+                else {
+                    alert( cellProperties );
+                }
+            }
+            if( column.value.element===treeColumnElements.manifest && cellProperties!=='' ) {
+                if( cellProperties!==SeLiteSettings.FIELD_DEFAULT ) {
+                    alert( '@TODO values manifest' );
+                }
+                else {
+                    alert( '@TODO schema definition file');
                 }
             }
         }
