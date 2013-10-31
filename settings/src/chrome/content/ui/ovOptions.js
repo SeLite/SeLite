@@ -1209,7 +1209,7 @@ window.addEventListener( "load", function(e) {
         }
         var match= /folder=([^&]*)/.exec( params );
         if( match ) {
-            targetFolder= match[1];
+            targetFolder= unescape( match[1] );
         }
         var match= /module=([a-zA-Z0-9_.-]+)/.exec( params );
         var moduleName= null;
