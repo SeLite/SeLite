@@ -595,7 +595,8 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                     ? valueCompound.setName
                     : 'values manifest'
                 );
-                treecell.setAttribute( 'properties', valueCompound.fromPreferences
+                treecell.setAttribute( 'properties',
+                    valueCompound.fromPreferences
                     ? valueCompound.setName
                     : ''
                 );
@@ -604,11 +605,11 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                 treerow.appendChild( treecell);
                 treecell.setAttribute('editable', 'false');
                 treecell.setAttribute( 'properties', valueCompound.folderPath!==null
-                    ? (valueCompound.folderPath!==''
+                    ? (     valueCompound.folderPath!==''
                             ? (valueCompound.fromPreferences
                                     ? SeLiteSettings.ASSOCIATED_SET
                                     : SeLiteSettings.VALUES_MANIFEST
-                              )
+                              ) + ' ' +valueCompound.folderPath
                             : ''
                       )
                     : SeLiteSettings.FIELD_DEFAULT
@@ -903,19 +904,19 @@ function treeClickHandler( event ) {
                     }
                 }
                 else {
-                    alert( cellProperties );
+                    window.open( '?module=' +escape(module.name), '_blank'); //@TODO select the set <- cellProperties
                 }
             }
             if( column.value.element===treeColumnElements.manifest && cellProperties!=='' ) {
                 if( cellProperties!==SeLiteSettings.FIELD_DEFAULT ) {
                     if( cellProperties.startsWith(SeLiteSettings.ASSOCIATED_SET) ) {
                         var folder= cellProperties.substring( SeLiteSettings.ASSOCIATED_SET.length+1 );
-                        alert( '@TODO assoc manifest ' +folder );
+                        window.open( 'file://' +OS.Path.join(folder, SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME), '_blank' );
                     }
                     else {
                         ensure( cellProperties.startsWith(SeLiteSettings.VALUES_MANIFEST) );
                         var folder= cellProperties.substring( SeLiteSettings.VALUES_MANIFEST.length+1 );
-                        alert( '@TODO values manifest ' +folder );
+                        window.open( 'file://' +OS.Path.join(folder, SeLiteSettings.VALUES_MANIFEST_FILENAME), '_blank' );
                     }
                 }
                 else {
