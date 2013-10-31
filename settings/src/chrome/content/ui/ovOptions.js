@@ -608,8 +608,11 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                 treecell.setAttribute('editable', 'false');
                 treecell.setAttribute( 'properties', valueCompound.folderPath!==null
                     ? (valueCompound.folderPath!==''
-                            ? valueCompound.folderPath
-                            : SeLiteSettings.SELECTED_SET
+                            ? (valueCompound.fromPreferences
+                                    ? SeLiteSettings.ASSOCIATED_SET
+                                    : SeLiteSettings.VALUES_MANIFEST
+                              ) +' ' +valueCompound.folderPath
+                            : ''
                       )
                     : SeLiteSettings.FIELD_DEFAULT
                 );
@@ -908,7 +911,15 @@ function treeClickHandler( event ) {
             }
             if( column.value.element===treeColumnElements.manifest && cellProperties!=='' ) {
                 if( cellProperties!==SeLiteSettings.FIELD_DEFAULT ) {
-                    alert( '@TODO values manifest' );
+                    if( cellProperties.startsWith(SeLiteSettings.ASSOCIATED_SET) ) {
+                        var folder= cellProperties.substring( SeLiteSettings.ASSOCIATED_SET.length+1 );
+                        alert( '@TODO assoc manifest ' +folder );
+                    }
+                    else {
+                        ensure( cellProperties.startsWith(SeLiteSettings.VALUES_MANIFEST) );
+                        var folder= cellProperties.substring( SeLiteSettings.VALUES_MANIFEST.length+1 );
+                        alert( '@TODO values manifest ' +folder );
+                    }
                 }
                 else {
                     alert( '@TODO schema definition file');

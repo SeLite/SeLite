@@ -903,7 +903,8 @@ function manifestsDownToFolder( folderPath, dontCache ) {
  *      string field name => anonymous object {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest,
  *          setName: string set name (only valid if fromPreferences is true),
- *          folderPath: string folder path to the manifest file (either values manifest, or associations manifest); empty if the values comes from a global (active) set
+ *          folderPath: string folder path to the manifest file (either values manifest, or associations manifest); empty '' if the values comes from a global (active) set;
+ *              @TODO null if the value comes from field default in module schema
  *          entry: either
  *          - string/boolean/number ('primitive') value, for non-choice single-value fields, and
  *          - object serving as an associative array, for choice, or non-choice and multi-value field name, in format {
