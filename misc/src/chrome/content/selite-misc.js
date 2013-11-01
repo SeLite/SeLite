@@ -19,15 +19,26 @@
 var runningAsComponent= (typeof window==='undefined' || window && window.location && window.location.protocol=='chrome:');
 // runningAsComponent is false when loaded via <script src="file://..."> or <script src="http://..."> rather than via Components.utils.import().
 // Used for debugging; limited (because when it's not loaded via Components.utils.import() it can't access other components).
+if( runningAsComponent ) {
+    var loginManagerInstance = Components.classes["@mozilla.org/login-manager;1"].
+        getService(Components.interfaces.nsILoginManager);
+    var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+}
 
 /** This asserts the condition to be true (compared non-strictly). If false, it fails with an error (containg the given message, if any).
  *  It's not called assert(), so that wouldn't conflict with assert() defined by Selenium IDE.
  * */
 function ensure( condition, message ) {
     if( !condition ) {
-        throw message
-            ? new Error(message)
-            : new Error();
+        try {
+            throw message
+                ? new Error(message)
+                : new Error();
+            }
+            catch(e) {
+                console.warn( e.stack );
+                throw e;
+            }
     }
 }
 
@@ -44,6 +55,7 @@ function ensureOneOf( item, choices, message ) {
  *  @param message string Message to produce on validation failure, optional.
  * */
 function ensureType( item, typeStringOrStrings, message ) {
+    message= message || '';
     if( !(typeStringOrStrings instanceof Array) && typeof typeStringOrStrings!=='string' ) {
         throw new Error( 'typeStringOrStrings must be a string or an array');
     }
@@ -56,13 +68,14 @@ function ensureType( item, typeStringOrStrings, message ) {
             return;
         }
     }
-    ensure( false, message );
+    ensure( false, message+ ' Expecting type from within [' +typeStringOrStrings+ '], but the actual type of the item is ' +typeof item+ '. The item: ' +item );
 }
 
 /** Validate that a parameter is an object and of a given class (or of one of given classes).
  *  @param object Object
  *  @param classes Class (that is, a constructor function), or an array of them
- *  @param className string, optional, name of the expected class(es); even if clazz is an array, clazzName must be one string (if present)
+ *  @param className string, optional, name of the expected class(es), so we can print them (because parameter classes doesn't carry information about the name);
+ *  even if clazz is an array, clazzName must be one string (if present),
  *  @param message string, extra message, optional
  * */
 function ensureInstance( object, classes, className, message ) {
@@ -1045,15 +1058,6 @@ function PrototypedObject( prototype ) {
     }
 }
 
-/**
-    https://developer.mozilla.org/En/Using_nsILoginManager
-    https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsILoginManager
-    https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsILoginInfo
-*/
-if( runningAsComponent ) {
-    var loginManagerInstance = Components.classes["@mozilla.org/login-manager;1"].
-        getService(Components.interfaces.nsILoginManager);
-}
 /** This retrieves a web form password for a user. It doesn't work with .htaccess/HTTP authentication
     (that can be retrieved too, see the docs).
     @param string hostname in form 'https://server-name.some.domain'. It can use http or https and it contain the port (if not standard),
@@ -1062,6 +1066,11 @@ if( runningAsComponent ) {
     @return string password if found; null otherwise
 */
 function loginManagerPassword( hostname, username ) {
+/**
+    https://developer.mozilla.org/En/Using_nsILoginManager
+    https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsILoginManager
+    https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsILoginInfo
+*/
     // You could also use passwordManager.getAllLogins(); it returns an array of nsILoginInfo objects
     var logins = loginManagerInstance.findLogins(
         {}, hostname,

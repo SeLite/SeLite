@@ -5,12 +5,12 @@ Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js", Se
 
 var mainDb= new SeLiteSettings.Field.SQLite('mainDb');
 var oneFolder= new SeLiteSettings.Field.Folder( 'oneFolder' );
-var files= new SeLiteSettings.Field.File( 'files', false, false, null, true );
-var folders= new SeLiteSettings.Field.Folder( 'folders', false, false, null, true );
+var files= new SeLiteSettings.Field.File( 'files', false, false, [], true );
+var folders= new SeLiteSettings.Field.Folder( 'folders', false, false, [], true );
 var bool= new SeLiteSettings.Field.Bool('aBooleanField', true);
 var appWebroot= new SeLiteSettings.Field.String('appWebroot', 'http://localhost/app');
 var maxNumberOfRuns= new SeLiteSettings.Field.Int('maxNumberOfRuns', 20);
-var multiNumbers= new SeLiteSettings.Field.Int('multiNumbers', null, true);
+var multiNumbers= new SeLiteSettings.Field.Int('multiNumbers', [], true);
 
 var module= new SeLiteSettings.Module( 'extensions.selite-settings.test',
     [mainDb, oneFolder, files, folders, bool, appWebroot, maxNumberOfRuns, multiNumbers],
@@ -40,12 +40,12 @@ var mainDb2= new SeLiteSettings.Field.SQLite('mainDb2');
 var bool2= new SeLiteSettings.Field.Bool('aBooleanField2', true);
 var appWebroot2= new SeLiteSettings.Field.String('appWebroot2', 'http://localhost/app');
 var maxNumberOfRuns2= new SeLiteSettings.Field.Int('maxNumberOfRuns2', 20);
-var multiNumbers= new SeLiteSettings.Field.Int('multiNumbers', null, true);
-var multiStrings= new SeLiteSettings.Field.String('multiStrings', null, true );
-var choiceNumbers= new SeLiteSettings.Field.Choice.Int('choiceNumbers', null, true, {1:1, 5:5, 10:10, 20:20} );
-var choiceStrings= new SeLiteSettings.Field.Choice.String('choiceStrings', null, true, {1:"one", 2:"two", 4:"four", 8:"eight"} );
+var multiNumbers= new SeLiteSettings.Field.Int('multiNumbers', [], true);
+var multiStrings= new SeLiteSettings.Field.String('multiStrings', [], true );
+var choiceNumbers= new SeLiteSettings.Field.Choice.Int('choiceNumbers', [], true, {1:1, 5:5, 10:10, 20:20} );
+var choiceStrings= new SeLiteSettings.Field.Choice.String('choiceStrings', [], true, {1:"one", 2:"two", 4:"four", 8:"eight"} );
 
-var choiceNumbersSingle= new SeLiteSettings.Field.Choice.Int('choiceNumbersSingle', '1', false, {1:1, 5:5, 10:10, 20:20} );
+var choiceNumbersSingle= new SeLiteSettings.Field.Choice.Int('choiceNumbersSingle', 1, false, {1:1, 5:5, 10:10, 20:20} );
 var choiceStringsSingle= new SeLiteSettings.Field.Choice.String('choiceStringsSingle', '4', false, {1:"one", 2:"two", 4:"four", 8:"eight"} );
 
 var module2= new SeLiteSettings.Module( 'extensions.selite-settings.test2',
@@ -63,16 +63,16 @@ module2= SeLiteSettings.register( module2 );
 
 var mainDb= new SeLiteSettings.Field.SQLite('mainDb');
 var oneFolder= new SeLiteSettings.Field.Folder( 'oneFolder' );
-var files= new SeLiteSettings.Field.File( 'files', false, false, null, true );
-var folders= new SeLiteSettings.Field.Folder( 'folders', false, false, null, true );
+var files= new SeLiteSettings.Field.File( 'files', false, false, [], true );
+var folders= new SeLiteSettings.Field.Folder( 'folders', false, false, [], true );
 var bool= new SeLiteSettings.Field.Bool('bool', true);
 var appWebroot= new SeLiteSettings.Field.String('appWebroot', 'http://localhost/app');
 var maxNumberOfRuns= new SeLiteSettings.Field.Int('maxNumberOfRuns', 20);
-var multiNumbers= new SeLiteSettings.Field.Int('multiNumbers', null, true);
-var multiStrings= new SeLiteSettings.Field.String('multiStrings', null, true );
-var choiceNumbers= new SeLiteSettings.Field.Choice.Int('choiceNumbers', null, true, {1:1, 5:5, 10:10, 20:20} );
-var choiceStrings= new SeLiteSettings.Field.Choice.String('choiceStrings', null, true, {1:"one", 2:"two", 4:"four", 8:"eight"} );
-var choiceNumbersSingle= new SeLiteSettings.Field.Choice.Int('choiceNumbersSingle', '1', false, {1:1, 5:5, 10:10, 20:20} );
+var multiNumbers= new SeLiteSettings.Field.Int('multiNumbers', [], true);
+var multiStrings= new SeLiteSettings.Field.String('multiStrings', [], true );
+var choiceNumbers= new SeLiteSettings.Field.Choice.Int('choiceNumbers', [], true, {1:1, 5:5, 10:10, 20:20} );
+var choiceStrings= new SeLiteSettings.Field.Choice.String('choiceStrings', [], true, {1:"one", 2:"two", 4:"four", 8:"eight"} );
+var choiceNumbersSingle= new SeLiteSettings.Field.Choice.Int('choiceNumbersSingle', 1, false, {1:1, 5:5, 10:10, 20:20} );
 var choiceStringsSingle= new SeLiteSettings.Field.Choice.String('choiceStringsSingle', '4', false, {1:"one", 2:"two", 4:"four", 8:"eight"} );
 
 var module= new SeLiteSettings.Module( 'extensions.selite-settings.withFolders',
@@ -89,16 +89,16 @@ module= SeLiteSettings.register( module );
 
 var mainDb= new SeLiteSettings.Field.SQLite('mainDb');
 var oneFolder= new SeLiteSettings.Field.Folder( 'oneFolder' );
-var files= new SeLiteSettings.Field.File( 'files', false, false, null, true );
-var folders= new SeLiteSettings.Field.Folder( 'folders', false, false, null, true );
+var files= new SeLiteSettings.Field.File( 'files', false, false, [], true );
+var folders= new SeLiteSettings.Field.Folder( 'folders', false, false, [], true );
 var bool= new SeLiteSettings.Field.Bool('bool', true);
 var appWebroot= new SeLiteSettings.Field.String('appWebroot', 'http://localhost/app');
 var maxNumberOfRuns= new SeLiteSettings.Field.Int('maxNumberOfRuns', 20);
-var multiNumbers= new SeLiteSettings.Field.Int('multiNumbers', null, true);
-var multiStrings= new SeLiteSettings.Field.String('multiStrings', null, true );
-var choiceNumbers= new SeLiteSettings.Field.Choice.Int('choiceNumbers', null, true, {1:1, 5:5, 10:10, 20:20} );
-var choiceStrings= new SeLiteSettings.Field.Choice.String('choiceStrings', null, true, {1:"one", 2:"two", 4:"four", 8:"eight"} );
-var choiceNumbersSingle= new SeLiteSettings.Field.Choice.Int('choiceNumbersSingle', '1', false, {1:1, 5:5, 10:10, 20:20} );
+var multiNumbers= new SeLiteSettings.Field.Int('multiNumbers', [], true);
+var multiStrings= new SeLiteSettings.Field.String('multiStrings', [], true );
+var choiceNumbers= new SeLiteSettings.Field.Choice.Int('choiceNumbers', [], true, {1:1, 5:5, 10:10, 20:20} );
+var choiceStrings= new SeLiteSettings.Field.Choice.String('choiceStrings', [], true, {1:"one", 2:"two", 4:"four", 8:"eight"} );
+var choiceNumbersSingle= new SeLiteSettings.Field.Choice.Int('choiceNumbersSingle', 1, false, {1:1, 5:5, 10:10, 20:20} );
 var choiceStringsSingle= new SeLiteSettings.Field.Choice.String('choiceStringsSingle', '4', false, {1:"one", 2:"two", 4:"four", 8:"eight"} );
 
 var module= new SeLiteSettings.Module( 'extensions.selite-settings.withFolders2',

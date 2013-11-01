@@ -87,11 +87,14 @@ function ensureFieldName( name, description, asFieldName ) {
 }
 
 /** @param string name Name of the field
- *  @param defaultValue mixed Default value; optional; if not set or null, then the field has a default value as fit for the particular type.
- *  If multivalued is true, TODO.
- *  <br/>defaultValues is only applied when creating a new configuration set.
- *  If loading an existing configuration set which doesn't have a value for this field,
- *  this default value is not applied - the field will stay unset.
+ *  @param defaultValue mixed Default value; optional. @TODO: It can be undefined or null @END TODO to represent single value null, then the field has a default value as fit for the particular type.
+ *  If multivalued is true, it must be an array (potentially empty).
+ *  <br/>defaultValues is only applied when creating a new configuration set, if populatesInSets==true.
+ *  If loading an existing configuration set which doesn't have a value for this field (and populatesInSets==true),
+ *  it will set the field, too.
+ *  For multivalued fields, this can be an empty array, or an array of keys (i.e. stored values, rather than labels to display, which may not be the same for Field.Choice).
+ *  If an array, items can't be null/undefined.
+ *  See also validateKey(key).
  *  @param bool multivalued Whether the field is multivalued; false by default
  *  @param bool populatesInSets Whether to populate initial values in new sets (or in existing sets if the field is added to an existing schema)
  *  by default value(s); false by default
@@ -122,23 +125,30 @@ var Field= function( name, defaultValue, multivalued, populatesInSets, allowsNot
     if( typeof defaultValue=='undefined' ) {
         defaultValue= null;
     }
-    if( defaultValue===null && !this.multivalued ) {
-        defaultValue= this.generateDefaultValue();
+    if( defaultValue===null ) {
+        defaultValue= !this.multivalued
+            ? this.generateDefaultValue()
+            : [];
         if( defaultValue===null && !loadingPackageDefinition ) {
             throw new Error( "Field() requires generateDefaultValue() to return non-null." );
         }
     }
     this.defaultValue= defaultValue;
-    
+    if( !loadingPackageDefinition ) {
+        !this.multivalued || ensureInstance( this.defaultValue, Array, "defaultValue of a multivalued field must be an array" );
+        var defaultValues= this.multivalued
+            ? this.defaultValue
+            : [this.defaultValue];
+        for( var i=0; i<defaultValues.length; i++ ) {
+            var key= defaultValues[i];
+            ensure( this.validateKey(key), 'Default value (stored key) for field ' +this.name+ ' is ' +key+ " and that doesn't pass validation." );
+        }
+    }    
     this.populatesInSets= populatesInSets || false;
     ensureType( this.populatesInSets, "boolean", "Field() expects populatesInSets to be a boolean, if present.");
     
     this.allowsNotPresent= allowsNotPresent || true;
     ensureType( this.allowsNotPresent, "boolean", "Field() expects allowsNotPresent to be a boolean, if present.");
-    
-    if( this.defaultValue!==null && this.multivalued ) {
-        throw new Error( "Field(..) expects defaultValue to be null, if multivalued is true.");
-    }
     
     if( !this.name.endsWith('.prototype') ) {
         if( this.constructor==Field ) {
@@ -173,13 +183,24 @@ Field.prototype.toString= function() {
 };
 
 /** This is used in place of parameter defaultValue to Field(), if that defaultValue is not set (or if it is null).
- *  See docs of Field().
+ *  See docs of Field(). It's only used for single-valued fields; for multi-valued we use [].
  * */
 Field.prototype.generateDefaultValue= function() {
     if( !loadingPackageDefinition ) {
         throw new Error('Override generateDefaultValue() in subclasses of Field.');
     }
     return null;
+};
+
+/** This validates a value (i.e. other than undefined; possibly of several values, if the field is multivalued).
+ *  If the field is an instance of Field.Choice, this validates the key (not the label).
+ *  Used for validation of values entered by the user for freetype/FileOrFolder fields (i.e. not Field.Choice), and
+ *  also for validation of default value(s) of any field (including Field.Choice). Overriden as needed.
+ *  @param key mixed string or number; or null (if this.multivalued==false and this.allowsNotPresent==true)
+ * */
+Field.prototype.validateKey= function( key ) {
+    return !this.multivalued && this.allowsNotPresent && key===null
+           || typeof key==='string';
 };
 
 /** Used when sorting multivalued non-choice fields. By default we use
@@ -269,26 +290,28 @@ Field.prototype.equals= function( other ) {
 // See also https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
 Field.Bool= function( name, defaultValue, populatesInSets, allowsNotPresent ) {
     Field.call( this, name, defaultValue, populatesInSets, allowsNotPresent );
-    if( this.defaultValue!==null && typeof this.defaultValue!='boolean' ) {
-        throw new Error( "Field.Bool(..) expects defaultValue to be a boolean (primitive), if provided.");
-    }
 };
 Field.Bool.prototype= new Field('Bool.prototype');
 Field.Bool.prototype.constructor= Field.Bool;
 Field.Bool.prototype.generateDefaultValue= function() { return false; };
+Field.Bool.prototype.validateKey= function( key ) {
+    return !this.multivalued && this.allowsNotPresent && key===null
+           || typeof key==='boolean';
+};
 Field.Bool.prototype.setPref= function( setFieldKeyName, value ) {
     this.module.prefsBranch.setBoolPref( setFieldKeyName, value );
 };
 
 Field.Int= function( name, defaultValue, multivalued, populatesInSets, allowsNotPresent ) {
     Field.call( this, name, defaultValue, multivalued, populatesInSets, allowsNotPresent );
-    if( this.defaultValue!==null && typeof this.defaultValue!='number' ) {
-        throw new Error( "Field.Int(..) expects defaultValue to be a number (primitive), if provided.");
-    }
 };
 Field.Int.prototype= new Field('Int.prototype');
 Field.Int.prototype.constructor= Field.Int;
 Field.Int.prototype.generateDefaultValue= function() { return 0; };
+Field.Int.prototype.validateKey= function( key ) {
+    return !this.multivalued && this.allowsNotPresent && key===null
+           || typeof key==='number' && Math.round(key)===key;
+};
 Field.Int.prototype.setPref= function( setFieldKeyName, value ) {
     this.module.prefsBranch.setIntPref( setFieldKeyName, value );
 };
@@ -301,9 +324,6 @@ Field.Int.prototype.compareValues= function( firstValue, secondValue ) {
 
 Field.String= function( name, defaultValue, multivalued, populatesInSets, allowsNotPresent ) {
     Field.call( this, name, defaultValue, multivalued, populatesInSets, allowsNotPresent );
-    if( this.defaultValue!==null && typeof this.defaultValue!='string' ) {
-        throw new Error( "Field.String(..) expects defaultValue to be a string ('primitive'), if provided.");
-    }
 };
 Field.String.prototype= new Field('String.prototype');
 Field.String.prototype.constructor= Field.String;
@@ -327,9 +347,6 @@ Field.FileOrFolder= function( name, startInProfileFolder, filters, defaultValue,
     this.filters= filters || {};
     if( typeof(this.filters)!='object' || this.filters instanceof Array ) {
         throw new Error( 'Field.FileOrFolder() expects filters to be an object serving as an associative array, if provided.');
-    }
-    if( this.defaultValue!==null && typeof this.defaultValue!='string' ) {
-        throw new Error( "Field.FileOrFolder(..) expects defaultValue to be a string ('primitive') - a file path, if provided.");
     }
     this.isFolder= isFolder || false;
     ensureType( this.isFolder, 'boolean', "Field.FileOrFolder(..) expects isFolder to be a boolean, if provided." );
@@ -391,9 +408,6 @@ Field.SQLite.prototype.constructor= Field.SQLite;
  * */
 Field.Choice= function( name, defaultValue, multivalued, choicePairs, populatesInSets, allowsNotPresent ) {
     Field.call( this, name, defaultValue, multivalued, populatesInSets, allowsNotPresent );
-    if( this.defaultValue!==null && typeof this.defaultValue!='string' ) {
-        throw new Error( "Field.Choice(..) expects defaultValue to be a string ('primitive'), if provided.");
-    }
     if( !loadingPackageDefinition && this.constructor==Field.Choice ) {
         throw new Error( "Can't define instances of Field.Choice class itself outside the package. Use Field.Choice.Int or Field.Choice.String." );
     }
@@ -437,6 +451,10 @@ Field.Choice.Int= function( name, defaultValue, multivalued, choicePairs, popula
 Field.Choice.Int.prototype= new Field.Choice('ChoiceInt.prototype');
 Field.Choice.Int.prototype.constructor= Field.Choice.Int;
 Field.Choice.Int.prototype.setPref= Field.Int.prototype.setPref;
+Field.Choice.Int.prototype.validateKey= function( key ) {
+    return !this.multivalued && this.allowsNotPresent && key===null
+           || typeof key==='number' && Math.round(key)===key;
+};
 
 Field.Choice.String= function( name, defaultValue, multivalued, choicePairs, populatesInSets, allowsNotPresent ) {
     Field.Choice.call( this, name, defaultValue, multivalued, choicePairs, populatesInSets, allowsNotPresent );
@@ -530,9 +548,7 @@ var register= function( module, createOrUpdate ) {
     if( module.name in modules ) {
         var existingModule= modules[module.name];
         
-        if( !compareAllFields(existingModule.fields, module.fields, 'equals') ) {
-            throw new Error( 'There already exists a module with name "' +module.name+ '" but it has different definition.');
-        }
+        ensure( !compareAllFields(existingModule.fields, module.fields, 'equals'), 'There already exists a module with name "' +module.name+ '" but it has different definition.');
         if( module.allowSets!==existingModule.allowSets ) {
             throw new Error();
         }
@@ -557,9 +573,9 @@ var register= function( module, createOrUpdate ) {
 };
 
 /** Like nsIPrefBranch.getChildList(), but it
- *  - returns direct children only (i.e. not ones that contain dot(s) in the name right from the given namePrefix)
- *  - returns direct virtual child, i.e. a name at direct child level, which is a parent of any grand/great grand children, even if there
- *    is no field at direct child level itself. It returns it without the trailing dot
+ *  - returns direct children only (i.e. not ones that contain dot(s) in the name right of the given namePrefix)
+ *  - returns direct virtual child, i.e. a name at direct child level, which is a parent of any grand/great grand... children, even if there
+ *    is no preference at direct child level itself. It returns it without the trailing dot.
  *  - without the prefix (namePrefix) - i.e. it removes the prefix
  *  See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsIPrefBranch#getChildList()
  * */
@@ -1043,16 +1059,19 @@ Module.prototype.createSet= function( setName ) {
                     }
                 }
                 else {
-                    var children= this.prefsBranch.getChildList( setNameDot+fieldName+'.', {} );
-                    for( var child in children );
-                    if( typeof child==='undefined' ) {
+                    if( this.prefsBranch.getChildList( setNameDot+fieldName+'.', {} ).length===0 ) {
                         field.addValue( setNameDot, field.defaultValue );
                     }
                 }
             }
         }
         else {
-            //@TODO
+            if( this.prefsBranch.getChildList( setNameDot+fieldName+'.', {} ).length===0 ) {
+                //@TODO This fails, because Field.Bool.defaultValue doesn't return an array
+                /*for( var key of field.defaultValue ) {
+                    field.addValue( setNameDot, key );
+                }*/
+            }
         }
     }
     // I store an empty string to mark the presence of the set. That makes the set show up even if
