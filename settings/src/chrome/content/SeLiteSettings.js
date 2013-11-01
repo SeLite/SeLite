@@ -13,7 +13,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 "use strict";
-//var console = (Components.utils.import("resource://gre/modules/devtools/Console.jsm", {})).console;
 var runningAsComponent= (typeof window==='undefined' || window && window.location && window.location.protocol=='chrome:');
 // runningAsComponent is false when loaded via <script src="file://..."> or <script src="http://..."> rather than via Components.utils.import().
 // Used for debugging; limited (because when it's not loaded via Components.utils.import() it can't access other components).
@@ -676,7 +675,7 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
             // So I only use sortedObject for multivalued fields other than Field.Choice
             result[fieldName]= {
                 fromPreferences: false,
-                entry: field.multivalued && !(field instanceof Field.Choice)
+                entry: !(field instanceof Field.Choice)
                     ? sortedObject( field.compareValues )
                     : {}
                 };
@@ -948,12 +947,10 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
     // I merge those into a new object - associations, which will have same structure as manifests.associations.
     var associations= sortedObject(true);
     if( this.allowSets && this.selectedSetName()!==null ) {
-        console.log( 'selected set for module ' +this.name+ ', for set ' +this.selectedSetName() );
         associations['']= [{
             moduleName: this.name,
             setName: this.selectedSetName(),
         }];
-        console.log( objectToString(associations, 6));
     }
     // Now merge:
     for( var associationFolder in manifests.associations ) {
@@ -979,7 +976,7 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
                 }
             }
         }
-    }console.log( objectToString(result, 6));
+    }
     return result;
 };
 
@@ -1028,13 +1025,14 @@ Module.prototype.createSet= function( setName ) {
     if( setName!=='' ) {
         ensureFieldName( setName, 'set name');
     }
-    if( !this.associatesWithFolders ) { // Only populate default values if the module doesn't associate with folders, otherwise the set inherits values
-        var setNameDot= setName!==''
-            ? setName+'.'
-            : '';
-        for( var fieldName in this.fields ) {
-            var field= this.fields[fieldName];
-            // @TODO if( field.populatesDefaultValue ) 
+    ensure( !(this.associatesWithFolders && setName===''), 'Module associates with folders, therefore a set name cannot be empty.' );
+    
+    var setNameDot= setName!==''
+        ? setName+'.'
+        : '';
+    for( var fieldName in this.fields ) {
+        var field= this.fields[fieldName];
+        if( field.populatesInSets ) {
             if( !field.multivalued ) {
                 if( !(field instanceof Field.Choice) ) {
                     if( !this.prefsBranch.prefHasUserValue(setNameDot+fieldName) ) {
@@ -1050,13 +1048,14 @@ Module.prototype.createSet= function( setName ) {
                 }
             }
         }
+        else {
+            //@TODO
+        }
     }
-    else {
-        ensure( setName!=='', 'Module associates with folders, therefore a set name cannot be empty.' );
-        // Since we don't populate default values of sets that associate with folders, I need to store something in preferences
-        // to represent the set. So I use an empty string value.
-        this.prefsBranch.setCharPref( setName, '');
-    }
+    // I store an empty string to mark the presence of the set. That makes the set show up even if
+    // it has no stored fields. That may happen initially (all fields have populateInSets==false), or later
+    // (if the user deletes all the values in the set) - therefore I do this now.
+    this.prefsBranch.setCharPref( setName, '');
 };
 
 /** Remove the set of the given name.
