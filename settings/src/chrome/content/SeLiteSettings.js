@@ -96,7 +96,8 @@ function ensureFieldName( name, description, asFieldName ) {
  *  @param bool populatesInSets Whether to populate initial values in new sets (or in existing sets if the field is added to an existing schema)
  *  by default value(s); false by default
  *  @param bool allowsNotPresent Whether to allow a value to be stored as 'not present'; true by default.
- *  If true, the behaviour is different to empty/blank,  because 'not present' means the field inherits the value from
+ *  If true, and the field has no value stored in a a set,
+ *  the behaviour is different to empty/blank,  as 'not present' means the field inherits the value from
  *  - values manifests or more general sets (if accessing per folder), or
  *  - from the field default (from schema definition)
  * */
@@ -132,7 +133,7 @@ var Field= function( name, defaultValue, multivalued, populatesInSets, allowsNot
     this.populatesInSets= populatesInSets || false;
     ensureType( this.populatesInSets, "boolean", "Field() expects populatesInSets to be a boolean, if present.");
     
-    this.allowsNotPresent= allowsNotPresent || false;
+    this.allowsNotPresent= allowsNotPresent || true;
     ensureType( this.allowsNotPresent, "boolean", "Field() expects allowsNotPresent to be a boolean, if present.");
     
     if( this.defaultValue!==null && this.multivalued ) {
