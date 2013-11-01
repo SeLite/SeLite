@@ -94,8 +94,14 @@ function ensureFieldName( name, description, asFieldName ) {
  *  If loading an existing configuration set which doesn't have a value for this field,
  *  this default value is not applied - the field will stay unset.
  *  @param bool multivalued Whether the field is multivalued; false by default
+ *  @param bool populatesInSets Whether to populate initial values in new sets (or in existing sets if the field is added to an existing schema)
+ *  by default value(s); false by default
+ *  @param bool allowsNotPresent Whether to allow a value to be stored as 'not present'; true by default.
+ *  If true, the behaviour is different to empty/blank,  because 'not present' means the field inherits the value from
+ *  - values manifests or more general sets (if accessing per folder), or
+ *  - from the field default (from schema definition)
  * */
-var Field= function( name, defaultValue, multivalued ) {
+var Field= function( name, defaultValue, multivalued, populatesInSets, allowsNotPresent ) {
     if( typeof name!='string' ) {
         throw new Error( 'Field() expects a string name ("primitive" string, not new String(..)).');
     }
@@ -123,6 +129,12 @@ var Field= function( name, defaultValue, multivalued ) {
         }
     }
     this.defaultValue= defaultValue;
+    
+    this.populatesInSets= populatesInSets || false;
+    ensureType( this.populatesInSets, "boolean", "Field() expects populatesInSets to be a boolean, if present.");
+    
+    this.allowsNotPresent= allowsNotPresent || false;
+    ensureType( this.allowsNotPresent, "boolean", "Field() expects allowsNotPresent to be a boolean, if present.");
     
     if( this.defaultValue!==null && this.multivalued ) {
         throw new Error( "Field(..) expects defaultValue to be null, if multivalued is true.");
@@ -645,19 +657,36 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
     
     for( var fieldName in this.fields ) {
         var field= this.fields[fieldName];
-        var multivalued= field.multivalued || field instanceof Field.Choice;
-        var fieldNameWithDot= multivalued
+        var multivaluedOrChoice= field.multivalued || field instanceof Field.Choice;
+        var fieldNameWithDot= multivaluedOrChoice
             ? fieldName+ '.'
             : fieldName;
         var children; // An array of preference string keys
-        if( !multivalued && this.prefsBranch.prefHasUserValue(setNameWithDot+fieldName) ) {
+        if( !multivaluedOrChoice && this.prefsBranch.prefHasUserValue(setNameWithDot+fieldName) ) {
             children= [setNameWithDot+fieldName];
         }
         else
-        if( multivalued ) {
+        if( multivaluedOrChoice ) {
             children= this.prefsBranch.getChildList( setNameWithDot+fieldNameWithDot, {} );
         } else {
             children= [];
+        }
+        if( multivaluedOrChoice ) {
+            // When presenting Field.Choice, they are not sorted by stored values but by keys from the field definition.
+            // So I only use sortedObject for multivalued fields other than Field.Choice
+            result[fieldName]= {
+                fromPreferences: false,
+                entry: field.multivalued && !(field instanceof Field.Choice)
+                    ? sortedObject( field.compareValues )
+                    : {}
+                };
+        }
+        else {
+            result[ fieldName ]= {
+                fromPreferences: false,
+                entry: null //@TODO null??
+            };
+
         }
         for( var i=0; i<children.length; i++ ) {
             var prefName= children[i];
@@ -673,48 +702,13 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
             else if( type==nsIPrefBranch.PREF_INT ) {
                 value= this.prefsBranch.getIntPref(prefName);
             }
-            if( multivalued ) {
-                if( !result[fieldName] ) {
-                    // When presenting Field.Choice, they are not sorted by stored values but by keys from the field definition.
-                    // So I only use sortedObject for multivalued fields other than Field.Choice
-                    result[fieldName]= {
-                        fromPreferences: true,
-                        entry: field.multivalued && !(field instanceof Field.Choice)
-                            ? sortedObject( field.compareValues )
-                            : {}
-                        };
-                }
+            if( multivaluedOrChoice ) {
                 result[fieldName].entry[ prefName ]= value;
             }
             else {
-                result[ fieldName ]= {
-                    fromPreferences: true,
-                    entry: value
-                };
+                result[ fieldName ].entry= value;
             }
-        }
-        if( children.length===0 ) {
-            result[ fieldName ]= {
-                fromPreferences: false,
-                entry: multivalued
-                    ? {}
-                    : null
-            }; //@TODO?
-        }
-    }
-    if( !(this.associatesWithFolders && perFolder) ) {
-        for( var fieldName in this.fields ) {
-            var field= this.fields[fieldName];
-            if( field.multivalued || field instanceof Field.Choice ) {
-                if( !result[fieldName] ) {
-                    // Like above, I only use sortedObject for multivalued fields other than Field.Choice
-                    result[fieldName]= {
-                        entry: field.multivalued && !(field instanceof Field.Choice)
-                            ? sortedObject( field.compareValues )
-                            : {}
-                        };
-                }
-            }
+            result[ fieldName ].fromPreferences= true;
         }
     }
     return result;
