@@ -830,7 +830,10 @@ function treeClickHandler( event ) {
                         if( setName ) {
                             module.createSet( setName );
                             SeLiteSettings.savePrefFile(); // Must save here, before reload()
-                            window.location.reload();
+                            window.location.reload();//@TODO ?module=...&set=...
+                            // @TODO URL param set -> selectedSet
+                            // @TODO support ?selectedModule=...&selectedSet=...
+                            // and ?module=...& selectedSet=...
                         }
                     }
                     var setName= propertiesPart( rowProperties, RowLevel.SET );
