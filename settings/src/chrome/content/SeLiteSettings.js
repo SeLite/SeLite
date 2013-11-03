@@ -88,9 +88,11 @@ function ensureFieldName( name, description, asFieldName ) {
 
 /** @param string name Name of the field
  *  @param bool multivalued Whether the field is multivalued; false by default
- *  @param defaultValue mixed Default value; optional. @TODO: It can be undefined or null @END TODO to represent single value null, then the field has a default value as fit for the particular type.
- *  If multivalued is true, it must be an array (potentially empty).
- *  <br/>defaultValues is only applied when creating a new configuration set, if populatesInSets==true.
+ *  @param defaultValue mixed Default value; optional. It can be undefined if you don't want a default value
+ *  (then it won't be set). It can be null only for single-valued fields, then the default value is null.
+ *  Otherwise, if the fiels is single valued, the default value should fit the particular type.
+ *  If multivalued is true, it must be an array (potentially empty) or undefined; it can't be null.
+ *  <br/>defaultValue is only applied when creating or updating a configuration set, and only if populatesInSets==true.
  *  If loading an existing configuration set which doesn't have a value for this field (and populatesInSets==true),
  *  it will set the field, too.
  *  For multivalued fields, this can be an empty array, or an array of keys (i.e. stored values, rather than labels to display, which may not be the same for Field.Choice).
@@ -122,10 +124,7 @@ var Field= function( name, multivalued, defaultValue, populatesInSets, allowsNot
     }
     this.multivalued= multivalued;
     
-    if( typeof defaultValue=='undefined' ) {
-        defaultValue= null;
-    }
-    if( defaultValue===null ) {
+    if( defaultValue===undefined ) {
         defaultValue= !this.multivalued
             ? this.generateDefaultValue()
             : [];
@@ -135,6 +134,7 @@ var Field= function( name, multivalued, defaultValue, populatesInSets, allowsNot
     }
     this.defaultValue= defaultValue;
     if( !loadingPackageDefinition ) {
+        this.defaultValue!==null || ensure( !multivalued, 'Field ' +name+ " must have a non-null defaultValue (possibly undefined), because it's multivalued." );
         !this.multivalued || ensureInstance( this.defaultValue, Array, "defaultValue of a multivalued field must be an array" );
         var defaultValues= this.multivalued
             ? this.defaultValue
@@ -186,9 +186,7 @@ Field.prototype.toString= function() {
  *  See docs of Field(). It's only used for single-valued fields; for multi-valued we use [].
  * */
 Field.prototype.generateDefaultValue= function() {
-    if( !loadingPackageDefinition ) {
-        throw new Error('Override generateDefaultValue() in subclasses of Field.');
-    }
+    ensure( loadingPackageDefinition, 'Override generateDefaultValue() in subclasses of Field.');
     return null;
 };
 
@@ -198,7 +196,7 @@ Field.prototype.generateDefaultValue= function() {
  *  also for validation of default value(s) of any field (including Field.Choice). Overriden as needed.
  *  @param key mixed string or number; or null (if this.multivalued==false and this.allowsNotPresent==true)
  * */
-Field.prototype.validateKey= function( key ) {
+Field.prototype.validateKey= function( key ) { // @TODO simplify the following and in other validateKey(). See Field() constructor
     return !this.multivalued && this.allowsNotPresent && key===null
            || typeof key==='string';
 };
