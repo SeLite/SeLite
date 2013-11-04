@@ -88,6 +88,9 @@ function ensureInstance( object, classes, className, message ) {
     if( typeof classes==='function' ) {
         classes= [classes];
     }
+    // @TODO If https://bugzilla.mozilla.org/show_bug.cgi?id=934311 gets resolved, change the following check to: classes instanceof Array
+    // Otherwise, document for this function, that it only works for standard JS classes if 'object'
+    // was instantiated in the same JS module as elements of 'classes'
     ensure( 'length' in classes, "Parameter clases must be a constructor method, or an array of them." );
     for( var i=0; i<classes.length; i++ ) {//@TODO use loop for of() once NetBeans supports it
         if( object instanceof classes[i] ) {

@@ -157,14 +157,6 @@ Field.prototype.toString= function() {
     return this.constructor.name+ '[module: ' +(this.module ? this.module.name : 'unknown')+ ', name: ' +this.name+ ']';
 };
 
-/** This is used in place of parameter defaultValue to Field(), if that defaultValue is not set (or if it is null).
- *  See docs of Field(). It's only used for single-valued fields; for multi-valued we use [].
- * */
-Field.prototype.generateDefaultValue= function() {
-    ensure( loadingPackageDefinition, 'Override generateDefaultValue() in subclasses of Field.');
-    return null;
-};
-
 /** This validates a single value (i.e. other than undefined or null).
  *  If the field is an instance of Field.Choice, this validates the key (not the label).
  *  Used for validation of values entered by the user for freetype/FileOrFolder fields (i.e. not Field.Choice), and
@@ -266,7 +258,6 @@ Field.Bool= function( name, defaultValue, populatesInSets, allowsNotPresent ) {
 };
 Field.Bool.prototype= new Field('Bool.prototype');
 Field.Bool.prototype.constructor= Field.Bool;
-Field.Bool.prototype.generateDefaultValue= function() { return false; };
 Field.Bool.prototype.validateKey= function( key ) {
     return typeof key==='boolean';
 };
@@ -279,7 +270,6 @@ Field.Int= function( name, multivalued, defaultValue, populatesInSets, allowsNot
 };
 Field.Int.prototype= new Field('Int.prototype');
 Field.Int.prototype.constructor= Field.Int;
-Field.Int.prototype.generateDefaultValue= function() { return 0; };
 Field.Int.prototype.validateKey= function( key ) {
     return typeof key==='number' && Math.round(key)===key;
 };
@@ -298,7 +288,6 @@ Field.String= function( name, multivalued, defaultValue, populatesInSets, allows
 };
 Field.String.prototype= new Field('String.prototype');
 Field.String.prototype.constructor= Field.String;
-Field.String.prototype.generateDefaultValue= function() { return ''; };
 
 /** @param string name
  *  @param bool startInProfileFolder Whether the file/folder picker dialog opens in user's Firefox profile folder (if the file/folder was not set yet)
@@ -324,7 +313,6 @@ Field.FileOrFolder= function( name, startInProfileFolder, filters, multivalued, 
 }
 Field.FileOrFolder.prototype= new Field('FileOrFolder.prototype');
 Field.FileOrFolder.prototype.constructor= Field.FileOrFolder;
-Field.FileOrFolder.prototype.generateDefaultValue= function() { return ''; };
 
 Field.FileOrFolder.prototype.parentEquals= Field.FileOrFolder.prototype.equals;
 Field.FileOrFolder.prototype.equals= function( other ) {
@@ -349,7 +337,6 @@ Field.File= function( name, startInProfileFolder, filters, multivalued, defaultV
 };
 Field.File.prototype= new Field.FileOrFolder('File.prototype');
 Field.File.prototype.constructor= Field.File;
-Field.File.prototype.generateDefaultValue= function() { return ''; };
 
 /** @param string name
  *  @param bool startInProfileFolder See Field.FileOrFolder()
@@ -360,7 +347,6 @@ Field.Folder= function( name, startInProfileFolder, filters, multivalued, defaul
 };
 Field.Folder.prototype= new Field.FileOrFolder('Folder.prototype');
 Field.Folder.prototype.constructor= Field.Folder;
-Field.Folder.prototype.generateDefaultValue= function() { return ''; };
 
 /** It can only be single-valued. An SQLite DB cannot span across multiple files (or if it can, I'm not supporting that).
  * */
@@ -389,15 +375,6 @@ Field.Choice= function( name, multivalued, defaultValue, choicePairs, populatesI
 };
 Field.Choice.prototype= new Field('Choice.prototype');
 Field.Choice.prototype.constructor= Field.Choice;
-Field.Choice.prototype.generateDefaultValue= function() {
-    if( this.multivalued ) {
-        throw new Error( 'Do not use Field.Choice.generateDefaultValue() for multivalued fields.');
-    }
-    for( var key in this.choicePairs ) { // Just return the first one.
-        return key;
-    }
-    return null;
-};
 Field.Choice.prototype.compareValues= function() {
     throw new Error( 'Do not use Field.Choice.compareValues(). Sort choicePairs yourself.');
 };
