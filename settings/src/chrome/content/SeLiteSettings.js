@@ -796,44 +796,38 @@ function manifestsDownToFolder( folderPath, dontCache ) {
     
     for( var i=0; i<folderNames.length; i++) {
         var folder=  folderNames[i];
-        var contents= readFile( OS.Path.join(folder, VALUES_MANIFEST_FILENAME) );
+        var fileName= OS.Path.join(folder, VALUES_MANIFEST_FILENAME);
+        var contents= readFile( fileName );
         if( contents!==false ) {
             var lines= removeCommentsGetLines(contents);
             for( var j=0; j<lines.length; j++ ) {
                 var parts= valuesLineRegex.exec( lines[j] );
-                if( parts ) {
-                    if( !(folder in values) ) {
-                        values[folder]= [];
-                    }
-                    values[folder].push( {
-                        moduleName: parts[1],
-                        fieldName: parts[2],
-                        value: parts[4] // This is always non-null (it can be an empty string)
-                    } );
+                ensure( parts, "Values manifest " +fileName+ " at line " +(j+1)+ " is badly formatted: " +lines[j]  );
+                if( !(folder in values) ) {
+                    values[folder]= [];
                 }
-                else {
-                    //@TODO Console.error
-                }
+                values[folder].push( {
+                    moduleName: parts[1],
+                    fieldName: parts[2],
+                    value: parts[4] // This is always non-null (it can be an empty string)
+                } );
             }
         }
         
-        var contents= readFile( OS.Path.join(folder, ASSOCIATIONS_MANIFEST_FILENAME) );
+        fileName= OS.Path.join(folder, ASSOCIATIONS_MANIFEST_FILENAME);
+        var contents= readFile( fileName );
         if( contents!==false ) {
             var lines= removeCommentsGetLines(contents);
             for( var j=0; j<lines.length; j++ ) {
                 var parts= associationLineRegex.exec( lines[j] );
-                if( parts ) {
-                    if( !(folder in associations) ) {
-                        associations[folder]= [];
-                    }
-                    associations[folder].push( {
-                        moduleName: parts[1],
-                        setName: parts[2]
-                    } );
+                ensure( parts, "Associations manifest " +fileName+ " at line " +(j+1)+ " is badly formatted: " +lines[j]  );
+                if( !(folder in associations) ) {
+                    associations[folder]= [];
                 }
-                else {
-                    //@TODO Console.error
-                }
+                associations[folder].push( {
+                    moduleName: parts[1],
+                    setName: parts[2]
+                } );
             }
         }
     }
