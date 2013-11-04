@@ -139,7 +139,6 @@ var Field= function( name, multivalued, defaultValue, allowsNotPresent ) {
         if( this.constructor==Field ) {
             throw new Error( "Can't instantiate Field directly, except for prototype instances. name: " +this.name );
         }
-        //@TODO Change the following to: ensureInstance Field.Bool..
         ensureInstance(this, 
             [Field.Bool, Field.Int, Field.String, Field.File, Field.Folder, Field.SQLite, Field.Choice.Int, Field.Choice.String],
             "Field.Bool, Field.Int, Field.String, Field.File, Field.Folder, Field.SQLite, Field.Choice.Int, Field.Choice.String", "Field " +this.name+ " is not of an acceptable class." );
@@ -431,7 +430,7 @@ var Module= function( name, fields, allowSets, defaultSetName, associatesWithFol
     }
     ensureFieldName( name, 'module name');
     if( typeof fields!=='object' || !fields.constructor || fields.constructor.name!=='Array' ) {
-        // @TODO my docs I can't check (fields instanceof Array) neither (fields.constructor===Array) when this script a component. It must be caused by JS separation.
+        // @TODO my docs I can't check (fields instanceof Array) neither (fields.constructor===Array) when this script a component. See https://bugzilla.mozilla.org/show_bug.cgi?id=934311
         throw new Error( 'Module() expects an array fields, but it received ' +(typeof fields)+ ' - ' +fields);
     }
     this.fields= sortedObject(true); // Object serving as an associative array { string field name => Field instance }
@@ -481,7 +480,6 @@ var savePrefFile= function() {
  * @param module Object instance of Module that you want to register (or an equal one)
  *  @param createOrUpdate Boolean, optional, true by default; whether to create or update any existing sets by calling module.createOrUpdate()
  *  @return An existing equal Module instance, if any; given module otherwise.
- *  @TODO is this needed? This is separate to Module.register()
  * */
 var register= function( module, createOrUpdate ) {
     if( !(module instanceof Module) ) {
@@ -601,6 +599,8 @@ Module.prototype.setSelectedSetName= function( setName ) {
  *          }
  *      }
  *  }
+ *  It only includes values present in the given set. It doesn't inject any defaults from the module configuration
+ *  for fields that are not defined in the set.
  * */
 Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
     perFolder= perFolder || false;
@@ -621,7 +621,7 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
         var fieldNameWithDot= multivaluedOrChoice
             ? fieldName+ '.'
             : fieldName;
-        var children; // An array of preference string keys
+        var children; // An array of preference string key(s) present for this field
         if( !multivaluedOrChoice && this.prefsBranch.prefHasUserValue(setNameWithDot+fieldName) ) {
             children= [setNameWithDot+fieldName];
         }
@@ -644,7 +644,7 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
         else {
             result[ fieldName ]= {
                 fromPreferences: false,
-                entry: null //@TODO null??
+                entry: undefined
             };
 
         }
@@ -1020,6 +1020,7 @@ Module.prototype.createSet= function( setName ) {
     // I store an empty string to mark the presence of the set. That makes the set show up even if
     // it has no stored fields. That may happen initially (all fields have populateInSets==false), or later
     // (if the user deletes all the values in the set) - therefore I do this now.
+    // @TODO special value SET_IS_PRESENT
     this.prefsBranch.setCharPref( setName, '');
 };
 
