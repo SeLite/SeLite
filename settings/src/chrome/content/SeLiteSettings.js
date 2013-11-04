@@ -96,15 +96,13 @@ function ensureFieldName( name, description, asFieldName ) {
  *  (loading an existing configuration set which doesn't have a value for this field).
  *  For multivalued fields, this can be an empty array, or an array of keys (i.e. stored values, rather than labels to display, which may not be the same for Field.Choice).
  *  If a non-null and not undefined, then the value (or values) will be each checked by validateKey(key).
- *  @param bool populatesInSets Whether to populate initial values in new sets (or in existing sets if the field is added to an existing schema)
- *  by default value(s); false by default
  *  @param bool allowsNotPresent Whether to allow a value to be stored as 'not present' (Javascript: undefined); true by default.
  *  If true, and the field has no value stored in a a set,
  *  the behaviour is different to empty/blank,  as 'not present' means the field inherits the value from
  *  - values manifests or more general sets (if accessing per folder), or
  *  - from the field default (from schema definition)
  * */
-var Field= function( name, multivalued, defaultValue, populatesInSets, allowsNotPresent ) {
+var Field= function( name, multivalued, defaultValue, allowsNotPresent ) {
     if( typeof name!='string' ) {
         throw new Error( 'Field() expects a string name ("primitive" string, not new String(..)).');
     }
@@ -134,9 +132,6 @@ var Field= function( name, multivalued, defaultValue, populatesInSets, allowsNot
             ensure( this.validateKey(key), 'Default value (stored key) for field ' +this.name+ ' is ' +key+ " and that doesn't pass validation." );
         }
     }    
-    this.populatesInSets= populatesInSets || false;
-    ensureType( this.populatesInSets, "boolean", "Field() expects populatesInSets to be a boolean, if present.");
-    
     this.allowsNotPresent= allowsNotPresent || true;
     ensureType( this.allowsNotPresent, "boolean", "Field() expects allowsNotPresent to be a boolean, if present.");
     
@@ -253,8 +248,8 @@ Field.prototype.equals= function( other ) {
 };
 
 // See also https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
-Field.Bool= function( name, defaultValue, populatesInSets, allowsNotPresent ) {
-    Field.call( this, name, defaultValue, populatesInSets, allowsNotPresent );
+Field.Bool= function( name, defaultValue, allowsNotPresent ) {
+    Field.call( this, name, defaultValue, allowsNotPresent );
 };
 Field.Bool.prototype= new Field('Bool.prototype');
 Field.Bool.prototype.constructor= Field.Bool;
@@ -265,8 +260,8 @@ Field.Bool.prototype.setPref= function( setFieldKeyName, value ) {
     this.module.prefsBranch.setBoolPref( setFieldKeyName, value );
 };
 
-Field.Int= function( name, multivalued, defaultValue, populatesInSets, allowsNotPresent ) {
-    Field.call( this, name, multivalued, defaultValue, populatesInSets, allowsNotPresent );
+Field.Int= function( name, multivalued, defaultValue, allowsNotPresent ) {
+    Field.call( this, name, multivalued, defaultValue, allowsNotPresent );
 };
 Field.Int.prototype= new Field('Int.prototype');
 Field.Int.prototype.constructor= Field.Int;
@@ -283,8 +278,8 @@ Field.Int.prototype.compareValues= function( firstValue, secondValue ) {
     return compareAsNumbers(firstValue, secondValue );
 }
 
-Field.String= function( name, multivalued, defaultValue, populatesInSets, allowsNotPresent ) {
-    Field.call( this, name, multivalued, defaultValue, populatesInSets, allowsNotPresent );
+Field.String= function( name, multivalued, defaultValue, allowsNotPresent ) {
+    Field.call( this, name, multivalued, defaultValue, allowsNotPresent );
 };
 Field.String.prototype= new Field('String.prototype');
 Field.String.prototype.constructor= Field.String;
@@ -298,8 +293,8 @@ Field.String.prototype.constructor= Field.String;
  *  @param bool multivalued
  *  @param bool isFolder Whether this is for folder(s); otherwise it's for file(s)
  * */
-Field.FileOrFolder= function( name, startInProfileFolder, filters, multivalued, defaultValue, isFolder, populatesInSets, allowsNotPresent ) {
-    Field.call( this, name, multivalued, defaultValue, populatesInSets, allowsNotPresent );
+Field.FileOrFolder= function( name, startInProfileFolder, filters, multivalued, defaultValue, isFolder, allowsNotPresent ) {
+    Field.call( this, name, multivalued, defaultValue, allowsNotPresent );
     this.startInProfileFolder= startInProfileFolder || false;
     if( typeof this.startInProfileFolder!='boolean' ) {
         throw new Error( 'Field.FileOrFolder() expects startInProfileFolder to be a boolean, if provided.');
@@ -332,8 +327,8 @@ Field.FileOrFolder.prototype.equals= function( other ) {
  *  @param bool startInProfileFolder See Field.FileOrFolder()
  *  @param filters See Field.FileOrFolder()
  * */
-Field.File= function( name, startInProfileFolder, filters, multivalued, defaultValue, populatesInSets, allowsNotPresent ) {
-    Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultValue, false, populatesInSets, allowsNotPresent );
+Field.File= function( name, startInProfileFolder, filters, multivalued, defaultValue, allowsNotPresent ) {
+    Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultValue, false, allowsNotPresent );
 };
 Field.File.prototype= new Field.FileOrFolder('File.prototype');
 Field.File.prototype.constructor= Field.File;
@@ -342,16 +337,16 @@ Field.File.prototype.constructor= Field.File;
  *  @param bool startInProfileFolder See Field.FileOrFolder()
  *  @param filters See Field.FileOrFolder()
  * */
-Field.Folder= function( name, startInProfileFolder, filters, multivalued, defaultValue, populatesInSets, allowsNotPresent ) {
-    Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultValue, true, populatesInSets, allowsNotPresent );
+Field.Folder= function( name, startInProfileFolder, filters, multivalued, defaultValue, allowsNotPresent ) {
+    Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultValue, true, allowsNotPresent );
 };
 Field.Folder.prototype= new Field.FileOrFolder('Folder.prototype');
 Field.Folder.prototype.constructor= Field.Folder;
 
 /** It can only be single-valued. An SQLite DB cannot span across multiple files (or if it can, I'm not supporting that).
  * */
-Field.SQLite= function( name, defaultValue, populatesInSets, allowsNotPresent ) {
-    Field.File.call( this, name, true, { 'SQLite': '*.sqlite', 'any': null}, false, defaultValue, populatesInSets, allowsNotPresent );
+Field.SQLite= function( name, defaultValue, allowsNotPresent ) {
+    Field.File.call( this, name, true, { 'SQLite': '*.sqlite', 'any': null}, false, defaultValue, allowsNotPresent );
 };
 Field.SQLite.prototype= new Field.File('SQLite.prototype', false, {}, false, '' );
 Field.SQLite.prototype.constructor= Field.SQLite;
@@ -363,8 +358,8 @@ Field.SQLite.prototype.constructor= Field.SQLite;
  *  label reflects how it is shown when using Firefox url about:config.
  *  Also, Javascript transforms object field/key names to strings, even if they were set to integer.
  * */
-Field.Choice= function( name, multivalued, defaultValue, choicePairs, populatesInSets, allowsNotPresent ) {
-    Field.call( this, name, multivalued, defaultValue, populatesInSets, allowsNotPresent );
+Field.Choice= function( name, multivalued, defaultValue, choicePairs, allowsNotPresent ) {
+    Field.call( this, name, multivalued, defaultValue, allowsNotPresent );
     if( !loadingPackageDefinition && this.constructor==Field.Choice ) {
         throw new Error( "Can't define instances of Field.Choice class itself outside the package. Use Field.Choice.Int or Field.Choice.String." );
     }
@@ -386,8 +381,8 @@ Field.Choice.prototype.setValue= function() {
 };
 Field.Choice.prototype.setPref= Field.prototype.setPref;
 
-Field.Choice.Int= function( name, multivalued, defaultValue, choicePairs, populatesInSets, allowsNotPresent ) {
-    Field.Choice.call( this, name, multivalued, defaultValue, choicePairs, populatesInSets, allowsNotPresent );
+Field.Choice.Int= function( name, multivalued, defaultValue, choicePairs, allowsNotPresent ) {
+    Field.Choice.call( this, name, multivalued, defaultValue, choicePairs, allowsNotPresent );
     for( var key in this.choicePairs ) {
         var value= this.choicePairs[key];
         if( typeof value!=='number' || value!==Math.round(value) ) {
@@ -403,8 +398,8 @@ Field.Choice.Int.prototype.validateKey= function( key ) {
     return typeof key==='number' && Math.round(key)===key;
 };
 
-Field.Choice.String= function( name, multivalued, defaultValue, choicePairs, populatesInSets, allowsNotPresent ) {
-    Field.Choice.call( this, name, multivalued, defaultValue, choicePairs, populatesInSets, allowsNotPresent );
+Field.Choice.String= function( name, multivalued, defaultValue, choicePairs, allowsNotPresent ) {
+    Field.Choice.call( this, name, multivalued, defaultValue, choicePairs, allowsNotPresent );
     for( var key in this.choicePairs ) {
         var value= this.choicePairs[key];
         if( typeof value!=='string' ) {
