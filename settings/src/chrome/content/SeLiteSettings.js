@@ -47,6 +47,10 @@ var NEW_VALUE_ROW= "SELITE_SETTINGS_NEW_VALUE_ROW";
 var ADD_VALUE= "SELITE_SETTINGS_ADD_VALUE";
 var OPTION_NOT_UNIQUE_CELL= "SELITE_SETTINGS_OPTION_NOT_UNIQUE_CELL";
 var OPTION_UNIQUE_CELL= "SELITE_SETTINGS_OPTION_UNIQUE_CELL";
+
+var SET_PRESENT= 'SELITE_SETTINGS_SET_PRESENT';
+var VALUE_PRESENT= 'SELITE_SETTINGS_VALUE_PRESENT';
+
 // Following are used to generate 'properties' in columns 'Set' and 'Manifest', when viewing fields per folder
 var ASSOCIATED_SET= 'SELITE_SETTINGS_ASSOCIATED_SET';
 var SELECTED_SET= 'SELITE_SETTINGS_SELECTED_SET';
@@ -1030,11 +1034,15 @@ Module.prototype.createSet= function( setName ) {
             }
             else {
                 if( this.prefsBranch.getChildList( setNameDot+fieldName+'.', {} ).length===0 ) {
-                    //@TODO module.field VALUE_IS_PRESENT
-                    //@TODO This fails, because Field.Bool.defaultValue doesn't return an array
-                    /*for( var key of field.defaultValue ) {
-                        field.addValue( setNameDot, key );
-                    }*/
+                    var defaultValues= field.getDefaultValue();
+                    if( defaultValues.length>0 ) {
+                        for( var i=0; i<defaultValues.length; i++ ) { // @TODO Replace the loop with for.. of.. loop once NetBeans support it
+                            field.addValue( setNameDot, defaultValues[i] );
+                        }
+                    }
+                    else {
+                        this.prefsBranch.setCharPref( setNameDot+ field.name, VALUE_PRESENT );
+                    }
                 }
             }
         }
@@ -1042,8 +1050,7 @@ Module.prototype.createSet= function( setName ) {
     // I store an empty string to mark the presence of the set. That makes the set show up even if
     // it has no stored fields. That may happen initially (all fields have populateInSets==false), or later
     // (if the user deletes all the values in the set) - therefore I do this now.
-    // @TODO special value SET_IS_PRESENT
-    this.prefsBranch.setCharPref( setName, '');
+    this.prefsBranch.setCharPref( setName, SET_PRESENT);
 };
 
 /** Remove the set of the given name.
