@@ -147,6 +147,18 @@ var Field= function( name, multivalued, defaultValue, allowsNotPresent ) {
     this.module= null; // instance of Module that this belongs to (once registered)
 };
 
+var arrayCode= ''+Array;
+
+/** Return the default value, or a protective copy if it's an array.
+ *  @return mixed this.defaultValue if single valued or if this.defaultValue is undefined.
+ * */
+Field.prototype.getDefaultValue= function() {
+    if( typeof this.defaultValue==="object" && ''+this.defaultValue.constructor===arrayCode ) {
+        return this.defaultValue.slice();
+    }
+    return this.defaultValue;
+};
+
 Field.prototype.toString= function() {
     return this.constructor.name+ '[module: ' +(this.module ? this.module.name : 'unknown')+ ', name: ' +this.name+ ']';
 };
@@ -794,7 +806,7 @@ function manifestsDownToFolder( folderPath, dontCache ) {
     var values= sortedObject(true);
     var associations= sortedObject(true);
     
-    for( var i=0; i<folderNames.length; i++) {
+    for( var i=0; i<folderNames.length; i++) {//@TODO use loop for of() once NetBeans supports it
         var folder=  folderNames[i];
         var fileName= OS.Path.join(folder, VALUES_MANIFEST_FILENAME);
         var contents= readFile( fileName );
@@ -841,7 +853,7 @@ function manifestsDownToFolder( folderPath, dontCache ) {
     return result;
 };
 
-/** Calculate composition of field values, based on manifests and preferences,
+/** Calculate a composition of field values, based on manifests, preferences and field defaults,
  *  down from filesystem root to given folderPath.
  *  @param string folderPath Full path (absolute) to the folder where your test suite is.
  *  @param bool dontCache If true, then this doesn't cache manifest files (it doesn't use any
@@ -860,11 +872,25 @@ function manifestsDownToFolder( folderPath, dontCache ) {
  *            }
  *      }
  *  }
+ *  where each 'entry' comes from either
+ *  - a set
+ *  - a values manifest
+ *  - default value of the field
 * */
 Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
     dontCache= dontCache || false;
-    var manifests= manifestsDownToFolder(folderPath, dontCache);
+
     var result= sortedObject(true);
+    for( var fieldName in this.fields ) {
+        result[ fieldName ]= {
+            entry: undefined,
+            fromPreferences: false,
+            folderPath: undefined,
+            setName: undefined
+        };
+    }
+    
+    var manifests= manifestsDownToFolder(folderPath, dontCache);
     
     // First, load values from values manifests.
     for( var manifestFolder in manifests.values ) {
@@ -875,12 +901,9 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
                     ? this.fields[manifest.fieldName]
                     : null;
                 if( field && (field.multivalued || field instanceof Field.Choice) ) {
-                    if( !(manifest.fieldName in result)
-                     || result[manifest.fieldName].folderPath!=manifestFolder // override any less local value(s) from manifest from upper folders
-                    ) {
-                        result[ manifest.fieldName ]= {
-                            entry: {}
-                        };
+                    if( result[manifest.fieldName].folderPath!=manifestFolder ) {
+                        // override any less local value(s) from a manifest from upper folders
+                        result[ manifest.fieldName .entry]= {};
                     }
                     result[ manifest.fieldName ][ manifest.value ]=
                         field instanceof Field.Choice && manifest.value in field.choicePairs
@@ -888,11 +911,8 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
                         : manifest.value;
                 }
                 else {
-                    result[ manifest.fieldName ]= {
-                        entry: manifest.value
-                    };
+                    result[ manifest.fieldName ].entry= manifest.value;
                 }
-                result[ manifest.fieldName ].fromPreferences= false;
                 result[ manifest.fieldName ].folderPath= manifestFolder;
             }
         }
@@ -907,7 +927,6 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
             setName: this.selectedSetName(),
         }];
     }
-    // Now merge:
     for( var associationFolder in manifests.associations ) {
         associations[associationFolder]= manifests.associations[associationFolder];
     }
@@ -930,6 +949,12 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
                     }
                 }
             }
+        }
+    }
+    // Fourth, for any fields with the value being undefined (not null or empty array/string), apply field defaults
+    for( var fieldName in fields ) {
+        if( result[fieldName].entry===undefined ) {
+            result[fieldName].entry= field.getDefaultValue();
         }
     }
     return result;

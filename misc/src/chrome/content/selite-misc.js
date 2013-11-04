@@ -42,8 +42,11 @@ function ensure( condition, message ) {
     }
 }
 
+/** @TODO Remove and replace usage once https://bugzilla.mozilla.org/show_bug.cgi?id=934311 gets resolved */
+var arrayCode= ''+Array;
+
 function ensureOneOf( item, choices, message ) {
-    if( !(choices instanceof Array) ) {
+    if( typeof choices!=='object' || ''+choices.constructor!==arrayCode ) {
         throw new Error( 'ensureOneOf() expects choices to be an array');
     }
     ensure( choices.indexOf(item)>=0, message );
@@ -56,10 +59,11 @@ function ensureOneOf( item, choices, message ) {
  * */
 function ensureType( item, typeStringOrStrings, message ) {
     message= message || '';
-    if( !(typeStringOrStrings instanceof Array) && typeof typeStringOrStrings!=='string' ) {
+    if( !(typeof typeStringOrStrings==='object' && ''+typeStringOrStrings.constructor!==arrayCode)
+    && typeof typeStringOrStrings!=='string' ) {
         throw new Error( 'typeStringOrStrings must be a string or an array');
     }
-    if( !(typeStringOrStrings instanceof Array) ) {
+    if( !(typeof typeStringOrStrings==='object' && ''+typeStringOrStrings.constructor!==arrayCode) ) {
         typeStringOrStrings= [typeStringOrStrings];
     }
     for( var i=0; i<typeStringOrStrings.length; i++ ) {
@@ -72,6 +76,9 @@ function ensureType( item, typeStringOrStrings, message ) {
 }
 
 /** Validate that a parameter is an object and of a given class (or of one of given classes).
+    Until https://bugzilla.mozilla.org/show_bug.cgi?id=934311 gets resolved,
+    this only works for standard JS classes if 'object' was instantiated in the same JS module as where elements of 'classes' come from.
+    That is, Array, String etc. are different in various JS modules.
  *  @param object Object
  *  @param classes Class (that is, a constructor function), or an array of them
  *  @param className string, optional, name of the expected class(es), so we can print them (because parameter classes doesn't carry information about the name);
@@ -88,11 +95,11 @@ function ensureInstance( object, classes, className, message ) {
     if( typeof classes==='function' ) {
         classes= [classes];
     }
-    // @TODO If https://bugzilla.mozilla.org/show_bug.cgi?id=934311 gets resolved, change the following check to: classes instanceof Array
-    // Otherwise, document for this function, that it only works for standard JS classes if 'object'
-    // was instantiated in the same JS module as elements of 'classes'
-    ensure( 'length' in classes, "Parameter clases must be a constructor method, or an array of them." );
+    else {
+        ensure( typeof classes==='object' && ''+classes.constructor===arrayCode, "Parameter clases must be a constructor method, or an array of them." );
+    }
     for( var i=0; i<classes.length; i++ ) {//@TODO use loop for of() once NetBeans supports it
+        ensureType( classes[i], 'function' );
         if( object instanceof classes[i] ) {
             return;
         }
