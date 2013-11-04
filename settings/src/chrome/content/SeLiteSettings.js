@@ -48,8 +48,8 @@ var ADD_VALUE= "SELITE_SETTINGS_ADD_VALUE";
 var OPTION_NOT_UNIQUE_CELL= "SELITE_SETTINGS_OPTION_NOT_UNIQUE_CELL";
 var OPTION_UNIQUE_CELL= "SELITE_SETTINGS_OPTION_UNIQUE_CELL";
 
-var SET_PRESENT= 'SELITE_SETTINGS_SET_PRESENT';
-var VALUE_PRESENT= 'SELITE_SETTINGS_VALUE_PRESENT';
+var SET_PRESENT= 'SELITE_SETTINGS_SET_PRESENT'; // It indicates that the set is present, even if it doesn't define any values
+var MULTI_VALUE_PRESENT= 'SELITE_SETTINGS_MULTI_VALUE_PRESENT'; // It indicates that a multi-valued field is present in a set, but it's an empty array
 
 // Following are used to generate 'properties' in columns 'Set' and 'Manifest', when viewing fields per folder
 var ASSOCIATED_SET= 'SELITE_SETTINGS_ASSOCIATED_SET';
@@ -69,6 +69,7 @@ var reservedNames= [
     ADD_VALUE,
     OPTION_NOT_UNIQUE_CELL,
     OPTION_UNIQUE_CELL,
+    SET_PRESENT, MULTI_VALUE_PRESENT,
     ASSOCIATED_SET, SELECTED_SET, VALUES_MANIFEST, FIELD_DEFAULT
 ];
 
@@ -96,13 +97,15 @@ function ensureFieldName( name, description, asFieldName ) {
  *  (then it won't be set and it will be inherited, if any). It can be null only for single-valued fields, then the default value is null.
  *  Otherwise, if the fiels is single valued, the default value should fit the particular type.
  *  If multivalued is true, it must be an array (potentially empty) or undefined; it can't be null.
- *  <br/>defaultValue is only applied when creating or updating a configuration set
- *  (loading an existing configuration set which doesn't have a value for this field).
  *  For multivalued fields, this can be an empty array, or an array of keys (i.e. stored values, rather than labels to display, which may not be the same for Field.Choice).
  *  If a non-null and not undefined, then the value (or values) will be each checked by validateKey(key).
+ *  <br/>defaultValue is only applied (copied into) to set(s) if allowsNotPresent==false and if Module.associatesWithFolders==false.
+ *  It is applied when creating or updating a configuration set
+ *  (loading an existing configuration set which doesn't have a value for this field).
+ *  But if Module.associatesWithFolders==true, defaultValue is applied by getFieldsDownToFolder() no matter what allowsNotPresent.
  *  @param bool allowsNotPresent Whether to allow a value to be stored as 'not present' (Javascript: undefined); true by default.
  *  If true, and the field has no value stored in a a set,
- *  the behaviour is different to empty/blank,  as 'not present' means the field inherits the value from
+ *  the behaviour is different to empty/blank or null,  as 'not present' means the field inherits the value from
  *  - values manifests or more general sets (if accessing per folder), or
  *  - from the field default (from schema definition)
  * */
@@ -883,7 +886,8 @@ function manifestsDownToFolder( folderPath, dontCache ) {
 * */
 Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
     dontCache= dontCache || false;
-
+    ensure( this.associatesWithFolders, "Module.getFieldsDownToFolder() requires Module.associatesWithFolders to be true." );
+    
     var result= sortedObject(true);
     for( var fieldName in this.fields ) {
         result[ fieldName ]= {
@@ -1019,10 +1023,12 @@ Module.prototype.createSet= function( setName ) {
         : '';
     for( var fieldName in this.fields ) {
         var field= this.fields[fieldName];
-        if( field.defaultValue!==undefined ) {
+        if( field.defaultValue!==undefined && !field.allowsNotPresent && !this.module.associatesWithFolders ) {
             if( !field.multivalued ) {
                 if( !(field instanceof Field.Choice) ) {
                     if( !this.prefsBranch.prefHasUserValue(setNameDot+fieldName) ) {
+                        // If we applied the following even for fields that have allowsNotPresent==true, it would
+                        // override 'undefined' value for existing sets, too! So, if you clear it in a set, it would get re-set again!
                         field.setDefault( setName ); // That adds a dot, if necessary
                     }
                 }
@@ -1034,14 +1040,12 @@ Module.prototype.createSet= function( setName ) {
             }
             else {
                 if( this.prefsBranch.getChildList( setNameDot+fieldName+'.', {} ).length===0 ) {
+                    this.prefsBranch.setCharPref( setNameDot+ field.name, MULTI_VALUE_PRESENT );
                     var defaultValues= field.getDefaultValue();
                     if( defaultValues.length>0 ) {
                         for( var i=0; i<defaultValues.length; i++ ) { // @TODO Replace the loop with for.. of.. loop once NetBeans support it
                             field.addValue( setNameDot, defaultValues[i] );
                         }
-                    }
-                    else {
-                        this.prefsBranch.setCharPref( setNameDot+ field.name, VALUE_PRESENT );
                     }
                 }
             }
