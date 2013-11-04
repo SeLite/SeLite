@@ -88,8 +88,8 @@ function ensureInstance( object, classes, className, message ) {
     if( typeof classes==='function' ) {
         classes= [classes];
     }
-    ensure( classes instanceof Array, "Parameter clazz must be a constructor method, or an array of them." );
-    for( var i=0; i<classes.length; i++ ) {
+    ensure( 'length' in classes, "Parameter clases must be a constructor method, or an array of them." );
+    for( var i=0; i<classes.length; i++ ) {//@TODO use loop for of() once NetBeans supports it
         if( object instanceof classes[i] ) {
             return;
         }

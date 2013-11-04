@@ -124,7 +124,7 @@ var Field= function( name, multivalued, defaultValue, populatesInSets, allowsNot
     this.defaultValue= defaultValue;
     
     this.defaultValue!==null || ensure( !multivalued, 'Field ' +name+ " must have a non-null defaultValue (possibly undefined), because it's multivalued." );
-    if( /*@TODO remove !loadingPackageDefinition*/ this.defaultValue!==undefined && this.defaultValue!==null ) {
+    if( this.defaultValue!==undefined && this.defaultValue!==null ) {
         !this.multivalued || ensureInstance( this.defaultValue, Array, "defaultValue of a multivalued field must be an array" );
         var defaultValues= this.multivalued
             ? this.defaultValue
@@ -144,27 +144,12 @@ var Field= function( name, multivalued, defaultValue, populatesInSets, allowsNot
         if( this.constructor==Field ) {
             throw new Error( "Can't instantiate Field directly, except for prototype instances. name: " +this.name );
         }
-        //@TODO Change the following to: this.constructor within Field.Bool..
-        if( !(this instanceof Field.Bool) &&
-            !(this instanceof Field.Int) &&
-            !(this instanceof Field.String) &&
-            !(this instanceof Field.File) &&
-            !(this instanceof Field.Folder) &&
-            !(this instanceof Field.SQLite) && 
-            !(this instanceof Field.Choice.Int) && 
-            !(this instanceof Field.Choice.String)
-        ) {
-            throw new Error( "Can't subclass Field outside the package. name: " +this.name );
-        }
-        if( !loadingPackageDefinition && this.name.indexOf('.')>=0 ) {
-            throw new Error( 'Field() expects name not to contain a dot, but it received: ' +this.name);
-        }
+        //@TODO Change the following to: ensureInstance Field.Bool..
+        ensureInstance(this, 
+            [Field.Bool, Field.Int, Field.String, Field.File, Field.Folder, Field.SQLite, Field.Choice.Int, Field.Choice.String],
+            "Field.Bool, Field.Int, Field.String, Field.File, Field.Folder, Field.SQLite, Field.Choice.Int, Field.Choice.String", "Field " +this.name+ " is not of an acceptable class." );
     }
-    else {
-        if( !loadingPackageDefinition ) {
-            throw new Error( "Can't define instances of Field whose name ends with '.prototype' outside the package." );
-        }
-    }
+    loadingPackageDefinition || ensure( this.name.indexOf('.')<0, 'Field() expects name not to contain a dot, but it received: ' +this.name);
     this.module= null; // instance of Module that this belongs to (once registered)
 };
 
