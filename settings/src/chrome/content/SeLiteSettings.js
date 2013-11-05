@@ -49,13 +49,15 @@ var OPTION_NOT_UNIQUE_CELL= "SELITE_OPTION_NOT_UNIQUE_CELL";
 var OPTION_UNIQUE_CELL= "SELITE_OPTION_UNIQUE_CELL";
 
 var SET_PRESENT= 'SELITE_SET_PRESENT'; // It indicates that the set is present, even if it doesn't define any values
-/** It indicates that a multi-valued field is present in a set, but it's an empty array.
- *  Used both in Javascript in-memory representation as loaded by getFieldsOfSet(), and also
- *  in values manifest files.
+/** It indicates that a choice (single or multi-valued) or a multi-valued field is present in a set, even if it's unselected or an empty array;
+ *  then it's stored as a preference with the key being 'moduleName.setName.fieldName'
+ *  without a trailing dot. Used both in preferences and in values manifest files.
  * @type String
  */
-var MULTI_VALUE_PRESENT= 'SELITE_VALUE_PRESENT';
-var NULL= 'SELITE_NULL'; // It indicates that a single-valued field has value of null
+var VALUE_PRESENT= 'SELITE_VALUE_PRESENT';
+/** It indicates that a single-valued field has value of null. Used in both preferences and values manifests.
+ * */
+var NULL= 'SELITE_NULL';
 
 // Following are used to generate 'properties' in columns 'Set' and 'Manifest', when viewing fields per folder
 var ASSOCIATED_SET= 'SELITE_ASSOCIATED_SET';
@@ -75,7 +77,7 @@ var reservedNames= [
     ADD_VALUE,
     OPTION_NOT_UNIQUE_CELL,
     OPTION_UNIQUE_CELL,
-    SET_PRESENT, MULTI_VALUE_PRESENT,
+    SET_PRESENT, VALUE_PRESENT,
     ASSOCIATED_SET, SELECTED_SET, VALUES_MANIFEST, FIELD_DEFAULT
 ];
 
@@ -110,7 +112,7 @@ function ensureFieldName( name, description, asFieldName ) {
  *  (loading an existing configuration set which doesn't have a value for this field).
  *  But if Module.associatesWithFolders==true, defaultValue is applied by getFieldsDownToFolder() no matter what allowsNotPresent.
  *  @param bool allowsNotPresent Whether to allow a value to be stored as 'not present' (Javascript: undefined); true by default.
- *  If true, and the field has no value stored in a a set,
+ *  If true, and the field has no value stored in a a set (or it has VALUE_PRESENT),
  *  the behaviour is different to empty/blank or null,  as 'not present' means the field inherits the value from
  *  - values manifests or more general sets (if accessing per folder), or
  *  - from the field default (from schema definition)
@@ -145,7 +147,9 @@ var Field= function( name, multivalued, defaultValue, allowsNotPresent ) {
             ensure( this.validateKey(key), 'Default value (stored key) for field ' +this.name+ ' is ' +key+ " and that doesn't pass validation." );
         }
     }    
-    this.allowsNotPresent= allowsNotPresent || true;
+    this.allowsNotPresent= allowsNotPresent===undefined
+        ? true
+        : allowsNotPresent;
     ensureType( this.allowsNotPresent, "boolean", "Field() expects allowsNotPresent to be a boolean, if present.");
     
     if( !this.name.endsWith('.prototype') ) {
@@ -374,9 +378,10 @@ Field.SQLite.prototype= new Field.File('SQLite.prototype', false, {}, false, '' 
 Field.SQLite.prototype.constructor= Field.SQLite;
 
 /** @param defaultValue It's actually a key (Preferences subfield name), not the visible integer/string value.
+ *  If multiv
  *  @param choicePairs Anonymous object serving as an associative array {
  *      string key => string/number ('primitive') label
- *  } It's not clear what is intuitive here. However, with this format, the type and positioning of
+ *  } It's not clear what is more intuitive here. However, with this format, the type and positioning of
  *  label reflects how it is shown when using Firefox url about:config.
  *  Also, Javascript transforms object field/key names to strings, even if they were set to integer.
  * */
@@ -387,6 +392,16 @@ Field.Choice= function( name, multivalued, defaultValue, choicePairs, allowsNotP
     }
     if( !loadingPackageDefinition && (typeof choicePairs!=='object' || choicePairs.constructor.name==='Array') ) {
         throw new Error( "Instances of subclasses of Field.Choice require choicePairs to be an anonymous object serving as an associative array." );
+    }
+    if( defaultValue!==undefined ) {
+        ensure( !(multivalued && defaultValue===null), "Field.Choice.XX with name " +name+ " can't have defaultValue null, because it's multivalued." );
+        ensure( multivalued===Array.isArray(defaultValue), "Field.Choice.XX with name " +name+ " must have defaultValue an array if and only if it's multivalued." );
+        var defaultValues= multivalued
+            ? defaultValue
+            : [defaultValue];
+        for( var i=0; i<defaultValues.length; i++ ) { //@TODO for..of.. loop once NetBeans support it
+            ensure( defaultValues[i] in choicePairs, "Field.Choice " +name+ " has defaultValue " +defaultValues[i]+ ", which is not among keys of its choicePairs." );
+        }
     }
     this.choicePairs= choicePairs;
 };
@@ -609,6 +624,17 @@ Module.prototype.setSelectedSetName= function( setName ) {
     this.prefsBranch.setCharPref( SELECTED_SET_NAME, setName );
 };
 
+/** Transform SELITE_NULL into Javascript null
+ * @private
+ * */
+function treatSingleValued( value ) {
+    return value===NULL
+        ? null
+        : value;
+}
+ 
+//function treat
+
 /** @param setName Name of the set; an empty string if the module doesn't allow sets, or if you want a selected set.
  *  @param boolean perFolder Whether this is loaded per folder, as a part of a composite configuration. If true,
  *  then this doesn't generate entries for multivalued and Field.Choice fields that have no value in the given set.
@@ -628,7 +654,7 @@ Module.prototype.setSelectedSetName= function( setName ) {
 Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
     perFolder= perFolder || false;
     ensure( !perFolder || this.associatesWithFolders, "getFieldsOfSet() accepts parameter perFolder=true only if module.associatesWithFolders is true." );
-    if( typeof setName=='undefined' || setName===null ) {
+    if( setName===undefined || setName===null ) {
         setName= this.allowSets
             ? this.selectedSetName()
             : '';
@@ -1038,13 +1064,16 @@ Module.prototype.createSet= function( setName ) {
                 }
                 else {
                     if( this.prefsBranch.getChildList( setNameDot+fieldName+'.', {} ).length===0 ) {
-                        field.addValue( setNameDot, field.defaultValue );
+                        this.prefsBranch.setCharPref( setNameDot+ field.name, VALUE_PRESENT );
+                        if( field.defaultValue!==null ) {
+                            field.addValue( setNameDot, field.defaultValue );
+                        }
                     }
                 }
             }
             else {
                 if( this.prefsBranch.getChildList( setNameDot+fieldName+'.', {} ).length===0 ) {
-                    this.prefsBranch.setCharPref( setNameDot+ field.name, MULTI_VALUE_PRESENT );
+                    this.prefsBranch.setCharPref( setNameDot+ field.name, VALUE_PRESENT );
                     var defaultValues= field.getDefaultValue();
                     if( defaultValues.length>0 ) {
                         for( var i=0; i<defaultValues.length; i++ ) { // @TODO Replace the loop with for.. of.. loop once NetBeans support it
