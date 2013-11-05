@@ -42,11 +42,8 @@ function ensure( condition, message ) {
     }
 }
 
-/** @TODO Remove and replace usage once https://bugzilla.mozilla.org/show_bug.cgi?id=934311 gets resolved */
-var arrayCode= ''+Array;
-
 function ensureOneOf( item, choices, message ) {
-    if( typeof choices!=='object' || ''+choices.constructor!==arrayCode ) {
+    if( !Array.isArray(choices) ) {
         throw new Error( 'ensureOneOf() expects choices to be an array');
     }
     ensure( choices.indexOf(item)>=0, message );
@@ -59,11 +56,10 @@ function ensureOneOf( item, choices, message ) {
  * */
 function ensureType( item, typeStringOrStrings, message ) {
     message= message || '';
-    if( !(typeof typeStringOrStrings==='object' && ''+typeStringOrStrings.constructor!==arrayCode)
-    && typeof typeStringOrStrings!=='string' ) {
-        throw new Error( 'typeStringOrStrings must be a string or an array');
-    }
-    if( !(typeof typeStringOrStrings==='object' && ''+typeStringOrStrings.constructor!==arrayCode) ) {
+    if( !Array.isArray(typeStringOrStrings) ) {
+        if( typeof typeStringOrStrings!=='string' ) {
+            throw new Error( 'typeStringOrStrings must be a string or an array');
+        }
         typeStringOrStrings= [typeStringOrStrings];
     }
     for( var i=0; i<typeStringOrStrings.length; i++ ) {
@@ -80,7 +76,10 @@ function ensureType( item, typeStringOrStrings, message ) {
     this only works for standard JS classes if 'object' was instantiated in the same JS module as where elements of 'classes' come from.
     That is, Array, String etc. are different in various JS modules.
  *  @param object Object
- *  @param classes Class (that is, a constructor function), or an array of them
+ *  @param classes Class (that is, a constructor function), or an array of them.
+ *  Do not use for standard classes like Object or Array, because they are separate per each global scope
+ *  (and each Javascript module has its own). See a list of them at https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects.
+ *  If we need that, then support strings like "Array" and map them to a check function like Array.isArray.
  *  @param className string, optional, name of the expected class(es), so we can print them (because parameter classes doesn't carry information about the name);
  *  even if clazz is an array, clazzName must be one string (if present),
  *  @param message string, extra message, optional
@@ -96,7 +95,7 @@ function ensureInstance( object, classes, className, message ) {
         classes= [classes];
     }
     else {
-        ensure( typeof classes==='object' && ''+classes.constructor===arrayCode, "Parameter clases must be a constructor method, or an array of them." );
+        ensure( Array.isArray(classes), "Parameter clases must be a constructor method, or an array of them." );
     }
     for( var i=0; i<classes.length; i++ ) {//@TODO use loop for of() once NetBeans supports it
         ensureType( classes[i], 'function' );

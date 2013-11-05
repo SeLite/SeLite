@@ -50,6 +50,7 @@ var OPTION_UNIQUE_CELL= "SELITE_SETTINGS_OPTION_UNIQUE_CELL";
 
 var SET_PRESENT= 'SELITE_SETTINGS_SET_PRESENT'; // It indicates that the set is present, even if it doesn't define any values
 var MULTI_VALUE_PRESENT= 'SELITE_SETTINGS_MULTI_VALUE_PRESENT'; // It indicates that a multi-valued field is present in a set, but it's an empty array
+var NULL= 'SELITE_SETTINGS_NULL'; // It indicates that a single-valued field has value of null
 
 // Following are used to generate 'properties' in columns 'Set' and 'Manifest', when viewing fields per folder
 var ASSOCIATED_SET= 'SELITE_SETTINGS_ASSOCIATED_SET';
@@ -154,13 +155,11 @@ var Field= function( name, multivalued, defaultValue, allowsNotPresent ) {
     this.module= null; // instance of Module that this belongs to (once registered)
 };
 
-var arrayCode= ''+Array;
-
 /** Return the default value, or a protective copy if it's an array.
  *  @return mixed this.defaultValue if single valued or if this.defaultValue is undefined.
  * */
 Field.prototype.getDefaultValue= function() {
-    if( typeof this.defaultValue==="object" && ''+this.defaultValue.constructor===arrayCode ) {
+    if( Array.isArray(this.defaultValue) ) {
         return this.defaultValue.slice();
     }
     return this.defaultValue;
