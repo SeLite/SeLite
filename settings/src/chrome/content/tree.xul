@@ -7,7 +7,7 @@ treechildren::-moz-tree-checkbox {
 }
 
 treechildren::-moz-tree-checkbox(checked),
-treechildren::-moz-tree-checkbox(SELITE_SETTINGS_OPTION_NOT_UNIQUE_CELL,checked) {
+treechildren::-moz-tree-checkbox(SELITE_OPTION_NOT_UNIQUE_CELL,checked) {
   /* css for checked cells. cbox-check.gif isn't available in Firefox 1, 2, and 3 on Mac OS X, so you should specify a URL to an image
      in your extension or elsewhere. */
   list-style-image: url('chrome://global/skin/checkbox/cbox-check.gif');
@@ -15,19 +15,19 @@ treechildren::-moz-tree-checkbox(SELITE_SETTINGS_OPTION_NOT_UNIQUE_CELL,checked)
 }
 
 /* See Firefox url chrome://global/skin/checkbox/ > 'Up to higher level directory'. */
-treechildren::-moz-tree-checkbox(SELITE_SETTINGS_SELECTED_SET_NAME,checked),
-treechildren::-moz-tree-checkbox(SELITE_SETTINGS_OPTION_UNIQUE_CELL,checked) {
+treechildren::-moz-tree-checkbox(SELITE_SELECTED_SET_NAME,checked),
+treechildren::-moz-tree-checkbox(SELITE_OPTION_UNIQUE_CELL,checked) {
   list-style-image: url('chrome://global/skin/radio/radio-check.gif');
 }
 
-treechildren::-moz-tree-cell-text(VALUE_CELL SELITE_SETTINGS_SELECTED_SET) {
+treechildren::-moz-tree-cell-text(VALUE_CELL SELITE_SELECTED_SET) {
     color: blue;
 }
 
-treechildren::-moz-tree-cell-text(VALUE_CELL SELITE_SETTINGS_VALUES_MANIFEST) {
+treechildren::-moz-tree-cell-text(VALUE_CELL SELITE_VALUES_MANIFEST) {
     color: brown;
 }
-treechildren::-moz-tree-cell-text(VALUE_CELL SELITE_SETTINGS_FIELD_DEFAULT) {
+treechildren::-moz-tree-cell-text(VALUE_CELL SELITE_FIELD_DEFAULT) {
     color: brown;
     font-style: italic;
 }

@@ -34,29 +34,34 @@ if( runningAsComponent ) {
 
 var modules= sortedObject(true); // Object serving as an associative array { string module.name => Module instance }
 
-var SELECTED_SET_NAME= "SELITE_SETTINGS_SELECTED_SET_NAME"; // CSS also depends on its value
+var SELECTED_SET_NAME= "SELITE_SELECTED_SET_NAME"; // CSS also depends on its value
 
 // SET_DEFINITION_JAVASCRIPT is an optional hidden field, which allows SeLiteSettings to load the definition automatically
-var MODULE_DEFINITION_FILE_OR_URL= "SELITE_SETTINGS_MODULE_DEFINITION_FILE_OR_URL";
+var MODULE_DEFINITION_FILE_OR_URL= "SELITE_MODULE_DEFINITION_FILE_OR_URL";
 
 // Following are not field names, but they're used in the tree for 'properties' metadata and for buttons that create or delete a set
-var SET_SELECTION_ROW= "SELITE_SETTINGS_SET_SELECTION_ROW";
-var FIELD_MAIN_ROW= "SELITE_SETTINGS_FIELD_MAIN_ROW";
-var FIELD_TREECHILDREN= "SELITE_SETTINGS_FIELD_TREECHILDREN";
-var NEW_VALUE_ROW= "SELITE_SETTINGS_NEW_VALUE_ROW";
-var ADD_VALUE= "SELITE_SETTINGS_ADD_VALUE";
-var OPTION_NOT_UNIQUE_CELL= "SELITE_SETTINGS_OPTION_NOT_UNIQUE_CELL";
-var OPTION_UNIQUE_CELL= "SELITE_SETTINGS_OPTION_UNIQUE_CELL";
+var SET_SELECTION_ROW= "SELITE_SET_SELECTION_ROW";
+var FIELD_MAIN_ROW= "SELITE_FIELD_MAIN_ROW";
+var FIELD_TREECHILDREN= "SELITE_FIELD_TREECHILDREN";
+var NEW_VALUE_ROW= "SELITE_NEW_VALUE_ROW";
+var ADD_VALUE= "SELITE_ADD_VALUE";
+var OPTION_NOT_UNIQUE_CELL= "SELITE_OPTION_NOT_UNIQUE_CELL";
+var OPTION_UNIQUE_CELL= "SELITE_OPTION_UNIQUE_CELL";
 
-var SET_PRESENT= 'SELITE_SETTINGS_SET_PRESENT'; // It indicates that the set is present, even if it doesn't define any values
-var MULTI_VALUE_PRESENT= 'SELITE_SETTINGS_MULTI_VALUE_PRESENT'; // It indicates that a multi-valued field is present in a set, but it's an empty array
-var NULL= 'SELITE_SETTINGS_NULL'; // It indicates that a single-valued field has value of null
+var SET_PRESENT= 'SELITE_SET_PRESENT'; // It indicates that the set is present, even if it doesn't define any values
+/** It indicates that a multi-valued field is present in a set, but it's an empty array.
+ *  Used both in Javascript in-memory representation as loaded by getFieldsOfSet(), and also
+ *  in values manifest files.
+ * @type String
+ */
+var MULTI_VALUE_PRESENT= 'SELITE_VALUE_PRESENT';
+var NULL= 'SELITE_NULL'; // It indicates that a single-valued field has value of null
 
 // Following are used to generate 'properties' in columns 'Set' and 'Manifest', when viewing fields per folder
-var ASSOCIATED_SET= 'SELITE_SETTINGS_ASSOCIATED_SET';
-var SELECTED_SET= 'SELITE_SETTINGS_SELECTED_SET';
-var VALUES_MANIFEST= 'SELITE_SETTINGS_VALUES_MANIFEST';
-var FIELD_DEFAULT= 'SELITE_SETTINGS_FIELD_DEFAULT';
+var ASSOCIATED_SET= 'SELITE_ASSOCIATED_SET';
+var SELECTED_SET= 'SELITE_SELECTED_SET';
+var VALUES_MANIFEST= 'SELITE_VALUES_MANIFEST';
+var FIELD_DEFAULT= 'SELITE_FIELD_DEFAULT';
 
 /** An array of strings that are reserved names. For internal use only.
  * */
