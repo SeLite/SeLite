@@ -1064,9 +1064,11 @@ Module.prototype.createSet= function( setName ) {
                 }
                 else {
                     if( this.prefsBranch.getChildList( setNameDot+fieldName+'.', {} ).length===0 ) {
-                        this.prefsBranch.setCharPref( setNameDot+ field.name, VALUE_PRESENT );
                         if( field.defaultValue!==null ) {
                             field.addValue( setNameDot, field.defaultValue );
+                        }
+                        else {
+                            this.prefsBranch.setCharPref( setNameDot+ field.name, VALUE_PRESENT );
                         }
                     }
                 }
