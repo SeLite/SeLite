@@ -59,9 +59,7 @@ function ensure( condition, message ) {
 }
 
 function ensureOneOf( item, choices, message ) {
-    if( !Array.isArray(choices) ) {
-        throw new Error( 'ensureOneOf() expects choices to be an array');
-    }
+    Array.isArray(choices) || fail( 'ensureOneOf() expects choices to be an array');
     ensure( choices.indexOf(item)>=0, message );
 }
 
@@ -74,7 +72,7 @@ function ensureType( item, typeStringOrStrings, message ) {
     message= message || '';
     if( !Array.isArray(typeStringOrStrings) ) {
         if( typeof typeStringOrStrings!=='string' ) {
-            throw new Error( 'typeStringOrStrings must be a string or an array');
+            fail( 'typeStringOrStrings must be a string or an array');
         }
         typeStringOrStrings= [typeStringOrStrings];
     }
@@ -319,9 +317,7 @@ function timestampInSeconds() {
  *  @throws Error if the parameter is not an object.
  **/
 function isEmptyObject( obj ) {
-    if( typeof obj !=='object' ) {
-        throw "" +obj+ " is not an object!";
-    }
+    ensureType( obj, "object", 'Parameter of isEmptyObject() must be an object.' );
     for( var field in obj ) {
         return false;
     }
@@ -347,9 +343,8 @@ function compareAllFields( firstContainer, secondContainer, strictOrMethodName, 
         ? strictOrMethodName
         : false;
     try {
-        if( typeof firstContainer!='object' || typeof secondContainer!='object' ) {
-            throw new Error();
-        }
+        ensureType( firstContainer, 'object', 'compareAllFields() requires firstContainer to be an object');
+        ensureType( secondContainer, 'object', 'compareAllFields() requires secondContainer to be an object');
         compareAllFieldsOneWay( firstContainer, secondContainer, strict, methodName );
         compareAllFieldsOneWay( secondContainer, firstContainer, strict, methodName );
     }
