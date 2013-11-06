@@ -155,10 +155,10 @@ function itemOrNull( container, field, fieldAnother, fieldYetAnother ) {
  * @internal
  **/
 function itemGeneric( containerAndFields, nullReplacement, targetNullReplacement ) {
-    if( typeof nullReplacement ==='undefined') {
+    if( nullReplacement===undefined) {
         nullReplacement= null;
     }
-    if( typeof targetNullReplacement ==='undefined' ) {
+    if( targetNullReplacement===undefined ) {
         targetNullReplacement= null;
     }
     var item= containerAndFields[0];
@@ -181,7 +181,7 @@ function itemGeneric( containerAndFields, nullReplacement, targetNullReplacement
             item= item[field];
         }
         else
-        if( typeof item =='object' && typeof item[field] !=='undefined' ) {
+        if( typeof item ==='object' && item[field]!==undefined ) {
             item= item[field];
         }
         else {
@@ -497,7 +497,7 @@ I don't subclass Proxy - because it didn't work - the handler functions were not
 Also, in order to subclass Proxy, my constructor had to invoke Proxy.constructor.call(this, target, sortedObjectProxyHandler).
  */
 function sortedObject( sortCompare ) {
-    if( typeof sortCompare==='undefined' ) {
+    if( sortCompare===undefined ) {
         sortCompare= false;
     }
     if( sortCompare===true ) {
@@ -585,13 +585,10 @@ function IterableArrayKeysWatchThrow( id, oldValue, newValue ) {
 // var result= {}; result.__iterator__= arrayItemGenerator(fieldNames); or result.__iterator__= Iterator( fieldNames );
 // That worked when debugging it separately, but not as a part of SeLiteSettings. 
 function IterableArray( keys ) {
-    this[SELITE_MISC_ITERABLE_ARRAY_KEYS]= typeof keys!=='undefined'
+    this[SELITE_MISC_ITERABLE_ARRAY_KEYS]= keys!==undefined
         ? keys
         : [];
-    // I don't check (this.ITERABLE_ARRAY_KEYS instanceof Array), because that didn't work well between XPCOM and XUL. @TODO check
-    if( typeof this[SELITE_MISC_ITERABLE_ARRAY_KEYS]!=='object' || this[SELITE_MISC_ITERABLE_ARRAY_KEYS].constructor.name!='Array' || !(this[SELITE_MISC_ITERABLE_ARRAY_KEYS] instanceof Array) ) {
-        throw new Error("IterableArray(keys) expects keys to be an array, or undefined.");
-    }
+    ensure( Array.isArray(this[SELITE_MISC_ITERABLE_ARRAY_KEYS]), "IterableArray(keys) expects keys to be an array, or undefined." );
     this.watch( SELITE_MISC_ITERABLE_ARRAY_KEYS, IterableArrayKeysWatchThrow );
 }
 IterableArray.prototype.__iterator__= function() {
@@ -732,7 +729,7 @@ function objectClone( original, acceptableFields, requiredFields, result ) {
         requiredFields= acceptableFields;
     }
     result= result || {};
-    if( typeof original.prototype !=='undefined' ) {
+    if( original.prototype!==undefined ) {
         result.prototype= original.prototype;
     }
     for( var i=0; i<requiredFields.length; i++ ) {

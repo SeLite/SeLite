@@ -16,7 +16,7 @@
 */
 "use strict";
 
-Components.utils.import( 'chrome://selite-misc/contentselite-misc.js' );
+Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
 Components.utils.import('chrome://selite-db-objects/content/basic-storage.js');
 
 /** @param object storage of class DbStorage
@@ -226,7 +226,7 @@ RecordHolder.prototype.put= function() {
     else
     // Insert or update the record, depending on whether its primary key is set (it can be set to 0)
     // @return primary key value, but only when it run an insert
-    if( typeof this.record[this.recordSetHolder.formula.table.primary]!=='undefined' ) {
+    if( this.record[this.recordSetHolder.formula.table.primary]!==undefined ) {
         // @TODO compare to this.original
         this.update();
         return null;
@@ -268,10 +268,10 @@ function RecordSetFormula( params, prototype ) {
 
     // The following doesn't apply to indexing of RecordSetHolder.originals.
     if( this.table && this.table.primary ) {
-        if( typeof this.indexBy==='undefined' ) {
+        if( this.indexBy===undefined ) {
             this.indexBy= this.table.primary;
         }
-        if( typeof this.indexUnique==='undefined' ) {
+        if( this.indexUnique===undefined ) {
             this.indexUnique= this.indexBy==this.table.primary;
         }
     }

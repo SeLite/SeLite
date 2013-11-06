@@ -37,8 +37,8 @@ Selenium.prototype.getQs= function( target ) {
         LOG.error( 'Failed to evaluate: ' +newTarget+ ". Error: " +e );
         throw e;
     }
-    //return result;
-    return result!==null && typeof result !=='undefined'
+    //return result; //@TODO See above
+    return result!==null && result!==undefined
         ? result
         : false;
 };
@@ -126,7 +126,7 @@ Selenium.prototype.isTimestampDownToPrecision= function( locator, timestampDetai
  **/
 Selenium.prototype.timestampComparesTo= function( locator, timestampInMilliseconds, displayPrecisionInMilliseconds, validatePrecision, timezoneTODO ) {
     var element= this.page().findElement(locator);
-    var displayedTimeString= typeof element.value !=='undefined'
+    var displayedTimeString= element.value!==undefined
         ? element.value
         : element.textContent;
     var displayedTime= Date.parse( displayedTimeString );
@@ -239,10 +239,10 @@ Selenium.prototype.doIndexBy= function( columnOrDetails, sourceVariableName ) {
     var indexBy= columnOrDetails, subIndexBy= null, resultVariableName= sourceVariableName;
     if( typeof columnOrDetails==='object' ) {
         indexBy= columnOrDetails.indexBy;
-        if( typeof columnOrDetails.subIndexBy!=='undefined' ) {
+        if( columnOrDetails.subIndexBy===undefined ) {
             subIndexBy= columnOrDetails.subIndexBy;
         }
-        if( typeof columnOrDetails.target!=='undefined' ) {
+        if( columnOrDetails.target===undefined ) {
             resultVariableName= columnOrDetails.target;
         }
     }
@@ -514,7 +514,7 @@ Selenium.prototype.randomText= function( locator, params, extraParams ) {
             else {
                 var actualScale= 0;
             }
-            if( typeof params.min!=='undefined' || params.max ) {
+            if( params.min!==undefined || params.max ) {
                 // Ignore minLength, maxLength, totalLength
                 var min= params.min || 0;
                 result= min+ Math.random()*( params.max-min ); // That excludes params.max. Therefore I'll do a rounding transformation in the next step
@@ -568,14 +568,14 @@ Selenium.prototype.doTypeRandomEmail= function( locator, params ) {
         var name= params;
     }
     else {
-        if( typeof params.from!=='undefined' ) {
+        if( params.from!==undefined ) {
             var fromElement= this.page().findElement( params.from );
-            var name= typeof fromElement.value !=='undefined'
+            var name= fromElement.value!==undefined
                     ? fromElement.value
                     : fromElement.textContent;
         }
         else
-        if( typeof params.name=='undefined' ) {
+        if( params.name===undefined ) {
             var name= params.name;
         }
         else {

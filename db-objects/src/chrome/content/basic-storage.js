@@ -282,24 +282,24 @@ Storage.prototype.getRecords= function( params ) {
     columnsList= this.fieldNames( columnsList );
     var query= "SELECT " +columnsString+ " FROM " +params.table;
 
-    if( typeof params.joins !=='undefined' ) {
+    if( params.joins!==undefined ) {
         for( var i=0; i<params.joins.length; i++ ) {
             var join= params.joins[i];
-            if( typeof join.type !=='undefined' ) {
+            if( join.type!==undefined ) {
                 query+= ' ' +join.type;
             }
             query+= ' JOIN ' +join.table;
-            if( typeof join.alias !=='undefined' ) {
+            if( join.alias!==undefined ) {
                 query+= ' ' +join.alias;
             }
-            if( typeof join.on !=='undefined' ) {
+            if( join.on!==undefined ) {
                 query+= " ON " +join.on;
             }
         }
     }
 
     var conditionParts= [];
-    if( typeof params['matching'] !=='undefined' && !isEmptyObject(params['matching']) ) {
+    if( params['matching']!==undefined && !isEmptyObject(params['matching']) ) {
         for( var field in params.matching ) {
             var matchedValue= params.matching[field];
             matchedValue= typeof matchedValue==='string' && matchedValue.length>1
@@ -314,24 +314,24 @@ Storage.prototype.getRecords= function( params ) {
             }
         }
     }
-    if( typeof params['condition'] !=='undefined' && params['condition']!=='' && params['condition']!=null ) {
+    if( params['condition']!==undefined && params['condition']!=='' && params['condition']!=null ) {
         conditionParts.push( '('+params.condition+')' );
     }
     if( conditionParts.length ) {
         query+= " WHERE " +conditionParts.join(' AND ');
     }
     if( typeof params['sort']!=='undefined' && params.sort ) {
-        var sortDirection= (typeof params['sortDirection']=='undefined' || !params.sortDirection)
+        var sortDirection= (params['sortDirection']===undefined || !params.sortDirection)
             ? 'ASC'
             : params.sortDirection;
         query+= " ORDER BY " +params.sort+ ' ' +sortDirection;
     }
-    if( typeof params.debugQuery!=='undefined' && params.debugQuery ) {
+    if( params.debugQuery!==undefined && params.debugQuery ) {
         alert( query );
     }
 
     var result= this.select( query, columnsList, params.parameters );
-    if( typeof params.debugResult!=='undefined' && params.debugResult ) {
+    if( params.debugResult!==undefined && params.debugResult ) {
         alert( rowsToString(result) );
     }
     return result;
@@ -357,7 +357,7 @@ Storage.prototype.getRecords= function( params ) {
  * @throws an error on failure
  **/
 Storage.prototype.updateRecords= function( params ) {
-    var fieldsToProtect= typeof params.fieldsToProtect!=='undefined'
+    var fieldsToProtect= params.fieldsToProtect!==undefined
         ? params.fieldsToProtect
         : [];
     var entries= this.quoteValues( params.entries, fieldsToProtect );
@@ -377,14 +377,14 @@ Storage.prototype.updateRecords= function( params ) {
             conditionParts.push( field+ '=' +this.quote( params.matching[field] ) );
         }
     }
-    if( typeof params['condition'] !=='undefined' && params['condition']!=='' && params['condition']!=null ) {
+    if( params['condition']!==undefined && params['condition']!=='' && params['condition']!=null ) {
         conditionParts.push( '('+params.condition+')' );
     }
     if( conditionParts.length ) {
         query+= " WHERE " +conditionParts.join(' AND ');
     }
     
-    if( typeof params.debugQuery!=='undefined' && params.debugQuery ) {
+    if( params.debugQuery!==undefined && params.debugQuery ) {
         alert( query );
     }
     var stmt= this.connection.createStatement( query );
@@ -410,7 +410,7 @@ Storage.prototype.updateRecords= function( params ) {
 Storage.prototype.updateRecordByPrimary= function( params ) {
     var primaryKey= params.primary || 'id';
     var copiedParams= objectClone( params, ['table', 'entries', 'fieldsToProtect', 'debugQuery'], ['table', 'entries'] );
-    if( typeof copiedParams.entries[primaryKey] ==='undefined' ) {
+    if( copiedParams.entries[primaryKey]===undefined ) {
         throw new Error( "updateRecordByPrimary(): params.entries." +primaryKey+ " is not set." );
     }
     copiedParams.entries= objectClone( copiedParams.entries );
@@ -445,7 +445,7 @@ Storage.prototype.deleteRecordByPrimary= function( table, field, value ) {
  * @throws an error on failure
  */
 Storage.prototype.insertRecord= function( params ) {
-    var fieldsToProtect= typeof params.fieldsToProtect!=='undefined'
+    var fieldsToProtect= params.fieldsToProtect!==undefined
         ? params.fieldsToProtect
         : [];
     var entries= this.quoteValues( params.entries, fieldsToProtect );
@@ -457,7 +457,7 @@ Storage.prototype.insertRecord= function( params ) {
     }
     var query= 'INSERT INTO ' +params.table+ '(' +columns.join(', ')+ ') VALUES ('+
         values.join(', ')+ ')';
-    if( typeof params.debugQuery!=='undefined' && params.debugQuery ) {
+    if( params.debugQuery!==undefined && params.debugQuery ) {
         alert( query );
     }
     var stmt= this.connection.createStatement( query );

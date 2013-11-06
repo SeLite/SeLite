@@ -111,13 +111,13 @@
          *  The function updates global firstIdToDisplay to ID of the record listed first on the page it shows, as per navigation.
          * */
         function showAll( modifiedOrJustLoaded, passedFirstIdToDisplay, pageShiftDirection ) {
-            if( typeof modifiedOrJustLoaded =='undefined' ) {
+            if( modifiedOrJustLoaded===undefined ) {
                 modifiedOrJustLoaded= false;
             }
-            if( typeof passedFirstIdToDisplay !='undefined' && passedFirstIdToDisplay!==null ) {
+            if( passedFirstIdToDisplay!==undefined && passedFirstIdToDisplay!==null ) {
                 firstIdToDisplay= passedFirstIdToDisplay;
             }
-            if( typeof pageShiftDirection =='undefined' ) {
+            if( pageShiftDirection===undefined ) {
                 pageShiftDirection= null; // Below I use strict comparison pageShiftDirection!==null, because it can also be false
             }
             
