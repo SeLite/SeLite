@@ -40,6 +40,17 @@ function fail( message ) {
 
 /** This asserts the condition to be true (compared non-strictly). If false, it fails with an error (containg the given message, if any).
  *  It's not called assert(), so that wouldn't conflict with assert() defined by Selenium IDE.
+ *  @param bool condition If false, then this fails.
+ *  @param string message Optional; see fail(). Note that if you pass a non-constant expression
+ *   - e.g. concatenation of strings, a call to a function etc.,
+ *  it has to be evaluated before ensure() is called, even if it's not used (i.e. condition is true).
+ *  Then you may want to chose to use:
+ *  <code>
+ *      condition || fail( message expression );
+ *  </code>
+ *  instead. That evaluates message expression only if condition is not true.
+ *  On the other hand, if you have message ready anyway (e.g. a constant string or a value received as a parameter from a caller function),
+ *  then by using ensure(..) you make your intention clearer.
  * */
 function ensure( condition, message ) {
     if( !condition ) {
@@ -73,7 +84,7 @@ function ensureType( item, typeStringOrStrings, message ) {
             return;
         }
     }
-    ensure( false, message+ ' Expecting type from within [' +typeStringOrStrings+ '], but the actual type of the item is ' +typeof item+ '. The item: ' +item );
+    fail( message+ ' Expecting type from within [' +typeStringOrStrings+ '], but the actual type of the item is ' +typeof item+ '. The item: ' +item );
 }
 
 /** Validate that a parameter is an object and of a given class (or of one of given classes).
@@ -92,7 +103,7 @@ function ensureType( item, typeStringOrStrings, message ) {
  * */
 function ensureInstance( object, classes, className, message ) {
     message= message || '';
-    ensure( typeof object==='object', 'Expecting an '
+    typeof object==='object' || fail( 'Expecting an '
         +(className
             ? 'instance of ' +className
             : 'object'
@@ -109,7 +120,7 @@ function ensureInstance( object, classes, className, message ) {
             return;
         }
     }
-    throw new Error( 'Expecting an instance of '
+    fail( 'Expecting an instance of '
         +(className
             ? className
             : 'specific class(es)'
@@ -1111,7 +1122,7 @@ function loginManagerPassword( hostname, username ) {
  *  @throws Exception if position is negative, decimal or higher than the last available position
  **/
 function nthRecord( recordSet, position ) {
-    ensure( position>=0, "nthRecord() requires non-negative position, but it was: " +position);
+    position>=0 || fail( "nthRecord() requires non-negative position, but it was: " +position);
     return nthRecordOrLengthOrIndexesOf( recordSet, NTH_RECORD, position );
 }
 

@@ -132,11 +132,11 @@ var Field= function( name, multivalued, defaultValue, allowsNotPresent ) {
         throw new Error( 'Field("' +name+ ') expects multivalued to be a boolean, if provided.');
     }
     this.multivalued= multivalued;
-    !this.multivalued || defaultValue===undefined || ensure( defaultValue instanceof Array, "Multi valued field " +name+ " must have default a default value - an array (possibly []) or undefined." );
-    this.multivalued || defaultValue===undefined || defaultValue===null || ensure( typeof defaultValue!=='object', 'Single valued field ' +name+ " must have default value a primitive or null.");
+    !this.multivalued || defaultValue===undefined || defaultValue instanceof Array || fail( "Multi valued field " +name+ " must have default a default value - an array (possibly []) or undefined." );
+    this.multivalued || defaultValue===undefined || defaultValue===null || typeof defaultValue!=='object' || fail( 'Single valued field ' +name+ " must have default value a primitive or null.");
     this.defaultValue= defaultValue;
     
-    this.defaultValue!==null || ensure( !multivalued, 'Field ' +name+ " must have a non-null defaultValue (possibly undefined), because it's multivalued." );
+    this.defaultValue!==null || !multivalued || fail( 'Field ' +name+ " must have a non-null defaultValue (possibly undefined), because it's multivalued." );
     if( this.defaultValue!==undefined && this.defaultValue!==null ) {
         !this.multivalued || ensureInstance( this.defaultValue, Array, "defaultValue of a multivalued field must be an array" );
         var defaultValues= this.multivalued
@@ -144,7 +144,7 @@ var Field= function( name, multivalued, defaultValue, allowsNotPresent ) {
             : [this.defaultValue];
         for( var i=0; i<defaultValues.length; i++ ) {//@TODO use loop for of() once NetBeans supports it
             var key= defaultValues[i];
-            ensure( this.validateKey(key), 'Default value (stored key) for field ' +this.name+ ' is ' +key+ " and that doesn't pass validation." );
+            this.validateKey(key) || fail( 'Default value (stored key) for field ' +this.name+ ' is ' +key+ " and that doesn't pass validation." );
         }
     }    
     this.allowsNotPresent= allowsNotPresent===undefined
@@ -160,7 +160,7 @@ var Field= function( name, multivalued, defaultValue, allowsNotPresent ) {
             [Field.Bool, Field.Int, Field.String, Field.File, Field.Folder, Field.SQLite, Field.Choice.Int, Field.Choice.String],
             "Field.Bool, Field.Int, Field.String, Field.File, Field.Folder, Field.SQLite, Field.Choice.Int, Field.Choice.String", "Field " +this.name+ " is not of an acceptable class." );
     }
-    loadingPackageDefinition || ensure( this.name.indexOf('.')<0, 'Field() expects name not to contain a dot, but it received: ' +this.name);
+    loadingPackageDefinition || this.name.indexOf('.')<0 || fail( 'Field() expects name not to contain a dot, but it received: ' +this.name);
     this.module= null; // instance of Module that this belongs to (once registered)
 };
 
@@ -394,13 +394,13 @@ Field.Choice= function( name, multivalued, defaultValue, choicePairs, allowsNotP
         throw new Error( "Instances of subclasses of Field.Choice require choicePairs to be an anonymous object serving as an associative array." );
     }
     if( defaultValue!==undefined ) {
-        ensure( !(multivalued && defaultValue===null), "Field.Choice.XX with name " +name+ " can't have defaultValue null, because it's multivalued." );
-        ensure( multivalued===Array.isArray(defaultValue), "Field.Choice.XX with name " +name+ " must have defaultValue an array if and only if it's multivalued." );
+        !(multivalued && defaultValue===null) || fail( "Field.Choice.XX with name " +name+ " can't have defaultValue null, because it's multivalued." );
+        multivalued===Array.isArray(defaultValue) || fail( "Field.Choice.XX with name " +name+ " must have defaultValue an array if and only if it's multivalued." );
         var defaultValues= multivalued
             ? defaultValue
             : [defaultValue];
         for( var i=0; i<defaultValues.length; i++ ) { //@TODO for..of.. loop once NetBeans support it
-            ensure( defaultValues[i] in choicePairs, "Field.Choice " +name+ " has defaultValue " +defaultValues[i]+ ", which is not among keys of its choicePairs." );
+            defaultValues[i] in choicePairs || fail( "Field.Choice " +name+ " has defaultValue " +defaultValues[i]+ ", which is not among keys of its choicePairs." );
         }
     }
     this.choicePairs= choicePairs;
@@ -526,7 +526,8 @@ var register= function( module, createOrUpdate ) {
     if( module.name in modules ) {
         var existingModule= modules[module.name];
         
-        ensure( !compareAllFields(existingModule.fields, module.fields, 'equals'), 'There already exists a module with name "' +module.name+ '" but it has different definition.');
+        !compareAllFields(existingModule.fields, module.fields, 'equals')
+            || fail ( 'There already exists a module with name "' +module.name+ '" but it has different definition.');
         if( module.allowSets!==existingModule.allowSets ) {
             throw new Error();
         }
@@ -847,7 +848,7 @@ function manifestsDownToFolder( folderPath, dontCache ) {
             var lines= removeCommentsGetLines(contents);
             for( var j=0; j<lines.length; j++ ) {
                 var parts= valuesLineRegex.exec( lines[j] );
-                ensure( parts, "Values manifest " +fileName+ " at line " +(j+1)+ " is badly formatted: " +lines[j]  );
+                parts || fail( "Values manifest " +fileName+ " at line " +(j+1)+ " is badly formatted: " +lines[j]  );
                 if( !(folder in values) ) {
                     values[folder]= [];
                 }
@@ -865,7 +866,7 @@ function manifestsDownToFolder( folderPath, dontCache ) {
             var lines= removeCommentsGetLines(contents);
             for( var j=0; j<lines.length; j++ ) {
                 var parts= associationLineRegex.exec( lines[j] );
-                ensure( parts, "Associations manifest " +fileName+ " at line " +(j+1)+ " is badly formatted: " +lines[j]  );
+                parts || fail( "Associations manifest " +fileName+ " at line " +(j+1)+ " is badly formatted: " +lines[j]  );
                 if( !(folder in associations) ) {
                     associations[folder]= [];
                 }
