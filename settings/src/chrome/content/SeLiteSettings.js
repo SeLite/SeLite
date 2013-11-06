@@ -699,12 +699,15 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
                 result[fieldName].entry[ prefName ]= value;
             }
             else {
-                result[ fieldName ].entry= value;
+                result[ fieldName ].entry= value===NULL
+                    ? null
+                    : value;
             }
             result[ fieldName ].fromPreferences= true;
         }
         if( multivaluedOrChoice && children.length===0 && fieldHasPreference ) {
-            this.prefsBranch.getCharPref(setNameWithDot+fieldName)===VALUE_PRESENT || fail( 'Module ' +this.name+ ', set ' + setName+
+            this.prefsBranch.getCharPref(setNameWithDot+fieldName)===VALUE_PRESENT
+                || fail( 'Module ' +this.name+ ', set ' + setName+
                     ', field ' +fieldName+ ' is multivalued and/or a choice, but it has its own preference which is other than ' +VALUE_PRESENT );
             result[ fieldName ].fromPreferences= true; // The field is present, with no value(s)
             // Leave result[ fieldName ].entry as it is (an empty object or an empty sortedObject)
@@ -925,23 +928,26 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
         for( var i=0; i<manifests.values[manifestFolder].length; i++ ) {
             var manifest= manifests.values[manifestFolder][i];
             if( manifest.moduleName==this.name ) {
-                var field= manifest.fieldName in this.fields
-                    ? this.fields[manifest.fieldName]
-                    : null;
-                if( field && (field.multivalued || field instanceof Field.Choice) ) {
-                    if( result[manifest.fieldName].folderPath!=manifestFolder ) {
-                        // override any less local value(s) from a manifest from upper folders
-                        result[ manifest.fieldName .entry]= {};
+                if( manifest.fieldName in this.fields ) {
+                    var field= this.fields[manifest.fieldName];
+                    if( field.multivalued || field instanceof Field.Choice ) {
+                        if( result[manifest.fieldName].folderPath!=manifestFolder ) {
+                            // override any less local value(s) from a manifest from upper folders
+                            result[ manifest.fieldName .entry]= {};
+                        }
+                        result[ manifest.fieldName ][ manifest.value ]=
+                            field instanceof Field.Choice && manifest.value in field.choicePairs
+                            ? field.choicePairs[ manifest.value ]
+                            : manifest.value;
                     }
-                    result[ manifest.fieldName ][ manifest.value ]=
-                        field instanceof Field.Choice && manifest.value in field.choicePairs
-                        ? field.choicePairs[ manifest.value ]
-                        : manifest.value;
+                    else {
+                        result[ manifest.fieldName ].entry= manifest.value;
+                    }
+                    result[ manifest.fieldName ].folderPath= manifestFolder;
                 }
                 else {
-                    result[ manifest.fieldName ].entry= manifest.value;
+                    console.warn( "Values manifest for module " +this.name+ " in folder " +manifestFolder+ " sets a value for unknown field " +manifest.fieldName );
                 }
-                result[ manifest.fieldName ].folderPath= manifestFolder;
             }
         }
     }

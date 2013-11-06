@@ -16,7 +16,7 @@
 */
 "use strict";
 
-Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
+//Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' ); @TODO Think whether it's needed. Use instead of throw new Error()?
 Components.utils.import('chrome://selite-db-objects/content/basic-storage.js');
 
 /** @param object storage of class DbStorage
