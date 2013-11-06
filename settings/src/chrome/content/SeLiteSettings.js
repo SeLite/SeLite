@@ -699,9 +699,9 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
                 result[fieldName].entry[ prefName ]= value;
             }
             else {
-                result[ fieldName ].entry= value===NULL
-                    ? null
-                    : value;
+                result[ fieldName ].entry= value!==NULL
+                    ? value
+                    : null;
             }
             result[ fieldName ].fromPreferences= true;
         }
@@ -933,15 +933,19 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
                     if( field.multivalued || field instanceof Field.Choice ) {
                         if( result[manifest.fieldName].folderPath!=manifestFolder ) {
                             // override any less local value(s) from a manifest from upper folders
-                            result[ manifest.fieldName .entry]= {};
+                            result[ manifest.fieldName ].entry= {};
                         }
-                        result[ manifest.fieldName ][ manifest.value ]=
-                            field instanceof Field.Choice && manifest.value in field.choicePairs
-                            ? field.choicePairs[ manifest.value ]
-                            : manifest.value;
+                        if( manifest.value!==VALUE_PRESENT ) {
+                            result[ manifest.fieldName ].entry[ manifest.value ]=
+                                field instanceof Field.Choice && manifest.value in field.choicePairs
+                                ? field.choicePairs[ manifest.value ]
+                                : manifest.value;
+                            }
                     }
                     else {
-                        result[ manifest.fieldName ].entry= manifest.value;
+                        result[ manifest.fieldName ].entry= manifest.value!==NULL
+                            ? manifest.value
+                            : null;
                     }
                     result[ manifest.fieldName ].folderPath= manifestFolder;
                 }
