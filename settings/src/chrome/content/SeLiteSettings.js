@@ -118,7 +118,7 @@ function ensureFieldName( name, description, asFieldName ) {
  *  - from the field default (from schema definition)
  * */
 var Field= function( name, multivalued, defaultValue, allowsNotPresent ) {
-    if( typeof name!='string' ) {
+    if( typeof name!=='string' ) {
         throw new Error( 'Field() expects a string name ("primitive" string, not new String(..)).');
     }
     if( reservedNames.indexOf(name)>=0 ) {
@@ -326,9 +326,7 @@ Field.FileOrFolder= function( name, startInProfileFolder, filters, multivalued, 
         throw new Error( 'Field.FileOrFolder() expects startInProfileFolder to be a boolean, if provided.');
     }
     this.filters= filters || {};
-    if( typeof(this.filters)!='object' || this.filters instanceof Array ) {
-        throw new Error( 'Field.FileOrFolder() expects filters to be an object serving as an associative array, if provided.');
-    }
+    typeof(this.filters)==='object' && !Array.isArray(this.filters) || fail( 'Field.FileOrFolder() expects filters to be an object (not an array) serving as an associative array, if provided.');
     this.isFolder= isFolder || false;
     ensureType( this.isFolder, 'boolean', "Field.FileOrFolder(..) expects isFolder to be a boolean, if provided." );
 }
@@ -387,12 +385,10 @@ Field.SQLite.prototype.constructor= Field.SQLite;
  * */
 Field.Choice= function( name, multivalued, defaultValue, choicePairs, allowsNotPresent ) {
     Field.call( this, name, multivalued, defaultValue, allowsNotPresent );
-    if( !loadingPackageDefinition && this.constructor==Field.Choice ) {
-        throw new Error( "Can't define instances of Field.Choice class itself outside the package. Use Field.Choice.Int or Field.Choice.String." );
-    }
-    if( !loadingPackageDefinition && (typeof choicePairs!=='object' || choicePairs.constructor.name==='Array') ) {
-        throw new Error( "Instances of subclasses of Field.Choice require choicePairs to be an anonymous object serving as an associative array." );
-    }
+    loadingPackageDefinition || this.constructor!==Field.Choice
+        || fail( "Can't define instances of Field.Choice class itself outside the package. Use Field.Choice.Int or Field.Choice.String." );
+    loadingPackageDefinition || typeof(choicePairs)==='object' && !Array.isArray(choicePairs)
+        || fail( "Instances of subclasses of Field.Choice require choicePairs to be an anonymous object serving as an associative array." );
     if( defaultValue!==undefined ) {
         !(multivalued && defaultValue===null) || fail( "Field.Choice.XX with name " +name+ " can't have defaultValue null, because it's multivalued." );
         multivalued===Array.isArray(defaultValue) || fail( "Field.Choice.XX with name " +name+ " must have defaultValue an array if and only if it's multivalued." );
@@ -467,10 +463,7 @@ var Module= function( name, fields, allowSets, defaultSetName, associatesWithFol
         throw new Error( 'Module() expects a string name.');
     }
     ensureFieldName( name, 'module name');
-    if( typeof fields!=='object' || !fields.constructor || fields.constructor.name!=='Array' ) {
-        // @TODO my docs I can't check (fields instanceof Array) neither (fields.constructor===Array) when this script a component. See https://bugzilla.mozilla.org/show_bug.cgi?id=934311
-        throw new Error( 'Module() expects an array fields, but it received ' +(typeof fields)+ ' - ' +fields);
-    }
+    Array.isArray(fields) || fail( 'Module() expects an array fields, but it received ' +(typeof fields)+ ' - ' +fields);
     this.fields= sortedObject(true); // Object serving as an associative array { string field name => Field instance }
     for( var i=0; i<fields.length; i++ ) {
         var field= fields[i];
@@ -542,7 +535,7 @@ var register= function( module, createOrUpdate ) {
     else {
         modules[module.name]= module;
     }
-    if( typeof createOrUpdate=='undefined') {
+    if( createOrUpdate===undefined) {
         createOrUpdate= true;
     }
     if( createOrUpdate ) {
@@ -559,7 +552,7 @@ var register= function( module, createOrUpdate ) {
  *  See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsIPrefBranch#getChildList()
  * */
 function directChildList( prefsBranch, namePrefix ) {
-    if( typeof namePrefix=='undefined' || namePrefix===null) {
+    if( namePrefix===undefined || namePrefix===null) {
         namePrefix= '';
     }
     var children= prefsBranch.getChildList( namePrefix,{} );
@@ -1034,7 +1027,7 @@ Module.prototype.register= function() {
  *  @param setName string name of the set to create/update; optional. If empty or null, it operates on the main & only set.
  * */
 Module.prototype.createSet= function( setName ) {
-    if( typeof setName=='undefined' || setName===null ) {
+    if( setName===undefined || setName===null ) {
         setName= '';
     }
     if( typeof setName!='string' ) {
@@ -1093,7 +1086,7 @@ Module.prototype.createSet= function( setName ) {
     @param setName string name of the set to create/update. If empty, it operates on the main & only set.
  * */
 Module.prototype.removeSet= function( setName ) {
-    if( typeof setName==='undefined' ) {
+    if( setName===undefined ) {
         setName= '';
     }
     if( typeof setName!='string' ) {
@@ -1158,7 +1151,7 @@ var loadFromJavascript= function( moduleName ) {
 };
 
 var moduleNamesFromPreferences= function( namePrefix ) {
-    if( typeof namePrefix==='undefined' ) {
+    if( namePrefix===undefined ) {
         namePrefix= '';
     }
     if( typeof namePrefix!=='string' ) {

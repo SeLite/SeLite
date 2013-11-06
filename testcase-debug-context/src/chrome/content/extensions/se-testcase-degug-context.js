@@ -22,7 +22,7 @@
 // 2. the first time a test command or a test case is run
 // alert('hi');
 
-if( typeof TestCaseDebugContext=='undefined' ) {
+if( TestCaseDebugContext===undefined ) {
     // Do not use function TestCaseDebugContext(testCase) { ... } here, because it won't be visible outside
     // Use TestCaseDebugContext= function( testCase ) { ... } instead
     TestCaseDebugContext= function( testCase ) {

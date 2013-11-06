@@ -163,10 +163,10 @@ function $X(xpath, contextNode) {
     function globIdx( commandIndex, givenTestCase) {
       givenTestCase= givenTestCase || testCase;
       // Must not use assert() here, because that calls notifyFatalHere() which calls hereGlobIdx() which calls globIdx()
-      if( typeof commandIndex !='number' || commandIndex<0 ) {
+      if( typeof commandIndex !=='number' || commandIndex<0 ) {
           logAndThrow( "SelBlocks error: in globIdx(), bad type/value of the first parameter commandIndex: " +commandIndex );
       }
-      if( typeof givenTestCase !='object' ) {
+      if( typeof givenTestCase !=='object' ) {
           logAndThrow( "SelBlocks error: in globIdx(), bad type of the optional second parameter givenTestCase (or global testCase)." );
       }
       var caseIndex= testCaseIdx(givenTestCase);
@@ -212,7 +212,7 @@ function $X(xpath, contextNode) {
      *  within the list of test cases (i.e. editor.app.testSuite.tests)
      */
     function localCaseIdxPart( globIdxValue ) {
-      assert( typeof globIdxValue == 'string', 'globIdxValue must be a string.' );
+      assert( typeof globIdxValue ==='string', 'globIdxValue must be a string.' );
       var lastSlashIndex= globIdxValue.lastIndexOf('/');
       assert( lastSlashIndex>0, 'globIdxValue must contain "/" and not as the first character.');
       assert( lastSlashIndex<globIdxValue.length-1, 'globIdxValue must contain "/" and not as the last character.');
@@ -245,7 +245,7 @@ function $X(xpath, contextNode) {
      *  @return string global label identifier in form 'test-case-index/label'
      **/
     function labelIdx( label, givenTestCase ) {
-        assert( typeof label =='string', 'label must be a string.');
+        assert( typeof label ==='string', 'label must be a string.');
         givenTestCase= givenTestCase || testCase;
         return ''+testCaseIdx(givenTestCase)+ '/'+ label;
     }
@@ -276,9 +276,9 @@ function $X(xpath, contextNode) {
       /** @param a result of globIdx() function
        **/
       cmds.init = function(i, attrs) {
-        assert( typeof testCase.commands =='object', 'CmdAttrs::init() - testCase.commands is of bad type.');
+        assert( typeof testCase.commands ==='object', 'CmdAttrs::init() - testCase.commands is of bad type.');
         // @TODO assert regex numeric/numeric
-        assert( typeof i =='string', 'CmdAttrs::init() - param i must be a globIdx() result.');
+        assert( typeof i ==='string', 'CmdAttrs::init() - param i must be a globIdx() result.');
         cmds[i] = attrs || {};
         cmds[i].idx = i;
         cmds[i].cmdName = localCase(i).commands[ localIdx(i) ].command;
@@ -376,7 +376,7 @@ function $X(xpath, contextNode) {
                 LOG.debug( 'SelBlocks nextCommand() starting');
                 if (!this.started) {
                   // Hook for SeBootstrap
-                  if( typeof this.selenium!=='undefined' && typeof this.selenium.doReloadScripts=='function' ) {
+                  if( this.selenium!==undefined && typeof this.selenium.doReloadScripts=='function' ) {
                       this.selenium.doReloadScripts();
                   }
                 }
@@ -711,7 +711,7 @@ function $X(xpath, contextNode) {
         notifyFatal("Multiple var sets not valid for 'loadVars'. (A specific var set can be selected: name=value.)");
       }
       var result = evalWithVars(selector);
-      if (typeof result != "boolean") {
+      if (typeof result !=="boolean") {
         LOG.warn(fmtCmdRef(hereGlobIdx()) + ", " + selector + " is not a boolean expression");
       }
 
@@ -1017,7 +1017,7 @@ function $X(xpath, contextNode) {
     function notifyFatalCmdRef(idx, msg) { notifyFatal( fmtCmdRef(idx) +msg ); }
     function notifyFatalHere(msg) {
         // This may be called before testCase is set
-        var commandRef= typeof testCase =='undefined'
+        var commandRef= testCase===undefined
             ? 'unknown step: '
             : fmtCmdRef(hereGlobIdx())+ ': ';
         notifyFatal( commandRef+msg );
@@ -1268,7 +1268,7 @@ function $X(xpath, contextNode) {
             );
             var evalResult= eval( expression );
 
-            if( evalResult!==null && typeof evalResult!=='undefined' ) {
+            if( evalResult!==null && evalResult!==undefined ) {
                 evalResult= '' +evalResult;
             }
             else {

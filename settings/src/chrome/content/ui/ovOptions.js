@@ -104,10 +104,10 @@ function RowLevel( name, level, blank ) {
     if( RowLevel.MODULE && RowLevel.SET && RowLevel.CHECKBOX && RowLevel.FIELD && RowLevel.OPTION && RowLevel.ACTION ) {
         throw new Error( "Do not create any other instances of RowLevel, because they are compared to by identity." );
     }
-    if( typeof level==='undefined' ) {
+    if( level===undefined ) {
         level= -1;
     }
-    if( typeof blank==='undefined') {
+    if( blank===undefined) {
         blank= false;
     }
     this.name= name;
@@ -362,7 +362,7 @@ function subContainer( parent, fieldOrFields ) {
     var object= parent;
     for( var i=1; i<arguments.length; i++ ) {
         var fieldName= arguments[i];
-        if( typeof object[fieldName]==='undefined' ) {
+        if( object[fieldName]===undefined ) {
             object[fieldName]= sortedObject(true);
         }
         object= object[fieldName];
@@ -433,10 +433,10 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         throw new Error( "Parameter field must be an instance of a subclass of Field, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but it is "
             +(typeof field==='object' ? 'an instance of ' +field.constructor.name : typeof field)+ ': ' +field );
     }
-    if( typeof optionIsSelected==='undefined' ) {
+    if( optionIsSelected===undefined ) {
         optionIsSelected= false;
     }
-    if( typeof isNewValueRow==='undefined' ) {
+    if( isNewValueRow===undefined ) {
         isNewValueRow= false;
     }
     valueCompound= valueCompound || null;
@@ -706,13 +706,11 @@ function generateFields( setChildren, module, setName, setFields ) {
  *  but I don't know how to get it for <treerow> element where the user clicked - tree.view doesn't let me.
  * */
 function propertiesPart( properties, level, otherwise ) {
-    if( !(level instanceof RowLevel) ) {
-        throw new Error("propertiesPart() expects parameter level to be an instance of RowLevel, but its type is " +(typeof level)+ ": " +level );
-    }
+    level instanceof RowLevel || fail( "propertiesPart() expects parameter level to be an instance of RowLevel, but its type is " +(typeof level)+ ": " +level );
     var propertiesParts= properties.split( ' ' );
     
     if( level.level>=propertiesParts.length ) {
-        return typeof otherwise!=='undefined'
+        return otherwise!==undefined
             ? otherwise
             : '';
     }

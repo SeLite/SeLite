@@ -733,7 +733,7 @@ function objectClone( original, acceptableFields, requiredFields, result ) {
         result.prototype= original.prototype;
     }
     for( var i=0; i<requiredFields.length; i++ ) {
-        if( typeof original[requiredFields[i]] ==='undefined' ) {
+        if( original[ requiredFields[i] ]===undefined ) {
             throw "objectClone(): Field " +requiredFields[i]+ " is required, but it's not present in the original.";
         }
     }
@@ -903,14 +903,14 @@ subindexcolumnorfieldname ) {
         result[columnvalue]= record;
     }
     else {
-        if( typeof result[columnvalue] =='undefined' ) {
+        if( result[columnvalue]===undefined ) {
             result[columnvalue]= subindexcolumnorfieldname
                 ? new RecordGroup()
                 : [];
         }
         if( subindexcolumnorfieldname ) {
             var subindexvalue= getField(record, subindexcolumnorfieldname);
-            if( typeof subindexvalue =='undefined' ) {
+            if( subindexvalue===undefined ) {
                 subindexvalue= null;
             }
             result[columnvalue][subindexvalue]= record;
@@ -1237,7 +1237,7 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
     }
 }
 
-var EXPORTED_SYMBOLS= [ "ensure", "ensureOneOf", "ensureType", "ensureInstance",
+var EXPORTED_SYMBOLS= [ "fail", "ensure", "ensureOneOf", "ensureType", "ensureInstance",
     "item", "itemOrNull", "itemGeneric", "objectToString",
      "rowsToString", "timestampInSeconds", "isEmptyObject",
     "objectsMerge", "objectCopyFields", "objectClone", "objectDeleteFields",
