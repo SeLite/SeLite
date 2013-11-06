@@ -320,7 +320,7 @@ function locateConnectionInfo( fileNameOrConnectionOrParameters, callerFunctionN
               }
           }
           else {
-              fail( 'SQLiteConnectionParameters.' +callerFunctionName+ '() called with a parameter of unsupported type: ' +(typeof fileNameOrConnectionOrParameters) );
+              throw new Error( 'SQLiteConnectionParameters.' +callerFunctionName+ '() called with a parameter of unsupported type: ' +(typeof fileNameOrConnectionOrParameters) );
           }
       }
       return null;
