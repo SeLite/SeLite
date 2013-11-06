@@ -24,21 +24,26 @@ if( runningAsComponent ) {
         getService(Components.interfaces.nsILoginManager);
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 }
+/** This throws an error (containg the given message, if any). It also logs the current stack trase to console as a warning.
+*/
+function fail( message ) {
+    try {
+        throw message
+            ? new Error(message)
+            : new Error();
+    }
+    catch(e) {
+        console.warn( e.stack );
+        throw e;
+    }
+}
 
 /** This asserts the condition to be true (compared non-strictly). If false, it fails with an error (containg the given message, if any).
  *  It's not called assert(), so that wouldn't conflict with assert() defined by Selenium IDE.
  * */
 function ensure( condition, message ) {
     if( !condition ) {
-        try {
-            throw message
-                ? new Error(message)
-                : new Error();
-            }
-            catch(e) {
-                console.warn( e.stack );
-                throw e;
-            }
+        fail( message );
     }
 }
 
@@ -79,7 +84,8 @@ function ensureType( item, typeStringOrStrings, message ) {
  *  @param classes Class (that is, a constructor function), or an array of them.
  *  Do not use for standard classes like Object or Array, because they are separate per each global scope
  *  (and each Javascript module has its own). See a list of them at https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects.
- *  If we need that, then support strings like "Array" and map them to a check function like Array.isArray.
+ *  If we need that, then accept Array etc; then check whether the given class (constructor) contains function 'isArray'; if so, then use Array.isArray().
+ *  Or (less intuitive): accept strings like "Array" and map them to a check function like Array.isArray.
  *  @param className string, optional, name of the expected class(es), so we can print them (because parameter classes doesn't carry information about the name);
  *  even if clazz is an array, clazzName must be one string (if present),
  *  @param message string, extra message, optional

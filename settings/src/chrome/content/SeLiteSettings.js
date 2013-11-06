@@ -624,17 +624,6 @@ Module.prototype.setSelectedSetName= function( setName ) {
     this.prefsBranch.setCharPref( SELECTED_SET_NAME, setName );
 };
 
-/** Transform SELITE_NULL into Javascript null
- * @private
- * */
-function treatSingleValued( value ) {
-    return value===NULL
-        ? null
-        : value;
-}
- 
-//function treat
-
 /** @param setName Name of the set; an empty string if the module doesn't allow sets, or if you want a selected set.
  *  @param boolean perFolder Whether this is loaded per folder, as a part of a composite configuration. If true,
  *  then this doesn't generate entries for multivalued and Field.Choice fields that have no value in the given set.
@@ -671,7 +660,8 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
             ? fieldName+ '.'
             : fieldName;
         var children; // An array of preference string key(s) present for this field
-        if( !multivaluedOrChoice && this.prefsBranch.prefHasUserValue(setNameWithDot+fieldName) ) {
+        var fieldHasPreference= this.prefsBranch.prefHasUserValue(setNameWithDot+fieldName);
+        if( !multivaluedOrChoice &&  fieldHasPreference ) {
             children= [setNameWithDot+fieldName];
         }
         else
@@ -718,6 +708,12 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
                 result[ fieldName ].entry= value;
             }
             result[ fieldName ].fromPreferences= true;
+        }
+        if( multivaluedOrChoice && children.length===0 && fieldHasPreference ) {
+            this.prefsBranch.getCharPref(setNameWithDot+fieldName)===VALUE_PRESENT || fail( 'Module ' +this.name+ ', set ' + setName+
+                    ', field ' +fieldName+ ' is multivalued and/or a choice, but it has its own preference which is other than ' +VALUE_PRESENT );
+            result[ fieldName ].fromPreferences= true; // The field is present, with no value(s)
+            // Leave result[ fieldName ].entry as it is (an empty object or an empty sortedObject)
         }
     }
     return result;
@@ -980,7 +976,7 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
                     if( fields[fieldName].fromPreferences ) {
                         result[ fieldName ]= {
                             entry: fields[fieldName].entry,
-                            fromPreferences: fields[fieldName].fromPreferences,
+                            fromPreferences: true,
                             folderPath: associationFolder,
                             setName: manifest.setName
                         }
