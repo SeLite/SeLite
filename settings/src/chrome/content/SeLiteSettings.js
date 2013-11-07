@@ -990,9 +990,9 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
         }
     }
     // Fourth, for any fields with the value being undefined (not null or empty array/string), apply field defaults
-    for( var fieldName in fields ) {
+    for( var fieldName in this.fields ) {
         if( result[fieldName].entry===undefined ) {
-            result[fieldName].entry= field.getDefaultValue();
+            result[fieldName].entry= this.fields[fieldName].getDefaultValue();
             result[fieldName].fromPreferences= false;
             result[fieldName].folderPath= null;
             result[fieldName].setName= undefined;

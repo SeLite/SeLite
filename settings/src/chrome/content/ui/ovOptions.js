@@ -614,7 +614,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                       )
                     : SeLiteSettings.FIELD_DEFAULT
                 );
-                treecell.setAttribute( 'label', valueCompound.folderPath!==''
+                treecell.setAttribute( 'label', valueCompound.folderPath
                     ? OS.Path.join( valueCompound.folderPath, valueCompound.fromPreferences
                             ? SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME
                             : SeLiteSettings.VALUES_MANIFEST_FILENAME
@@ -731,7 +731,7 @@ function treeClickHandler( event ) {
     var column= { value: null }; // value is instance of TreeColumn. See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeColumn
             // column.value.element is one of 'treecol' nodes created above. column.value.type can be TreeColumn.TYPE_CHECKBOX etc.
     tree.boxObject.getCellAt(event.clientX, event.clientY, row, column, {}/*unused, but needed*/ );
-    
+    console.log('click');
     if( row.value>=0 && column.value ) {
         var modifiedPreferences= false;
         var rowProperties= tree.view.getRowProperties(row.value); // This requires Gecko 22+ (Firefox 22+). See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeView#getCellProperties%28%29
@@ -739,8 +739,8 @@ function treeClickHandler( event ) {
         var module= modules[moduleName];
         var moduleRows= treeRows[moduleName];
         //alert( objectToString(moduleRows, 3, false, ['XULElement', '']) );
-
-        if( column.value!=null && row.value>=0 ) {
+        console.log('click at a cell');
+        if( column.value!=null && row.value>=0 ) {console.log('click knows the cell');
             var cellIsEditable= tree.view.isEditable(row.value, column.value);
             var cellValue= tree.view.getCellValue(row.value, column.value); // For checkboxes this is true/false as toggled by the click.
             var cellProperties= tree.view.getCellProperties( row.value, column.value ); // Space-separated properties
@@ -907,7 +907,8 @@ function treeClickHandler( event ) {
                 }
             }
             if( column.value.element===treeColumnElements.manifest && cellProperties!=='' ) {
-                if( cellProperties!==SeLiteSettings.FIELD_DEFAULT ) {
+                console.log( 'manifest based' );
+                if( cellProperties!==SeLiteSettings.FIELD_DEFAULT ) {console.log( 'not default' );
                     if( cellProperties.startsWith(SeLiteSettings.ASSOCIATED_SET) ) {
                         var folder= cellProperties.substring( SeLiteSettings.ASSOCIATED_SET.length+1 );
                         window.open( 'file://' +OS.Path.join(folder, SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME), '_blank' );
@@ -1307,7 +1308,7 @@ window.addEventListener( "load", function(e) {
         generateSets( moduleChildren, modules[moduleName] );
         tree.view.toggleOpenState(0); // expand the module 
     }
-    
+    console.log('setting up click handler');
     topTreeChildren.addEventListener( 'click', treeClickHandler );
     tree.view= createTreeView( tree.view );
     if( setNameToExpand ) {
