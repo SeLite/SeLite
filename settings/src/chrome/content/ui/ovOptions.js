@@ -593,7 +593,10 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
             if( rowLevel===RowLevel.FIELD ) {
                 treecell.setAttribute( 'label', valueCompound.fromPreferences
                     ? valueCompound.setName
-                    : 'values manifest'
+                    : (valueCompound.folderPath
+                            ? 'values manifest'
+                            : 'default'
+                      )
                 );
                 treecell.setAttribute( 'properties',
                     valueCompound.fromPreferences
@@ -619,7 +622,10 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                             ? SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME
                             : SeLiteSettings.VALUES_MANIFEST_FILENAME
                       )
-                    : 'selected set'
+                    : (valueCompound.fromPreferences
+                            ? 'active set'
+                            : ''
+                      )
                 );
             }
         }
