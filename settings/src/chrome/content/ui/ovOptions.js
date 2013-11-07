@@ -292,7 +292,7 @@ function generateTreeColumns( allowModules, perFolder ) {
 
         treecol= treeColumnElements.manifest= document.createElementNS( XUL_NS, 'treecol');
         treecol.setAttribute('label', perFolder
-            ? 'Manifest'
+            ? 'Manifest or definition'
             : 'Clear');
         treecol.setAttribute('editable', 'false');
         treecol.setAttribute( 'flex', '1');
@@ -631,8 +631,8 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                             : SeLiteSettings.VALUES_MANIFEST_FILENAME
                       )
                     : (valueCompound.fromPreferences
-                            ? 'active set'
-                            : ''
+                            ? '(active set)'
+                            : module.definitionJavascriptFile
                       )
                 );
             }
