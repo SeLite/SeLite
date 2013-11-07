@@ -417,21 +417,11 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         throw new Error("Parameter rowLevel must be an instance of RowLevel, but not CHECKBOX neither ACTION.");
     }
     if( typeof valueOrPair==='object' && valueOrPair!==null ) {
-        if( rowLevel!==RowLevel.OPTION ) {
-            throw new Error( "generateTreeItem(): parameter valueOrPair must not be an object, unless RowLevel is OPTION, but that is " +rowLevel );
-        }
-        if( !(field.multivalued || field instanceof SeLiteSettings.Field.Choice) ) {
-            throw new Error( 'generateTreeItem(): parameter valueOrPair can be an object only for multivalued fields or choice fields, but it was used with ' +field );
-        }
-        for( var keyName in valueOrPair ) {
-            if( key!==null ) {
-                throw new Error( "generateItem(): parameter valueOrPair can be an object, but with exactly one field, yet it received one with more fields." );
-            }
-            key= keyName;
-        }
-        if( key===null ) {
-            throw new Error( "generateItem(): parameter valueOrPair can be an object, but with exactly one field, yet it received an empty one." );
-        }
+        rowLevel===RowLevel.OPTION || fail( "generateTreeItem(): parameter valueOrPair must not be an object, unless RowLevel is OPTION, but that is " +rowLevel );
+        field.multivalued || field instanceof SeLiteSettings.Field.Choice || fail( 'generateTreeItem(): parameter valueOrPair can be an object only for multivalued fields or choice fields, but it was used with ' +field );
+        var keys= Object.keys(valueOrPair);
+        keys.length===1 || fail( "generateItem(): parameter valueOrPair can be an object, but with exactly one field, yet it received one with " +keys.length+ ' fields.' );
+        key= keys[0];
     }
     var value= key!==null
         ? valueOrPair[key]
@@ -549,8 +539,13 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     ) {
         treecell.setAttribute('editable' , 'false');
     }
-    if( (typeof value==='string' || typeof value==='number') && !isNewValueRow ) {
-        treecell.setAttribute('label', ''+value );
+    if( (typeof value==='string' || typeof value==='number'
+          || value===null && rowLevel===RowLevel.FIELD && !field.multivalued && !(field instanceof SeLiteSettings.Field.Choice)
+        ) && !isNewValueRow ) {
+        treecell.setAttribute('label', value!==null
+            ? ''+value
+            : 'null'
+        );
         if( targetFolder!==null && valueCompound!==null ) {
             if( valueCompound.fromPreferences ) {
                 treecell.setAttribute( 'properties',
@@ -1220,7 +1215,7 @@ window.addEventListener( "load", function(e) {
         var moduleName= null;
         if( match ) {
             moduleName= unescape( match[1] );
-            modules[ moduleName ]= SeLiteSettings.loadFromJavascript( moduleName );
+            modules[ moduleName ]= SeLiteSettings.loadFromJavascript( moduleName, false );
             ensure( !targetFolder || modules[moduleName].associatesWithFolders, "You're using URL with folder=" +targetFolder+
                 " and module=" +moduleName+ ", however that module doesn't allow to be associated with folders." );
         }
@@ -1249,7 +1244,7 @@ window.addEventListener( "load", function(e) {
         allowModules= true;
         var moduleNames= SeLiteSettings.moduleNamesFromPreferences( prefix );
         for( var i=0; i<moduleNames.length; i++ ) {
-            var module= SeLiteSettings.loadFromJavascript( moduleNames[i]);
+            var module= SeLiteSettings.loadFromJavascript( moduleNames[i], false );
             if( targetFolder===null || module.associatesWithFolders ) {
                 modules[ moduleNames[i] ]= module;
             }

@@ -1134,12 +1134,16 @@ var fileNameToUrl= function( fileNameOrUrl ) {
 /** Load & register the module from its Javascript file, if stored in preferences.
  *  The file will be cached - any changes will have affect only once you reload Firefox.
  *  If called subsequently, it returns an already loaded instance.
- *  @param moduleName string Name of the preference path/prefix up to the module (including the module name), excluding the trailing dot
+ *  @param moduleName string Name of the preference path/prefix up to the module (including the module name), excluding the trailing dot.
+ *  @param doCache bool Whether to cache the definition. True by default.
  *  @return Module instance
  *  @throws an error if no such preference branch, or preferences don't contain javascript file, or the javascript file doesn't exist.
  * */
-var loadFromJavascript= function( moduleName ) {
-    if( modules[ moduleName ] ) {
+var loadFromJavascript= function( moduleName, doCache ) {
+    if( doCache===undefined ) {
+        doCache= true;
+    }
+    if( doCache && modules[ moduleName ] ) {//@TODO Currently, module's .js calls SeLiteSettings.register(), which returns the old definition! So it does cache itself, even if doCache=false here.
         return modules[ moduleName ];
     }
     var prefsBranch= prefs.getBranch( moduleName+'.' );
@@ -1156,11 +1160,11 @@ var loadFromJavascript= function( moduleName ) {
             throw error;
         }
     }
-    else {
-        throw new Error( "Can't find module '" +moduleName+ "'.");
+    else {//@TODO Allow module definition .js file name/url as a parameter?
+        fail( "Can't find module '" +moduleName+ "' in your preferences. Register it first.");
     }
     if( !(moduleName in modules) ) {
-        throw new Error();
+        fail( "Loaded definition of module " +moduleName+ " and it was found in preferences, but it didn't register itself properly." );
     }
     return modules[ moduleName ];
 };
