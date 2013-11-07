@@ -382,8 +382,7 @@ function subContainer( parent, fieldOrFields ) {
  *  @param setName string set name; either '' if the module doesn't allow sets; otherwise it's a set name when at field level
  *  attribute for the <treerow> nodes, so that when we handle a click event, we know what field the node is for.
  *  @param field mixed, usually an object of a subclass of Field. If rowLevel==RowLevel.MODULE or rowLevel==RowLevel.SET,
- *  then field is null. It's a field present in Preferences DB but not in module definition, then it's a string name of that field.
- *  Otherwise it must be an instance of a subclass of Field.
+ *  then field is null. Otherwise it must be an instance of a subclass of Field.
  *  @param string key 'key' (used as a trailing part of field option preference name);
  *  use for fields of Field.Choice family and for multivalued fields only. For multivalued non-choice fields it should be the same
  *  as parameter value. If the field is of a subclass of Field.Choice, then key and value may be different.
@@ -416,9 +415,10 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     if( !(rowLevel instanceof RowLevel) || rowLevel===RowLevel.CHECKBOX || rowLevel===RowLevel.ACTION ) {
         throw new Error("Parameter rowLevel must be an instance of RowLevel, but not CHECKBOX neither ACTION.");
     }
+    var multivaluedOrChoice= field!==null && (field.multivalued || field instanceof SeLiteSettings.Field.Choice);
     if( typeof valueOrPair==='object' && valueOrPair!==null ) {
         rowLevel===RowLevel.OPTION || fail( "generateTreeItem(): parameter valueOrPair must not be an object, unless RowLevel is OPTION, but that is " +rowLevel );
-        field.multivalued || field instanceof SeLiteSettings.Field.Choice || fail( 'generateTreeItem(): parameter valueOrPair can be an object only for multivalued fields or choice fields, but it was used with ' +field );
+        multivaluedOrChoice || fail( 'generateTreeItem(): parameter valueOrPair can be an object only for multivalued fields or choice fields, but it was used with ' +field );
         var keys= Object.keys(valueOrPair);
         keys.length===1 || fail( "generateItem(): parameter valueOrPair can be an object, but with exactly one field, yet it received one with " +keys.length+ ' fields.' );
         key= keys[0];
@@ -489,7 +489,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     }
     // Register treerow in treeRows[][...]
     if( rowLevel===RowLevel.FIELD ) {
-        if( !field.multivalued && !(field instanceof SeLiteSettings.Field.Choice) ) {
+        if( !multivaluedOrChoice ) {
            subContainer( treeRows, module.name, setName )[ fieldName ]= treerow;
         }
         else {
@@ -539,12 +539,22 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     ) {
         treecell.setAttribute('editable' , 'false');
     }
-    if( (typeof value==='string' || typeof value==='number'
-          || value===null && rowLevel===RowLevel.FIELD && !field.multivalued && !(field instanceof SeLiteSettings.Field.Choice)
+    var perFolderAndIsNull= rowLevel===RowLevel.FIELD && targetFolder!==null && value===null
+            && !multivaluedOrChoice;
+    var perSetAndIsNull= rowLevel===RowLevel.FIELD && targetFolder===null && valueCompound.fromPreferences
+            && !multivaluedOrChoice && valueCompound.entry===null;
+    var perSetAndIsUndefined= rowLevel===RowLevel.FIELD && targetFolder===null && !valueCompound.fromPreferences;
+    if( (typeof value==='string' || typeof value==='number' || perFolderAndIsNull || perSetAndIsNull || perSetAndIsUndefined
         ) && !isNewValueRow ) {
         treecell.setAttribute('label', value!==null
             ? ''+value
-            : 'null'
+            : (perFolderAndIsNull || perSetAndIsNull
+                ? 'null'
+                : (perSetAndIsUndefined
+                    ? 'undefined'
+                    : ''
+                  )
+              )
         );
         if( targetFolder!==null && valueCompound!==null ) {
             if( valueCompound.fromPreferences ) {
@@ -676,7 +686,7 @@ function generateFields( setChildren, module, setName, setFields ) {
         var singleValueOrNull= typeof setFields[fieldName].entry!=='object'
             ? setFields[fieldName].entry
             : null;
-        var fieldItem= generateTreeItem(module, setName, field, singleValueOrNull, RowLevel.FIELD, false, false, setFields[fieldName] );
+        var fieldItem= generateTreeItem(module, setName, field, singleValueOrNull, RowLevel.FIELD, false, false, fieldValueOrPairs );
         setChildren.appendChild( fieldItem );
         
         if( field instanceof SeLiteSettings.Field &&
@@ -1259,7 +1269,7 @@ window.addEventListener( "load", function(e) {
     tree.setAttribute( 'hidevscroll', 'false');
     tree.setAttribute( 'class', 'tree');
     tree.setAttribute( 'flex', '1');
-    tree.setAttribute( 'rows', '25'); //@TODO
+    tree.setAttribute( 'rows', '25'); //@TODO This has to be specified, otherwise the tree is not shown at all (except for column headers). Investigate
     settingsBox.appendChild( tree );
     
     for( var moduleName in modules ) {
