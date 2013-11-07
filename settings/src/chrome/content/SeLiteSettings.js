@@ -275,7 +275,7 @@ Field.prototype.equals= function( other ) {
 
 // See also https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
 Field.Bool= function( name, defaultValue, allowsNotPresent ) {
-    Field.call( this, name, defaultValue, allowsNotPresent );
+    Field.call( this, name, false, defaultValue, allowsNotPresent );
 };
 Field.Bool.prototype= new Field('Bool.prototype');
 Field.Bool.prototype.constructor= Field.Bool;
