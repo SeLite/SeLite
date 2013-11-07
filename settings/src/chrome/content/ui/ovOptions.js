@@ -19,7 +19,15 @@ var nsIFilePicker = Components.interfaces.nsIFilePicker;
 Components.utils.import("resource://gre/modules/FileUtils.jsm" );
 Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
 Components.utils.import("resource://gre/modules/osfile.jsm");
-var console = (Components.utils.import("resource://gre/modules/devtools/Console.jsm", {})).console;
+//var console = (Components.utils.import("resource://gre/modules/devtools/Console.jsm", {})).console;
+
+var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                              .getService(Components.interfaces.nsIPromptService);
+var SeLiteSettings= {};
+Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js", SeLiteSettings);
+Components.utils.import("resource://gre/modules/Services.jsm");
+var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
+var nsIIOService= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);    
 
 var CREATE_NEW_SET= "Create a new set";
 var DELETE_THE_SET= "Delete the set";
@@ -737,16 +745,14 @@ function treeClickHandler( event ) {
     var column= { value: null }; // value is instance of TreeColumn. See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeColumn
             // column.value.element is one of 'treecol' nodes created above. column.value.type can be TreeColumn.TYPE_CHECKBOX etc.
     tree.boxObject.getCellAt(event.clientX, event.clientY, row, column, {}/*unused, but needed*/ );
-    console.log('click');
+    
     if( row.value>=0 && column.value ) {
         var modifiedPreferences= false;
         var rowProperties= tree.view.getRowProperties(row.value); // This requires Gecko 22+ (Firefox 22+). See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeView#getCellProperties%28%29
         var moduleName= propertiesPart( rowProperties, RowLevel.MODULE );
         var module= modules[moduleName];
         var moduleRows= treeRows[moduleName];
-        //alert( objectToString(moduleRows, 3, false, ['XULElement', '']) );
-        console.log('click at a cell');
-        if( column.value!=null && row.value>=0 ) {console.log('click knows the cell');
+        if( column.value!=null && row.value>=0 ) {
             var cellIsEditable= tree.view.isEditable(row.value, column.value);
             var cellValue= tree.view.getCellValue(row.value, column.value); // For checkboxes this is true/false as toggled by the click.
             var cellProperties= tree.view.getCellProperties( row.value, column.value ); // Space-separated properties
@@ -913,8 +919,7 @@ function treeClickHandler( event ) {
                 }
             }
             if( column.value.element===treeColumnElements.manifest && cellProperties!=='' ) {
-                console.log( 'manifest based' );
-                if( cellProperties!==SeLiteSettings.FIELD_DEFAULT ) {console.log( 'not default' );
+                if( cellProperties!==SeLiteSettings.FIELD_DEFAULT ) {
                     if( cellProperties.startsWith(SeLiteSettings.ASSOCIATED_SET) ) {
                         var folder= cellProperties.substring( SeLiteSettings.ASSOCIATED_SET.length+1 );
                         window.open( 'file://' +OS.Path.join(folder, SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME), '_blank' );
@@ -926,7 +931,7 @@ function treeClickHandler( event ) {
                     }
                 }
                 else {
-                    alert( '@TODO schema definition file');
+                    window.open( SeLiteSettings.fileNameToUrl(module.definitionJavascriptFile), '_blank' );
                 }
             }
         }
@@ -1173,14 +1178,6 @@ function createTreeChildren( parent ) {
     return treeChildren;
 }
 
-var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                              .getService(Components.interfaces.nsIPromptService);
-var SeLiteSettings= {};
-Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js", SeLiteSettings);
-Components.utils.import("resource://gre/modules/Services.jsm");
-var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
-var nsIIOService= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);    
-                      
 window.addEventListener( "load", function(e) {
     var params= document.location.search.substring(1);
     if( document.location.search ) {
@@ -1314,7 +1311,6 @@ window.addEventListener( "load", function(e) {
         generateSets( moduleChildren, modules[moduleName] );
         tree.view.toggleOpenState(0); // expand the module 
     }
-    console.log('setting up click handler');
     topTreeChildren.addEventListener( 'click', treeClickHandler );
     tree.view= createTreeView( tree.view );
     if( setNameToExpand ) {

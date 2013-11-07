@@ -527,7 +527,7 @@ var register= function( module, createOrUpdate ) {
         if( module.defaultSetName!==existingModule.defaultSetName ) {
             throw new Error();
         }
-        if( module.definitionJavascriptFile!==existingModule.definitionJavascriptFile ) {
+        if( fileNameToUrl(module.definitionJavascriptFile)!==fileNameToUrl(existingModule.definitionJavascriptFile) ) {
             throw new Error();
         }
         module= existingModule;
@@ -1118,6 +1118,19 @@ Module.prototype.removeSet= function( setName ) {
     }
 };
 
+/** Convert given file name to a URL (a string), if it's a valid file path + file name. Otherwise return it unchanged.
+ * @private It's only exported for internal usage within SeLite Settings (ovOptions.js).
+ * */
+var fileNameToUrl= function( fileNameOrUrl ) {
+    try {
+        var file= new FileUtils.File(fileNameOrUrl);
+        return Services.io.newFileURI( file ).spec;
+    }
+    catch( exception ) {
+        return fileNameOrUrl; //nsIIOService.newURI( fileNameOrUrl, null, null).spec;
+    }
+};
+
 /** Load & register the module from its Javascript file, if stored in preferences.
  *  The file will be cached - any changes will have affect only once you reload Firefox.
  *  If called subsequently, it returns an already loaded instance.
@@ -1131,21 +1144,13 @@ var loadFromJavascript= function( moduleName ) {
     }
     var prefsBranch= prefs.getBranch( moduleName+'.' );
     if( prefsBranch.prefHasUserValue(MODULE_DEFINITION_FILE_OR_URL) ) {
-        var fileNameOrUrl= prefsBranch.getCharPref(MODULE_DEFINITION_FILE_OR_URL);
-        var url;
-        try {
-            var file= new FileUtils.File(fileNameOrUrl);
-            url= Services.io.newFileURI( file );
-        }
-        catch( exception ) {
-            url= nsIIOService.newURI( fileNameOrUrl, null, null);
-        }
+        var url= fileNameToUrl( prefsBranch.getCharPref(MODULE_DEFINITION_FILE_OR_URL) );
         try {
             // I don't use Components.utils.import( fileUrl.spec ) because that requires the javascript file to have EXPORTED_SYMBOLS array.
             // Components.utils.import() would cache the javascript.
             // subScriptLoader.loadSubScript() doesn't cache the javascript and it (re)evaluates it, which makes development easier
             // and the cost of reloading is not important.
-            subScriptLoader.loadSubScript( url.spec, {} ); // Must specify {} as scope, otherwise there were conflicts
+            subScriptLoader.loadSubScript( url, {} ); // Must specify {} as scope, otherwise there were conflicts
         }
         catch(error ) {
             throw error;
@@ -1188,7 +1193,7 @@ var EXPORTED_SYMBOLS= [
     'reservedNames',
     'SET_SELECTION_ROW', 'SELECTED_SET_NAME', 'FIELD_MAIN_ROW', 'OPTION_NOT_UNIQUE_CELL',
     'OPTION_UNIQUE_CELL', 'FIELD_TREECHILDREN', 'NEW_VALUE_ROW',
-    'Field', 'Module', 'register', 'savePrefFile', 'moduleNamesFromPreferences', 'loadFromJavascript',
+    'Field', 'Module', 'register', 'savePrefFile', 'moduleNamesFromPreferences', 'fileNameToUrl', 'loadFromJavascript',
     'VALUES_MANIFEST_FILENAME', 'ASSOCIATIONS_MANIFEST_FILENAME',
     'ASSOCIATED_SET', 'SELECTED_SET', 'VALUES_MANIFEST', 'FIELD_DEFAULT'
 ];

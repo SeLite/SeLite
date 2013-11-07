@@ -82,6 +82,7 @@ var module= new SeLiteSettings.Module( 'extensions.selite-settings.withFolders',
     'globalSet',
     true, //associatesWithFolders
     '~/selite/settings/test_settings_module.js'
+    //'file:///home/pkehl/selite/settings/test_settings_module.js'
     );
 module= SeLiteSettings.register( module );
 
