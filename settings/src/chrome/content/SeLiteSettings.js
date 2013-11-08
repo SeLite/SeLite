@@ -216,10 +216,17 @@ Field.prototype.setDefault= function( setName ) {
 };
 Field.prototype.setValue= function( setName, value ) {
     !this.multivalued && !(this instanceof Field.Choice) || fail( "Can't call setValue() on field " +this.name+ " because it's multivalued or a Field.Choice." );
-    var setNameDot= setName!==''
+    var setNameWithDot= setName!==''
         ? setName+'.'
         : '';
-    this.setPref( setNameDot+ this.name, value );
+    var setFieldName= setNameWithDot+this.name;
+    if( this.module.prefsBranch.prefHasUserValue(setFieldName)
+        && this.module.prefsBranch.getPrefType(setFieldName)===nsIPrefBranch.PREF_STRING
+        && this.module.prefsBranch.getCharPref(setFieldName)===NULL
+    ) {
+        this.module.prefsBranch.clearUserPref(setFieldName);
+    }
+    this.setPref( setFieldName, value );
 };
 /** Set a field (with the given field and key name) to the given value. It doesn't call nsIPrefService.savePrefFile()
  *  but they get saved somehow anyway.
@@ -689,13 +696,13 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
             var type= this.prefsBranch.getPrefType( prefName );
 
             var value= null;
-            if( type==nsIPrefBranch.PREF_STRING ) {
+            if( type===nsIPrefBranch.PREF_STRING ) {
                 value= this.prefsBranch.getCharPref(prefName);
             }
-            else if( type==nsIPrefBranch.PREF_BOOL ) {
+            else if( type===nsIPrefBranch.PREF_BOOL ) {
                 value= this.prefsBranch.getBoolPref(prefName);
             }
-            else if( type==nsIPrefBranch.PREF_INT ) {
+            else if( type===nsIPrefBranch.PREF_INT ) {
                 value= this.prefsBranch.getIntPref(prefName);
             }
             if( multivaluedOrChoice ) {
