@@ -209,10 +209,13 @@ Field.prototype.registerFor= function( module ) {
     this.module= module;
 };
 
+/** Only used when creating new sets that populate default values. See docs of parameter defaultValue of constructor Field().
+ * */
 Field.prototype.setDefault= function( setName ) {
     this.setValue( setName, this.defaultValue );
 };
 Field.prototype.setValue= function( setName, value ) {
+    !this.multivalued && !(this instanceof Field.Choice) || fail( "Can't call setValue() on field " +this.name+ " because it's multivalued or a Field.Choice." );
     var setNameDot= setName!==''
         ? setName+'.'
         : '';

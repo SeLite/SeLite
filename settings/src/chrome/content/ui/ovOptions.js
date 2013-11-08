@@ -863,7 +863,7 @@ function treeClickHandler( event ) {
                     }
                     if( (cellText===ADD_NEW_VALUE || cellText===DELETE_THE_VALUE) ) {
                         if( !field.multivalued || field instanceof SeLiteSettings.Field.Choice ) {
-                            throw new Error();
+                            fail( 'We only allow Add/Delete buttons for non-choice multivalued fields, but it was triggered for field ' +field.name );
                         }
                         var treeChildren= moduleRows[setName][field.name][SeLiteSettings.FIELD_TREECHILDREN];
                         if( cellText===ADD_NEW_VALUE ) {
