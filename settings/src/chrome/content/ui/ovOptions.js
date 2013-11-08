@@ -411,11 +411,11 @@ function subContainer( parent, fieldOrFields ) {
  *  @return object for a new element <treeitem> with one <treerow>
  * */
 function generateTreeItem( module, setName, field, valueOrPair, rowLevel, optionIsSelected, isNewValueRow, valueCompound ) {
-    var key= null;
     if( !(rowLevel instanceof RowLevel) || rowLevel===RowLevel.CHECKBOX || rowLevel===RowLevel.ACTION ) {
         throw new Error("Parameter rowLevel must be an instance of RowLevel, but not CHECKBOX neither ACTION.");
     }
     var multivaluedOrChoice= field!==null && (field.multivalued || field instanceof SeLiteSettings.Field.Choice);
+    var key= null; // If valueOrPair is an object with exactly one (iterable) key, this is the key
     if( typeof valueOrPair==='object' && valueOrPair!==null ) {
         rowLevel===RowLevel.OPTION || fail( "generateTreeItem(): parameter valueOrPair must not be an object, unless RowLevel is OPTION, but that is " +rowLevel );
         multivaluedOrChoice || fail( 'generateTreeItem(): parameter valueOrPair can be an object only for multivalued fields or choice fields, but it was used with ' +field );
@@ -541,6 +541,8 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     }
     var perFolderAndIsNull= rowLevel===RowLevel.FIELD && targetFolder!==null && value===null
             && !multivaluedOrChoice;
+    var perFolderAndIsUndefined= rowLevel===RowLevel.FIELD && targetFolder!==null && valueCompound.entry===undefined
+            && !multivaluedOrChoice;
     var perSetAndIsNull= rowLevel===RowLevel.FIELD && targetFolder===null && valueCompound.fromPreferences
             && !multivaluedOrChoice && valueCompound.entry===null;
     var perSetAndIsUndefined= rowLevel===RowLevel.FIELD && targetFolder===null && !valueCompound.fromPreferences;
@@ -550,7 +552,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
             ? ''+value
             : (perFolderAndIsNull || perSetAndIsNull
                 ? 'null'
-                : (perSetAndIsUndefined
+                : (perFolderAndIsUndefined || perSetAndIsUndefined
                     ? 'undefined'
                     : ''
                   )

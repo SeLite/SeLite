@@ -138,7 +138,7 @@ var Field= function( name, multivalued, defaultValue, allowsNotPresent ) {
     this.multivalued || defaultValue===undefined || defaultValue===null || typeof defaultValue!=='object' || fail( 'Single valued field ' +name+ " must have default value a primitive or null.");
     this.defaultValue= defaultValue;
     
-    this.defaultValue!==null || !multivalued || fail( 'Field ' +name+ " must have a non-null defaultValue (possibly undefined), because it's multivalued." );
+    !(this.defaultValue===null && multivalued) || fail( 'Field ' +name+ " must have a non-null defaultValue (possibly undefined), because it's multivalued." );
     if( this.defaultValue!==undefined && this.defaultValue!==null ) {
         !this.multivalued || ensureInstance( this.defaultValue, Array, "defaultValue of a multivalued field must be an array" );
         var defaultValues= this.multivalued
@@ -648,9 +648,10 @@ Module.prototype.setSelectedSetName= function( setName ) {
 /** @param setName Name of the set; an empty string if the module doesn't allow sets, or if you want a selected set.
  *  @param boolean perFolder Whether this is loaded per folder, as a part of a composite configuration. If true,
  *  then this doesn't generate entries for multivalued and Field.Choice fields that have no value in the given set.
+ *  @TODO param perFolder is not needed. Refactor.
  *  @return Object with sorted keys, serving as associative array {
  *      string field name anonymous object {
- *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest,
+ *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or is undefined
  *          entry: either
  *          - string/boolean/number ('primitive') value, for non-choice single-value fields, and
  *          - object serving as an associative array, for choice, or non-choice and multi-value field name, in format {
@@ -658,8 +659,7 @@ Module.prototype.setSelectedSetName= function( setName ) {
  *          }
  *      }
  *  }
- *  It only includes values present in the given set. It doesn't inject any defaults from the module configuration
- *  for fields that are not defined in the set.
+ *  It doesn't inject any defaults from the module configuration or values manifests for fields that are not defined in the set.
  * */
 Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
     perFolder= perFolder || false;
