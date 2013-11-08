@@ -571,7 +571,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                     'VALUE_CELL '
                     +(valueCompound.folderPath!==null
                         ? SeLiteSettings.VALUES_MANIFEST
-                        : SeLiteSettings.FIELD_DEFAULT
+                        : SeLiteSettings.FIELD_DEFAULT // For visual effect
                      )
                 );
             }
@@ -628,7 +628,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                               ) + ' ' +valueCompound.folderPath
                             : ''
                       )
-                    : SeLiteSettings.FIELD_DEFAULT
+                    : SeLiteSettings.FIELD_DEFAULT // For the click handler
                 );
                 treecell.setAttribute( 'label', valueCompound.folderPath
                     ? OS.Path.join( valueCompound.folderPath, valueCompound.fromPreferences
