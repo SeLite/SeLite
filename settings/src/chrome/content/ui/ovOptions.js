@@ -532,8 +532,8 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     treerow.appendChild( treecell);
     if( targetFolder!==null
         || rowLevel!==RowLevel.FIELD && rowLevel!==RowLevel.OPTION
-        || typeof value=='boolean'
         || !(field instanceof SeLiteSettings.Field)
+        || field instanceof SeLiteSettings.Field.Bool
         || field.multivalued && rowLevel===RowLevel.FIELD
         || field instanceof SeLiteSettings.Field.Choice
     ) {
@@ -576,7 +576,10 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                 );
             }
         }
-    }    
+        if( perSetAndIsNull || perSetAndIsUndefined ) {
+            treecell.setAttribute( 'properties', 'VALUE_CELL ' +SeLiteSettings.FIELD_NULL_OR_UNDEFINED );
+        }
+    }
     if( allowSets || allowMultivaluedNonChoices ) {
         // Cell for action:
         treecell= document.createElementNS( XUL_NS, 'treecell');
