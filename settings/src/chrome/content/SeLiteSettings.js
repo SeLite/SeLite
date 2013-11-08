@@ -214,16 +214,24 @@ Field.prototype.registerFor= function( module ) {
 Field.prototype.setDefault= function( setName ) {
     this.setValue( setName, this.defaultValue );
 };
+/** This returns the preference type used for storing legitimate non-null value(s) of this field.
+ *  @return string one of: nsIPrefBranch.PREF_STRING, nsIPrefBranch.PREF_BOOL, nsIPrefBranch.PREF_INT
+ *  @TODO use it in setPref(), and remove the overriden setPref()
+ * */
+Field.prototype.prefType= function() {
+    return nsIPrefBranch.PREF_STRING;
+};
 Field.prototype.setValue= function( setName, value ) {
     !this.multivalued && !(this instanceof Field.Choice) || fail( "Can't call setValue() on field " +this.name+ " because it's multivalued or a Field.Choice." );
     var setNameWithDot= setName!==''
         ? setName+'.'
         : '';
     var setFieldName= setNameWithDot+this.name;
-    if( this.module.prefsBranch.prefHasUserValue(setFieldName)
+    if( this.prefType()!==nsIPrefBranch.PREF_STRING && this.module.prefsBranch.prefHasUserValue(setFieldName)
         && this.module.prefsBranch.getPrefType(setFieldName)===nsIPrefBranch.PREF_STRING
-        && this.module.prefsBranch.getCharPref(setFieldName)===NULL
     ) {
+        var existingValue= this.module.prefsBranch.getCharPref(setFieldName);
+        existingValue===NULL || fail("Non-string field " +this.name+ " has a string value other than 'SELITE_NULL': " +existingValue );
         this.module.prefsBranch.clearUserPref(setFieldName);
     }
     this.setPref( setFieldName, value );
@@ -292,6 +300,9 @@ Field.Bool.prototype.constructor= Field.Bool;
 Field.Bool.prototype.validateKey= function( key ) {
     return typeof key==='boolean';
 };
+Field.Bool.prototype.prefType= function() {
+    return nsIPrefBranch.PREF_BOOL;
+};
 Field.Bool.prototype.setPref= function( setFieldKeyName, value ) {
     this.module.prefsBranch.setBoolPref( setFieldKeyName, value );
 };
@@ -303,6 +314,9 @@ Field.Int.prototype= new Field('Int.prototype');
 Field.Int.prototype.constructor= Field.Int;
 Field.Int.prototype.validateKey= function( key ) {
     return typeof key==='number' && Math.round(key)===key;
+};
+Field.Int.prototype.prefType= function() {
+    return nsIPrefBranch.PREF_INT;
 };
 Field.Int.prototype.setPref= function( setFieldKeyName, value ) {
     this.module.prefsBranch.setIntPref( setFieldKeyName, value );
@@ -422,7 +436,7 @@ Field.Choice.prototype.setDefault= function() {
 Field.Choice.prototype.setValue= function() {
     throw new Error("Do not call setValue() on Field.Choice family.");
 };
-Field.Choice.prototype.setPref= Field.prototype.setPref;
+//Field.Choice.prototype.setPref= Field.prototype.setPref;
 
 Field.Choice.Int= function( name, multivalued, defaultValue, choicePairs, allowsNotPresent ) {
     Field.Choice.call( this, name, multivalued, defaultValue, choicePairs, allowsNotPresent );
@@ -436,6 +450,7 @@ Field.Choice.Int= function( name, multivalued, defaultValue, choicePairs, allows
 };
 Field.Choice.Int.prototype= new Field.Choice('ChoiceInt.prototype');
 Field.Choice.Int.prototype.constructor= Field.Choice.Int;
+Field.Choice.Int.prototype.prefType= Field.Int.prototype.prefType;
 Field.Choice.Int.prototype.setPref= Field.Int.prototype.setPref;
 Field.Choice.Int.prototype.validateKey= function( key ) {
     return typeof key==='number' && Math.round(key)===key;
