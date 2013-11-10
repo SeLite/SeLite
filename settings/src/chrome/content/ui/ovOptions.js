@@ -546,16 +546,14 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     var perSetAndIsNull= rowLevel===RowLevel.FIELD && targetFolder===null && valueCompound.fromPreferences
             && !multivaluedOrChoice && valueCompound.entry===null;
     var perSetAndIsUndefined= rowLevel===RowLevel.FIELD && targetFolder===null && !valueCompound.fromPreferences;
-    if( (typeof value==='string' || typeof value==='number' || perFolderAndIsNull || perSetAndIsNull || perSetAndIsUndefined
-        ) && !isNewValueRow ) {
+    if( (typeof value==='string' || typeof value==='number' || perFolderAndIsNull || perFolderAndIsUndefined || perSetAndIsNull || perSetAndIsUndefined
+        ) && !isNewValueRow
+    ) {
         treecell.setAttribute('label', value!==null
             ? ''+value
             : (perFolderAndIsNull || perSetAndIsNull
                 ? 'null'
-                : (perFolderAndIsUndefined || perSetAndIsUndefined
-                    ? 'undefined'
-                    : ''
-                  )
+                : 'undefined'
               )
         );
         if( targetFolder!==null && valueCompound!==null ) {
@@ -578,7 +576,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                 );
             }
         }
-        if( perSetAndIsNull || perSetAndIsUndefined ) {
+        if( perFolderAndIsNull || perFolderAndIsUndefined || perSetAndIsNull || perSetAndIsUndefined ) {
             treecell.setAttribute( 'properties', 'VALUE_CELL ' +SeLiteSettings.FIELD_NULL_OR_UNDEFINED );
         }
     }
