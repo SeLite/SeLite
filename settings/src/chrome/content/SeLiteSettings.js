@@ -218,7 +218,6 @@ Field.prototype.setDefault= function( setName ) {
 };
 /** This returns the preference type used for storing legitimate non-null value(s) of this field.
  *  @return string one of: nsIPrefBranch.PREF_STRING, nsIPrefBranch.PREF_BOOL, nsIPrefBranch.PREF_INT
- *  @TODO use it in setPref(), and remove the overriden setPref()
  * */
 Field.prototype.prefType= function() {
     return nsIPrefBranch.PREF_STRING;
@@ -242,7 +241,18 @@ Field.prototype.setValue= function( setName, value ) {
  *  but they get saved somehow anyway.
  * */
 Field.prototype.setPref= function( setFieldKeyName, value ) {
-    this.module.prefsBranch.setCharPref( setFieldKeyName, value );
+    var prefType= this.prefType();
+    if( prefType===nsIPrefBranch.PREF_STRING ) {
+        this.module.prefsBranch.setCharPref( setFieldKeyName, value );
+    }
+    else
+    if( prefType===nsIPrefBranch.PREF_INT ) {
+        this.module.prefsBranch.setIntPref( setFieldKeyName, value );
+    }
+    else {
+        prefType===nsIPrefBranch.PREF_BOOL || fail( "Field " +setFieldKeyName+ " hasn't got acceptable prefType()." );
+        this.module.prefsBranch.setBoolPref( setFieldKeyName, value );
+    }
 };
 
 /** Only to be used with multivalued or choice fields. It doesn't call nsIPrefService.savePrefFile().
@@ -305,9 +315,6 @@ Field.Bool.prototype.validateKey= function( key ) {
 Field.Bool.prototype.prefType= function() {
     return nsIPrefBranch.PREF_BOOL;
 };
-Field.Bool.prototype.setPref= function( setFieldKeyName, value ) {
-    this.module.prefsBranch.setBoolPref( setFieldKeyName, value );
-};
 
 Field.Int= function( name, multivalued, defaultValue, allowsNotPresent ) {
     Field.call( this, name, multivalued, defaultValue, allowsNotPresent );
@@ -319,9 +326,6 @@ Field.Int.prototype.validateKey= function( key ) {
 };
 Field.Int.prototype.prefType= function() {
     return nsIPrefBranch.PREF_INT;
-};
-Field.Int.prototype.setPref= function( setFieldKeyName, value ) {
-    this.module.prefsBranch.setIntPref( setFieldKeyName, value );
 };
 /** This works even if one or both parameters are strings - it transforms them into numbers.
  *  We need this for XUL GUI setCellText handler.
@@ -438,7 +442,6 @@ Field.Choice.prototype.setDefault= function() {
 Field.Choice.prototype.setValue= function() {
     throw new Error("Do not call setValue() on Field.Choice family.");
 };
-//Field.Choice.prototype.setPref= Field.prototype.setPref;
 
 Field.Choice.Int= function( name, multivalued, defaultValue, choicePairs, allowsNotPresent ) {
     Field.Choice.call( this, name, multivalued, defaultValue, choicePairs, allowsNotPresent );
@@ -453,7 +456,6 @@ Field.Choice.Int= function( name, multivalued, defaultValue, choicePairs, allows
 Field.Choice.Int.prototype= new Field.Choice('ChoiceInt.prototype');
 Field.Choice.Int.prototype.constructor= Field.Choice.Int;
 Field.Choice.Int.prototype.prefType= Field.Int.prototype.prefType;
-Field.Choice.Int.prototype.setPref= Field.Int.prototype.setPref;
 Field.Choice.Int.prototype.validateKey= function( key ) {
     return typeof key==='number' && Math.round(key)===key;
 };
