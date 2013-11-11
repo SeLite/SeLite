@@ -581,7 +581,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         }
     }
     if( allowSets || allowMultivaluedNonChoices ) {
-        // Cell for action:
+        // Cell for Action column (i.e. 'Set' column)
         treecell= document.createElementNS( XUL_NS, 'treecell');
         treerow.appendChild( treecell);
         treecell.setAttribute('editable', 'false');
@@ -610,7 +610,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                 treecell.setAttribute( 'label', valueCompound.fromPreferences
                     ? valueCompound.setName
                     : (valueCompound.folderPath
-                            ? 'values manifest'
+                            ? ''
                             : 'default'
                       )
                 );
@@ -638,9 +638,9 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                             ? SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME
                             : SeLiteSettings.VALUES_MANIFEST_FILENAME
                       )
-                    : (valueCompound.fromPreferences
-                            ? '(active set)'
-                            : module.definitionJavascriptFile
+                    : (!valueCompound.fromPreferences
+                            ? module.definitionJavascriptFile
+                            : ''
                       )
                 );
             }
