@@ -113,8 +113,8 @@ function ensureFieldName( name, description, asFieldName ) {
  *  It is applied when creating or updating a configuration set
  *  (loading an existing configuration set which doesn't have a value for this field).
  *  But if Module.associatesWithFolders==true, defaultValue is applied by getFieldsDownToFolder() no matter what allowsNotPresent.
- *  @param bool allowsNotPresent Whether to allow a value to be stored as 'not present' (Javascript: undefined); true by default.
- *  If true, and the field has no value stored in a a set (or it has VALUE_PRESENT),
+ *  @param bool allowsNotPresent Whether to allow a value not to be stored in the set at all (Javascript: undefined); true by default.
+ *  If true, and the field has no value stored in a a set,
  *  the behaviour is different to empty/blank or null,  as 'not present' means the field inherits the value from
  *  - values manifests or more general sets (if accessing per folder), or
  *  - from the field default (from schema definition)
