@@ -616,15 +616,15 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                 }
             }
         }
-        // per-folder view: Manifest or definition; per-module view: Null/Undefine
-        treecell= document.createElementNS( XUL_NS, 'treecell');
-        treerow.appendChild( treecell);
-        treecell.setAttribute('editable', 'false');
-        if( targetFolder===null ) {
-            treecell.setAttribute( 'label', 'TODO');
-        }
-        else {
-            if( rowLevel===RowLevel.FIELD ) {            
+        if( rowLevel===RowLevel.FIELD ) {
+            // per-folder view: Manifest or definition; per-module view: Null/Undefine
+            treecell= document.createElementNS( XUL_NS, 'treecell');
+            treerow.appendChild( treecell);
+            treecell.setAttribute('editable', 'false');
+            if( targetFolder===null ) {
+                treecell.setAttribute( 'label', 'TODO');
+            }
+            else {
                 treecell.setAttribute( 'properties', valueCompound.folderPath!==null
                     ? (     valueCompound.folderPath!==''
                             ? (valueCompound.fromPreferences
