@@ -20,19 +20,19 @@ treechildren::-moz-tree-checkbox(SELITE_OPTION_UNIQUE_CELL,checked) {
   list-style-image: url('chrome://global/skin/radio/radio-check.gif');
 }
 
-treechildren::-moz-tree-cell-text(VALUE_CELL SELITE_SELECTED_SET) {
+treechildren::-moz-tree-cell-text(SELITE_SELECTED_SET) {
     color: blue;
 }
 
-treechildren::-moz-tree-cell-text(VALUE_CELL SELITE_VALUES_MANIFEST) {
+treechildren::-moz-tree-cell-text(SELITE_VALUES_MANIFEST) {
     color: brown;
 }
-treechildren::-moz-tree-cell-text(VALUE_CELL SELITE_FIELD_DEFAULT) {
-    color: brown;
+treechildren::-moz-tree-cell-text(SELITE_FIELD_DEFAULT) {
+    color: green;
     font-style: italic;
 }
-treechildren::-moz-tree-cell-text(VALUE_CELL SELITE_FIELD_NULL_OR_UNDEFINED) {
-    color: green;
+treechildren::-moz-tree-cell-text(SELITE_FIELD_NULL_OR_UNDEFINED) {
+    color: brown;
     font-style: italic;
 }
 

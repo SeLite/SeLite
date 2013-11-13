@@ -476,7 +476,6 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         treerow.appendChild( treecell);
         if( rowLevel===RowLevel.SET && module.allowSets) {
             subContainer( treeRows, module.name, setName )[ SeLiteSettings.SET_SELECTION_ROW ]= treerow;
-            //alert( 'after SET_SELECTION_ROW:\n' +objectToString(treeRows, 4) );
             var thisSetSelected= setName==module.selectedSetName();
             treecell.setAttribute('value', ''+thisSetSelected );
             treecell.setAttribute('editable', ''+!thisSetSelected ); // I allow to select an unselected set, but not to de-select a selected set
@@ -495,11 +494,9 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         else {
             subContainer( treeRows, module.name, setName, fieldName )[ SeLiteSettings.FIELD_MAIN_ROW ]= treerow;
         }
-        //alert( 'after RowLevel.FIELD:\n' +objectToString(treeRows, 4) );
     }
     if( rowLevel===RowLevel.OPTION ) {
         subContainer( treeRows, module.name, setName, fieldName )[ key ]= treerow;
-        //alert( 'after RowLevel.OPTION:\n' +objectToString(treeRows, 4) );
     }
     
     // Cell for checkbox (if the field is boolean or a choice):
@@ -559,20 +556,16 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         if( targetFolder!==null && valueCompound!==null ) {
             if( valueCompound.fromPreferences ) {
                 treecell.setAttribute( 'properties',
-                    'VALUE_CELL '
-                    +(valueCompound.folderPath!==''
+                    valueCompound.folderPath!==''
                         ? SeLiteSettings.ASSOCIATED_SET
                         : SeLiteSettings.SELECTED_SET
-                    )
                 );
             }
             else {
                 treecell.setAttribute( 'properties',
-                    'VALUE_CELL '
-                    +(valueCompound.folderPath!==null
+                    valueCompound.folderPath!==null
                         ? SeLiteSettings.VALUES_MANIFEST
                         : SeLiteSettings.FIELD_DEFAULT // For visual effect
-                     )
                 );
             }
         }
@@ -923,7 +916,7 @@ function treeClickHandler( event ) {
                     }
                 }
                 else {
-                    window.open( '?module=' +escape(module.name)+ '&set=' +escape(cellProperties), '_blank');
+                    window.open( '?module=' +escape(module.name)+ '&set=' +escape(cellText), '_blank');
                 }
             }
             if( column.value.element===treeColumnElements.manifest && cellProperties!=='' ) {
