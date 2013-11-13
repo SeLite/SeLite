@@ -273,7 +273,7 @@ function generateTreeColumns( allowModules, perFolder ) {
     
     if( perFolder || allowSets || allowMultivaluedNonChoices ) {
         splitter= document.createElementNS( XUL_NS, 'splitter' );
-        splitter.setAttribute( 'ordinal', '6');
+        splitter.setAttribute( 'ordinal', '8');
         treecols.appendChild( splitter );
 
         treecol= treeColumnElements.action= document.createElementNS( XUL_NS, 'treecol');
@@ -285,20 +285,20 @@ function generateTreeColumns( allowModules, perFolder ) {
         treecol.setAttribute( 'ordinal', '9');
         treecols.appendChild(treecol);
     }
-    if( perFolder ) {
-        splitter= document.createElementNS( XUL_NS, 'splitter' );
-        splitter.setAttribute( 'ordinal', '10');
-        treecols.appendChild( splitter );
+    
+    // Per-folder view: Manifest or definition. Per-module view: Null/Undefine
+    splitter= document.createElementNS( XUL_NS, 'splitter' );
+    splitter.setAttribute( 'ordinal', '10');
+    treecols.appendChild( splitter );
 
-        treecol= treeColumnElements.manifest= document.createElementNS( XUL_NS, 'treecol');
-        treecol.setAttribute('label', perFolder
-            ? 'Manifest or definition'
-            : 'Clear');
-        treecol.setAttribute('editable', 'false');
-        treecol.setAttribute( 'flex', '1');
-        treecol.setAttribute( 'ordinal', '11');
-        treecols.appendChild(treecol);
-    }
+    treecol= treeColumnElements.manifest= document.createElementNS( XUL_NS, 'treecol');
+    treecol.setAttribute('label', perFolder
+        ? 'Manifest or definition'
+        : 'Null/Undefine');
+    treecol.setAttribute('editable', 'false');
+    treecol.setAttribute( 'flex', '1');
+    treecol.setAttribute( 'ordinal', '11');
+    treecols.appendChild(treecol);
     return treecols;
 }
 
@@ -614,10 +614,17 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                 if( !valueCompound.fromPreferences && valueCompound.folderPath===null ) {
                     treecell.setAttribute( 'properties', SeLiteSettings.FIELD_DEFAULT );
                 }
-                // Cell for manifest:
-                treecell= document.createElementNS( XUL_NS, 'treecell');
-                treerow.appendChild( treecell);
-                treecell.setAttribute('editable', 'false');
+            }
+        }
+        // per-folder view: Manifest or definition; per-module view: Null/Undefine
+        treecell= document.createElementNS( XUL_NS, 'treecell');
+        treerow.appendChild( treecell);
+        treecell.setAttribute('editable', 'false');
+        if( targetFolder===null ) {
+            treecell.setAttribute( 'label', 'TODO');
+        }
+        else {
+            if( rowLevel===RowLevel.FIELD ) {            
                 treecell.setAttribute( 'properties', valueCompound.folderPath!==null
                     ? (     valueCompound.folderPath!==''
                             ? (valueCompound.fromPreferences
