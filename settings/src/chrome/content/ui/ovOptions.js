@@ -573,8 +573,8 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
             treecell.setAttribute( 'properties', SeLiteSettings.FIELD_NULL_OR_UNDEFINED );
         }
     }
-    if( allowSets || allowMultivaluedNonChoices ) {
-        // Cell for Action column (i.e. 'Set' column)
+    if( allowSets || allowMultivaluedNonChoices || targetFolder!==null ) {
+        // Cell for Action column (in module view) or 'Set' column (in per-folder view)
         treecell= document.createElementNS( XUL_NS, 'treecell');
         treerow.appendChild( treecell);
         treecell.setAttribute('editable', 'false');
@@ -604,14 +604,16 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                     ? valueCompound.setName
                     : (valueCompound.folderPath
                             ? ''
-                            : 'default'
+                            : 'module default'
                       )
                 );
-                treecell.setAttribute( 'properties',
-                    valueCompound.fromPreferences
-                    ? valueCompound.setName
-                    : ''
-                );
+                if( valueCompound.fromPreferences && valueCompound.setName===module.selectedSetName() ) {
+                    treecell.setAttribute( 'properties', SeLiteSettings.SELECTED_SET );
+                }
+                else
+                if( !valueCompound.fromPreferences && valueCompound.folderPath===null ) {
+                    treecell.setAttribute( 'properties', SeLiteSettings.FIELD_DEFAULT );
+                }
                 // Cell for manifest:
                 treecell= document.createElementNS( XUL_NS, 'treecell');
                 treerow.appendChild( treecell);
