@@ -570,7 +570,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
             }
         }
         if( perFolderAndIsNull || perFolderAndIsUndefined || perSetAndIsNull || perSetAndIsUndefined ) {
-            treecell.setAttribute( 'properties', 'VALUE_CELL ' +SeLiteSettings.FIELD_NULL_OR_UNDEFINED );
+            treecell.setAttribute( 'properties', SeLiteSettings.FIELD_NULL_OR_UNDEFINED );
         }
     }
     if( allowSets || allowMultivaluedNonChoices ) {
