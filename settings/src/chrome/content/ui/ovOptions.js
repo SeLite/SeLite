@@ -431,9 +431,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         throw new Error( "Parameter field must be an instance of a subclass of Field, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but it is "
             +(typeof field==='object' ? 'an instance of ' +field.constructor.name : typeof field)+ ': ' +field );
     }
-    if( optionIsSelected===undefined ) {
-        optionIsSelected= false;
-    }
+    optionIsSelected= optionIsSelected || false;
     if( isNewValueRow===undefined ) {
         isNewValueRow= false;
     }
