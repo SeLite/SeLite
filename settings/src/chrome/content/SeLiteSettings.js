@@ -725,7 +725,7 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
                 value= this.prefsBranch.getIntPref(prefName);
             }
             if( multivaluedOrChoice ) {
-                result[fieldName].entry[ prefName ]= value;
+                result[fieldName].entry[ prefName.substring(setNameWithDot.length+fieldNameWithDot.length) ]= value;
             }
             else {
                 result[ fieldName ].entry= value!==NULL
@@ -962,7 +962,9 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
                     if( field.multivalued || field instanceof Field.Choice ) {
                         if( result[manifest.fieldName].folderPath!=manifestFolder ) {
                             // override any less local value(s) from a manifest from upper folders
-                            result[ manifest.fieldName ].entry= {};
+                            result[ manifest.fieldName ].entry= !(field instanceof Field.Choice)
+                                ? sortedObject( field.compareValues )
+                                : {};
                         }
                         if( manifest.value!==VALUE_PRESENT ) {
                             result[ manifest.fieldName ].entry[ manifest.value ]=
