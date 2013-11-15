@@ -1005,13 +1005,13 @@ function gatherAndValidateCell( row, value ) {
         valueChanged= value!==oldKey;
         if( valueChanged ) {
             if( value in fieldTreeRows ) {
-                //alert( "Values must be unique. Another entry for this field already has same value " +value ); //@TODO?
+                console.warn( "Values must be unique. Another entry for field " +field.name+ " already has same value " +value ); //@TODO?
                 validationPassed= false;
             }
         }
         treeRow= fieldTreeRows[oldKey];
     }
-    var cell= treeCell( treeRow, RowLevel.FIELD );
+    //var cell= treeCell( treeRow, RowLevel.FIELD );
     //@TODO custom field validation?
     if( field instanceof SeLiteSettings.Field.Int ) {
         var numericValue= Number(value);
@@ -1043,7 +1043,7 @@ function setCellText( gatheredInfo, value ) {
     var field= gatheredInfo.field;
     var fieldTreeRows= gatheredInfo.fieldTreeRows;
     var treeRow= gatheredInfo.treeRow;
-    var oldKey= gatheredInfo.oldKey;console.log('setCellText: ' +value);
+    var oldKey= gatheredInfo.oldKey;
     if( !field.multivalued ) {
         field.setValue( setName, value );
     }
@@ -1138,11 +1138,15 @@ function createTreeView(original) {
         setCellText: function(row, col, value) {
             // I don't use parameter col in my own methods, because I use module definition to figure out the editable cell.
             // If we had more than one editable cell per row, then I'd have to use parameter col.
-            var gatheredInfo= gatherAndValidateCell( row, value );
-            if( gatheredInfo.validationPassed ) {
+            var info= gatherAndValidateCell( row, value );
+            if( info.validationPassed ) {
                 var result= original.setCellText(row, col, value);
-                if( gatheredInfo.valueChanged ) {
-                    setCellText( gatheredInfo, value );
+                if( info.valueChanged ) {
+                    setCellText( info, value );
+                    if( !info.field.multivalued ) {
+                        treeCell( info.treeRow, RowLevel.FIELD ).setAttribute( 'properties', '' );
+                        moduleSetFields[info.module.name][info.setName][info.field.name].entry= value;
+                    }
                 }
                 return result;
             }
