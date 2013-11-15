@@ -401,7 +401,8 @@ function subContainer( parent, fieldOrFields ) {
  *  @param optionIsSelected bool Whether the option is selected. Only used when rowLevel===RowLevel.OPTION and field instanceof Field.Choice.
  *  @param isNewValueRow bool Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell.
  *  It still puts the new <treerow> element to treeRows[moduleName...], so that it can be updated/removed once the user fills in the value. Optional; false by default.
- *  @param object valueCompound Anonymous object, one of entries in result of Module.getFieldsDownToFolder(..) in form {
+ *  @param object valueCompound Anonymous object, one of entries in result of Module.getFieldsDownToFolder(..)
+ *  or Module.Module.getFieldsOfSet() in form {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or from field default,
  *          setName: string set name (only valid if fromPreferences is true),
  *          folderPath: string folder path to the manifest file (either values manifest, or associations manifest);
@@ -620,7 +621,31 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
             treerow.appendChild( treecell);
             treecell.setAttribute('editable', 'false');
             if( targetFolder===null ) {
-                treecell.setAttribute( 'label', 'TODO');
+                //@TODO factor this out; run it whenever a multivalued field is updated, emptied, or undefined/null is set
+                var label;
+                if( !field.multivalued ) {
+                    label= valueCompound.entry===null
+                        ? (field.allowsNotPresent
+                            ? 'Undefine'
+                            : ''
+                          )
+                        : (valueCompound.entry===undefined
+                               ? ''
+                               : (field instanceof SeLiteSettings.Field.Choice
+                                    ? 'Undefine'
+                                    : 'Null'
+                                 )
+                        );
+                }
+                else {
+                    // We only allow 'Undefine' button once there are no value(s) for the multivalued field
+                    label= valueCompound.fromPreferences
+                        && Object.keys(valueCompound.entry).length===0
+                        && field.allowsNotPresent
+                        ? 'Undefine'
+                        : '';
+                }
+                treecell.setAttribute( 'label', label );
             }
             else {
                 treecell.setAttribute( 'properties', valueCompound.folderPath!==null
@@ -1011,7 +1036,6 @@ function gatherAndValidateCell( row, value ) {
         }
         treeRow= fieldTreeRows[oldKey];
     }
-    //var cell= treeCell( treeRow, RowLevel.FIELD );
     //@TODO custom field validation?
     if( field instanceof SeLiteSettings.Field.Int ) {
         var numericValue= Number(value);
