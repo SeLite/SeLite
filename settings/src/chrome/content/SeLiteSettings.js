@@ -655,7 +655,7 @@ Module.prototype.setSelectedSetName= function( setName ) {
  *      string field name anonymous object {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or is undefined
  *          entry: either
- *          - string/boolean/number ('primitive') value, for non-choice single-value fields, and
+ *          - string/boolean/number ('primitive') value or null or undefined, for non-choice single-value fields, and
  *          - object serving as an associative array, for choice, or non-choice and multi-value field name, in format {
  *             string key => string/number ('primitive') label or value entered by user
  *          }
@@ -740,6 +740,7 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
                     ', field ' +fieldName+ ' is multivalued and/or a choice, but it has its own preference which is other than ' +VALUE_PRESENT );
             result[ fieldName ].fromPreferences= true; // The field is present, with no value(s)
             // Leave result[ fieldName ].entry as it is (an empty object or an empty sortedObject)
+            // If the field is not present in the set, that is indicated by .fromPreferences==false.
         }
     }
     return result;

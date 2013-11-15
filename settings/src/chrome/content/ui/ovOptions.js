@@ -665,7 +665,10 @@ function generateSets( moduleChildren, module, setNameToExpand ) {
         var setFields= targetFolder===null
             ? module.getFieldsOfSet( setName )
             : module.getFieldsDownToFolder( targetFolder, true );
-        
+        if( targetFolder===null ) {
+            moduleSetFields[module.name]= moduleSetFields[module.name] || {};
+            moduleSetFields[module.name][ setName ]= setFields;
+        }
         var setChildren= null;
         if( allowSets && module.allowSets ) {
             var setItem= generateTreeItem(module, setName, null, null, RowLevel.SET );
@@ -980,24 +983,27 @@ function gatherAndValidateCell( row, value ) {
     var treeRow;
     var oldKey;
     var validationPassed= true;
-    var valueChanged= true;
+    var valueChanged;
     if( !field.multivalued ) {
         treeRow= moduleRows[setName][fieldName];
         // @TODO Docs Can't use treeRow.constructor.name here - because it's a native object.
         if( !(treeRow instanceof XULElement) || treeRow.tagName!=='treerow') {
             throw new Error( 'treeRow should be an instance of XULElement for a <treerow>.');
         }
+        // I don't set oldKey variable here, because I don't need it in the result to return
+        var oldEntry= moduleSetFields[moduleName][setName][fieldName].entry;
+        valueChanged= value!==''+oldEntry
+            && !(value==='null' || oldEntry===null)
+            && !(value==='undefined' || oldentry===undefined);
     }
     else {
         fieldTreeRows= moduleRows[setName][fieldName];
         if( !(fieldTreeRows instanceof SortedObjectTarget) ) {
             throw new Error( "fieldTreeRows should be an instance of SortedObjectTarget (actually, a proxy to such an instance), but it is " +fieldTreeRows.constructor.name );
         }
-        var oldKey= propertiesPart( rowProperties, RowLevel.OPTION );
-        if( value===oldKey ) {
-            valueChanged= false; // the user finished editing a cell, but they didn't change the text
-        }
-        else {
+        oldKey= propertiesPart( rowProperties, RowLevel.OPTION );
+        valueChanged= value!==oldKey;
+        if( valueChanged ) {
             if( value in fieldTreeRows ) {
                 //alert( "Values must be unique. Another entry for this field already has same value " +value ); //@TODO?
                 validationPassed= false;
@@ -1037,7 +1043,7 @@ function setCellText( gatheredInfo, value ) {
     var field= gatheredInfo.field;
     var fieldTreeRows= gatheredInfo.fieldTreeRows;
     var treeRow= gatheredInfo.treeRow;
-    var oldKey= gatheredInfo.oldKey;
+    var oldKey= gatheredInfo.oldKey;console.log('setCellText: ' +value);
     if( !field.multivalued ) {
         field.setValue( setName, value );
     }
@@ -1185,6 +1191,18 @@ function createTreeChildren( parent ) {
     parent.appendChild( treeChildren);
     return treeChildren;
 }
+
+/** Anonymous object serving as a multidimensional associative array {
+ *      string module name: {
+ *          string set name: result of Module.getFieldsOfSet();
+            not to be used if in per-folder mode
+ *      }
+ *      Purpose: setCellText() uses it to determine whether in a single-valued string field
+ *      'undefined' or 'null' are the actual values, or indicators of the field being undefined/null in that set.
+ *      Any multi-valued or choice fields don't get updated when a use changes them.
+ *  }
+ * */
+var moduleSetFields= {};
 
 window.addEventListener( "load", function(e) {
     var params= document.location.search.substring(1);
