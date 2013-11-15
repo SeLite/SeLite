@@ -955,7 +955,7 @@ function treeClickHandler( event ) {
 /** Gather some information about the cell, the field, set and module.
  *  Validate the value.
  * @param row is 0-based index among the expanded rows, not all rows.
- * @param value new value
+ * @param string value new value (as typed)
  *  @return mixed an anonymous object {
        module: ??,
         rowProperties: string,
@@ -993,8 +993,8 @@ function gatherAndValidateCell( row, value ) {
         // I don't set oldKey variable here, because I don't need it in the result to return
         var oldEntry= moduleSetFields[moduleName][setName][fieldName].entry;
         valueChanged= value!==''+oldEntry
-            && !(value==='null' || oldEntry===null)
-            && !(value==='undefined' || oldentry===undefined);
+            && !(value==='null' && oldEntry===null)
+            && !(value==='undefined' && oldEntry===undefined);
     }
     else {
         fieldTreeRows= moduleRows[setName][fieldName];
