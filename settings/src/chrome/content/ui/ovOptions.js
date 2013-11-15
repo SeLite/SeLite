@@ -406,7 +406,8 @@ function subContainer( parent, fieldOrFields ) {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or from field default,
  *          setName: string set name (only valid if fromPreferences is true),
  *          folderPath: string folder path to the manifest file (either values manifest, or associations manifest);
- *              empty string '' if the value(s) come from a global (active) set; null if fromPreferences===true or if the value comes from field default
+ *              empty string '' if the value(s) come from a global (active) set;
+ *              null if fromPreferences===true or if the value comes from field default (as in the module definition)
  *          entry: as described for Module.getFieldsDownToFolder(..)
  *  }
  *  @return object for a new element <treeitem> with one <treerow>
@@ -622,16 +623,18 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
             treecell.setAttribute('editable', 'false');
             if( targetFolder===null ) {
                 //@TODO factor this out; run it whenever a multivalued field is updated, emptied, or undefined/null is set
+                var isChoice= field instanceof SeLiteSettings.Field.Choice;
                 var label;
                 if( !field.multivalued ) {
-                    label= valueCompound.entry===null
+                    label= !isChoice && valueCompound.entry===null
+                        || isChoice && valueCompound
                         ? (field.allowsNotPresent
                             ? 'Undefine'
                             : ''
                           )
-                        : (valueCompound.entry===undefined
+                        : (valueCompound.entry===undefined || isChoice && valueCompound.fromPreferences
                                ? ''
-                               : (field instanceof SeLiteSettings.Field.Choice
+                               : (isChoice
                                     ? 'Undefine'
                                     : 'Null'
                                  )
