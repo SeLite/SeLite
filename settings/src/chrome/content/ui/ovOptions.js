@@ -623,6 +623,8 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
             treecell.setAttribute('editable', 'false');
             if( targetFolder===null ) {
                 //@TODO factor this out; run it whenever a multivalued field is updated, emptied, or undefined/null is set
+                //@TODO here and in SeLiteSetttings: for Choice/multivalued, have .entry===undefined if not defined in the set
+                //@then I don't need to check and re/set .fromPreferences here
                 var isChoice= field instanceof SeLiteSettings.Field.Choice;
                 var label;
                 if( !field.multivalued ) {

@@ -656,9 +656,10 @@ Module.prototype.setSelectedSetName= function( setName ) {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or is undefined
  *          entry: either
  *          - string/boolean/number ('primitive') value or null or undefined, for non-choice single-value fields, and
- *          - object serving as an associative array, for choice, or non-choice and multi-value field name, in format {
+ *          - object serving as an associative array, for choice, or non-choice and multi-value field name,
+ *          if it has one or more values/choices, in format {
  *             string key => string/number ('primitive') label or value entered by user
- *          }
+ *          }, or undefined if it has no values/choices
  *      }
  *  }
  *  It doesn't inject any defaults from the module configuration or values manifests for fields that are not defined in the set.
@@ -683,7 +684,7 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
             ? fieldName+ '.'
             : fieldName;
         var children; // An array of preference string key(s) present for this field
-        var fieldHasPreference= this.prefsBranch.prefHasUserValue(setNameWithDot+fieldName);
+        var fieldHasPreference= this.prefsBranch.prefHasUserValue(setNameWithDot+fieldName); // True if a single-valued field has a value, or if a multivalued/choice has VALUE_PRESENT
         if( !multivaluedOrChoice &&  fieldHasPreference ) {
             children= [setNameWithDot+fieldName];
         }
@@ -693,22 +694,16 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
         } else {
             children= [];
         }
-        if( multivaluedOrChoice ) {
-            // When presenting Field.Choice, they are not sorted by stored values but by keys from the field definition.
+        result[ fieldName ]= {
+            fromPreferences: false,
+            entry: undefined
+        };
+        if( multivaluedOrChoice && (fieldHasPreference || children.length>0) ) {
+            // When presenting Field.Choice, they are not sorted by stored values, but by keys from the field definition.
             // So I only use sortedObject for multivalued fields other than Field.Choice
-            result[fieldName]= {
-                fromPreferences: false,
-                entry: !(field instanceof Field.Choice)
-                    ? sortedObject( field.compareValues )
-                    : {}
-                };
-        }
-        else {
-            result[ fieldName ]= {
-                fromPreferences: false,
-                entry: undefined
-            };
-
+            result[fieldName].entry= !(field instanceof Field.Choice)
+                ? sortedObject( field.compareValues )
+                : {}
         }
         for( var i=0; i<children.length; i++ ) {
             var prefName= children[i];
@@ -734,13 +729,11 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
             }
             result[ fieldName ].fromPreferences= true;
         }
-        if( multivaluedOrChoice && children.length===0 && fieldHasPreference ) {
+        if( multivaluedOrChoice && fieldHasPreference && children.length===0 ) {
             this.prefsBranch.getCharPref(setNameWithDot+fieldName)===VALUE_PRESENT
                 || fail( 'Module ' +this.name+ ', set ' + setName+
                     ', field ' +fieldName+ ' is multivalued and/or a choice, but it has its own preference which is other than ' +VALUE_PRESENT );
-            result[ fieldName ].fromPreferences= true; // The field is present, with no value(s)
-            // Leave result[ fieldName ].entry as it is (an empty object or an empty sortedObject)
-            // If the field is not present in the set, that is indicated by .fromPreferences==false.
+            result[ fieldName ].fromPreferences= true; // The field is present, with no value(s) - result[ fieldName ].entry is an empty object/sortedObject
         }
     }
     return result;
@@ -1021,7 +1014,7 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
             }
         }
     }
-    // Fourth, for any fields with the value being undefined (not null or empty array/string), apply field defaults
+    // Fourth, for any fields with the value being undefined (not null or empty string), apply field defaults
     for( var fieldName in this.fields ) {
         if( result[fieldName].entry===undefined ) {
             result[fieldName].entry= this.fields[fieldName].getDefaultValue();
