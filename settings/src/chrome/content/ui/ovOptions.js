@@ -378,6 +378,30 @@ function subContainer( parent, fieldOrFields ) {
     return object;
 }
 
+/** Generate label for 'Null/Undefine' column.
+ *  @param field Instance of SeLiteSettings.Field
+ *  @param valueCompound One of entries of result of Module.Module.getFieldsOfSet().
+ *  @return string Empty string, 'Null' or 'Undefine', as an appropriate action for this field.
+ * */
+function nullOrUndefineLabel( field, valueCompound ) {
+    if( !field.multivalued && !(field instanceof SeLiteSettings.Field.Choice) ) {
+        return valueCompound.entry===null
+            ? (field.allowsNotPresent
+                ? 'Undefine'
+                : ''
+              )
+            : 'Null';
+    }
+    else {
+        // We only allow 'Undefine' button once there are no value(s) for the multivalued/choice field
+        return valueCompound.entry!==undefined
+            && Object.keys(valueCompound.entry).length===0
+            && field.allowsNotPresent
+            ? 'Undefine'
+            : '';
+    }
+}
+
 /** @param module object of Module
  *  @param setName string set name; either '' if the module doesn't allow sets; otherwise it's a set name when at field level
  *  attribute for the <treerow> nodes, so that when we handle a click event, we know what field the node is for.
@@ -622,26 +646,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
             treerow.appendChild( treecell);
             treecell.setAttribute('editable', 'false');
             if( targetFolder===null ) {
-                //@TODO factor this out; run it whenever a multivalued field is updated, emptied, or undefined/null is set
-                var isChoice= field instanceof SeLiteSettings.Field.Choice;
-                var label;
-                if( !field.multivalued && !isChoice ) {
-                    label= valueCompound.entry===null
-                        ? (field.allowsNotPresent
-                            ? 'Undefine'
-                            : ''
-                          )
-                        : 'Null';
-                }
-                else {
-                    // We only allow 'Undefine' button once there are no value(s) for the multivalued/choice field
-                    label= valueCompound.entry!==undefined
-                        && Object.keys(valueCompound.entry).length===0
-                        && field.allowsNotPresent
-                        ? 'Undefine'
-                        : '';
-                }
-                treecell.setAttribute( 'label', label );
+                treecell.setAttribute( 'label', nullOrUndefineLabel(field, valueCompound) );
             }
             else {
                 treecell.setAttribute( 'properties', valueCompound.folderPath!==null
