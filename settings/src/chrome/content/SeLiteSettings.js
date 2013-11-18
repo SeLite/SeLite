@@ -727,14 +727,12 @@ Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
                     ? value
                     : null;
             }
-            result[ fieldName ].fromPreferences= true;
         }
-        if( multivaluedOrChoice && fieldHasPreference && children.length===0 ) {
-            this.prefsBranch.getCharPref(setNameWithDot+fieldName)===VALUE_PRESENT
-                || fail( 'Module ' +this.name+ ', set ' + setName+
-                    ', field ' +fieldName+ ' is multivalued and/or a choice, but it has its own preference which is other than ' +VALUE_PRESENT );
-            result[ fieldName ].fromPreferences= true; // The field is present, with no value(s) - result[ fieldName ].entry is an empty object/sortedObject
-        }
+        !( multivaluedOrChoice && fieldHasPreference && children.length===0 )
+        || this.prefsBranch.getCharPref(setNameWithDot+fieldName)===VALUE_PRESENT
+        || fail( 'Module ' +this.name+ ', set ' + setName+
+            ', field ' +fieldName+ ' is multivalued and/or a choice, but it has its own preference which is other than ' +VALUE_PRESENT );
+        result[ fieldName ].fromPreferences= fieldHasPreference || children.length>0;
     }
     return result;
 };
