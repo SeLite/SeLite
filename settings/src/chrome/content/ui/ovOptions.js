@@ -1179,8 +1179,9 @@ function createTreeView(original) {
             alert('Field ' +info.field.name+ " can't accept value "+ value);
             //This didn't work here in Firefox 24.0: document.getElementById( 'settingsTree' ).startEditing( row, col );
             if( info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] ) {
-                console.log( 'info.fieldTreeRowsOrChildren keys: '+ Object.keys(info.fieldTreeRowsOrChildren));
+                //console.log( 'info.fieldTreeRowsOrChildren keys: '+ Object.keys(info.fieldTreeRowsOrChildren));
                 info.fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN].removeChild( info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW].parentNode );
+                delete treeRows[info.module.name][info.setName][info.field.name][SeLiteSettings.NEW_VALUE_ROW];
             }
             return false;
         },
