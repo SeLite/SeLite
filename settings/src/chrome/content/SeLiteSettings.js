@@ -222,6 +222,11 @@ Field.prototype.setDefault= function( setName ) {
 Field.prototype.prefType= function() {
     return nsIPrefBranch.PREF_STRING;
 };
+/** Set/update a value of a singlevalued non-choice field.
+ * @public
+ * @param setName string
+ * @param value mixed; currently it must not be null or undefined - @TODO
+ * */
 Field.prototype.setValue= function( setName, value ) {
     !this.multivalued && !(this instanceof Field.Choice) || fail( "Can't call setValue() on field " +this.name+ " because it's multivalued or a Field.Choice." );
     var setNameWithDot= setName!==''
@@ -255,11 +260,13 @@ Field.prototype.setPref= function( setFieldKeyName, value ) {
     }
 };
 
-/** Only to be used with multivalued or choice fields. It doesn't call nsIPrefService.savePrefFile().
+/** Only to be used with multivalued or choice fields.
+ * @public
  * @param string setName May be empty.
  * @param mixed key as used to generate the preference name (key), appened after fieldName and a dot. String or number.
  * For non-choice multivalued fields it's also used as the value stored in preferences; and for Int
  * it transforms it into a number.
+ * @TODO function to set a multivalued/choice field to undefined (if this.allowsNotPresent===true)
  * */
 Field.prototype.addValue= function( setName, key ) {
     var setNameDot= setName!==''

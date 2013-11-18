@@ -395,7 +395,7 @@ function nullOrUndefineLabel( field, valueCompound ) {
     else {
         // We only allow 'Undefine' button once there are no value(s) for the multivalued/choice field
         return valueCompound.entry!==undefined
-            && Object.keys(valueCompound.entry).length===0
+            && (Object.keys(valueCompound.entry).length===0 || !field.multivalued) // For single-valued choices, allow 'Undefine' when there is a choice selected
             && field.allowsNotPresent
             ? 'Undefine'
             : '';
@@ -1228,7 +1228,7 @@ function createTreeChildren( parent ) {
  *      }
  *      Purpose: setCellText() uses it to determine whether in a single-valued string field
  *      'undefined' or 'null' are the actual values, or indicators of the field being undefined/null in that set.
- *      Any multi-valued or choice fields don't get updated when a use changes them.
+ *      Any multi-valued or choice fields don't get updated when a user changes them.
  *  }
  * */
 var moduleSetFields= {};
