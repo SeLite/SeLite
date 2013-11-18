@@ -1070,7 +1070,7 @@ function setCellText( info, value ) {
     var treeRow= info.treeRow;
     var oldKey= info.oldKey;
     if( !field.multivalued ) {
-        field.setValue( setName, value ); //@TODO alert on validation failure
+        field.setValue( setName, value );
     }
     else {
         var rowAfterNewPosition= null; // It may be null - then append the new row at the end; if same as treeRow, then the new value stays in treeRow.
@@ -1177,7 +1177,7 @@ function createTreeView(original) {
             }
             alert('Field ' +info.field.name+ " can't accept value "+ value);
             //I wanted to keep the field as being edited, but this didn't work here in Firefox 24.0: document.getElementById( 'settingsTree' ).startEditing( row, col );
-            if( info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] ) {
+            if( info.field.multivalued && info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] ) {
                 info.fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN].removeChild( info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW].parentNode );
                 delete treeRows[info.module.name][info.setName][info.field.name][SeLiteSettings.NEW_VALUE_ROW];
             }
