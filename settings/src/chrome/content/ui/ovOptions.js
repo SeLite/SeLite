@@ -984,17 +984,16 @@ function treeClickHandler( event ) {
         rowProperties: string,
         setName: string,
         field: ??,
-        fieldTreeRows: ??,
         treeRow: ??,
         oldKey: string, the key as it was before this edit, only used when it's a multi-valued field
         validationPassed: boolean,
         valueChanged: boolean,
-        fieldTreeRows: object serving as an associative array, with values being <treerow> objects for the field {
+        fieldTreeRowsOrChildren: object serving as an associative array, with values being <treerow> or <treechildren> objects for the field {
             string value or option key => <treerow> object
             ...
             SeLiteSettings.FIELD_MAIN_ROW => <treerow> for the main (collapsible) level of this field
-            SeLiteSettings.FIELD_TREECHILDREN => <treerow>
-            SeLiteSettings.NEW_VALUE_ROW => <treerow>, optional
+            SeLiteSettings.FIELD_TREECHILDREN => <treechildren>
+            SeLiteSettings.NEW_VALUE_ROW => <treerow> for the new value to be added (not saved yet), optional
         }
  *  }
  * */
@@ -1009,7 +1008,7 @@ function gatherAndValidateCell( row, value ) {
     var field= module.fields[fieldName];
 
     var moduleRows= treeRows[moduleName];
-    var fieldTreeRows= null; //Non-null only if field.multivalued==true
+    var fieldTreeRowsOrChildren= null; //Non-null only if field.multivalued==true
     var treeRow;
     var oldKey;
     var validationPassed= true;
@@ -1027,17 +1026,17 @@ function gatherAndValidateCell( row, value ) {
             && !(value==='undefined' && oldEntry===undefined);
     }
     else {
-        fieldTreeRows= moduleRows[setName][fieldName];
-        fieldTreeRows instanceof SortedObjectTarget || fail( "fieldTreeRows should be an instance of SortedObjectTarget, but it is " +fieldTreeRows.constructor.name );
+        fieldTreeRowsOrChildren= moduleRows[setName][fieldName];
+        fieldTreeRowsOrChildren instanceof SortedObjectTarget || fail( "fieldTreeRowsOrChildren should be an instance of SortedObjectTarget, but it is " +fieldTreeRowsOrChildren.constructor.name );
         oldKey= propertiesPart( rowProperties, RowLevel.OPTION );
         valueChanged= value!==oldKey;
         if( valueChanged ) {
-            if( value in fieldTreeRows ) {
+            if( value in fieldTreeRowsOrChildren ) {
                 console.warn( "Values must be unique. Another entry for field " +field.name+ " already has same value " +value ); //@TODO?
                 validationPassed= false;
             }
         }
-        treeRow= fieldTreeRows[oldKey];
+        treeRow= fieldTreeRowsOrChildren[oldKey];
     }
     //@TODO custom field validation?
     if( field instanceof SeLiteSettings.Field.Int ) {
@@ -1052,7 +1051,7 @@ function gatherAndValidateCell( row, value ) {
         rowProperties: rowProperties,
         setName: setName,
         field: field,
-        fieldTreeRows: fieldTreeRows,
+        fieldTreeRowsOrChildren: fieldTreeRowsOrChildren,
         treeRow: treeRow,
         oldKey: oldKey,
         validationPassed: validationPassed,
@@ -1068,7 +1067,7 @@ function setCellText( info, value ) {
     var module= info.module;
     var setName= info.setName;
     var field= info.field;
-    var fieldTreeRows= info.fieldTreeRows;
+    var fieldTreeRowsOrChildren= info.fieldTreeRowsOrChildren;
     var treeRow= info.treeRow;
     var oldKey= info.oldKey;
     if( !field.multivalued ) {
@@ -1077,27 +1076,27 @@ function setCellText( info, value ) {
     else {
         var rowAfterNewPosition= null; // It may be null - then append the new row at the end; if same as treeRow, then the new value stays in treeRow.
             // If the new value still fits at the original position, then rowAfterNewPosition will be treeRow.
-        for( var otherKey in fieldTreeRows ) {
+        for( var otherKey in fieldTreeRowsOrChildren ) {
             // Following check also excludes SeLiteSettings.NEW_VALUE_ROW, because we don't want to compare it to real values. 
             if( SeLiteSettings.reservedNames.indexOf(otherKey)<0 && field.compareValues(otherKey, value)>=0 ) {
-                rowAfterNewPosition= fieldTreeRows[otherKey];
+                rowAfterNewPosition= fieldTreeRowsOrChildren[otherKey];
                 break;
             }
         }
-        if( rowAfterNewPosition===null && fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW] && Object.keys(fieldTreeRows).length===3 ) {
-            // fieldTreeRows has 3 keys: SeLiteSettings.FIELD_MAIN_ROW, SeLiteSettings.FIELD_TREECHILDREN, SeLiteSettings.NEW_VALUE_ROW.
+        if( rowAfterNewPosition===null && fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] && Object.keys(fieldTreeRowsOrChildren).length===3 ) {
+            // fieldTreeRowsOrChildren has 3 keys: SeLiteSettings.FIELD_MAIN_ROW, SeLiteSettings.FIELD_TREECHILDREN, SeLiteSettings.NEW_VALUE_ROW.
             // So there's no other existing value, and the row being edited is a new one (it didn't have a real value set yet)
-            fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW]===treeRow && oldKey===SeLiteSettings.NEW_VALUE_ROW
-            || fail( "This assumes that if fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW] is set, then that's the row we're just editing." );
+            fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW]===treeRow && oldKey===SeLiteSettings.NEW_VALUE_ROW
+            || fail( "This assumes that if fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] is set, then that's the row we're just editing." );
             rowAfterNewPosition= treeRow;
         }
         if( rowAfterNewPosition!==treeRow ) { // Repositioning - remove treeRow, create a new treeRow
-            var treeChildren= fieldTreeRows[SeLiteSettings.FIELD_TREECHILDREN];
+            var treeChildren= fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN];
             treeChildren.removeChild( treeRow.parentNode );
             var pair= {};
             pair[ value ]= value;
             var treeItem= generateTreeItem( module, setName, field, pair, RowLevel.OPTION ); // This sets 'properties' and it adds an entry to treeRow[value]
-                // (which is same as fieldTreeRows[value] here).
+                // (which is same as fieldTreeRowsOrChildren[value] here).
             // Firefox 22.b04 and 24.0a1 doesn't handle parent.insertBefore(newItem, null), even though it should - https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore
             if(true){//@TODO cleanup
                 if( rowAfterNewPosition!==null ) {
@@ -1116,11 +1115,11 @@ function setCellText( info, value ) {
             treeItem.focus();
         }
         else { // No repositioning - just update 'properties' attribute
-            fieldTreeRows[value]= treeRow;
+            fieldTreeRowsOrChildren[value]= treeRow;
             var propertiesPrefix= info.rowProperties.substr(0, /*length:*/info.rowProperties.length-oldKey.length); // That includes a trailing space
             treeRow.setAttribute( 'properties', propertiesPrefix+value );
         }
-        delete fieldTreeRows[oldKey];
+        delete fieldTreeRowsOrChildren[oldKey];
         if( oldKey!==SeLiteSettings.NEW_VALUE_ROW ) {
             field.removeValue( setName, oldKey );
         }
@@ -1179,9 +1178,9 @@ function createTreeView(original) {
             }
             alert('Field ' +info.field.name+ " can't accept value "+ value);
             //This didn't work here in Firefox 24.0: document.getElementById( 'settingsTree' ).startEditing( row, col );
-            if( info.fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW] ) {
-                console.log( 'info.fieldTreeRows keys: '+ Object.keys(info.fieldTreeRows));
-                info.fieldTreeRows[SeLiteSettings.FIELD_TREECHILDREN].removeChild( info.fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW].parentNode );
+            if( info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] ) {
+                console.log( 'info.fieldTreeRowsOrChildren keys: '+ Object.keys(info.fieldTreeRowsOrChildren));
+                info.fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN].removeChild( info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW].parentNode );
             }
             return false;
         },
