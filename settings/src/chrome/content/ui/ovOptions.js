@@ -1172,11 +1172,13 @@ function createTreeView(original) {
                         treeCell( info.treeRow, RowLevel.FIELD ).setAttribute( 'properties', '' );
                         moduleSetFields[info.module.name][info.setName][info.field.name].entry= value;
                     }
+                    else {
+                        moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName );
+                    }
                 }
                 return result;
             }
-            //Following didn't work in Firefox 24.0:
-            //document.getElementById( 'settingsTree' ).startEditing( row, col );
+            //Following didn't work in Firefox 24.0: document.getElementById( 'settingsTree' ).startEditing( row, col );
             //@TODO new row -> gatheredInfo.treeRow.remove(); existing row -> change to the original value?
             return false;
         },
@@ -1224,11 +1226,11 @@ function createTreeChildren( parent ) {
 /** Anonymous object serving as a multidimensional associative array {
  *      string module name: {
  *          string set name: result of Module.getFieldsOfSet();
-            not to be used if in per-folder mode
  *      }
+        It's only populated, updated and used in set mode; not in per-folder mode.
  *      Purpose: setCellText() uses it to determine whether in a single-valued string field
  *      'undefined' or 'null' are the actual values, or indicators of the field being undefined/null in that set.
- *      Any multi-valued or choice fields don't get updated when a user changes them.
+ *      I also use it at some places that call nullOrUndefineLabel().
  *  }
  * */
 var moduleSetFields= {};
