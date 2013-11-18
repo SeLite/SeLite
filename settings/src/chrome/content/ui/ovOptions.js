@@ -796,9 +796,7 @@ function treeClickHandler( event ) {
             var cellText= tree.view.getCellText(row.value, column.value);
             
             if( allowSets && column.value.element==treeColumnElements.selectedSet && cellIsEditable ) { // Select the clicked set, de-select previously selected set
-                if( cellValue!=='true') {
-                    throw new Error( 'Only unselected sets should have the set selection column editable.' );
-                }
+                cellValue==='true' || fail( 'Only unselected sets should have the set selection column editable.' );
                 var selectedSetName= propertiesPart( rowProperties, RowLevel.SET );
                 module.setSelectedSetName( selectedSetName );
                 modifiedPreferences= true;
@@ -818,9 +816,7 @@ function treeClickHandler( event ) {
                 var isSingleNonChoice= !(field.multivalued || field instanceof SeLiteSettings.Field.Choice);
                 
                 if( isSingleNonChoice  ) {
-                    if( !(field instanceof SeLiteSettings.Field.Bool) ) {
-                        throw new Error();
-                    }
+                    field instanceof SeLiteSettings.Field.Bool || fail('field ' +field.name+ ' should be Field.Bool');
                     var clickedCell= treeCell( moduleRows[setName][field.name], RowLevel.CHECKBOX );
                     field.setValue( setName, clickedCell.getAttribute( 'value')==='true' );
                 }
@@ -974,6 +970,7 @@ function treeClickHandler( event ) {
         }
         if( modifiedPreferences ) {
             SeLiteSettings.savePrefFile();
+            moduleSetFields[moduleName][setName]= module.getFieldsOfSet( setName );
         }
     }
 }
