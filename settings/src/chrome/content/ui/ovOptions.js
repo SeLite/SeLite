@@ -775,7 +775,6 @@ function propertiesPart( properties, level, otherwise ) {
 }
 
 function treeClickHandler( event ) {
-    //window.open( '?hello=yes', '_blank');
     // FYI: event.currentTarget.tagName=='tree'. However, document.getElementById('settingsTree')!=event.currentTarget
     var tree= document.getElementById('settingsTree');
     var row= { value: -1 }; // value is 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
@@ -1177,9 +1176,8 @@ function createTreeView(original) {
                 return result;
             }
             alert('Field ' +info.field.name+ " can't accept value "+ value);
-            //This didn't work here in Firefox 24.0: document.getElementById( 'settingsTree' ).startEditing( row, col );
+            //I wanted to keep the field as being edited, but this didn't work here in Firefox 24.0: document.getElementById( 'settingsTree' ).startEditing( row, col );
             if( info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] ) {
-                //console.log( 'info.fieldTreeRowsOrChildren keys: '+ Object.keys(info.fieldTreeRowsOrChildren));
                 info.fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN].removeChild( info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW].parentNode );
                 delete treeRows[info.module.name][info.setName][info.field.name][SeLiteSettings.NEW_VALUE_ROW];
             }

@@ -655,9 +655,6 @@ Module.prototype.setSelectedSetName= function( setName ) {
 };
 
 /** @param setName Name of the set; an empty string if the module doesn't allow sets, or if you want a selected set.
- *  @param boolean perFolder Whether this is loaded per folder, as a part of a composite configuration. If true,
- *  then this doesn't generate entries for multivalued and Field.Choice fields that have no value in the given set.
- *  @TODO param perFolder is not needed. Refactor.
  *  @return Object with sorted keys, serving as associative array {
  *      string field name anonymous object {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or is undefined
@@ -671,9 +668,7 @@ Module.prototype.setSelectedSetName= function( setName ) {
  *  }
  *  It doesn't inject any defaults from the module configuration or values manifests for fields that are not defined in the set.
  * */
-Module.prototype.getFieldsOfSet= function( setName, perFolder ) {
-    perFolder= perFolder || false;
-    ensure( !perFolder || this.associatesWithFolders, "getFieldsOfSet() accepts parameter perFolder=true only if module.associatesWithFolders is true." );
+Module.prototype.getFieldsOfSet= function( setName ) {
     if( setName===undefined || setName===null ) {
         setName= this.allowSets
             ? this.selectedSetName()
@@ -936,8 +931,8 @@ function manifestsDownToFolder( folderPath, dontCache ) {
  *  - default value of the field
 * */
 Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
+    this.associatesWithFolders || fail( "Module.getFieldsDownToFolder() requires module.associatesWithFolders to be true, but it was called for module " +this.name );
     dontCache= dontCache || false;
-    ensure( this.associatesWithFolders, "Module.getFieldsDownToFolder() requires Module.associatesWithFolders to be true." );
     
     var result= sortedObject(true);
     for( var fieldName in this.fields ) {
@@ -1003,7 +998,7 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
         for( var i=0; i<associations[associationFolder].length; i++ ) {
             var manifest= associations[associationFolder][i];
             if( manifest.moduleName==this.name ) {
-                var fields= this.getFieldsOfSet( manifest.setName, true );
+                var fields= this.getFieldsOfSet( manifest.setName );
                 for( var fieldName in fields ) {
                     // override any value(s) from values manifests, no matter whether from upper or lower (more local) level
                     // override any less local value(s) from global set or sets associated with upper (less local) folders
