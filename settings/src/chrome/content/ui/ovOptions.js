@@ -316,7 +316,7 @@ var modules= sortedObject(true);
     *          zero or more: string field name (field is non-choice and single value) => <treerow> element/object for the row that has that field
     *          zero or more: string field name (the field is multivalue or a choice) => anonymous or sorted object {
     *             value fields (ones with keys that are not reserved) are sorted by key, but entries with reserved keys may be at any position
-    *             - one: FIELD_MAIN_ROW => <treerow> element/object for the row that contains all options for that field
+    *             - one: FIELD_MAIN_ROW => <treerow> element/object for the collapsible row that contains all options for that field
     *             - one: FIELD_TREECHILDREN => <treechildren> element/object for this field, that contains <treeitem><treerow> levels for each option
     *             - zero or more: string key => <treerow> element/object for the row that contains a value/option
     *             - zero or one: NEW_VALUE_ROW => <treerow> element/object for the row that contains a value that the user will only have to fill in
@@ -988,7 +988,14 @@ function treeClickHandler( event ) {
         treeRow: ??,
         oldKey: string, the key as it was before this edit, only used when it's a multi-valued field
         validationPassed: boolean,
-        valueChanged: boolean
+        valueChanged: boolean,
+        fieldTreeRows: object serving as an associative array, with values being <treerow> objects for the field {
+            string value or option key => <treerow> object
+            ...
+            SeLiteSettings.FIELD_MAIN_ROW => <treerow> for the main (collapsible) level of this field
+            SeLiteSettings.FIELD_TREECHILDREN => <treerow>
+            SeLiteSettings.NEW_VALUE_ROW => <treerow>, optional
+        }
  *  }
  * */
 function gatherAndValidateCell( row, value ) {
@@ -1021,9 +1028,7 @@ function gatherAndValidateCell( row, value ) {
     }
     else {
         fieldTreeRows= moduleRows[setName][fieldName];
-        if( !(fieldTreeRows instanceof SortedObjectTarget) ) {
-            throw new Error( "fieldTreeRows should be an instance of SortedObjectTarget (actually, a proxy to such an instance), but it is " +fieldTreeRows.constructor.name );
-        }
+        fieldTreeRows instanceof SortedObjectTarget || fail( "fieldTreeRows should be an instance of SortedObjectTarget, but it is " +fieldTreeRows.constructor.name );
         oldKey= propertiesPart( rowProperties, RowLevel.OPTION );
         valueChanged= value!==oldKey;
         if( valueChanged ) {
@@ -1056,37 +1061,34 @@ function gatherAndValidateCell( row, value ) {
 }
 
 /** This - nsITreeView.setCellText() - gets triggered only for string/number fields and for File fields; not for checkboxes.
- * @param gatheredInfo Result of  gatherAndValidateCell(..), if it was successful.
+ * @param info Result of  gatherAndValidateCell(..), if it was successful.
  * * @param value new value
  * */
-function setCellText( gatheredInfo, value ) {
-    var module= gatheredInfo.module;
-    var setName= gatheredInfo.setName;
-    var field= gatheredInfo.field;
-    var fieldTreeRows= gatheredInfo.fieldTreeRows;
-    var treeRow= gatheredInfo.treeRow;
-    var oldKey= gatheredInfo.oldKey;
+function setCellText( info, value ) {
+    var module= info.module;
+    var setName= info.setName;
+    var field= info.field;
+    var fieldTreeRows= info.fieldTreeRows;
+    var treeRow= info.treeRow;
+    var oldKey= info.oldKey;
     if( !field.multivalued ) {
-        field.setValue( setName, value );
+        field.setValue( setName, value ); //@TODO alert on validation failure
     }
     else {
         var rowAfterNewPosition= null; // It may be null - then append the new row at the end; if same as treeRow, then the new value stays in treeRow.
             // If the new value still fits at the original position, then rowAfterNewPosition will be treeRow.
-        var debugOtherKeys= [];
         for( var otherKey in fieldTreeRows ) {
-            debugOtherKeys.push( otherKey );
             // Following check also excludes SeLiteSettings.NEW_VALUE_ROW, because we don't want to compare it to real values. 
             if( SeLiteSettings.reservedNames.indexOf(otherKey)<0 && field.compareValues(otherKey, value)>=0 ) {
                 rowAfterNewPosition= fieldTreeRows[otherKey];
                 break;
             }
         }
-        //alert( 'debugOtherKeys: ['+debugOtherKeys+ '], rowAfterNewPosition found: ' +(rowAfterNewPosition==null) );
         if( rowAfterNewPosition===null && fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW] && Object.keys(fieldTreeRows).length===3 ) {
-            // there's no other existing value, and the row being edited is a new one (it didn't have a real value set yet)
-            if( fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW]!==treeRow || oldKey!==SeLiteSettings.NEW_VALUE_ROW ) {
-                throw new Error( "This assumes that if fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW] is set, then that's the row we're just editing." );
-            }
+            // fieldTreeRows has 3 keys: SeLiteSettings.FIELD_MAIN_ROW, SeLiteSettings.FIELD_TREECHILDREN, SeLiteSettings.NEW_VALUE_ROW.
+            // So there's no other existing value, and the row being edited is a new one (it didn't have a real value set yet)
+            fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW]===treeRow && oldKey===SeLiteSettings.NEW_VALUE_ROW
+            || fail( "This assumes that if fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW] is set, then that's the row we're just editing." );
             rowAfterNewPosition= treeRow;
         }
         if( rowAfterNewPosition!==treeRow ) { // Repositioning - remove treeRow, create a new treeRow
@@ -1115,7 +1117,7 @@ function setCellText( gatheredInfo, value ) {
         }
         else { // No repositioning - just update 'properties' attribute
             fieldTreeRows[value]= treeRow;
-            var propertiesPrefix= gatheredInfo.rowProperties.substr(0, /*length:*/gatheredInfo.rowProperties.length-oldKey.length); // That includes a trailing space
+            var propertiesPrefix= info.rowProperties.substr(0, /*length:*/info.rowProperties.length-oldKey.length); // That includes a trailing space
             treeRow.setAttribute( 'properties', propertiesPrefix+value );
         }
         delete fieldTreeRows[oldKey];
@@ -1175,8 +1177,12 @@ function createTreeView(original) {
                 }
                 return result;
             }
-            //Following didn't work in Firefox 24.0: document.getElementById( 'settingsTree' ).startEditing( row, col );
-            //@TODO new row -> gatheredInfo.treeRow.remove(); existing row -> change to the original value?
+            alert('Field ' +info.field.name+ " can't accept value "+ value);
+            //This didn't work here in Firefox 24.0: document.getElementById( 'settingsTree' ).startEditing( row, col );
+            if( info.fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW] ) {
+                console.log( 'info.fieldTreeRows keys: '+ Object.keys(info.fieldTreeRows));
+                info.fieldTreeRows[SeLiteSettings.FIELD_TREECHILDREN].removeChild( info.fieldTreeRows[SeLiteSettings.NEW_VALUE_ROW].parentNode );
+            }
             return false;
         },
         setCellValue: function(row, col, value) { return original.setCellValue(row, col, value); },
