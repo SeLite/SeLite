@@ -686,7 +686,7 @@ Module.prototype.getFieldsOfSet= function( setName ) {
             ? fieldName+ '.'
             : fieldName;
         var children; // An array of preference string key(s) present for this field
-        var fieldHasPreference= this.prefsBranch.prefHasUserValue(setNameWithDot+fieldName); // True if a single-valued field has a value, or if a multivalued/choice has VALUE_PRESENT
+        var fieldHasPreference= this.prefsBranch.prefHasUserValue(setNameWithDot+fieldName); // True if a single-valued field has a value, or if a multivalued/choice (choice or non-choice) has VALUE_PRESENT
         if( !multivaluedOrChoice &&  fieldHasPreference ) {
             children= [setNameWithDot+fieldName];
         }
@@ -1089,7 +1089,6 @@ Module.prototype.createSet= function( setName ) {
                 }
                 else {
                     if( this.prefsBranch.getChildList( setNameDot+fieldName+'.', {} ).length===0 ) {
-                        this.prefsBranch.setCharPref( setNameDot+ field.name, VALUE_PRESENT );
                         if( field.defaultValue!==null ) {
                             field.addValue( setNameDot, field.defaultValue );
                         }
@@ -1098,12 +1097,14 @@ Module.prototype.createSet= function( setName ) {
             }
             else {
                 if( this.prefsBranch.getChildList( setNameDot+fieldName+'.', {} ).length===0 ) {
-                    this.prefsBranch.setCharPref( setNameDot+ field.name, VALUE_PRESENT );
                     var defaultValues= field.getDefaultValue();
                     if( defaultValues.length>0 ) {
                         for( var i=0; i<defaultValues.length; i++ ) { // @TODO Replace the loop with for.. of.. loop once NetBeans support it
                             field.addValue( setNameDot, defaultValues[i] );
                         }
+                    }
+                    else {
+                        this.prefsBranch.setCharPref( setNameDot+ field.name, VALUE_PRESENT );
                     }
                 }
             }
