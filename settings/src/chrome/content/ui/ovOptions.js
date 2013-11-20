@@ -679,7 +679,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
 /** @param node moduleChildren <treechildren>
  *  @param object module Module
  * */
-function generateSets( moduleChildren, module, setNameToExpand ) {
+function generateSets( moduleChildren, module ) {
     var setNames= targetFolder===null
         ? module.setNames()
         : [null];
