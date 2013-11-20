@@ -715,8 +715,8 @@ function generateFields( setChildren, module, setName, setFields ) {
             ? module.fields[fieldName]
             : fieldName;
         
-        var singleValueOrNull= typeof setFields[fieldName].entry!=='object'
-            ? setFields[fieldName].entry
+        var singleValueOrNull= typeof fieldValueOrPairs.entry!=='object'
+            ? fieldValueOrPairs.entry
             : null;
         var fieldItem= generateTreeItem(module, setName, field, singleValueOrNull, RowLevel.FIELD, false, false, fieldValueOrPairs );
         setChildren.appendChild( fieldItem );
@@ -738,7 +738,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                         && typeof(fieldValueOrPairs.entry)==='object'
                         && key in fieldValueOrPairs.entry,
                     false,
-                    setFields[fieldName]
+                    fieldValueOrPairs
                 );
                 fieldChildren.appendChild( optionItem );
             }
