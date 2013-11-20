@@ -561,12 +561,11 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     ) {
         treecell.setAttribute('editable' , 'false');
     }
-    var perFolderAndIsNull= rowLevel===RowLevel.FIELD && targetFolder!==null && value===null
-            && !multivaluedOrChoice;
-    var perFolderAndIsUndefined= rowLevel===RowLevel.FIELD && targetFolder!==null && valueCompound.entry===undefined
-            && !multivaluedOrChoice;
+    var perFolderAndIsNull= rowLevel===RowLevel.FIELD && targetFolder!==null && value===null //@TODO Use valueCompount.entry instead of value?!
+            && !field.multivalued;
+    var perFolderAndIsUndefined= rowLevel===RowLevel.FIELD && targetFolder!==null && valueCompound.entry===undefined; // @TODO Why did I have this here?:    && !(multivaluedOrChoice);
     var perSetAndIsNull= rowLevel===RowLevel.FIELD && targetFolder===null && valueCompound.fromPreferences
-            && !multivaluedOrChoice && valueCompound.entry===null;
+            && !field.multivalued && valueCompound.entry===null;
     var perSetAndIsUndefined= rowLevel===RowLevel.FIELD && targetFolder===null && !valueCompound.fromPreferences;
     if( (typeof value==='string' || typeof value==='number' || perFolderAndIsNull || perFolderAndIsUndefined || perSetAndIsNull || perSetAndIsUndefined
         ) && !isNewValueRow
@@ -1240,6 +1239,7 @@ function updateSpecial( setName, field, addOrRemove, keyOrValue ) {
                 this.module.prefsBranch.clearUserPref(setNameDot+field.name);
             }
         }
+        // Otherwise, if the field had NULL, then I don't clear that preference here, because that preference gets set outside of this function
     }
     moduleSetFields[field.module.name][setName]= TODO;
 }
