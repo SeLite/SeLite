@@ -385,7 +385,8 @@ function subContainer( parent, fieldOrFields ) {
  *  @return string Empty string, 'Null' or 'Undefine', as an appropriate action for this field.
  * */
 function nullOrUndefineLabel( field, valueCompound ) {
-    if( !field.multivalued && !(field instanceof SeLiteSettings.Field.Choice) ) {
+    targetFolder===null || fail();
+    if( !field.multivalued ) {
         return valueCompound.entry===null
             ? (field.allowsNotPresent
                 ? 'Undefine'
@@ -394,10 +395,8 @@ function nullOrUndefineLabel( field, valueCompound ) {
             : 'Null';
     }
     else {
-        // We only allow 'Undefine' button once there are no value(s) for the multivalued/choice field
-        return valueCompound.entry!==undefined
-            && (Object.keys(valueCompound.entry).length===0 || !field.multivalued) // For single-valued choices, allow 'Undefine' when there is a choice selected
-            && field.allowsNotPresent
+        // We only allow 'Undefine' button once there are no value(s) for the multivalued field
+        return valueCompound.entry!==undefined && Object.keys(valueCompound.entry).length===0 && field.allowsNotPresent
             ? 'Undefine'
             : '';
     }
