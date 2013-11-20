@@ -298,7 +298,7 @@ Field.prototype.removeValue= function( setName, key ) {
         throw new Error( "Use Field.removeValue() only for multivalued or choice fields." );
     }
     if( this.module.prefsBranch.prefHasUserValue(setNameDot+this.name+ '.' +key) ) {
-        this.module.prefsBranch.clearUserPref( setNameDot+this.name+ '.' +key)
+        this.module.prefsBranch.clearUserPref( setNameDot+this.name+ '.' +key);
     }
 };
 
@@ -713,7 +713,7 @@ Module.prototype.getFieldsOfSet= function( setName ) {
             // So I only use sortedObject for multivalued fields other than Field.Choice
             result[fieldName].entry= !(field instanceof Field.Choice)
                 ? sortedObject( field.compareValues )
-                : {}
+                : {};
         }
         for( var i=0; i<children.length; i++ ) {
             var prefName= children[i];
@@ -1045,6 +1045,7 @@ Module.prototype.register= function() {
         this.prefsBranch.setCharPref( MODULE_DEFINITION_FILE_OR_URL, this.definitionJavascriptFile );
     }
     else {
+        // @TODO verify the following line's comment
         this.prefsBranch.clearUserPref( MODULE_DEFINITION_FILE_OR_URL ); // This works even if the preference doesn't exist
     }
     if( this.allowSets ) {

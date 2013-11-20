@@ -28,6 +28,7 @@ Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js", Se
 Components.utils.import("resource://gre/modules/Services.jsm");
 var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
 var nsIIOService= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);    
+var nsIPrefBranch= Components.interfaces.nsIPrefBranch;
 
 var CREATE_NEW_SET= "Create a new set";
 var DELETE_THE_SET= "Delete the set";
@@ -1189,22 +1190,57 @@ function createTreeView(original) {
     }
 }
 
-/** Update the field in the preferences. Update 'properties' attribute and Null/Undefine label.
+/** Set/unset special value for the field in the preferences, if the change involves setting/unsetting a special value
+ *  - that is, SeLiteSettings.VALUE_PRESENT or SeLiteSettings.NULL.
+ *  Don't actually set/add/remove any actual value (other than a special value).
+ *  Update 'properties' attribute and Null/Undefine label, if needed.
  *  Reload moduleSetFields for this set.
  *  @param setName string Name of the set; empty if the module doesn't allow multiple sets
  *  @param field Field instance
+ *  @param int addOrRemove +1 if adding entry; -1 if removing it; any of 0/null/undefined if replacing or setting to null/undefined.
+ *  It can be one of +1, -1 only if field.multivalued.
  *  @param mixed keyOrValue the value to store, or (for Choice) the key for the value to store.
+ *  It can be anything (and is not used) if addOrRemove is +1 or -1. Otherwise
  *  It should have been validated - this function doesn't validate keyOrValue.
- *  It can be undefined if field.allowsNotPresent. It can be null if it's a single-valued non-choice field.
- *  @param int addOrRemove +1 if adding entry; -1 if removing it; 0/null/undefined if replacing.
- *  It must be one of +1, -1 if and only if field.multivalued.
+ *  It can be null if it's a single-valued field.
+ *  It can be undefined if field.allowsNotPresent; then if it is multi-valued, the field must have
+ *  no actual values (but it can/should contain VALUE_PRESENT).
  * */
-function updateField( setName, field, keyOrValue, addOrRemove ) {
-    addOrRemove==field.multivalued || fail("addOrRemove must be one of +1, -1 if and only if field.multivalued. addOrRemove is " +addOrRemove+ " and field.multivalued is " +field.multivalued);
+function updateSpecial( setName, field, addOrRemove, keyOrValue ) {
+    !addOrRemove || field.multivalued || fail("addOrRemove can be one of +1, -1 only if field.multivalued. addOrRemove is " +addOrRemove+ " and field.multivalued is " +field.multivalued);
+    addOrRemove || keyOrValue!==undefined || field.allowsNotPresent || fail("Field " +field.name+ " doesn't have allowsNotPresent true, but keyOrValue is undefined.");
+    addOrRemove || keyOrValue!==null || !field.multivalued || fail("Field " +field.name+ " is multivalued, yet keyOrValue is null.");
     var setNameDot= setName
         ? setName+'.'
         : setName;
-    this.prefsBranch.setCharPref( setNameDot+ field.name, VALUE_PRESENT );
+    var compound= moduleSetFields[field.module.name][setName][field.name];
+    if( addOrRemove ) {
+        if( addOrRemove>0 ) {
+            if( Object.keys(compound.entry).length===0 && field.module.prefsBranch.prefHasUserValue(setNameDot+field.name) ) {
+                field.module.prefsBranch.clearUserPref( setNameDot+field.name); // Clearing VALUE_PRESENT @TODO see @TODO below
+            }
+        }
+        else {
+            if( Object.keys(compound.entry).length===1 ) {//@TODO Do we call this function before we add/remove the value from preferences, or after?
+                field.module.prefsBranch.setCharPref( setNameDot+ field.name, SeLiteSettings.VALUE_PRESENT );
+            }
+        }
+    }
+    else {
+        if( keyOrValue===null ) {
+            if( field.module.prefsBranch.prefHasUserValue(setNameDot+field.name) && field.prefType()!==nsIPrefBranch.PREF_STRING ) {
+                field.module.prefsBranch.clearUserPref( setNameDot+field.name);
+            }
+            field.module.prefsBranch.setCharPref( setNameDot+field.name, SeLiteSettings.NULL );
+        }
+        else
+        if( keyOrValue===undefined ) {
+            !field.multivalued || Object.keys(compound.entry).length===0 || fail("Multivalued field " +field.name+ " has one or more entries, therefore keyOrValue must not be undefined.");
+            if( field.module.prefsBranch.prefHasUserValue(setNameDot+field.name) ) {
+                this.module.prefsBranch.clearUserPref(setNameDot+field.name);
+            }
+        }
+    }
     moduleSetFields[field.module.name][setName]= TODO;
 }
 
