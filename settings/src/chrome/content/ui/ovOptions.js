@@ -435,6 +435,7 @@ function nullOrUndefineLabel( field, valueCompound ) {
  *              null if fromPreferences===true or if the value comes from field default (as in the module definition)
  *          entry: as described for Module.getFieldsDownToFolder(..)
  *  }
+ *  Required if rowLevel===RowLevel.FIELD.
  *  @return object for a new element <treeitem> with one <treerow>
  * */
 function generateTreeItem( module, setName, field, valueOrPair, rowLevel, optionIsSelected, isNewValueRow, valueCompound ) {
@@ -708,17 +709,19 @@ function generateSets( moduleChildren, module, setNameToExpand ) {
     }
 }
 
+/** @param setFields Result of SeLiteSettings.Module.getFieldsOfSet() or SeLiteSettings.Module.getFieldsDownToFolder()
+ * */
 function generateFields( setChildren, module, setName, setFields ) {
     for( var fieldName in setFields ) {
-        var fieldValueOrPairs= setFields[fieldName];
+        var compound= setFields[fieldName];
         var field= fieldName in module.fields
             ? module.fields[fieldName]
             : fieldName;
         
-        var singleValueOrNull= typeof fieldValueOrPairs.entry!=='object'
-            ? fieldValueOrPairs.entry
+        var singleValueOrNull= typeof compound.entry!=='object'
+            ? compound.entry
             : null;
-        var fieldItem= generateTreeItem(module, setName, field, singleValueOrNull, RowLevel.FIELD, false, false, fieldValueOrPairs );
+        var fieldItem= generateTreeItem(module, setName, field, singleValueOrNull, RowLevel.FIELD, false, false, compound );
         setChildren.appendChild( fieldItem );
         
         if( field instanceof SeLiteSettings.Field &&
@@ -727,7 +730,7 @@ function generateFields( setChildren, module, setName, setFields ) {
             var fieldChildren= createTreeChildren( fieldItem );
             var pairsToList= field instanceof SeLiteSettings.Field.Choice
                 ? field.choicePairs
-                : fieldValueOrPairs.entry;
+                : compound.entry;
             
             for( var key in pairsToList ) {////@TODO potential IterableArray
                 var pair= {};
@@ -735,10 +738,10 @@ function generateFields( setChildren, module, setName, setFields ) {
                 var optionItem= generateTreeItem(module, setName, field, pair,
                     RowLevel.OPTION,
                     field instanceof SeLiteSettings.Field.Choice
-                        && typeof(fieldValueOrPairs.entry)==='object'
-                        && key in fieldValueOrPairs.entry,
+                        && typeof(compound.entry)==='object'
+                        && key in compound.entry,
                     false,
-                    fieldValueOrPairs
+                    compound
                 );
                 fieldChildren.appendChild( optionItem );
             }
