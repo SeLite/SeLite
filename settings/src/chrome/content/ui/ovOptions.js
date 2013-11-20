@@ -378,7 +378,8 @@ function subContainer( parent, fieldOrFields ) {
     return object;
 }
 
-/** Generate label for 'Null/Undefine' column.
+/** Generate text for label for 'Null/Undefine' column. Only used in set mode
+ *  (not in per-folder mode).
  *  @param field Instance of SeLiteSettings.Field
  *  @param valueCompound One of entries of result of Module.Module.getFieldsOfSet().
  *  @return string Empty string, 'Null' or 'Undefine', as an appropriate action for this field.
@@ -1188,7 +1189,26 @@ function createTreeView(original) {
         toggleOpenState: function(index) { return original.toggleOpenState(index); }
     }
 }
-    
+
+/** Update the field in the preferences. Update 'properties' attribute and Null/Undefine label.
+ *  Reload moduleSetFields for this set.
+ *  @param setName string Name of the set; empty if the module doesn't allow multiple sets
+ *  @param field Field instance
+ *  @param mixed keyOrValue the value to store, or (for Choice) the key for the value to store.
+ *  It should have been validated - this function doesn't validate keyOrValue.
+ *  It can be undefined if field.allowsNotPresent. It can be null if it's a single-valued non-choice field.
+ *  @param int addOrRemove +1 if adding entry; -1 if removing it; 0/null/undefined if replacing.
+ *  It must be one of +1, -1 if and only if field.multivalued.
+ * */
+function updateField( setName, field, keyOrValue, addOrRemove ) {
+    addOrRemove==field.multivalued || fail("addOrRemove must be one of +1, -1 if and only if field.multivalued. addOrRemove is " +addOrRemove+ " and field.multivalued is " +field.multivalued);
+    var setNameDot= setName
+        ? setName+'.'
+        : setName;
+    this.prefsBranch.setCharPref( setNameDot+ field.name, VALUE_PRESENT );
+    moduleSetFields[field.module.name][setName]= TODO;
+}
+
 /* @var allowSets bool Whether to show the column for selection of a set. If we're only showing one module, this is module.allowSets
  * if we're not showing fields per folder.
  *  If we're showing more modules, then it's true if at least one of those modules has allowSets==true if we're not showing fields per folder.
@@ -1226,7 +1246,7 @@ function createTreeChildren( parent ) {
 
 /** Anonymous object serving as a multidimensional associative array {
  *      string module name: {
- *          string set name: result of Module.getFieldsOfSet();
+ *          string set name (possibly empty): result of Module.getFieldsOfSet();
  *      }
         It's only populated, updated and used in set mode; not in per-folder mode.
  *      Purpose: setCellText() uses it to determine whether in a single-valued string field
