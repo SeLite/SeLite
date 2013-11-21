@@ -945,7 +945,7 @@ function treeClickHandler( event ) {
                             var clickedTreeRow= moduleRows[setName][field.name][ clickedOptionKey ];
                             delete moduleRows[setName][field.name][ clickedOptionKey ];
                             treeChildren.removeChild( clickedTreeRow.parentNode );
-                            field.removeValue( setName, clickedOptionKey ); //@TODO error here
+                            field.removeValue( setName, clickedOptionKey ); //@TODO error here?
                             modifiedPreferences= true;
                         }
                     }
