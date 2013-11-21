@@ -308,6 +308,7 @@ Field.prototype.equals= function( other ) {
     return this.name===other.name
         && this.constructor==other.constructor
         && this.defaultValue===other.defaultValue; // Strict comparison is OK for primitive string/bool/int
+        //@TODO For multivalued/Choice default values
 };
 
 // See also https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
@@ -656,7 +657,7 @@ Module.prototype.setSelectedSetName= function( setName ) {
 
 /** @param setName Name of the set; an empty string if the module doesn't allow sets, or if you want a selected set.
  *  @return Object with sorted keys, serving as associative array {
- *      string field name anonymous object {
+ *      string field name: anonymous object {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or is undefined
  *          entry: either
  *          - string/boolean/number ('primitive') value or null or undefined, for non-choice single-value fields; or
@@ -1027,7 +1028,24 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
     // Fourth, for any fields with the value being undefined (not null or empty string), apply field defaults
     for( var fieldName in this.fields ) {
         if( result[fieldName].entry===undefined ) {
-            result[fieldName].entry= this.fields[fieldName].getDefaultValue();
+            var field= this.fields[fieldName];
+            var isChoice= field instanceof Field.Choice;
+            if( !field.multivalued && !isChoice ) {
+                result[fieldName].entry= field.getDefaultValue();
+            }
+            else {
+                var entry= !isChoice
+                    ? sortedObject( field.compareValues )
+                    : {};
+                var keys= field.getDefaultValue();
+                for( var i=0; i<keys.length; i++ ) { //@TODO use for.. of.. loop once NetBeans support it
+                    var key= keys[i];
+                    entry[ key ]= isChoice
+                        ? field.choicePairs[key]
+                        : key;
+                }
+                result[fieldName].entry= entry;
+            }
             result[fieldName].fromPreferences= false;
             result[fieldName].folderPath= null;
             result[fieldName].setName= undefined;
@@ -1111,7 +1129,7 @@ Module.prototype.createSet= function( setName ) {
                     var defaultValues= field.getDefaultValue();
                     if( defaultValues.length>0 ) {
                         for( var i=0; i<defaultValues.length; i++ ) { // @TODO Replace the loop with for.. of.. loop once NetBeans support it
-                            field.addValue( setNameDot, defaultValues[i] );
+                            field.addValue( setNameDot, defaultValues[i] ); // For Field.Choice defaultValues contains the keys rather than values
                         }
                     }
                     else {
