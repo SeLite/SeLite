@@ -1218,7 +1218,7 @@ function createTreeView(original) {
  *  @param field Field instance
  *  @param int addOrRemove +1 if adding entry; -1 if removing it; any of 0/null/undefined if replacing or setting to null/undefined.
  *  It can be one of +1, -1 only if field.multivalued.
- *  @param mixed keyOrValue the value to store, or (for Choice) the key for the value to store.
+ *  @param mixed keyOrValue The new value to store, or (for Choice) the key for the new value to check.
  *  It can be anything (and is not used) if addOrRemove is +1 or -1. Otherwise
  *  It should have been validated - this function doesn't validate keyOrValue.
  *  It can be null if it's a single-valued field.
@@ -1256,7 +1256,14 @@ function updateSpecial( setName, field, addOrRemove, keyOrValue ) {
         if( keyOrValue===undefined ) {
             !field.multivalued || Object.keys(compound.entry).length===0 || fail("Multivalued field " +field.name+ " has one or more entries, therefore keyOrValue must not be undefined.");
             if( field.module.prefsBranch.prefHasUserValue(setNameDot+field.name) ) {
-                this.module.prefsBranch.clearUserPref(setNameDot+field.name);
+                field.module.prefsBranch.clearUserPref(setNameDot+field.name);
+            }
+        }
+        else 
+        if( field instanceof SeLiteSettings.Field.Choice && compound.entry===null ) {
+            !field.multivalued || fail();
+            if( field.module.prefsBranch.prefHasUserValue(setNameDot+field.name) ) {
+                field.module.prefsBranch.clearUserPref(setNameDot+field.name); // Clearing NULL
             }
         }
         // Otherwise, if the field had NULL, then I don't clear that preference here, because that preference gets set outside of this function
