@@ -562,20 +562,19 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     ) {
         treecell.setAttribute('editable' , 'false');
     }
-    var perSetIsNull, perSetIsUndefined, perFolderIsUndefined, perFolderIsNull;
+    var isNull, isNullOrUndefined;
     if( rowLevel===RowLevel.FIELD ) {
-        perFolderIsNull= targetFolder!==null && valueCompound.entry===null && !field.multivalued;
-        perFolderIsUndefined= targetFolder!==null && valueCompound.entry===undefined;
-        perSetIsNull= targetFolder===null && valueCompound.fromPreferences //@TODO Try without valueCompound.fromPreferences??
-                && !field.multivalued && valueCompound.entry===null;
-        perSetIsUndefined= targetFolder===null && !valueCompound.fromPreferences;
+        valueCompound.entry!==null || !field.multivalued || fail( 'Field ' +field.name + ' is multivalued, yet its compoundValue.entry is null. In per-folder mode: ' +(targetFolder!==null) );
+        valueCompound.entry!==undefined || field.allowsNotPresent || fail( 'Field ' +field.name+ ' has allowsNotPresent=false, yet its entry is undefined.');
+        isNull= valueCompound.entry===null;
+        isNullOrUndefined= isNull || valueCompound.entry===undefined;
     }
-    if( (typeof value==='string' || typeof value==='number' || perFolderIsNull || perFolderIsUndefined || perSetIsNull || perSetIsUndefined
+    if( (typeof value==='string' || typeof value==='number' || isNullOrUndefined
         ) && !isNewValueRow
     ) {
         treecell.setAttribute('label', value!==null
             ? ''+value
-            : (perFolderIsNull || perSetIsNull
+            : (isNull
                 ? 'null'
                 : 'undefined'
               )
@@ -596,7 +595,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                 );
             }
         }
-        if( perFolderIsNull || perFolderIsUndefined || perSetIsNull || perSetIsUndefined ) {
+        if( isNullOrUndefined ) {
             treecell.setAttribute( 'properties', SeLiteSettings.FIELD_NULL_OR_UNDEFINED );
         }
     }
