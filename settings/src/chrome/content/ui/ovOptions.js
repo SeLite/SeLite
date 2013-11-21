@@ -334,7 +334,7 @@ var modules= sortedObject(true);
  * So when a user selects a set, I change its 'editable' attribute to false. Navigating tree using DOM functions seems to be more complex.
    2. I use this when saving a set/module/all displayed modules.
  *  * */
-var treeRows= sortedObject(true);
+var treeRowsOrChildren= sortedObject(true);
 
 /** Get a <treecell> element/object from a given treeRow and level
  *  @param object treeRow object/element for <treerow>
@@ -425,7 +425,7 @@ function nullOrUndefineLabel( field, valueCompound ) {
  *  @param rowLevel object of RowLevel
  *  @param optionIsSelected bool Whether the option is selected. Only used when rowLevel===RowLevel.OPTION and field instanceof Field.Choice.
  *  @param isNewValueRow bool Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell.
- *  It still puts the new <treerow> element to treeRows[moduleName...], so that it can be updated/removed once the user fills in the value. Optional; false by default.
+ *  It still puts the new <treerow> element to treeRowsOrChildren[moduleName...], so that it can be updated/removed once the user fills in the value. Optional; false by default.
  *  @param object valueCompound Anonymous object, one of entries in result of Module.getFieldsDownToFolder(..)
  *  or Module.Module.getFieldsOfSet() in form {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or from field default,
@@ -501,7 +501,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         treecell= document.createElementNS( XUL_NS, 'treecell');
         treerow.appendChild( treecell);
         if( rowLevel===RowLevel.SET && module.allowSets) {
-            subContainer( treeRows, module.name, setName )[ SeLiteSettings.SET_SELECTION_ROW ]= treerow;
+            subContainer( treeRowsOrChildren, module.name, setName )[ SeLiteSettings.SET_SELECTION_ROW ]= treerow;
             var thisSetSelected= setName==module.selectedSetName();
             treecell.setAttribute('value', ''+thisSetSelected );
             treecell.setAttribute('editable', ''+!thisSetSelected ); // I allow to select an unselected set, but not to de-select a selected set
@@ -512,17 +512,17 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         }
         treecell.setAttribute('properties', SeLiteSettings.SELECTED_SET_NAME ); // so that I can style it in CSS as a radio button
     }
-    // Register treerow in treeRows[][...]
+    // Register treerow in treeRowsOrChildren[][...]
     if( rowLevel===RowLevel.FIELD ) {
         if( !multivaluedOrChoice ) {
-           subContainer( treeRows, module.name, setName )[ fieldName ]= treerow;
+           subContainer( treeRowsOrChildren, module.name, setName )[ fieldName ]= treerow;
         }
         else {
-            subContainer( treeRows, module.name, setName, fieldName )[ SeLiteSettings.FIELD_MAIN_ROW ]= treerow;
+            subContainer( treeRowsOrChildren, module.name, setName, fieldName )[ SeLiteSettings.FIELD_MAIN_ROW ]= treerow;
         }
     }
     if( rowLevel===RowLevel.OPTION ) {
-        subContainer( treeRows, module.name, setName, fieldName )[ key ]= treerow;
+        subContainer( treeRowsOrChildren, module.name, setName, fieldName )[ key ]= treerow;
     }
     
     // Cell for checkbox (if the field is boolean or a choice):
@@ -747,7 +747,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                 );
                 fieldChildren.appendChild( optionItem );
             }
-            treeRows[ module.name ][ setName ][ fieldName ][ SeLiteSettings.FIELD_TREECHILDREN ]= fieldChildren;
+            treeRowsOrChildren[ module.name ][ setName ][ fieldName ][ SeLiteSettings.FIELD_TREECHILDREN ]= fieldChildren;
         }
     }
 }
@@ -792,7 +792,7 @@ function treeClickHandler( event ) {
         var rowProperties= tree.view.getRowProperties(row.value); // This requires Gecko 22+ (Firefox 22+). See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeView#getCellProperties%28%29
         var moduleName= propertiesPart( rowProperties, RowLevel.MODULE );
         var module= modules[moduleName];
-        var moduleRows= treeRows[moduleName];
+        var moduleRowsOrChildren= treeRowsOrChildren[moduleName];
         var field; // This gets set only if needed to handle the click
         if( column.value!=null && row.value>=0 ) {
             var cellIsEditable= tree.view.isEditable(row.value, column.value);
@@ -806,8 +806,8 @@ function treeClickHandler( event ) {
                 module.setSelectedSetName( selectedSetName );
                 modifiedPreferences= true;
                 
-                for( var setName in moduleRows ) {
-                    var treeRow= moduleRows[setName][SeLiteSettings.SET_SELECTION_ROW];
+                for( var setName in moduleRowsOrChildren ) {
+                    var treeRow= moduleRowsOrChildren[setName][SeLiteSettings.SET_SELECTION_ROW];
                     var cell= treeCell( treeRow, RowLevel.SET );
                     cell.setAttribute( 'editable', ''+(setName!==selectedSetName) );
                     if( setName!==selectedSetName) {
@@ -821,22 +821,22 @@ function treeClickHandler( event ) {
                 
                 if( isSingleNonChoice  ) {
                     field instanceof SeLiteSettings.Field.Bool || fail('field ' +field.name+ ' should be Field.Bool');
-                    var clickedCell= treeCell( moduleRows[selectedSetName][field.name], RowLevel.CHECKBOX );
+                    var clickedCell= treeCell( moduleRowsOrChildren[selectedSetName][field.name], RowLevel.CHECKBOX );
                     field.setValue( selectedSetName, clickedCell.getAttribute( 'value')==='true' );
                     // I don't need to call updateSpecial() here - if the field was SeLiteSettings.NULL, then the above setValue() replaced that
                 }
                 else {
                     var clickedOptionKey= propertiesPart( rowProperties, RowLevel.OPTION );
-                    var clickedTreeRow= moduleRows[selectedSetName][field.name][ clickedOptionKey ];
+                    var clickedTreeRow= moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ];
                     var clickedCell= treeCell( clickedTreeRow, RowLevel.CHECKBOX );
                     
                     if( !field.multivalued ) { // field is a single-valued choice. The field is only editable if it was unchecked
                         // - so the user checked it now. Uncheck & remove the previously checked value.
                         clickedCell.setAttribute( 'editable', 'false');
-                        for( var otherOptionKey in moduleRows[selectedSetName][field.name] ) { // de-select the previously selected value, make editable
+                        for( var otherOptionKey in moduleRowsOrChildren[selectedSetName][field.name] ) { // de-select the previously selected value, make editable
                             
                             if( SeLiteSettings.reservedNames.indexOf(otherOptionKey)<0 && otherOptionKey!==clickedOptionKey ) {
-                                var otherOptionRow= moduleRows[selectedSetName][field.name][otherOptionKey];
+                                var otherOptionRow= moduleRowsOrChildren[selectedSetName][field.name][otherOptionKey];
                                 
                                 var otherOptionCell= treeCell( otherOptionRow, RowLevel.CHECKBOX );
                                 if( targetFolder===null && otherOptionCell.getAttribute('value')==='true' ) {
@@ -906,7 +906,7 @@ function treeClickHandler( event ) {
                         if( !field.multivalued || field instanceof SeLiteSettings.Field.Choice ) {
                             fail( 'We only allow Add/Delete buttons for non-choice multivalued fields, but it was triggered for field ' +field.name );
                         }
-                        var treeChildren= moduleRows[selectedSetName][field.name][SeLiteSettings.FIELD_TREECHILDREN];
+                        var treeChildren= moduleRowsOrChildren[selectedSetName][field.name][SeLiteSettings.FIELD_TREECHILDREN];
                         if( cellText===ADD_NEW_VALUE ) {
                             // Add a row for a new value, right below the clicked row (i.e. at the top of all existing values)
                             var pair= {};
@@ -915,9 +915,9 @@ function treeClickHandler( event ) {
                             var treeItem= generateTreeItem(module, selectedSetName, field, pair, RowLevel.OPTION, false, /*Don't show the initial value:*/true );
 
                             var previouslyFirstValueRow= null;
-                            for( var key in moduleRows[selectedSetName][field.name] ) {
+                            for( var key in moduleRowsOrChildren[selectedSetName][field.name] ) {
                                 if( SeLiteSettings.reservedNames.indexOf(key)<0 ) {
-                                    previouslyFirstValueRow= moduleRows[selectedSetName][field.name][key];
+                                    previouslyFirstValueRow= moduleRowsOrChildren[selectedSetName][field.name][key];
                                     if( !(previouslyFirstValueRow instanceof XULElement) || previouslyFirstValueRow.tagName!=='treerow' || previouslyFirstValueRow.parentNode.tagName!=='treeitem' ) {
                                         throw Error();
                                     }
@@ -952,8 +952,8 @@ function treeClickHandler( event ) {
                         }
                         if( cellText===DELETE_THE_VALUE ) {
                             var clickedOptionKey= propertiesPart( rowProperties, RowLevel.OPTION );
-                            var clickedTreeRow= moduleRows[selectedSetName][field.name][ clickedOptionKey ];
-                            delete moduleRows[selectedSetName][field.name][ clickedOptionKey ];
+                            var clickedTreeRow= moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ];
+                            delete moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ];
                             treeChildren.removeChild( clickedTreeRow.parentNode );
                             field.removeValue( selectedSetName, clickedOptionKey ); //@TODO error here?
                             updateSpecial( selectedSetName, field, -1 );
@@ -1000,8 +1000,8 @@ function treeClickHandler( event ) {
                 moduleSetFields[moduleName][selectedSetName]= module.getFieldsOfSet( selectedSetName );
             }
             var fieldTreeRow= !field.multivalued && !(field instanceof SeLiteSettings.Choice)
-                ? treeRows[moduleName][selectedSetName][field.name]
-                : treeRows[moduleName][selectedSetName][field.name][SeLiteSettings.FIELD_MAIN_ROW];
+                ? treeRowsOrChildren[moduleName][selectedSetName][field.name]
+                : treeRowsOrChildren[moduleName][selectedSetName][field.name][SeLiteSettings.FIELD_MAIN_ROW];
             treeCell( fieldTreeRow, RowLevel.FIELD ).setAttribute('properties', ''); //@TODO
         }
     }
@@ -1039,14 +1039,14 @@ function gatherAndValidateCell( row, value ) {
     var fieldName= propertiesPart( rowProperties, RowLevel.FIELD );
     var field= module.fields[fieldName];
 
-    var moduleRows= treeRows[moduleName];
+    var moduleRowsOrChildren= treeRowsOrChildren[moduleName];
     var fieldTreeRowsOrChildren= null; //Non-null only if field.multivalued==true
     var treeRow;
     var oldKey;
     var validationPassed= true;
     var valueChanged;
     if( !field.multivalued ) {
-        treeRow= moduleRows[setName][fieldName];
+        treeRow= moduleRowsOrChildren[setName][fieldName];
         // @TODO Docs Can't use treeRow.constructor.name here - because it's a native object.
         if( !(treeRow instanceof XULElement) || treeRow.tagName!=='treerow') {
             throw new Error( 'treeRow should be an instance of XULElement for a <treerow>.');
@@ -1058,7 +1058,7 @@ function gatherAndValidateCell( row, value ) {
             && !(value==='undefined' && oldEntry===undefined);
     }
     else {
-        fieldTreeRowsOrChildren= moduleRows[setName][fieldName];
+        fieldTreeRowsOrChildren= moduleRowsOrChildren[setName][fieldName];
         fieldTreeRowsOrChildren instanceof SortedObjectTarget || fail( "fieldTreeRowsOrChildren should be an instance of SortedObjectTarget, but it is " +fieldTreeRowsOrChildren.constructor.name );
         oldKey= propertiesPart( rowProperties, RowLevel.OPTION );
         valueChanged= value!==oldKey;
@@ -1221,7 +1221,7 @@ function createTreeView(original) {
             //I wanted to keep the field as being edited, but this didn't work here in Firefox 24.0: document.getElementById( 'settingsTree' ).startEditing( row, col );
             if( addingFirstForMultivalued ) {
                 info.fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN].removeChild( info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW].parentNode );
-                delete treeRows[info.module.name][info.setName][info.field.name][SeLiteSettings.NEW_VALUE_ROW];
+                delete treeRowsOrChildren[info.module.name][info.setName][info.field.name][SeLiteSettings.NEW_VALUE_ROW];
             }
             return false;
         },
