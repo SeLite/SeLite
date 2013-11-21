@@ -1261,7 +1261,7 @@ function updateSpecial( setName, field, addOrRemove, keyOrValue ) {
         }
         // Otherwise, if the field had NULL, then I don't clear that preference here, because that preference gets set outside of this function
     }
-    moduleSetFields[field.module.name][setName]= TODO;
+    moduleSetFields[field.module.name][setName]= field.module.getFieldsOfSet( setName );
 }
 
 /* @var allowSets bool Whether to show the column for selection of a set. If we're only showing one module, this is module.allowSets

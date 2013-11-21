@@ -698,11 +698,13 @@ Module.prototype.getFieldsOfSet= function( setName ) {
         } else {
             children= [];
         }
-        var fieldPreference;
-        if( multivaluedOrChoice && fieldHasPreference && children.length===0 ) {
-            fieldPreference= this.prefsBranch.getCharPref(setNameWithDot+fieldName);
-            field.multivalued && fieldPreference===VALUE_PRESENT
-            || !field.multivalued && fieldPreference===NULL
+        var multivaluedOrChoiceFieldPreference= multivaluedOrChoice && fieldHasPreference
+            ? this.prefsBranch.getCharPref(setNameWithDot+fieldName)
+            : undefined;
+        if( multivaluedOrChoice && fieldHasPreference ) {
+            children.length===0 || fail('Module ' +this.name+ ', set ' + setName+ ', field ' +fieldName+ ' has field preference, therefore it should have no children.');
+            field.multivalued && multivaluedOrChoiceFieldPreference===VALUE_PRESENT
+            || !field.multivalued && multivaluedOrChoiceFieldPreference===NULL
             || fail( 'Module ' +this.name+ ', set ' + setName+
                 ', field ' +fieldName+ ' is multivalued and/or a choice, but it has its own preference which is other than ' +VALUE_PRESENT+ ' or ' +NULL );
         }
@@ -710,7 +712,7 @@ Module.prototype.getFieldsOfSet= function( setName ) {
             fromPreferences: false,
             entry: undefined
         };
-        if( multivaluedOrChoice && (fieldHasPreference && fieldPreference===VALUE_PRESENT || children.length>0) ) {
+        if( multivaluedOrChoice && (fieldHasPreference && multivaluedOrChoiceFieldPreference===VALUE_PRESENT || children.length>0) ) {
             // When presenting Field.Choice, they are not sorted by stored values, but by keys from the field definition.
             // So I only use sortedObject for multivalued fields other than Field.Choice
             result[fieldName].entry= !isChoice
@@ -741,7 +743,7 @@ Module.prototype.getFieldsOfSet= function( setName ) {
             }
         }
         if( isChoice && !field.multivalued && fieldHasPreference ) {
-            fieldPreference===NULL || fail('This should have failed above already.');
+            multivaluedOrChoiceFieldPreference===NULL || fail('This should have failed above already. Module ' +field.module.name+ ', set ' +setName+ ', field ' +field.name+ ' has preference ' +fieldPreference );
             result[fieldName].entry= null;
         }
         !isChoice || result[fieldName].entry===undefined || typeof(result[fieldName].entry)==='object' || fail( 'field ' +field.name+ ' has value ' +typeof result[fieldName].entry ); //@TODO 
