@@ -71,10 +71,10 @@ function chooseFileOrFolder( field, tree, row, column, isFolder, currentTargetFo
                 file= new FileUtils.File(previousValue);
             }
             catch(e) {}
-            if( file!=null && file.exists() ) {
+            if( file!==null && file.exists() ) {
                 filePicker.defaultString= file.leafName;
             }
-            if( file!=null && file.parent!==null && file.parent.exists() ) {
+            if( file!==null && file.parent!==null && file.parent.exists() ) {
                 var localParent= Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
                 localParent.initWithPath( file.parent.path );
                 filePicker.displayDirectory= localParent;
@@ -94,7 +94,7 @@ function chooseFileOrFolder( field, tree, row, column, isFolder, currentTargetFo
         filePicker.displayDirectory= currentTargetFolder;
     }
     var result= filePicker.show();
-    if (result== nsIFilePicker.returnOK || result== nsIFilePicker.returnReplace) {
+    if (result===nsIFilePicker.returnOK || result===nsIFilePicker.returnReplace) {
         if( field ) {
             tree.view.setCellText(row, column, filePicker.file.path );
         }
@@ -815,7 +815,7 @@ function treeClickHandler( event ) {
                     }
                 }
             }
-            if( column.value.element==treeColumnElements.checked && cellIsEditable ) {
+            if( column.value.element===treeColumnElements.checked && cellIsEditable ) {
                 field= module.fields[ propertiesPart( rowProperties, RowLevel.FIELD ) ];
                 var isSingleNonChoice= !(field.multivalued || field instanceof SeLiteSettings.Field.Choice);
                 
@@ -865,10 +865,10 @@ function treeClickHandler( event ) {
                 }
                 modifiedPreferences= true;
             }
-            if( column.value.element==treeColumnElements.value || column.value.element==treeColumnElements.action ) {
+            if( column.value.element===treeColumnElements.value || column.value.element===treeColumnElements.action ) {
                 field= module.fields[ propertiesPart(rowProperties, RowLevel.FIELD) ];
             }
-            if( column.value.element==treeColumnElements.value ) {
+            if( column.value.element===treeColumnElements.value ) {
                 if( cellIsEditable && rowProperties) {
                     if( targetFolder===null ) {
                         if( !(field instanceof SeLiteSettings.Field.FileOrFolder) ) {
@@ -983,11 +983,11 @@ function treeClickHandler( event ) {
                     }
                 }
                 else { // Set view - the column is Null/Undefine
-                    if( cellText=='Null' ) {
+                    if( cellText==='Null' ) {
                         //@TODO updateSpecial + nullOrUndefineLabel
                         modifiedPreferences= true;
                     }
-                    if( cellText=='Undefined' ) {
+                    if( cellText==='Undefined' ) {
                         //@TODO updateSpecial + nullOrUndefineLabel
                         modifiedPreferences= true;
                     }
@@ -1223,7 +1223,7 @@ function createTreeView(original) {
         setCellValue: function(row, col, value) { return original.setCellValue(row, col, value); },
         setTree: function(tree) { return original.setTree(tree); },
         toggleOpenState: function(index) { return original.toggleOpenState(index); }
-    }
+    };
 }
 
 /** Set/unset special value for the field in the preferences, if the change involves setting/unsetting a special value
@@ -1487,8 +1487,8 @@ function chooseJavascriptFile() {
     filePicker.appendFilter( 'Javascript', '*.js');
     filePicker.appendFilters( nsIFilePicker.filterAll);
 	var result= filePicker.show();
-	if (result== nsIFilePicker.returnOK || result== nsIFilePicker.returnReplace) {
+	if( result===nsIFilePicker.returnOK || result===nsIFilePicker.returnReplace ) {
 		return filePicker.file;
 	}
-    return null
+    return null;
 }

@@ -13,7 +13,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 "use strict";
-var runningAsComponent= (typeof window==='undefined' || window && window.location && window.location.protocol=='chrome:');
+var runningAsComponent= (typeof window==='undefined' || window && window.location && window.location.protocol==='chrome:');
 // runningAsComponent is false when loaded via <script src="file://..."> or <script src="http://..."> rather than via Components.utils.import().
 // Used for debugging; limited (because when it's not loaded via Components.utils.import() it can't access other components).
 
@@ -155,7 +155,7 @@ var Field= function( name, multivalued, defaultValue, allowsNotPresent ) {
     ensureType( this.allowsNotPresent, "boolean", "Field() expects allowsNotPresent to be a boolean, if present.");
     
     if( !this.name.endsWith('.prototype') ) {
-        if( this.constructor==Field ) {
+        if( this.constructor===Field ) {
             throw new Error( "Can't instantiate Field directly, except for prototype instances. name: " +this.name );
         }
         ensureInstance(this, 
@@ -205,7 +205,7 @@ Field.prototype.registerFor= function( module ) {
     if( !(module instanceof Module) ) {
         throw new Error( "Field.registerFor(module) expects module to be an instance of Module.");
     };
-    if( this.module!=null ) {
+    if( this.module!==null ) {
         throw new Error( "Field.registerFor(module) expects 'this' Field not to be registered yet, but field '" +this.name+ "' was registered already.");
     }
     this.module= module;
@@ -306,7 +306,7 @@ Field.prototype.removeValue= function( setName, key ) {
  * */
 Field.prototype.equals= function( other ) {
     return this.name===other.name
-        && this.constructor==other.constructor
+        && this.constructor===other.constructor
         && this.defaultValue===other.defaultValue; // Strict comparison is OK for primitive string/bool/int
         //@TODO For multivalued/Choice default values
 };
@@ -340,7 +340,7 @@ Field.Int.prototype.prefType= function() {
  * */
 Field.Int.prototype.compareValues= function( firstValue, secondValue ) {
     return compareAsNumbers(firstValue, secondValue );
-}
+};
 
 Field.String= function( name, multivalued, defaultValue, allowsNotPresent ) {
     Field.call( this, name, multivalued, defaultValue, allowsNotPresent );
@@ -532,7 +532,7 @@ var Module= function( name, fields, allowSets, defaultSetName, associatesWithFol
     !this.associatesWithFolders || ensure(this.allowSets, 'Module() must be called with allowSets=true, if associatesWithFolders is true.' );
     
     this.definitionJavascriptFile= definitionJavascriptFile || null;
-    if( this.definitionJavascriptFile!=null && typeof this.definitionJavascriptFile!='string') {
+    if( this.definitionJavascriptFile!=null && typeof this.definitionJavascriptFile!=='string') {
         throw new Error( 'Module() expects definitionJavascriptFile to be a string, if provided.');
     }
     this.prefsBranch= prefs.getBranch( this.name+'.' );
