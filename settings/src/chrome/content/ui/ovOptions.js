@@ -793,21 +793,22 @@ function treeClickHandler( event ) {
         var moduleName= propertiesPart( rowProperties, RowLevel.MODULE );
         var module= modules[moduleName];
         var moduleRows= treeRows[moduleName];
+        var field; // This gets set only if needed to handle the click
         if( column.value!=null && row.value>=0 ) {
             var cellIsEditable= tree.view.isEditable(row.value, column.value);
             var cellValue= tree.view.getCellValue(row.value, column.value); // For checkboxes this is true/false as toggled by the click.
             var cellProperties= tree.view.getCellProperties( row.value, column.value ); // Space-separated properties
             var cellText= tree.view.getCellText(row.value, column.value);
             
+            var selectedSetName= propertiesPart( rowProperties, RowLevel.SET );
             if( allowSets && column.value.element==treeColumnElements.selectedSet && cellIsEditable ) { // Select the clicked set, de-select previously selected set
                 cellValue==='true' || fail( 'Only unselected sets should have the set selection column editable.' );
-                var selectedSetName= propertiesPart( rowProperties, RowLevel.SET );
                 module.setSelectedSetName( selectedSetName );
                 modifiedPreferences= true;
                 
                 for( var setName in moduleRows ) {
                     var treeRow= moduleRows[setName][SeLiteSettings.SET_SELECTION_ROW];
-                    var cell= treeCell( treeRow, RowLevel.SET, true );
+                    var cell= treeCell( treeRow, RowLevel.SET );
                     cell.setAttribute( 'editable', ''+(setName!==selectedSetName) );
                     if( setName!==selectedSetName) {
                         cell.setAttribute( 'value', 'false' );
@@ -815,46 +816,45 @@ function treeClickHandler( event ) {
                 }
             }
             if( column.value.element==treeColumnElements.checked && cellIsEditable ) {
-                var setName= propertiesPart( rowProperties, RowLevel.SET );
-                var field= module.fields[ propertiesPart( rowProperties, RowLevel.FIELD ) ];
+                field= module.fields[ propertiesPart( rowProperties, RowLevel.FIELD ) ];
                 var isSingleNonChoice= !(field.multivalued || field instanceof SeLiteSettings.Field.Choice);
                 
                 if( isSingleNonChoice  ) {
                     field instanceof SeLiteSettings.Field.Bool || fail('field ' +field.name+ ' should be Field.Bool');
-                    var clickedCell= treeCell( moduleRows[setName][field.name], RowLevel.CHECKBOX );
-                    field.setValue( setName, clickedCell.getAttribute( 'value')==='true' );
+                    var clickedCell= treeCell( moduleRows[selectedSetName][field.name], RowLevel.CHECKBOX );
+                    field.setValue( selectedSetName, clickedCell.getAttribute( 'value')==='true' );
                     // I don't need to call updateSpecial() here - if the field was SeLiteSettings.NULL, then the above setValue() replaced that
                 }
                 else {
                     var clickedOptionKey= propertiesPart( rowProperties, RowLevel.OPTION );
-                    var clickedTreeRow= moduleRows[setName][field.name][ clickedOptionKey ];
+                    var clickedTreeRow= moduleRows[selectedSetName][field.name][ clickedOptionKey ];
                     var clickedCell= treeCell( clickedTreeRow, RowLevel.CHECKBOX );
                     
                     if( !field.multivalued ) { // field is a single-valued choice. The field is only editable if it was unchecked
                         // - so the user checked it now. Uncheck & remove the previously checked value.
                         clickedCell.setAttribute( 'editable', 'false');
-                        for( var otherOptionKey in moduleRows[setName][field.name] ) { // de-select the previously selected value, make editable
+                        for( var otherOptionKey in moduleRows[selectedSetName][field.name] ) { // de-select the previously selected value, make editable
                             
                             if( SeLiteSettings.reservedNames.indexOf(otherOptionKey)<0 && otherOptionKey!==clickedOptionKey ) {
-                                var otherOptionRow= moduleRows[setName][field.name][otherOptionKey];
+                                var otherOptionRow= moduleRows[selectedSetName][field.name][otherOptionKey];
                                 
                                 var otherOptionCell= treeCell( otherOptionRow, RowLevel.CHECKBOX );
                                 if( targetFolder===null && otherOptionCell.getAttribute('value')==='true' ) {
                                     otherOptionCell.setAttribute( 'value', 'false');
                                     otherOptionCell.setAttribute( 'editable', 'true');
-                                    field.removeValue( setName, otherOptionKey );
+                                    field.removeValue( selectedSetName, otherOptionKey );
                                 }
                             }
                         }
-                        field.addValue( setName, clickedOptionKey );
+                        field.addValue( selectedSetName, clickedOptionKey );
                     }
                     else {
                         var checkedAfterClick= clickedCell.getAttribute('value')==='true';
                         checkedAfterClick
-                            ? field.addValue( setName, clickedOptionKey )
-                            : field.removeValue( setName, clickedOptionKey );
+                            ? field.addValue( selectedSetName, clickedOptionKey )
+                            : field.removeValue( selectedSetName, clickedOptionKey );
                     }
-                    updateSpecial( setName, field,
+                    updateSpecial( selectedSetName, field,
                         !field.multivalued
                             ? 0
                             : (checkedAfterClick
@@ -865,7 +865,6 @@ function treeClickHandler( event ) {
                 }
                 modifiedPreferences= true;
             }
-            var field;
             if( column.value.element==treeColumnElements.value || column.value.element==treeColumnElements.action ) {
                 field= module.fields[ propertiesPart(rowProperties, RowLevel.FIELD) ];
             }
@@ -894,13 +893,12 @@ function treeClickHandler( event ) {
                             // and ?module=...& selectedSet=...
                         }
                     }
-                    var setName= propertiesPart( rowProperties, RowLevel.SET );
                     if( cellText===DELETE_THE_SET ) {
-                        if( setName===module.selectedSetName() ) {
+                        if( selectedSetName===module.selectedSetName() ) {
                             alert( "Please select (or create and select) a different set before you remove this one." );
                             return;
                         }
-                        module.removeSet( setName);
+                        module.removeSet( selectedSetName);
                         SeLiteSettings.savePrefFile(); // Must save here, before reload()
                         window.location.reload();
                     }
@@ -908,18 +906,18 @@ function treeClickHandler( event ) {
                         if( !field.multivalued || field instanceof SeLiteSettings.Field.Choice ) {
                             fail( 'We only allow Add/Delete buttons for non-choice multivalued fields, but it was triggered for field ' +field.name );
                         }
-                        var treeChildren= moduleRows[setName][field.name][SeLiteSettings.FIELD_TREECHILDREN];
+                        var treeChildren= moduleRows[selectedSetName][field.name][SeLiteSettings.FIELD_TREECHILDREN];
                         if( cellText===ADD_NEW_VALUE ) {
                             // Add a row for a new value, right below the clicked row (i.e. at the top of all existing values)
                             var pair= {};
                             pair[ SeLiteSettings.NEW_VALUE_ROW ]= SeLiteSettings.NEW_VALUE_ROW;
                             // Since we're editing, that means targetFolder===null, so I don't need to generate anything for navigation from folder view here.
-                            var treeItem= generateTreeItem(module, setName, field, pair, RowLevel.OPTION, false, /*Don't show the initial value:*/true );
+                            var treeItem= generateTreeItem(module, selectedSetName, field, pair, RowLevel.OPTION, false, /*Don't show the initial value:*/true );
 
                             var previouslyFirstValueRow= null;
-                            for( var key in moduleRows[setName][field.name] ) {
+                            for( var key in moduleRows[selectedSetName][field.name] ) {
                                 if( SeLiteSettings.reservedNames.indexOf(key)<0 ) {
-                                    previouslyFirstValueRow= moduleRows[setName][field.name][key];
+                                    previouslyFirstValueRow= moduleRows[selectedSetName][field.name][key];
                                     if( !(previouslyFirstValueRow instanceof XULElement) || previouslyFirstValueRow.tagName!=='treerow' || previouslyFirstValueRow.parentNode.tagName!=='treeitem' ) {
                                         throw Error();
                                     }
@@ -954,11 +952,11 @@ function treeClickHandler( event ) {
                         }
                         if( cellText===DELETE_THE_VALUE ) {
                             var clickedOptionKey= propertiesPart( rowProperties, RowLevel.OPTION );
-                            var clickedTreeRow= moduleRows[setName][field.name][ clickedOptionKey ];
-                            delete moduleRows[setName][field.name][ clickedOptionKey ];
+                            var clickedTreeRow= moduleRows[selectedSetName][field.name][ clickedOptionKey ];
+                            delete moduleRows[selectedSetName][field.name][ clickedOptionKey ];
                             treeChildren.removeChild( clickedTreeRow.parentNode );
-                            field.removeValue( setName, clickedOptionKey ); //@TODO error here?
-                            updateSpecial( setName, field, -1 );
+                            field.removeValue( selectedSetName, clickedOptionKey ); //@TODO error here?
+                            updateSpecial( selectedSetName, field, -1 );
                             modifiedPreferences= true;
                         }
                     }
@@ -986,7 +984,13 @@ function treeClickHandler( event ) {
         }
         if( modifiedPreferences ) {
             SeLiteSettings.savePrefFile();
-            moduleSetFields[moduleName][setName]= module.getFieldsOfSet( setName );
+            if( column.value.element!==treeColumnElements.selectedSet ) {
+                moduleSetFields[moduleName][selectedSetName]= module.getFieldsOfSet( selectedSetName );
+            }
+            var treeRow= !field.multivalued && !(field instanceof SeLiteSettings.Choice)
+                ? treeRows[moduleName][selectedSetName][field.name]
+                : treeRows[moduleName][selectedSetName][field.name][SeLiteSettings.FIELD_MAIN_ROW];
+            treeCell( treeRow, RowLevel.FIELD ).setAttribute('properties', ''); //@TODO
         }
     }
 }
