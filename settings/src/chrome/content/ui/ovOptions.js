@@ -564,11 +564,11 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     }
     var perSetIsNull, perSetIsUndefined, perFolderIsUndefined, perFolderIsNull;
     if( rowLevel===RowLevel.FIELD ) {
-        perFolderIsNull= rowLevel===RowLevel.FIELD && targetFolder!==null && valueCompound.entry===null && !field.multivalued;
-        perFolderIsUndefined= rowLevel===RowLevel.FIELD && targetFolder!==null && valueCompound.entry===undefined;
-        perSetIsNull= rowLevel===RowLevel.FIELD && targetFolder===null && valueCompound.fromPreferences //@TODO Try without valueCompound.fromPreferences??
+        perFolderIsNull= targetFolder!==null && valueCompound.entry===null && !field.multivalued;
+        perFolderIsUndefined= targetFolder!==null && valueCompound.entry===undefined;
+        perSetIsNull= targetFolder===null && valueCompound.fromPreferences //@TODO Try without valueCompound.fromPreferences??
                 && !field.multivalued && valueCompound.entry===null;
-        perSetIsUndefined= rowLevel===RowLevel.FIELD && targetFolder===null && !valueCompound.fromPreferences;
+        perSetIsUndefined= targetFolder===null && !valueCompound.fromPreferences;
     }
     if( (typeof value==='string' || typeof value==='number' || perFolderIsNull || perFolderIsUndefined || perSetIsNull || perSetIsUndefined
         ) && !isNewValueRow
