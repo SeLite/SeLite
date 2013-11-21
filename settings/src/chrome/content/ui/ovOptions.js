@@ -562,18 +562,20 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     ) {
         treecell.setAttribute('editable' , 'false');
     }
-    var perFolderAndIsNull= rowLevel===RowLevel.FIELD && targetFolder!==null && value===null //@TODO Use valueCompount.entry instead of value?!
-            && !field.multivalued;
-    var perFolderAndIsUndefined= rowLevel===RowLevel.FIELD && targetFolder!==null && valueCompound.entry===undefined; // @TODO Why did I have this here?:    && !(multivaluedOrChoice);
-    var perSetAndIsNull= rowLevel===RowLevel.FIELD && targetFolder===null && valueCompound.fromPreferences
-            && !field.multivalued && valueCompound.entry===null;
-    var perSetAndIsUndefined= rowLevel===RowLevel.FIELD && targetFolder===null && !valueCompound.fromPreferences;
-    if( (typeof value==='string' || typeof value==='number' || perFolderAndIsNull || perFolderAndIsUndefined || perSetAndIsNull || perSetAndIsUndefined
+    var perSetIsNull, perSetIsUndefined, perFolderIsUndefined, perFolderIsNull;
+    if( rowLevel===RowLevel.FIELD ) {
+        perFolderIsNull= rowLevel===RowLevel.FIELD && targetFolder!==null && valueCompound.entry===null && !field.multivalued;
+        perFolderIsUndefined= rowLevel===RowLevel.FIELD && targetFolder!==null && valueCompound.entry===undefined;
+        perSetIsNull= rowLevel===RowLevel.FIELD && targetFolder===null && valueCompound.fromPreferences //@TODO Try without valueCompound.fromPreferences??
+                && !field.multivalued && valueCompound.entry===null;
+        perSetIsUndefined= rowLevel===RowLevel.FIELD && targetFolder===null && !valueCompound.fromPreferences;
+    }
+    if( (typeof value==='string' || typeof value==='number' || perFolderIsNull || perFolderIsUndefined || perSetIsNull || perSetIsUndefined
         ) && !isNewValueRow
     ) {
         treecell.setAttribute('label', value!==null
             ? ''+value
-            : (perFolderAndIsNull || perSetAndIsNull
+            : (perFolderIsNull || perSetIsNull
                 ? 'null'
                 : 'undefined'
               )
@@ -594,7 +596,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                 );
             }
         }
-        if( perFolderAndIsNull || perFolderAndIsUndefined || perSetAndIsNull || perSetAndIsUndefined ) {
+        if( perFolderIsNull || perFolderIsUndefined || perSetIsNull || perSetIsUndefined ) {
             treecell.setAttribute( 'properties', SeLiteSettings.FIELD_NULL_OR_UNDEFINED );
         }
     }
