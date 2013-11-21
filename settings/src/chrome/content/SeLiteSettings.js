@@ -1250,6 +1250,7 @@ loadingPackageDefinition= false;
 
 var EXPORTED_SYMBOLS= [
     'reservedNames',
+    'VALUE_PRESENT', 'NULL',
     'SET_SELECTION_ROW', 'SELECTED_SET_NAME', 'FIELD_MAIN_ROW', 'OPTION_NOT_UNIQUE_CELL',
     'OPTION_UNIQUE_CELL', 'FIELD_TREECHILDREN', 'NEW_VALUE_ROW',
     'Field', 'Module', 'register', 'savePrefFile', 'moduleNamesFromPreferences', 'fileNameToUrl', 'loadFromJavascript',

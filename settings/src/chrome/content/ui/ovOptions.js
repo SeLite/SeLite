@@ -999,10 +999,10 @@ function treeClickHandler( event ) {
             if( column.value.element!==treeColumnElements.selectedSet ) {
                 moduleSetFields[moduleName][selectedSetName]= module.getFieldsOfSet( selectedSetName );
             }
-            var treeRow= !field.multivalued && !(field instanceof SeLiteSettings.Choice)
+            var fieldTreeRow= !field.multivalued && !(field instanceof SeLiteSettings.Choice)
                 ? treeRows[moduleName][selectedSetName][field.name]
                 : treeRows[moduleName][selectedSetName][field.name][SeLiteSettings.FIELD_MAIN_ROW];
-            treeCell( treeRow, RowLevel.FIELD ).setAttribute('properties', ''); //@TODO
+            treeCell( fieldTreeRow, RowLevel.FIELD ).setAttribute('properties', ''); //@TODO
         }
     }
 }
@@ -1199,6 +1199,7 @@ function createTreeView(original) {
             // I don't use parameter col in my own methods, because I use module definition to figure out the editable cell.
             // If we had more than one editable cell per row, then I'd have to use parameter col.
             var info= gatherAndValidateCell( row, value );
+            var addingFirstForMultivalued= info.field.multivalued && info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW];
             if( info.validationPassed ) {
                 var result= original.setCellText(row, col, value);
                 if( info.valueChanged ) {
@@ -1207,14 +1208,18 @@ function createTreeView(original) {
                         treeCell( info.treeRow, RowLevel.FIELD ).setAttribute( 'properties', '' );
                     }
                     //@TODO clear text of Null/Undefine column
-                    //@TODO updateSpecial()
+                    updateSpecial( info.setName, info.field,
+                        addingFirstForMultivalued
+                            ? +1
+                            : 0,
+                        value );
                     moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName );
                 }
                 return result;
             }
             alert('Field ' +info.field.name+ " can't accept value "+ value);
             //I wanted to keep the field as being edited, but this didn't work here in Firefox 24.0: document.getElementById( 'settingsTree' ).startEditing( row, col );
-            if( info.field.multivalued && info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] ) {
+            if( addingFirstForMultivalued ) {
                 info.fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN].removeChild( info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW].parentNode );
                 delete treeRows[info.module.name][info.setName][info.field.name][SeLiteSettings.NEW_VALUE_ROW];
             }
@@ -1251,9 +1256,10 @@ function updateSpecial( setName, field, addOrRemove, keyOrValue ) {
         ? setName+'.'
         : setName;
     var compound= moduleSetFields[field.module.name][setName][field.name];
+    try {
     if( addOrRemove ) {
         if( addOrRemove>0 ) {
-            if( Object.keys(compound.entry).length===0 && field.module.prefsBranch.prefHasUserValue(setNameDot+field.name) ) {
+            if( compound.entry!==undefined && Object.keys(compound.entry).length===0 && field.module.prefsBranch.prefHasUserValue(setNameDot+field.name) ) {
                 field.module.prefsBranch.clearUserPref( setNameDot+field.name); // Clearing VALUE_PRESENT
             }
         }
@@ -1285,6 +1291,10 @@ function updateSpecial( setName, field, addOrRemove, keyOrValue ) {
             }
         }
         // Otherwise, if the field had NULL, then I don't clear that preference here, because that preference gets set outside of this function
+    }
+    } catch(e) {
+        console.log( 'updateSpecial() Module ' +field.module.name+ ', set ' +setName+ ', field: ' +field.name+ ' has compound ' +typeof compound );
+        fail(e);
     }
     moduleSetFields[field.module.name][setName]= field.module.getFieldsOfSet( setName );
 }

@@ -24,12 +24,16 @@ if( runningAsComponent ) {
         getService(Components.interfaces.nsILoginManager);
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 }
-/** This throws an error (containg the given message, if any). It also logs the current stack trase to console as a warning.
+/** This throws the given error or a new error (containg the given message, if any). It also logs the current stack trase to console as a warning.
+ *  @param errorOrMessage An Error, or a string message, or undefined/null.
 */
-function fail( message ) {
+function fail( errorOrMessage ) {
     try {
-        throw message
-            ? new Error(message)
+        throw errorOrMessage
+            ?(errorOrMessage instanceof Error
+                ? errorOrMessage
+                : new Error(errorOrMessage)
+             )
             : new Error();
     }
     catch(e) {
