@@ -966,19 +966,31 @@ function treeClickHandler( event ) {
                 }
             }
             if( column.value.element===treeColumnElements.manifest && cellProperties!=='' ) {
-                if( cellProperties!==SeLiteSettings.FIELD_DEFAULT ) {
-                    if( cellProperties.startsWith(SeLiteSettings.ASSOCIATED_SET) ) {
-                        var folder= cellProperties.substring( SeLiteSettings.ASSOCIATED_SET.length+1 );
-                        window.open( 'file://' +OS.Path.join(folder, SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME), '_blank' );
+                if( targetFolder!==null ) {
+                    if( cellProperties!==SeLiteSettings.FIELD_DEFAULT ) {
+                        if( cellProperties.startsWith(SeLiteSettings.ASSOCIATED_SET) ) {
+                            var folder= cellProperties.substring( SeLiteSettings.ASSOCIATED_SET.length+1 );
+                            window.open( 'file://' +OS.Path.join(folder, SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME), '_blank' );
+                        }
+                        else {
+                            ensure( cellProperties.startsWith(SeLiteSettings.VALUES_MANIFEST) );
+                            var folder= cellProperties.substring( SeLiteSettings.VALUES_MANIFEST.length+1 );
+                            window.open( 'file://' +OS.Path.join(folder, SeLiteSettings.VALUES_MANIFEST_FILENAME), '_blank' );
+                        }
                     }
                     else {
-                        ensure( cellProperties.startsWith(SeLiteSettings.VALUES_MANIFEST) );
-                        var folder= cellProperties.substring( SeLiteSettings.VALUES_MANIFEST.length+1 );
-                        window.open( 'file://' +OS.Path.join(folder, SeLiteSettings.VALUES_MANIFEST_FILENAME), '_blank' );
+                        window.open( SeLiteSettings.fileNameToUrl(module.definitionJavascriptFile), '_blank' );
                     }
                 }
-                else {
-                    window.open( SeLiteSettings.fileNameToUrl(module.definitionJavascriptFile), '_blank' );
+                else { // Set view - the column is Null/Undefine
+                    if( cellText=='Null' ) {
+                        //@TODO updateSpecial + nullOrUndefineLabel
+                        modifiedPreferences= true;
+                    }
+                    if( cellText=='Undefined' ) {
+                        //@TODO updateSpecial + nullOrUndefineLabel
+                        modifiedPreferences= true;
+                    }
                 }
             }
         }
@@ -1194,6 +1206,8 @@ function createTreeView(original) {
                     if( !info.field.multivalued ) {
                         treeCell( info.treeRow, RowLevel.FIELD ).setAttribute( 'properties', '' );
                     }
+                    //@TODO clear text of Null/Undefine column
+                    //@TODO updateSpecial()
                     moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName );
                 }
                 return result;
