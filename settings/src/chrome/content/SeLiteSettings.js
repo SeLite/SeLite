@@ -659,11 +659,11 @@ Module.prototype.setSelectedSetName= function( setName ) {
  *      string field name anonymous object {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or is undefined
  *          entry: either
- *          - string/boolean/number ('primitive') value or null or undefined, for non-choice single-value fields, and
- *          - object serving as an associative array, for choice, or non-choice and multi-value field name,
- *          if it has one or more values/choices, in format {
+ *          - string/boolean/number ('primitive') value or null or undefined, for non-choice single-value fields; or
+ *          - object (potentially empty) serving as an associative array, for choice, or non-choice and multi-value field name,
+ *          if the whole field is stored other than undefined, in format {
  *             string key => string/number ('primitive') label or value entered by user
- *          }, or undefined if it has no values/choices
+ *          }, or undefined if it has no values/choices in the given set and is indicated as 'undefined'
  *      }
  *  }
  *  It doesn't inject any defaults from the module configuration or values manifests for fields that are not defined in the set.
@@ -681,7 +681,8 @@ Module.prototype.getFieldsOfSet= function( setName ) {
     
     for( var fieldName in this.fields ) {
         var field= this.fields[fieldName];
-        var multivaluedOrChoice= field.multivalued || field instanceof Field.Choice;
+        var isChoice= field instanceof Field.Choice;
+        var multivaluedOrChoice= field.multivalued || isChoice;
         var fieldNameWithDot= multivaluedOrChoice
             ? fieldName+ '.'
             : fieldName;
@@ -711,7 +712,7 @@ Module.prototype.getFieldsOfSet= function( setName ) {
         if( multivaluedOrChoice && (fieldHasPreference && fieldPreference===VALUE_PRESENT || children.length>0) ) {
             // When presenting Field.Choice, they are not sorted by stored values, but by keys from the field definition.
             // So I only use sortedObject for multivalued fields other than Field.Choice
-            result[fieldName].entry= !(field instanceof Field.Choice)
+            result[fieldName].entry= !isChoice
                 ? sortedObject( field.compareValues )
                 : {};
         }
@@ -738,10 +739,11 @@ Module.prototype.getFieldsOfSet= function( setName ) {
                     : null;
             }
         }
-        if( field instanceof Field.Choice && !field.multivalued && fieldHasPreference ) {
+        if( isChoice && !field.multivalued && fieldHasPreference ) {
             fieldPreference===NULL || fail('This should have failed above already.');
             result[fieldName].entry= null;
         }
+        !isChoice || result[fieldName].entry===undefined || typeof(result[fieldName].entry)==='object' || fail( 'field ' +field.name+ ' has value ' +typeof result[fieldName].entry ); //@TODO 
         result[ fieldName ].fromPreferences= fieldHasPreference || children.length>0;
     }
     return result;

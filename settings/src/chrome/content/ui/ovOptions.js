@@ -725,22 +725,23 @@ function generateFields( setChildren, module, setName, setFields ) {
         var fieldItem= generateTreeItem(module, setName, field, singleValueOrNull, RowLevel.FIELD, false, false, compound );
         setChildren.appendChild( fieldItem );
         
+        var isChoice= field instanceof SeLiteSettings.Field.Choice;
         if( field instanceof SeLiteSettings.Field &&
-            (field.multivalued || field instanceof SeLiteSettings.Field.Choice)
+            (field.multivalued || isChoice)
         ) {
             var fieldChildren= createTreeChildren( fieldItem );
-            var pairsToList= field instanceof SeLiteSettings.Field.Choice
+            var pairsToList= isChoice
                 ? field.choicePairs
                 : compound.entry;
             
             for( var key in pairsToList ) {////@TODO potential IterableArray
                 var pair= {};
                 pair[key]= pairsToList[key];
+                !isChoice || compound.entry===undefined || typeof(compound.entry)==='object' || fail( 'field ' +field.name+ ' has value ' +typeof compound.entry );
                 var optionItem= generateTreeItem(module, setName, field, pair,
                     RowLevel.OPTION,
-                    field instanceof SeLiteSettings.Field.Choice
-                        && typeof(compound.entry)==='object'
-                        && key in compound.entry,
+                    isChoice && typeof(compound.entry)==='object'
+                        && compound.entry!==null && key in compound.entry,
                     false,
                     compound
                 );
@@ -822,13 +823,15 @@ function treeClickHandler( event ) {
                     field instanceof SeLiteSettings.Field.Bool || fail('field ' +field.name+ ' should be Field.Bool');
                     var clickedCell= treeCell( moduleRows[setName][field.name], RowLevel.CHECKBOX );
                     field.setValue( setName, clickedCell.getAttribute( 'value')==='true' );
+                    // I don't need to call updateSpecial() here - if the field was SeLiteSettings.NULL, then the above setValue() replaced that
                 }
                 else {
                     var clickedOptionKey= propertiesPart( rowProperties, RowLevel.OPTION );
                     var clickedTreeRow= moduleRows[setName][field.name][ clickedOptionKey ];
                     var clickedCell= treeCell( clickedTreeRow, RowLevel.CHECKBOX );
                     
-                    if( !field.multivalued ) { // field is a single-valued choice. Uncheck & remove the previously checked value.
+                    if( !field.multivalued ) { // field is a single-valued choice. The field is only editable if it was unchecked
+                        // - so the user checked it now. Uncheck & remove the previously checked value.
                         clickedCell.setAttribute( 'editable', 'false');
                         for( var otherOptionKey in moduleRows[setName][field.name] ) { // de-select the previously selected value, make editable
                             
@@ -846,10 +849,19 @@ function treeClickHandler( event ) {
                         field.addValue( setName, clickedOptionKey );
                     }
                     else {
-                        clickedCell.getAttribute('value')==='true' // That is *after* the click
+                        var checkedAfterClick= clickedCell.getAttribute('value')==='true';
+                        checkedAfterClick
                             ? field.addValue( setName, clickedOptionKey )
                             : field.removeValue( setName, clickedOptionKey );
                     }
+                    updateSpecial( setName, field,
+                        !field.multivalued
+                            ? 0
+                            : (checkedAfterClick
+                                ? +1
+                                : -1
+                            ),
+                        clickedOptionKey );
                 }
                 modifiedPreferences= true;
             }
@@ -946,6 +958,7 @@ function treeClickHandler( event ) {
                             delete moduleRows[setName][field.name][ clickedOptionKey ];
                             treeChildren.removeChild( clickedTreeRow.parentNode );
                             field.removeValue( setName, clickedOptionKey ); //@TODO error here?
+                            updateSpecial( setName, field, -1 );
                             modifiedPreferences= true;
                         }
                     }
@@ -1075,6 +1088,7 @@ function setCellText( info, value ) {
     var oldKey= info.oldKey;
     if( !field.multivalued ) {
         field.setValue( setName, value );
+        // I don't need to call updateSpecial() here - if the field was SeLiteSettings.NULL, then the above setValue() replaced that
     }
     else {
         var rowAfterNewPosition= null; // It may be null - then append the new row at the end; if same as treeRow, then the new value stays in treeRow.
@@ -1126,9 +1140,13 @@ function setCellText( info, value ) {
         if( oldKey!==SeLiteSettings.NEW_VALUE_ROW ) {
             field.removeValue( setName, oldKey );
         }
+        else {
+            updateSpecial( setName, field, +1 );
+        }
         field.addValue( setName, value );
     }
-    SeLiteSettings.savePrefFile();
+    SeLiteSettings.savePrefFile(); //@TODO Do we need this line?
+    moduleSetFields[module.name][setName]= module.getFieldsOfSet( setName );
 }
 
 function createTreeView(original) {
@@ -1171,11 +1189,8 @@ function createTreeView(original) {
                     setCellText( info, value );
                     if( !info.field.multivalued ) {
                         treeCell( info.treeRow, RowLevel.FIELD ).setAttribute( 'properties', '' );
-                        moduleSetFields[info.module.name][info.setName][info.field.name].entry= value;
                     }
-                    else {
-                        moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName );
-                    }
+                    moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName );
                 }
                 return result;
             }
@@ -1198,6 +1213,7 @@ function createTreeView(original) {
  *  Don't actually set/add/remove any actual value (other than a special value).
  *  Update 'properties' attribute and Null/Undefine label, if needed.
  *  Reload moduleSetFields for this set.
+ *  Call this function before we set/add/remove the new value in preferences.
  *  @param setName string Name of the set; empty if the module doesn't allow multiple sets
  *  @param field Field instance
  *  @param int addOrRemove +1 if adding entry; -1 if removing it; any of 0/null/undefined if replacing or setting to null/undefined.
@@ -1220,11 +1236,11 @@ function updateSpecial( setName, field, addOrRemove, keyOrValue ) {
     if( addOrRemove ) {
         if( addOrRemove>0 ) {
             if( Object.keys(compound.entry).length===0 && field.module.prefsBranch.prefHasUserValue(setNameDot+field.name) ) {
-                field.module.prefsBranch.clearUserPref( setNameDot+field.name); // Clearing VALUE_PRESENT @TODO see @TODO below
+                field.module.prefsBranch.clearUserPref( setNameDot+field.name); // Clearing VALUE_PRESENT
             }
         }
         else {
-            if( Object.keys(compound.entry).length===1 ) {//@TODO Do we call this function before we add/remove the value from preferences, or after?
+            if( Object.keys(compound.entry).length===1 ) {
                 field.module.prefsBranch.setCharPref( setNameDot+ field.name, SeLiteSettings.VALUE_PRESENT );
             }
         }
