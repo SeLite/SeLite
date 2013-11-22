@@ -806,7 +806,7 @@ function treeClickHandler( event ) {
         var module= modules[moduleName];
         var moduleRowsOrChildren= treeRowsOrChildren[moduleName];
         var field; // This gets set only if needed to handle the click
-        if( column.value!=null && row.value>=0 ) {
+        if( column.value!==null && row.value>=0 ) {
             var cellIsEditable= tree.view.isEditable(row.value, column.value);
             var cellValue= tree.view.getCellValue(row.value, column.value); // For checkboxes this is true/false as toggled by the click.
             var cellProperties= tree.view.getCellProperties( row.value, column.value ); // Space-separated properties
@@ -1025,6 +1025,10 @@ function treeClickHandler( event ) {
                         cellText==='Null'
                             ? 'null'
                             : 'undefined' );
+                }
+                else
+                if( column.value.element===treeColumnElements.checked ) { // This could be more narrowed down, but it doesn't matter
+                    valueCell.setAttribute( 'label', '' );
                 }
                 treeCell( fieldRow, RowLevel.NULL_OR_UNDEFINE).setAttribute( 'label',
                     nullOrUndefineLabel(field, valueCompound(field, selectedSetName) ) );
