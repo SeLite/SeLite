@@ -813,7 +813,7 @@ function treeClickHandler( event ) {
             var cellText= tree.view.getCellText(row.value, column.value);
             
             var selectedSetName= propertiesPart( rowProperties, RowLevel.SET );
-            if( allowSets && column.value.element==treeColumnElements.selectedSet && cellIsEditable ) { // Select the clicked set, de-select previously selected set
+            if( allowSets && column.value.element===treeColumnElements.selectedSet && cellIsEditable ) { // Select the clicked set, de-select previously selected set
                 cellValue==='true' || fail( 'Only unselected sets should have the set selection column editable.' );
                 module.setSelectedSetName( selectedSetName );
                 modifiedPreferences= true;
@@ -877,7 +877,8 @@ function treeClickHandler( event ) {
                 }
                 modifiedPreferences= true;
             }
-            if( column.value.element===treeColumnElements.value || column.value.element===treeColumnElements.action ) {
+            if( column.value.element===treeColumnElements.value || column.value.element===treeColumnElements.action
+                || column.value.element===treeColumnElements.manifest ) {
                 field= module.fields[ propertiesPart(rowProperties, RowLevel.FIELD) ];
             }
             if( column.value.element===treeColumnElements.value ) {
@@ -977,7 +978,7 @@ function treeClickHandler( event ) {
                     window.open( '?module=' +escape(module.name)+ '&set=' +escape(cellText), '_blank');
                 }
             }
-            if( column.value.element===treeColumnElements.manifest && cellProperties!=='' ) {
+            if( column.value.element===treeColumnElements.manifest ) {
                 if( targetFolder!==null ) {
                     if( cellProperties!==SeLiteSettings.FIELD_DEFAULT ) {
                         if( cellProperties.startsWith(SeLiteSettings.ASSOCIATED_SET) ) {
@@ -990,17 +991,17 @@ function treeClickHandler( event ) {
                             window.open( 'file://' +OS.Path.join(folder, SeLiteSettings.VALUES_MANIFEST_FILENAME), '_blank' );
                         }
                     }
-                    else {
+                    else
+                    if( cellProperties!=='' ) {
                         window.open( SeLiteSettings.fileNameToUrl(module.definitionJavascriptFile), '_blank' );
                     }
                 }
                 else { // Set view - the column is Null/Undefine
-                    if( cellText==='Null' ) {
-                        updateSpecial( selectedSetName, field, 0, null );
-                        modifiedPreferences= true;
-                    }
-                    if( cellText==='Undefined' ) {
-                        updateSpecial( selectedSetName, field, 0, undefined );
+                    if( cellText==='Null' || cellText==='Undefine' ) {
+                        updateSpecial( selectedSetName, field, 0,
+                            cellText==='Null'
+                                ? null
+                                : undefined );
                         modifiedPreferences= true;
                     }
                 }
@@ -1013,12 +1014,18 @@ function treeClickHandler( event ) {
                 moduleSetFields[moduleName][selectedSetName]= module.getFieldsOfSet( selectedSetName );
                 
                 var fieldRow= fieldTreeRow(selectedSetName, field);
-                treeCell( fieldRow, RowLevel.FIELD
-                ).setAttribute( 'properties',
-                    cellText==='Null' || cellText==='Undefined'
-                        ? SeLiteSettings.NULL_OR_UNDEFINED
+                var valueCell= treeCell( fieldRow, RowLevel.FIELD );
+                valueCell.setAttribute( 'properties',
+                    cellText==='Null' || cellText==='Undefine'
+                        ? SeLiteSettings.FIELD_NULL_OR_UNDEFINED
                         : ''
                 );
+                if( cellText==='Null' || cellText==='Undefine' ) {
+                    valueCell.setAttribute( 'label',
+                        cellText==='Null'
+                            ? 'null'
+                            : 'undefined' );
+                }
                 treeCell( fieldRow, RowLevel.NULL_OR_UNDEFINE).setAttribute( 'label',
                     nullOrUndefineLabel(field, valueCompound(field, selectedSetName) ) );
             }
@@ -1031,7 +1038,7 @@ function treeClickHandler( event ) {
  *  - for multi-valued or choice field it is the collapsible/expandable row for the whole field
  * */
 function fieldTreeRow( setName, field ) {
-    return !field.multivalued && !(field instanceof SeLiteSettings.Choice)
+    return !field.multivalued && !(field instanceof SeLiteSettings.Field.Choice)
         ? treeRowsOrChildren[field.module.name][setName][field.name]
         : treeRowsOrChildren[field.module.name][setName][field.name][SeLiteSettings.FIELD_MAIN_ROW];
 }
