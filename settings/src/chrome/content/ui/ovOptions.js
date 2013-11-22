@@ -110,7 +110,7 @@ function chooseFileOrFolder( field, tree, row, column, isFolder, currentTargetFo
  * and not as value (so that Module/Set/Field cell is blank). Optional; false by default.
  */
 function RowLevel( name, level, blank ) {
-    if( RowLevel.MODULE && RowLevel.SET && RowLevel.CHECKBOX && RowLevel.FIELD && RowLevel.OPTION && RowLevel.ACTION ) {
+    if( RowLevel.MODULE && RowLevel.SET && RowLevel.CHECKBOX && RowLevel.FIELD && RowLevel.OPTION && RowLevel.ACTION && RowLevel.NULL_OR_UNDEFINE ) {
         throw new Error( "Do not create any other instances of RowLevel, because they are compared to by identity." );
     }
     if( level===undefined ) {
@@ -130,6 +130,7 @@ RowLevel.OPTION= new RowLevel('OPTION', 3);
 // Special:
 RowLevel.CHECKBOX= new RowLevel('CHECKBOX', -1);
 RowLevel.ACTION= new RowLevel('ACTION', -1, true);
+RowLevel.NULL_OR_UNDEFINE= new RowLevel('NULL_OR_UNDEFINE', -1);
 
 RowLevel.prototype.toString= function() {
     return 'RowLevel.' +this.name;
@@ -156,9 +157,11 @@ if( !RowLevel.SET.below(RowLevel.MODULE) ) {
     throw new Error( 'Bad RowLevel.below()');
 }
 
-/** @return one of forModule, forSet, forField or forOption, depending on the level
+/** This is a simple translation map. The results serves in treeCell() and other functions,
+ *  that select an item from within a list depending on RowLevel instance.
+ *  @return one of forModule, forSet, forField, forOption or forNullOrUndefine, depending on the level
  * */
-RowLevel.prototype.forLevel= function( forModule, forSet, forCheckbox, forField, forOption ) {
+RowLevel.prototype.forLevel= function( forModule, forSet, forCheckbox, forField, forOption, forNullOrUndefine ) {
     if( this===RowLevel.MODULE ) {
         return forModule;
     }
@@ -173,6 +176,9 @@ RowLevel.prototype.forLevel= function( forModule, forSet, forCheckbox, forField,
     }
     if( this===RowLevel.OPTION ) {
         return forOption;
+    }
+    if( this===RowLevel.NULL_OR_UNDEFINE ) {
+        return forNullOrUndefine;
     }
     if( this.level<0 ) {
         return '';
@@ -353,8 +359,8 @@ function treeCell( treeRow, level ) {
     }
     var cells= treeRow.getElementsByTagName( 'treecell' );
     return cells[ allowSets
-        ? level.forLevel(0, 1, 2, 3, 4)
-        : level.forLevel(0, undefined, 1, 2, 3)
+        ? level.forLevel(0, 1, 2, 3, 4, 5)
+        : level.forLevel(0, undefined, 1, 2, 3, 4)
     ];
 }
 
@@ -377,6 +383,12 @@ function subContainer( parent, fieldOrFields ) {
         object= object[fieldName];
     }
     return object;
+}
+
+/** Simple shortcut function
+ * */
+function valueCompound( field, setName ) {
+    return moduleSetFields[field.module.name][setName][field.name];
 }
 
 /** Generate text for label for 'Null/Undefine' column. Only used in set mode
@@ -984,11 +996,11 @@ function treeClickHandler( event ) {
                 }
                 else { // Set view - the column is Null/Undefine
                     if( cellText==='Null' ) {
-                        //@TODO updateSpecial + nullOrUndefineLabel
+                        updateSpecial( selectedSetName, field, 0, null );
                         modifiedPreferences= true;
                     }
                     if( cellText==='Undefined' ) {
-                        //@TODO updateSpecial + nullOrUndefineLabel
+                        updateSpecial( selectedSetName, field, 0, undefined );
                         modifiedPreferences= true;
                     }
                 }
@@ -996,15 +1008,32 @@ function treeClickHandler( event ) {
         }
         if( modifiedPreferences ) {
             SeLiteSettings.savePrefFile();
+            
             if( column.value.element!==treeColumnElements.selectedSet ) {
                 moduleSetFields[moduleName][selectedSetName]= module.getFieldsOfSet( selectedSetName );
+                
+                var fieldRow= fieldTreeRow(selectedSetName, field);
+                treeCell( fieldRow, RowLevel.FIELD
+                ).setAttribute( 'properties',
+                    cellText==='Null' || cellText==='Undefined'
+                        ? SeLiteSettings.NULL_OR_UNDEFINED
+                        : ''
+                );
+                treeCell( fieldRow, RowLevel.NULL_OR_UNDEFINE).setAttribute( 'label',
+                    nullOrUndefineLabel(field, valueCompound(field, selectedSetName) ) );
             }
-            var fieldTreeRow= !field.multivalued && !(field instanceof SeLiteSettings.Choice)
-                ? treeRowsOrChildren[moduleName][selectedSetName][field.name]
-                : treeRowsOrChildren[moduleName][selectedSetName][field.name][SeLiteSettings.FIELD_MAIN_ROW];
-            treeCell( fieldTreeRow, RowLevel.FIELD ).setAttribute('properties', ''); //@TODO
         }
     }
+}
+
+/** @return <treerow> element for given set and field, that
+ *  - for single-valued non-choice field contains the field
+ *  - for multi-valued or choice field it is the collapsible/expandable row for the whole field
+ * */
+function fieldTreeRow( setName, field ) {
+    return !field.multivalued && !(field instanceof SeLiteSettings.Choice)
+        ? treeRowsOrChildren[field.module.name][setName][field.name]
+        : treeRowsOrChildren[field.module.name][setName][field.name][SeLiteSettings.FIELD_MAIN_ROW];
 }
 
 /** Gather some information about the cell, the field, set and module.
@@ -1197,23 +1226,25 @@ function createTreeView(original) {
         selectionChanged: function() { return original.selectionChanged(); },
         setCellText: function(row, col, value) {
             // I don't use parameter col in my own methods, because I use module definition to figure out the editable cell.
-            // If we had more than one editable cell per row, then I'd have to use parameter col.
             var info= gatherAndValidateCell( row, value );
             var addingFirstForMultivalued= info.field.multivalued && info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW];
             if( info.validationPassed ) {
                 var result= original.setCellText(row, col, value);
                 if( info.valueChanged ) {
                     setCellText( info, value );
-                    if( !info.field.multivalued ) {
-                        treeCell( info.treeRow, RowLevel.FIELD ).setAttribute( 'properties', '' );
+                    var fieldRow= fieldTreeRow(info.setName, info.field);
+                    treeCell( fieldRow, RowLevel.FIELD ).setAttribute( 'properties', '' );
+                    if( info.field.multivalued ) {
+                        treeCell( fieldRow, RowLevel.FIELD ).setAttribute( 'label', '' );
                     }
-                    //@TODO clear text of Null/Undefine column
-                    updateSpecial( info.setName, info.field,
+                    /*@TODO remove: updateSpecial( info.setName, info.field,
                         addingFirstForMultivalued
                             ? +1
                             : 0,
-                        value );
+                        value );*/
                     moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName );
+                    treeCell( fieldRow, RowLevel.NULL_OR_UNDEFINE).setAttribute( 'label',
+                        nullOrUndefineLabel(info.field, valueCompound(info.field, info.setName) ) );
                 }
                 return result;
             }

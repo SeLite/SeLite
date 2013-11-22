@@ -26,6 +26,9 @@ if( runningAsComponent ) {
 }
 /** This throws the given error or a new error (containg the given message, if any). It also logs the current stack trase to console as a warning.
  *  @param errorOrMessage An Error, or a string message, or undefined/null.
+ *  @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
+ *  - as it mentions, the rethrown exception will have incorreect stack information: Note that the thrown MyError will report incorrect lineNumber and fileName at least in Firefox.
+ *  and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw?redirectlocale=en-US&redirectslug=JavaScript%2FReference%2FStatements%2Fthrow
 */
 function fail( errorOrMessage ) {
     try {
