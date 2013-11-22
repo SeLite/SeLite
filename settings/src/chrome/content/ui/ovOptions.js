@@ -348,15 +348,9 @@ var treeRowsOrChildren= sortedObject(true);
  *  @return object Element for <treecell>
  * */
 function treeCell( treeRow, level ) {
-    if( !(treeRow instanceof XULElement) ) {
-        throw new Error( 'treeCell() requires treeRow to be an XULElement object, but it received ' +treeRow );
-    }
-    if( treeRow.tagName!=='treerow' ) {
-        throw new Error( 'treeCell() requires treeRow to be an XULElement object for <treerow>, but it received XULElement for ' +treeRow.tagName );
-    }
-    if( !(level instanceof RowLevel) ) {
-        throw new Error( 'treeCell() requires level to be an instance of RowLevel.' );
-    }
+    treeRow instanceof XULElement || fail( 'treeCell() requires treeRow to be an XULElement object, but it received ' +treeRow );
+    treeRow.tagName==='treerow' || fail( 'treeCell() requires treeRow to be an XULElement object for <treerow>, but it received XULElement for ' +treeRow.tagName );
+    level instanceof RowLevel || fail( 'treeCell() requires level to be an instance of RowLevel.' );
     var cells= treeRow.getElementsByTagName( 'treecell' );
     return cells[ allowSets
         ? level.forLevel(0, 1, 2, 3, 4, 5)
@@ -805,7 +799,7 @@ function treeClickHandler( event ) {
         var moduleName= propertiesPart( rowProperties, RowLevel.MODULE );
         var module= modules[moduleName];
         var moduleRowsOrChildren= treeRowsOrChildren[moduleName];
-        var field; // This gets set only if needed to handle the click
+        var field= module.fields[ propertiesPart( rowProperties, RowLevel.FIELD ) ];
         if( column.value!==null && row.value>=0 ) {
             var cellIsEditable= tree.view.isEditable(row.value, column.value);
             var cellValue= tree.view.getCellValue(row.value, column.value); // For checkboxes this is true/false as toggled by the click.
@@ -828,7 +822,6 @@ function treeClickHandler( event ) {
                 }
             }
             if( column.value.element===treeColumnElements.checked && cellIsEditable ) {
-                field= module.fields[ propertiesPart( rowProperties, RowLevel.FIELD ) ];
                 var isSingleNonChoice= !(field.multivalued || field instanceof SeLiteSettings.Field.Choice);
                 
                 if( isSingleNonChoice  ) {
@@ -876,10 +869,6 @@ function treeClickHandler( event ) {
                         clickedOptionKey );
                 }
                 modifiedPreferences= true;
-            }
-            if( column.value.element===treeColumnElements.value || column.value.element===treeColumnElements.action
-                || column.value.element===treeColumnElements.manifest ) {
-                field= module.fields[ propertiesPart(rowProperties, RowLevel.FIELD) ];
             }
             if( column.value.element===treeColumnElements.value ) {
                 if( cellIsEditable && rowProperties) {
@@ -1002,7 +991,15 @@ function treeClickHandler( event ) {
                             cellText==='Null'
                                 ? null
                                 : undefined );
-                        //if( cellText==='Null' && )
+                        var compound= moduleSetFields[moduleName][selectedSetName][field.name];
+                        if( field instanceof SeLiteSettings.Field.Bool && compound.entry ) {
+                            treeCell( fieldTreeRow(selectedSetName, field), RowLevel.CHECKBOX ).setAttribute( 'value', 'false' );
+                        }
+                        if( !field.multivalued && field instanceof SeLiteSettings.Field.Choice && compound.entry ) {
+                            var keys= Object.keys(compound.entry);
+                            keys.length===1 || fail();
+                            treeCell( treeRowsOrChildren[moduleName][selectedSetName][field.name][ keys[0] ], RowLevel.CHECKBOX ).setAttribute( 'value', 'false' );
+                        }
                         modifiedPreferences= true;
                     }
                 }
@@ -1277,8 +1274,6 @@ function createTreeView(original) {
 /** Set/unset special value for the field in the preferences, if the change involves setting/unsetting a special value
  *  - that is, SeLiteSettings.VALUE_PRESENT or SeLiteSettings.NULL.
  *  Don't actually set/add/remove any actual value (other than a special value).
- *  Update 'properties' attribute and Null/Undefine label, if needed.
- *  Reload moduleSetFields for this set.
  *  Call this function before we set/add/remove the new value in preferences.
  *  @param setName string Name of the set; empty if the module doesn't allow multiple sets
  *  @param field Field instance
@@ -1315,7 +1310,7 @@ function updateSpecial( setName, field, addOrRemove, keyOrValue ) {
     else {
         if( keyOrValue===null ) {
             if( field instanceof SeLiteSettings.Field.Choice && Object.keys(compound.entry).length>0 ) {
-                !field.multivalued || fail();
+                !field.multivalued && Object.keys(compound.entry).length===1 || fail();
                 field.module.prefsBranch.clearUserPref( setNameDot+field.name+ '.' +Object.keys(compound.entry)[0] );
             }
             if( field.module.prefsBranch.prefHasUserValue(setNameDot+field.name) && field.prefType()!==nsIPrefBranch.PREF_STRING ) {
@@ -1343,7 +1338,6 @@ function updateSpecial( setName, field, addOrRemove, keyOrValue ) {
         console.log( 'updateSpecial() Module ' +field.module.name+ ', set ' +setName+ ', field: ' +field.name+ ' has compound ' +typeof compound );
         fail(e);
     }
-    moduleSetFields[field.module.name][setName]= field.module.getFieldsOfSet( setName );
 }
 
 /* @var allowSets bool Whether to show the column for selection of a set. If we're only showing one module, this is module.allowSets
