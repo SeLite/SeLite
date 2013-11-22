@@ -851,7 +851,7 @@ function treeClickHandler( event ) {
                                 var otherOptionRow= moduleRowsOrChildren[selectedSetName][field.name][otherOptionKey];
                                 
                                 var otherOptionCell= treeCell( otherOptionRow, RowLevel.CHECKBOX );
-                                if( targetFolder===null && otherOptionCell.getAttribute('value')==='true' ) {
+                                if( otherOptionCell.getAttribute('value')==='true' ) {
                                     otherOptionCell.setAttribute( 'value', 'false');
                                     otherOptionCell.setAttribute( 'editable', 'true');
                                     field.removeValue( selectedSetName, otherOptionKey );
@@ -1002,6 +1002,7 @@ function treeClickHandler( event ) {
                             cellText==='Null'
                                 ? null
                                 : undefined );
+                        //if( cellText==='Null' && )
                         modifiedPreferences= true;
                     }
                 }
@@ -1313,6 +1314,10 @@ function updateSpecial( setName, field, addOrRemove, keyOrValue ) {
     }
     else {
         if( keyOrValue===null ) {
+            if( field instanceof SeLiteSettings.Field.Choice && Object.keys(compound.entry).length>0 ) {
+                !field.multivalued || fail();
+                field.module.prefsBranch.clearUserPref( setNameDot+field.name+ '.' +Object.keys(compound.entry)[0] );
+            }
             if( field.module.prefsBranch.prefHasUserValue(setNameDot+field.name) && field.prefType()!==nsIPrefBranch.PREF_STRING ) {
                 field.module.prefsBranch.clearUserPref( setNameDot+field.name);
             }
