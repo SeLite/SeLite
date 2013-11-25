@@ -764,8 +764,8 @@ function generateFields( setChildren, module, setName, setFields ) {
  *  may apply. For level===RowLevel.OPTION this may return a string with space(s) in it.
  *  @param string otherwise Value to return if there is no property for this level; optional, '' by default
  *  @return string name for the given level, or value of parameter otherwise
- *  @TODO I would use https://developer.mozilla.org/en-US/docs/Web/API/element.dataset,
- *  but I don't know how to get it for <treerow> element where the user clicked - tree.view doesn't let me.
+ *  I would have used https://developer.mozilla.org/en-US/docs/Web/API/element.dataset,
+ *  but I didn't know (and still don't know) how to get it for <treerow> element where the user clicked - tree.view doesn't let me.
  * */
 function propertiesPart( properties, level, otherwise ) {
     level instanceof RowLevel || fail( "propertiesPart() expects parameter level to be an instance of RowLevel, but its type is " +(typeof level)+ ": " +level );
@@ -957,7 +957,7 @@ function treeClickHandler( event ) {
                             var clickedTreeRow= moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ];
                             delete moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ];
                             treeChildren.removeChild( clickedTreeRow.parentNode );
-                            field.removeValue( selectedSetName, clickedOptionKey ); //@TODO error here?
+                            field.removeValue( selectedSetName, clickedOptionKey );
                             updateSpecial( selectedSetName, field, -1 );
                             modifiedPreferences= true;
                         }
@@ -1085,7 +1085,7 @@ function gatherAndValidateCell( row, value ) {
     var valueChanged;
     if( !field.multivalued ) {
         treeRow= moduleRowsOrChildren[setName][fieldName];
-        // @TODO Docs Can't use treeRow.constructor.name here - because it's a native object.
+        // Can't use treeRow.constructor.name here - because it's a native object.
         if( !(treeRow instanceof XULElement) || treeRow.tagName!=='treerow') {
             throw new Error( 'treeRow should be an instance of XULElement for a <treerow>.');
         }
@@ -1246,11 +1246,6 @@ function createTreeView(original) {
                     if( info.field.multivalued ) {
                         treeCell( fieldRow, RowLevel.FIELD ).setAttribute( 'label', '' );
                     }
-                    /*@TODO remove: updateSpecial( info.setName, info.field,
-                        addingFirstForMultivalued
-                            ? +1
-                            : 0,
-                        value );*/
                     moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName );
                     treeCell( fieldRow, RowLevel.NULL_OR_UNDEFINE).setAttribute( 'label',
                         nullOrUndefineLabel(info.field, valueCompound(info.field, info.setName) ) );

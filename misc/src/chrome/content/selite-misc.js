@@ -65,9 +65,13 @@ function ensure( condition, message ) {
     }
 }
 
-function ensureOneOf( item, choices, message ) {
+function oneOf( item, choices ) {
     Array.isArray(choices) || fail( 'ensureOneOf() expects choices to be an array');
-    ensure( choices.indexOf(item)>=0, message );
+    return choices.indexOf(item)>=0;
+}
+
+function ensureOneOf( item, choices, message ) {
+    ensure( oneOf(item, choices), message );
 }
 
 /** Validates that typeof item is one of 
@@ -92,22 +96,13 @@ function ensureType( item, typeStringOrStrings, message ) {
     fail( message+ ' Expecting type from within [' +typeStringOrStrings+ '], but the actual type of the item is ' +typeof item+ '. The item: ' +item );
 }
 
-/** Validate that a parameter is an object and of a given class (or of one of given classes).
-    Until https://bugzilla.mozilla.org/show_bug.cgi?id=934311 gets resolved,
-    this only works for standard JS classes if 'object' was instantiated in the same JS module as where elements of 'classes' come from.
-    That is, Array, String etc. are different in various JS modules.
- *  @param object Object
- *  @param classes Class (that is, a constructor function), or an array of them.
- *  Do not use for standard classes like Object or Array, because they are separate per each global scope
+/** @var array of strings which are names of global classes/objects.
+ *  A list of global classes supported by isInstance(), that are separate per each global scope
  *  (and each Javascript module has its own). See a list of them at https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects.
- *  If we need that, then accept Array etc; then check whether the given class (constructor) contains function 'isArray'; if so, then use Array.isArray().
- *  Or (less intuitive): accept strings like "Array" and map them to a check function like Array.isArray.
- *  @param className string, optional, name of the expected class(es), so we can print them (because parameter classes doesn't carry information about the name);
- *  even if clazz is an array, clazzName must be one string (if present),
- *  @param message string, extra message, optional
  * */
-function ensureInstance( object, classes, className, message ) {
-    message= message || '';
+var globalClasses= ['Array', 'Boolean', 'Date', 'Function', 'Iterator', 'Number', 'RegExp', 'String', 'Proxy', 'Error'];
+
+function isInstance( object, classes, className, message ) {
     typeof object==='object' || fail( 'Expecting an '
         +(className
             ? 'instance of ' +className
@@ -120,12 +115,28 @@ function ensureInstance( object, classes, className, message ) {
         ensure( Array.isArray(classes), "Parameter clases must be a constructor method, or an array of them." );
     }
     for( var i=0; i<classes.length; i++ ) {//@TODO use loop for of() once NetBeans supports it
-        ensureType( classes[i], 'function' );
-        if( object instanceof classes[i] ) {
-            return;
+        var clazz= classes[i];
+        ensureType( clazz, 'function' );
+        if( object instanceof clazz
+            || oneOf(clazz.name, globalClasses) && object.constructor.name===clazz.name ) {
+            return true;
         }
     }
-    fail( 'Expecting an instance of '
+    return false;
+}
+
+/** Validate that a parameter is an object and of a given class (or of one of given classes).
+    Until https://bugzilla.mozilla.org/show_bug.cgi?id=934311 gets resolved,
+    this only works for standard JS classes if 'object' was instantiated in the same JS module as where elements of 'classes' come from.
+    That is, Array, String etc. are different in various JS modules.
+ *  @param object Object
+ *  @param classes Class (that is, a constructor function), or an array of them.
+ *  @param className string, optional, name of the expected class(es), so we can print them (because parameter classes doesn't carry information about the name);
+ *  even if clazz is an array, clazzName must be one string (if present),
+ *  @param message string, extra message, optional
+ * */
+function ensureInstance( object, classes, className, message ) {
+    isInstance(object, classes, className, message) || fail( 'Expecting an instance of '
         +(className
             ? className
             : 'specific class(es)'
