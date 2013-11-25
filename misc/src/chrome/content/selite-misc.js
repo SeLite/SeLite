@@ -102,6 +102,13 @@ function ensureType( item, typeStringOrStrings, message ) {
  * */
 var globalClasses= ['Array', 'Boolean', 'Date', 'Function', 'Iterator', 'Number', 'RegExp', 'String', 'Proxy', 'Error'];
 
+/** Detect whether that the given object is an instance of one of the given class(es).
+ *  @param object Object
+ *  @param classes Class (that is, a constructor function), or an array of them.
+ *  @param className string, optional, name of the expected class(es), so we can print them (because parameter classes doesn't carry information about the name);
+ *  even if clazz is an array, clazzName must be one string (if present),
+ *  @param message string, extra message, optional
+ */
 function isInstance( object, classes, className, message ) {
     typeof object==='object' || fail( 'Expecting an '
         +(className
@@ -126,14 +133,7 @@ function isInstance( object, classes, className, message ) {
 }
 
 /** Validate that a parameter is an object and of a given class (or of one of given classes).
-    Until https://bugzilla.mozilla.org/show_bug.cgi?id=934311 gets resolved,
-    this only works for standard JS classes if 'object' was instantiated in the same JS module as where elements of 'classes' come from.
-    That is, Array, String etc. are different in various JS modules.
- *  @param object Object
- *  @param classes Class (that is, a constructor function), or an array of them.
- *  @param className string, optional, name of the expected class(es), so we can print them (because parameter classes doesn't carry information about the name);
- *  even if clazz is an array, clazzName must be one string (if present),
- *  @param message string, extra message, optional
+ *  @see isInstance()
  * */
 function ensureInstance( object, classes, className, message ) {
     isInstance(object, classes, className, message) || fail( 'Expecting an instance of '
