@@ -687,32 +687,38 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
  *  @param object module Module
  * */
 function generateSets( moduleChildren, module ) {
-    var setNames= targetFolder===null
-        ? module.setNames()
-        : [null];
-    if( !allowSets && setNames.length!==1 ) {
-        throw new Error( "allowSets should be set false only if a module has the only set." );
+    try {
+        var setNames= targetFolder===null
+            ? module.setNames()
+            : [null];
+        if( !allowSets && setNames.length!==1 ) {
+            throw new Error( "allowSets should be set false only if a module has the only set." );
+        }
+        for( var i=0; i<setNames.length; i++ ) {
+            var setName= setNames[i];
+            // setFields includes all fields from Preferences DB for the module name, even if they are not in the module definition
+            var setFields= targetFolder===null
+                ? module.getFieldsOfSet( setName )
+                : module.getFieldsDownToFolder( targetFolder, true );
+            if( targetFolder===null ) {
+                moduleSetFields[module.name]= moduleSetFields[module.name] || {};
+                moduleSetFields[module.name][ setName ]= setFields;
+            }
+            var setChildren= null;
+            if( allowSets && module.allowSets ) {
+                var setItem= generateTreeItem(module, setName, null, null, RowLevel.SET );
+                moduleChildren.appendChild( setItem );
+                setChildren= createTreeChildren( setItem );
+            }
+            else {
+                setChildren= moduleChildren;
+            }
+            generateFields( setChildren, module, setName, setFields );
+        }
     }
-    for( var i=0; i<setNames.length; i++ ) {
-        var setName= setNames[i];
-        // setFields includes all fields from Preferences DB for the module name, even if they are not in the module definition
-        var setFields= targetFolder===null
-            ? module.getFieldsOfSet( setName )
-            : module.getFieldsDownToFolder( targetFolder, true );
-        if( targetFolder===null ) {
-            moduleSetFields[module.name]= moduleSetFields[module.name] || {};
-            moduleSetFields[module.name][ setName ]= setFields;
-        }
-        var setChildren= null;
-        if( allowSets && module.allowSets ) {
-            var setItem= generateTreeItem(module, setName, null, null, RowLevel.SET );
-            moduleChildren.appendChild( setItem );
-            setChildren= createTreeChildren( setItem );
-        }
-        else {
-            setChildren= moduleChildren;
-        }
-        generateFields( setChildren, module, setName, setFields );
+    catch(e) {
+        e.message= 'Module ' +module.name+ ': ' +e.message;
+        throw e;
     }
 }
 
@@ -1513,7 +1519,7 @@ window.addEventListener( "load", function(e) {
             }
         }
         generateSets( moduleChildren, modules[moduleName] );
-        tree.view.toggleOpenState(0); // expand the module 
+        tree.view.toggleOpenState(0); // expand the module, because it's the only one shown
     }
     topTreeChildren.addEventListener( 'click', treeClickHandler );
     tree.view= createTreeView( tree.view );

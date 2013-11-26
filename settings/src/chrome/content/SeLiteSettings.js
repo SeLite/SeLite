@@ -108,7 +108,7 @@ function ensureFieldName( name, description, asFieldName ) {
  *  Otherwise, if the fiels is single valued, the default value should fit the particular type.
  *  If multivalued is true, it must be an array (potentially empty) or undefined; it can't be null.
  *  For multivalued fields, this can be an empty array, or an array of keys (i.e. stored values, rather than labels to display, which may not be the same for Field.Choice).
- *  If a non-null and not undefined, then the value (or values) will be each checked by validateKey(key).
+ *  If a non-null and not undefined, then the value (or values) will be each checked by validateEntry(key).
  *  <br/>defaultValue is only applied (copied into) to set(s) if allowsNotPresent==false and if Module.associatesWithFolders==false.
  *  It is applied when creating or updating a configuration set
  *  (loading an existing configuration set which doesn't have a value for this field).
@@ -146,7 +146,7 @@ var Field= function( name, multivalued, defaultValue, allowsNotPresent ) {
             : [this.defaultValue];
         for( var i=0; i<defaultValues.length; i++ ) {//@TODO use loop for of() once NetBeans supports it
             var key= defaultValues[i];
-            this.validateKey(key) || fail( 'Default value (stored key) for field ' +this.name+ ' is ' +key+ " and that doesn't pass validation." );
+            this.validateEntry(key) || fail( 'Default value (stored key) for module ' +this.module.name+ ', field ' +this.name+ ' is ' +key+ " and that doesn't pass validation." );
         }
     }    
     this.allowsNotPresent= allowsNotPresent===undefined
@@ -181,13 +181,13 @@ Field.prototype.toString= function() {
 };
 
 /** This validates a single value (i.e. other than undefined or null).
- *  If the field is an instance of Field.Choice, this validates the key (not the label).
+ *  If the field is an instance of Field.Choice, this validates the value (not the label).
  *  Used for validation of values entered by the user for freetype/FileOrFolder fields (i.e. not Field.Choice), and
  *  also for validation of default value(s) of any field (including Field.Choice). Overriden as needed.
  *  @param key mixed string or number
  *  @TODO use for validation of user's input? and custom validation
  * */
-Field.prototype.validateKey= function( key ) {
+Field.prototype.validateEntry= function( key ) {
     return typeof key==='string';
 };
 
@@ -307,8 +307,10 @@ Field.prototype.removeValue= function( setName, key ) {
 Field.prototype.equals= function( other ) {
     return this.name===other.name
         && this.constructor===other.constructor
-        && this.defaultValue===other.defaultValue; // Strict comparison is OK for primitive string/bool/int
-        //@TODO For multivalued/Choice default values
+        && (!this.multivalued
+            ? this.defaultValue===other.defaultValue // Strict comparison is OK for primitive string/bool/int
+            : compareArrays(this.defaultValue, other.defaultValue, true)
+           );
 };
 
 // See also https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
@@ -317,7 +319,7 @@ Field.Bool= function( name, defaultValue, allowsNotPresent ) {
 };
 Field.Bool.prototype= new Field('Bool.prototype');
 Field.Bool.prototype.constructor= Field.Bool;
-Field.Bool.prototype.validateKey= function( key ) {
+Field.Bool.prototype.validateEntry= function( key ) {
     return typeof key==='boolean';
 };
 Field.Bool.prototype.prefType= function() {
@@ -329,7 +331,7 @@ Field.Int= function( name, multivalued, defaultValue, allowsNotPresent ) {
 };
 Field.Int.prototype= new Field('Int.prototype');
 Field.Int.prototype.constructor= Field.Int;
-Field.Int.prototype.validateKey= function( key ) {
+Field.Int.prototype.validateEntry= function( key ) {
     return typeof key==='number' && Math.round(key)===key;
 };
 Field.Int.prototype.prefType= function() {
@@ -371,11 +373,10 @@ Field.FileOrFolder= function( name, startInProfileFolder, filters, multivalued, 
 Field.FileOrFolder.prototype= new Field('FileOrFolder.prototype');
 Field.FileOrFolder.prototype.constructor= Field.FileOrFolder;
 
-Field.FileOrFolder.prototype.parentEquals= Field.FileOrFolder.prototype.equals;
+Field.FileOrFolder.prototype.parentEquals= Field.prototype.equals;
 Field.FileOrFolder.prototype.equals= function( other ) {
     if( !this.parentEquals(other)
     || this.startInProfileFolder!==other.startInProfileFolder
-    || this.defaultValue!==other.defaultValue
     || this.isFolder!==other.isFolder ) {
         return false;
     }
@@ -414,7 +415,7 @@ Field.SQLite.prototype= new Field.File('SQLite.prototype', false, {}, false, '' 
 Field.SQLite.prototype.constructor= Field.SQLite;
 
 /** @param defaultValue It's actually a key (Preferences subfield name), not the visible integer/string value.
- *  If multiv
+ *  If multivalued, then it's an array of key(s).
  *  @param choicePairs Anonymous object serving as an associative array {
  *      string key => string/number ('primitive') label
  *  } It's not clear what is more intuitive here. However, with this format, the type and positioning of
@@ -422,6 +423,7 @@ Field.SQLite.prototype.constructor= Field.SQLite;
  *  Also, Javascript transforms object field/key names to strings, even if they were set to integer.
  * */
 Field.Choice= function( name, multivalued, defaultValue, choicePairs, allowsNotPresent ) {
+    this.choicePairs= choicePairs;
     Field.call( this, name, multivalued, defaultValue, allowsNotPresent );
     loadingPackageDefinition || this.constructor!==Field.Choice
         || fail( "Can't define instances of Field.Choice class itself outside the package. Use Field.Choice.Int or Field.Choice.String." );
@@ -437,7 +439,6 @@ Field.Choice= function( name, multivalued, defaultValue, choicePairs, allowsNotP
             defaultValues[i] in choicePairs || fail( "Field.Choice " +name+ " has defaultValue " +defaultValues[i]+ ", which is not among keys of its choicePairs." );
         }
     }
-    this.choicePairs= choicePairs;
 };
 Field.Choice.prototype= new Field('Choice.prototype');
 Field.Choice.prototype.constructor= Field.Choice;
@@ -449,6 +450,10 @@ Field.Choice.prototype.setDefault= function() {
 };
 Field.Choice.prototype.setValue= function() {
     throw new Error("Do not call setValue() on Field.Choice family.");
+};
+/***/
+Field.Choice.prototype.validateEntry= function( key ) {
+    return key in this.choicePairs;
 };
 
 Field.Choice.Int= function( name, multivalued, defaultValue, choicePairs, allowsNotPresent ) {
@@ -464,7 +469,7 @@ Field.Choice.Int= function( name, multivalued, defaultValue, choicePairs, allows
 Field.Choice.Int.prototype= new Field.Choice('ChoiceInt.prototype');
 Field.Choice.Int.prototype.constructor= Field.Choice.Int;
 Field.Choice.Int.prototype.prefType= Field.Int.prototype.prefType;
-Field.Choice.Int.prototype.validateKey= function( key ) {
+Field.Choice.Int.prototype.validateEntry= function( key ) {
     return typeof key==='number' && Math.round(key)===key;
 };
 
@@ -1109,7 +1114,7 @@ Module.prototype.createSet= function( setName ) {
         : '';
     for( var fieldName in this.fields ) {
         var field= this.fields[fieldName];
-        if( field.defaultValue!==undefined && !field.allowsNotPresent && !this.module.associatesWithFolders ) {
+        if( field.defaultValue!==undefined && !field.allowsNotPresent && !this.associatesWithFolders ) {
             if( !field.multivalued ) {
                 if( !(field instanceof Field.Choice) ) {
                     if( !this.prefsBranch.prefHasUserValue(setNameDot+fieldName) ) {
@@ -1129,6 +1134,7 @@ Module.prototype.createSet= function( setName ) {
             else {
                 if( this.prefsBranch.getChildList( setNameDot+fieldName+'.', {} ).length===0 ) {
                     var defaultValues= field.getDefaultValue();
+                    console.log( 'setting a default value of multivalued field ' +field.name+ ': ' +defaultValues );
                     if( defaultValues.length>0 ) {
                         for( var i=0; i<defaultValues.length; i++ ) { // @TODO Replace the loop with for.. of.. loop once NetBeans support it
                             field.addValue( setNameDot, defaultValues[i] ); // For Field.Choice defaultValues contains the keys rather than values

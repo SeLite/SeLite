@@ -102,7 +102,7 @@ function ensureType( item, typeStringOrStrings, message ) {
  * */
 var globalClasses= ['Array', 'Boolean', 'Date', 'Function', 'Iterator', 'Number', 'RegExp', 'String', 'Proxy', 'Error'];
 
-/** Detect whether that the given object is an instance of one of the given class(es).
+/** Detect whether the given object is an instance of one of the given class(es).
  *  @param object Object
  *  @param classes Class (that is, a constructor function), or an array of them.
  *  @param className string, optional, name of the expected class(es), so we can print them (because parameter classes doesn't carry information about the name);
@@ -407,6 +407,29 @@ function compareAllFieldsOneWay( firstContainer, secondContainer, strict, method
             }
         }
     }
+}
+
+function compareArrays( firstArray, secondArray, strictOrMethodName, throwOnDifference ) {
+    strictOrMethodName= strictOrMethodName || false;
+    var strict= typeof strictOrMethodName=='boolean' && strictOrMethodName;
+    var methodName= typeof strictOrMethodName=='string'
+        ? strictOrMethodName
+        : false;
+    try {
+        Array.isArray(firstArray) || fail( 'compareArrays() requires firstArray to be an array.');
+        Array.isArray(secondArray) || fail('object', 'compareArrays() requires secondArray to be an array.');
+        if( firstArray.length===secondArray.length ) {
+            throw new Error();
+        }
+        compareAllFieldsOneWay( firstArray, secondArray, strict, methodName );
+    }
+    catch( exception ) {
+        if( throwOnDifference ) {
+            throw exception;
+        }
+        return false;
+    }
+    return true;
 }
 
 var SELITE_MISC_SORTED_OBJECT_KEYS= "SELITE_MISC_SORTED_OBJECT_KEYS";
@@ -1264,7 +1287,7 @@ var EXPORTED_SYMBOLS= [ "fail", "ensure", "ensureOneOf", "ensureType", "ensureIn
     "acceptableCharacters", "randomChar", "randomString", "randomItem",
     "setFields", "random", "xpath_escape_quote", "unescape_xml",
     "PrototypedObject", "loginManagerPassword",
-    "compareAllFields", "compareAllFieldsOneWay", "sortByKeys",
+    "compareAllFields", "compareAllFieldsOneWay", "compareArrays", "sortByKeys",
     "compareAsNumbers", "compareCaseInsensitively", "compareNatural",
     "sortedObject", "SortedObjectTarget",
     "nthRecord", "numberOfRecords", "indexesOfRecord"
