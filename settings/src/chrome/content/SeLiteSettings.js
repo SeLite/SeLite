@@ -1175,18 +1175,21 @@ Module.prototype.removeSet= function( setName ) {
     }
     if( setName!=='' ) {
         ensureFieldName( setName, 'set name');
-        setName+= '.';
     }
+    var setNameDot= setName!==''
+        ? setName+ '.'
+        : setName;
     for( var fieldName in this.fields ) {
         var field= this.fields[fieldName];
         if( field.multivalued || field instanceof Field.Choice ) {
-            this.prefsBranch.deleteBranch( setName+fieldName+'.' );
+            this.prefsBranch.deleteBranch( setNameDot+fieldName+'.' );
         }
         else
-        if( this.prefsBranch.prefHasUserValue(setName+fieldName) ) {
-            this.prefsBranch.clearUserPref( setName+fieldName );
+        if( this.prefsBranch.prefHasUserValue(setNameDot+fieldName) ) {
+            this.prefsBranch.clearUserPref( setNameDot+fieldName );
         }
     }
+    this.prefsBranch.clearUserPref( setName );
 };
 
 /** Convert given file name to a URL (a string), if it's a valid file path + file name. Otherwise return it unchanged.
