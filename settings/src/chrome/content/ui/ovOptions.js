@@ -395,15 +395,15 @@ function nullOrUndefineLabel( field, valueCompound ) {
     targetFolder===null || fail();
     if( !field.multivalued ) {
         return valueCompound.entry===null
-            ? (field.allowsNotPresent
-                ? 'Undefine'
-                : ''
+            ? (field.requireAndPopulate
+                ? ''
+                : 'Undefine'
               )
             : 'Null';
     }
     else {
         // We only allow 'Undefine' button once there are no value(s) for the multivalued field
-        return valueCompound.entry!==undefined && Object.keys(valueCompound.entry).length===0 && field.allowsNotPresent
+        return valueCompound.entry!==undefined && Object.keys(valueCompound.entry).length===0 && !field.requireAndPopulate
             ? 'Undefine'
             : '';
     }
@@ -571,7 +571,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     var isNull, isNullOrUndefined;
     if( rowLevel===RowLevel.FIELD ) {
         valueCompound.entry!==null || !field.multivalued || fail( 'Field ' +field.name + ' is multivalued, yet its compoundValue.entry is null. In per-folder mode: ' +(targetFolder!==null) );
-        valueCompound.entry!==undefined || field.allowsNotPresent || fail( 'Field ' +field.name+ ' has allowsNotPresent=false, yet its entry is undefined.');
+        valueCompound.entry!==undefined || !field.requireAndPopulate || fail( 'Field ' +field.name+ ' has requireAndPopulate=true, yet its entry is undefined.');
         isNull= valueCompound.entry===null;
         isNullOrUndefined= isNull || valueCompound.entry===undefined;
     }
@@ -1284,12 +1284,12 @@ function createTreeView(original) {
  *  It can be anything (and is not used) if addOrRemove is +1 or -1. Otherwise
  *  It should have been validated - this function doesn't validate keyOrValue.
  *  It can be null if it's a single-valued field.
- *  It can be undefined if field.allowsNotPresent; then if it is multi-valued, the field must have
+ *  It can be undefined if !field.requireAndPopulate; then if it is multi-valued, the field must have
  *  no actual values (but it can/should contain VALUE_PRESENT).
  * */
 function updateSpecial( setName, field, addOrRemove, keyOrValue ) {
     !addOrRemove || field.multivalued || fail("addOrRemove can be one of +1, -1 only if field.multivalued. addOrRemove is " +addOrRemove+ " and field.multivalued is " +field.multivalued);
-    addOrRemove || keyOrValue!==undefined || field.allowsNotPresent || fail("Field " +field.name+ " doesn't have allowsNotPresent true, but keyOrValue is undefined.");
+    addOrRemove || keyOrValue!==undefined || !field.requireAndPopulate || fail("Field " +field.name+ " has requireAndPopulate==true, but keyOrValue is undefined.");
     addOrRemove || keyOrValue!==null || !field.multivalued || fail("Field " +field.name+ " is multivalued, yet keyOrValue is null.");
     var setNameDot= setName
         ? setName+'.'

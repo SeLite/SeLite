@@ -109,17 +109,18 @@ function ensureFieldName( name, description, asFieldName ) {
  *  If multivalued is true, it must be an array (potentially empty) or undefined; it can't be null.
  *  For multivalued fields, this can be an empty array, or an array of keys (i.e. stored values, rather than labels to display, which may not be the same for Field.Choice).
  *  If a non-null and not undefined, then the value (or values) will be each checked by validateEntry(key).
- *  <br/>defaultValue is only applied (copied into) to set(s) if allowsNotPresent==false and if Module.associatesWithFolders==false.
+ *  <br/>defaultValue is only applied (copied into) to set(s) if requireAndPopulate==true and if Module.associatesWithFolders==false.
  *  It is applied when creating or updating a configuration set
  *  (loading an existing configuration set which doesn't have a value for this field).
- *  But if Module.associatesWithFolders==true, defaultValue is applied by getFieldsDownToFolder() no matter what allowsNotPresent.
- *  @param bool allowsNotPresent Whether to allow a value not to be stored in the set at all (Javascript: undefined); true by default.
- *  If true, and the field has no value stored in a a set,
+ *  But if Module.associatesWithFolders==true, defaultValue is applied by getFieldsDownToFolder() no matter what requireAndPopulate.
+ *  @param bool requireAndPopulate Whether to require a value (or VALUE_PRESENT) to be stored for this field at all times.
+ *  If false, the field may not to be stored in the set at all (Javascript: undefined). False by default.
+ *  If false, and the field has no value stored in a a set,
  *  the behaviour is different to empty/blank or null,  as 'not present' means the field inherits the value from
  *  - values manifests or more general sets (if accessing per folder), or
  *  - from the field default (from schema definition)
  * */
-var Field= function( name, multivalued, defaultValue, allowsNotPresent ) {
+var Field= function( name, multivalued, defaultValue, requireAndPopulate ) {
     if( typeof name!=='string' ) {
         throw new Error( 'Field() expects a string name ("primitive" string, not new String(..)).');
     }
@@ -149,10 +150,8 @@ var Field= function( name, multivalued, defaultValue, allowsNotPresent ) {
             this.validateEntry(key) || fail( 'Default value (stored key) for module ' +this.module.name+ ', field ' +this.name+ ' is ' +key+ " and that doesn't pass validation." );
         }
     }    
-    this.allowsNotPresent= allowsNotPresent===undefined
-        ? true
-        : allowsNotPresent;
-    ensureType( this.allowsNotPresent, "boolean", "Field() expects allowsNotPresent to be a boolean, if present.");
+    this.requireAndPopulate= requireAndPopulate || false;
+    ensureType( this.requireAndPopulate, "boolean", "Field() expects requireAndPopulate to be a boolean, if present.");
     
     if( !this.name.endsWith('.prototype') ) {
         if( this.constructor===Field ) {
@@ -266,7 +265,7 @@ Field.prototype.setPref= function( setFieldKeyName, value ) {
  * @param mixed key as used to generate the preference name (key), appened after fieldName and a dot. String or number.
  * For non-choice multivalued fields it's also used as the value stored in preferences; and for Int
  * it transforms it into a number.
- * @TODO function to set a multivalued/choice field to undefined (if this.allowsNotPresent===true)
+ * @TODO function to set a multivalued/choice field to undefined (if this.requireAndPopulate===false)
  * */
 Field.prototype.addValue= function( setName, key ) {
     var setNameDot= setName!==''
@@ -284,7 +283,6 @@ Field.prototype.addValue= function( setName, key ) {
         value= Number(value);
     }
     this.setPref( setNameDot+ this.name+ '.' +key, value );
-    console.log( 'addedValue ' +setNameDot+ this.name+ '.' +key+ ': ' +value );
 };
 /** Only to be used with multivalued or choice fields. If the key was not set, then this returns without failing.
  * It doesn't call nsIPrefService.savePrefFile().
@@ -315,8 +313,8 @@ Field.prototype.equals= function( other ) {
 };
 
 // See also https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
-Field.Bool= function( name, defaultValue, allowsNotPresent ) {
-    Field.call( this, name, false, defaultValue, allowsNotPresent );
+Field.Bool= function( name, defaultValue, requireAndPopulate ) {
+    Field.call( this, name, false, defaultValue, requireAndPopulate );
 };
 Field.Bool.prototype= new Field('Bool.prototype');
 Field.Bool.prototype.constructor= Field.Bool;
@@ -327,8 +325,8 @@ Field.Bool.prototype.prefType= function() {
     return nsIPrefBranch.PREF_BOOL;
 };
 
-Field.Int= function( name, multivalued, defaultValue, allowsNotPresent ) {
-    Field.call( this, name, multivalued, defaultValue, allowsNotPresent );
+Field.Int= function( name, multivalued, defaultValue, requireAndPopulate ) {
+    Field.call( this, name, multivalued, defaultValue, requireAndPopulate );
 };
 Field.Int.prototype= new Field('Int.prototype');
 Field.Int.prototype.constructor= Field.Int;
@@ -345,8 +343,8 @@ Field.Int.prototype.compareValues= function( firstValue, secondValue ) {
     return compareAsNumbers(firstValue, secondValue );
 };
 
-Field.String= function( name, multivalued, defaultValue, allowsNotPresent ) {
-    Field.call( this, name, multivalued, defaultValue, allowsNotPresent );
+Field.String= function( name, multivalued, defaultValue, requireAndPopulate ) {
+    Field.call( this, name, multivalued, defaultValue, requireAndPopulate );
 };
 Field.String.prototype= new Field('String.prototype');
 Field.String.prototype.constructor= Field.String;
@@ -360,8 +358,8 @@ Field.String.prototype.constructor= Field.String;
  *  @param bool multivalued
  *  @param bool isFolder Whether this is for folder(s); otherwise it's for file(s)
  * */
-Field.FileOrFolder= function( name, startInProfileFolder, filters, multivalued, defaultValue, isFolder, allowsNotPresent ) {
-    Field.call( this, name, multivalued, defaultValue, allowsNotPresent );
+Field.FileOrFolder= function( name, startInProfileFolder, filters, multivalued, defaultValue, isFolder, requireAndPopulate ) {
+    Field.call( this, name, multivalued, defaultValue, requireAndPopulate );
     this.startInProfileFolder= startInProfileFolder || false;
     if( typeof this.startInProfileFolder!='boolean' ) {
         throw new Error( 'Field.FileOrFolder() expects startInProfileFolder to be a boolean, if provided.');
@@ -391,8 +389,8 @@ Field.FileOrFolder.prototype.equals= function( other ) {
  *  @param bool startInProfileFolder See Field.FileOrFolder()
  *  @param filters See Field.FileOrFolder()
  * */
-Field.File= function( name, startInProfileFolder, filters, multivalued, defaultValue, allowsNotPresent ) {
-    Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultValue, false, allowsNotPresent );
+Field.File= function( name, startInProfileFolder, filters, multivalued, defaultValue, requireAndPopulate ) {
+    Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultValue, false, requireAndPopulate );
 };
 Field.File.prototype= new Field.FileOrFolder('File.prototype');
 Field.File.prototype.constructor= Field.File;
@@ -401,16 +399,16 @@ Field.File.prototype.constructor= Field.File;
  *  @param bool startInProfileFolder See Field.FileOrFolder()
  *  @param filters See Field.FileOrFolder()
  * */
-Field.Folder= function( name, startInProfileFolder, filters, multivalued, defaultValue, allowsNotPresent ) {
-    Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultValue, true, allowsNotPresent );
+Field.Folder= function( name, startInProfileFolder, filters, multivalued, defaultValue, requireAndPopulate ) {
+    Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultValue, true, requireAndPopulate );
 };
 Field.Folder.prototype= new Field.FileOrFolder('Folder.prototype');
 Field.Folder.prototype.constructor= Field.Folder;
 
 /** It can only be single-valued. An SQLite DB cannot span across multiple files (or if it can, I'm not supporting that).
  * */
-Field.SQLite= function( name, defaultValue, allowsNotPresent ) {
-    Field.File.call( this, name, true, { 'SQLite': '*.sqlite', 'any': null}, false, defaultValue, allowsNotPresent );
+Field.SQLite= function( name, defaultValue, requireAndPopulate ) {
+    Field.File.call( this, name, true, { 'SQLite': '*.sqlite', 'any': null}, false, defaultValue, requireAndPopulate );
 };
 Field.SQLite.prototype= new Field.File('SQLite.prototype', false, {}, false, '' );
 Field.SQLite.prototype.constructor= Field.SQLite;
@@ -423,9 +421,9 @@ Field.SQLite.prototype.constructor= Field.SQLite;
  *  label reflects how it is shown when using Firefox url about:config.
  *  Also, Javascript transforms object field/key names to strings, even if they were set to integer.
  * */
-Field.Choice= function( name, multivalued, defaultValue, choicePairs, allowsNotPresent ) {
+Field.Choice= function( name, multivalued, defaultValue, choicePairs, requireAndPopulate ) {
     this.choicePairs= choicePairs;
-    Field.call( this, name, multivalued, defaultValue, allowsNotPresent );
+    Field.call( this, name, multivalued, defaultValue, requireAndPopulate );
     loadingPackageDefinition || this.constructor!==Field.Choice
         || fail( "Can't define instances of Field.Choice class itself outside the package. Use Field.Choice.Int or Field.Choice.String." );
     loadingPackageDefinition || typeof(choicePairs)==='object' && !Array.isArray(choicePairs)
@@ -457,8 +455,8 @@ Field.Choice.prototype.validateEntry= function( key ) {
     return key in this.choicePairs;
 };
 
-Field.Choice.Int= function( name, multivalued, defaultValue, choicePairs, allowsNotPresent ) {
-    Field.Choice.call( this, name, multivalued, defaultValue, choicePairs, allowsNotPresent );
+Field.Choice.Int= function( name, multivalued, defaultValue, choicePairs, requireAndPopulate ) {
+    Field.Choice.call( this, name, multivalued, defaultValue, choicePairs, requireAndPopulate );
     for( var key in this.choicePairs ) {
         var value= this.choicePairs[key];
         if( typeof value!=='number' || value!==Math.round(value) ) {
@@ -474,8 +472,8 @@ Field.Choice.Int.prototype.validateEntry= function( key ) {
     return typeof key==='number' && Math.round(key)===key;
 };
 
-Field.Choice.String= function( name, multivalued, defaultValue, choicePairs, allowsNotPresent ) {
-    Field.Choice.call( this, name, multivalued, defaultValue, choicePairs, allowsNotPresent );
+Field.Choice.String= function( name, multivalued, defaultValue, choicePairs, requireAndPopulate ) {
+    Field.Choice.call( this, name, multivalued, defaultValue, choicePairs, requireAndPopulate );
     for( var key in this.choicePairs ) {
         var value= this.choicePairs[key];
         if( typeof value!=='string' ) {
@@ -1115,11 +1113,11 @@ Module.prototype.createSet= function( setName ) {
         : '';
     for( var fieldName in this.fields ) {
         var field= this.fields[fieldName];
-        if( field.defaultValue!==undefined && !field.allowsNotPresent && !this.associatesWithFolders ) {
+        if( field.defaultValue!==undefined && field.requireAndPopulate && !this.associatesWithFolders ) {
             if( !field.multivalued ) {
                 if( !(field instanceof Field.Choice) ) {
                     if( !this.prefsBranch.prefHasUserValue(setNameDot+fieldName) ) {
-                        // If we applied the following even for fields that have allowsNotPresent==true, it would
+                        // If we applied the following even for fields that have requireAndPopulate==false, it would
                         // override 'undefined' value for existing sets, too! So, if you clear it in a set, it would get re-set again!
                         field.setDefault( setName ); // That adds a dot, if necessary
                     }
@@ -1137,10 +1135,8 @@ Module.prototype.createSet= function( setName ) {
                 if( !this.prefsBranch.prefHasUserValue(setNameDot+fieldName) ) {
                     if( !fieldHasChildren ) {
                         var defaultValues= field.getDefaultValue();
-                        //console.log( 'setting a default value of multivalued field ' +field.name+ (setName ? ' for set ' +setName: '')+ ': ' +defaultValues );
                         if( defaultValues.length>0 ) {
                             for( var i=0; i<defaultValues.length; i++ ) { // @TODO Replace the loop with for.. of.. loop once NetBeans support it
-                                //console.log( '- adding value ' +defaultValues[i] );
                                 field.addValue( setName, defaultValues[i] ); // For Field.Choice defaultValues contains the keys rather than values
                             }
                         }
