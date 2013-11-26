@@ -284,6 +284,7 @@ Field.prototype.addValue= function( setName, key ) {
         value= Number(value);
     }
     this.setPref( setNameDot+ this.name+ '.' +key, value );
+    console.log( 'addedValue ' +setNameDot+ this.name+ '.' +key+ ': ' +value );
 };
 /** Only to be used with multivalued or choice fields. If the key was not set, then this returns without failing.
  * It doesn't call nsIPrefService.savePrefFile().
@@ -707,7 +708,7 @@ Module.prototype.getFieldsOfSet= function( setName ) {
             ? this.prefsBranch.getCharPref(setNameWithDot+fieldName)
             : undefined;
         if( multivaluedOrChoice && fieldHasPreference ) {
-            children.length===0 || fail('Module ' +this.name+ ', set ' + setName+ ', field ' +fieldName+ ' has field preference, therefore it should have no children.');
+            children.length===0 || fail('Set ' + setName+ ', field ' +fieldName+ ' has field preference, therefore it should have no children.');
             field.multivalued && multivaluedOrChoiceFieldPreference===VALUE_PRESENT
             || !field.multivalued && multivaluedOrChoiceFieldPreference===NULL
             || fail( 'Module ' +this.name+ ', set ' + setName+
@@ -1091,7 +1092,7 @@ Module.prototype.register= function() {
     else {
         this.createSet();
     }
-    prefs.savePrefFile( null );
+    savePrefFile();
 };
 
 /** (Re)create a set of the given name - create it, or add any missing fields.
@@ -1126,23 +1127,32 @@ Module.prototype.createSet= function( setName ) {
                 else {
                     if( this.prefsBranch.getChildList( setNameDot+fieldName+'.', {} ).length===0 ) {
                         if( field.defaultValue!==null ) {
-                            field.addValue( setNameDot, field.defaultValue );
+                            field.addValue( setName, field.defaultValue );
                         }
                     }
                 }
             }
             else {
-                if( this.prefsBranch.getChildList( setNameDot+fieldName+'.', {} ).length===0 ) {
-                    var defaultValues= field.getDefaultValue();
-                    console.log( 'setting a default value of multivalued field ' +field.name+ ': ' +defaultValues );
-                    if( defaultValues.length>0 ) {
-                        for( var i=0; i<defaultValues.length; i++ ) { // @TODO Replace the loop with for.. of.. loop once NetBeans support it
-                            field.addValue( setNameDot, defaultValues[i] ); // For Field.Choice defaultValues contains the keys rather than values
+                var fieldHasChildren= this.prefsBranch.getChildList( setNameDot+fieldName+'.', {} ).length>0;
+                if( !this.prefsBranch.prefHasUserValue(setNameDot+fieldName) ) {
+                    if( !fieldHasChildren ) {
+                        var defaultValues= field.getDefaultValue();
+                        //console.log( 'setting a default value of multivalued field ' +field.name+ (setName ? ' for set ' +setName: '')+ ': ' +defaultValues );
+                        if( defaultValues.length>0 ) {
+                            for( var i=0; i<defaultValues.length; i++ ) { // @TODO Replace the loop with for.. of.. loop once NetBeans support it
+                                //console.log( '- adding value ' +defaultValues[i] );
+                                field.addValue( setName, defaultValues[i] ); // For Field.Choice defaultValues contains the keys rather than values
+                            }
+                        }
+                        else {
+                            this.prefsBranch.setCharPref( setNameDot+ field.name, VALUE_PRESENT );
                         }
                     }
-                    else {
-                        this.prefsBranch.setCharPref( setNameDot+ field.name, VALUE_PRESENT );
-                    }
+                }
+                else {
+                    this.prefsBranch.getPrefType( setNameDot+ field.name )===nsIPrefBranch.PREF_STRING || fail();
+                    this.prefsBranch.getCharPref( setNameDot+ field.name )===VALUE_PRESENT || fail();
+                    !fieldHasChildren || fail('Set ' +setName+ ', field ' +fieldName+ ' has both a field preference and field child(ren)!');
                 }
             }
         }
@@ -1217,8 +1227,9 @@ var loadFromJavascript= function( moduleName, doCache ) {
             // and the cost of reloading is not important.
             subScriptLoader.loadSubScript( url, {} ); // Must specify {} as scope, otherwise there were conflicts
         }
-        catch(error ) {
-            throw error;
+        catch(e ) {
+            e.message= 'Module ' +moduleName+ ': ' +e.message;
+            throw e;
         }
     }
     else {//@TODO Allow module definition .js file name/url as a parameter?
