@@ -17,15 +17,16 @@
  * limitations under the License.
  */
 
+"use strict";
 // @TODO Here and SelBlocksGlobal etc - for some reason, this is called 2x
 // 1.at start of Se IDE
 // 2. the first time a test command or a test case is run
 // alert('hi');
 
-if( TestCaseDebugContext===undefined ) {
+if( typeof TestCaseDebugContext==="undefined" ) {
     // Do not use function TestCaseDebugContext(testCase) { ... } here, because it won't be visible outside
     // Use TestCaseDebugContext= function( testCase ) { ... } instead
-    TestCaseDebugContext= function( testCase ) {
+    var TestCaseDebugContext= function( testCase ) {
         this.testCase= testCase;
     };
 
