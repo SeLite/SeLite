@@ -1204,40 +1204,51 @@ var fileNameToUrl= function( fileNameOrUrl ) {
 /** Load & register the module from its Javascript file, if stored in preferences.
  *  The file will be cached - any changes will have affect only once you reload Firefox.
  *  If called subsequently, it returns an already loaded instance.
- *  @param moduleName string Name of the preference path/prefix up to the module (including the module name), excluding the trailing dot.
+ *  @param moduleNameFileUrl string Either
+ *  - module name, that is name of the preference path/prefix up to the module (including the module name), excluding the trailing dot; or
+ *  @param moduleFileOrUrl string. Either
+ *  - file path + name of the module definition file; or
+ *  - URL (either chrome:, resource: or file:) to the module definition file
+ *  Optional; used if the module has not been registered yet - then it's required. Make your life easy: If you have it, pass it.
  *  @param dontCache bool Whether not to return a cached definition, even if it has been loaded already. False by default.
  *  @return Module instance
  *  @throws an error if no such preference branch, or preferences don't contain javascript file, or the javascript file doesn't exist.
  * */
-var loadFromJavascript= function( moduleName, dontCache ) {
+var loadFromJavascript= function( moduleName, moduleFileOrUrl, dontCache ) {
    if( modules[moduleName] ) {
         if( dontCache ) {
             delete modules[moduleName];
         }
         else {
-            return modules[ moduleName ];
+            return modules[ moduleName];
         }
     }
+    var moduleUrl;
     var prefsBranch= prefs.getBranch( moduleName+'.' );
     if( prefsBranch.prefHasUserValue(MODULE_DEFINITION_FILE_OR_URL) ) {
-        var url= fileNameToUrl( prefsBranch.getCharPref(MODULE_DEFINITION_FILE_OR_URL) );
-        try {
-            // I don't use Components.utils.import( fileUrl.spec ) because that requires the javascript file to have EXPORTED_SYMBOLS array.
-            // Components.utils.import() would cache the javascript.
-            // subScriptLoader.loadSubScript() doesn't cache the javascript and it (re)evaluates it, which makes development easier
-            // and the cost of reloading is not important.
-            subScriptLoader.loadSubScript( url, {} ); // Must specify {} as scope, otherwise there were conflicts
+        moduleUrl= fileNameToUrl( prefsBranch.getCharPref(MODULE_DEFINITION_FILE_OR_URL) );
+    }
+    else {
+        if( moduleFileOrUrl ) {
+            moduleUrl= fileNameToUrl( moduleFileOrUrl );
         }
-        catch(e ) {
-            e.message= 'Module ' +moduleName+ ': ' +e.message;
-            throw e;
+        else {
+            fail( "Can't find module '" +moduleName+ "' in your preferences, and you didn't pass moduleFileOrUrl. Pass moduleFileOrUrl and/or register the module first.");
         }
     }
-    else {//@TODO Allow module definition .js file name/url as a parameter?
-        fail( "Can't find module '" +moduleName+ "' in your preferences. Register it first.");
+    try {
+        // I don't use Components.utils.import( fileUrl.spec ) because that requires the javascript file to have EXPORTED_SYMBOLS array.
+        // Components.utils.import() would cache the javascript.
+        // subScriptLoader.loadSubScript() doesn't cache the javascript and it (re)evaluates it, which makes development easier
+        // and the cost of reloading is not important.
+        subScriptLoader.loadSubScript( moduleUrl, {} ); // Must specify {} as scope, otherwise there were conflicts
+    }
+    catch(e ) {
+        e.message= 'Module ' +moduleName+ ': ' +e.message;
+        throw e;
     }
     if( !(moduleName in modules) ) {
-        fail( "Loaded definition of module " +moduleName+ " and it was found in preferences, but it didn't register itself properly." );
+        fail( "Loaded definition of module " +moduleName+ " and it was found in preferences, but it didn't register itself properly. Make it call SeLiteSettings.register( theNewModule );" );
     }
     return modules[ moduleName ];
 };
