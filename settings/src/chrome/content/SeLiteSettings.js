@@ -90,14 +90,15 @@ var moduleNameRegex= /^[a-zA-Z0-9_/-][a-zA-Z0-9_/.-]*[a-zA-Z0-9_/-]$/;
  *   Set/Field names and multi-value field keys can't contain dots.
  *  @param name
  *  @param description String to describe what is being checked, if the check fails.
- *  @param bool asFieldName Whether to check as a field name; otherwise it's deemed to be a field/set name. True by default
+ *  @param bool asFieldName Whether to check as a field name; otherwise it's deemed to be a field/set name. False by default.
  * */
-function ensureFieldName( name, description, asFieldName ) {
-    var regex= asFieldName
-        ? fieldNameRegex
-        : moduleNameRegex;
+function ensureFieldName( name, description, asModuleOrSetName ) {
+    var regex= asModuleOrSetName
+        ? moduleNameRegex
+        : fieldNameRegex;
     if( !regex.test( name ) ) {
-        throw new Error( 'SeLiteSettings expect ' +description+ ' to be a valid preference name, but "' +name+ '" was passed.');
+        throw new Error( 'SeLiteSettings expect ' +description+ ' to be a valid preference '
+            +(asModuleOrSetName ? 'module or set' : 'field')+ ' name, but "' +name+ '" was passed.');
     }
 }
 
@@ -127,7 +128,7 @@ var Field= function( name, multivalued, defaultValue, requireAndPopulate ) {
     if( reservedNames.indexOf(name)>=0 ) {
         throw new Error( 'Field() reserves name "' +name+ '". Do not use that as a field name.');
     }
-    loadingPackageDefinition || ensureFieldName( name, 'field name', true );
+    loadingPackageDefinition || ensureFieldName( name, 'field name' );
     this.name= name;
     
     multivalued= multivalued || false;
@@ -503,7 +504,7 @@ var Module= function( name, fields, allowSets, defaultSetName, associatesWithFol
     if( typeof this.name!='string' ) {
         throw new Error( 'Module() expects a string name.');
     }
-    ensureFieldName( name, 'module name');
+    ensureFieldName( name, 'module name', true );
     Array.isArray(fields) || fail( 'Module() expects an array fields, but it received ' +(typeof fields)+ ' - ' +fields);
     this.fields= sortedObject(true); // Object serving as an associative array { string field name => Field instance }
     for( var i=0; i<fields.length; i++ ) {
@@ -529,7 +530,7 @@ var Module= function( name, fields, allowSets, defaultSetName, associatesWithFol
     if( this.defaultSetName!=null && !this.allowSets ) {
         throw new Error( 'Module() allows optional parameter defaultSetName only if allowSets is true..');
     }
-    defaultSetName===null || ensureFieldName( defaultSetName, 'defaultSetName' );
+    defaultSetName===null || ensureFieldName( defaultSetName, 'defaultSetName', true );
     
     this.associatesWithFolders= associatesWithFolders || false;
     ensureType( this.associatesWithFolders, 'boolean', 'Module() expects associatesWithFolders to be a boolean, if provided.');
@@ -655,7 +656,7 @@ Module.prototype.setSelectedSetName= function( setName ) {
     if( !this.allowSets ) {
         throw new Error( "Module '" +this.name+ "' doesn't allow sets.");
     }
-    ensureFieldName( setName, 'setName' );
+    ensureFieldName( setName, 'setName', true );
     this.prefsBranch.setCharPref( SELECTED_SET_NAME, setName );
 };
 
@@ -750,7 +751,7 @@ Module.prototype.getFieldsOfSet= function( setName ) {
             multivaluedOrChoiceFieldPreference===NULL || fail('This should have failed above already. Module ' +field.module.name+ ', set ' +setName+ ', field ' +field.name+ ' has preference ' +fieldPreference );
             result[fieldName].entry= null;
         }
-        !isChoice || result[fieldName].entry===undefined || typeof(result[fieldName].entry)==='object' || fail( 'field ' +field.name+ ' has value ' +typeof result[fieldName].entry ); //@TODO 
+        !isChoice || result[fieldName].entry===undefined || typeof(result[fieldName].entry)==='object' || fail( 'field ' +field.name+ ' has value ' +typeof result[fieldName].entry ); 
         result[ fieldName ].fromPreferences= fieldHasPreference || children.length>0;
     }
     return result;
@@ -1104,7 +1105,7 @@ Module.prototype.createSet= function( setName ) {
         throw new Error( "Module.createOrUpdateSet(setName) expects optional setName to be a string, if provided.");
     }
     if( setName!=='' ) {
-        ensureFieldName( setName, 'set name');
+        ensureFieldName( setName, 'set name', true);
     }
     ensure( !(this.associatesWithFolders && setName===''), 'Module associates with folders, therefore a set name cannot be empty.' );
     
@@ -1170,7 +1171,7 @@ Module.prototype.removeSet= function( setName ) {
         throw new Error( "Module.createOrUpdateSet(setName) expects optional setName to be a string.");
     }
     if( setName!=='' ) {
-        ensureFieldName( setName, 'set name');
+        ensureFieldName( setName, 'set name', true );
     }
     var setNameDot= setName!==''
         ? setName+ '.'
@@ -1210,13 +1211,16 @@ var fileNameToUrl= function( fileNameOrUrl ) {
  *  - file path + name of the module definition file; or
  *  - URL (either chrome:, resource: or file:) to the module definition file
  *  Optional; used if the module has not been registered yet - then it's required. Make your life easy: If you have it, pass it.
- *  @param dontCache bool Whether not to return a cached definition, even if it has been loaded already. False by default.
+ *  @param forceReload bool Whether reload the module and overwrite the already cached object,
+ *  rather than return a cached definition, even if it has been loaded already. False by default (i.e. by default it returns
+ *  the cached object, if present).
  *  @return Module instance
  *  @throws an error if no such preference branch, or preferences don't contain javascript file, or the javascript file doesn't exist.
  * */
-var loadFromJavascript= function( moduleName, moduleFileOrUrl, dontCache ) {
+var loadFromJavascript= function( moduleName, moduleFileOrUrl, forceReload ) {
+   ensureFieldName( moduleName, 'Module name', true );
    if( modules[moduleName] ) {
-        if( dontCache ) {
+        if( forceReload ) {
             delete modules[moduleName];
         }
         else {
