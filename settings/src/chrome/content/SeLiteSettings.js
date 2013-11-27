@@ -1205,16 +1205,18 @@ var fileNameToUrl= function( fileNameOrUrl ) {
  *  The file will be cached - any changes will have affect only once you reload Firefox.
  *  If called subsequently, it returns an already loaded instance.
  *  @param moduleName string Name of the preference path/prefix up to the module (including the module name), excluding the trailing dot.
- *  @param doCache bool Whether to cache the definition. True by default.
+ *  @param dontCache bool Whether not to return a cached definition, even if it has been loaded already. False by default.
  *  @return Module instance
  *  @throws an error if no such preference branch, or preferences don't contain javascript file, or the javascript file doesn't exist.
  * */
-var loadFromJavascript= function( moduleName, doCache ) {
-    if( doCache===undefined ) {
-        doCache= true;
-    }
-    if( doCache && modules[ moduleName ] ) {//@TODO Currently, module's .js calls SeLiteSettings.register(), which returns the old definition! So it does cache itself, even if doCache=false here.
-        return modules[ moduleName ];
+var loadFromJavascript= function( moduleName, dontCache ) {
+   if( modules[moduleName] ) {
+        if( dontCache ) {
+            delete modules[moduleName];
+        }
+        else {
+            return modules[ moduleName ];
+        }
     }
     var prefsBranch= prefs.getBranch( moduleName+'.' );
     if( prefsBranch.prefHasUserValue(MODULE_DEFINITION_FILE_OR_URL) ) {

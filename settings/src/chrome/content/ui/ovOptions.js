@@ -1430,7 +1430,7 @@ window.addEventListener( "load", function(e) {
         var moduleName= null;
         if( match ) {
             moduleName= unescape( match[1] );
-            modules[ moduleName ]= SeLiteSettings.loadFromJavascript( moduleName, false );
+            modules[ moduleName ]= SeLiteSettings.loadFromJavascript( moduleName, true/** Don't cache, so that user's changes has an effect without restarting Firefox. */ );
             ensure( !targetFolder || modules[moduleName].associatesWithFolders, "You're using URL with folder=" +targetFolder+
                 " and module=" +moduleName+ ", however that module doesn't allow to be associated with folders." );
         }
@@ -1459,7 +1459,7 @@ window.addEventListener( "load", function(e) {
         allowModules= true;
         var moduleNames= SeLiteSettings.moduleNamesFromPreferences( prefix );
         for( var i=0; i<moduleNames.length; i++ ) {
-            var module= SeLiteSettings.loadFromJavascript( moduleNames[i], false );
+            var module= SeLiteSettings.loadFromJavascript( moduleNames[i], true/** Don't cache, so that user's changes has an effect without restarting Firefox. */ );
             if( targetFolder===null || module.associatesWithFolders ) {
                 modules[ moduleNames[i] ]= module;
             }
