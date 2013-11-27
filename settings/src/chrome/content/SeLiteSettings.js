@@ -707,7 +707,7 @@ Module.prototype.getFieldsOfSet= function( setName ) {
             ? this.prefsBranch.getCharPref(setNameWithDot+fieldName)
             : undefined;
         if( multivaluedOrChoice && fieldHasPreference ) {
-            children.length===0 || fail('Set ' + setName+ ', field ' +fieldName+ ' has field preference, therefore it should have no children.');
+            children.length===0 || fail('Set "' + setName+ '", field "' +fieldName+ '" has field preference, therefore it should have no children.');
             field.multivalued && multivaluedOrChoiceFieldPreference===VALUE_PRESENT
             || !field.multivalued && multivaluedOrChoiceFieldPreference===NULL
             || fail( 'Module ' +this.name+ ', set ' + setName+

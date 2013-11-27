@@ -187,7 +187,7 @@ RowLevel.prototype.forLevel= function( forModule, forSet, forCheckbox, forField,
 };
 
 /** It contains elements for <treecol> tags, as returned by document.createElementNS( XUL_NS, 'tree_col').
- These are not nsITreeColumn instances, but their .element fields.
+ These are not nsITreeColumn instances, but their .element fields!
  In order to get nsITreeColumn instance, use treeColumn(). See also comments near a call to getCellAt().
  */
 var treeColumnElements= {
@@ -952,7 +952,7 @@ function treeClickHandler( event ) {
                             }
                             tree.boxObject.ensureRowIsVisible( row.value+1 );
                             if( field instanceof SeLiteSettings.Field.FileOrFolder ) {
-                                chooseFileOrFolder( field, tree, row.value+1, column.value, field.isFolder ); // On change that will trigger my custom setCellText()
+                                chooseFileOrFolder( field, tree, row.value+1, treeColumn(treeColumnElements.value), field.isFolder ); // On change that will trigger my custom setCellText()
                             }
                             else {
                                 tree.startEditing( row.value+1, treeColumn(treeColumnElements.value) );
