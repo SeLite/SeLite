@@ -1,8 +1,5 @@
 "use strict";
 
-var SeLiteSettings= {};
-Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js", SeLiteSettings);
-
 var mainDb= new SeLiteSettings.Field.SQLite('mainDb');
 var oneFolder= new SeLiteSettings.Field.Folder( 'oneFolder' );
 var files= new SeLiteSettings.Field.File( 'files', false, false, true, [] );

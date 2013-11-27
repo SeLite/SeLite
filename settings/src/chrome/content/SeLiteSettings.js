@@ -1241,7 +1241,11 @@ var loadFromJavascript= function( moduleName, moduleFileOrUrl, dontCache ) {
         // Components.utils.import() would cache the javascript.
         // subScriptLoader.loadSubScript() doesn't cache the javascript and it (re)evaluates it, which makes development easier
         // and the cost of reloading is not important.
-        subScriptLoader.loadSubScript( moduleUrl, {} ); // Must specify {} as scope, otherwise there were conflicts
+        subScriptLoader.loadSubScript( moduleUrl,
+            {
+                SeLiteSettings: thisComponent
+            }
+        ); // Must specify the second parameter (the scope), otherwise there were conflicts
     }
     catch(e ) {
         e.message= 'Module ' +moduleName+ ': ' +e.message;
@@ -1286,3 +1290,8 @@ var EXPORTED_SYMBOLS= [
     'VALUES_MANIFEST_FILENAME', 'ASSOCIATIONS_MANIFEST_FILENAME',
     'ASSOCIATED_SET', 'SELECTED_SET', 'VALUES_MANIFEST', 'FIELD_DEFAULT', 'FIELD_NULL_OR_UNDEFINED'
 ];
+if( runningAsComponent ) {
+    // I can load this module itself only after I set EXPORTED_SYMBOLS
+    var thisComponent= {};
+    Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js", thisComponent);
+}
