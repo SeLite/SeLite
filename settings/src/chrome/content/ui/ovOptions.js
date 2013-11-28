@@ -1473,6 +1473,7 @@ window.addEventListener( "load", function(e) {
     tree.setAttribute( 'hidecolumnpicker', 'true');
     tree.setAttribute( 'hidevscroll', 'false');
     tree.setAttribute( 'class', 'tree');
+    tree.setAttribute( 'onblur', 'alert("blur arguments[0]: " +objectToString(arguments, 3) )');
     tree.setAttribute( 'flex', '1');
     tree.setAttribute( 'rows', '25'); //@TODO This has to be specified, otherwise the tree is not shown at all (except for column headers). Investigate
     settingsBox.appendChild( tree );

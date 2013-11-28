@@ -33,7 +33,7 @@ if( runningAsComponent ) {
 function fail( errorOrMessage ) {
     try {
         throw errorOrMessage
-            ?(errorOrMessage instanceof Error
+            ?(typeof errorOrMessage==='object' &&  errorOrMessage.constructor.name==='Error'
                 ? errorOrMessage
                 : new Error(errorOrMessage)
              )
@@ -185,7 +185,7 @@ function itemGeneric( containerAndFields, nullReplacement, targetNullReplacement
             return nullReplacement;
         }
         var field= containerAndFields[i];
-        if( item instanceof Array ) {
+        if( Array.isArray(item) ) {
             if( typeof field !=='number' ) { // It may be a numeric string
                 field= new Number(field);
                 if( isNaN(field) ) {
@@ -234,15 +234,9 @@ function objectToString( object, recursionDepth, includeFunctions, leafClassName
     var isLeafClass= leafClassNames.indexOf(object.constructor.name)>=0;
     var result= '';
     if( !isLeafClass ) {
-        if( object instanceof Array ) {
-            for( var j=0; j<object.length; j++ ) {
-                result+= objectFieldToString( object, j, recursionDepth, includeFunctions, leafClassNames, higherObjects, result=='' );
-            }
-        }
-        else {
-            for( var field in object ) {
-                result+= objectFieldToString( object, field, recursionDepth, includeFunctions, leafClassNames, higherObjects, result=='' );
-            }
+        var fields= Object.keys(object); // This handles both Array and non-array objects
+        for( var j=0; j<fields.length; j++ ) {//@TODO replace with for(.. of ..) once NetBeans support it
+            result+= objectFieldToString( object, fields[j], recursionDepth, includeFunctions, leafClassNames, higherObjects, result=='' );
         }
     }
     higherObjects.pop();
@@ -254,7 +248,7 @@ function objectToString( object, recursionDepth, includeFunctions, leafClassName
     if( isLeafClass ) {
         result= '...';
     }
-    if( object instanceof Array ) {
+    if( Array.isArray(object) ) {
         var resultPrefix= 'array';
     }
     else {
@@ -281,7 +275,7 @@ function objectFieldToString( object, field, recursionDepth, includeFunctions, l
         // Sometimes indexOf() returnes non-negative index if the elements are not strictly equal.
         // I coudln't easily reproduce it outside of this function. I tried: javascript:hi= 'hi'; arr=[hi]; outer=[]; outer.push( arr ); outer.indexOf(hi)
         if( higherObjectLevel>=0 && higherObjects[higherObjectLevel]===object[field] ) {
-            result+= '[Recursive ref. to ' +(object[field] instanceof Array ? 'array ' : 'object ')+
+            result+= '[Recursive ref. to ' +(Array.isArray(object[field]) ? 'array ' : 'object ')+
                 (higherObjects.length-higherObjectLevel) + ' level(s) above.]';
         }
         else
@@ -289,7 +283,7 @@ function objectFieldToString( object, field, recursionDepth, includeFunctions, l
             result+= objectToString( object[field], recursionDepth-1, includeFunctions, leafClassNames, higherObjects );
         }
         else {
-            if( object[field] instanceof Array ) {
+            if( Array.isArray(object[field]) ) {
                 result+= object[field].length ? '[array of ' +object[field].length+ ' elements]' : '[empty array]';
             }
             else {
@@ -309,7 +303,7 @@ function objectFieldToString( object, field, recursionDepth, includeFunctions, l
  **/
 function rowsToString( rows, includeFunctions ) {
     var resultLines= [];
-    if( rows instanceof Array ) {
+    if( Array.isArray(rows) ) {
         for( var i=0; i<rows.length; i++ ) {
             resultLines.push( objectToString( rows[i], includeFunctions ) );
         }
@@ -895,7 +889,7 @@ function objectValueToField( obj, value, strict ) {
 function collectByColumn( records, columnorfieldname, columnvaluesunique,
 subindexcolumnorfieldname, result ) {
     result= result || {};
-    if( records instanceof Array ) { // The records were not a result of previous call to this method.
+    if( Array.isArray(records) ) { // The records were not a result of previous call to this method.
         
         for( var i=0; i<records.length; i++ ) {
             var record= records[i];
@@ -907,14 +901,14 @@ subindexcolumnorfieldname, result ) {
         for( var existingIndex in records ) {
             var recordOrGroup= records[existingIndex];
             
-            if( recordOrGroup instanceof Array ) { // records was previously indexed by non-unique column and without sub-index
+            if( Array.isArray(recordOrGroup) ) { // records was previously indexed by non-unique column and without sub-index
                 for( var j=0; j<recordOrGroup.length; j++ ) {
                     collectByColumnRecord( recordOrGroup[j], result, columnorfieldname, columnvaluesunique,
                     subindexcolumnorfieldname );
                 }
             }
             else {
-                if( recordOrGroup instanceof RecordGroup ) { // Records were previously indexed by non-unique columnd and using sub-index
+                if( Array.isArray(recordOrGroup) ) { // Records were previously indexed by non-unique columnd and using sub-index
                     for( var existingSubIndex in recordOrGroup ) {
                         collectByColumnRecord( recordOrGroup[existingSubIndex], result, columnorfieldname, columnvaluesunique,
                             subindexcolumnorfieldname );
@@ -1230,7 +1224,7 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
     var currPosition= 0; // only used when nthRecord is true
     for( var index in recordSet ) {
         var entry= recordSet[index];
-        if( entry instanceof Array ) {
+        if( Array.isArray(entry) ) {
             if( indexesOfRecord ) {
                 var foundSubPosition= recordSet.indexOf( record );
                 if( foundSubPosition>=0 ) {
