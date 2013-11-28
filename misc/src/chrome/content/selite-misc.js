@@ -222,9 +222,11 @@ var OBJECT_TO_STRING_INDENTATION= "  ";
  *  Use '' for some internal Firefox/XUL/XPCOM? objects.
  *  @param array higherObjects Optional; array of objects/arrays that are being processed by the direct/indirect caller of this function
  *  (i.e. recursive array/object reference). For internal use only - only set when this function calls itself recursively.
+ *  @param bool includeNonEnumerable Whether to include non-enumerable fields; false by default.
  *  @return string
  */
-function objectToString( object, recursionDepth, includeFunctions, leafClassNames, higherObjects ) {
+function objectToString( object, recursionDepth, includeFunctions, leafClassNames,
+higherObjects, includeNonEnumerable ) {
     if( typeof object!=='object' || object===null ) {
         return ''+object;
     }
@@ -234,9 +236,11 @@ function objectToString( object, recursionDepth, includeFunctions, leafClassName
     var isLeafClass= leafClassNames.indexOf(object.constructor.name)>=0;
     var result= '';
     if( !isLeafClass ) {
-        var fields= Object.keys(object); // This handles both Array and non-array objects
+        var fields= includeNonEnumerable
+            ? Object.getOwnPropertyNames(object)
+            : Object.keys(object); // This handles both Array and non-array objects
         for( var j=0; j<fields.length; j++ ) {//@TODO replace with for(.. of ..) once NetBeans support it
-            result+= objectFieldToString( object, fields[j], recursionDepth, includeFunctions, leafClassNames, higherObjects, result=='' );
+            result+= objectFieldToString( object, fields[j], recursionDepth, includeFunctions, leafClassNames, higherObjects, includeNonEnumerable, result=='' );
         }
     }
     higherObjects.pop();
@@ -261,8 +265,9 @@ function objectToString( object, recursionDepth, includeFunctions, leafClassName
 }
 
 /*** @private/internal
+ *   @see objectToString()
  */
-function objectFieldToString( object, field, recursionDepth, includeFunctions, leafClassNames, higherObjects, firstItem ) {
+function objectFieldToString( object, field, recursionDepth, includeFunctions, leafClassNames, higherObjects, includeNonEnumerable, firstItem ) {
         var result= '';
         if( !includeFunctions && typeof object[field]==='function' ) {
             return '';
@@ -280,7 +285,7 @@ function objectFieldToString( object, field, recursionDepth, includeFunctions, l
         }
         else
         if( typeof object[field]==='object' && recursionDepth>0 ) {
-            result+= objectToString( object[field], recursionDepth-1, includeFunctions, leafClassNames, higherObjects );
+            result+= objectToString( object[field], recursionDepth-1, includeFunctions, leafClassNames, higherObjects, includeNonEnumerable );
         }
         else {
             if( Array.isArray(object[field]) ) {
@@ -305,7 +310,7 @@ function rowsToString( rows, includeFunctions ) {
     var resultLines= [];
     if( Array.isArray(rows) ) {
         for( var i=0; i<rows.length; i++ ) {
-            resultLines.push( objectToString( rows[i], includeFunctions ) );
+            resultLines.push( objectToString( rows[i], undefined, includeFunctions ) );
         }
     }
     else {
@@ -313,7 +318,7 @@ function rowsToString( rows, includeFunctions ) {
             if( typeof rows[field]=='function' ) {
                 continue;
             }
-            resultLines.push( '' +field+ ' => ' +objectToString( rows[field], includeFunctions ) );
+            resultLines.push( '' +field+ ' => ' +objectToString( rows[field], undefined, includeFunctions ) );
         }
     }
     return resultLines.join( "\n" );
