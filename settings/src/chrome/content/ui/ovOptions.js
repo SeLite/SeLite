@@ -103,7 +103,7 @@ function chooseFileOrFolder( field, tree, row, column, isFolder, currentTargetFo
     return false;
 }
 
-/** Enumeration-like class to use symbols for tree levels and also for columns.
+/** Enumeration-like class. Instances are dual-purpose symbols-like, used to indicate tree levels and also tree columns.
  * @param string name
  * @param int level. If not set or negative, then the instance can't be used with below().
  * @param bool blank Whether generateTreeItem() should store its parameter value in properties,
@@ -791,7 +791,13 @@ function propertiesPart( properties, level, otherwise ) {
     return propertiesParts.join( ' ');
 }
 
+/** 0-based row index of the last clicked cell, if it was an editable cell (other than for a file/folder field) in the value column (if any) */
+var clickedEditableRow;
+/** instance of TreeColumn for the last clicked cell, if it was an editable cell (other than for a file/folder field) in the value column (if any) */
+var clickedEditableColumn;
+
 function treeClickHandler( event ) {
+    clickedEditableRow= clickedEditableColumn= undefined;
     // FYI: event.currentTarget.tagName=='tree'. However, document.getElementById('settingsTree')!=event.currentTarget
     var tree= document.getElementById('settingsTree');
     var row= { value: -1 }; // value is 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
@@ -880,6 +886,11 @@ function treeClickHandler( event ) {
                 if( cellIsEditable && rowProperties) {
                     if( targetFolder===null ) {
                         if( !(field instanceof SeLiteSettings.Field.FileOrFolder) ) {
+                            clickedEditableRow= row.value; //@TODO if this and/or clickedEditableColumn is different to the previous respective value
+                            // (and the previous value was not undefined), then the user clicked at a different (editable value) cell.
+                            // Therefore stack these existing values - that's what 'onblur' should use.
+                            console.log( 'click row ' +row.value );
+                            clickedEditableColumn= column.value;
                             tree.startEditing( row.value, column.value );
                         }
                         else {
@@ -926,9 +937,7 @@ function treeClickHandler( event ) {
                             for( var key in moduleRowsOrChildren[selectedSetName][field.name] ) {
                                 if( SeLiteSettings.reservedNames.indexOf(key)<0 ) {
                                     previouslyFirstValueRow= moduleRowsOrChildren[selectedSetName][field.name][key];
-                                    if( !(previouslyFirstValueRow instanceof XULElement) || previouslyFirstValueRow.tagName!=='treerow' || previouslyFirstValueRow.parentNode.tagName!=='treeitem' ) {
-                                        throw Error();
-                                    }
+                                    previouslyFirstValueRow instanceof XULElement && previouslyFirstValueRow.tagName==='treerow' && previouslyFirstValueRow.parentNode.tagName==='treeitem' || fail();
                                     break;
                                 }
                             }
@@ -1473,7 +1482,8 @@ window.addEventListener( "load", function(e) {
     tree.setAttribute( 'hidecolumnpicker', 'true');
     tree.setAttribute( 'hidevscroll', 'false');
     tree.setAttribute( 'class', 'tree');
-    tree.setAttribute( 'onblur', 'alert("blur arguments[0]: " +objectToString(arguments, 3, undefined, undefined, undefined, true) )');
+    //tree.setAttribute( 'onblur', 'alert( "blur arguments[0]: " +objectToString(arguments, 3, undefined, undefined, undefined, true)+ "; instanceof XULElement: " +(arguments[0].constructor.name) )');
+    tree.setAttribute( 'onblur', 'console.log( "blur clickedEditableRow: " +clickedEditableRow+ ", clickedEditableColumn: " +clickedEditableColumn )' );
     tree.setAttribute( 'flex', '1');
     tree.setAttribute( 'rows', '25'); //@TODO This has to be specified, otherwise the tree is not shown at all (except for column headers). Investigate
     settingsBox.appendChild( tree );
