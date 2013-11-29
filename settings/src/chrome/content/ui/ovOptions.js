@@ -854,7 +854,7 @@ function onTreeBlur() {
         if( blurredFrom ) {
             console.log( "blur clickedEditableRow: " +blurredFrom.row+ ", clickedEditableColumn: " +blurredFrom.column );
             //@TODO validate
-            if( false ) {
+            if( validationFailed ) {
                 alert();
                 if( info.field.multivalued ) {
                     
@@ -864,6 +864,9 @@ function onTreeBlur() {
                     // Firefox invokes 'click' handler, which would invalidate what I start to edit here
                     document.getElementById( 'settingsTree' ).startEditing( blurredFrom.row, blurredFrom.column );
                 }
+            }
+            else {
+                    moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName );
             }
         }
     }
@@ -1203,12 +1206,33 @@ function gatherAndValidateCell( row, value ) {
             : Number.NaN;
         validationPassed= !isNaN(numericValue) && numericValue===Math.round(numericValue); // Can't use value===Number.NaN
     }
+    if( validationPassed && valueChanged ) {
+        var fieldRow= fieldTreeRow(setName, field);
+        treeCell( fieldRow, RowLevel.FIELD ).setAttribute( 'properties', '' ); // Clear it, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED
+        if( field.multivalued ) { //Clear it, in case it was 'undefined' (if this is the first value)
+            treeCell( fieldRow, RowLevel.FIELD ).setAttribute( 'label', '' );
+        }
+        treeCell( fieldRow, RowLevel.NULL_OR_UNDEFINE ).setAttribute( 'label',
+            nullOrUndefineLabel( field, valueCompound(field, setName) )
+        );
+    }
+    if( !validationPassed ) {
+        alert('Field ' +field.name+ " can't accept "+ (
+            value.trim().length>0
+                ? 'value ' +value
+                : 'whitespace.'
+        ) );
+        if( field.multivalued && fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] ) { // adding first value for a multivalued field
+            fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN].removeChild( fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW].parentNode );
+            delete treeRowsOrChildren[module.name][setName][field.name][SeLiteSettings.NEW_VALUE_ROW];
+        }
+    }
     return {
         module: module,
         rowProperties: rowProperties,
         setName: setName,
         field: field,
-        fieldTreeRowsOrChildren: fieldTreeRowsOrChildren,
+        fieldTreeRowsOrChildren: fieldTreeRowsOrChildren,//@TODO remove?
         treeRow: treeRow,
         oldKey: oldKey,
         validationPassed: validationPassed,
@@ -1329,28 +1353,11 @@ function createTreeView(original) {
                 var result= original.setCellText(row, col, value);
                 if( info.valueChanged ) {
                     setCellText( info, value );
-                    var fieldRow= fieldTreeRow(info.setName, info.field);
-                    treeCell( fieldRow, RowLevel.FIELD ).setAttribute( 'properties', '' );
-                    if( info.field.multivalued ) {
-                        treeCell( fieldRow, RowLevel.FIELD ).setAttribute( 'label', '' );
-                    }
-                    moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName );
-                    treeCell( fieldRow, RowLevel.NULL_OR_UNDEFINE).setAttribute( 'label',
-                        nullOrUndefineLabel(info.field, valueCompound(info.field, info.setName) ) );
                 }
                 return result;
             }
-            alert('Field ' +info.field.name+ " can't accept "+ (
-                value.trim().length>0
-                    ? 'value ' +value
-                    : 'whitespace.'
-            ) );
             //I wanted to keep the field as being edited, but this didn't work here in Firefox 24.0: document.getElementById( 'settingsTree' ).startEditing( row, col );
-            if( info.field.multivalued && info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] ) { // adding first value for a multivalued field
-                info.fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN].removeChild( info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW].parentNode );
-                delete treeRowsOrChildren[info.module.name][info.setName][info.field.name][SeLiteSettings.NEW_VALUE_ROW];
-            }
-            return false;
+            return false; //@TODO Do I need to return?
         },
         setCellValue: function(row, col, value) { return original.setCellValue(row, col, value); },
         setTree: function(tree) { return original.setTree(tree); },
