@@ -1350,14 +1350,12 @@ function createTreeView(original) {
             // I don't use parameter col in my own methods, because I use module definition to figure out the editable cell.
             var info= gatherAndValidateCell( row, value );
             if( info.validationPassed ) {
-                var result= original.setCellText(row, col, value);
                 if( info.valueChanged ) {
                     setCellText( info, value );
                 }
-                return result;
             }
-            //I wanted to keep the field as being edited, but this didn't work here in Firefox 24.0: document.getElementById( 'settingsTree' ).startEditing( row, col );
-            return false; //@TODO Do I need to return?
+            // I wanted to keep the field as being edited, but the following didn't work here in Firefox 25.0:
+            //else document.getElementById( 'settingsTree' ).startEditing( row, col );
         },
         setCellValue: function(row, col, value) { return original.setCellValue(row, col, value); },
         setTree: function(tree) { return original.setTree(tree); },
