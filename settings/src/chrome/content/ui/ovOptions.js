@@ -799,9 +799,10 @@ function propertiesPart( properties, level, otherwise ) {
  *  or null.
  *  @see onTreeBlur()
  *   */
-var clickedEditables= []; //@TODO remove
+var clickedEditables= [];
 
-/** We want to perform validation of a freetype value on 'blur' event. That is difficult in XUL because
+/** When performing validation of a freetype values, most frequent use cases are handled in setCellText handler.
+ *  However, there are use cases when setCellText is not triggered. Those are handled on 'blur' event. That is difficult because
  *  - tree cells can't have 'onblur' handler. We have to have 'onblur' handler on the whole tree
  *  - tree's 'onblur' handler receives one parameter, but that is an object of unknown type and undocumented
  *  So, onTreeBlur() needs to know what cell was just blurred from. A user can leave the cell using TAB key,
@@ -820,6 +821,7 @@ var clickedEditables= []; //@TODO remove
  *  -- onclick
  *  -- onblur (probably for the tree) - not important for the purpose of this example
  *  - click another freetype cell
+ *  -- setCellText
  *  -- onblur (probably for the previous freetype cell)
  *  -- onclick
  *  -- onblur! (probably for the tree as an intermediary 'selected' object)
@@ -832,20 +834,43 @@ var clickedEditables= []; //@TODO remove
  *  - press TAB key
  *  -- onblur
  *  That's why in treeClickHandler(), whenever the user clicks at a freetype cell, I put two entries into clickedEditables[].
- *  The first entry is null, and the second one has details of the clicked cell.@TODO  remove
- * 
+ *  The first entry is null, and the second one has details of the clicked cell.
+ *  @see createTreeView() and how it sets setCellText handler @TODO change this line once I refactor/merge setCellText() and setCellText handler
+ */
 function onTreeBlur() {
-    console.log('onblur');
+    //console.log('onblur');
     if( clickedEditables.length>0 ) {
         var blurredFrom= clickedEditables[0];
         clickedEditables= clickedEditables.slice(1);
+        // clickedEditables is empty if setCellText has been called just prior to this.
+        // So this block gets processed only if the user didn't change/enter the value.
+        // Therefore, it would be enough to validate only if the value is a new entry of a multi-valued field,
+        // since an unchanged existing value should be valid. But I keep this code simple and always validate (if this is invoked).
+        // At this time the editable field is not selected anymoer. If validation fails,
+        // - I show an alert
+        // - if it's a multi-valued field, I remove the entry.
+        // - if it's a single-valued field, I re-open the field to be edited TODO
+        // However, if validation fails for a single-valued field, then I can't do much here - since the user
         if( blurredFrom ) {
             console.log( "blur clickedEditableRow: " +blurredFrom.row+ ", clickedEditableColumn: " +blurredFrom.column );
+            //@TODO validate
+            if( false ) {
+                alert();
+                if( info.field.multivalued ) {
+                    
+                }
+                else {
+                    // @TODO Not sure if I want to do the following - because after this 'blur' handler,
+                    // Firefox invokes 'click' handler, which would invalidate what I start to edit here
+                    document.getElementById( 'settingsTree' ).startEditing( blurredFrom.row, blurredFrom.column );
+                }
+            }
         }
     }
-}*/
+}
 
 function treeClickHandler( event ) {
+    //console.log( 'click');
     // FYI: event.currentTarget.tagName=='tree'. However, document.getElementById('settingsTree')!=event.currentTarget
     var tree= document.getElementById('settingsTree');
     var row= { value: -1 }; // value is 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
@@ -1171,14 +1196,12 @@ function gatherAndValidateCell( row, value ) {
         treeRow= fieldTreeRowsOrChildren[oldKey];
     }
     //@TODO custom field validation?
+    //@TODO undefined and null - singlevalued only. valueChanged is handled above already.
     if( field instanceof SeLiteSettings.Field.Int || field instanceof SeLiteSettings.Field.Choice.Int ) {
         var numericValue= value.trim()!=='' // trim() removes leading/trailing whitespace, including tabs/new lines
             ? Number(value) // Number('') or Number(' ') or similar for tab/new lines returns 0 - not good for validation
             : Number.NaN;
-        if( isNaN(numericValue) || numericValue!==Math.round(numericValue) ) { // Can't compare using value===Number.NaN
-            //alert( "This field accepts integer (whole numbers) only." ); //@TODO?
-            validationPassed= false;
-        }
+        validationPassed= !isNaN(numericValue) && numericValue===Math.round(numericValue); // Can't use value===Number.NaN
     }
     return {
         module: module,
@@ -1298,10 +1321,10 @@ function createTreeView(original) {
         performActionOnRow: function(action, row) { return original.performActionOnRow(action, row); },
         selectionChanged: function() { return original.selectionChanged(); },
         setCellText: function(row, col, value) {
-            console.log('setCellText');
+            //console.log('setCellText');
+            clickedEditables= []; // This setCellText() is called before treeclickHandler(), so we perform the validation here.
             // I don't use parameter col in my own methods, because I use module definition to figure out the editable cell.
             var info= gatherAndValidateCell( row, value );
-            var addingFirstForMultivalued= info.field.multivalued && info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW];
             if( info.validationPassed ) {
                 var result= original.setCellText(row, col, value);
                 if( info.valueChanged ) {
@@ -1317,9 +1340,13 @@ function createTreeView(original) {
                 }
                 return result;
             }
-            alert('Field ' +info.field.name+ " can't accept value "+ value);
+            alert('Field ' +info.field.name+ " can't accept "+ (
+                value.trim().length>0
+                    ? 'value ' +value
+                    : 'whitespace.'
+            ) );
             //I wanted to keep the field as being edited, but this didn't work here in Firefox 24.0: document.getElementById( 'settingsTree' ).startEditing( row, col );
-            if( addingFirstForMultivalued ) {
+            if( info.field.multivalued && info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] ) { // adding first value for a multivalued field
                 info.fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN].removeChild( info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW].parentNode );
                 delete treeRowsOrChildren[info.module.name][info.setName][info.field.name][SeLiteSettings.NEW_VALUE_ROW];
             }
@@ -1532,8 +1559,7 @@ window.addEventListener( "load", function(e) {
     tree.setAttribute( 'hidecolumnpicker', 'true');
     tree.setAttribute( 'hidevscroll', 'false');
     tree.setAttribute( 'class', 'tree');
-    //tree.setAttribute( 'onblur', 'alert( "blur arguments[0]: " +objectToString(arguments, 3, undefined, undefined, undefined, true)+ "; instanceof XULElement: " +(arguments[0].constructor.name) )');
-    //tree.setAttribute( 'onblur', 'onTreeBlur()' );//@TODO remove
+    tree.setAttribute( 'onblur', 'onTreeBlur()' );
     tree.setAttribute( 'flex', '1');
     tree.setAttribute( 'rows', '25'); //@TODO This has to be specified, otherwise the tree is not shown at all (except for column headers). Investigate
     settingsBox.appendChild( tree );
