@@ -791,83 +791,30 @@ function propertiesPart( properties, level, otherwise ) {
     return propertiesParts.join( ' ');
 }
 
-/** Last-in first-out queue. It should contain max. 2 entries, each representing a clicked editable cell
- *  (other than for a file/folder field) in the value column (if any) or a dummy intermediary (null). Entries are either
- *  - anonymous objects
- *  { row: 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
- *    column: instance of TreeColumn  }
- *  or null.
+/** 0-based index of row beig currently edited, within the set of *visible* rows only (it skips the collapsed rows),
+ *  only if the row is for a new value of a multi-valued field and that value was not saved/submitted yet. Otherwise it's undefined.
  *  @see onTreeBlur()
  *   */
-var clickedEditables= [];
+var newValueRow= undefined;
+var pastFirstBlur= false;
 
 /** When performing validation of a freetype values, most frequent use cases are handled in setCellText handler.
- *  However, there are use cases when setCellText is not triggered. Those are handled on 'blur' event. That is difficult because
- *  - tree cells can't have 'onblur' handler. We have to have 'onblur' handler on the whole tree
- *  - tree's 'onblur' handler receives one parameter, but that is an object of unknown type and undocumented
- *  So, onTreeBlur() needs to know what cell was just blurred from. A user can leave the cell using TAB key,
- *  therefore I can't use mouse pointer to determine the cell. I use 'click' handler to record the clicked cell.
- *  However, 'click' handler kicks in before 'onblur' and sometimes there are two 'blur' events,
- *  which makes this non-trivial. Two scenarios
- *  1. 
- *  - refresh the page
- *  - click once or several times anywhere except for a freetype cell (for example, expand/collapse parts of the tree)
- *  - click at a freetype cell for the first time
- *  -- onclick
- *  -- onblur (not sure for what element - probably for the whole tree)
- *  2.
- *  - don't have a freetype cell selected
- *  - click a freetype cell
- *  -- onclick
- *  -- onblur (probably for the tree) - not important for the purpose of this example
- *  - click another freetype cell
- *  -- setCellText
- *  -- onblur (probably for the previous freetype cell)
- *  -- onclick
- *  -- onblur! (probably for the tree as an intermediary 'selected' object)
- *  - click yet another freetype cell...
- *  3. 
- *  - don't have a freetype cell selected
- *  - click a freetype cell
- *  -- onclick
- *  -- onblur (probably for the tree) - not important for the purpose of this example
- *  - press TAB key
- *  -- onblur
- *  That's why in treeClickHandler(), whenever the user clicks at a freetype cell, I put two entries into clickedEditables[].
- *  The first entry is null, and the second one has details of the clicked cell.
- *  @see createTreeView() and how it sets setCellText handler @TODO change this line once I refactor/merge setCellText() and setCellText handler
+ *  From Firefox 25, the only relevant scenario not handled by setCellText() is when a user hits 'Add a new value'
+ *  for a multi-valued field and then they hit ESC without filling in the value. That's when onTreeBlur() performs the validation.
+ *  @see setCellText()
  */
 function onTreeBlur() {
-    //console.log('onblur');
-    if( clickedEditables.length>0 ) {
-        var blurredFrom= clickedEditables[0];
-        clickedEditables= clickedEditables.slice(1);
-        // clickedEditables is empty if setCellText has been called just prior to this.
-        // So this block gets processed only if the user didn't change/enter the value.
-        // Therefore, it would be enough to validate only if the value is a new entry of a multi-valued field,
-        // since an unchanged existing value should be valid. But I keep this code simple and always validate (if this is invoked).
-        // At this time the editable field is not selected anymoer. If validation fails,
-        // - I show an alert
-        // - if it's a multi-valued field, I remove the entry.
-        // - if it's a single-valued field, I re-open the field to be edited TODO
-        // However, if validation fails for a single-valued field, then I can't do much here - since the user
-        if( blurredFrom ) {
-            console.log( "blur clickedEditableRow: " +blurredFrom.row+ ", clickedEditableColumn: " +blurredFrom.column );
-            //@TODO validate
-            if( validationFailed ) {
-                alert();
-                if( info.field.multivalued ) {
-                    
-                }
-                else {
-                    // @TODO Not sure if I want to do the following - because after this 'blur' handler,
-                    // Firefox invokes 'click' handler, which would invalidate what I start to edit here
-                    document.getElementById( 'settingsTree' ).startEditing( blurredFrom.row, blurredFrom.column );
-                }
-            }
-            else {
-                    moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName );
-            }
+    console.log('onblur; pastFirstBlur: ' +pastFirstBlur+ '; newValueRow: ' +newValueRow);
+    if( newValueRow!==undefined ) {
+        if( pastFirstBlur ) {
+            console.log( "blur row #: " +newValueRow );
+            var info= gatherAndValidateCell( newValueRow, '' ); // This assumes that a new value is only empty. Otherwise we'd have to retrieve the actual value. 
+            // If validation fails, I'm not calling startEditing(..). See notes in setCellText()
+            pastFirstBlur= false;
+            newValueRow= undefined;
+        }
+        else {
+            pastFirstBlur= true;
         }
     }
 }
@@ -962,10 +909,6 @@ function treeClickHandler( event ) {
                 if( cellIsEditable && rowProperties) {
                     if( targetFolder===null ) {
                         if( !(field instanceof SeLiteSettings.Field.FileOrFolder) ) {
-                            /* @TODO removeclickedEditables.push( null, {
-                                row: row.value,
-                                column: column.value
-                            });*/
                             tree.startEditing( row.value, column.value );
                         }
                         else {
@@ -1007,6 +950,7 @@ function treeClickHandler( event ) {
                             pair[ SeLiteSettings.NEW_VALUE_ROW ]= SeLiteSettings.NEW_VALUE_ROW;
                             // Since we're editing, that means targetFolder===null, so I don't need to generate anything for navigation from folder view here.
                             var treeItem= generateTreeItem(module, selectedSetName, field, pair, RowLevel.OPTION, false, /*Don't show the initial value:*/true );
+                            newValueRow= row+1;
 
                             var previouslyFirstValueRow= null;
                             for( var key in moduleRowsOrChildren[selectedSetName][field.name] ) {
@@ -1176,6 +1120,7 @@ function gatherAndValidateCell( row, value ) {
     var oldKey;
     var validationPassed= true;
     var valueChanged;
+    field!==undefined || fail( 'field is undefined');
     if( !field.multivalued ) {
         treeRow= moduleRowsOrChildren[setName][fieldName];
         // Can't use treeRow.constructor.name here - because it's a native object.
@@ -1260,11 +1205,11 @@ function gatherAndValidateCell( row, value ) {
  *  @param string value new value
  * */
 function setCellText( row, col, value ) {
-    //console.log('setCellText');
-    clickedEditables= []; // This setCellText() is called before treeclickHandler(), so we perform the validation here.
+    console.log('setCellText');
+    newValueRow= undefined; // This is called before 'blur' event, so we validate here. We only leave it for onTreeBlur() if setCellText doesn't get called.
     var info= gatherAndValidateCell( row, value );
     if( !info.validationPassed || !info.valueChanged ) {
-        // If validation fails, I wanted to keep the field as being edited, but the following didn't work here in Firefox 25.0:
+        // If validation fails, I wanted to keep the field as being edited, but the following line didn't work here in Firefox 25.0. It could also interfere with onTreeBlur().
         //if( !info.validationPassed ) { document.getElementById( 'settingsTree' ).startEditing( row, col ); }
         return; // if validation failed, gatherAndValidateCell() already showed an alert, and removed the tree row if the value was a newly added entry of a multi-valued field
     }
@@ -1569,7 +1514,7 @@ window.addEventListener( "load", function(e) {
     tree.setAttribute( 'hidecolumnpicker', 'true');
     tree.setAttribute( 'hidevscroll', 'false');
     tree.setAttribute( 'class', 'tree');
-    //tree.setAttribute( 'onblur', 'onTreeBlur()' );
+    tree.setAttribute( 'onblur', 'onTreeBlur()' );
     tree.setAttribute( 'flex', '1');
     tree.setAttribute( 'rows', '25'); //@TODO This has to be specified, otherwise the tree is not shown at all (except for column headers). Investigate
     settingsBox.appendChild( tree );
