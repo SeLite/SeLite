@@ -804,10 +804,9 @@ var pastFirstBlur= false;
  *  @see setCellText()
  */
 function onTreeBlur() {
-    console.log('onblur; pastFirstBlur: ' +pastFirstBlur+ '; newValueRow: ' +newValueRow);
+    //console.log('onblur; newValueRow: ' +newValueRow+ '; pastFirstBlur: ' +pastFirstBlur);
     if( newValueRow!==undefined ) {
         if( pastFirstBlur ) {
-            console.log( "blur row #: " +newValueRow );
             var info= gatherAndValidateCell( newValueRow, '' ); // This assumes that a new value is only empty. Otherwise we'd have to retrieve the actual value. 
             // If validation fails, I'm not calling startEditing(..). See notes in setCellText()
             pastFirstBlur= false;
@@ -950,7 +949,7 @@ function treeClickHandler( event ) {
                             pair[ SeLiteSettings.NEW_VALUE_ROW ]= SeLiteSettings.NEW_VALUE_ROW;
                             // Since we're editing, that means targetFolder===null, so I don't need to generate anything for navigation from folder view here.
                             var treeItem= generateTreeItem(module, selectedSetName, field, pair, RowLevel.OPTION, false, /*Don't show the initial value:*/true );
-                            newValueRow= row+1;
+                            newValueRow= row.value+1;
 
                             var previouslyFirstValueRow= null;
                             for( var key in moduleRowsOrChildren[selectedSetName][field.name] ) {
@@ -1205,7 +1204,7 @@ function gatherAndValidateCell( row, value ) {
  *  @param string value new value
  * */
 function setCellText( row, col, value ) {
-    console.log('setCellText');
+    //console.log('setCellText');
     newValueRow= undefined; // This is called before 'blur' event, so we validate here. We only leave it for onTreeBlur() if setCellText doesn't get called.
     var info= gatherAndValidateCell( row, value );
     if( !info.validationPassed || !info.valueChanged ) {
