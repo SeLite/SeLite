@@ -791,13 +791,61 @@ function propertiesPart( properties, level, otherwise ) {
     return propertiesParts.join( ' ');
 }
 
-/** 0-based row index of the last clicked cell, if it was an editable cell (other than for a file/folder field) in the value column (if any) */
-var clickedEditableRow;
-/** instance of TreeColumn for the last clicked cell, if it was an editable cell (other than for a file/folder field) in the value column (if any) */
-var clickedEditableColumn;
+/** Last-in first-out queue. It should contain max. 2 entries, each representing a clicked editable cell
+ *  (other than for a file/folder field) in the value column (if any) or a dummy intermediary (null). Entries are either
+ *  - anonymous objects
+ *  { row: 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
+ *    column: instance of TreeColumn  }
+ *  or null.
+ *  @see onTreeBlur()
+ *   */
+var clickedEditables= []; //@TODO remove
+
+/** We want to perform validation of a freetype value on 'blur' event. That is difficult in XUL because
+ *  - tree cells can't have 'onblur' handler. We have to have 'onblur' handler on the whole tree
+ *  - tree's 'onblur' handler receives one parameter, but that is an object of unknown type and undocumented
+ *  So, onTreeBlur() needs to know what cell was just blurred from. A user can leave the cell using TAB key,
+ *  therefore I can't use mouse pointer to determine the cell. I use 'click' handler to record the clicked cell.
+ *  However, 'click' handler kicks in before 'onblur' and sometimes there are two 'blur' events,
+ *  which makes this non-trivial. Two scenarios
+ *  1. 
+ *  - refresh the page
+ *  - click once or several times anywhere except for a freetype cell (for example, expand/collapse parts of the tree)
+ *  - click at a freetype cell for the first time
+ *  -- onclick
+ *  -- onblur (not sure for what element - probably for the whole tree)
+ *  2.
+ *  - don't have a freetype cell selected
+ *  - click a freetype cell
+ *  -- onclick
+ *  -- onblur (probably for the tree) - not important for the purpose of this example
+ *  - click another freetype cell
+ *  -- onblur (probably for the previous freetype cell)
+ *  -- onclick
+ *  -- onblur! (probably for the tree as an intermediary 'selected' object)
+ *  - click yet another freetype cell...
+ *  3. 
+ *  - don't have a freetype cell selected
+ *  - click a freetype cell
+ *  -- onclick
+ *  -- onblur (probably for the tree) - not important for the purpose of this example
+ *  - press TAB key
+ *  -- onblur
+ *  That's why in treeClickHandler(), whenever the user clicks at a freetype cell, I put two entries into clickedEditables[].
+ *  The first entry is null, and the second one has details of the clicked cell.@TODO  remove
+ * 
+function onTreeBlur() {
+    console.log('onblur');
+    if( clickedEditables.length>0 ) {
+        var blurredFrom= clickedEditables[0];
+        clickedEditables= clickedEditables.slice(1);
+        if( blurredFrom ) {
+            console.log( "blur clickedEditableRow: " +blurredFrom.row+ ", clickedEditableColumn: " +blurredFrom.column );
+        }
+    }
+}*/
 
 function treeClickHandler( event ) {
-    clickedEditableRow= clickedEditableColumn= undefined;
     // FYI: event.currentTarget.tagName=='tree'. However, document.getElementById('settingsTree')!=event.currentTarget
     var tree= document.getElementById('settingsTree');
     var row= { value: -1 }; // value is 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
@@ -886,11 +934,10 @@ function treeClickHandler( event ) {
                 if( cellIsEditable && rowProperties) {
                     if( targetFolder===null ) {
                         if( !(field instanceof SeLiteSettings.Field.FileOrFolder) ) {
-                            clickedEditableRow= row.value; //@TODO if this and/or clickedEditableColumn is different to the previous respective value
-                            // (and the previous value was not undefined), then the user clicked at a different (editable value) cell.
-                            // Therefore stack these existing values - that's what 'onblur' should use.
-                            console.log( 'click row ' +row.value );
-                            clickedEditableColumn= column.value;
+                            /* @TODO removeclickedEditables.push( null, {
+                                row: row.value,
+                                column: column.value
+                            });*/
                             tree.startEditing( row.value, column.value );
                         }
                         else {
@@ -1124,8 +1171,10 @@ function gatherAndValidateCell( row, value ) {
         treeRow= fieldTreeRowsOrChildren[oldKey];
     }
     //@TODO custom field validation?
-    if( field instanceof SeLiteSettings.Field.Int ) {
-        var numericValue= Number(value);
+    if( field instanceof SeLiteSettings.Field.Int || field instanceof SeLiteSettings.Field.Choice.Int ) {
+        var numericValue= value.trim()!=='' // trim() removes leading/trailing whitespace, including tabs/new lines
+            ? Number(value) // Number('') or Number(' ') or similar for tab/new lines returns 0 - not good for validation
+            : Number.NaN;
         if( isNaN(numericValue) || numericValue!==Math.round(numericValue) ) { // Can't compare using value===Number.NaN
             //alert( "This field accepts integer (whole numbers) only." ); //@TODO?
             validationPassed= false;
@@ -1249,6 +1298,7 @@ function createTreeView(original) {
         performActionOnRow: function(action, row) { return original.performActionOnRow(action, row); },
         selectionChanged: function() { return original.selectionChanged(); },
         setCellText: function(row, col, value) {
+            console.log('setCellText');
             // I don't use parameter col in my own methods, because I use module definition to figure out the editable cell.
             var info= gatherAndValidateCell( row, value );
             var addingFirstForMultivalued= info.field.multivalued && info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW];
@@ -1483,7 +1533,7 @@ window.addEventListener( "load", function(e) {
     tree.setAttribute( 'hidevscroll', 'false');
     tree.setAttribute( 'class', 'tree');
     //tree.setAttribute( 'onblur', 'alert( "blur arguments[0]: " +objectToString(arguments, 3, undefined, undefined, undefined, true)+ "; instanceof XULElement: " +(arguments[0].constructor.name) )');
-    tree.setAttribute( 'onblur', 'console.log( "blur clickedEditableRow: " +clickedEditableRow+ ", clickedEditableColumn: " +clickedEditableColumn )' );
+    //tree.setAttribute( 'onblur', 'onTreeBlur()' );//@TODO remove
     tree.setAttribute( 'flex', '1');
     tree.setAttribute( 'rows', '25'); //@TODO This has to be specified, otherwise the tree is not shown at all (except for column headers). Investigate
     settingsBox.appendChild( tree );
