@@ -1145,7 +1145,9 @@ function fieldTreeRow( setName, field ) {
         setName: string,
         field: ??,
         treeRow: ??,
-        oldKey: string, the key as it was before this edit, only present when it's a multi-valued field
+        oldKey: mixed, previous value
+        - string, the key as it was before this edit - for a multi-valued field
+        - mixed previous value (including Javascript null/undefined) - for single-valued field
         validationPassed: boolean,
         valueChanged: boolean,
         fieldTreeRowsOrChildren: object, retrieved as 2nd level entry from moduleRowsOrChildren;
@@ -1180,11 +1182,10 @@ function gatherAndValidateCell( row, value ) {
         if( !(treeRow instanceof XULElement) || treeRow.tagName!=='treerow') {
             throw new Error( 'treeRow should be an instance of XULElement for a <treerow>.');
         }
-        // I don't set oldKey variable here, because I don't need it in the result for single-valued fields.
-        var oldEntry= moduleSetFields[moduleName][setName][fieldName].entry;
-        valueChanged= value!==''+oldEntry
-            && !(value==='null' && oldEntry===null)
-            && !(value==='undefined' && oldEntry===undefined);
+        var oldKey= moduleSetFields[moduleName][setName][fieldName].entry;
+        valueChanged= value!==''+oldKey
+            && !(value==='null' && oldKey===null)
+            && !(value==='undefined' && oldKey===undefined);
     }
     else {
         fieldTreeRowsOrChildren= moduleRowsOrChildren[setName][fieldName];
@@ -1193,7 +1194,7 @@ function gatherAndValidateCell( row, value ) {
         valueChanged= value!==oldKey;
         if( valueChanged ) {
             if( value in fieldTreeRowsOrChildren ) {
-                console.warn( "Values must be unique. Another entry for field " +field.name+ " already has same value " +value ); //@TODO?
+                alert( "Values must be unique. Another entry for field " +field.name+ " already has same value " +value );
                 validationPassed= false;
             }
         }
@@ -1202,28 +1203,39 @@ function gatherAndValidateCell( row, value ) {
     //@TODO custom field validation?
     // I handle 'undefined' and 'null' specially if it's an integer field. For unchanged string fields that are Javascript
     // 'undefined' or 'null' the above sets valueChanged==false, so they're OK.
-    if( field instanceof SeLiteSettings.Field.Int || field instanceof SeLiteSettings.Field.Choice.Int ) {
-        var numericValue= value.trim()!=='' // trim() removes leading/trailing whitespace, including tabs/new lines
-            ? Number(value) // Number('') or Number(' ') or similar for tab/new lines returns 0 - not good for validation
-            : Number.NaN;
-        validationPassed= !isNaN(numericValue) && numericValue===Math.round(numericValue); // Can't use value===Number.NaN
-    }
-    if( validationPassed && valueChanged ) {
-        var fieldRow= fieldTreeRow(setName, field);
-        treeCell( fieldRow, RowLevel.FIELD ).setAttribute( 'properties', '' ); // Clear it, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED
-        if( field.multivalued ) { //Clear it, in case it was 'undefined' (if this is the first value)
-            treeCell( fieldRow, RowLevel.FIELD ).setAttribute( 'label', '' );
+    if( validationPassed ) {
+        if( (field instanceof SeLiteSettings.Field.Int || field instanceof SeLiteSettings.Field.Choice.Int) ) {
+            var numericValue= value.trim()!=='' // trim() removes leading/trailing whitespace, including tabs/new lines
+                ? Number(value) // Number('') or Number(' ') or similar for tab/new lines returns 0 - not good for validation
+                : Number.NaN;
+            if( isNaN(numericValue) ) {
+                validationPassed= !field.multivalued && (oldKey===undefined && value==='undefined' || oldKey===null && value==='null');
+            }
+            else {
+                validationPassed= numericValue===Math.round(numericValue);
+            }
         }
-        treeCell( fieldRow, RowLevel.NULL_OR_UNDEFINE ).setAttribute( 'label',
-            nullOrUndefineLabel( field, valueCompound(field, setName) )
-        );
+        if( !validationPassed ) {
+            alert('Field ' +field.name+ " can't accept "+ (
+                value.trim().length>0
+                    ? 'value ' +value
+                    : 'whitespace.'
+            ) );
+        }
     }
-    if( !validationPassed ) {
-        alert('Field ' +field.name+ " can't accept "+ (
-            value.trim().length>0
-                ? 'value ' +value
-                : 'whitespace.'
-        ) );
+    if( validationPassed ) {
+        if( valueChanged ) {
+            var fieldRow= fieldTreeRow(setName, field);
+            treeCell( fieldRow, RowLevel.FIELD ).setAttribute( 'properties', '' ); // Clear it, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED
+            if( field.multivalued ) { //Clear it, in case it was 'undefined' (if this is the first value)
+                treeCell( fieldRow, RowLevel.FIELD ).setAttribute( 'label', '' );
+            }
+            treeCell( fieldRow, RowLevel.NULL_OR_UNDEFINE ).setAttribute( 'label',
+                nullOrUndefineLabel( field, valueCompound(field, setName) )
+            );
+        }
+    }
+    else {
         if( field.multivalued && fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] ) { // adding first value for a multivalued field
             fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN].removeChild( fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW].parentNode );
             delete treeRowsOrChildren[module.name][setName][field.name][SeLiteSettings.NEW_VALUE_ROW];
