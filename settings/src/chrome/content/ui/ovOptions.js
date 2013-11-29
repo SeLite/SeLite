@@ -1145,7 +1145,7 @@ function fieldTreeRow( setName, field ) {
         setName: string,
         field: ??,
         treeRow: ??,
-        oldKey: string, the key as it was before this edit, only used when it's a multi-valued field
+        oldKey: string, the key as it was before this edit, only present when it's a multi-valued field
         validationPassed: boolean,
         valueChanged: boolean,
         fieldTreeRowsOrChildren: object, retrieved as 2nd level entry from moduleRowsOrChildren;
@@ -1180,7 +1180,7 @@ function gatherAndValidateCell( row, value ) {
         if( !(treeRow instanceof XULElement) || treeRow.tagName!=='treerow') {
             throw new Error( 'treeRow should be an instance of XULElement for a <treerow>.');
         }
-        // I don't set oldKey variable here, because I don't need it in the result to return
+        // I don't set oldKey variable here, because I don't need it in the result for single-valued fields.
         var oldEntry= moduleSetFields[moduleName][setName][fieldName].entry;
         valueChanged= value!==''+oldEntry
             && !(value==='null' && oldEntry===null)
@@ -1200,7 +1200,8 @@ function gatherAndValidateCell( row, value ) {
         treeRow= fieldTreeRowsOrChildren[oldKey];
     }
     //@TODO custom field validation?
-    //@TODO undefined and null - singlevalued only. valueChanged is handled above already.
+    // I handle 'undefined' and 'null' specially if it's an integer field. For unchanged string fields that are Javascript
+    // 'undefined' or 'null' the above sets valueChanged==false, so they're OK.
     if( field instanceof SeLiteSettings.Field.Int || field instanceof SeLiteSettings.Field.Choice.Int ) {
         var numericValue= value.trim()!=='' // trim() removes leading/trailing whitespace, including tabs/new lines
             ? Number(value) // Number('') or Number(' ') or similar for tab/new lines returns 0 - not good for validation
@@ -1242,10 +1243,20 @@ function gatherAndValidateCell( row, value ) {
 }
 
 /** This - nsITreeView.setCellText() - gets triggered only for string/number fields and for File fields; not for checkboxes.
- * @param info Result of  gatherAndValidateCell(..), if it was successful.
- * * @param value new value
+ *  @param row
+ *  @param col
+ *  @param string value new value
  * */
-function setCellText( info, value ) {
+function setCellText( row, col, value ) {
+    //console.log('setCellText');
+    clickedEditables= []; // This setCellText() is called before treeclickHandler(), so we perform the validation here.
+    // I don't use parameter col in my own methods, because I use module definition to figure out the editable cell.
+    var info= gatherAndValidateCell( row, value );
+    if( !info.validationPassed || !info.valueChanged ) {
+        return; // gatherAndValidateCell() already showed an alert, and removed the tree row if the value was a newly added entry of a multi-valued field
+    }
+    // If validation fails, I wanted to keep the field as being edited, but the following didn't work here in Firefox 25.0:
+    // if( !info.validationPassed ) { document.getElementById( 'settingsTree' ).startEditing( row, col ); }
     var module= info.module;
     var setName= info.setName;
     var field= info.field;
@@ -1345,17 +1356,7 @@ function createTreeView(original) {
         performActionOnCell: function(action, row, col) { return original.performActionOnCell(action, row, col); },
         performActionOnRow: function(action, row) { return original.performActionOnRow(action, row); },
         selectionChanged: function() { return original.selectionChanged(); },
-        setCellText: function(row, col, value) {
-            //console.log('setCellText');
-            clickedEditables= []; // This setCellText() is called before treeclickHandler(), so we perform the validation here.
-            // I don't use parameter col in my own methods, because I use module definition to figure out the editable cell.
-            var info= gatherAndValidateCell( row, value );
-            if( info.validationPassed && info.valueChanged ) {
-                setCellText( info, value );
-            }
-            // I wanted to keep the field as being edited, but the following didn't work here in Firefox 25.0:
-            //else document.getElementById( 'settingsTree' ).startEditing( row, col );
-        },
+        setCellText: setCellText,
         setCellValue: function(row, col, value) { return original.setCellValue(row, col, value); },
         setTree: function(tree) { return original.setTree(tree); },
         toggleOpenState: function(index) { return original.toggleOpenState(index); }
