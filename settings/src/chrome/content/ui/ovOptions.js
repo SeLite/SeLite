@@ -1139,8 +1139,8 @@ function fieldTreeRow( setName, field ) {
  *  Validate the value.
  * @param row is 0-based index among the expanded rows, not all rows.
  * @param string value new value (as typed)
- *  @return mixed an anonymous object {
-       module: ??,
+ * @return object An anonymous object {
+       module: instance of SeLiteSettings.Module,
         rowProperties: string,
         setName: string,
         field: ??,
@@ -1148,7 +1148,8 @@ function fieldTreeRow( setName, field ) {
         oldKey: string, the key as it was before this edit, only used when it's a multi-valued field
         validationPassed: boolean,
         valueChanged: boolean,
-        fieldTreeRowsOrChildren: object serving as an associative array, with values being <treerow> or <treechildren> objects for the field {
+        fieldTreeRowsOrChildren: object, retrieved as 2nd level entry from moduleRowsOrChildren;
+          serving as an associative array, with values being <treerow> or <treechildren> objects for the field {
             string value or option key => <treerow> object
             ...
             SeLiteSettings.FIELD_MAIN_ROW => <treerow> for the main (collapsible) level of this field
@@ -1232,7 +1233,7 @@ function gatherAndValidateCell( row, value ) {
         rowProperties: rowProperties,
         setName: setName,
         field: field,
-        fieldTreeRowsOrChildren: fieldTreeRowsOrChildren,//@TODO remove?
+        fieldTreeRowsOrChildren: fieldTreeRowsOrChildren,
         treeRow: treeRow,
         oldKey: oldKey,
         validationPassed: validationPassed,
@@ -1349,10 +1350,8 @@ function createTreeView(original) {
             clickedEditables= []; // This setCellText() is called before treeclickHandler(), so we perform the validation here.
             // I don't use parameter col in my own methods, because I use module definition to figure out the editable cell.
             var info= gatherAndValidateCell( row, value );
-            if( info.validationPassed ) {
-                if( info.valueChanged ) {
-                    setCellText( info, value );
-                }
+            if( info.validationPassed && info.valueChanged ) {
+                setCellText( info, value );
             }
             // I wanted to keep the field as being edited, but the following didn't work here in Firefox 25.0:
             //else document.getElementById( 'settingsTree' ).startEditing( row, col );
@@ -1564,7 +1563,7 @@ window.addEventListener( "load", function(e) {
     tree.setAttribute( 'hidecolumnpicker', 'true');
     tree.setAttribute( 'hidevscroll', 'false');
     tree.setAttribute( 'class', 'tree');
-    tree.setAttribute( 'onblur', 'onTreeBlur()' );
+    //tree.setAttribute( 'onblur', 'onTreeBlur()' );
     tree.setAttribute( 'flex', '1');
     tree.setAttribute( 'rows', '25'); //@TODO This has to be specified, otherwise the tree is not shown at all (except for column headers). Investigate
     settingsBox.appendChild( tree );
