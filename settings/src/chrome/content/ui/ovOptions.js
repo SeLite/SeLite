@@ -1200,10 +1200,9 @@ function gatherAndValidateCell( row, value ) {
         }
         treeRow= fieldTreeRowsOrChildren[oldKey];
     }
-    //@TODO custom field validation?
-    // I handle 'undefined' and 'null' specially if it's an integer field. For unchanged string fields that are Javascript
-    // 'undefined' or 'null' the above sets valueChanged==false, so they're OK.
     if( validationPassed ) {
+        // I handle 'undefined' and 'null' specially if it's an integer field. For unchanged string fields that are Javascript
+        // 'undefined' or 'null' the above sets valueChanged==false, so they're OK.
         if( (field instanceof SeLiteSettings.Field.Int || field instanceof SeLiteSettings.Field.Choice.Int) ) {
             var numericValue= value.trim()!=='' // trim() removes leading/trailing whitespace, including tabs/new lines
                 ? Number(value) // Number('') or Number(' ') or similar for tab/new lines returns 0 - not good for validation
@@ -1215,6 +1214,7 @@ function gatherAndValidateCell( row, value ) {
                 validationPassed= numericValue===Math.round(numericValue);
             }
         }
+        //@TODO custom field validation
         if( !validationPassed ) {
             alert('Field ' +field.name+ " can't accept "+ (
                 value.trim().length>0
@@ -1256,52 +1256,45 @@ function gatherAndValidateCell( row, value ) {
 
 /** This - nsITreeView.setCellText() - gets triggered only for string/number fields and for File fields; not for checkboxes.
  *  @param row
- *  @param col
+ *  @param col I don't use it, because I use module definition to figure out the editable cell.
  *  @param string value new value
  * */
 function setCellText( row, col, value ) {
     //console.log('setCellText');
     clickedEditables= []; // This setCellText() is called before treeclickHandler(), so we perform the validation here.
-    // I don't use parameter col in my own methods, because I use module definition to figure out the editable cell.
     var info= gatherAndValidateCell( row, value );
     if( !info.validationPassed || !info.valueChanged ) {
-        return; // gatherAndValidateCell() already showed an alert, and removed the tree row if the value was a newly added entry of a multi-valued field
+        // If validation fails, I wanted to keep the field as being edited, but the following didn't work here in Firefox 25.0:
+        //if( !info.validationPassed ) { document.getElementById( 'settingsTree' ).startEditing( row, col ); }
+        return; // if validation failed, gatherAndValidateCell() already showed an alert, and removed the tree row if the value was a newly added entry of a multi-valued field
     }
-    // If validation fails, I wanted to keep the field as being edited, but the following didn't work here in Firefox 25.0:
-    // if( !info.validationPassed ) { document.getElementById( 'settingsTree' ).startEditing( row, col ); }
-    var module= info.module;
-    var setName= info.setName;
-    var field= info.field;
-    var fieldTreeRowsOrChildren= info.fieldTreeRowsOrChildren;
-    var treeRow= info.treeRow;
-    var oldKey= info.oldKey;
-    if( !field.multivalued ) {
-        field.setValue( setName, value );
+    if( !info.field.multivalued ) {
+        info.field.setValue( info.setName, value );
         // I don't need to call updateSpecial() here - if the field was SeLiteSettings.NULL, then the above setValue() replaced that
     }
     else {
         var rowAfterNewPosition= null; // It may be null - then append the new row at the end; if same as treeRow, then the new value stays in treeRow.
             // If the new value still fits at the original position, then rowAfterNewPosition will be treeRow.
-        for( var otherKey in fieldTreeRowsOrChildren ) {
+        for( var otherKey in info.fieldTreeRowsOrChildren ) {
             // Following check also excludes SeLiteSettings.NEW_VALUE_ROW, because we don't want to compare it to real values. 
-            if( SeLiteSettings.reservedNames.indexOf(otherKey)<0 && field.compareValues(otherKey, value)>=0 ) {
-                rowAfterNewPosition= fieldTreeRowsOrChildren[otherKey];
+            if( SeLiteSettings.reservedNames.indexOf(otherKey)<0 && info.field.compareValues(otherKey, value)>=0 ) {
+                rowAfterNewPosition= info.fieldTreeRowsOrChildren[otherKey];
                 break;
             }
         }
-        if( rowAfterNewPosition===null && fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] && Object.keys(fieldTreeRowsOrChildren).length===3 ) {
+        if( rowAfterNewPosition===null && info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] && Object.keys(info.fieldTreeRowsOrChildren).length===3 ) {
             // fieldTreeRowsOrChildren has 3 keys: SeLiteSettings.FIELD_MAIN_ROW, SeLiteSettings.FIELD_TREECHILDREN, SeLiteSettings.NEW_VALUE_ROW.
             // So there's no other existing value, and the row being edited is a new one (it didn't have a real value set yet)
-            fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW]===treeRow && oldKey===SeLiteSettings.NEW_VALUE_ROW
+            info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW]===info.treeRow && info.oldKey===SeLiteSettings.NEW_VALUE_ROW
             || fail( "This assumes that if fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] is set, then that's the row we're just editing." );
-            rowAfterNewPosition= treeRow;
+            rowAfterNewPosition= info.treeRow;
         }
-        if( rowAfterNewPosition!==treeRow ) { // Repositioning - remove treeRow, create a new treeRow
-            var treeChildren= fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN];
-            treeChildren.removeChild( treeRow.parentNode );
+        if( rowAfterNewPosition!==info.treeRow ) { // Repositioning - remove treeRow, create a new treeRow
+            var treeChildren= info.fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN];
+            treeChildren.removeChild( info.treeRow.parentNode );
             var pair= {};
             pair[ value ]= value;
-            var treeItem= generateTreeItem( module, setName, field, pair, RowLevel.OPTION ); // This sets 'properties' and it adds an entry to treeRow[value]
+            var treeItem= generateTreeItem( info.module, info.setName, info.field, pair, RowLevel.OPTION ); // This sets 'properties' and it adds an entry to treeRow[value]
                 // (which is same as fieldTreeRowsOrChildren[value] here).
             // Firefox 22.b04 and 24.0a1 doesn't handle parent.insertBefore(newItem, null), even though it should - https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore
             if(true){//@TODO cleanup
@@ -1321,21 +1314,21 @@ function setCellText( row, col, value ) {
             treeItem.focus();
         }
         else { // No repositioning - just update 'properties' attribute
-            fieldTreeRowsOrChildren[value]= treeRow;
-            var propertiesPrefix= info.rowProperties.substr(0, /*length:*/info.rowProperties.length-oldKey.length); // That includes a trailing space
-            treeRow.setAttribute( 'properties', propertiesPrefix+value );
+            info.fieldTreeRowsOrChildren[value]= info.treeRow;
+            var propertiesPrefix= info.rowProperties.substr(0, /*length:*/info.rowProperties.length-info.oldKey.length); // That includes a trailing space
+            info.treeRow.setAttribute( 'properties', propertiesPrefix+value );
         }
-        delete fieldTreeRowsOrChildren[oldKey];
-        if( oldKey!==SeLiteSettings.NEW_VALUE_ROW ) {
-            field.removeValue( setName, oldKey );
+        delete info.fieldTreeRowsOrChildren[info.oldKey];
+        if( info.oldKey!==SeLiteSettings.NEW_VALUE_ROW ) {
+            info.field.removeValue( info.setName, info.oldKey );
         }
         else {
-            updateSpecial( setName, field, +1 );
+            updateSpecial( info.setName, info.field, +1 );
         }
-        field.addValue( setName, value );
+        info.field.addValue( info.setName, value );
     }
     SeLiteSettings.savePrefFile(); //@TODO Do we need this line?
-    moduleSetFields[module.name][setName]= module.getFieldsOfSet( setName );
+    moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName );
 }
 
 function createTreeView(original) {
