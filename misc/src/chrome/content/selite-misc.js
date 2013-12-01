@@ -1277,7 +1277,7 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
     }
 }
 
-var EXPORTED_SYMBOLS= [ "fail", "ensure", "ensureOneOf", "ensureType", "ensureInstance",
+var EXPORTED_SYMBOLS= [ "fail", "ensure", "oneOf", "ensureOneOf", "ensureType", "ensureInstance",
     "item", "itemOrNull", "itemGeneric", "objectToString",
      "rowsToString", "timestampInSeconds", "isEmptyObject",
     "objectsMerge", "objectCopyFields", "objectClone", "objectDeleteFields",

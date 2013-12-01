@@ -148,7 +148,9 @@ var Field= function( name, multivalued, defaultValue, requireAndPopulate ) {
             : [this.defaultValue];
         for( var i=0; i<defaultValues.length; i++ ) {//@TODO use loop for of() once NetBeans supports it
             var key= defaultValues[i];
-            this.validateEntry(key) || fail( 'Default value (stored key) for module ' +this.module.name+ ', field ' +this.name+ ' is ' +key+ " and that doesn't pass validation." );
+            this.validateEntry(key) || fail( 'Default value (stored key) for '
+                +(this.module ? 'module ' +this.module.name+ ', ' : '')
+                +'field ' +this.name+ ' is ' +key+ " and that doesn't pass validation." );
         }
     }    
     this.requireAndPopulate= requireAndPopulate || false;
@@ -453,7 +455,7 @@ Field.Choice.prototype.setValue= function() {
 };
 /***/
 Field.Choice.prototype.validateEntry= function( key ) {
-    return key in this.choicePairs;
+    return oneOf( typeof key, ['string', 'number']) && key in this.choicePairs;
 };
 
 Field.Choice.Int= function( name, multivalued, defaultValue, choicePairs, requireAndPopulate ) {
@@ -470,16 +472,18 @@ Field.Choice.Int.prototype= new Field.Choice('ChoiceInt.prototype');
 Field.Choice.Int.prototype.constructor= Field.Choice.Int;
 Field.Choice.Int.prototype.prefType= Field.Int.prototype.prefType;
 Field.Choice.Int.prototype.validateEntry= function( key ) {
-    return typeof key==='number' && Math.round(key)===key;
+    return typeof key==='number' && Math.round(key)===key && key in this.choicePairs;
 };
 
 Field.Choice.String= function( name, multivalued, defaultValue, choicePairs, requireAndPopulate ) {
     Field.Choice.call( this, name, multivalued, defaultValue, choicePairs, requireAndPopulate );
     for( var key in this.choicePairs ) {
         var value= this.choicePairs[key];
-        if( typeof value!=='string' ) {
-            throw new Error( 'Field.Choice.String() expects values in choicePairs to be strings, but for key ' +key+
-                ' it has ' +(typeof value)+ ' - ' +value );
+        if( !oneOf( typeof value, ['string', 'number']) ) {
+            throw new Error( 'Field.Choice.String() for '
+                +(this.module ? 'module ' +this.module.name+', ' : '')+ 'field ' +this.name
+                +' expects values in choicePairs to be strings (or integers), but for key ' +key
+                +' it has ' +(typeof value)+ ': ' +value );
         }
     }
 };
