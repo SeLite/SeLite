@@ -120,8 +120,10 @@ function ensureFieldName( name, description, asModuleOrSetName ) {
  *  the behaviour is different to empty/blank or null,  as 'not present' means the field inherits the value from
  *  - values manifests or more general sets (if accessing per folder), or
  *  - from the field default (from schema definition)
+ *  @param customValidate Function to perform custom validation. It takes 1 parameter - the value (or key for Choice) to store.
+ *  It returns boolean - true on success, false on failure. Optional.
  * */
-var Field= function( name, multivalued, defaultValue, requireAndPopulate ) {
+var Field= function( name, multivalued, defaultValue, requireAndPopulate, customValidate ) {
     if( typeof name!=='string' ) {
         throw new Error( 'Field() expects a string name ("primitive" string, not new String(..)).');
     }
@@ -139,6 +141,10 @@ var Field= function( name, multivalued, defaultValue, requireAndPopulate ) {
     !this.multivalued || defaultValue===undefined || defaultValue instanceof Array || fail( "Multi valued field " +name+ " must have default a default value - an array (possibly []) or undefined." );
     this.multivalued || defaultValue===undefined || defaultValue===null || typeof defaultValue!=='object' || fail( 'Single valued field ' +name+ " must have default value a primitive or null.");
     this.defaultValue= defaultValue;
+    this.requireAndPopulate= requireAndPopulate || false;
+    ensureType( this.requireAndPopulate, "boolean", "Field() expects requireAndPopulate to be a boolean, if present.");
+    this.customValidate= customValidate || undefined;
+    ensureType( this.customValidate, ['function', 'undefined'], 'Field() expects customValidate to be a function, if present.' );
     
     !(this.defaultValue===null && multivalued) || fail( 'Field ' +name+ " must have a non-null defaultValue (possibly undefined), because it's multivalued." );
     if( this.defaultValue!==undefined && this.defaultValue!==null ) {
@@ -148,13 +154,12 @@ var Field= function( name, multivalued, defaultValue, requireAndPopulate ) {
             : [this.defaultValue];
         for( var i=0; i<defaultValues.length; i++ ) {//@TODO use loop for of() once NetBeans supports it
             var key= defaultValues[i];
-            this.validateEntry(key) || fail( 'Default value (stored key) for '
+            this.validateEntry(key) && (!this.customValidate || this.customValidate.call(null, key))
+            || fail( 'Default value (stored key) for '
                 +(this.module ? 'module ' +this.module.name+ ', ' : '')
                 +'field ' +this.name+ ' is ' +key+ " and that doesn't pass validation." );
         }
     }    
-    this.requireAndPopulate= requireAndPopulate || false;
-    ensureType( this.requireAndPopulate, "boolean", "Field() expects requireAndPopulate to be a boolean, if present.");
     
     if( !this.name.endsWith('.prototype') ) {
         if( this.constructor===Field ) {

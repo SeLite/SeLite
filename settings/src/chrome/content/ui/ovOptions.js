@@ -1135,6 +1135,7 @@ function gatherAndValidateCell( row, value ) {
         fieldTreeRowsOrChildren= moduleRowsOrChildren[setName][fieldName];
         fieldTreeRowsOrChildren instanceof SortedObjectTarget || fail( "fieldTreeRowsOrChildren should be an instance of SortedObjectTarget, but it is " +fieldTreeRowsOrChildren.constructor.name );
         oldKey= propertiesPart( rowProperties, RowLevel.OPTION );
+        oldKey!==null && oldKey!==undefined || fail( 'Module ' +module.name+ ', set ' +setName+ ', field ' +field.name+ " is null/undefined, but it shoduln't be because it's a multi-valued field.");
         valueChanged= value!==oldKey;
         if( valueChanged ) {
             if( value in fieldTreeRowsOrChildren ) {
@@ -1144,21 +1145,16 @@ function gatherAndValidateCell( row, value ) {
         }
         treeRow= fieldTreeRowsOrChildren[oldKey];
     }
-    if( validationPassed ) {
+    if( validationPassed && valueChanged ) {
         // I handle 'undefined' and 'null' specially if it's an integer field. For unchanged string fields that are Javascript
         // 'undefined' or 'null' the above sets valueChanged==false, so they're OK.
         if( (field instanceof SeLiteSettings.Field.Int || field instanceof SeLiteSettings.Field.Choice.Int) ) {
             var numericValue= value.trim()!=='' // trim() removes leading/trailing whitespace, including tabs/new lines
-                ? Number(value) // Number('') or Number(' ') or similar for tab/new lines returns 0 - not good for validation
+                ? Number(value) // Number('') or Number(' ') etc. returns 0 - not good for validation!
                 : Number.NaN;
-            if( isNaN(numericValue) ) {
-                validationPassed= !field.multivalued && (oldKey===undefined && value==='undefined' || oldKey===null && value==='null');
-            }
-            else {
-                validationPassed= numericValue===Math.round(numericValue);
-            }
+            validationPassed= !isNaN(numericValue) && numericValue===Math.round(numericValue);
         }
-        //@TODO custom field validation
+        validationPassed= validationPassed && (!field.customValidate || field.customValidate.call(null, value) );
         if( !validationPassed ) {
             alert('Field ' +field.name+ " can't accept "+ (
                 value.trim().length>0
