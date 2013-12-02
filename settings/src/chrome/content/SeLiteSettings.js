@@ -202,7 +202,7 @@ Field.prototype.trim= function( key ) { return key; };
 Field.prototype.parse= function( key ) { return key; };
 
 /** This validates a single value (i.e. other than undefined or null).
- *  If the field is an instance of Field.Choice, this validates the value (not the label).
+ *  If the field is an instance of Field.Choice, this validates the value/label (not the key).
  *  Used for validation of values entered by the user for freetype/FileOrFolder fields (i.e. not Field.Choice), and
  *  also for validation of default value(s) of any field (including Field.Choice). Overriden as needed.
  *  @param key mixed string or number
@@ -504,6 +504,8 @@ Field.Choice.prototype.setValue= function() {
 };
 /***/
 Field.Choice.prototype.validateEntry= function( key ) {
+    
+    //@TODO I don't need to validate Choice much - because they're not freetype. So I can just validate the value (label). @TODO value in Object.valuesOf()????
     return oneOf( typeof key, ['string', 'number']) && key in this.choicePairs;
 };
 
