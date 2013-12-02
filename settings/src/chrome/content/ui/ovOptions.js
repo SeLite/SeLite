@@ -1120,6 +1120,7 @@ function gatherAndValidateCell( row, value ) {
     var validationPassed= true;
     var valueChanged;
     field!==undefined || fail( 'field is undefined');
+    var trimmed= field.trim(value);
     if( !field.multivalued ) {
         treeRow= moduleRowsOrChildren[setName][fieldName];
         // Can't use treeRow.constructor.name here - because it's a native object.
@@ -1138,27 +1139,20 @@ function gatherAndValidateCell( row, value ) {
         oldKey!==null && oldKey!==undefined || fail( 'Module ' +module.name+ ', set ' +setName+ ', field ' +field.name+ " is null/undefined, but it shoduln't be because it's a multi-valued field.");
         valueChanged= value!==oldKey;
         if( valueChanged ) {
-            if( value in fieldTreeRowsOrChildren ) {
-                alert( "Values must be unique. Another entry for field " +field.name+ " already has same value " +value );
+            if( trimmed in fieldTreeRowsOrChildren ) {
+                alert( "Values must be unique. Another entry for field " +field.name+ " already has same (trimmed) value " +trimmed );
                 validationPassed= false;
             }
         }
         treeRow= fieldTreeRowsOrChildren[oldKey];
     }
     if( validationPassed && valueChanged ) {
-        // I handle 'undefined' and 'null' specially if it's an integer field. For unchanged string fields that are Javascript
-        // 'undefined' or 'null' the above sets valueChanged==false, so they're OK.
-        if( (field instanceof SeLiteSettings.Field.Int || field instanceof SeLiteSettings.Field.Choice.Int) ) {
-            var numericValue= value.trim()!=='' // trim() removes leading/trailing whitespace, including tabs/new lines
-                ? Number(value) // Number('') or Number(' ') etc. returns 0 - not good for validation!
-                : Number.NaN;
-            validationPassed= !isNaN(numericValue) && numericValue===Math.round(numericValue);
-        }
-        validationPassed= validationPassed && (!field.customValidate || field.customValidate.call(null, value) );
+        var parsed= field.parse(trimmed);
+        validationPassed= field.validateEntry(parsed) && (!field.customValidate || field.customValidate.call(null, parsed) );
         if( !validationPassed ) {
             alert('Field ' +field.name+ " can't accept "+ (
-                value.trim().length>0
-                    ? 'value ' +value
+                trimmed.length>0
+                    ? 'value ' +trimmed
                     : 'whitespace.'
             ) );
         }

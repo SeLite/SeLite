@@ -187,6 +187,20 @@ Field.prototype.toString= function() {
     return this.constructor.name+ '[module: ' +(this.module ? this.module.name : 'unknown')+ ', name: ' +this.name+ ']';
 };
 
+/** Trim a free-typed value. This is called before parse().
+ *  Do not check for 'null' or 'undefined' - these are handled by ovOptions.js.
+ *  @param key User-typed value
+ *  @return trimmed value (or unchanged value of key)
+ * */
+Field.prototype.trim= function( key ) { return key; };
+
+/** Parse a free-typed value. Cast it as needed. This is called after the value went through trim().
+ *  Do not check for 'null' or 'undefined' - these are handled by ovOptions.js.
+ *  @param key User-typed value
+ *  @return parsed/processed value
+ * */
+Field.prototype.parse= function( key ) { return key; };
+
 /** This validates a single value (i.e. other than undefined or null).
  *  If the field is an instance of Field.Choice, this validates the value (not the label).
  *  Used for validation of values entered by the user for freetype/FileOrFolder fields (i.e. not Field.Choice), and
@@ -338,8 +352,14 @@ Field.Int= function( name, multivalued, defaultValue, requireAndPopulate ) {
 };
 Field.Int.prototype= new Field('Int.prototype');
 Field.Int.prototype.constructor= Field.Int;
+Field.Int.prototype.trim= function( key ) { return key.trim(); };
+Field.Int.prototype.parse= function( key ) {
+    return key!==''
+        ? Number(key)
+        : Number.NaN; // Number('') or Number(' ') etc. returns 0 - not good for validation!
+};
 Field.Int.prototype.validateEntry= function( key ) {
-    return typeof key==='number' && Math.round(key)===key;
+    return typeof key==='number' && Math.round(key)===key; // This also handles NaN
 };
 Field.Int.prototype.prefType= function() {
     return nsIPrefBranch.PREF_INT;
@@ -475,6 +495,8 @@ Field.Choice.Int= function( name, multivalued, defaultValue, choicePairs, requir
 };
 Field.Choice.Int.prototype= new Field.Choice('ChoiceInt.prototype');
 Field.Choice.Int.prototype.constructor= Field.Choice.Int;
+Field.Choice.Int.prototype.trim= Field.Int.prototype.trim;
+Field.Choice.Int.prototype.parse= Field.Int.prototype.parse;
 Field.Choice.Int.prototype.prefType= Field.Int.prototype.prefType;
 Field.Choice.Int.prototype.validateEntry= function( key ) {
     return typeof key==='number' && Math.round(key)===key && key in this.choicePairs;
