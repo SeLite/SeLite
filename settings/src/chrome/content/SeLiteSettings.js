@@ -154,7 +154,7 @@ var Field= function( name, multivalued, defaultValue, requireAndPopulate, custom
             : [this.defaultValue];
         for( var i=0; i<defaultValues.length; i++ ) {//@TODO use loop for of() once NetBeans supports it
             var key= defaultValues[i];
-            this.validateEntry(key) && (!this.customValidate || this.customValidate.call(null, key))
+            this.validateEntry(key) && (!this.customValidate || this.customValidate(key))
             || fail( 'Default value (stored key) for '
                 +(this.module ? 'module ' +this.module.name+ ', ' : '')
                 +'field ' +this.name+ ' is ' +key+ " and that doesn't pass validation." );
@@ -467,12 +467,19 @@ Field.SQLite.prototype.constructor= Field.SQLite;
  *  Also, Javascript transforms object field/key names to strings, even if they were set to integer.
  * */
 Field.Choice= function( name, multivalued, defaultValue, choicePairs, requireAndPopulate ) {
-    this.choicePairs= choicePairs;
+    this.choicePairs= choicePairs || {}; // This is set before I call the parent constructor, so that it can validate defaultValue against this.choicePairs
     Field.call( this, name, multivalued, defaultValue, requireAndPopulate );
     loadingPackageDefinition || this.constructor!==Field.Choice
         || fail( "Can't define instances of Field.Choice class itself outside the package. Use Field.Choice.Int or Field.Choice.String." );
     loadingPackageDefinition || typeof(choicePairs)==='object' && !Array.isArray(choicePairs)
         || fail( "Instances of subclasses of Field.Choice require choicePairs to be an anonymous object serving as an associative array." );
+    for( var key in this.choicePairs ) {
+        var value= this.choicePairs[key];
+        if( !this.validateEntry(value) || this.customValidate && !this.customValidate(value) ) {
+            fail( 'Field.Choice.XXXX ' +name+ ' has a choice key ' +key+ ', its value ' +value
+                + ' (' +(typeof value)+ ' ) which fails validation' );
+        }
+    }
     if( defaultValue!==undefined ) {
         !(multivalued && defaultValue===null) || fail( "Field.Choice.XX with name " +name+ " can't have defaultValue null, because it's multivalued." );
         multivalued===Array.isArray(defaultValue) || fail( "Field.Choice.XX with name " +name+ " must have defaultValue an array if and only if it's multivalued." );
@@ -502,13 +509,6 @@ Field.Choice.prototype.validateEntry= function( key ) {
 
 Field.Choice.Int= function( name, multivalued, defaultValue, choicePairs, requireAndPopulate ) {
     Field.Choice.call( this, name, multivalued, defaultValue, choicePairs, requireAndPopulate );
-    for( var key in this.choicePairs ) {
-        var value= this.choicePairs[key];
-        if( typeof value!=='number' || value!==Math.round(value) ) {
-            throw new Error( 'Field.Choice.Int() expects values in choicePairs to be integers, but for key ' +key+
-                ' it has ' +(typeof value)+ ' - ' +value );
-        }
-    }
 };
 Field.Choice.Int.prototype= new Field.Choice('ChoiceInt.prototype');
 Field.Choice.Int.prototype.constructor= Field.Choice.Int;
@@ -521,15 +521,6 @@ Field.Choice.Int.prototype.validateEntry= function( key ) {
 
 Field.Choice.Decimal= function( name, multivalued, defaultValue, choicePairs, requireAndPopulate ) {
     Field.Choice.call( this, name, multivalued, defaultValue, choicePairs, requireAndPopulate );
-    //@TODO factor out to in Field.Choice -> validateEntry() - add a second parameter 'validateChoice'
-    //@TODO Field.Choice: fail if this.trim( choicePairKey)!==choicePairKey
-    for( var key in this.choicePairs ) {
-        var value= this.choicePairs[key];
-        if( typeof value!=='number' || value!==Math.round(value) ) {
-            throw new Error( 'Field.Choice.Decimal() expects values in choicePairs to be numbers, but for key ' +key+
-                ' it has ' +(typeof value)+ ' - ' +value );
-        }
-    }
 };
 Field.Choice.Decimal.prototype= new Field.Choice('ChoiceDecimal.prototype');
 Field.Choice.Decimal.prototype.constructor= Field.Choice.Decimal;
