@@ -504,9 +504,9 @@ Field.Choice.prototype.setValue= function() {
 };
 /***/
 Field.Choice.prototype.validateEntry= function( key ) {
-    
-    //@TODO I don't need to validate Choice much - because they're not freetype. So I can just validate the value (label). @TODO value in Object.valuesOf()????
-    return oneOf( typeof key, ['string', 'number']) && key in this.choicePairs;
+    //@TODO I don't need to validate Choice much - because they're not freetype. So I just validate the value (label).
+    return oneOf( typeof key, ['string', 'number'])
+        && objectValues(this.choicePairs).indexOf(key)>=0; // array.indexOf() compares strictly by ===, which is what I want
 };
 
 Field.Choice.Int= function( name, multivalued, defaultValue, choicePairs, requireAndPopulate ) {
