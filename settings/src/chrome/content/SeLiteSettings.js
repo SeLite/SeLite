@@ -121,7 +121,9 @@ function ensureFieldName( name, description, asModuleOrSetName ) {
  *  the behaviour is different to empty/blank or null,  as 'not present' means the field inherits the value from
  *  - values manifests or more general sets (if accessing per folder), or
  *  - from the field default (from schema definition)
- *  @param customValidate Function to perform custom validation. It takes 1 parameter - the value (or key for Choice) to store.
+ *  @param customValidate Function to perform custom validation. It takes
+ *  - 1 parameter: 'key' (same as the value) for fields other than Field.Choice
+ *  - 2 parameters: 'key' and 'value' for Field.Choice and subclasses
  *  It returns boolean - true on success, false on failure. Optional.
  * */
 var Field= function( name, multivalued, defaultKey, requireAndPopulate, customValidate ) {
@@ -156,7 +158,7 @@ var Field= function( name, multivalued, defaultKey, requireAndPopulate, customVa
         for( var i=0; i<defaultKeys.length; i++ ) {//@TODO use loop for(.. of..) once NetBeans supports it
             var key= defaultKeys[i];
             this.validateKey(key) // This is redundant for Field.Choice, but that's OK
-            && (!this.customValidate || this.customValidate(key))
+            && (this.subclassCustomValidate || !this.customValidate || this.customValidate(key))
             || fail( 'Default key for '
                 +(this.module ? 'module ' +this.module.name+ ', ' : '')
                 +'field ' +this.name+ ' is ' +key+ " and that doesn't pass validation." );
