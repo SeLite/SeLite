@@ -110,7 +110,7 @@ function ensureFieldName( name, description, asModuleOrSetName ) {
  *  Otherwise, if the fiels is single valued, the default key should fit the particular type.
  *  If multivalued is true, it must be an array (potentially empty) or undefined; it can't be null.
  *  For multivalued fields, this can be an empty array, or an array of keys (i.e. stored values, rather than labels to display, which may not be the same for Field.Choice).
- *  If a non-null and not undefined, then the value (or values) will be each checked by validateEntry(value).
+ *  If a non-null and not undefined, then the value (or values) will be each checked by validateKey(value).
  *  <br/>defaultKey is only applied (copied into) to set(s) if requireAndPopulate==true and if Module.associatesWithFolders==false.
  *  It is applied when creating or updating a configuration set
  *  (loading an existing configuration set which doesn't have a value for this field).
@@ -155,7 +155,8 @@ var Field= function( name, multivalued, defaultKey, requireAndPopulate, customVa
             : [this.defaultKey];
         for( var i=0; i<defaultKeys.length; i++ ) {//@TODO use loop for(.. of..) once NetBeans supports it
             var key= defaultKeys[i];
-            this.validateEntry(key) && (!this.customValidate || this.customValidate(key))
+            this.validateKey(key) // This is redundant for Field.Choice, but that's OK
+            && (!this.customValidate || this.customValidate(key))
             || fail( 'Default key for '
                 +(this.module ? 'module ' +this.module.name+ ', ' : '')
                 +'field ' +this.name+ ' is ' +key+ " and that doesn't pass validation." );
@@ -208,7 +209,7 @@ Field.prototype.parse= function( key ) { return key; };
  *  also for validation of default key(s) of any field (including Field.Choice). Overriden as needed.
  *  @param key mixed string or number
  * */
-Field.prototype.validateEntry= function( key ) {
+Field.prototype.validateKey= function( key ) {
     return typeof key==='string';
 };
 
@@ -337,7 +338,7 @@ Field.Bool= function( name, defaultKey, requireAndPopulate ) {
 };
 Field.Bool.prototype= new Field('Bool.prototype');
 Field.Bool.prototype.constructor= Field.Bool;
-Field.Bool.prototype.validateEntry= function( key ) {
+Field.Bool.prototype.validateKey= function( key ) {
     return typeof key==='boolean';
 };
 Field.Bool.prototype.prefType= function() {
@@ -355,7 +356,7 @@ Field.Int.prototype.parse= function( key ) {
         ? Number(key)
         : Number.NaN; // Number('') or Number(' ') etc. returns 0 - not good for validation!
 };
-Field.Int.prototype.validateEntry= function( key ) {
+Field.Int.prototype.validateKey= function( key ) {
     return typeof key==='number' && Math.round(key)===key; // This also handles (fails for) NaN, since Number.NaN!==Number.NaN
 };
 Field.Int.prototype.prefType= function() {
@@ -375,7 +376,7 @@ Field.Decimal.prototype= new Field('Decimal.prototype');
 Field.Decimal.prototype.constructor= Field.Decimal;
 Field.Decimal.prototype.trim= Field.Int.prototype.trim;
 Field.Decimal.prototype.parse= Field.Int.prototype.parse;
-Field.Decimal.prototype.validateEntry= function( key ) {
+Field.Decimal.prototype.validateKey= function( key ) {
     return typeof key==='number' && !isNaN(key);
 };
 Field.Decimal.prototype.prefType= function() {
@@ -475,7 +476,7 @@ Field.Choice= function( name, multivalued, defaultKey, choicePairs, requireAndPo
         || fail( "Instances of subclasses of Field.Choice require choicePairs to be an anonymous object serving as an associative array." );
     for( var key in this.choicePairs ) {
         var value= this.choicePairs[key];
-        if( !this.validateEntry(value) || this.customValidate && !this.customValidate(value) ) {
+        if( !this.validateValue(value) || this.customValidate && !this.customValidate(value) ) {//@TODO customValidate with 2 parameters
             fail( 'Field.Choice.XXXX ' +name+ ' has a choice key ' +key+ ', its value ' +value
                 + ' (' +(typeof value)+ ' ) which fails validation' );
         }
@@ -502,11 +503,18 @@ Field.Choice.prototype.setDefault= function() {
 Field.Choice.prototype.setValue= function() {
     throw new Error("Do not call setValue() on Field.Choice family.");
 };
-/***/
-Field.Choice.prototype.validateEntry= function( key ) {
-    //@TODO I don't need to validate Choice much - because they're not freetype. So I just validate the value (label).
-    return oneOf( typeof key, ['string', 'number'])
-        && objectValues(this.choicePairs).indexOf(key)>=0; // array.indexOf() compares strictly by ===, which is what I want
+/** It requires the key to be
+ *  - among keys in this.choicePairs
+ *  - a string or a number
+ *  */
+Field.Choice.prototype.validateKey= function( key ) {
+    return oneOf( typeof key, ['string', 'number']) && key in this.choicePairs;
+};
+
+/** Validate a value. Only present for Field.Choice (and subclasses).
+ * */
+Field.Choice.prototype.validateValue= function( value ) {
+    return oneOf( typeof value, ['string', 'number']);
 };
 
 Field.Choice.Int= function( name, multivalued, defaultKey, choicePairs, requireAndPopulate ) {
@@ -517,8 +525,8 @@ Field.Choice.Int.prototype.constructor= Field.Choice.Int;
 Field.Choice.Int.prototype.trim= Field.Int.prototype.trim;
 Field.Choice.Int.prototype.parse= Field.Int.prototype.parse;
 Field.Choice.Int.prototype.prefType= Field.Int.prototype.prefType;
-Field.Choice.Int.prototype.validateEntry= function( key ) {
-    return typeof key==='number' && Math.round(key)===key && key in this.choicePairs;
+Field.Choice.Int.prototype.validateValue= function( value ) {
+    return typeof value==='number' && Math.round(value)===value;
 };
 
 Field.Choice.Decimal= function( name, multivalued, defaultKey, choicePairs, requireAndPopulate ) {
@@ -529,8 +537,8 @@ Field.Choice.Decimal.prototype.constructor= Field.Choice.Decimal;
 Field.Choice.Decimal.prototype.trim= Field.Decimal.prototype.trim;
 Field.Choice.Decimal.prototype.parse= Field.Decimal.prototype.parse;
 Field.Choice.Decimal.prototype.prefType= Field.Decimal.prototype.prefType;
-Field.Choice.Decimal.prototype.validateEntry= function( key ) {
-    return typeof key==='number' && !isNaN(key) && key in this.choicePairs;
+Field.Choice.Decimal.prototype.validateValue= function( value ) {
+    return typeof value==='number' && !isNaN(value);
 };
 
 Field.Choice.String= function( name, multivalued, defaultKey, choicePairs, requireAndPopulate ) {

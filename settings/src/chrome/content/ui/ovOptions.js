@@ -1148,7 +1148,7 @@ function gatherAndValidateCell( row, value ) {
     }
     if( validationPassed && valueChanged ) {
         parsed= field.parse(trimmed);
-        validationPassed= field.validateEntry(parsed) && (!field.customValidate || field.customValidate.call(null, parsed) );
+        validationPassed= field.validateKey(parsed) && (!field.customValidate || field.customValidate.call(null, parsed) );
         if( !validationPassed ) {
             alert('Field ' +field.name+ " can't accept "+ (
                 trimmed.length>0
