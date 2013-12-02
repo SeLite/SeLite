@@ -1124,20 +1124,18 @@ function gatherAndValidateCell( row, value ) {
     if( !field.multivalued ) {
         treeRow= moduleRowsOrChildren[setName][fieldName];
         // Can't use treeRow.constructor.name here - because it's a native object.
-        if( !(treeRow instanceof XULElement) || treeRow.tagName!=='treerow') {
-            throw new Error( 'treeRow should be an instance of XULElement for a <treerow>.');
-        }
+        treeRow instanceof XULElement && treeRow.tagName==='treerow' || fail( 'treeRow should be an instance of XULElement for a <treerow>.');
         var oldKey= moduleSetFields[moduleName][setName][fieldName].entry;
-        valueChanged= value!==''+oldKey
-            && !(value==='null' && oldKey===null)
-            && !(value==='undefined' && oldKey===undefined);
+        valueChanged= value!==''+oldKey;
+            //&& !(value==='null' && oldKey===null)
+            //&& !(value==='undefined' && oldKey===undefined);
     }
     else {
         fieldTreeRowsOrChildren= moduleRowsOrChildren[setName][fieldName];
         fieldTreeRowsOrChildren instanceof SortedObjectTarget || fail( "fieldTreeRowsOrChildren should be an instance of SortedObjectTarget, but it is " +fieldTreeRowsOrChildren.constructor.name );
         oldKey= propertiesPart( rowProperties, RowLevel.OPTION );
         oldKey!==null && oldKey!==undefined || fail( 'Module ' +module.name+ ', set ' +setName+ ', field ' +field.name+ " is null/undefined, but it shoduln't be because it's a multi-valued field.");
-        valueChanged= value!==oldKey;
+        valueChanged= value!==oldKey; // oldKey is a string, so this comparison is OK
         if( valueChanged ) {
             if( trimmed in fieldTreeRowsOrChildren ) {
                 alert( "Values must be unique. Another entry for field " +field.name+ " already has same (trimmed) value " +trimmed );

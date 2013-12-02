@@ -8,9 +8,10 @@ var bool= new SeLiteSettings.Field.Bool('aBooleanField', false);
 var appWebroot= new SeLiteSettings.Field.String('appWebroot', false, 'http://localhost/app');
 var maxNumberOfRuns= new SeLiteSettings.Field.Int('maxNumberOfRuns', false, 20);
 var multiNumbers= new SeLiteSettings.Field.Int('multiNumbers', true, [8,9], true );
+var decimal= new SeLiteSettings.Field.Decimal('decimal', false, 3.141 );
 
 var module= new SeLiteSettings.Module( 'extensions.selite-settings.test',
-    [mainDb, oneFolder, files, folders, bool, appWebroot, maxNumberOfRuns, multiNumbers],
+    [mainDb, oneFolder, files, folders, bool, appWebroot, maxNumberOfRuns, multiNumbers, decimal],
     true,
     'mainSet',
     false,

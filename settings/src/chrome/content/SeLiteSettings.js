@@ -166,8 +166,8 @@ var Field= function( name, multivalued, defaultValue, requireAndPopulate, custom
             throw new Error( "Can't instantiate Field directly, except for prototype instances. name: " +this.name );
         }
         ensureInstance(this, 
-            [Field.Bool, Field.Int, Field.String, Field.File, Field.Folder, Field.SQLite, Field.Choice.Int, Field.Choice.String],
-            "Field.Bool, Field.Int, Field.String, Field.File, Field.Folder, Field.SQLite, Field.Choice.Int, Field.Choice.String", "Field " +this.name+ " is not of an acceptable class." );
+            [Field.Bool, Field.Int, Field.Decimal, Field.String, Field.File, Field.Folder, Field.SQLite, Field.Choice.Int, Field.Choice.Decimal, Field.Choice.String],
+            "Field.Bool, Field.Int, Field.String, Field.Decimal, Field.File, Field.Folder, Field.SQLite, Field.Choice.Int, Field.Choice.Decimal, Field.Choice.String", "Field " +this.name+ " is not of an acceptable class." );
     }
     loadingPackageDefinition || this.name.indexOf('.')<0 || fail( 'Field() expects name not to contain a dot, but it received: ' +this.name);
     this.module= null; // instance of Module that this belongs to (once registered)
@@ -359,7 +359,7 @@ Field.Int.prototype.parse= function( key ) {
         : Number.NaN; // Number('') or Number(' ') etc. returns 0 - not good for validation!
 };
 Field.Int.prototype.validateEntry= function( key ) {
-    return typeof key==='number' && Math.round(key)===key; // This also handles NaN
+    return typeof key==='number' && Math.round(key)===key; // This also handles (fails for) NaN, since Number.NaN!==Number.NaN
 };
 Field.Int.prototype.prefType= function() {
     return nsIPrefBranch.PREF_INT;
@@ -368,6 +368,26 @@ Field.Int.prototype.prefType= function() {
  *  We need this for XUL GUI setCellText handler.
  * */
 Field.Int.prototype.compareValues= function( firstValue, secondValue ) {
+    return compareAsNumbers(firstValue, secondValue );
+};
+
+Field.Decimal= function( name, multivalued, defaultValue, requireAndPopulate ) {
+    Field.call( this, name, multivalued, defaultValue, requireAndPopulate );
+};
+Field.Decimal.prototype= new Field('Decimal.prototype');
+Field.Decimal.prototype.constructor= Field.Decimal;
+Field.Decimal.prototype.trim= Field.Int.prototype.trim;
+Field.Decimal.prototype.parse= Field.Int.prototype.parse;
+Field.Decimal.prototype.validateEntry= function( key ) {
+    return typeof key==='number' && !isNaN(key);
+};
+Field.Decimal.prototype.prefType= function() {
+    return nsIPrefBranch.PREF_STRING;
+};
+/** This works even if one or both parameters are strings - it transforms them into numbers.
+ *  We need this for XUL GUI setCellText handler.
+ * */
+Field.Decimal.prototype.compareValues= function( firstValue, secondValue ) {
     return compareAsNumbers(firstValue, secondValue );
 };
 
@@ -500,6 +520,27 @@ Field.Choice.Int.prototype.parse= Field.Int.prototype.parse;
 Field.Choice.Int.prototype.prefType= Field.Int.prototype.prefType;
 Field.Choice.Int.prototype.validateEntry= function( key ) {
     return typeof key==='number' && Math.round(key)===key && key in this.choicePairs;
+};
+
+Field.Choice.Decimal= function( name, multivalued, defaultValue, choicePairs, requireAndPopulate ) {
+    Field.Choice.call( this, name, multivalued, defaultValue, choicePairs, requireAndPopulate );
+    //@TODO factor out to in Field.Choice -> validateEntry() - add a second parameter 'validateChoice'
+    //@TODO Field.Choice: fail if this.trim( choicePairKey)!==choicePairKey
+    for( var key in this.choicePairs ) {
+        var value= this.choicePairs[key];
+        if( typeof value!=='number' || value!==Math.round(value) ) {
+            throw new Error( 'Field.Choice.Decimal() expects values in choicePairs to be numbers, but for key ' +key+
+                ' it has ' +(typeof value)+ ' - ' +value );
+        }
+    }
+};
+Field.Choice.Decimal.prototype= new Field.Choice('ChoiceDecimal.prototype');
+Field.Choice.Decimal.prototype.constructor= Field.Choice.Decimal;
+Field.Choice.Decimal.prototype.trim= Field.Decimal.prototype.trim;
+Field.Choice.Decimal.prototype.parse= Field.Decimal.prototype.parse;
+Field.Choice.Decimal.prototype.prefType= Field.Decimal.prototype.prefType;
+Field.Choice.Decimal.prototype.validateEntry= function( key ) {
+    return typeof key==='number' && !isNaN(key) && key in this.choicePairs;
 };
 
 Field.Choice.String= function( name, multivalued, defaultValue, choicePairs, requireAndPopulate ) {
