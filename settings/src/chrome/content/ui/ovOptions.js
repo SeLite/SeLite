@@ -1120,7 +1120,7 @@ function gatherAndValidateCell( row, value ) {
     var oldKey;
     var validationPassed= true;
     var valueChanged;
-    field!==undefined || fail( 'field is undefined');
+    field!==undefined || fail( 'field ' +fieldName+ ' is undefined');
     var trimmed= field.trim(value);
     var parsed;
     if( !field.multivalued ) {
@@ -1193,8 +1193,9 @@ function gatherAndValidateCell( row, value ) {
  *  @param row
  *  @param col I don't use it, because I use module definition to figure out the editable cell.
  *  @param string value new value
+ *  @param object original The original TreeView
  * */
-function setCellText( row, col, value ) {
+function setCellText( row, col, value, original) {
     //console.log('setCellText');
     newValueRow= undefined; // This is called before 'blur' event, so we validate here. We only leave it for onTreeBlur() if setCellText doesn't get called.
     var info= gatherAndValidateCell( row, value );
@@ -1203,6 +1204,7 @@ function setCellText( row, col, value ) {
         //if( !info.validationPassed ) { document.getElementById( 'settingsTree' ).startEditing( row, col ); }
         return; // if validation failed, gatherAndValidateCell() already showed an alert, and removed the tree row if the value was a newly added entry of a multi-valued field
     }
+    original.setCellText( row, col, value );
     if( !info.field.multivalued ) {
         info.field.setValue( info.setName, info.parsed );
         // I don't need to call updateSpecial() here - if the field was SeLiteSettings.NULL, then the above setValue() replaced that
@@ -1264,6 +1266,7 @@ function setCellText( row, col, value ) {
     }
     SeLiteSettings.savePrefFile(); //@TODO Do we need this line?
     moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName );
+    return true;
 }
 
 function createTreeView(original) {
@@ -1296,7 +1299,11 @@ function createTreeView(original) {
         performActionOnCell: function(action, row, col) { return original.performActionOnCell(action, row, col); },
         performActionOnRow: function(action, row) { return original.performActionOnRow(action, row); },
         selectionChanged: function() { return original.selectionChanged(); },
-        setCellText: setCellText,
+        setCellText: function( row, col, value ) {
+            // I have to pass original, rather than just original.setCellText as a parameter, because I couldn't invoke original.setCellText.call(null, parameters...).
+            // It failed with: NS_NOINTERFACE: Component does not have requested interface [nsITreeView.setCellText]
+            setCellText.call( null, row, col, value, original );
+        },
         setCellValue: function(row, col, value) { return original.setCellValue(row, col, value); },
         setTree: function(tree) { return original.setTree(tree); },
         toggleOpenState: function(index) { return original.toggleOpenState(index); }
