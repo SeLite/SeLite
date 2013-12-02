@@ -476,9 +476,9 @@ Field.Choice= function( name, multivalued, defaultKey, choicePairs, requireAndPo
         || fail( "Instances of subclasses of Field.Choice require choicePairs to be an anonymous object serving as an associative array." );
     for( var key in this.choicePairs ) {
         var value= this.choicePairs[key];
-        if( !this.validateValue(value) || this.customValidate && !this.customValidate(value) ) {//@TODO customValidate with 2 parameters
-            fail( 'Field.Choice.XXXX ' +name+ ' has a choice key ' +key+ ', its value ' +value
-                + ' (' +(typeof value)+ ' ) which fails validation' );
+        if( !this.validateValue(value) || this.customValidate && !this.customValidate(key, value) ) {
+            fail( 'Field.Choice.XXXX ' +name+ ' has a choice {' +key+ ': ' +value
+                + ' (' +(typeof value)+ ') } which fails validation' );
         }
     }
     if( defaultKey!==undefined ) {
