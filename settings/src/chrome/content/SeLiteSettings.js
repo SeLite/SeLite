@@ -290,20 +290,16 @@ Field.prototype.setPref= function( setFieldKeyName, value ) {
  * @TODO function to set a multivalued/choice field to undefined (if this.requireAndPopulate===false)
  * */
 Field.prototype.addValue= function( setName, key ) {
+    this.multivalued || this instanceof Field.Choice || fail();
     var setNameDot= setName!==''
         ? setName+'.'
         : '';
     if( !(this.multivalued || this instanceof Field.Choice) ) {
         throw new Error( "Use Field.addValue() only for multivalued or choice fields." );
     }
-    key= ''+key;
     var value= this instanceof Field.Choice
         ? this.choicePairs[key]
         : key;
-    if( (this instanceof Field.Int || this instanceof Field.Choice.Int)
-    && typeof value==='string' ) {
-        value= Number(value);
-    }
     this.setPref( setNameDot+ this.name+ '.' +key, value );
 };
 /** Only to be used with multivalued or choice fields. If the key was not set, then this returns without failing.
@@ -312,6 +308,7 @@ Field.prototype.addValue= function( setName, key ) {
  * @param mixed key as used to generate the preference name (key), appened after fieldName and a dot. String or number.
  * */
 Field.prototype.removeValue= function( setName, key ) {
+    this.multivalued || this instanceof Field.Choice || fail();
     var setNameDot= setName!==''
         ? setName+'.'
         : '';

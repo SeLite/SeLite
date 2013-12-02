@@ -1093,6 +1093,7 @@ function fieldTreeRow( setName, field ) {
         - mixed previous value (including Javascript null/undefined) - for single-valued field
         validationPassed: boolean,
         valueChanged: boolean,
+        parsed: mixed, the parsed value, string or number (after trimmed)
         fieldTreeRowsOrChildren: object, retrieved as 2nd level entry from moduleRowsOrChildren;
           serving as an associative array, with values being <treerow> or <treechildren> objects for the field {
             string value or option key => <treerow> object
@@ -1121,6 +1122,7 @@ function gatherAndValidateCell( row, value ) {
     var valueChanged;
     field!==undefined || fail( 'field is undefined');
     var trimmed= field.trim(value);
+    var parsed;
     if( !field.multivalued ) {
         treeRow= moduleRowsOrChildren[setName][fieldName];
         // Can't use treeRow.constructor.name here - because it's a native object.
@@ -1145,7 +1147,7 @@ function gatherAndValidateCell( row, value ) {
         treeRow= fieldTreeRowsOrChildren[oldKey];
     }
     if( validationPassed && valueChanged ) {
-        var parsed= field.parse(trimmed);
+        parsed= field.parse(trimmed);
         validationPassed= field.validateEntry(parsed) && (!field.customValidate || field.customValidate.call(null, parsed) );
         if( !validationPassed ) {
             alert('Field ' +field.name+ " can't accept "+ (
@@ -1182,7 +1184,8 @@ function gatherAndValidateCell( row, value ) {
         treeRow: treeRow,
         oldKey: oldKey,
         validationPassed: validationPassed,
-        valueChanged: valueChanged
+        valueChanged: valueChanged,
+        parsed: parsed
     };
 }
 
@@ -1201,7 +1204,7 @@ function setCellText( row, col, value ) {
         return; // if validation failed, gatherAndValidateCell() already showed an alert, and removed the tree row if the value was a newly added entry of a multi-valued field
     }
     if( !info.field.multivalued ) {
-        info.field.setValue( info.setName, value );
+        info.field.setValue( info.setName, info.parsed );
         // I don't need to call updateSpecial() here - if the field was SeLiteSettings.NULL, then the above setValue() replaced that
     }
     else {
@@ -1257,7 +1260,7 @@ function setCellText( row, col, value ) {
         else {
             updateSpecial( info.setName, info.field, +1 );
         }
-        info.field.addValue( info.setName, value );
+        info.field.addValue( info.setName, info.parsed );
     }
     SeLiteSettings.savePrefFile(); //@TODO Do we need this line?
     moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName );
