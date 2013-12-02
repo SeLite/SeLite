@@ -104,16 +104,17 @@ function ensureFieldName( name, description, asModuleOrSetName ) {
 
 /** @param string name Name of the field
  *  @param bool multivalued Whether the field is multivalued; false by default
- *  @param defaultValue mixed Default value; optional. It can be undefined if you don't want a default value
- *  (then it won't be set and it will be inherited, if any). It can be null only for single-valued fields, then the default value is null.
- *  Otherwise, if the fiels is single valued, the default value should fit the particular type.
+ *  @param defaultKey mixed Default key. It is the default value(s) for fields other than Field.Choice. For Field.Choice it is the default key(s).
+ *  Optional. It can be undefined if you don't want a default key
+ *  (then it won't be set and it will be inherited, if any). It can be null only for single-valued fields, then the default key is null.
+ *  Otherwise, if the fiels is single valued, the default key should fit the particular type.
  *  If multivalued is true, it must be an array (potentially empty) or undefined; it can't be null.
  *  For multivalued fields, this can be an empty array, or an array of keys (i.e. stored values, rather than labels to display, which may not be the same for Field.Choice).
- *  If a non-null and not undefined, then the value (or values) will be each checked by validateEntry(key).
- *  <br/>defaultValue is only applied (copied into) to set(s) if requireAndPopulate==true and if Module.associatesWithFolders==false.
+ *  If a non-null and not undefined, then the value (or values) will be each checked by validateEntry(value).
+ *  <br/>defaultKey is only applied (copied into) to set(s) if requireAndPopulate==true and if Module.associatesWithFolders==false.
  *  It is applied when creating or updating a configuration set
  *  (loading an existing configuration set which doesn't have a value for this field).
- *  But if Module.associatesWithFolders==true, defaultValue is applied by getFieldsDownToFolder() no matter what requireAndPopulate.
+ *  But if Module.associatesWithFolders==true, defaultKey is applied by getFieldsDownToFolder() no matter what requireAndPopulate.
  *  @param bool requireAndPopulate Whether to require a value (or VALUE_PRESENT) to be stored for this field at all times.
  *  If false, the field may not to be stored in the set at all (Javascript: undefined). False by default.
  *  If false, and the field has no value stored in a a set,
@@ -123,7 +124,7 @@ function ensureFieldName( name, description, asModuleOrSetName ) {
  *  @param customValidate Function to perform custom validation. It takes 1 parameter - the value (or key for Choice) to store.
  *  It returns boolean - true on success, false on failure. Optional.
  * */
-var Field= function( name, multivalued, defaultValue, requireAndPopulate, customValidate ) {
+var Field= function( name, multivalued, defaultKey, requireAndPopulate, customValidate ) {
     if( typeof name!=='string' ) {
         throw new Error( 'Field() expects a string name ("primitive" string, not new String(..)).');
     }
@@ -138,24 +139,24 @@ var Field= function( name, multivalued, defaultValue, requireAndPopulate, custom
         throw new Error( 'Field("' +name+ ') expects multivalued to be a boolean, if provided.');
     }
     this.multivalued= multivalued;
-    !this.multivalued || defaultValue===undefined || defaultValue instanceof Array || fail( "Multi valued field " +name+ " must have default a default value - an array (possibly []) or undefined." );
-    this.multivalued || defaultValue===undefined || defaultValue===null || typeof defaultValue!=='object' || fail( 'Single valued field ' +name+ " must have default value a primitive or null.");
-    this.defaultValue= defaultValue;
+    !this.multivalued || defaultKey===undefined || defaultKey instanceof Array || fail( "Multi valued field " +name+ " must have default a default key - an array (possibly []) or undefined." );
+    this.multivalued || defaultKey===undefined || defaultKey===null || typeof defaultKey!=='object' || fail( 'Single valued field ' +name+ " must have default key a primitive or null.");
+    this.defaultKey= defaultKey;
     this.requireAndPopulate= requireAndPopulate || false;
     ensureType( this.requireAndPopulate, "boolean", "Field() expects requireAndPopulate to be a boolean, if present.");
     this.customValidate= customValidate || undefined;
     ensureType( this.customValidate, ['function', 'undefined'], 'Field() expects customValidate to be a function, if present.' );
     
-    !(this.defaultValue===null && multivalued) || fail( 'Field ' +name+ " must have a non-null defaultValue (possibly undefined), because it's multivalued." );
-    if( this.defaultValue!==undefined && this.defaultValue!==null ) {
-        !this.multivalued || ensureInstance( this.defaultValue, Array, "defaultValue of a multivalued field must be an array" );
-        var defaultValues= this.multivalued
-            ? this.defaultValue
-            : [this.defaultValue];
-        for( var i=0; i<defaultValues.length; i++ ) {//@TODO use loop for of() once NetBeans supports it
-            var key= defaultValues[i];
+    !(this.defaultKey===null && multivalued) || fail( 'Field ' +name+ " must have a non-null defaultKey (possibly undefined), because it's multivalued." );
+    if( this.defaultKey!==undefined && this.defaultKey!==null ) {
+        !this.multivalued || ensureInstance( this.defaultKey, Array, "defaultKey of a multivalued field must be an array" );
+        var defaultKeys= this.multivalued
+            ? this.defaultKey
+            : [this.defaultKey];
+        for( var i=0; i<defaultKeys.length; i++ ) {//@TODO use loop for(.. of..) once NetBeans supports it
+            var key= defaultKeys[i];
             this.validateEntry(key) && (!this.customValidate || this.customValidate(key))
-            || fail( 'Default value (stored key) for '
+            || fail( 'Default key for '
                 +(this.module ? 'module ' +this.module.name+ ', ' : '')
                 +'field ' +this.name+ ' is ' +key+ " and that doesn't pass validation." );
         }
@@ -173,14 +174,14 @@ var Field= function( name, multivalued, defaultValue, requireAndPopulate, custom
     this.module= null; // instance of Module that this belongs to (once registered)
 };
 
-/** Return the default value, or a protective copy if it's an array.
- *  @return mixed this.defaultValue if single valued or if this.defaultValue is undefined.
+/** Return the default key, or a protective copy if it's an array.
+ *  @return mixed
  * */
 Field.prototype.getDefaultValue= function() {
-    if( Array.isArray(this.defaultValue) ) {
-        return this.defaultValue.slice();
+    if( Array.isArray(this.defaultKey) ) {
+        return this.defaultKey.slice();
     }
-    return this.defaultValue;
+    return this.defaultKey;
 };
 
 Field.prototype.toString= function() {
@@ -204,9 +205,8 @@ Field.prototype.parse= function( key ) { return key; };
 /** This validates a single value (i.e. other than undefined or null).
  *  If the field is an instance of Field.Choice, this validates the value/label (not the key).
  *  Used for validation of values entered by the user for freetype/FileOrFolder fields (i.e. not Field.Choice), and
- *  also for validation of default value(s) of any field (including Field.Choice). Overriden as needed.
+ *  also for validation of default key(s) of any field (including Field.Choice). Overriden as needed.
  *  @param key mixed string or number
- *  @TODO use for validation of user's input? and custom validation
  * */
 Field.prototype.validateEntry= function( key ) {
     return typeof key==='string';
@@ -232,10 +232,10 @@ Field.prototype.registerFor= function( module ) {
     this.module= module;
 };
 
-/** Only used when creating new sets that populate default values. See docs of parameter defaultValue of constructor Field().
+/** Only used when creating new sets that populate default keys. See docs of parameter defaultKey of constructor Field().
  * */
 Field.prototype.setDefault= function( setName ) {
-    this.setValue( setName, this.defaultValue );
+    this.setValue( setName, this.defaultKey );
 };
 /** This returns the preference type used for storing legitimate non-null value(s) of this field.
  *  @return string one of: nsIPrefBranch.PREF_STRING, nsIPrefBranch.PREF_BOOL, nsIPrefBranch.PREF_INT
@@ -326,14 +326,14 @@ Field.prototype.equals= function( other ) {
     return this.name===other.name
         && this.constructor===other.constructor
         && (!this.multivalued
-            ? this.defaultValue===other.defaultValue // Strict comparison is OK for primitive string/bool/int
-            : compareArrays(this.defaultValue, other.defaultValue, true)
+            ? this.defaultKey===other.defaultKey // Strict comparison is OK for primitive string/bool/int
+            : compareArrays(this.defaultKey, other.defaultKey, true)
            );
 };
 
 // See also https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
-Field.Bool= function( name, defaultValue, requireAndPopulate ) {
-    Field.call( this, name, false, defaultValue, requireAndPopulate );
+Field.Bool= function( name, defaultKey, requireAndPopulate ) {
+    Field.call( this, name, false, defaultKey, requireAndPopulate );
 };
 Field.Bool.prototype= new Field('Bool.prototype');
 Field.Bool.prototype.constructor= Field.Bool;
@@ -344,8 +344,8 @@ Field.Bool.prototype.prefType= function() {
     return nsIPrefBranch.PREF_BOOL;
 };
 
-Field.Int= function( name, multivalued, defaultValue, requireAndPopulate ) {
-    Field.call( this, name, multivalued, defaultValue, requireAndPopulate );
+Field.Int= function( name, multivalued, defaultKey, requireAndPopulate ) {
+    Field.call( this, name, multivalued, defaultKey, requireAndPopulate );
 };
 Field.Int.prototype= new Field('Int.prototype');
 Field.Int.prototype.constructor= Field.Int;
@@ -368,8 +368,8 @@ Field.Int.prototype.compareValues= function( firstValue, secondValue ) {
     return compareAsNumbers(firstValue, secondValue );
 };
 
-Field.Decimal= function( name, multivalued, defaultValue, requireAndPopulate ) {
-    Field.call( this, name, multivalued, defaultValue, requireAndPopulate );
+Field.Decimal= function( name, multivalued, defaultKey, requireAndPopulate ) {
+    Field.call( this, name, multivalued, defaultKey, requireAndPopulate );
 };
 Field.Decimal.prototype= new Field('Decimal.prototype');
 Field.Decimal.prototype.constructor= Field.Decimal;
@@ -388,8 +388,8 @@ Field.Decimal.prototype.compareValues= function( firstValue, secondValue ) {
     return compareAsNumbers(firstValue, secondValue );
 };
 
-Field.String= function( name, multivalued, defaultValue, requireAndPopulate ) {
-    Field.call( this, name, multivalued, defaultValue, requireAndPopulate );
+Field.String= function( name, multivalued, defaultKey, requireAndPopulate ) {
+    Field.call( this, name, multivalued, defaultKey, requireAndPopulate );
 };
 Field.String.prototype= new Field('String.prototype');
 Field.String.prototype.constructor= Field.String;
@@ -399,12 +399,12 @@ Field.String.prototype.constructor= Field.String;
  *  @param filters Optional, an object serving as an associative array of file filters { 'visible filter name': '*.extension; *.anotherExtension...', ... }
  *  A false/null/0 key or value mean 'All files'.
  *  See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsIFilePicker#appendFilter%28%29
- *  @param defaultValue
+ *  @param defaultKey
  *  @param bool multivalued
  *  @param bool isFolder Whether this is for folder(s); otherwise it's for file(s)
  * */
-Field.FileOrFolder= function( name, startInProfileFolder, filters, multivalued, defaultValue, isFolder, requireAndPopulate ) {
-    Field.call( this, name, multivalued, defaultValue, requireAndPopulate );
+Field.FileOrFolder= function( name, startInProfileFolder, filters, multivalued, defaultKey, isFolder, requireAndPopulate ) {
+    Field.call( this, name, multivalued, defaultKey, requireAndPopulate );
     this.startInProfileFolder= startInProfileFolder || false;
     if( typeof this.startInProfileFolder!='boolean' ) {
         throw new Error( 'Field.FileOrFolder() expects startInProfileFolder to be a boolean, if provided.');
@@ -434,8 +434,8 @@ Field.FileOrFolder.prototype.equals= function( other ) {
  *  @param bool startInProfileFolder See Field.FileOrFolder()
  *  @param filters See Field.FileOrFolder()
  * */
-Field.File= function( name, startInProfileFolder, filters, multivalued, defaultValue, requireAndPopulate ) {
-    Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultValue, false, requireAndPopulate );
+Field.File= function( name, startInProfileFolder, filters, multivalued, defaultKey, requireAndPopulate ) {
+    Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultKey, false, requireAndPopulate );
 };
 Field.File.prototype= new Field.FileOrFolder('File.prototype');
 Field.File.prototype.constructor= Field.File;
@@ -444,31 +444,31 @@ Field.File.prototype.constructor= Field.File;
  *  @param bool startInProfileFolder See Field.FileOrFolder()
  *  @param filters See Field.FileOrFolder()
  * */
-Field.Folder= function( name, startInProfileFolder, filters, multivalued, defaultValue, requireAndPopulate ) {
-    Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultValue, true, requireAndPopulate );
+Field.Folder= function( name, startInProfileFolder, filters, multivalued, defaultKey, requireAndPopulate ) {
+    Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultKey, true, requireAndPopulate );
 };
 Field.Folder.prototype= new Field.FileOrFolder('Folder.prototype');
 Field.Folder.prototype.constructor= Field.Folder;
 
 /** It can only be single-valued. An SQLite DB cannot span across multiple files (or if it can, I'm not supporting that).
  * */
-Field.SQLite= function( name, defaultValue, requireAndPopulate ) {
-    Field.File.call( this, name, true, { 'SQLite': '*.sqlite', 'any': null}, false, defaultValue, requireAndPopulate );
+Field.SQLite= function( name, defaultKey, requireAndPopulate ) {
+    Field.File.call( this, name, true, { 'SQLite': '*.sqlite', 'any': null}, false, defaultKey, requireAndPopulate );
 };
 Field.SQLite.prototype= new Field.File('SQLite.prototype', false, {}, false, '' );
 Field.SQLite.prototype.constructor= Field.SQLite;
 
-/** @param defaultValue It's actually a key (Preferences subfield name), not the visible integer/string value.
+/** @param defaultKey It's actually a key, not the visible integer/string value.
  *  If multivalued, then it's an array of key(s).
  *  @param choicePairs Anonymous object serving as an associative array {
- *      string key => string/number ('primitive') label
+ *      string key => string/number value ('label')
  *  } It's not clear what is more intuitive here. However, with this format, the type and positioning of
  *  label reflects how it is shown when using Firefox url about:config.
- *  Also, Javascript transforms object field/key names to strings, even if they were set to integer.
+ *  Also, Javascript transforms object field/key names to strings, even if they were set to number/boolean.
  * */
-Field.Choice= function( name, multivalued, defaultValue, choicePairs, requireAndPopulate ) {
-    this.choicePairs= choicePairs || {}; // This is set before I call the parent constructor, so that it can validate defaultValue against this.choicePairs
-    Field.call( this, name, multivalued, defaultValue, requireAndPopulate );
+Field.Choice= function( name, multivalued, defaultKey, choicePairs, requireAndPopulate ) {
+    this.choicePairs= choicePairs || {}; // This is set before I call the parent constructor, so that it can validate defaultKey against this.choicePairs
+    Field.call( this, name, multivalued, defaultKey, requireAndPopulate );
     loadingPackageDefinition || this.constructor!==Field.Choice
         || fail( "Can't define instances of Field.Choice class itself outside the package. Use Field.Choice.Int or Field.Choice.String." );
     loadingPackageDefinition || typeof(choicePairs)==='object' && !Array.isArray(choicePairs)
@@ -480,14 +480,14 @@ Field.Choice= function( name, multivalued, defaultValue, choicePairs, requireAnd
                 + ' (' +(typeof value)+ ' ) which fails validation' );
         }
     }
-    if( defaultValue!==undefined ) {
-        !(multivalued && defaultValue===null) || fail( "Field.Choice.XX with name " +name+ " can't have defaultValue null, because it's multivalued." );
-        multivalued===Array.isArray(defaultValue) || fail( "Field.Choice.XX with name " +name+ " must have defaultValue an array if and only if it's multivalued." );
-        var defaultValues= multivalued
-            ? defaultValue
-            : [defaultValue];
-        for( var i=0; i<defaultValues.length; i++ ) { //@TODO for..of.. loop once NetBeans support it
-            defaultValues[i] in choicePairs || fail( "Field.Choice " +name+ " has defaultValue " +defaultValues[i]+ ", which is not among keys of its choicePairs." );
+    if( defaultKey!==undefined ) {
+        !(multivalued && defaultKey===null) || fail( "Field.Choice.XX with name " +name+ " can't have defaultKey null, because it's multivalued." );
+        multivalued===Array.isArray(defaultKey) || fail( "Field.Choice.XX with name " +name+ " must have defaultKey an array if and only if it's multivalued." );
+        var defaultKeys= multivalued
+            ? defaultKey
+            : [defaultKey];
+        for( var i=0; i<defaultKeys.length; i++ ) { //@TODO for..of.. loop once NetBeans support it
+            defaultKeys[i] in choicePairs || fail( "Field.Choice " +name+ " has defaultKey " +defaultKeys[i]+ ", which is not among keys of its choicePairs." );
         }
     }
 };
@@ -509,8 +509,8 @@ Field.Choice.prototype.validateEntry= function( key ) {
         && objectValues(this.choicePairs).indexOf(key)>=0; // array.indexOf() compares strictly by ===, which is what I want
 };
 
-Field.Choice.Int= function( name, multivalued, defaultValue, choicePairs, requireAndPopulate ) {
-    Field.Choice.call( this, name, multivalued, defaultValue, choicePairs, requireAndPopulate );
+Field.Choice.Int= function( name, multivalued, defaultKey, choicePairs, requireAndPopulate ) {
+    Field.Choice.call( this, name, multivalued, defaultKey, choicePairs, requireAndPopulate );
 };
 Field.Choice.Int.prototype= new Field.Choice('ChoiceInt.prototype');
 Field.Choice.Int.prototype.constructor= Field.Choice.Int;
@@ -521,8 +521,8 @@ Field.Choice.Int.prototype.validateEntry= function( key ) {
     return typeof key==='number' && Math.round(key)===key && key in this.choicePairs;
 };
 
-Field.Choice.Decimal= function( name, multivalued, defaultValue, choicePairs, requireAndPopulate ) {
-    Field.Choice.call( this, name, multivalued, defaultValue, choicePairs, requireAndPopulate );
+Field.Choice.Decimal= function( name, multivalued, defaultKey, choicePairs, requireAndPopulate ) {
+    Field.Choice.call( this, name, multivalued, defaultKey, choicePairs, requireAndPopulate );
 };
 Field.Choice.Decimal.prototype= new Field.Choice('ChoiceDecimal.prototype');
 Field.Choice.Decimal.prototype.constructor= Field.Choice.Decimal;
@@ -533,8 +533,8 @@ Field.Choice.Decimal.prototype.validateEntry= function( key ) {
     return typeof key==='number' && !isNaN(key) && key in this.choicePairs;
 };
 
-Field.Choice.String= function( name, multivalued, defaultValue, choicePairs, requireAndPopulate ) {
-    Field.Choice.call( this, name, multivalued, defaultValue, choicePairs, requireAndPopulate );
+Field.Choice.String= function( name, multivalued, defaultKey, choicePairs, requireAndPopulate ) {
+    Field.Choice.call( this, name, multivalued, defaultKey, choicePairs, requireAndPopulate );
     for( var key in this.choicePairs ) {
         var value= this.choicePairs[key];
         if( !oneOf( typeof value, ['string', 'number']) ) {
@@ -1008,7 +1008,7 @@ function manifestsDownToFolder( folderPath, dontCache ) {
  *  where each 'entry' comes from either
  *  - a set
  *  - a values manifest
- *  - default value of the field
+ *  - default key (value) of the field
 * */
 Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
     this.associatesWithFolders || fail( "Module.getFieldsDownToFolder() requires module.associatesWithFolders to be true, but it was called for module " +this.name );
@@ -1176,7 +1176,7 @@ Module.prototype.createSet= function( setName ) {
         : '';
     for( var fieldName in this.fields ) {
         var field= this.fields[fieldName];
-        if( field.defaultValue!==undefined && field.requireAndPopulate && !this.associatesWithFolders ) {
+        if( field.defaultKey!==undefined && field.requireAndPopulate && !this.associatesWithFolders ) {
             if( !field.multivalued ) {
                 if( !(field instanceof Field.Choice) ) {
                     if( !this.prefsBranch.prefHasUserValue(setNameDot+fieldName) ) {
@@ -1187,8 +1187,8 @@ Module.prototype.createSet= function( setName ) {
                 }
                 else {
                     if( this.prefsBranch.getChildList( setNameDot+fieldName+'.', {} ).length===0 ) {
-                        if( field.defaultValue!==null ) {
-                            field.addValue( setName, field.defaultValue );
+                        if( field.defaultKey!==null ) {
+                            field.addValue( setName, field.defaultKey );
                         }
                     }
                 }
@@ -1197,10 +1197,10 @@ Module.prototype.createSet= function( setName ) {
                 var fieldHasChildren= this.prefsBranch.getChildList( setNameDot+fieldName+'.', {} ).length>0;
                 if( !this.prefsBranch.prefHasUserValue(setNameDot+fieldName) ) {
                     if( !fieldHasChildren ) {
-                        var defaultValues= field.getDefaultValue();
-                        if( defaultValues.length>0 ) {
-                            for( var i=0; i<defaultValues.length; i++ ) { // @TODO Replace the loop with for.. of.. loop once NetBeans support it
-                                field.addValue( setName, defaultValues[i] ); // For Field.Choice defaultValues contains the keys rather than values
+                        var defaultKeys= field.getDefaultValue();
+                        if( defaultKeys.length>0 ) {
+                            for( var i=0; i<defaultKeys.length; i++ ) { // @TODO Replace the loop with for.. of.. loop once NetBeans support it
+                                field.addValue( setName, defaultKeys[i] ); // For Field.Choice defaultKeys contains the keys rather than values
                             }
                         }
                         else {
