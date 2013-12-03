@@ -158,7 +158,7 @@ var Field= function( name, multivalued, defaultKey, requireAndPopulate, customVa
         for( var i=0; i<defaultKeys.length; i++ ) {//@TODO use loop for(.. of..) once NetBeans supports it
             var key= defaultKeys[i];
             this.validateKey(key) // This is redundant for Field.Choice, but that's OK
-            && (this.subclassCustomValidate || !this.customValidate || this.customValidate(key))
+            && this.customValidateDefault(key)
             || fail( 'Default key for '
                 +(this.module ? 'module ' +this.module.name+ ', ' : '')
                 +'field ' +this.name+ ' is ' +key+ " and that doesn't pass validation." );
@@ -175,6 +175,24 @@ var Field= function( name, multivalued, defaultKey, requireAndPopulate, customVa
     }
     loadingPackageDefinition || this.name.indexOf('.')<0 || fail( 'Field() expects name not to contain a dot, but it received: ' +this.name);
     this.module= null; // instance of Module that this belongs to (once registered)
+};
+
+/** Perform the custom validation on a default key.
+ * */
+Field.prototype.customValidateDefault= function( key ) {
+    return true;
+};
+/** 'Abstract' class. It serves to separate behaviour between freetype/boolean and Choice fields.
+ * */
+Field.NonChoice= function( name, multivalued, defaultKey, requireAndPopulate, customValidate ) {
+    Field.call( this, name, multivalued, defaultKey, requireAndPopulate, customValidate );
+};
+
+Field.NonChoice.prototype= new Field('NonChoice.prototype');
+Field.NonChoice.prototype.constructor= Field.NonChoice;
+
+Field.NonChoice.prototype.customValidateDefault= function( key ) {
+    return !this.customValidate || this.customValidate(key);
 };
 
 /** Return the default key, or a protective copy if it's an array.
@@ -336,9 +354,9 @@ Field.prototype.equals= function( other ) {
 
 // See also https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
 Field.Bool= function( name, defaultKey, requireAndPopulate ) {
-    Field.call( this, name, false, defaultKey, requireAndPopulate );
+    Field.NonChoice.call( this, name, false, defaultKey, requireAndPopulate );
 };
-Field.Bool.prototype= new Field('Bool.prototype');
+Field.Bool.prototype= new Field.NonChoice('Bool.prototype');
 Field.Bool.prototype.constructor= Field.Bool;
 Field.Bool.prototype.validateKey= function( key ) {
     return typeof key==='boolean';
@@ -348,9 +366,9 @@ Field.Bool.prototype.prefType= function() {
 };
 
 Field.Int= function( name, multivalued, defaultKey, requireAndPopulate ) {
-    Field.call( this, name, multivalued, defaultKey, requireAndPopulate );
+    Field.NonChoice.call( this, name, multivalued, defaultKey, requireAndPopulate );
 };
-Field.Int.prototype= new Field('Int.prototype');
+Field.Int.prototype= new Field.NonChoice('Int.prototype');
 Field.Int.prototype.constructor= Field.Int;
 Field.Int.prototype.trim= function( key ) { return key.trim(); };
 Field.Int.prototype.parse= function( key ) {
@@ -372,9 +390,9 @@ Field.Int.prototype.compareValues= function( firstValue, secondValue ) {
 };
 
 Field.Decimal= function( name, multivalued, defaultKey, requireAndPopulate ) {
-    Field.call( this, name, multivalued, defaultKey, requireAndPopulate );
+    Field.NonChoice.call( this, name, multivalued, defaultKey, requireAndPopulate );
 };
-Field.Decimal.prototype= new Field('Decimal.prototype');
+Field.Decimal.prototype= new Field.NonChoice('Decimal.prototype');
 Field.Decimal.prototype.constructor= Field.Decimal;
 Field.Decimal.prototype.trim= Field.Int.prototype.trim;
 Field.Decimal.prototype.parse= Field.Int.prototype.parse;
@@ -392,9 +410,9 @@ Field.Decimal.prototype.compareValues= function( firstValue, secondValue ) {
 };
 
 Field.String= function( name, multivalued, defaultKey, requireAndPopulate ) {
-    Field.call( this, name, multivalued, defaultKey, requireAndPopulate );
+    Field.NonChoice.call( this, name, multivalued, defaultKey, requireAndPopulate );
 };
-Field.String.prototype= new Field('String.prototype');
+Field.String.prototype= new Field.NonChoice('String.prototype');
 Field.String.prototype.constructor= Field.String;
 
 /** @param string name
@@ -407,7 +425,7 @@ Field.String.prototype.constructor= Field.String;
  *  @param bool isFolder Whether this is for folder(s); otherwise it's for file(s)
  * */
 Field.FileOrFolder= function( name, startInProfileFolder, filters, multivalued, defaultKey, isFolder, requireAndPopulate ) {
-    Field.call( this, name, multivalued, defaultKey, requireAndPopulate );
+    Field.NonChoice.call( this, name, multivalued, defaultKey, requireAndPopulate );
     this.startInProfileFolder= startInProfileFolder || false;
     if( typeof this.startInProfileFolder!='boolean' ) {
         throw new Error( 'Field.FileOrFolder() expects startInProfileFolder to be a boolean, if provided.');
@@ -417,7 +435,7 @@ Field.FileOrFolder= function( name, startInProfileFolder, filters, multivalued, 
     this.isFolder= isFolder || false;
     ensureType( this.isFolder, 'boolean', "Field.FileOrFolder(..) expects isFolder to be a boolean, if provided." );
 }
-Field.FileOrFolder.prototype= new Field('FileOrFolder.prototype');
+Field.FileOrFolder.prototype= new Field.NonChoice('FileOrFolder.prototype');
 Field.FileOrFolder.prototype.constructor= Field.FileOrFolder;
 
 Field.FileOrFolder.prototype.parentEquals= Field.prototype.equals;
