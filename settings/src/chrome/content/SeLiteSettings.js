@@ -123,7 +123,7 @@ function ensureFieldName( name, description, asModuleOrSetName ) {
  *  - from the field default (from schema definition)
  *  @param customValidate Function to perform custom validation. It takes
  *  - 1 parameter: 'key' (same as the value) for fields other than Field.Choice
- *  - 2 parameters: 'key' and 'value' for Field.Choice and subclasses
+ *  - 2 parameters: 'key' and 'value' for Field.Choice and its subclasses
  *  It returns boolean - true on success, false on failure. Optional.
  * */
 var Field= function( name, multivalued, defaultKey, requireAndPopulate, customValidate ) {
@@ -352,7 +352,9 @@ Field.prototype.equals= function( other ) {
            );
 };
 
-// See also https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
+// @TODO Move this line to wiki?: See also https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
+/** There's no parameter 'customValidate' for Bool.
+ * */
 Field.Bool= function( name, defaultKey, requireAndPopulate ) {
     Field.NonChoice.call( this, name, false, defaultKey, requireAndPopulate );
 };
@@ -365,8 +367,8 @@ Field.Bool.prototype.prefType= function() {
     return nsIPrefBranch.PREF_BOOL;
 };
 
-Field.Int= function( name, multivalued, defaultKey, requireAndPopulate ) {
-    Field.NonChoice.call( this, name, multivalued, defaultKey, requireAndPopulate );
+Field.Int= function( name, multivalued, defaultKey, requireAndPopulate, customValidate ) {
+    Field.NonChoice.call( this, name, multivalued, defaultKey, requireAndPopulate, customValidate );
 };
 Field.Int.prototype= new Field.NonChoice('Int.prototype');
 Field.Int.prototype.constructor= Field.Int;
@@ -389,8 +391,8 @@ Field.Int.prototype.compareValues= function( firstValue, secondValue ) {
     return compareAsNumbers(firstValue, secondValue );
 };
 
-Field.Decimal= function( name, multivalued, defaultKey, requireAndPopulate ) {
-    Field.NonChoice.call( this, name, multivalued, defaultKey, requireAndPopulate );
+Field.Decimal= function( name, multivalued, defaultKey, requireAndPopulate, customValidate ) {
+    Field.NonChoice.call( this, name, multivalued, defaultKey, requireAndPopulate, customValidate );
 };
 Field.Decimal.prototype= new Field.NonChoice('Decimal.prototype');
 Field.Decimal.prototype.constructor= Field.Decimal;
@@ -409,8 +411,8 @@ Field.Decimal.prototype.compareValues= function( firstValue, secondValue ) {
     return compareAsNumbers(firstValue, secondValue );
 };
 
-Field.String= function( name, multivalued, defaultKey, requireAndPopulate ) {
-    Field.NonChoice.call( this, name, multivalued, defaultKey, requireAndPopulate );
+Field.String= function( name, multivalued, defaultKey, requireAndPopulate, customValidate ) {
+    Field.NonChoice.call( this, name, multivalued, defaultKey, requireAndPopulate, customValidate );
 };
 Field.String.prototype= new Field.NonChoice('String.prototype');
 Field.String.prototype.constructor= Field.String;
@@ -424,8 +426,8 @@ Field.String.prototype.constructor= Field.String;
  *  @param bool multivalued
  *  @param bool isFolder Whether this is for folder(s); otherwise it's for file(s)
  * */
-Field.FileOrFolder= function( name, startInProfileFolder, filters, multivalued, defaultKey, isFolder, requireAndPopulate ) {
-    Field.NonChoice.call( this, name, multivalued, defaultKey, requireAndPopulate );
+Field.FileOrFolder= function( name, startInProfileFolder, filters, multivalued, defaultKey, isFolder, requireAndPopulate, customValidate ) {
+    Field.NonChoice.call( this, name, multivalued, defaultKey, requireAndPopulate, customValidate );
     this.startInProfileFolder= startInProfileFolder || false;
     if( typeof this.startInProfileFolder!='boolean' ) {
         throw new Error( 'Field.FileOrFolder() expects startInProfileFolder to be a boolean, if provided.');
@@ -455,8 +457,8 @@ Field.FileOrFolder.prototype.equals= function( other ) {
  *  @param bool startInProfileFolder See Field.FileOrFolder()
  *  @param filters See Field.FileOrFolder()
  * */
-Field.File= function( name, startInProfileFolder, filters, multivalued, defaultKey, requireAndPopulate ) {
-    Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultKey, false, requireAndPopulate );
+Field.File= function( name, startInProfileFolder, filters, multivalued, defaultKey, requireAndPopulate, customValidate ) {
+    Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultKey, false, requireAndPopulate, customValidate );
 };
 Field.File.prototype= new Field.FileOrFolder('File.prototype');
 Field.File.prototype.constructor= Field.File;
@@ -465,16 +467,16 @@ Field.File.prototype.constructor= Field.File;
  *  @param bool startInProfileFolder See Field.FileOrFolder()
  *  @param filters See Field.FileOrFolder()
  * */
-Field.Folder= function( name, startInProfileFolder, filters, multivalued, defaultKey, requireAndPopulate ) {
-    Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultKey, true, requireAndPopulate );
+Field.Folder= function( name, startInProfileFolder, filters, multivalued, defaultKey, requireAndPopulate, customValidate ) {
+    Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultKey, true, requireAndPopulate, customValidate );
 };
 Field.Folder.prototype= new Field.FileOrFolder('Folder.prototype');
 Field.Folder.prototype.constructor= Field.Folder;
 
 /** It can only be single-valued. An SQLite DB cannot span across multiple files (or if it can, I'm not supporting that).
  * */
-Field.SQLite= function( name, defaultKey, requireAndPopulate ) {
-    Field.File.call( this, name, true, { 'SQLite': '*.sqlite', 'any': null}, false, defaultKey, requireAndPopulate );
+Field.SQLite= function( name, defaultKey, requireAndPopulate, customValidate ) {
+    Field.File.call( this, name, true, { 'SQLite': '*.sqlite', 'any': null}, false, defaultKey, requireAndPopulate, customValidate );
 };
 Field.SQLite.prototype= new Field.File('SQLite.prototype', false, {}, false, '' );
 Field.SQLite.prototype.constructor= Field.SQLite;
@@ -487,9 +489,9 @@ Field.SQLite.prototype.constructor= Field.SQLite;
  *  label reflects how it is shown when using Firefox url about:config.
  *  Also, Javascript transforms object field/key names to strings, even if they were set to number/boolean.
  * */
-Field.Choice= function( name, multivalued, defaultKey, choicePairs, requireAndPopulate ) {
+Field.Choice= function( name, multivalued, defaultKey, choicePairs, requireAndPopulate, customValidate ) {
     this.choicePairs= choicePairs || {}; // This is set before I call the parent constructor, so that it can validate defaultKey against this.choicePairs
-    Field.call( this, name, multivalued, defaultKey, requireAndPopulate );
+    Field.call( this, name, multivalued, defaultKey, requireAndPopulate, customValidate );
     loadingPackageDefinition || this.constructor!==Field.Choice
         || fail( "Can't define instances of Field.Choice class itself outside the package. Use Field.Choice.Int or Field.Choice.String." );
     loadingPackageDefinition || typeof(choicePairs)==='object' && !Array.isArray(choicePairs)
@@ -537,8 +539,8 @@ Field.Choice.prototype.validateValue= function( value ) {
     return oneOf( typeof value, ['string', 'number']);
 };
 
-Field.Choice.Int= function( name, multivalued, defaultKey, choicePairs, requireAndPopulate ) {
-    Field.Choice.call( this, name, multivalued, defaultKey, choicePairs, requireAndPopulate );
+Field.Choice.Int= function( name, multivalued, defaultKey, choicePairs, requireAndPopulate, customValidate ) {
+    Field.Choice.call( this, name, multivalued, defaultKey, choicePairs, requireAndPopulate, customValidate );
 };
 Field.Choice.Int.prototype= new Field.Choice('ChoiceInt.prototype');
 Field.Choice.Int.prototype.constructor= Field.Choice.Int;
@@ -549,8 +551,8 @@ Field.Choice.Int.prototype.validateValue= function( value ) {
     return typeof value==='number' && Math.round(value)===value;
 };
 
-Field.Choice.Decimal= function( name, multivalued, defaultKey, choicePairs, requireAndPopulate ) {
-    Field.Choice.call( this, name, multivalued, defaultKey, choicePairs, requireAndPopulate );
+Field.Choice.Decimal= function( name, multivalued, defaultKey, choicePairs, requireAndPopulate, customValidate ) {
+    Field.Choice.call( this, name, multivalued, defaultKey, choicePairs, requireAndPopulate, customValidate );
 };
 Field.Choice.Decimal.prototype= new Field.Choice('ChoiceDecimal.prototype');
 Field.Choice.Decimal.prototype.constructor= Field.Choice.Decimal;
@@ -561,8 +563,8 @@ Field.Choice.Decimal.prototype.validateValue= function( value ) {
     return typeof value==='number' && !isNaN(value);
 };
 
-Field.Choice.String= function( name, multivalued, defaultKey, choicePairs, requireAndPopulate ) {
-    Field.Choice.call( this, name, multivalued, defaultKey, choicePairs, requireAndPopulate );
+Field.Choice.String= function( name, multivalued, defaultKey, choicePairs, requireAndPopulate, customValidate ) {
+    Field.Choice.call( this, name, multivalued, defaultKey, choicePairs, requireAndPopulate, customValidate );
     for( var key in this.choicePairs ) {
         var value= this.choicePairs[key];
         if( !oneOf( typeof value, ['string', 'number']) ) {
