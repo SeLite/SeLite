@@ -198,7 +198,7 @@ Field.NonChoice.prototype.customValidateDefault= function( key ) {
 /** Return the default key, or a protective copy if it's an array.
  *  @return mixed
  * */
-Field.prototype.getDefaultValue= function() {
+Field.prototype.getDefaultKey= function() {
     if( Array.isArray(this.defaultKey) ) {
         return this.defaultKey.slice();
     }
@@ -1128,13 +1128,13 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
             var field= this.fields[fieldName];
             var isChoice= field instanceof Field.Choice;
             if( !field.multivalued && !isChoice ) {
-                result[fieldName].entry= field.getDefaultValue();
+                result[fieldName].entry= field.getDefaultKey();
             }
             else {
                 var entry= !isChoice
                     ? sortedObject( field.compareValues )
                     : {};
-                var keys= field.getDefaultValue();
+                var keys= field.getDefaultKey();
                 for( var i=0; i<keys.length; i++ ) { //@TODO use for.. of.. loop once NetBeans support it
                     var key= keys[i];
                     entry[ key ]= isChoice
@@ -1225,7 +1225,7 @@ Module.prototype.createSet= function( setName ) {
                 var fieldHasChildren= this.prefsBranch.getChildList( setNameDot+fieldName+'.', {} ).length>0;
                 if( !this.prefsBranch.prefHasUserValue(setNameDot+fieldName) ) {
                     if( !fieldHasChildren ) {
-                        var defaultKeys= field.getDefaultValue();
+                        var defaultKeys= field.getDefaultKey();
                         if( defaultKeys.length>0 ) {
                             for( var i=0; i<defaultKeys.length; i++ ) { // @TODO Replace the loop with for.. of.. loop once NetBeans support it
                                 field.addValue( setName, defaultKeys[i] ); // For Field.Choice defaultKeys contains the keys rather than values
