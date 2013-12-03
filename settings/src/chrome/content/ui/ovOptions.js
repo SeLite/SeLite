@@ -949,9 +949,8 @@ function treeClickHandler( event ) {
                             pair[ SeLiteSettings.NEW_VALUE_ROW ]= SeLiteSettings.NEW_VALUE_ROW;
                             // Since we're editing, that means targetFolder===null, so I don't need to generate anything for navigation from folder view here.
                             var treeItem= generateTreeItem(module, selectedSetName, field, pair, RowLevel.OPTION, false, /*Don't show the initial value:*/true );
-                            newValueRow= row.value+1;
 
-                            var previouslyFirstValueRow= null;
+                            var previouslyFirstValueRow;
                             for( var key in moduleRowsOrChildren[selectedSetName][field.name] ) {
                                 if( SeLiteSettings.reservedNames.indexOf(key)<0 ) {
                                     previouslyFirstValueRow= moduleRowsOrChildren[selectedSetName][field.name][key];
@@ -961,7 +960,7 @@ function treeClickHandler( event ) {
                             }
                             // Firefox 22.b04 and 24.0a1 doesn't handle parent.insertBefore(newItem, null), even though it should - https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore
                             if(true) {//@TODO test in new Firefox, choose one branch
-                                if( previouslyFirstValueRow!==null ) {
+                                if( previouslyFirstValueRow!==undefined ) {
                                     treeChildren.insertBefore( treeItem, previouslyFirstValueRow.parentNode );
                                 }
                                 else {
@@ -970,7 +969,7 @@ function treeClickHandler( event ) {
                             }
                             else {
                                 treeChildren.insertBefore( treeItem,
-                                    previouslyFirstValueRow!==null
+                                    previouslyFirstValueRow!==undefined
                                         ? previouslyFirstValueRow.parentNode
                                         : null );
                             }

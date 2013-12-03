@@ -812,9 +812,9 @@ Module.prototype.getFieldsOfSet= function( setName ) {
         if( multivaluedOrChoice && (fieldHasPreference && multivaluedOrChoiceFieldPreference===VALUE_PRESENT || children.length>0) ) {
             // When presenting Field.Choice, they are not sorted by stored values, but by keys from the field definition.
             // So I only use sortedObject for multivalued fields other than Field.Choice
-            result[fieldName].entry= !isChoice
-                ? sortedObject( field.compareValues )
-                : {};
+            result[fieldName].entry= isChoice
+                ? {}
+                : sortedObject( field.compareValues );
         }
         for( var i=0; i<children.length; i++ ) {
             var prefName= children[i];
@@ -1133,9 +1133,9 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
                 result[fieldName].entry= field.getDefaultKey();
             }
             else {
-                var entry= !isChoice
-                    ? sortedObject( field.compareValues )
-                    : {};
+                var entry= isChoice
+                    ? {}
+                    : sortedObject( field.compareValues );
                 var keys= field.getDefaultKey();
                 for( var i=0; i<keys.length; i++ ) { //@TODO use for.. of.. loop once NetBeans support it
                     var key= keys[i];

@@ -516,10 +516,10 @@ var sortedObjectProxyHandler= {
 
 /**This creates an object that manages/preserves order of the fields.
  * For now it works with for( .. in .. ) only. It doesn't keep the order when using Object.keys( .. )
- * @param mixed sortCompare Either
- * - a function for auto-ordering
- * - bool true if it should auto-order by compareNatural
- * - false to just honour client-given order (not working for now - it will honour the order, but not for e.g. mixed negative/positive numeric keys)
+ * @param mixed sortCompare It indicates auto-ordering. Either
+ * - a function
+ * - bool true if it should order naturally (see compareNatural)
+ * - false to just honour browser-given order (not working for now - it will honour the order, but not for e.g. mixed negative/positive numeric keys)
  * @returns a new object
  * <br/>Old docs - relevant only if Firefox supprots object proxies properly. See
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators
@@ -707,9 +707,9 @@ function compareNatural( first ,second ) {
     var secondNumber= Number(second);
     
     if( !isNaN(firstNumber) && !isNaN(secondNumber) ) {
-        return firstNumber===firstNumber
+        return firstNumber===secondNumber
             ? 0
-            : (firstNumber<firstNumber
+            : (firstNumber<secondNumber
                 ? -1
                 : +1
               );
