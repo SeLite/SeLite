@@ -1,5 +1,6 @@
 "use strict";
-
+/* This contains shortcut-like functions.
+/*/
 Components.utils.import('chrome://selite-db-objects/content/basic-objects.js');
 
 function select( recordOrSet ) {

@@ -1,5 +1,22 @@
 "use strict";
 
+var appDb= new SeLiteSettings.Field.SQLite('appDb');
+var testDb= new SeLiteSettings.Field.SQLite('testDb');
+var appWebroot= new SeLiteSettings.Field.String('appWebroot', false, 'http://localhost/app');
+var maxNumberOfRuns= new SeLiteSettings.Field.Int('maxNumberOfRuns', false, 20);
+
+//@TODO inheritance hierarchy of schemas? Inherit from multiple schemas?
+var module= new SeLiteSettings.Module( 'extensions.selite-settings.basic',
+    [appDb, testDb, appWebroot, maxNumberOfRuns],
+    true,
+    'default',
+    true,
+    '~/selite/settings/test_settings_module.js'
+    //@TODO If the file doesn't exist, make it report an error.
+);
+
+module= SeLiteSettings.register( module );
+
 var mainDb= new SeLiteSettings.Field.SQLite('mainDb');
 var oneFolder= new SeLiteSettings.Field.Folder( 'oneFolder' );
 var files= new SeLiteSettings.Field.File( 'files', false, false, true, [] );

@@ -352,7 +352,7 @@ Field.prototype.equals= function( other ) {
            );
 };
 
-// @TODO Move this line to wiki?: See also https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
+// @TODO Move this line to Javascript.wiki?: See also https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
 /** There's no parameter 'customValidate' for Bool.
  * */
 Field.Bool= function( name, defaultKey, requireAndPopulate ) {
@@ -878,8 +878,8 @@ function readFile( fileName ) {
     return contents;
 }
 
-const VALUES_MANIFEST_FILENAME= 'SeLiteSettingsValues.txt';
-const ASSOCIATIONS_MANIFEST_FILENAME= 'SeLiteSettingsAssociations.txt';
+var VALUES_MANIFEST_FILENAME= 'SeLiteSettingsValues.txt'; // @TODO Make this 'const' once NetBeans supports it
+var ASSOCIATIONS_MANIFEST_FILENAME= 'SeLiteSettingsAssociations.txt'; // @TODO Make this 'const' once NetBeans supports it
 
 var commentLineRegex= /^[ \t]*#.*$/;
 /** @param string contents
@@ -1016,9 +1016,19 @@ function manifestsDownToFolder( folderPath, dontCache ) {
     return result;
 };
 
+/** @var Internal. Used by extensions/core-extension.js which stores the path of the test suite here.
+ * */
+var TestSuiteFolderInfo= {
+    /* Its field 'path' is path to a folder, where the current Selenium IDE test suite is (if any).
+        Not valid if it was set already and then Se IDE was closed. */
+     path: undefined
+};
+
 /** Calculate a composition of field values, based on manifests, preferences and field defaults,
  *  down from filesystem root to given folderPath.
  *  @param string folderPath Full path (absolute) to the folder where your test suite is.
+ *  If undefined/null, then this uses the folder of test suite currently open in Selenium IDE. If there is none,
+ *  this fails.
  *  @param bool dontCache If true, then this doesn't cache manifest files (it doesn't use any
  *  previous manifests stored in the cache and it doesn't store current manifests in the cache). For use by GUI.
  *  @return Object with sorted keys, serving as an associative array. A bit similar to result of getFieldsOfset(),
@@ -1041,6 +1051,7 @@ function manifestsDownToFolder( folderPath, dontCache ) {
  *  - default key (value) of the field
 * */
 Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
+    folderPath= folderPath || TestSuiteFolderInfo.path;
     this.associatesWithFolders || fail( "Module.getFieldsDownToFolder() requires module.associatesWithFolders to be true, but it was called for module " +this.name );
     dontCache= dontCache || false;
     
@@ -1384,7 +1395,8 @@ var EXPORTED_SYMBOLS= [
     'OPTION_UNIQUE_CELL', 'FIELD_TREECHILDREN', 'NEW_VALUE_ROW',
     'Field', 'Module', 'register', 'savePrefFile', 'moduleNamesFromPreferences', 'fileNameToUrl', 'loadFromJavascript',
     'VALUES_MANIFEST_FILENAME', 'ASSOCIATIONS_MANIFEST_FILENAME',
-    'ASSOCIATED_SET', 'SELECTED_SET', 'VALUES_MANIFEST', 'FIELD_DEFAULT', 'FIELD_NULL_OR_UNDEFINED'
+    'ASSOCIATED_SET', 'SELECTED_SET', 'VALUES_MANIFEST', 'FIELD_DEFAULT', 'FIELD_NULL_OR_UNDEFINED',
+    'TestSuiteFolderInfo'
 ];
 if( runningAsComponent ) {
     // I can load this module itself only after I set EXPORTED_SYMBOLS

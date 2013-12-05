@@ -23,7 +23,7 @@ Components.utils.import("resource://gre/modules/osfile.jsm");
 
 var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                               .getService(Components.interfaces.nsIPromptService);
-var SeLiteSettings= {};
+var SeLiteSettings= {}; //@TODO check: Same as SeLiteSettings= result of the next line, without the 2nd parameter
 Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js", SeLiteSettings);
 Components.utils.import("resource://gre/modules/Services.jsm");
 var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
