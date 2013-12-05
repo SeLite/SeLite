@@ -1020,7 +1020,9 @@ function manifestsDownToFolder( folderPath, dontCache ) {
  * */
 var TestSuiteFolderInfo= {
     /* Its field 'path' is path to a folder, where the current Selenium IDE test suite is (if any).
-        Not valid if it was set already and then Se IDE was closed. */
+        Not valid if it was set already and then Se IDE was closed. @TODO Tail-intercept SE IDE's Editor.prototype.confirmClose().
+       - perhaps in a IDE extension. If it returned true, then set TestSuiteFolderInfo.path to undefined.
+     */
      path: undefined
 };
 

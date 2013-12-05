@@ -9,8 +9,6 @@
     var originalLoadFile= TestSuite.loadFile;
     TestSuite.loadFile= function(file) {
         var result= originalLoadFile.call( this, file );
-        console.log('load from: ' +file.parent.path);
-        console.log('observable: ' +typeof observable);
         SeLiteSettings.TestSuiteFolderInfo.path= file.parent.path;
         return result;
     };
@@ -22,7 +20,6 @@
         // If !this.file or newFile, then the original function is not saving yet, but it calls itself recursively.
         // That recursive call has this.file and newFile. See the original code in IDE's chrome/content/testSuite.js
         if( this.file && !newFile ) {
-            console.log('save to: ' +this.file.parent.path );
             SeLiteSettings.TestSuiteFolderInfo.path= file.parent.path;
         }
         return result;
