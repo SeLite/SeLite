@@ -7,7 +7,7 @@
     var originalLoadFile= TestSuite.loadFile;
     TestSuite.loadFile= function(file) {
         var result= originalLoadFile.call( this, file );
-        //SeLiteSettings.TestSuiteFolderInfo.path= file.parent.path;
+        SeLiteSettings.TestSuiteFolderInfo.path= file.parent.path;
         return result;
     };
     
@@ -18,7 +18,7 @@
         // If !this.file or newFile, then the original function call is not saving the file, but it calls itself recursively.
         // That recursive call has this.file and newFile. See the original code in IDE's chrome/content/testSuite.js
         if( this.file && !newFile ) {
-            //SeLiteSettings.TestSuiteFolderInfo.path= this.file.parent.path;
+            SeLiteSettings.TestSuiteFolderInfo.path= this.file.parent.path;
         }
         return result;
     };
