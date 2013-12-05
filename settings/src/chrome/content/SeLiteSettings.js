@@ -1016,14 +1016,40 @@ function manifestsDownToFolder( folderPath, dontCache ) {
     return result;
 };
 
-/** @var Internal. Used by extensions/core-extension.js which stores the path of the test suite here.
+/* @private String, path to a folder, where the current Selenium IDE test suite is. If Selenium IDE is not running,
+ * or the test suite is a temporary one (not saved yet), then it's undefined.
+ */
+var testSuiteFolder= undefined;
+/** @private Array of functions, that are called whenever the test suite folder changes.
  * */
-var TestSuiteFolderInfo= {
-    /* Its field 'path' is path to a folder, where the current Selenium IDE test suite is. If Selenium IDE is not running,
-     * or the test suite is a temporary one (not saved yet), then it's undefined.
-     */
-     path: undefined
-};
+var testSuiteFolderChangeHandlers= [];
+
+/** @note Internal. Used by extensions/core-extension.js which stores the path of the test suite here.
+ *  @param folder string or undefined
+ * */
+function setTestSuiteFolder( folder ) {
+    testSuiteFolder= folder;
+    for( var i=0; i<testSuiteFolderChangeHandlers.length; i++ ) { // @TODO change to for( .. of .. ) loop
+        testSuiteFolderChangeHandlers[i].call( null, folder );
+    }
+}
+
+/** Add a handler, that will be called whenever the current test suite folder is changed in Se IDE.
+ *  It won't be called when Se IDE is closed. When you invoke addTestSuiteFolderChangeHandler(handler)
+ *  and Se IDE already has a test suite from a known folder, this won't invoke the handler on that known folder.
+ *  The handler will only be called on any subsequent changes. That should be OK, since this is intended for Core extensions,
+ *  which are loaded at Se IDE start.
+ *  @param handler Function, with 1 parameter, which will be a string folder (or undefined, if the suite is unsaved and temporary).
+ * */
+function addTestSuiteFolderChangeHandler( handler ) {
+    ensureType( handler, 'function');
+    testSuiteFolderChangeHandlers.push( testSuiteFolderChangeHandlers );
+}
+
+/** @note Internal. */
+function clearTestSuiteFolderChangeHandlers() {
+    testSuiteFolderChangeHandlers= [];
+}
 
 /** Calculate a composition of field values, based on manifests, preferences and field defaults,
  *  down from filesystem root to given folderPath.
@@ -1052,7 +1078,7 @@ var TestSuiteFolderInfo= {
  *  - default key (value) of the field
 * */
 Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
-    folderPath= folderPath || TestSuiteFolderInfo.path;
+    folderPath= folderPath || testSuiteFolder;
     this.associatesWithFolders || fail( "Module.getFieldsDownToFolder() requires module.associatesWithFolders to be true, but it was called for module " +this.name );
     dontCache= dontCache || false;
     
@@ -1397,7 +1423,7 @@ var EXPORTED_SYMBOLS= [
     'Field', 'Module', 'register', 'savePrefFile', 'moduleNamesFromPreferences', 'fileNameToUrl', 'loadFromJavascript',
     'VALUES_MANIFEST_FILENAME', 'ASSOCIATIONS_MANIFEST_FILENAME',
     'ASSOCIATED_SET', 'SELECTED_SET', 'VALUES_MANIFEST', 'FIELD_DEFAULT', 'FIELD_NULL_OR_UNDEFINED',
-    'TestSuiteFolderInfo'
+    'setTestSuiteFolder', 'addTestSuiteFolderChangeHandler', 'clearTestSuiteFolderChangeHandlers'
 ];
 if( runningAsComponent ) {
     // I can load this module itself only after I set EXPORTED_SYMBOLS

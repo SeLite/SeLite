@@ -9,8 +9,8 @@
         var result= originalConfirmClose.call(this);
         // result===true means that the window was closed (whether saved or not)
         if( result ) {
-            SeLiteSettings.TestSuiteFolderInfo.path= undefined;
-            //console.log( 'SeLiteSettings.TestSuiteFolderInfo.path: undefined');
+            SeLiteSettings.setTestSuiteFolder(undefined);
+            SeLiteSettings.clearTestSuiteFolderChangeHandlers();
         }
         //console.log( 'Editor.proto.confirmClose passed');
         return result;
