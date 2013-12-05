@@ -352,6 +352,21 @@ Field.prototype.equals= function( other ) {
            );
 };
 
+/** Just a shortcut function. It returns a slice of what module.getFieldsDownToFolder() returns. It has same parameters, too.
+ *  @param folderPath string, optional
+ *  @param boolean dontCache, optional
+ *  @return object {
+            entry: mixed,
+            fromPreferences: boolean,
+            folderPath: string or undefined,
+            setName: string or undefined
+    }
+    @see Module.getFieldsDownToFolder()
+ * */
+Field.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
+    return this.module.getFieldsDownToFolder( folderPath, dontCache )[ this.name ];
+};
+
 // @TODO Move this line to Javascript.wiki?: See also https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
 /** There's no parameter 'customValidate' for Bool.
  * */
@@ -1020,9 +1035,14 @@ function manifestsDownToFolder( folderPath, dontCache ) {
  * or the test suite is a temporary one (not saved yet), then it's undefined.
  */
 var testSuiteFolder= undefined;
+
 /** @private Array of functions, that are called whenever the test suite folder changes.
  * */
 var testSuiteFolderChangeHandlers= [];
+
+/** @return string Full path of the current Se IDE test suite folder. Or undefined - see testSuiteFolder.
+ * */
+function getTestSuiteFolder() { return testSuiteFolder; }
 
 /** @note Internal. Used by extensions/core-extension.js which stores the path of the test suite here.
  *  @param folder string or undefined
@@ -1423,7 +1443,7 @@ var EXPORTED_SYMBOLS= [
     'Field', 'Module', 'register', 'savePrefFile', 'moduleNamesFromPreferences', 'fileNameToUrl', 'loadFromJavascript',
     'VALUES_MANIFEST_FILENAME', 'ASSOCIATIONS_MANIFEST_FILENAME',
     'ASSOCIATED_SET', 'SELECTED_SET', 'VALUES_MANIFEST', 'FIELD_DEFAULT', 'FIELD_NULL_OR_UNDEFINED',
-    'setTestSuiteFolder', 'addTestSuiteFolderChangeHandler', 'clearTestSuiteFolderChangeHandlers'
+    'getTestSuiteFolder', 'setTestSuiteFolder', 'addTestSuiteFolderChangeHandler', 'clearTestSuiteFolderChangeHandlers'
 ];
 if( runningAsComponent ) {
     // I can load this module itself only after I set EXPORTED_SYMBOLS

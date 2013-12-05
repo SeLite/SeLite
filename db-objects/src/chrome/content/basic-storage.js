@@ -17,10 +17,8 @@
 
 "use strict";
 
-// This is a Selenium IDE Core extension.
-// This file uses SQLConnectionManager extension and SeLite Misc extension.
-
 Components.utils.import("chrome://selite-sqlite-connection-manager/content/SqliteConnectionManager.js");
+var SeLiteSettings= Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js", {} );
 
 /** This provides low-level data functions. It's a constructor of an object,
  *  but the code is procedural. The reason to have it as an object is not to
@@ -29,16 +27,25 @@ Components.utils.import("chrome://selite-sqlite-connection-manager/content/Sqlit
 function Storage() {
     this.parameters= new SQLiteConnectionParameters();
     this.parameters.errorHandler= alert;
-    this.connection= null;
+    this.connection= null; // This will be the actual connection - result of Services.storage.openDatabase(file)
 }
 
 /** Open a new SQLite connection, as specified in parameters. Set it as the connection for this object.
- * Note: if you use connection.clone(), it won't inherit PRAGMA locking_mode
+ * Note: if you use this.connection.clone(), it won't inherit PRAGMA locking_mode
  * @return the new connection
  */
 Storage.prototype.open= function() {
     this.connection= this.parameters.connect();
 }
+
+/** Close the connection.
+ *  @param synchronous boolean Whether to close it ; optional.
+   *  @TODO check: If you have used any asynchronous (?!) statements, pass true. See same comment in SQLiteConnectionInfo.close()
+ * */
+Storage.prototype.close= function( synchronous ) {
+    this.parameters.close( synchronous );
+    this.connection= null;
+};
 
 /** This gets the list of result column names (e.g. names after the last space, if present; otherwise after the last dot, if present)
  *  out of column expressions/parts.
@@ -558,6 +565,33 @@ Object.defineProperty( Settable.prototype, 'set', {
         }
 } );
 
+function StorageFromSettings( field ) {
+    field instanceof SeLiteSettings.Field.SQLite || fail('field must be SeLiteSettings.Field.SQLite');
+    Storage.call( this );
+    this.field= field;
+    // @TODO add 'this' to the list
+}
+
+StorageFromSettings.prototype= new Storage();
+StorageFromSettings.prototype.constructor= StorageFromSettings;
+
+StorageFromSettings.prototype.open= function() { fail('StorageFromSettings.open() is unsupported.'); };
+StorageFromSettings.prototype.close= function() { fail('StorageFromSettings.close() is unsupported.'); };
+
+SeLiteSettings.addTestSuiteFolderChangeHandler(
+    function() {
+        if( this.connection ) {
+            this.parameters.close( true );
+            this.connection= null;
+        }
+        if( SeLiteSettings.getTestSuiteFolder() ) {
+            this.parameters.fileName= SeLiteSettings.getFieldsDownToFolder().entry;
+            this.connection= this.parameters.connect();
+        }
+    }
+);
+// @TODO callback hook
+
 /** @TODO DOC We use synchronous DB API. That's because
  *  - with asynchronous API we'd have to wait for the query to finish before moving to next Selenium test step
  *  -- that would get complicated if the current steps involves multiple DB queries/operations. It would involve
@@ -571,4 +605,4 @@ Object.defineProperty( Settable.prototype, 'set', {
  *  and https://developer.mozilla.org/en/mozIStorageRow
  *  - handleResult() callback may be called several times per same statement!
  */
-var EXPORTED_SYMBOLS= ['Storage', 'SqlExpression', 'Settable'];
+var EXPORTED_SYMBOLS= ['Storage', 'StorageFromSettings', 'SqlExpression', 'Settable'];

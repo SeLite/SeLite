@@ -91,7 +91,7 @@ SQLiteConnectionParameters.prototype= {
    *  - object: exact as (or equal to, but of the same class as) 'parameters' parameter that has been passed to connect(), or
    *  - DB connection itself.
    *  @param bool synchronous Whether to close it down synchronously; otherwise it's closed down asynchronously (default).
-   *  If you have used any asynchronous statements, pass true.
+   *  @TODO check: If you have used any asynchronous (?!) statements, pass true.
    *  @return void
    *  @throw if fileNameOrConnection doesn't match any open connection object
    *  neither its parameters neither any of their filenames, or on underlying failure
