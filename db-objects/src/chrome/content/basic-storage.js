@@ -1,5 +1,5 @@
 /*  Copyright 2011, 2012, 2013 Peter Kehl
-    This file is part of SeLite DbStorage.
+    This file is part of SeLite Db Objects.
 
     SeLite DB Storage is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,8 +17,10 @@
 
 "use strict";
 
+Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
 Components.utils.import("chrome://selite-sqlite-connection-manager/content/SqliteConnectionManager.js");
 var SeLiteSettings= Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js", {} );
+var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 
 /** This provides low-level data functions. It's a constructor of an object,
  *  but the code is procedural. The reason to have it as an object is not to
@@ -26,7 +28,7 @@ var SeLiteSettings= Components.utils.import("chrome://selite-settings/content/Se
  **/
 function Storage() {
     this.parameters= new SQLiteConnectionParameters();
-    this.parameters.errorHandler= alert;
+    this.parameters.errorHandler= console.error;
     this.connection= null; // This will be the actual connection - result of Services.storage.openDatabase(file)
 }
 
@@ -334,12 +336,12 @@ Storage.prototype.getRecords= function( params ) {
         query+= " ORDER BY " +params.sort+ ' ' +sortDirection;
     }
     if( params.debugQuery!==undefined && params.debugQuery ) {
-        alert( query );
+        console.log( query );
     }
 
     var result= this.select( query, columnsList, params.parameters );
     if( params.debugResult!==undefined && params.debugResult ) {
-        alert( rowsToString(result) );
+        console.log( rowsToString(result) );
     }
     return result;
 }
@@ -392,7 +394,7 @@ Storage.prototype.updateRecords= function( params ) {
     }
     
     if( params.debugQuery!==undefined && params.debugQuery ) {
-        alert( query );
+        console.log( query );
     }
     var stmt= this.connection.createStatement( query );
     stmt.execute();
@@ -465,7 +467,7 @@ Storage.prototype.insertRecord= function( params ) {
     var query= 'INSERT INTO ' +params.table+ '(' +columns.join(', ')+ ') VALUES ('+
         values.join(', ')+ ')';
     if( params.debugQuery!==undefined && params.debugQuery ) {
-        alert( query );
+        console.log( query );
     }
     var stmt= this.connection.createStatement( query );
     stmt.execute();
@@ -588,6 +590,10 @@ StorageFromSettings.prototype.close= function() { fail('StorageFromSettings.clos
 
 SeLiteSettings.addTestSuiteFolderChangeHandler(
     function() {
+        console.log('TestSuiteFolderChangeHandler');
+        if( StorageFromSettings.instances.length>0 && !SeLiteSettings.getTestSuiteFolder() ) {
+            console.log( 'SeLiteSettings: there are ' +StorageFromSettings.instances.length+ ' instance(s) of StorageFromSettings, yet the current test suite has no folder yet.' );
+        }
         for( var i=0; i<StorageFromSettings.instances.length; i++ ) { // @TODO for(.. of .. )
             var instance= StorageFromSettings.instances[i];
             if( instance.connection ) {
@@ -600,6 +606,9 @@ SeLiteSettings.addTestSuiteFolderChangeHandler(
                 if( newFileName ) {
                     instance.parameters.fileName= newFileName;
                     instance.connection= instance.parameters.connect();
+                }
+                else {
+                    console.log( 'SeLiteSettings: The current test suite has a folder, but field ' +instance.field+ ' is not defined for it.' );
                 }
             }
         }

@@ -22,7 +22,7 @@
 // Don't use SQLite virtual tables neither any full-text indexes in cache mode. See
 // https://developer.mozilla.org/en/XPCOM_Interface_Reference/mozIStorageService#openDatabase()
 
-var runningAsComponent= (window===undefined || window && window.location && window.location.protocol=='chrome:'); // When set to false, this can be loaded via <script src="file://..."> rather than via Components.utils.import(). Used for limited debugging only. Can't use <script src="chrome://...">
+var runningAsComponent= (typeof window==='undefined' || window && window.location && window.location.protocol=='chrome:'); // When set to false, this can be loaded via <script src="file://..."> rather than via Components.utils.import(). Used for limited debugging only. Can't use <script src="chrome://...">
 if( runningAsComponent ) {
     Components.utils.import("resource://gre/modules/Services.jsm");
     Components.utils.import("resource://gre/modules/FileUtils.jsm");

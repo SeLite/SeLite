@@ -12,6 +12,8 @@
         }
         catch(e) {
             Components.utils.import("resource://gre/modules/AddonManager.jsm");
+            //var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+            //console.log('bad');
             alert('Add-on SeLite DB Objects requires SeLite Extension Sequencer, but it is not installed. Therefore SeLite Selblocks Global will be disabled next time you start Firefox. Please, install SeLite Extension Sequencer first. Then apply Firefox menu > Tools > Add-ons > Extensions > SeLite DB Objects > Enable.');
             AddonManager.getAddonByID( 'db-objects@selite.googlecode.com', function(addon) {
                 addon.userDisabled= true;

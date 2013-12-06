@@ -1,4 +1,6 @@
 /*  Copyright 2013 Peter Kehl
+    This file is part of SeLite Settings.
+    
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -1080,12 +1082,7 @@ function setTestSuiteFolder( folder ) {
  * */
 function addTestSuiteFolderChangeHandler( handler ) {
     ensureType( handler, 'function');
-    testSuiteFolderChangeHandlers.push( testSuiteFolderChangeHandlers );
-}
-
-/** @note Internal. */
-function clearTestSuiteFolderChangeHandlers() {
-    testSuiteFolderChangeHandlers= [];
+    testSuiteFolderChangeHandlers.push( handler );
 }
 
 /** Calculate a composition of field values, based on manifests, preferences and field defaults,
@@ -1461,7 +1458,7 @@ var EXPORTED_SYMBOLS= [
     'Field', 'Module', 'register', 'savePrefFile', 'moduleNamesFromPreferences', 'fileNameToUrl', 'loadFromJavascript',
     'VALUES_MANIFEST_FILENAME', 'ASSOCIATIONS_MANIFEST_FILENAME',
     'ASSOCIATED_SET', 'SELECTED_SET', 'VALUES_MANIFEST', 'FIELD_DEFAULT', 'FIELD_NULL_OR_UNDEFINED',
-    'getTestSuiteFolder', 'setTestSuiteFolder', 'addTestSuiteFolderChangeHandler', 'clearTestSuiteFolderChangeHandlers'
+    'getTestSuiteFolder', 'setTestSuiteFolder', 'addTestSuiteFolderChangeHandler'
 ];
 if( runningAsComponent ) {
     // I can load this module itself only after I set EXPORTED_SYMBOLS

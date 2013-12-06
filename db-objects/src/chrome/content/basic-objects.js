@@ -16,10 +16,10 @@
 */
 "use strict";
 
-//Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' ); @TODO Think whether it's needed. Use fail() instead of throw new Error()?
+Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
 Components.utils.import('chrome://selite-db-objects/content/basic-storage.js');
 
-/** @param object storage of class DbStorage
+/** @param object storage of class Storage
  *  @param string tableNamePrefix optional
  **/
 function Db( storage, tableNamePrefix ) {
@@ -483,7 +483,7 @@ function RecordSetHolder( formula, parametersOrCondition ) {
     this.formula= formula;
     this.parametersOrCondition= parametersOrCondition || {};
     this.holders= {}; // Object serving as an associative array { primary key value: RecordHolder instance }
-    this.records= new RecordSet();
+    this.records= new RecordSet( this );
     this.originals= {}; // This will be set to object { primary-key-value: original object... }
     this.markedToRemove= {}; // It keeps RecordHolder instances scheduled to be removed; structure like this.holders
 }
@@ -543,7 +543,6 @@ RecordSetHolder.prototype.select= function() {
                 throw new Error( "Unlisted query parameter with name '" +paramName+ "' and value: " +usingParameterCondition[paramName] );
             }
         }
-        //alert( "Bindings: " +objectToString(this.parametersOrCondition, 4) );
     }
     var joins= [];
     formula.joins.forEach( function(join) {
