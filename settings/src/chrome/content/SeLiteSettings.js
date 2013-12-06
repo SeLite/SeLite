@@ -1055,7 +1055,11 @@ var testSuiteFolder= undefined;
 
 /** @private Array of functions, that are called whenever the test suite folder changes.
  * */
-var testSuiteFolderChangeHandlers= [];
+var unnamedTestSuiteFolderChangeHandlers= [];
+
+/** @private Object serving as an associative array of functions, that are called whenever the test suite folder changes.
+ * */
+var namedTestSuiteFolderChangeHandlers= {};
 
 /** @return string Full path of the current Se IDE test suite folder. Or undefined - see testSuiteFolder.
  * */
@@ -1067,8 +1071,11 @@ function getTestSuiteFolder() { return testSuiteFolder; }
 function setTestSuiteFolder( folder ) {
     if( testSuiteFolder!==folder ) {
         testSuiteFolder= folder;
-        for( var i=0; i<testSuiteFolderChangeHandlers.length; i++ ) { // @TODO change to for( .. of .. ) loop
-            testSuiteFolderChangeHandlers[i].call( null, folder );
+        for( var i=0; i<unnamedTestSuiteFolderChangeHandlers.length; i++ ) { // @TODO change to for( .. of .. ) loop
+            unnamedTestSuiteFolderChangeHandlers[i].call( null, folder );
+        }
+        for( var i in namedTestSuiteFolderChangeHandlers ) { // @TODO for( .. of .. )
+            namedTestSuiteFolderChangeHandlers[i].call( null, folder );
         }
     }
 }
@@ -1077,12 +1084,22 @@ function setTestSuiteFolder( folder ) {
  *  It won't be called when Se IDE is closed. When you invoke addTestSuiteFolderChangeHandler(handler)
  *  and Se IDE already has a test suite from a known folder, this won't invoke the handler on that known folder.
  *  The handler will only be called on any subsequent changes. That should be OK, since this is intended for Core extensions,
- *  which are loaded at Se IDE start.
+ *  which are loaded at Se IDE start (before user opens a test suite).
+ *  The order of calling handlers is not guarenteed.
  *  @param handler Function, with 1 parameter, which will be a string folder (or undefined, if the suite is unsaved and temporary).
+ *  @param handlerName String; Required if you call this from a Core extension; optional if you call this from a Javascript
+ *  component - loaded through Components.utils.import(). If there already was a handler registered with the same handlerName,
+ *  this replaces the previously registered function with the one given now.
  * */
-function addTestSuiteFolderChangeHandler( handler ) {
+function addTestSuiteFolderChangeHandler( handler, handlerName ) {
     ensureType( handler, 'function');
-    testSuiteFolderChangeHandlers.push( handler );
+    ensureType( handlerName, ['string', 'undefined'] );
+    if( handlerName===undefined ) {
+        unnamedTestSuiteFolderChangeHandlers.push(handler);
+    }
+    else {
+        namedTestSuiteFolderChangeHandlers[handlerName]= handler;
+    }
 }
 
 /** Calculate a composition of field values, based on manifests, preferences and field defaults,
