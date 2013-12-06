@@ -7,7 +7,8 @@ SeLiteExtensionSequencer.registerPlugin( {
     requisitePlugins: {
         'misc@selite.googlecode.com': 'SeLite Miscellaneous',
         'commands@selite.googlecode.com': 'SeLite Commands',
-        'sqlite-connection-manager@selite.googlecode.com': 'SQLite Connection Manager'
+        'sqlite-connection-manager@selite.googlecode.com': 'SQLite Connection Manager',
+        'settings@selite.googlecode.com': 'SeLite Settings'
     }
 } );
 var EXPORTED_SYMBOLS= [];

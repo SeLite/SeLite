@@ -565,12 +565,20 @@ Object.defineProperty( Settable.prototype, 'set', {
         }
 } );
 
-function StorageFromSettings( field ) {
+/** @param fieldOrFieldName Either string, or SeLiteSettings.Field instance.
+ *  If it is a string, it must be a full field name. See SeLiteSettings.getField()
+ * */
+function StorageFromSettings( fieldOrFieldName ) {
+    var field= typeof fieldOrFieldName==='string'
+        ? SeLiteSettings.getField(fieldOrFieldName)
+        : fieldOrFieldName;
     field instanceof SeLiteSettings.Field.SQLite || fail('field must be SeLiteSettings.Field.SQLite');
     Storage.call( this );
     this.field= field;
-    // @TODO add 'this' to the list
+    StorageFromSettings.instances.push( this );
 }
+
+StorageFromSettings.instances= [];
 
 StorageFromSettings.prototype= new Storage();
 StorageFromSettings.prototype.constructor= StorageFromSettings;
@@ -580,13 +588,20 @@ StorageFromSettings.prototype.close= function() { fail('StorageFromSettings.clos
 
 SeLiteSettings.addTestSuiteFolderChangeHandler(
     function() {
-        if( this.connection ) {
-            this.parameters.close( true );
-            this.connection= null;
-        }
-        if( SeLiteSettings.getTestSuiteFolder() ) {
-            this.parameters.fileName= SeLiteSettings.getFieldsDownToFolder().entry;
-            this.connection= this.parameters.connect();
+        for( var i=0; i<StorageFromSettings.instances.length; i++ ) { // @TODO for(.. of .. )
+            var instance= StorageFromSettings.instances[i];
+            if( instance.connection ) {
+                instance.parameters.close( true );
+                instance.connection= null;
+                instance.parameters.fileName= null;
+            }
+            if( SeLiteSettings.getTestSuiteFolder() ) {
+                var newFileName= instance.field.getFieldsDownToFolder().entry;
+                if( newFileName ) {
+                    instance.parameters.fileName= newFileName;
+                    instance.connection= instance.parameters.connect();
+                }
+            }
         }
     }
 );

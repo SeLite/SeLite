@@ -5,7 +5,6 @@ var testDb= new SeLiteSettings.Field.SQLite('testDb');
 var appWebroot= new SeLiteSettings.Field.String('appWebroot', false, 'http://localhost/app');
 var maxNumberOfRuns= new SeLiteSettings.Field.Int('maxNumberOfRuns', false, 20);
 
-//@TODO inheritance hierarchy of schemas? Inherit from multiple schemas?
 var module= new SeLiteSettings.Module( 'extensions.selite-settings.basic',
     [appDb, testDb, appWebroot, maxNumberOfRuns],
     true,

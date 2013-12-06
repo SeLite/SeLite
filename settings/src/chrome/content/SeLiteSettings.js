@@ -102,6 +102,21 @@ function ensureFieldName( name, description, asModuleOrSetName ) {
     }
 }
 
+/** @param fullName String, in form moduleName+fieldName, excluding any set.
+ *  @return Field instance if present. It fails otherwise.
+ * */
+function getField( fullName ) {
+    ensureType( fullName, 'string', 'getField() expects fullName to be a string');
+    var lastDotIndex= fullName.indexOf( '.' );
+    lastDotIndex>0 && lastDotIndex<fullName.length-1 || fail('fullName does not contain a dot: ' +fullName );
+    var moduleName= fullName.substring( 0, lastDotIndex );
+    var fieldName= fullName.substring( lastDotIndex+1 );
+    moduleName in modules || fail( 'Module ' +moduleName+ ' has not been loaded.' );
+    var module= modules[moduleName];
+    fieldName in module.fields || fail( 'Module ' +moduleName+ " doesn't contain field " +field );
+    return module.fields[fieldName];
+}
+
 /** @param string name Name of the field
  *  @param bool multivalued Whether the field is multivalued; false by default
  *  @param defaultKey mixed Default key. It is the default value(s) for fields other than Field.Choice. For Field.Choice it is the default key(s).
@@ -1048,9 +1063,11 @@ function getTestSuiteFolder() { return testSuiteFolder; }
  *  @param folder string or undefined
  * */
 function setTestSuiteFolder( folder ) {
-    testSuiteFolder= folder;
-    for( var i=0; i<testSuiteFolderChangeHandlers.length; i++ ) { // @TODO change to for( .. of .. ) loop
-        testSuiteFolderChangeHandlers[i].call( null, folder );
+    if( testSuiteFolder!==folder ) {
+        testSuiteFolder= folder;
+        for( var i=0; i<testSuiteFolderChangeHandlers.length; i++ ) { // @TODO change to for( .. of .. ) loop
+            testSuiteFolderChangeHandlers[i].call( null, folder );
+        }
     }
 }
 
@@ -1440,6 +1457,7 @@ var EXPORTED_SYMBOLS= [
     'VALUE_PRESENT', 'NULL',
     'SET_SELECTION_ROW', 'SELECTED_SET_NAME', 'FIELD_MAIN_ROW', 'OPTION_NOT_UNIQUE_CELL',
     'OPTION_UNIQUE_CELL', 'FIELD_TREECHILDREN', 'NEW_VALUE_ROW',
+    'getField',
     'Field', 'Module', 'register', 'savePrefFile', 'moduleNamesFromPreferences', 'fileNameToUrl', 'loadFromJavascript',
     'VALUES_MANIFEST_FILENAME', 'ASSOCIATIONS_MANIFEST_FILENAME',
     'ASSOCIATED_SET', 'SELECTED_SET', 'VALUES_MANIFEST', 'FIELD_DEFAULT', 'FIELD_NULL_OR_UNDEFINED',
