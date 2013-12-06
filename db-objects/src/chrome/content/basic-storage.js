@@ -574,7 +574,7 @@ function StorageFromSettings( fieldOrFieldName ) {
     var field= typeof fieldOrFieldName==='string'
         ? SeLiteSettings.getField(fieldOrFieldName)
         : fieldOrFieldName;
-    field instanceof SeLiteSettings.Field.SQLite || fail('field must be SeLiteSettings.Field.SQLite');
+    field instanceof SeLiteSettings.Field.SQLite || fail('fieldOrFieldName must be an instance of SeLiteSettings.Field.SQLite, or string: ' +fieldOrFieldName+ '; field: ' +field );
     Storage.call( this );
     this.field= field;
     StorageFromSettings.instances.push( this );

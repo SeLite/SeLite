@@ -19,7 +19,7 @@
     Components.utils.import( 'chrome://selite-db-objects/content/basic-objects.js' );
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
     
-    var storage= new Storage('extensions.selite-settings.basic.testDb');
+    var storage= new StorageFromSettings('extensions.selite-settings.basic.testDb');
     var db= new Db( storage, 'mdl_' ); //@TODO Prefix to come from SeLiteSettings - through the module definition?
     
     var users= new Table( {

@@ -1069,6 +1069,7 @@ function getTestSuiteFolder() { return testSuiteFolder; }
  *  @param folder string or undefined
  * */
 function setTestSuiteFolder( folder ) {
+    console.log( 'setTestSuiteFolder ' +folder );
     if( testSuiteFolder!==folder ) {
         testSuiteFolder= folder;
         for( var i=0; i<unnamedTestSuiteFolderChangeHandlers.length; i++ ) { // @TODO change to for( .. of .. ) loop
@@ -1084,11 +1085,14 @@ function setTestSuiteFolder( folder ) {
  *  It won't be called when Se IDE is closed. When you invoke addTestSuiteFolderChangeHandler(handler)
  *  and Se IDE already has a test suite from a known folder, this won't invoke the handler on that known folder.
  *  The handler will only be called on any subsequent changes. That should be OK, since this is intended for Core extensions,
- *  which are loaded at Se IDE start (before user opens a test suite).
- *  The order of calling handlers is not guarenteed.
+ *  which are loaded at Se IDE start (before user opens a test suite). Se IDE 2.4.0 starts with the last opened test suite,
+ *  which is fine - by that time the handlers are in place.
+ *  <br/>The order of calling handlers is not guarenteed.
  *  @param handler Function, with 1 parameter, which will be a string folder (or undefined, if the suite is unsaved and temporary).
- *  @param handlerName String; Required if you call this from a Core extension; optional if you call this from a Javascript
- *  component - loaded through Components.utils.import(). If there already was a handler registered with the same handlerName,
+ *  @param handlerName String; Required if you call this from a Core extension,
+    because those get re-loaded if you re-start Se IDE (without restarting Firefox).
+    Optional if you call this from a Javascript component - loaded through Components.utils.import()
+    - because those won't get re-loaded if you restart Se IDE. If there already was a handler registered with the same handlerName,
  *  this replaces the previously registered function with the one given now.
  * */
 function addTestSuiteFolderChangeHandler( handler, handlerName ) {

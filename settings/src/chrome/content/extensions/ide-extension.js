@@ -28,12 +28,6 @@
         // result===true means that the window was closed (whether saved or not)
         if( result ) {
             SeLiteSettings.setTestSuiteFolder(undefined);
-            // I don't empty whole testSuiteFolderChangeHandlers here because
-            // some handlers are set from within JS components (e.g. SeLiteSettings), which get loaded in memory only once (per Firefox run), so if I removed such handler(s) here, they will be missed until next Firefox restart.
-            // @TODO
-            // 1. change testSuiteFolderChangeHandlers to be an associative array
-            // 2. accept handler name
-            // 3. when re-registering a handler with the same name, remove the old handler
         }
         //console.log( 'Editor.proto.confirmClose passed');
         return result;
