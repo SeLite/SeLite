@@ -1,4 +1,3 @@
-Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
 SeLiteExtensionSequencer.registerPlugin( {
     pluginId: 'db-objects@selite.googlecode.com',
     // This plugin doesn't put 'chrome://selite-db-objects/content/basic-objects.js' etc. to coreUrl,
@@ -11,4 +10,3 @@ SeLiteExtensionSequencer.registerPlugin( {
         'settings@selite.googlecode.com': 'SeLite Settings'
     }
 } );
-var EXPORTED_SYMBOLS= [];

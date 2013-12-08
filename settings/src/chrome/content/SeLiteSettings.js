@@ -26,7 +26,7 @@ if( runningAsComponent ) {
     var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
     Components.utils.import("resource://gre/modules/Services.jsm");
     Components.utils.import("resource://gre/modules/FileUtils.jsm");
-    Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
+    Components.utils.import( "chrome://selite-misc/content/selite-misc.js" ); //@TODO This defines getField() which conflicts with SeLiteSettings' getField()
     var nsIPrefBranch= Components.interfaces.nsIPrefBranch;
     var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
     var nsIIOService= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);    

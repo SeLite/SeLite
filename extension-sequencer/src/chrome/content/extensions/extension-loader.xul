@@ -31,11 +31,14 @@
         
         AddonManager.getAllAddons(
         function( addons ) {
+            var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
             var addonsById= {}; // Object { string addOnId => Addon object }.
             for( var addon of addons ) {
                 addonsById[ addon.id ]= addon;
                 if( addon.isActive && addon.hasResource( 'chrome/content/SeLiteExtensionSequencerManifest.js') ) {
-                    Components.utils.import( addon.getResourceURI('chrome/content/SeLiteExtensionSequencerManifest.js').spec );
+                    subScriptLoader.loadSubScript( addon.getResourceURI('chrome/content/SeLiteExtensionSequencerManifest.js').spec,
+                        { SeLiteExtensionSequencer: SeLiteExtensionSequencer }
+                    );
                 }
             }
             

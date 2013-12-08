@@ -1,4 +1,3 @@
-Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
 SeLiteExtensionSequencer.registerPlugin( {
     pluginId: 'bootstrap@selite.googlecode.com',
     coreUrl: 'chrome://selite-bootstrap/content/extensions/se_bootstrap.js',
@@ -10,5 +9,3 @@ SeLiteExtensionSequencer.registerPlugin( {
         api.preferences.save(api.preferences.DEFAULT_OPTIONS, "se_bootstrap_scriptFileName");
     }
 } );
-
-var EXPORTED_SYMBOLS= [];
