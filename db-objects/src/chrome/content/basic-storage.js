@@ -590,7 +590,7 @@ StorageFromSettings.prototype.close= function() { SeLiteMisc.fail('StorageFromSe
 
 SeLiteSettings.addTestSuiteFolderChangeHandler(
     function() {
-        console.log('TestSuiteFolderChangeHandler');
+        //console.log('TestSuiteFolderChangeHandler');
         if( StorageFromSettings.instances.length>0 && !SeLiteSettings.getTestSuiteFolder() ) {
             console.log( 'SeLiteSettings: there are ' +StorageFromSettings.instances.length+ ' instance(s) of StorageFromSettings, yet the current test suite has no folder yet.' );
         }

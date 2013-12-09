@@ -108,8 +108,8 @@ function ensureFieldName( name, description, asModuleOrSetName ) {
  *  @return Field instance if present. It fails otherwise.
  * */
 function getField( fullName ) {
-    ensureType( fullName, 'string', 'getField() expects fullName to be a string');
-    var lastDotIndex= fullName.indexOf( '.' );
+    SeLiteMisc.ensureType( fullName, 'string', 'getField() expects fullName to be a string');
+    var lastDotIndex= fullName.lastIndexOf( '.' );
     lastDotIndex>0 && lastDotIndex<fullName.length-1 || SeLiteMisc.fail('fullName does not contain a dot: ' +fullName );
     var moduleName= fullName.substring( 0, lastDotIndex );
     var fieldName= fullName.substring( lastDotIndex+1 );
@@ -1069,7 +1069,7 @@ function getTestSuiteFolder() { return testSuiteFolder; }
  *  @param folder string or undefined
  * */
 function setTestSuiteFolder( folder ) {
-    console.log( 'setTestSuiteFolder ' +folder );
+    //console.log( 'setTestSuiteFolder ' +folder );
     if( testSuiteFolder!==folder ) {
         testSuiteFolder= folder;
         for( var i=0; i<unnamedTestSuiteFolderChangeHandlers.length; i++ ) { // @TODO change to for( .. of .. ) loop

@@ -683,7 +683,7 @@ function $X(xpath, contextNode) {
             assert(varName, " 'foreach' requires a variable name.");
             assert(valueExpr, " 'foreach' requires comma-separated values.");
             loop.values = evalWithVars("[" + valueExpr + "]");
-            if (loop.values.length == 1 && Array.isArray(loop.values[0]) {
+            if (loop.values.length == 1 && Array.isArray(loop.values[0]) ) {
               loop.values = loop.values[0]; // if sole element is an array, than use it
             }
             return [varName, "_i"];

@@ -255,7 +255,7 @@ RecordHolder.prototype.remove= function() {
  *  except for field(s) present in params and set to null - then values will be copied from prototype, (if present).
  **/
 function RecordSetFormula( params, prototype ) {
-    PrototypedObject.call( this, prototype );
+    SeLiteMisc.PrototypedObject.call( this, prototype );
     params= params ? params : {};
     SeLiteMisc.objectClone( params, ['table', 'alias', 'columns', 'joins', 'fetchCondition', 'fetchMatching', 'parameterNames', 'sort',
             'sortDirection', 'indexBy', 'indexUnique', 'subIndexBy', 'process', 'debugQuery', 'debugResult', 'generateInsertKey',
