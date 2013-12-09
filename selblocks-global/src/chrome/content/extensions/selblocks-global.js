@@ -92,7 +92,7 @@ function $X(xpath, contextNode) {
     // eg: "dilbert".isOneOf("dilbert","dogbert","mordac") => true
     String.prototype.isOneOf = function(values)
     {
-      if (!(values instanceof Array)) // copy function arguments into an array
+      if( !Array.isArray(values) ) // copy function arguments into an array
         values = Array.prototype.slice.call(arguments);
       for (var i = 0; i < this.length; i++) {
         if (values[i] == this) {
@@ -108,7 +108,7 @@ function $X(xpath, contextNode) {
       var errMsg = " The map function requires pairs of argument: string, array";
       assert(arguments.length % 2 == 0, errMsg + "; found " + arguments.length);
       for (var i = 0; i < arguments.length; i += 2) {
-        assert((typeof arguments[i].toLowerCase() == "string") && (arguments[i+1] instanceof Array),
+        assert((typeof arguments[i].toLowerCase() == "string") && Array.isArray(arguments[i+1]),
           errMsg + "; found " + typeof arguments[i] + ", " + typeof arguments[i+1]);
         if (this.isOneOf(arguments[i+1])) {
           return arguments[i];
@@ -683,7 +683,7 @@ function $X(xpath, contextNode) {
             assert(varName, " 'foreach' requires a variable name.");
             assert(valueExpr, " 'foreach' requires comma-separated values.");
             loop.values = evalWithVars("[" + valueExpr + "]");
-            if (loop.values.length == 1 && loop.values[0] instanceof Array) {
+            if (loop.values.length == 1 && Array.isArray(loop.values[0]) {
               loop.values = loop.values[0]; // if sole element is an array, than use it
             }
             return [varName, "_i"];
@@ -1112,7 +1112,7 @@ function $X(xpath, contextNode) {
               + " Each <vars> element must have the same set of attributes."
             );
           }
-          if (resultObj instanceof Array)
+          if ( Array.isArray(resultObj) )
             resultObj.push(varAttrs[v].nodeName);
           else
             resultObj[attr.nodeName] = attr.nodeValue;

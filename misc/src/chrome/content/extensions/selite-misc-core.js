@@ -16,7 +16,7 @@
 */
 "use strict";
 
-Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
+var SeLiteMisc= Components.utils.import( "chrome://selite-misc/content/selite-misc.js", {} );
 
 Selenium.prototype.robustNullToken= 'robustNullReplacementString';
 

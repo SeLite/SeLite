@@ -24,6 +24,7 @@ if( runningAsComponent ) {
         getService(Components.interfaces.nsILoginManager);
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 }
+
 /** This throws the given error or a new error (containg the given message, if any). It also logs the current stack trase to console as a warning.
  *  @param errorOrMessage An Error, or a string message, or undefined/null.
  *  @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error

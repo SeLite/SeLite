@@ -16,6 +16,8 @@
 */
 "use strict";
 
+var SeLiteMisc= Components.utils.import( "chrome://selite-misc/content/selite-misc.js", {} );
+    
 // For all Selenium actions and locators defined here - i.e. functions with name doXXXX, isXXXXX, getXXXXX
 // see their documentation at ../reference.xml
 
@@ -246,7 +248,7 @@ Selenium.prototype.doIndexBy= function( columnOrDetails, sourceVariableName ) {
             resultVariableName= columnOrDetails.target;
         }
     }
-    storedVars[resultVariableName]= collectByColumn( storedVars[sourceVariableName], indexBy, !subIndexBy, subIndexBy );
+    storedVars[resultVariableName]= SeLiteMisc.collectByColumn( storedVars[sourceVariableName], indexBy, !subIndexBy, subIndexBy );
 }
 
 // I don't use prefix 'get' or 'do' in the name of this function
@@ -282,7 +284,7 @@ Selenium.prototype.doClickRandom= function( radiosXPath, store ) {
     this.browserbot.clickElement( radio );
 
     if( store ) {
-        setFields( storedVars, store, radio.value );
+        SeLiteMisc.setFields( storedVars, store, radio.value );
     }
 };
 
@@ -324,7 +326,7 @@ Selenium.prototype.doSelectRandom= function( selectLocator, paramsOrStore ) {
     
     if( params && params.store ) {
         //storedVars[params.store]= option.value;
-        setFields( storedVars, params.store, option.value );
+        SeLiteMisc.setFields( storedVars, params.store, option.value );
     }
 };
 
@@ -409,11 +411,11 @@ Selenium.prototype.randomText= function( locator, params, extraParams ) {
     if( type=='ugly' ) {
         charRange= "'\"./<>();";
     }
-    var acceptableChars= acceptableCharacters( new RegExp( '['+charRange+']' ) );
+    var acceptableChars= SeLiteMisc.acceptableCharacters( new RegExp( '['+charRange+']' ) );
     var result= '';
     
     if( type=='name' ) {
-        result= randomItem( this.randomFirstNames )+ ' ' +randomItem( this.randomSurnames );
+        result= SeLiteMisc.randomItem( this.randomFirstNames )+ ' ' +SeLiteMisc.randomItem( this.randomSurnames );
 
         // Append random name-like string, min. randomThirdNameMinLength letters, max. randomThirdNameMaxLength letters,
         // plust a leading space, e.g. ' Xu...'
@@ -422,8 +424,8 @@ Selenium.prototype.randomText= function( locator, params, extraParams ) {
                 this.randomThirdNameMaxLength-this.randomThirdNameMinLength,
                 maxLength-1- this.randomThirdNameMinLength-result.length
             ) );
-            result+= ' ' +randomChar(acceptableChars).toUpperCase() +
-                randomString( acceptableChars, thirdNameLength-1);
+            result+= ' ' +SeLiteMisc.randomChar(acceptableChars).toUpperCase() +
+                SeLiteMisc.randomString( acceptableChars, thirdNameLength-1);
         }
         result= result.substr( 0, maxLength ); // In case we've overrun it (by first or first+' '+last)
     }
@@ -438,7 +440,7 @@ Selenium.prototype.randomText= function( locator, params, extraParams ) {
                 }
             }
             if( !name.length ) {
-                name+= randomChar( acceptableChars );
+                name+= SeLiteMisc.randomChar( acceptableChars );
             }
         }
         else {
@@ -446,11 +448,11 @@ Selenium.prototype.randomText= function( locator, params, extraParams ) {
             // first.last@word.word-and-random-filling.(com|it|...) or
             // first@word.word-and-random-filling.(com|it|...) for c.a. 50% of results each.
             // If the part left of '@' were much longer, it's difficult to identify the email pattern by a human.
-            var name= randomItem( this.randomFirstNames ).toLowerCase();
+            var name= SeLiteMisc.randomItem( this.randomFirstNames ).toLowerCase();
             // If there's enough space, then for 50% of such cases, append a dot and a second name/part of it
             // Leave at least 5 characters for domain
             if( name.length<maxLength-6 && Math.random()>0.5 ) {
-                name+= '.' +randomItem( this.randomSurnames ).toLowerCase();
+                name+= '.' +SeLiteMisc.randomItem( this.randomSurnames ).toLowerCase();
             }
         }
         name= name.substr(0, maxLength-6 ); // In case we've overrun, leave at least 5 letters for full domain
@@ -458,17 +460,17 @@ Selenium.prototype.randomText= function( locator, params, extraParams ) {
         var topDomains= maxLength- name.length > 6
             ? this.randomTopDomains
             : this.randomTopDomainsShort;
-        var topDomain= randomItem( topDomains );
+        var topDomain= SeLiteMisc.randomItem( topDomains );
 
         var maxMidDomainLength= maxLength- name.length- topDomain.length- 2;
-        var midDomain= randomItem( this.randomWords ).toLowerCase();
+        var midDomain= SeLiteMisc.randomItem( this.randomWords ).toLowerCase();
         if( maxMidDomainLength-midDomain.length >=2 ) {
             // Let's append a dash followed by 1 or more random alpha letters, e.g. '-xpqr', to midDomain
             var midDomainExtraLength= 1+ Math.round( Math.random()* Math.min(
                 this.randomThirdNameMinLength,
                 maxMidDomainLength- 2- midDomain.length
             ) );
-            midDomain+= '-' +randomString(acceptableChars, midDomainExtraLength ).toLowerCase();
+            midDomain+= '-' +SeLiteMisc.randomString(acceptableChars, midDomainExtraLength ).toLowerCase();
 
         }
         midDomain= midDomain.substr(0, maxMidDomainLength );
@@ -497,7 +499,7 @@ Selenium.prototype.randomText= function( locator, params, extraParams ) {
             var numFirstUglies= Math.min( maxLength, acceptableChars.length );
             result= acceptableChars.substr(0, numFirstUglies);
             // Typing the rest (still, ugly ones)
-            result+= randomString(acceptableChars, totalLength-numFirstUglies);
+            result+= SeLiteMisc.randomString(acceptableChars, totalLength-numFirstUglies);
         }
         else
         if( type=='number' ) {
@@ -526,7 +528,7 @@ Selenium.prototype.randomText= function( locator, params, extraParams ) {
             else
             if( params.decimal ) {
                 // We generate a number with totalLength digits. Then we replace one by the decimal point
-                result= randomString(acceptableChars, totalLength);
+                result= SeLiteMisc.randomString(acceptableChars, totalLength);
                 var decimalPointPosition= totalLength-actualScale-1;
                 result= result.substring( 0, decimalPointPosition )+ '.' +result.substring(decimalPointPosition+1);
                 if( result[totalLength-1]=='0' ) {
@@ -538,7 +540,7 @@ Selenium.prototype.randomText= function( locator, params, extraParams ) {
             }
         }
         else {
-            result= randomString(acceptableChars, totalLength);
+            result= SeLiteMisc.randomString(acceptableChars, totalLength);
         }
     }
     else {
@@ -557,7 +559,7 @@ Selenium.prototype.doTypeRandom= function( locator, paramsOrStore ) {
     LOG.debug('doTypeRandom() typing: ' +resultString );
     this.doType( locator, resultString );
     if( params.store ) {
-        setFields( storedVars, params.store, resultString );
+        SeLiteMisc.setFields( storedVars, params.store, resultString );
     }
 };
 // @TODO This doesn't work well
@@ -581,7 +583,7 @@ Selenium.prototype.doTypeRandomEmail= function( locator, params ) {
         else {
             throw new Error( "You must pass the name to use for the email address, or pass an object with 'from' field which is a locator." );
         }
-        objectClone( params, ['minLength', 'maxLength'], [], paramsToPass );
+        SeLiteMisc.objectClone( params, ['minLength', 'maxLength'], [], paramsToPass );
     }
     var extraParamsToPass= {
         baseOnName: name
@@ -591,7 +593,7 @@ Selenium.prototype.doTypeRandomEmail= function( locator, params ) {
     LOG.debug('doTypeRandomEmail() typing: ' +resultString );
     this.doType( locator, resultString );
     if( params.store ) {
-        setFields( storedVars, params.store, resultString );
+        SeLiteMisc.setFields( storedVars, params.store, resultString );
     }
 };
 

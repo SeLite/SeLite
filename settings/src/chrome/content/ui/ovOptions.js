@@ -17,7 +17,7 @@
 var XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 var nsIFilePicker = Components.interfaces.nsIFilePicker;
 Components.utils.import("resource://gre/modules/FileUtils.jsm" );
-Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
+var SeLiteMisc= Components.utils.import( "chrome://selite-misc/content/selite-misc.js", {} );
 Components.utils.import("resource://gre/modules/osfile.jsm");
 //var console = (Components.utils.import("resource://gre/modules/devtools/Console.jsm", {})).console;
 
@@ -312,7 +312,7 @@ function generateTreeColumns( allowModules, perFolder ) {
  *     string module name => Module object
  *  }
  * */
-var modules= sortedObject(true);
+var modules= SeLiteMisc.sortedObject(true);
 
 /** Sorted object (anonymous in any other respect) serving as multi-level associative array {
     *   string module name => anonymous object {
@@ -339,7 +339,7 @@ var modules= sortedObject(true);
  * So when a user selects a set, I change its 'editable' attribute to false. Navigating tree using DOM functions seems to be more complex.
    2. I use this when saving a set/module/all displayed modules.
  *  * */
-var treeRowsOrChildren= sortedObject(true);
+var treeRowsOrChildren= SeLiteMisc.sortedObject(true);
 
 /** Get a <treecell> element/object from a given treeRow and level
  *  @param object treeRow object/element for <treerow>
@@ -347,9 +347,9 @@ var treeRowsOrChildren= sortedObject(true);
  *  @return object Element for <treecell>
  * */
 function treeCell( treeRow, level ) {
-    treeRow instanceof XULElement || fail( 'treeCell() requires treeRow to be an XULElement object, but it received ' +treeRow );
-    treeRow.tagName==='treerow' || fail( 'treeCell() requires treeRow to be an XULElement object for <treerow>, but it received XULElement for ' +treeRow.tagName );
-    level instanceof RowLevel || fail( 'treeCell() requires level to be an instance of RowLevel.' );
+    treeRow instanceof XULElement || SeLiteMisc.fail( 'treeCell() requires treeRow to be an XULElement object, but it received ' +treeRow );
+    treeRow.tagName==='treerow' || SeLiteMisc.fail( 'treeCell() requires treeRow to be an XULElement object for <treerow>, but it received XULElement for ' +treeRow.tagName );
+    level instanceof RowLevel || SeLiteMisc.fail( 'treeCell() requires level to be an instance of RowLevel.' );
     var cells= treeRow.getElementsByTagName( 'treecell' );
     return cells[ allowSets
         ? level.forLevel(0, 1, 2, 3, 4, 5)
@@ -371,7 +371,7 @@ function subContainer( parent, fieldOrFields ) {
     for( var i=1; i<arguments.length; i++ ) {
         var fieldName= arguments[i];
         if( object[fieldName]===undefined ) {
-            object[fieldName]= sortedObject(true);
+            object[fieldName]= SeLiteMisc.sortedObject(true);
         }
         object= object[fieldName];
     }
@@ -391,7 +391,7 @@ function valueCompound( field, setName ) {
  *  @return string Empty string, 'Null' or 'Undefine', as an appropriate action for this field.
  * */
 function nullOrUndefineLabel( field, valueCompound ) {
-    targetFolder===null || fail();
+    targetFolder===null || SeLiteMisc.fail();
     if( !field.multivalued ) {
         return valueCompound.entry===null
             ? (field.requireAndPopulate
@@ -450,10 +450,10 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     var multivaluedOrChoice= field!==null && (field.multivalued || field instanceof SeLiteSettings.Field.Choice);
     var key= null; // If valueOrPair is an object with exactly one (iterable) key, this is the key
     if( typeof valueOrPair==='object' && valueOrPair!==null ) {
-        rowLevel===RowLevel.OPTION || fail( "generateTreeItem(): parameter valueOrPair must not be an object, unless RowLevel is OPTION, but that is " +rowLevel );
-        multivaluedOrChoice || fail( 'generateTreeItem(): parameter valueOrPair can be an object only for multivalued fields or choice fields, but it was used with ' +field );
+        rowLevel===RowLevel.OPTION || SeLiteMisc.fail( "generateTreeItem(): parameter valueOrPair must not be an object, unless RowLevel is OPTION, but that is " +rowLevel );
+        multivaluedOrChoice || SeLiteMisc.fail( 'generateTreeItem(): parameter valueOrPair can be an object only for multivalued fields or choice fields, but it was used with ' +field );
         var keys= Object.keys(valueOrPair);
-        keys.length===1 || fail( "generateItem(): parameter valueOrPair can be an object, but with exactly one field, yet it received one with " +keys.length+ ' fields.' );
+        keys.length===1 || SeLiteMisc.fail( "generateItem(): parameter valueOrPair can be an object, but with exactly one field, yet it received one with " +keys.length+ ' fields.' );
         key= keys[0];
     }
     var value= key!==null
@@ -569,8 +569,8 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     }
     var isNull, isNullOrUndefined;
     if( rowLevel===RowLevel.FIELD ) {
-        valueCompound.entry!==null || !field.multivalued || fail( 'Field ' +field.name + ' is multivalued, yet its compoundValue.entry is null. In per-folder mode: ' +(targetFolder!==null) );
-        valueCompound.entry!==undefined || !field.requireAndPopulate || fail( 'Field ' +field.name+ ' has requireAndPopulate=true, yet its entry is undefined.');
+        valueCompound.entry!==null || !field.multivalued || SeLiteMisc.fail( 'Field ' +field.name + ' is multivalued, yet its compoundValue.entry is null. In per-folder mode: ' +(targetFolder!==null) );
+        valueCompound.entry!==undefined || !field.requireAndPopulate || SeLiteMisc.fail( 'Field ' +field.name+ ' has requireAndPopulate=true, yet its entry is undefined.');
         isNull= valueCompound.entry===null;
         isNullOrUndefined= isNull || valueCompound.entry===undefined;
     }
@@ -748,7 +748,7 @@ function generateFields( setChildren, module, setName, setFields ) {
             for( var key in pairsToList ) {////@TODO potential IterableArray
                 var pair= {};
                 pair[key]= pairsToList[key];
-                !isChoice || compound.entry===undefined || typeof(compound.entry)==='object' || fail( 'field ' +field.name+ ' has value ' +typeof compound.entry );
+                !isChoice || compound.entry===undefined || typeof(compound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value ' +typeof compound.entry );
                 var optionItem= generateTreeItem(module, setName, field, pair,
                     RowLevel.OPTION,
                     isChoice && typeof(compound.entry)==='object'
@@ -773,7 +773,7 @@ function generateFields( setChildren, module, setName, setFields ) {
  *  but I didn't know (and still don't know) how to get it for <treerow> element where the user clicked - tree.view doesn't let me.
  * */
 function propertiesPart( properties, level, otherwise ) {
-    level instanceof RowLevel || fail( "propertiesPart() expects parameter level to be an instance of RowLevel, but its type is " +(typeof level)+ ": " +level );
+    level instanceof RowLevel || SeLiteMisc.fail( "propertiesPart() expects parameter level to be an instance of RowLevel, but its type is " +(typeof level)+ ": " +level );
     var propertiesParts= properties.split( ' ' );
     
     if( level.level>=propertiesParts.length ) {
@@ -841,7 +841,7 @@ function treeClickHandler( event ) {
             
             var selectedSetName= propertiesPart( rowProperties, RowLevel.SET );
             if( allowSets && column.value.element===treeColumnElements.selectedSet && cellIsEditable ) { // Select the clicked set, de-select previously selected set
-                cellValue==='true' || fail( 'Only unselected sets should have the set selection column editable.' );
+                cellValue==='true' || SeLiteMisc.fail( 'Only unselected sets should have the set selection column editable.' );
                 module.setSelectedSetName( selectedSetName );
                 modifiedPreferences= true;
                 
@@ -858,7 +858,7 @@ function treeClickHandler( event ) {
                 var isSingleNonChoice= !(field.multivalued || field instanceof SeLiteSettings.Field.Choice);
                 
                 if( isSingleNonChoice  ) {
-                    field instanceof SeLiteSettings.Field.Bool || fail('field ' +field.name+ ' should be Field.Bool');
+                    field instanceof SeLiteSettings.Field.Bool || SeLiteMisc.fail('field ' +field.name+ ' should be Field.Bool');
                     var clickedCell= treeCell( moduleRowsOrChildren[selectedSetName][field.name], RowLevel.CHECKBOX );
                     field.setValue( selectedSetName, clickedCell.getAttribute( 'value')==='true' );
                     // I don't need to call updateSpecial() here - if the field was SeLiteSettings.NULL, then the above setValue() replaced that
@@ -939,7 +939,7 @@ function treeClickHandler( event ) {
                     }
                     if( (cellText===ADD_NEW_VALUE || cellText===DELETE_THE_VALUE) ) {
                         if( !field.multivalued || field instanceof SeLiteSettings.Field.Choice ) {
-                            fail( 'We only allow Add/Delete buttons for non-choice multivalued fields, but it was triggered for field ' +field.name );
+                            SeLiteMisc.fail( 'We only allow Add/Delete buttons for non-choice multivalued fields, but it was triggered for field ' +field.name );
                         }
                         var treeChildren= moduleRowsOrChildren[selectedSetName][field.name][SeLiteSettings.FIELD_TREECHILDREN];
                         if( cellText===ADD_NEW_VALUE ) {
@@ -953,7 +953,7 @@ function treeClickHandler( event ) {
                             for( var key in moduleRowsOrChildren[selectedSetName][field.name] ) {
                                 if( SeLiteSettings.reservedNames.indexOf(key)<0 ) {
                                     previouslyFirstValueRow= moduleRowsOrChildren[selectedSetName][field.name][key];
-                                    previouslyFirstValueRow instanceof XULElement && previouslyFirstValueRow.tagName==='treerow' && previouslyFirstValueRow.parentNode.tagName==='treeitem' || fail();
+                                    previouslyFirstValueRow instanceof XULElement && previouslyFirstValueRow.tagName==='treerow' && previouslyFirstValueRow.parentNode.tagName==='treeitem' || SeLiteMisc.fail();
                                     break;
                                 }
                             }
@@ -1006,7 +1006,7 @@ function treeClickHandler( event ) {
                             window.open( 'file://' +OS.Path.join(folder, SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME), '_blank' );
                         }
                         else {
-                            ensure( cellProperties.startsWith(SeLiteSettings.VALUES_MANIFEST) );
+                            SeLiteMisc.ensure( cellProperties.startsWith(SeLiteSettings.VALUES_MANIFEST) );
                             var folder= cellProperties.substring( SeLiteSettings.VALUES_MANIFEST.length+1 );
                             window.open( 'file://' +OS.Path.join(folder, SeLiteSettings.VALUES_MANIFEST_FILENAME), '_blank' );
                         }
@@ -1028,7 +1028,7 @@ function treeClickHandler( event ) {
                         }
                         if( !field.multivalued && field instanceof SeLiteSettings.Field.Choice && compound.entry ) {
                             var keys= Object.keys(compound.entry);
-                            keys.length===1 || fail();
+                            keys.length===1 || SeLiteMisc.fail();
                             treeCell( treeRowsOrChildren[moduleName][selectedSetName][field.name][ keys[0] ], RowLevel.CHECKBOX ).setAttribute( 'value', 'false' );
                         }
                         modifiedPreferences= true;
@@ -1118,13 +1118,13 @@ function gatherAndValidateCell( row, value ) {
     var oldKey;
     var validationPassed= true;
     var valueChanged;
-    field!==undefined || fail( 'field ' +fieldName+ ' is undefined');
+    field!==undefined || SeLiteMisc.fail( 'field ' +fieldName+ ' is undefined');
     var trimmed= field.trim(value);
     var parsed;
     if( !field.multivalued ) {
         treeRow= moduleRowsOrChildren[setName][fieldName];
         // Can't use treeRow.constructor.name here - because it's a native object.
-        treeRow instanceof XULElement && treeRow.tagName==='treerow' || fail( 'treeRow should be an instance of XULElement for a <treerow>.');
+        treeRow instanceof XULElement && treeRow.tagName==='treerow' || SeLiteMisc.fail( 'treeRow should be an instance of XULElement for a <treerow>.');
         var oldKey= moduleSetFields[moduleName][setName][fieldName].entry;
         valueChanged= value!==''+oldKey;
             //&& !(value==='null' && oldKey===null)
@@ -1132,9 +1132,9 @@ function gatherAndValidateCell( row, value ) {
     }
     else {
         fieldTreeRowsOrChildren= moduleRowsOrChildren[setName][fieldName];
-        fieldTreeRowsOrChildren instanceof SortedObjectTarget || fail( "fieldTreeRowsOrChildren should be an instance of SortedObjectTarget, but it is " +fieldTreeRowsOrChildren.constructor.name );
+        fieldTreeRowsOrChildren instanceof SeLiteMisc.SortedObjectTarget || SeLiteMisc.fail( "fieldTreeRowsOrChildren should be an instance of SeLiteMisc.SortedObjectTarget, but it is " +fieldTreeRowsOrChildren.constructor.name );
         oldKey= propertiesPart( rowProperties, RowLevel.OPTION );
-        oldKey!==null && oldKey!==undefined || fail( 'Module ' +module.name+ ', set ' +setName+ ', field ' +field.name+ " is null/undefined, but it shoduln't be because it's a multi-valued field.");
+        oldKey!==null && oldKey!==undefined || SeLiteMisc.fail( 'Module ' +module.name+ ', set ' +setName+ ', field ' +field.name+ " is null/undefined, but it shoduln't be because it's a multi-valued field.");
         valueChanged= value!==oldKey; // oldKey is a string, so this comparison is OK
         if( valueChanged ) {
             if( trimmed in fieldTreeRowsOrChildren ) {
@@ -1221,7 +1221,7 @@ function setCellText( row, col, value, original) {
             // fieldTreeRowsOrChildren has 3 keys: SeLiteSettings.FIELD_MAIN_ROW, SeLiteSettings.FIELD_TREECHILDREN, SeLiteSettings.NEW_VALUE_ROW.
             // So there's no other existing value, and the row being edited is a new one (it didn't have a real value set yet)
             info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW]===info.treeRow && info.oldKey===SeLiteSettings.NEW_VALUE_ROW
-            || fail( "This assumes that if fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] is set, then that's the row we're just editing." );
+            || SeLiteMisc.fail( "This assumes that if fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] is set, then that's the row we're just editing." );
             rowAfterNewPosition= info.treeRow;
         }
         if( rowAfterNewPosition!==info.treeRow ) { // Repositioning - remove treeRow, create a new treeRow
@@ -1324,9 +1324,9 @@ function createTreeView(original) {
  *  no actual values (but it can/should contain VALUE_PRESENT).
  * */
 function updateSpecial( setName, field, addOrRemove, keyOrValue ) {
-    !addOrRemove || field.multivalued || fail("addOrRemove can be one of +1, -1 only if field.multivalued. addOrRemove is " +addOrRemove+ " and field.multivalued is " +field.multivalued);
-    addOrRemove || keyOrValue!==undefined || !field.requireAndPopulate || fail("Field " +field.name+ " has requireAndPopulate==true, but keyOrValue is undefined.");
-    addOrRemove || keyOrValue!==null || !field.multivalued || fail("Field " +field.name+ " is multivalued, yet keyOrValue is null.");
+    !addOrRemove || field.multivalued || SeLiteMisc.fail("addOrRemove can be one of +1, -1 only if field.multivalued. addOrRemove is " +addOrRemove+ " and field.multivalued is " +field.multivalued);
+    addOrRemove || keyOrValue!==undefined || !field.requireAndPopulate || SeLiteMisc.fail("Field " +field.name+ " has requireAndPopulate==true, but keyOrValue is undefined.");
+    addOrRemove || keyOrValue!==null || !field.multivalued || SeLiteMisc.fail("Field " +field.name+ " is multivalued, yet keyOrValue is null.");
     var setNameDot= setName
         ? setName+'.'
         : setName;
@@ -1347,7 +1347,7 @@ function updateSpecial( setName, field, addOrRemove, keyOrValue ) {
     else {
         if( keyOrValue===null ) {
             if( field instanceof SeLiteSettings.Field.Choice && Object.keys(compound.entry).length>0 ) {
-                !field.multivalued && Object.keys(compound.entry).length===1 || fail();
+                !field.multivalued && Object.keys(compound.entry).length===1 || SeLiteMisc.fail();
                 field.module.prefsBranch.clearUserPref( setNameDot+field.name+ '.' +Object.keys(compound.entry)[0] );
             }
             if( field.module.prefsBranch.prefHasUserValue(setNameDot+field.name) && field.prefType()!==nsIPrefBranch.PREF_STRING ) {
@@ -1357,14 +1357,14 @@ function updateSpecial( setName, field, addOrRemove, keyOrValue ) {
         }
         else
         if( keyOrValue===undefined ) {
-            !field.multivalued || Object.keys(compound.entry).length===0 || fail("Multivalued field " +field.name+ " has one or more entries, therefore keyOrValue must not be undefined.");
+            !field.multivalued || Object.keys(compound.entry).length===0 || SeLiteMisc.fail("Multivalued field " +field.name+ " has one or more entries, therefore keyOrValue must not be undefined.");
             if( field.module.prefsBranch.prefHasUserValue(setNameDot+field.name) ) {
                 field.module.prefsBranch.clearUserPref(setNameDot+field.name);
             }
         }
         else 
         if( field instanceof SeLiteSettings.Field.Choice && compound.entry===null ) {
-            !field.multivalued || fail();
+            !field.multivalued || SeLiteMisc.fail();
             if( field.module.prefsBranch.prefHasUserValue(setNameDot+field.name) ) {
                 field.module.prefsBranch.clearUserPref(setNameDot+field.name); // Clearing NULL
             }
@@ -1373,7 +1373,7 @@ function updateSpecial( setName, field, addOrRemove, keyOrValue ) {
     }
     } catch(e) {
         console.log( 'updateSpecial() Module ' +field.module.name+ ', set ' +setName+ ', field: ' +field.name+ ' has compound ' +typeof compound );
-        fail(e);
+        SeLiteMisc.fail(e);
     }
 }
 
@@ -1467,7 +1467,7 @@ window.addEventListener( "load", function(e) {
         if( match ) {
             moduleName= unescape( match[1] );
             modules[ moduleName ]= SeLiteSettings.loadFromJavascript( moduleName, undefined, true/** Force reload, so that user's changes has an effect without restarting Firefox. */ );
-            ensure( !targetFolder || modules[moduleName].associatesWithFolders, "You're using URL with folder=" +targetFolder+
+            SeLiteMisc.ensure( !targetFolder || modules[moduleName].associatesWithFolders, "You're using URL with folder=" +targetFolder+
                 " and module=" +moduleName+ ", however that module doesn't allow to be associated with folders." );
         }
         match= /prefix=([a-zA-Z0-9_.-]+)/.exec( params );
@@ -1491,7 +1491,7 @@ window.addEventListener( "load", function(e) {
         }
     }
     var allowModules= false; // true if we list all modules (if any); false if we just list one named in URL parameter 'module' (if any)
-    if( isEmptyObject(modules) ) {
+    if( SeLiteMisc.isEmptyObject(modules) ) {
         allowModules= true;
         var moduleNames= SeLiteSettings.moduleNamesFromPreferences( prefix );
         for( var i=0; i<moduleNames.length; i++ ) {
@@ -1537,7 +1537,7 @@ window.addEventListener( "load", function(e) {
         }
     }
     else
-    if( !isEmptyObject(modules) ) {
+    if( !SeLiteMisc.isEmptyObject(modules) ) {
         for( var moduleName in modules ); // just get moduleName
         
         var moduleChildren;

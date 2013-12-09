@@ -26,7 +26,7 @@ if( runningAsComponent ) {
     var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
     Components.utils.import("resource://gre/modules/Services.jsm");
     Components.utils.import("resource://gre/modules/FileUtils.jsm");
-    Components.utils.import( "chrome://selite-misc/content/selite-misc.js" ); //@TODO This defines getField() which conflicts with SeLiteSettings' getField()
+    var SeLiteMisc= Components.utils.import( "chrome://selite-misc/content/selite-misc.js", {} );
     var nsIPrefBranch= Components.interfaces.nsIPrefBranch;
     var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
     var nsIIOService= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);    
@@ -34,7 +34,7 @@ if( runningAsComponent ) {
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 }
 
-var modules= sortedObject(true); // Object serving as an associative array { string module.name => Module instance }
+var modules= SeLiteMisc.sortedObject(true); // Object serving as an associative array { string module.name => Module instance }
 
 var SELECTED_SET_NAME= "SELITE_SELECTED_SET_NAME"; // CSS also depends on its value
 
@@ -110,12 +110,12 @@ function ensureFieldName( name, description, asModuleOrSetName ) {
 function getField( fullName ) {
     ensureType( fullName, 'string', 'getField() expects fullName to be a string');
     var lastDotIndex= fullName.indexOf( '.' );
-    lastDotIndex>0 && lastDotIndex<fullName.length-1 || fail('fullName does not contain a dot: ' +fullName );
+    lastDotIndex>0 && lastDotIndex<fullName.length-1 || SeLiteMisc.fail('fullName does not contain a dot: ' +fullName );
     var moduleName= fullName.substring( 0, lastDotIndex );
     var fieldName= fullName.substring( lastDotIndex+1 );
-    moduleName in modules || fail( 'Module ' +moduleName+ ' has not been loaded.' );
+    moduleName in modules || SeLiteMisc.fail( 'Module ' +moduleName+ ' has not been loaded.' );
     var module= modules[moduleName];
-    fieldName in module.fields || fail( 'Module ' +moduleName+ " doesn't contain field " +field );
+    fieldName in module.fields || SeLiteMisc.fail( 'Module ' +moduleName+ " doesn't contain field " +field );
     return module.fields[fieldName];
 }
 
@@ -158,17 +158,17 @@ var Field= function( name, multivalued, defaultKey, requireAndPopulate, customVa
         throw new Error( 'Field("' +name+ ') expects multivalued to be a boolean, if provided.');
     }
     this.multivalued= multivalued;
-    !this.multivalued || defaultKey===undefined || defaultKey instanceof Array || fail( "Multi valued field " +name+ " must have default a default key - an array (possibly []) or undefined." );
-    this.multivalued || defaultKey===undefined || defaultKey===null || typeof defaultKey!=='object' || fail( 'Single valued field ' +name+ " must have default key a primitive or null.");
+    !this.multivalued || defaultKey===undefined || Array.isArray(defaultKey) || SeLiteMisc.fail( "Multi valued field " +name+ " must have default a default key - an array (possibly []) or undefined." );
+    this.multivalued || defaultKey===undefined || defaultKey===null || typeof defaultKey!=='object' || SeLiteMisc.fail( 'Single valued field ' +name+ " must have default key a primitive or null.");
     this.defaultKey= defaultKey;
     this.requireAndPopulate= requireAndPopulate || false;
-    ensureType( this.requireAndPopulate, "boolean", "Field() expects requireAndPopulate to be a boolean, if present.");
+    SeLiteMisc.ensureType( this.requireAndPopulate, "boolean", "Field() expects requireAndPopulate to be a boolean, if present.");
     this.customValidate= customValidate || undefined;
-    ensureType( this.customValidate, ['function', 'undefined'], 'Field() expects customValidate to be a function, if present.' );
+    SeLiteMisc.ensureType( this.customValidate, ['function', 'undefined'], 'Field() expects customValidate to be a function, if present.' );
     
-    !(this.defaultKey===null && multivalued) || fail( 'Field ' +name+ " must have a non-null defaultKey (possibly undefined), because it's multivalued." );
+    !(this.defaultKey===null && multivalued) || SeLiteMisc.fail( 'Field ' +name+ " must have a non-null defaultKey (possibly undefined), because it's multivalued." );
     if( this.defaultKey!==undefined && this.defaultKey!==null ) {
-        !this.multivalued || ensureInstance( this.defaultKey, Array, "defaultKey of a multivalued field must be an array" );
+        !this.multivalued || SeLiteMisc.ensureInstance( this.defaultKey, Array, "defaultKey of a multivalued field must be an array" );
         var defaultKeys= this.multivalued
             ? this.defaultKey
             : [this.defaultKey];
@@ -176,7 +176,7 @@ var Field= function( name, multivalued, defaultKey, requireAndPopulate, customVa
             var key= defaultKeys[i];
             this.validateKey(key) // This is redundant for Field.Choice, but that's OK
             && this.customValidateDefault(key)
-            || fail( 'Default key for '
+            || SeLiteMisc.fail( 'Default key for '
                 +(this.module ? 'module ' +this.module.name+ ', ' : '')
                 +'field ' +this.name+ ' is ' +key+ " and that doesn't pass validation." );
         }
@@ -186,11 +186,11 @@ var Field= function( name, multivalued, defaultKey, requireAndPopulate, customVa
         if( this.constructor===Field ) {
             throw new Error( "Can't instantiate Field directly, except for prototype instances. name: " +this.name );
         }
-        ensureInstance(this, 
+        SeLiteMisc.ensureInstance(this, 
             [Field.Bool, Field.Int, Field.Decimal, Field.String, Field.File, Field.Folder, Field.SQLite, Field.Choice.Int, Field.Choice.Decimal, Field.Choice.String],
             "Field.Bool, Field.Int, Field.String, Field.Decimal, Field.File, Field.Folder, Field.SQLite, Field.Choice.Int, Field.Choice.Decimal, Field.Choice.String", "Field " +this.name+ " is not of an acceptable class." );
     }
-    loadingPackageDefinition || this.name.indexOf('.')<0 || fail( 'Field() expects name not to contain a dot, but it received: ' +this.name);
+    loadingPackageDefinition || this.name.indexOf('.')<0 || SeLiteMisc.fail( 'Field() expects name not to contain a dot, but it received: ' +this.name);
     this.module= null; // instance of Module that this belongs to (once registered)
 };
 
@@ -254,10 +254,10 @@ Field.prototype.validateKey= function( key ) {
  *  case insensitive comparison for Field.String numeric comparison for Field.Number.
  *  @param string/number firstValue
  *  @param string/number secondValue
- *  @return int -1, 0, or 1, see compareCaseInsensitively()
+ *  @return int -1, 0, or 1, see SeLiteMisc.compareCaseInsensitively()
  * */
 Field.prototype.compareValues= function( firstValue, secondValue ) {
-    return compareCaseInsensitively( firstValue, secondValue );
+    return SeLiteMisc.compareCaseInsensitively( firstValue, secondValue );
 };
 
 Field.prototype.registerFor= function( module ) {
@@ -287,7 +287,7 @@ Field.prototype.prefType= function() {
  * @param value mixed; currently it must not be null or undefined - @TODO
  * */
 Field.prototype.setValue= function( setName, value ) {
-    !this.multivalued && !(this instanceof Field.Choice) || fail( "Can't call setValue() on field " +this.name+ " because it's multivalued or a Field.Choice." );
+    !this.multivalued && !(this instanceof Field.Choice) || SeLiteMisc.fail( "Can't call setValue() on field " +this.name+ " because it's multivalued or a Field.Choice." );
     var setNameWithDot= setName!==''
         ? setName+'.'
         : '';
@@ -296,7 +296,7 @@ Field.prototype.setValue= function( setName, value ) {
         && this.module.prefsBranch.getPrefType(setFieldName)===nsIPrefBranch.PREF_STRING
     ) {
         var existingValue= this.module.prefsBranch.getCharPref(setFieldName);
-        existingValue===NULL || fail("Non-string field " +this.name+ " has a string value other than 'SELITE_NULL': " +existingValue );
+        existingValue===NULL || SeLiteMisc.fail("Non-string field " +this.name+ " has a string value other than 'SELITE_NULL': " +existingValue );
         this.module.prefsBranch.clearUserPref(setFieldName);
     }
     this.setPref( setFieldName, value );
@@ -314,7 +314,7 @@ Field.prototype.setPref= function( setFieldKeyName, value ) {
         this.module.prefsBranch.setIntPref( setFieldKeyName, value );
     }
     else {
-        prefType===nsIPrefBranch.PREF_BOOL || fail( "Field " +setFieldKeyName+ " hasn't got acceptable prefType()." );
+        prefType===nsIPrefBranch.PREF_BOOL || SeLiteMisc.fail( "Field " +setFieldKeyName+ " hasn't got acceptable prefType()." );
         this.module.prefsBranch.setBoolPref( setFieldKeyName, value );
     }
 };
@@ -328,7 +328,7 @@ Field.prototype.setPref= function( setFieldKeyName, value ) {
  * @TODO function to set a multivalued/choice field to undefined (if this.requireAndPopulate===false)
  * */
 Field.prototype.addValue= function( setName, key ) {
-    this.multivalued || this instanceof Field.Choice || fail();
+    this.multivalued || this instanceof Field.Choice || SeLiteMisc.fail();
     var setNameDot= setName!==''
         ? setName+'.'
         : '';
@@ -346,7 +346,7 @@ Field.prototype.addValue= function( setName, key ) {
  * @param mixed key as used to generate the preference name (key), appened after fieldName and a dot. String or number.
  * */
 Field.prototype.removeValue= function( setName, key ) {
-    this.multivalued || this instanceof Field.Choice || fail();
+    this.multivalued || this instanceof Field.Choice || SeLiteMisc.fail();
     var setNameDot= setName!==''
         ? setName+'.'
         : '';
@@ -365,7 +365,7 @@ Field.prototype.equals= function( other ) {
         && this.constructor===other.constructor
         && (!this.multivalued
             ? this.defaultKey===other.defaultKey // Strict comparison is OK for primitive string/bool/int
-            : compareArrays(this.defaultKey, other.defaultKey, true)
+            : SeLiteMisc.compareArrays(this.defaultKey, other.defaultKey, true)
            );
 };
 
@@ -420,7 +420,7 @@ Field.Int.prototype.prefType= function() {
  *  We need this for XUL GUI setCellText handler.
  * */
 Field.Int.prototype.compareValues= function( firstValue, secondValue ) {
-    return compareAsNumbers(firstValue, secondValue );
+    return SeLiteMisc.compareAsNumbers(firstValue, secondValue );
 };
 
 Field.Decimal= function( name, multivalued, defaultKey, requireAndPopulate, customValidate ) {
@@ -440,7 +440,7 @@ Field.Decimal.prototype.prefType= function() {
  *  We need this for XUL GUI setCellText handler.
  * */
 Field.Decimal.prototype.compareValues= function( firstValue, secondValue ) {
-    return compareAsNumbers(firstValue, secondValue );
+    return SeLiteMisc.compareAsNumbers(firstValue, secondValue );
 };
 
 Field.String= function( name, multivalued, defaultKey, requireAndPopulate, customValidate ) {
@@ -465,9 +465,9 @@ Field.FileOrFolder= function( name, startInProfileFolder, filters, multivalued, 
         throw new Error( 'Field.FileOrFolder() expects startInProfileFolder to be a boolean, if provided.');
     }
     this.filters= filters || {};
-    typeof(this.filters)==='object' && !Array.isArray(this.filters) || fail( 'Field.FileOrFolder() expects filters to be an object (not an array) serving as an associative array, if provided.');
+    typeof(this.filters)==='object' && !Array.isArray(this.filters) || SeLiteMisc.fail( 'Field.FileOrFolder() expects filters to be an object (not an array) serving as an associative array, if provided.');
     this.isFolder= isFolder || false;
-    ensureType( this.isFolder, 'boolean', "Field.FileOrFolder(..) expects isFolder to be a boolean, if provided." );
+    SeLiteMisc.ensureType( this.isFolder, 'boolean', "Field.FileOrFolder(..) expects isFolder to be a boolean, if provided." );
 }
 Field.FileOrFolder.prototype= new Field.NonChoice('FileOrFolder.prototype');
 Field.FileOrFolder.prototype.constructor= Field.FileOrFolder;
@@ -479,7 +479,7 @@ Field.FileOrFolder.prototype.equals= function( other ) {
     || this.isFolder!==other.isFolder ) {
         return false;
     }
-    if( !compareAllFields(this.filters, other.filters, true) ) {
+    if( !SeLiteMisc.compareAllFields(this.filters, other.filters, true) ) {
         return false;
     }
     return true;
@@ -525,24 +525,24 @@ Field.Choice= function( name, multivalued, defaultKey, choicePairs, requireAndPo
     this.choicePairs= choicePairs || {}; // This is set before I call the parent constructor, so that it can validate defaultKey against this.choicePairs
     Field.call( this, name, multivalued, defaultKey, requireAndPopulate, customValidate );
     loadingPackageDefinition || this.constructor!==Field.Choice
-        || fail( "Can't define instances of Field.Choice class itself outside the package. Use Field.Choice.Int or Field.Choice.String." );
+        || SeLiteMisc.fail( "Can't define instances of Field.Choice class itself outside the package. Use Field.Choice.Int or Field.Choice.String." );
     loadingPackageDefinition || typeof(choicePairs)==='object' && !Array.isArray(choicePairs)
-        || fail( "Instances of subclasses of Field.Choice require choicePairs to be an anonymous object serving as an associative array." );
+        || SeLiteMisc.fail( "Instances of subclasses of Field.Choice require choicePairs to be an anonymous object serving as an associative array." );
     for( var key in this.choicePairs ) {
         var value= this.choicePairs[key];
         if( !this.validateValue(value) || this.customValidate && !this.customValidate(key, value) ) {
-            fail( 'Field.Choice.XXXX ' +name+ ' has a choice {' +key+ ': ' +value
+            SeLiteMisc.fail( 'Field.Choice.XXXX ' +name+ ' has a choice {' +key+ ': ' +value
                 + ' (' +(typeof value)+ ') } which fails validation' );
         }
     }
     if( defaultKey!==undefined ) {
-        !(multivalued && defaultKey===null) || fail( "Field.Choice.XX with name " +name+ " can't have defaultKey null, because it's multivalued." );
-        multivalued===Array.isArray(defaultKey) || fail( "Field.Choice.XX with name " +name+ " must have defaultKey an array if and only if it's multivalued." );
+        !(multivalued && defaultKey===null) || SeLiteMisc.fail( "Field.Choice.XX with name " +name+ " can't have defaultKey null, because it's multivalued." );
+        multivalued===Array.isArray(defaultKey) || SeLiteMisc.fail( "Field.Choice.XX with name " +name+ " must have defaultKey an array if and only if it's multivalued." );
         var defaultKeys= multivalued
             ? defaultKey
             : [defaultKey];
         for( var i=0; i<defaultKeys.length; i++ ) { //@TODO for..of.. loop once NetBeans support it
-            defaultKeys[i] in choicePairs || fail( "Field.Choice " +name+ " has defaultKey " +defaultKeys[i]+ ", which is not among keys of its choicePairs." );
+            defaultKeys[i] in choicePairs || SeLiteMisc.fail( "Field.Choice " +name+ " has defaultKey " +defaultKeys[i]+ ", which is not among keys of its choicePairs." );
         }
     }
 };
@@ -562,13 +562,13 @@ Field.Choice.prototype.setValue= function() {
  *  - a string or a number
  *  */
 Field.Choice.prototype.validateKey= function( key ) {
-    return oneOf( typeof key, ['string', 'number']) && key in this.choicePairs;
+    return SeLiteMisc.oneOf( typeof key, ['string', 'number']) && key in this.choicePairs;
 };
 
 /** Validate a value. Only present for Field.Choice (and subclasses).
  * */
 Field.Choice.prototype.validateValue= function( value ) {
-    return oneOf( typeof value, ['string', 'number']);
+    return SeLiteMisc.oneOf( typeof value, ['string', 'number']);
 };
 
 Field.Choice.Int= function( name, multivalued, defaultKey, choicePairs, requireAndPopulate, customValidate ) {
@@ -599,7 +599,7 @@ Field.Choice.String= function( name, multivalued, defaultKey, choicePairs, requi
     Field.Choice.call( this, name, multivalued, defaultKey, choicePairs, requireAndPopulate, customValidate );
     for( var key in this.choicePairs ) {
         var value= this.choicePairs[key];
-        if( !oneOf( typeof value, ['string', 'number']) ) {
+        if( !SeLiteMisc.oneOf( typeof value, ['string', 'number']) ) {
             throw new Error( 'Field.Choice.String() for '
                 +(this.module ? 'module ' +this.module.name+', ' : '')+ 'field ' +this.name
                 +' expects values in choicePairs to be strings (or integers), but for key ' +key
@@ -629,8 +629,8 @@ var Module= function( name, fields, allowSets, defaultSetName, associatesWithFol
         throw new Error( 'Module() expects a string name.');
     }
     ensureFieldName( name, 'module name', true );
-    Array.isArray(fields) || fail( 'Module() expects an array fields, but it received ' +(typeof fields)+ ' - ' +fields);
-    this.fields= sortedObject(true); // Object serving as an associative array { string field name => Field instance }
+    Array.isArray(fields) || SeLiteMisc.fail( 'Module() expects an array fields, but it received ' +(typeof fields)+ ' - ' +fields);
+    this.fields= SeLiteMisc.sortedObject(true); // Object serving as an associative array { string field name => Field instance }
     for( var i=0; i<fields.length; i++ ) {
         var field= fields[i];
         if( !(field instanceof Field) ) {
@@ -657,8 +657,8 @@ var Module= function( name, fields, allowSets, defaultSetName, associatesWithFol
     defaultSetName===null || ensureFieldName( defaultSetName, 'defaultSetName', true );
     
     this.associatesWithFolders= associatesWithFolders || false;
-    ensureType( this.associatesWithFolders, 'boolean', 'Module() expects associatesWithFolders to be a boolean, if provided.');
-    !this.associatesWithFolders || ensure(this.allowSets, 'Module() must be called with allowSets=true, if associatesWithFolders is true.' );
+    SeLiteMisc.ensureType( this.associatesWithFolders, 'boolean', 'Module() expects associatesWithFolders to be a boolean, if provided.');
+    !this.associatesWithFolders || SeLiteMisc.ensure(this.allowSets, 'Module() must be called with allowSets=true, if associatesWithFolders is true.' );
     
     this.definitionJavascriptFile= definitionJavascriptFile || null;
     if( this.definitionJavascriptFile!=null && typeof this.definitionJavascriptFile!=='string') {
@@ -685,8 +685,8 @@ var register= function( module, createOrUpdate ) {
     if( module.name in modules ) {
         var existingModule= modules[module.name];
         
-        !compareAllFields(existingModule.fields, module.fields, 'equals')
-            || fail ( 'There already exists a module with name "' +module.name+ '" but it has different definition.');
+        !SeLiteMisc.compareAllFields(existingModule.fields, module.fields, 'equals')
+            || SeLiteMisc.fail ( 'There already exists a module with name "' +module.name+ '" but it has different definition.');
         if( module.allowSets!==existingModule.allowSets ) {
             throw new Error();
         }
@@ -748,7 +748,7 @@ Module.prototype.setNames= function() {
         return [''];
     }
     var children= directChildList( this.prefsBranch );
-    children.sort( compareCaseInsensitively );
+    children.sort( SeLiteMisc.compareCaseInsensitively );
     var result= [];
     for( var i=0; i<children.length; i++ ) {
         var child= children[i];
@@ -807,7 +807,7 @@ Module.prototype.getFieldsOfSet= function( setName ) {
     var setNameWithDot= setName!==''
         ? setName+ '.'
         : '';
-    var result= sortedObject(true);
+    var result= SeLiteMisc.sortedObject(true);
     
     for( var fieldName in this.fields ) {
         var field= this.fields[fieldName];
@@ -831,10 +831,10 @@ Module.prototype.getFieldsOfSet= function( setName ) {
             ? this.prefsBranch.getCharPref(setNameWithDot+fieldName)
             : undefined;
         if( multivaluedOrChoice && fieldHasPreference ) {
-            children.length===0 || fail('Set "' + setName+ '", field "' +fieldName+ '" has field preference, therefore it should have no children.');
+            children.length===0 || SeLiteMisc.fail('Set "' + setName+ '", field "' +fieldName+ '" has field preference, therefore it should have no children.');
             field.multivalued && multivaluedOrChoiceFieldPreference===VALUE_PRESENT
             || !field.multivalued && multivaluedOrChoiceFieldPreference===NULL
-            || fail( 'Module ' +this.name+ ', set ' + setName+
+            || SeLiteMisc.fail( 'Module ' +this.name+ ', set ' + setName+
                 ', field ' +fieldName+ ' is multivalued and/or a choice, but it has its own preference which is other than ' +VALUE_PRESENT+ ' or ' +NULL );
         }
         result[ fieldName ]= {
@@ -846,7 +846,7 @@ Module.prototype.getFieldsOfSet= function( setName ) {
             // So I only use sortedObject for multivalued fields other than Field.Choice
             result[fieldName].entry= isChoice
                 ? {}
-                : sortedObject( field.compareValues );
+                : SeLiteMisc.sortedObject( field.compareValues );
         }
         for( var i=0; i<children.length; i++ ) {
             var prefName= children[i];
@@ -872,10 +872,10 @@ Module.prototype.getFieldsOfSet= function( setName ) {
             }
         }
         if( isChoice && !field.multivalued && fieldHasPreference ) {
-            multivaluedOrChoiceFieldPreference===NULL || fail('This should have failed above already. Module ' +field.module.name+ ', set ' +setName+ ', field ' +field.name+ ' has preference ' +fieldPreference );
+            multivaluedOrChoiceFieldPreference===NULL || SeLiteMisc.fail('This should have failed above already. Module ' +field.module.name+ ', set ' +setName+ ', field ' +field.name+ ' has preference ' +fieldPreference );
             result[fieldName].entry= null;
         }
-        !isChoice || result[fieldName].entry===undefined || typeof(result[fieldName].entry)==='object' || fail( 'field ' +field.name+ ' has value ' +typeof result[fieldName].entry ); 
+        !isChoice || result[fieldName].entry===undefined || typeof(result[fieldName].entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value ' +typeof result[fieldName].entry ); 
         result[ fieldName ].fromPreferences= fieldHasPreference || children.length>0;
     }
     return result;
@@ -985,8 +985,8 @@ function manifestsDownToFolder( folderPath, dontCache ) {
     catch(e) {
         throw new Error( "Can't locate folder associated with configuration sets: " +folderPath );
     }
-    ensure( folder!=null && folder.exists, 'Given folder does not exist.' );
-    ensure( folder.isDirectory(), 'Configuration sets can only be associated with folders, not with files.' );
+    SeLiteMisc.ensure( folder!=null && folder.exists, 'Given folder does not exist.' );
+    SeLiteMisc.ensure( folder.isDirectory(), 'Configuration sets can only be associated with folders, not with files.' );
     
     // Array of string, each a full path of a folder on the path down to folderPath, including folderPath itself
     var folderNames= [];
@@ -998,8 +998,8 @@ function manifestsDownToFolder( folderPath, dontCache ) {
     while( breadCrumb!==null );
     folderNames= folderNames.reverse(); // Now they start from the root/drive folder
     
-    var values= sortedObject(true);
-    var associations= sortedObject(true);
+    var values= SeLiteMisc.sortedObject(true);
+    var associations= SeLiteMisc.sortedObject(true);
     
     for( var i=0; i<folderNames.length; i++) {//@TODO use loop for of() once NetBeans supports it
         var folder=  folderNames[i];
@@ -1009,7 +1009,7 @@ function manifestsDownToFolder( folderPath, dontCache ) {
             var lines= removeCommentsGetLines(contents);
             for( var j=0; j<lines.length; j++ ) {
                 var parts= valuesLineRegex.exec( lines[j] );
-                parts || fail( "Values manifest " +fileName+ " at line " +(j+1)+ " is badly formatted: " +lines[j]  );
+                parts || SeLiteMisc.fail( "Values manifest " +fileName+ " at line " +(j+1)+ " is badly formatted: " +lines[j]  );
                 if( !(folder in values) ) {
                     values[folder]= [];
                 }
@@ -1027,7 +1027,7 @@ function manifestsDownToFolder( folderPath, dontCache ) {
             var lines= removeCommentsGetLines(contents);
             for( var j=0; j<lines.length; j++ ) {
                 var parts= associationLineRegex.exec( lines[j] );
-                parts || fail( "Associations manifest " +fileName+ " at line " +(j+1)+ " is badly formatted: " +lines[j]  );
+                parts || SeLiteMisc.fail( "Associations manifest " +fileName+ " at line " +(j+1)+ " is badly formatted: " +lines[j]  );
                 if( !(folder in associations) ) {
                     associations[folder]= [];
                 }
@@ -1096,8 +1096,8 @@ function setTestSuiteFolder( folder ) {
  *  this replaces the previously registered function with the one given now.
  * */
 function addTestSuiteFolderChangeHandler( handler, handlerName ) {
-    ensureType( handler, 'function');
-    ensureType( handlerName, ['string', 'undefined'] );
+    SeLiteMisc.ensureType( handler, 'function');
+    SeLiteMisc.ensureType( handlerName, ['string', 'undefined'] );
     if( handlerName===undefined ) {
         unnamedTestSuiteFolderChangeHandlers.push(handler);
     }
@@ -1134,10 +1134,10 @@ function addTestSuiteFolderChangeHandler( handler, handlerName ) {
 * */
 Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
     folderPath= folderPath || testSuiteFolder;
-    this.associatesWithFolders || fail( "Module.getFieldsDownToFolder() requires module.associatesWithFolders to be true, but it was called for module " +this.name );
+    this.associatesWithFolders || SeLiteMisc.fail( "Module.getFieldsDownToFolder() requires module.associatesWithFolders to be true, but it was called for module " +this.name );
     dontCache= dontCache || false;
     
-    var result= sortedObject(true);
+    var result= SeLiteMisc.sortedObject(true);
     for( var fieldName in this.fields ) {
         result[ fieldName ]= {
             entry: undefined,
@@ -1160,7 +1160,7 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
                         if( result[manifest.fieldName].folderPath!=manifestFolder ) {
                             // override any less local value(s) from a manifest from upper folders
                             result[ manifest.fieldName ].entry= !(field instanceof Field.Choice)
-                                ? sortedObject( field.compareValues )
+                                ? SeLiteMisc.sortedObject( field.compareValues )
                                 : {};
                         }
                         if( manifest.value!==VALUE_PRESENT ) {
@@ -1186,7 +1186,7 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
     // Second, merge the 'global' set - one that is marked as active (if any) - with associated sets.
     // I'm not modifying manifests.associations itself, because it can be cached & reused.
     // I merge those into a new object - associations, which will have same structure as manifests.associations.
-    var associations= sortedObject(true);
+    var associations= SeLiteMisc.sortedObject(true);
     if( this.allowSets && this.selectedSetName()!==null ) {
         associations['']= [{
             moduleName: this.name,
@@ -1228,7 +1228,7 @@ Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
             else {
                 var entry= isChoice
                     ? {}
-                    : sortedObject( field.compareValues );
+                    : SeLiteMisc.sortedObject( field.compareValues );
                 var keys= field.getDefaultKey();
                 for( var i=0; i<keys.length; i++ ) { //@TODO use for.. of.. loop once NetBeans support it
                     var key= keys[i];
@@ -1292,7 +1292,7 @@ Module.prototype.createSet= function( setName ) {
     if( setName!=='' ) {
         ensureFieldName( setName, 'set name', true);
     }
-    ensure( !(this.associatesWithFolders && setName===''), 'Module associates with folders, therefore a set name cannot be empty.' );
+    SeLiteMisc.ensure( !(this.associatesWithFolders && setName===''), 'Module associates with folders, therefore a set name cannot be empty.' );
     
     var setNameDot= setName!==''
         ? setName+'.'
@@ -1332,9 +1332,9 @@ Module.prototype.createSet= function( setName ) {
                     }
                 }
                 else {
-                    this.prefsBranch.getPrefType( setNameDot+ field.name )===nsIPrefBranch.PREF_STRING || fail();
-                    this.prefsBranch.getCharPref( setNameDot+ field.name )===VALUE_PRESENT || fail();
-                    !fieldHasChildren || fail('Set ' +setName+ ', field ' +fieldName+ ' has both a field preference and field child(ren)!');
+                    this.prefsBranch.getPrefType( setNameDot+ field.name )===nsIPrefBranch.PREF_STRING || SeLiteMisc.fail();
+                    this.prefsBranch.getCharPref( setNameDot+ field.name )===VALUE_PRESENT || SeLiteMisc.fail();
+                    !fieldHasChildren || SeLiteMisc.fail('Set ' +setName+ ', field ' +fieldName+ ' has both a field preference and field child(ren)!');
                 }
             }
         }
@@ -1422,7 +1422,7 @@ var loadFromJavascript= function( moduleName, moduleFileOrUrl, forceReload ) {
             moduleUrl= fileNameToUrl( moduleFileOrUrl );
         }
         else {
-            fail( "Can't find module '" +moduleName+ "' in your preferences, and you didn't pass moduleFileOrUrl. Pass moduleFileOrUrl and/or register the module first.");
+            SeLiteMisc.fail( "Can't find module '" +moduleName+ "' in your preferences, and you didn't pass moduleFileOrUrl. Pass moduleFileOrUrl and/or register the module first.");
         }
     }
     try {
@@ -1441,7 +1441,7 @@ var loadFromJavascript= function( moduleName, moduleFileOrUrl, forceReload ) {
         throw e;
     }
     if( !(moduleName in modules) ) {
-        fail( "Loaded definition of module " +moduleName+ " and it was found in preferences, but it didn't register itself properly. Make it call SeLiteSettings.register( theNewModule );" );
+        SeLiteMisc.fail( "Loaded definition of module " +moduleName+ " and it was found in preferences, but it didn't register itself properly. Make it call SeLiteSettings.register( theNewModule );" );
     }
     return modules[ moduleName ];
 };
@@ -1455,7 +1455,7 @@ var moduleNamesFromPreferences= function( namePrefix ) {
     }
     var prefsBranch= prefs.getBranch( namePrefix );
     var children= prefsBranch.getChildList( '', {} );
-    children.sort( compareCaseInsensitively );
+    children.sort( SeLiteMisc.compareCaseInsensitively );
     var result= [];
     
     for( var i=0; i<children.length; i++ ) {

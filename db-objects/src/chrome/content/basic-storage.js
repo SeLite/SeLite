@@ -17,7 +17,7 @@
 
 "use strict";
 
-Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
+var SeLiteMisc= Components.utils.import( 'chrome://selite-misc/content/selite-misc.js', {} );
 Components.utils.import("chrome://selite-sqlite-connection-manager/content/SqliteConnectionManager.js");
 var SeLiteSettings= Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js", {} );
 var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
@@ -262,7 +262,7 @@ Storage.prototype.getRecords= function( params ) {
         var columnsString= params.columns;
         var columnsList= params.columns.split( / ?, ?/ );
     }
-    else if( params.columns instanceof Array ) {
+    else if( Array.isArray(params.columns) ) {
         var columnsString= params.columns.join(', ');
         var columnsList= params.columns;
     }
@@ -308,7 +308,7 @@ Storage.prototype.getRecords= function( params ) {
     }
 
     var conditionParts= [];
-    if( params['matching']!==undefined && !isEmptyObject(params['matching']) ) {
+    if( params['matching']!==undefined && !SeLiteMisc.isEmptyObject(params['matching']) ) {
         for( var field in params.matching ) {
             var matchedValue= params.matching[field];
             matchedValue= typeof matchedValue==='string' && matchedValue.length>1
@@ -341,7 +341,7 @@ Storage.prototype.getRecords= function( params ) {
 
     var result= this.select( query, columnsList, params.parameters );
     if( params.debugResult!==undefined && params.debugResult ) {
-        console.log( rowsToString(result) );
+        console.log( SeLiteMisc.rowsToString(result) );
     }
     return result;
 }
@@ -418,11 +418,11 @@ Storage.prototype.updateRecords= function( params ) {
  */
 Storage.prototype.updateRecordByPrimary= function( params ) {
     var primaryKey= params.primary || 'id';
-    var copiedParams= objectClone( params, ['table', 'entries', 'fieldsToProtect', 'debugQuery'], ['table', 'entries'] );
+    var copiedParams= SeLiteMisc.objectClone( params, ['table', 'entries', 'fieldsToProtect', 'debugQuery'], ['table', 'entries'] );
     if( copiedParams.entries[primaryKey]===undefined ) {
         throw new Error( "updateRecordByPrimary(): params.entries." +primaryKey+ " is not set." );
     }
-    copiedParams.entries= objectClone( copiedParams.entries );
+    copiedParams.entries= SeLiteMisc.objectClone( copiedParams.entries );
     copiedParams.matching= new Settable().set( primaryKey, copiedParams.entries[primaryKey] );
     delete copiedParams.entries[primaryKey];
     this.updateRecords( copiedParams );
@@ -526,7 +526,7 @@ Storage.prototype.quoteValues= function( entries, fieldsToProtect ) {
     if( typeof entries !='object' ) {
         throw "quoteValues(): parameter should be an object or array, but it was " +values;
     }
-    if( entries instanceof Array ) {
+    if( Array.isArray(entries) ) {
         var result= [];
         for( var i=0; i<entries.length; i++ ) {
             result[i]= this.quote( entries[i] );
@@ -574,7 +574,7 @@ function StorageFromSettings( fieldOrFieldName ) {
     var field= typeof fieldOrFieldName==='string'
         ? SeLiteSettings.getField(fieldOrFieldName)
         : fieldOrFieldName;
-    field instanceof SeLiteSettings.Field.SQLite || fail('fieldOrFieldName must be an instance of SeLiteSettings.Field.SQLite, or string: ' +fieldOrFieldName+ '; field: ' +field );
+    field instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail('fieldOrFieldName must be an instance of SeLiteSettings.Field.SQLite, or string: ' +fieldOrFieldName+ '; field: ' +field );
     Storage.call( this );
     this.field= field;
     StorageFromSettings.instances.push( this );
@@ -585,8 +585,8 @@ StorageFromSettings.instances= [];
 StorageFromSettings.prototype= new Storage();
 StorageFromSettings.prototype.constructor= StorageFromSettings;
 
-StorageFromSettings.prototype.open= function() { fail('StorageFromSettings.open() is unsupported.'); };
-StorageFromSettings.prototype.close= function() { fail('StorageFromSettings.close() is unsupported.'); };
+StorageFromSettings.prototype.open= function() { SeLiteMisc.fail('StorageFromSettings.open() is unsupported.'); };
+StorageFromSettings.prototype.close= function() { SeLiteMisc.fail('StorageFromSettings.close() is unsupported.'); };
 
 SeLiteSettings.addTestSuiteFolderChangeHandler(
     function() {

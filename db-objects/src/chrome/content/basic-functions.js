@@ -33,8 +33,8 @@ function remove( recordOrSet ) {
 }
 
 function randomRecord( recordSet ) {
-    var numRecords= numberOfRecords( recordSet );
-    return nthRecord( recordSet, Math.round( Math.random()*(numRecords-1) ) );
+    var numRecords= SeLiteMisc.numberOfRecords( recordSet );
+    return SeLiteMisc.nthRecord( recordSet, Math.round( Math.random()*(numRecords-1) ) );
 }
 
 var EXPORTED_SYMBOLS= [ 

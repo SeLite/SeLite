@@ -125,7 +125,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>qs{ &quot;xpath=( //table[@id='charities']//tr )[&quot; +$xpathRowIndex+ &quot;] /td[@class='name' and text()=&quot; +xpath_escape_quote( unescape_xml(storedVars.name) )+ &quot;]&quot; }</td>
+	<td>qs{ &quot;xpath=( //table[@id='charities']//tr )[&quot; +$xpathRowIndex+ &quot;] /td[@class='name' and text()=&quot; +SeLiteMisc.xpath_escape_quote( SeLiteMisc.unescape_xml(storedVars.name) )+ &quot;]&quot; }</td>
 	<td></td>
 </tr>
 <tr>

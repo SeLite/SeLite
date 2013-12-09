@@ -16,7 +16,7 @@
 */
 "use strict";
 
-Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
+var SeLiteMisc= Components.utils.import( 'chrome://selite-misc/content/selite-misc.js', {} );
 Components.utils.import('chrome://selite-db-objects/content/basic-storage.js');
 
 /** @param object storage of class Storage
@@ -99,7 +99,7 @@ function Record( recordHolder, data ) {
     // Set the link from record to its record holder. The field for this link is non-iterable.
     Object.defineProperty( this, Record.RECORD_TO_HOLDER_FIELD, { value: recordHolder } );
     if( data ) {
-        objectCopyFields( data, this );
+        SeLiteMisc.objectCopyFields( data, this );
     }
 }
 
@@ -111,7 +111,7 @@ Record.RECORD_TO_HOLDER_FIELD= 'RECORD_TO_HOLDER_FIELD';
  *  @return RecordHolder for that instance.
  **/
 function recordHolder( record ) {
-    ensureInstance( record, Record, 'Record' );
+    SeLiteMisc.ensureInstance( record, Record, 'Record' );
     return record[Record.RECORD_TO_HOLDER_FIELD];
 }
 
@@ -119,7 +119,7 @@ RecordHolder.prototype.setOriginalAndWatchEntries= function() {
     this.original= {};
     
     var columnsToAliases= this.recordSetHolder.formula.columnsToAliases(this.recordSetHolder.formula.table.name);
-    var columnAliases= objectValues( columnsToAliases, true );
+    var columnAliases= SeLiteMisc.objectValues( columnsToAliases, true );
     // this.original will store own columns only
     for( var field in columnAliases ) {
         this.original[field]= this.record[field];
@@ -158,7 +158,7 @@ RecordHolder.prototype.insert= function() {
     }
     var entries= this.ownEntries();
     if( this.recordSetHolder.formula.generateInsertKey ) {// @TODO (low priority): || this.recordSetHolder.formula.table.generateInsertKey || this.recordSetHolder.formula.table.db.generateInsertKey
-        entries= objectsMerge( new Settable().set(
+        entries= SeLiteMisc.objectsMerge( new Settable().set(
             this.recordSetHolder.formula.table.primary,
             new SqlExpression( "(SELECT MAX(" +this.recordSetHolder.formula.table.primary+ ") FROM " +this.recordSetHolder.formula.table.name+ ")+1")
         ), entries );
@@ -257,12 +257,12 @@ RecordHolder.prototype.remove= function() {
 function RecordSetFormula( params, prototype ) {
     PrototypedObject.call( this, prototype );
     params= params ? params : {};
-    objectClone( params, ['table', 'alias', 'columns', 'joins', 'fetchCondition', 'fetchMatching', 'parameterNames', 'sort',
+    SeLiteMisc.objectClone( params, ['table', 'alias', 'columns', 'joins', 'fetchCondition', 'fetchMatching', 'parameterNames', 'sort',
             'sortDirection', 'indexBy', 'indexUnique', 'subIndexBy', 'process', 'debugQuery', 'debugResult', 'generateInsertKey',
             'onInsert', 'onUpdate' ],
         null, this );
 
-    if( !(this.joins instanceof Array) ) {
+    if( !Array.isArray(this.joins) ) {
         throw new Error( "Parameter's field .joins must be an array (of objects)." );
     }
 
@@ -278,7 +278,7 @@ function RecordSetFormula( params, prototype ) {
     if( this.indexUnique && this.subIndexBy ) {
         throw new Error( "Can't use both indexUnique and subIndexBy. indexUnique may be implied if indexing by this.table.primary (as by sdefault)." );
     }
-    // @TODO check that all own table columns' aliases are unique: Object.keys( objectReverse( ownColumns() ) )
+    // @TODO check that all own table columns' aliases are unique: Object.keys( SeLiteMisc.objectReverse( ownColumns() ) )
     // @TODO similar check for joined columns?
 }
 RecordSetFormula.prototype.constructor= RecordSetFormula;
@@ -352,7 +352,7 @@ RecordSetFormula.prototype.tableByName= function( tableName ) {
 /** @return object { string given table's column name: string column alias or the same column name (if no alias) }.
  *  That differs from definition field columns passed to RecordSetFormula() constructor, which allows
  *  unaliased column names to be mapped to true/1. Here such columns get mapped to themselves (to the column names);
- *  that makes it easy to use with objectValues() or objectReverse().
+ *  that makes it easy to use with SeLiteMisc.objectValues() or SeLiteMisc.objectReverse().
  **/
 RecordSetFormula.prototype.columnsToAliases= function( tableName ) {
     var columnsDefinition= this.columns[ tableName ];
@@ -367,7 +367,7 @@ RecordSetFormula.prototype.columnsToAliases= function( tableName ) {
         }
     }
     if( columnsDefinition!==RecordSetFormula.ALL_FIELDS ) {
-        if( columnsDefinition instanceof Array ) {
+        if( Array.isArray(columnsDefinition) ) {
             for( var j=0; j<columnsDefinition.length; j++ ) {
                 var columnOrMap= columnsDefinition[j];
                 if( typeof columnOrMap ==='string' ) {
@@ -435,13 +435,13 @@ RecordSetFormula.prototype.selectOne= function( parametersOrCondition ) {
     return new RecordSetHolder(this, parametersOrCondition ).selectOne();
 };
 
-/** RecordSet serves as an associative array, containing Record object(s), indexed by collectBycolumn(formula.indexBy, formula.indexUnique, formula.subIndexBy)
+/** RecordSet serves as an associative array, containing Record object(s), indexed by SeLiteMisc.collectBycolumn(formula.indexBy, formula.indexUnique, formula.subIndexBy)
  *  for the formula of recordSetHolder. It is iterable but it doesn't guarantee the order of entries.
  *  It also keeps a non-iterable reference to recordSetHolder.
  *  @param object recordSetHolder of class RecordSetHolder
  **/
 function RecordSet( recordSetHolder ) {
-    ensureInstance( recordSetHolder, RecordSetHolder, 'RecordSetHolder');
+    SeLiteMisc.ensureInstance( recordSetHolder, RecordSetHolder, 'RecordSetHolder');
     // Set the link from record to its record holder. The field for this link is non-iterable.
     Object.defineProperty( this, RecordSet.RECORDSET_TO_HOLDER_FIELD, { value: recordSetHolder } );
 }
@@ -453,7 +453,7 @@ RecordSet.RECORDSET_TO_HOLDER_FIELD= 'RECORDSET_TO_HOLDER_FIELD';
  *  @return RecordSetHolder for that instance.
  **/
 function recordSetHolder( recordSet ) {
-    ensureInstance(recordSet, RecordSet, 'RecordSet');
+    SeLiteMisc.ensureInstance(recordSet, RecordSet, 'RecordSet');
     return recordSet[RecordSet.RECORDSET_TO_HOLDER_FIELD];
 }
 
@@ -468,7 +468,7 @@ function recordOrSetHolder( recordOrSet ) {
         return recordSetHolder(recordOrSet);
     }
     else {
-        throw new Error( "Parameter recordOrSet must be an instance of Record or RecordSet, but it's:\n" +objectToString(recordOrSet, 3) );
+        throw new Error( "Parameter recordOrSet must be an instance of Record or RecordSet, but it's:\n" +SeLiteMisc.objectToString(recordOrSet, 3) );
     }
 }
 
@@ -495,7 +495,7 @@ RecordSetHolder.prototype.storage= function() {
 /** @return RecordSet object
  * */
 RecordSetHolder.prototype.select= function() {
-    objectDeleteFields( this.records );
+    SeLiteMisc.objectDeleteFields( this.records );
     var formula= this.formula;
     
     var columns= {};
@@ -506,7 +506,7 @@ RecordSetHolder.prototype.select= function() {
             var tableAlias= formula.alias;
         }
         else {
-            for( var i=0; i<formula.joins.length; i++ ) {//@TODO if I need to do something similar again, extend objectValueToField() to accept a callback function
+            for( var i=0; i<formula.joins.length; i++ ) {//@TODO if I need to do something similar again, extend SeLiteMisc.objectValueToField() to accept a callback function
                 var join= formula.joins[i];
                 if( join.table.name==tableName ) {
                     break;
@@ -526,7 +526,7 @@ RecordSetHolder.prototype.select= function() {
                 ? columnsToAliases[column]
                 : true;
         }
-        columns= objectsMerge( columns, columnAliases );
+        columns= SeLiteMisc.objectsMerge( columns, columnAliases );
     }
 
     var matching= {};
@@ -546,13 +546,19 @@ RecordSetHolder.prototype.select= function() {
     }
     var joins= [];
     formula.joins.forEach( function(join) {
-        var joinClone= objectClone(join);
+        var joinClone= SeLiteMisc.objectClone(join);
         joinClone.table= join.table.name;
         joins.push( joinClone );
     } );
-    var condition= usingParameterCondition ? this.parametersOrCondition : null;
-    var parameters= !usingParameterCondition ? objectClone(this.parametersOrCondition) : {};
-    var parametersForProcessHandler= !usingParameterCondition ? this.parametersOrCondition : {};
+    var condition= usingParameterCondition
+        ? this.parametersOrCondition
+        : null;
+    var parameters= !usingParameterCondition
+        ? SeLiteMisc.objectClone(this.parametersOrCondition)
+        : {};
+    var parametersForProcessHandler= !usingParameterCondition
+        ? this.parametersOrCondition
+        : {};
     for( var param in parameters ) {
         if( typeof parameters[param]==='number' ) {
             parameters[param]= ''+parameters[param];
@@ -585,7 +591,7 @@ RecordSetHolder.prototype.select= function() {
         unindexedRecords.push( holder.record );
         this.originals[ holder.record[ formula.table.primary] ]= holder.original;
     }
-    collectByColumn( unindexedRecords, formula.indexBy, formula.indexUnique, formula.subIndexBy, this.records );
+    SeLiteMisc.collectByColumn( unindexedRecords, formula.indexBy, formula.indexUnique, formula.subIndexBy, this.records );
     if( formula.process ) {
         this.records= formula.process( this.records, parametersForProcessHandler );
     }
@@ -616,7 +622,7 @@ RecordSetHolder.prototype.update= function() { throw new Error( "@TODO if need b
 RecordSetHolder.prototype.removeRecordHolder= function( recordHolder ) {
     var primaryKeyValue= recordHolder.record[this.formula.table.primary];
     delete this.holders[ primaryKeyValue ];
-    delete this.records[ indexesOfRecord(this.records, recordHolder.record) ]; //@TODO This doesn't work if multi-indexed! Then we also need to delete 1st level index, if there are no subentries left.
+    delete this.records[ SeLiteMisc.indexesOfRecord(this.records, recordHolder.record) ]; //@TODO This doesn't work if multi-indexed! Then we also need to delete 1st level index, if there are no subentries left.
     delete this.originals[ primaryKeyValue ];
     delete this.markedToRemove[ primaryKeyValue ];
 };

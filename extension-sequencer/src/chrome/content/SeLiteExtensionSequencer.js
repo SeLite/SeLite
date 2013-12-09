@@ -57,13 +57,13 @@ SeLiteExtensionSequencer.registerPlugin= function( prototype ) {
         optionalRequisitePlugins: prototype.optionalRequisitePlugins || {},
         callBack: prototype.callBack || false
     };
-    if( !(plugin.coreUrl instanceof Array) ) {
+    if( !Array.isArray(plugin.coreUrl) ) {
         plugin.coreUrl= [plugin.coreUrl];
     }
-    if( !(plugin.xmlUrl instanceof Array) ) {
+    if( !Array.isArray(plugin.xmlUrl) ) {
         plugin.xmlUrl= [plugin.xmlUrl];
     }
-    if( !(plugin.ideUrl instanceof Array) ) {
+    if( !Array.isArray(plugin.ideUrl) ) {
         plugin.ideUrl= [plugin.ideUrl];
     }
     if( plugin.pluginId in SeLiteExtensionSequencer.plugins ) {
