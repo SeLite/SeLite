@@ -1069,7 +1069,7 @@ function getTestSuiteFolder() { return testSuiteFolder; }
  *  @param folder string or undefined
  * */
 function setTestSuiteFolder( folder ) {
-    console.log( 'setTestSuiteFolder ' +folder );
+    //console.log( 'setTestSuiteFolder ' +folder );
     if( testSuiteFolder!==folder ) {
         testSuiteFolder= folder;
         for( var i=0; i<unnamedTestSuiteFolderChangeHandlers.length; i++ ) { // @TODO change to for( .. of .. ) loop

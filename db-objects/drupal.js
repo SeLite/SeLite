@@ -38,13 +38,12 @@
         });
 
         Selenium.prototype.doDrupalUsers= function( first, second) {
-            console.log( 'doDrupalUsers() storage.connection: ' +storage.connection );
-            console.log( usersFormula.select() );
+            console.log( 'doDrupalUsers: ' +usersFormula.select() );
         };
         Selenium.prototype.testDb= storage;
     }
     else if( numberOfTimesLoaded>1 ) {
-        SeLiteMisc.fail( 'IDE is trying to load this core extension for the 3rd time');
+        SeLiteMisc.fail( 'Selenium IDE is trying to load this core extension for the 3rd time');
     }
     SeLiteMisc.nonXpiCoreExtensions['doDrupalUsers']= numberOfTimesLoaded+1;
 })();

@@ -167,7 +167,7 @@ Storage.prototype.select= function( query, fields, bindings ) {
         console.log( 'Instance of Storage is not an instance of StorageFromSettings');
     }
     this.connection || SeLiteMisc.fail( 'Storage.connection is not set.');
-    console.log( 'Query: ' +query );
+    //console.log( 'Query: ' +query );
     var stmt= this.connection.createStatement( query );
     for( var field in bindings ) {
         try { stmt.params[field]= bindings[field]; }
@@ -594,18 +594,14 @@ function StorageFromSettings( fieldOrFieldName ) {
     Storage.call( this );
     this.field= field;
     StorageFromSettings.instances.push( this );
-    console.log( 'StorageFromSettings(): ' +this+ '. instances has now ' +StorageFromSettings.instances.length+ ' item(s).' );
-    console.log( SeLiteMisc.stack() );
+    //console.log( 'StorageFromSettings(): ' +this+ '. instances has now ' +StorageFromSettings.instances.length+ ' item(s).' );
     if( SeLiteSettings.getTestSuiteFolder() ) {
         var newFileName= field.getFieldsDownToFolder().entry;
-        console.log( 'newFileName: ' +newFileName );
+        //console.log( 'newFileName: ' +newFileName );
         if( newFileName ) {
             this.parameters.fileName= newFileName;
             Storage.prototype.open.call( this );
-            console.log( 'StorageFromSettings(): connection ' +this.connection );
-        }
-        else {
-            console.log( 'StorageFromSettings(): no connection');
+            //console.log( 'StorageFromSettings(): connection ' +this.connection );
         }
     }
 }
@@ -620,7 +616,7 @@ StorageFromSettings.prototype.close= function() { SeLiteMisc.fail('StorageFromSe
 
 SeLiteSettings.addTestSuiteFolderChangeHandler(
     function() {
-        console.log('TestSuiteFolderChangeHandler will update ' +StorageFromSettings.instances.length+ ' instance(s) of StorageFromSettings with setting(s) associated with folder ' +SeLiteSettings.getTestSuiteFolder() );
+        //console.log('TestSuiteFolderChangeHandler will update ' +StorageFromSettings.instances.length+ ' instance(s) of StorageFromSettings with setting(s) associated with folder ' +SeLiteSettings.getTestSuiteFolder() );
         StorageFromSettings.instances.length===0 || SeLiteSettings.getTestSuiteFolder()
         || console.log( 'SeLiteSettings: there are ' +StorageFromSettings.instances.length+ ' instance(s) of StorageFromSettings, yet the current test suite has no folder yet.' );
         for( var i=0; i<StorageFromSettings.instances.length; i++ ) { // @TODO for(.. of .. )
@@ -632,14 +628,14 @@ SeLiteSettings.addTestSuiteFolderChangeHandler(
             }
             if( SeLiteSettings.getTestSuiteFolder() ) {
                 var newFileName= instance.field.getFieldsDownToFolder().entry;
-                console.log( 'newFileName: ' +newFileName );
+                //console.log( 'newFileName: ' +newFileName );
                 if( newFileName ) {
                     instance.parameters.fileName= newFileName;
                     Storage.prototype.open.call( instance );
-                    console.log( 'connection ' +instance.connection );
+                    //console.log( 'connection ' +instance.connection );
                 }
                 else {
-                    console.log( 'SeLiteSettings: The current test suite has a folder, but field ' +instance.field+ ' is not defined for it.' );
+                    //console.log( 'SeLiteSettings: The current test suite has a folder, but field ' +instance.field+ ' is not defined for it.' );
                 }
             }
         }
