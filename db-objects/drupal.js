@@ -15,25 +15,36 @@
 "use strict";
 
 (function() {
-    var SeLiteDbStorage= Components.utils.import('chrome://selite-db-objects/content/basic-storage.js', {});
-    var SeLiteDbObjects= Components.utils.import( 'chrome://selite-db-objects/content/basic-objects.js', {} );
-    var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
-    
-    var storage= new SeLiteDbStorage.StorageFromSettings('extensions.selite-settings.basic.testDb');
-    var db= new SeLiteDbObjects.Db( storage, 'mdl_' ); //@TODO Prefix to come from SeLiteSettings - through the module definition?
-    
-    var users= new SeLiteDbObjects.Table( {
-       db:  db,
-       name: 'users',
-       columns: ['uid', 'name', 'pass', 'mail', 'theme']
-    });
-    
-    var usersFormula= new SeLiteDbObjects.RecordSetFormula( {
-        table: users,
-        columns: new SeLiteDbObjects.Settable().set( users.name, SeLiteDbObjects.RecordSetFormula.ALL_FIELDS )
-    });
-    
-    Selenium.prototype.doDrupalUsers= function( first, second) {
-        console.log( usersFormula.select() );
-    };
+    var SeLiteMisc= Components.utils.import('chrome://selite-misc/content/selite-misc.js', {});
+    var numberOfTimesLoaded= SeLiteMisc.nonXpiCoreExtensions['doDrupalUsers'] || 0;
+    // Ignore the first load, because Se IDE somehow discards that Selenium.prototype
+    if( numberOfTimesLoaded==1 ) {
+        var SeLiteDbStorage= Components.utils.import('chrome://selite-db-objects/content/basic-storage.js', {});
+        var SeLiteDbObjects= Components.utils.import( 'chrome://selite-db-objects/content/basic-objects.js', {} );
+        var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+
+        var storage= new SeLiteDbStorage.StorageFromSettings('extensions.selite-settings.basic.testDb');
+        var db= new SeLiteDbObjects.Db( storage, '' ); //@TODO Prefix to come from SeLiteSettings - through the module definition?
+
+        var users= new SeLiteDbObjects.Table( {
+           db:  db,
+           name: 'users',
+           columns: ['uid', 'name', 'pass', 'mail', 'theme']
+        });
+
+        var usersFormula= new SeLiteDbObjects.RecordSetFormula( {
+            table: users,
+            columns: new SeLiteDbObjects.Settable().set( users.name, SeLiteDbObjects.RecordSetFormula.ALL_FIELDS )
+        });
+
+        Selenium.prototype.doDrupalUsers= function( first, second) {
+            console.log( 'doDrupalUsers() storage.connection: ' +storage.connection );
+            console.log( usersFormula.select() );
+        };
+        Selenium.prototype.testDb= storage;
+    }
+    else if( numberOfTimesLoaded>1 ) {
+        SeLiteMisc.fail( 'IDE is trying to load this core extension for the 3rd time');
+    }
+    SeLiteMisc.nonXpiCoreExtensions['doDrupalUsers']= numberOfTimesLoaded+1;
 })();

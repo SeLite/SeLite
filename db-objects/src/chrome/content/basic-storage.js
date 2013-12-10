@@ -152,6 +152,22 @@ Storage.prototype.select= function( query, fields, bindings ) {
     if( !fields ) {
         fields= fieldNames( fieldParts( query ) );
     }
+    if( this instanceof StorageFromSettings ) {
+        var instance;
+        for( var i=0; i<StorageFromSettings.instances.length; i++ ) {
+            instance= StorageFromSettings.instances[i];
+            if( instance===this ) {
+                break;
+            }
+        }
+        instance || fail( 'Instance of StorageFromSettings is not among StorageFromSettings.instances.' );
+        instance.connection===this.connection || fail();
+    }
+    else {
+        console.log( 'Instance of Storage is not an instance of StorageFromSettings');
+    }
+    this.connection || SeLiteMisc.fail( 'Storage.connection is not set.');
+    console.log( 'Query: ' +query );
     var stmt= this.connection.createStatement( query );
     for( var field in bindings ) {
         try { stmt.params[field]= bindings[field]; }
@@ -578,6 +594,20 @@ function StorageFromSettings( fieldOrFieldName ) {
     Storage.call( this );
     this.field= field;
     StorageFromSettings.instances.push( this );
+    console.log( 'StorageFromSettings(): ' +this+ '. instances has now ' +StorageFromSettings.instances.length+ ' item(s).' );
+    console.log( SeLiteMisc.stack() );
+    if( SeLiteSettings.getTestSuiteFolder() ) {
+        var newFileName= field.getFieldsDownToFolder().entry;
+        console.log( 'newFileName: ' +newFileName );
+        if( newFileName ) {
+            this.parameters.fileName= newFileName;
+            Storage.prototype.open.call( this );
+            console.log( 'StorageFromSettings(): connection ' +this.connection );
+        }
+        else {
+            console.log( 'StorageFromSettings(): no connection');
+        }
+    }
 }
 
 StorageFromSettings.instances= [];
@@ -590,22 +620,23 @@ StorageFromSettings.prototype.close= function() { SeLiteMisc.fail('StorageFromSe
 
 SeLiteSettings.addTestSuiteFolderChangeHandler(
     function() {
-        //console.log('TestSuiteFolderChangeHandler');
-        if( StorageFromSettings.instances.length>0 && !SeLiteSettings.getTestSuiteFolder() ) {
-            console.log( 'SeLiteSettings: there are ' +StorageFromSettings.instances.length+ ' instance(s) of StorageFromSettings, yet the current test suite has no folder yet.' );
-        }
+        console.log('TestSuiteFolderChangeHandler will update ' +StorageFromSettings.instances.length+ ' instance(s) of StorageFromSettings with setting(s) associated with folder ' +SeLiteSettings.getTestSuiteFolder() );
+        StorageFromSettings.instances.length===0 || SeLiteSettings.getTestSuiteFolder()
+        || console.log( 'SeLiteSettings: there are ' +StorageFromSettings.instances.length+ ' instance(s) of StorageFromSettings, yet the current test suite has no folder yet.' );
         for( var i=0; i<StorageFromSettings.instances.length; i++ ) { // @TODO for(.. of .. )
             var instance= StorageFromSettings.instances[i];
+            instance instanceof StorageFromSettings || fail();
             if( instance.connection ) {
-                instance.parameters.close( true );
-                instance.connection= null;
+                Storage.prototype.close.call( instance, true);
                 instance.parameters.fileName= null;
             }
             if( SeLiteSettings.getTestSuiteFolder() ) {
                 var newFileName= instance.field.getFieldsDownToFolder().entry;
+                console.log( 'newFileName: ' +newFileName );
                 if( newFileName ) {
                     instance.parameters.fileName= newFileName;
-                    instance.connection= instance.parameters.connect();
+                    Storage.prototype.open.call( instance );
+                    console.log( 'connection ' +instance.connection );
                 }
                 else {
                     console.log( 'SeLiteSettings: The current test suite has a folder, but field ' +instance.field+ ' is not defined for it.' );
@@ -614,7 +645,6 @@ SeLiteSettings.addTestSuiteFolderChangeHandler(
         }
     }
 );
-// @TODO callback hook
 
 /** @TODO DOC We use synchronous DB API. That's because
  *  - with asynchronous API we'd have to wait for the query to finish before moving to next Selenium test step

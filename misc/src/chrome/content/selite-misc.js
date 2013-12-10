@@ -32,17 +32,21 @@ if( runningAsComponent ) {
  *  and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw?redirectlocale=en-US&redirectslug=JavaScript%2FReference%2FStatements%2Fthrow
 */
 function fail( errorOrMessage ) {
+    console.warn( stack() );
+    throw errorOrMessage
+        ?(typeof errorOrMessage==='object' &&  errorOrMessage.constructor.name==='Error'
+            ? errorOrMessage
+            : new Error(errorOrMessage)
+         )
+        : new Error();
+}
+
+function stack() {
     try {
-        throw errorOrMessage
-            ?(typeof errorOrMessage==='object' &&  errorOrMessage.constructor.name==='Error'
-                ? errorOrMessage
-                : new Error(errorOrMessage)
-             )
-            : new Error();
+        throw new Error();
     }
-    catch(e) {
-        console.warn( e.stack );
-        throw e;
+    catch( e ) {
+        return e.stack;
     }
 }
 
@@ -1278,7 +1282,17 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
     }
 }
 
-var EXPORTED_SYMBOLS= [ "fail", "ensure", "oneOf", "ensureOneOf", "ensureType", "ensureInstance",
+/** Object serving as an associative array. Used by Core extensions, that are specified in Selenium IDE menu
+ *  (and they are not Firefox extensions on their own), to indicate that an extension was loaded once or twice.
+ *  {
+ *      string core extension name: int How many times it was loaded so far.
+ *  }
+ *  Passive - It's up to the Core extension to use this appropriately.
+ *  For http://code.google.com/p/selenium/issues/detail?id=6697 Core extensions are loaded 2x
+*/
+var nonXpiCoreExtensions= {};
+
+var EXPORTED_SYMBOLS= [ "fail", "stack", "ensure", "oneOf", "ensureOneOf", "ensureType", "ensureInstance",
     "item", "itemOrNull", "itemGeneric", "objectToString",
      "rowsToString", "timestampInSeconds", "isEmptyObject",
     "objectsMerge", "objectCopyFields", "objectClone", "objectDeleteFields",
@@ -1290,5 +1304,5 @@ var EXPORTED_SYMBOLS= [ "fail", "ensure", "oneOf", "ensureOneOf", "ensureType", 
     "compareAllFields", "compareAllFieldsOneWay", "compareArrays", "sortByKeys",
     "compareAsNumbers", "compareCaseInsensitively", "compareNatural",
     "sortedObject", "SortedObjectTarget",
-    "nthRecord", "numberOfRecords", "indexesOfRecord"
+    "nthRecord", "numberOfRecords", "indexesOfRecord", "nonXpiCoreExtensions"
 ];
