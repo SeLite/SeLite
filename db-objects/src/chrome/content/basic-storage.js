@@ -17,7 +17,7 @@
 
 "use strict";
 
-var SeLiteMisc= Components.utils.import( 'chrome://selite-misc/content/selite-misc.js', {} );
+var SeLiteMisc= Components.utils.import( 'chrome://selite-misc/content/selite-misc.js', {} ).SeLiteMisc;
 Components.utils.import("chrome://selite-sqlite-connection-manager/content/SqliteConnectionManager.js");
 var SeLiteSettings= Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js", {} );
 var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;

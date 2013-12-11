@@ -16,7 +16,7 @@
 */
 "use strict";
 
-var SeLiteMisc= Components.utils.import( "chrome://selite-misc/content/selite-misc.js", {} );
+var SeLiteMisc= Components.utils.import( "chrome://selite-misc/content/selite-misc.js", {} ).SeLiteMisc;
     
 // For all Selenium actions and locators defined here - i.e. functions with name doXXXX, isXXXXX, getXXXXX
 // see their documentation at ../reference.xml

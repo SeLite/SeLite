@@ -17,7 +17,7 @@
 var XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 var nsIFilePicker = Components.interfaces.nsIFilePicker;
 Components.utils.import("resource://gre/modules/FileUtils.jsm" );
-var SeLiteMisc= Components.utils.import( "chrome://selite-misc/content/selite-misc.js", {} );
+var SeLiteMisc= Components.utils.import( "chrome://selite-misc/content/selite-misc.js", {} ).SeLiteMisc;
 Components.utils.import("resource://gre/modules/osfile.jsm");
 //var console = (Components.utils.import("resource://gre/modules/devtools/Console.jsm", {})).console;
 

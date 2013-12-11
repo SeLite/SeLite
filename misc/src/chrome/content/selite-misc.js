@@ -25,13 +25,15 @@ if( runningAsComponent ) {
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 }
 
+var SeLiteMisc= {};
+
 /** This throws the given error or a new error (containg the given message, if any). It also logs the current stack trase to console as a warning.
  *  @param errorOrMessage An Error, or a string message, or undefined/null.
  *  @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
  *  - as it mentions, the rethrown exception will have incorreect stack information: Note that the thrown MyError will report incorrect lineNumber and fileName at least in Firefox.
  *  and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw?redirectlocale=en-US&redirectslug=JavaScript%2FReference%2FStatements%2Fthrow
 */
-function fail( errorOrMessage ) {
+SeLiteMisc.fail= function( errorOrMessage ) {
     console.warn( stack() );
     throw errorOrMessage
         ?(typeof errorOrMessage==='object' &&  errorOrMessage.constructor.name==='Error'
@@ -53,53 +55,53 @@ function stack() {
 /** This asserts the condition to be true (compared non-strictly). If false, it fails with an error (containg the given message, if any).
  *  It's not called assert(), so that wouldn't conflict with assert() defined by Selenium IDE.
  *  @param bool condition If false, then this fails.
- *  @param string message Optional; see fail(). Note that if you pass a non-constant expression
+ *  @param string message Optional; see SeLiteMisc.fail(). Note that if you pass a non-constant expression
  *   - e.g. concatenation of strings, a call to a function etc.,
- *  it has to be evaluated before ensure() is called, even if it's not used (i.e. condition is true).
+ *  it has to be evaluated before SeLiteMisc.ensure() is called, even if it's not used (i.e. condition is true).
  *  Then you may want to chose to use:
  *  <code>
- *      condition || fail( message expression );
+ *      condition || SeLiteMisc.fail( message expression );
  *  </code>
  *  instead. That evaluates message expression only if condition is not true.
  *  On the other hand, if you have message ready anyway (e.g. a constant string or a value received as a parameter from a caller function),
- *  then by using ensure(..) you make your intention clearer.
+ *  then by using SeLiteMisc.ensure(..) you make your intention clearer.
  * */
-function ensure( condition, message ) {
+SeLiteMisc.ensure= function( condition, message ) {
     if( !condition ) {
-        fail( message );
+        SeLiteMisc.fail( message );
     }
-}
+};
 
-function oneOf( item, choices ) {
-    Array.isArray(choices) || fail( 'ensureOneOf() expects choices to be an array');
+SeLiteMisc.oneOf= function( item, choices ) {
+    Array.isArray(choices) || SeLiteMisc.fail( 'SeLiteMisc.ensureOneOf() expects choices to be an array');
     return choices.indexOf(item)>=0;
-}
+};
 
-function ensureOneOf( item, choices, message ) {
-    ensure( oneOf(item, choices), message );
-}
+SeLiteMisc.ensureOneOf= function( item, choices, message ) {
+    SeLiteMisc.ensure( SeLiteMisc.oneOf(item, choices), message );
+};
 
 /** Validates that typeof item is one of 
  *  @param item mixed
  *  @param typeStringOrStrings string, one of: 'number', 'string', 'object', 'function', 'boolean', 'undefined'
  *  @param message string Message to produce on validation failure, optional.
  * */
-function ensureType( item, typeStringOrStrings, message ) {
+SeLiteMisc.ensureType= function( item, typeStringOrStrings, message ) {
     message= message || '';
     if( !Array.isArray(typeStringOrStrings) ) {
         if( typeof typeStringOrStrings!=='string' ) {
-            fail( 'typeStringOrStrings must be a string or an array');
+            SeLiteMisc.fail( 'typeStringOrStrings must be a string or an array');
         }
         typeStringOrStrings= [typeStringOrStrings];
     }
     for( var i=0; i<typeStringOrStrings.length; i++ ) {
-        ensureOneOf( typeStringOrStrings[i], ['number', 'string', 'object', 'function', 'boolean', 'undefined'] );
+        SeLiteMisc.ensureOneOf( typeStringOrStrings[i], ['number', 'string', 'object', 'function', 'boolean', 'undefined'] );
         if( typeof item===typeStringOrStrings[i] ) {
             return;
         }
     }
-    fail( message+ ' Expecting type from within [' +typeStringOrStrings+ '], but the actual type of the item is ' +typeof item+ '. The item: ' +item );
-}
+    SeLiteMisc.fail( message+ ' Expecting type from within [' +typeStringOrStrings+ '], but the actual type of the item is ' +typeof item+ '. The item: ' +item );
+};
 
 /** @var array of strings which are names of global classes/objects.
  *  A list of global classes supported by isInstance(), that are separate per each global scope
@@ -114,8 +116,8 @@ var globalClasses= ['Array', 'Boolean', 'Date', 'Function', 'Iterator', 'Number'
  *  even if clazz is an array, clazzName must be one string (if present),
  *  @param message string, extra message, optional
  */
-function isInstance( object, classes, className, message ) {
-    typeof object==='object' || fail( 'Expecting an '
+SeLiteMisc.isInstance= function( object, classes, className, message ) {
+    typeof object==='object' || SeLiteMisc.fail( 'Expecting an '
         +(className
             ? 'instance of ' +className
             : 'object'
@@ -124,29 +126,29 @@ function isInstance( object, classes, className, message ) {
         classes= [classes];
     }
     else {
-        ensure( Array.isArray(classes), "Parameter clases must be a constructor method, or an array of them." );
+        SeLiteMisc.ensure( Array.isArray(classes), "Parameter clases must be a constructor method, or an array of them." );
     }
     for( var i=0; i<classes.length; i++ ) {//@TODO use loop for of() once NetBeans supports it
         var clazz= classes[i];
-        ensureType( clazz, 'function' );
+        SeLiteMisc.ensureType( clazz, 'function' );
         if( object instanceof clazz
-            || oneOf(clazz.name, globalClasses) && object.constructor.name===clazz.name ) {
+            || SeLiteMisc.oneOf(clazz.name, globalClasses) && object.constructor.name===clazz.name ) {
             return true;
         }
     }
     return false;
-}
+};
 
 /** Validate that a parameter is an object and of a given class (or of one of given classes).
- *  @see isInstance()
+ *  @see SeLiteMisc.isInstance()
  * */
-function ensureInstance( object, classes, className, message ) {
-    isInstance(object, classes, className, message) || fail( 'Expecting an instance of '
+SeLiteMisc.ensureInstance= function( object, classes, className, message ) {
+    SeLiteMisc.isInstance(object, classes, className, message) || SeLiteMisc.fail( 'Expecting an instance of '
         +(className
             ? className
             : 'specific class(es)'
         )+ ", but an instance of a different class was given. " +message );
-}
+};
 
 /** @param mixed Container - object or array
  *  @param mixed Field - string field name, or integer/integer string index of the item
@@ -154,15 +156,15 @@ function ensureInstance( object, classes, className, message ) {
  *  @return mixed The item. It returns an empty string if not found or if the actual item is null - that is benefitial
  *  when using this function in parameters to Selenium actions (which fail if passing null).
  **/
-function item( container, field, fieldAnother, fieldYetAnother ) {
-    return itemGeneric( arguments, '', '' );
-}
+SeLiteMisc.item= function( container, field, fieldAnother, fieldYetAnother ) {
+    return SeLiteMisc.itemGeneric( arguments, '', '' );
+};
 
 /** Just like item(...), but nulls are not translated at all.
  **/
-function itemOrNull( container, field, fieldAnother, fieldYetAnother ) {
-    return itemGeneric( arguments, null, null );
-}
+SeLiteMisc.itemOrNull= function( container, field, fieldAnother, fieldYetAnother ) {
+    return SeLiteMisc.itemGeneric( arguments, null, null );
+};
 
 /** Internal use only. This serves like item(), but the container (object or array) and the field(s) are all in one array,
  *  which is passed as the first parameter. Then come two optional parameters, which control handling
@@ -177,7 +179,7 @@ function itemOrNull( container, field, fieldAnother, fieldYetAnother ) {
  *  @return mixed The item, as described
  * @internal
  **/
-function itemGeneric( containerAndFields, nullReplacement, targetNullReplacement ) {
+SeLiteMisc.itemGeneric= function( containerAndFields, nullReplacement, targetNullReplacement ) {
     if( nullReplacement===undefined) {
         nullReplacement= null;
     }
@@ -204,7 +206,7 @@ function itemGeneric( containerAndFields, nullReplacement, targetNullReplacement
             item= item[field];
         }
         else
-        if( typeof item ==='object' && item[field]!==undefined ) {
+        if( typeof item==='object' && item[field]!==undefined ) {
             item= item[field];
         }
         else {
@@ -214,7 +216,7 @@ function itemGeneric( containerAndFields, nullReplacement, targetNullReplacement
     return item!==null
         ? item
         : targetNullReplacement;
-}
+};
 
 var OBJECT_TO_STRING_INDENTATION= "  ";
 
@@ -230,7 +232,7 @@ var OBJECT_TO_STRING_INDENTATION= "  ";
  *  @param bool includeNonEnumerable Whether to include non-enumerable fields; false by default.
  *  @return string
  */
-function objectToString( object, recursionDepth, includeFunctions, leafClassNames,
+SeLiteMisc.objectToString= function( object, recursionDepth, includeFunctions, leafClassNames,
 higherObjects, includeNonEnumerable ) {
     if( typeof object!=='object' || object===null ) {
         return ''+object;
@@ -267,10 +269,10 @@ higherObjects, includeNonEnumerable ) {
     }
     result= resultPrefix+ " {" +result+ "}"
     return result;
-}
+};
 
 /*** @private/internal
- *   @see objectToString()
+ *   @see SeLiteMisc.objectToString()
  */
 function objectFieldToString( object, field, recursionDepth, includeFunctions, leafClassNames, higherObjects, includeNonEnumerable, firstItem ) {
         var result= '';
@@ -290,7 +292,7 @@ function objectFieldToString( object, field, recursionDepth, includeFunctions, l
         }
         else
         if( typeof object[field]==='object' && recursionDepth>0 ) {
-            result+= objectToString( object[field], recursionDepth-1, includeFunctions, leafClassNames, higherObjects, includeNonEnumerable );
+            result+= SeLiteMisc.objectToString( object[field], recursionDepth-1, includeFunctions, leafClassNames, higherObjects, includeNonEnumerable );
         }
         else {
             if( Array.isArray(object[field]) ) {
@@ -301,7 +303,7 @@ function objectFieldToString( object, field, recursionDepth, includeFunctions, l
             }
         }
         return result;
-}
+};
 
 /** Get string representation of the given matrix or given array of objects.
  *  @param mixed rows Array of objects, or object of objects.
@@ -311,11 +313,11 @@ function objectFieldToString( object, field, recursionDepth, includeFunctions, l
  *  @return string
  *  Used for debugging.
  **/
-function rowsToString( rows, includeFunctions ) {
+SeLiteMisc.rowsToString= function( rows, includeFunctions ) {
     var resultLines= [];
     if( Array.isArray(rows) ) {
         for( var i=0; i<rows.length; i++ ) {
-            resultLines.push( objectToString( rows[i], undefined, includeFunctions ) );
+            resultLines.push( SeLiteMisc.objectToString( rows[i], undefined, includeFunctions ) );
         }
     }
     else {
@@ -323,28 +325,28 @@ function rowsToString( rows, includeFunctions ) {
             if( typeof rows[field]=='function' ) {
                 continue;
             }
-            resultLines.push( '' +field+ ' => ' +objectToString( rows[field], undefined, includeFunctions ) );
+            resultLines.push( '' +field+ ' => ' +SeLiteMisc.objectToString( rows[field], undefined, includeFunctions ) );
         }
     }
     return resultLines.join( "\n" );
-}
+};
 
 /** @return number Number of seconds since Epoch.
  **/
-function timestampInSeconds() {
+SeLiteMisc.timestampInSeconds= function() {
     return Math.round( Date.now()/1000 );
-}
+};
 
 /** @return true if the object is empty (no fields availabel to iterate through); false otherwise.
  *  @throws Error if the parameter is not an object.
  **/
-function isEmptyObject( obj ) {
-    ensureType( obj, "object", 'Parameter of isEmptyObject() must be an object.' );
+SeLiteMisc.isEmptyObject= function( obj ) {
+    SeLiteMisc.ensureType( obj, "object", 'Parameter of SeLiteMisc.isEmptyObject() must be an object.' );
     for( var field in obj ) {
         return false;
     }
     return true;
-}
+};
 
 /** Compare all fields of both given objects.
  *  @param firstContainer object (not a 'primitive' string)
@@ -358,33 +360,33 @@ function isEmptyObject( obj ) {
  *  @param boolean throwOnDifference Whether to throw an error if different
  *  @return boolean Whether both objects have same fields and their values
  * */
-function compareAllFields( firstContainer, secondContainer, strictOrMethodName, throwOnDifference ) {
+SeLiteMisc.compareAllFields= function( firstContainer, secondContainer, strictOrMethodName, throwOnDifference ) {
     strictOrMethodName= strictOrMethodName || false;
     var strict= typeof strictOrMethodName=='boolean' && strictOrMethodName;
     var methodName= typeof strictOrMethodName=='string'
         ? strictOrMethodName
         : false;
     try {
-        ensureType( firstContainer, 'object', 'compareAllFields() requires firstContainer to be an object');
-        ensureType( secondContainer, 'object', 'compareAllFields() requires secondContainer to be an object');
-        compareAllFieldsOneWay( firstContainer, secondContainer, strict, methodName );
-        compareAllFieldsOneWay( secondContainer, firstContainer, strict, methodName );
+        SeLiteMisc.ensureType( firstContainer, 'object', 'SeLiteMisc.compareAllFields() requires firstContainer to be an object');
+        SeLiteMisc.ensureType( secondContainer, 'object', 'SeLiteMisc.compareAllFields() requires secondContainer to be an object');
+        SeLiteMisc.compareAllFieldsOneWay( firstContainer, secondContainer, strict, methodName );
+        SeLiteMisc.compareAllFieldsOneWay( secondContainer, firstContainer, strict, methodName );
     }
     catch( exception ) {
         if( throwOnDifference ) {
             throw exception;
         }
-        return false; // This is not very efficient, but it makes the above code and compareAllFieldsOneWay()
+        return false; // This is not very efficient, but it makes the above code and SeLiteMisc.compareAllFieldsOneWay()
         // more readable than having if(throOnDifference) check multipletimes above
     }
     return true;
-}
+};
 
 /** Compare whether all fields from firstContainer exist in secondContainer and are same. Throw an error if not.
- *  See compareAllFields().
+ *  See SeLiteMisc.compareAllFields().
  *  @return void
  * */
-function compareAllFieldsOneWay( firstContainer, secondContainer, strict, methodName ) {
+SeLiteMisc.compareAllFieldsOneWay= function( firstContainer, secondContainer, strict, methodName ) {
     for( var fieldName in firstContainer ) { // for() works if the container is null
         if( !(fieldName in secondContainer) ) {
             throw new Error();
@@ -411,21 +413,21 @@ function compareAllFieldsOneWay( firstContainer, secondContainer, strict, method
             }
         }
     }
-}
+};
 
-function compareArrays( firstArray, secondArray, strictOrMethodName, throwOnDifference ) {
+SeLiteMisc.compareArrays= function( firstArray, secondArray, strictOrMethodName, throwOnDifference ) {
     strictOrMethodName= strictOrMethodName || false;
     var strict= typeof strictOrMethodName=='boolean' && strictOrMethodName;
     var methodName= typeof strictOrMethodName=='string'
         ? strictOrMethodName
         : false;
     try {
-        Array.isArray(firstArray) || fail( 'compareArrays() requires firstArray to be an array.');
-        Array.isArray(secondArray) || fail('object', 'compareArrays() requires secondArray to be an array.');
+        Array.isArray(firstArray) || SeLiteMisc.fail( 'SeLiteMisc.compareArrays() requires firstArray to be an array.');
+        Array.isArray(secondArray) || SeLiteMisc.fail('object', 'SeLiteMisc.compareArrays() requires secondArray to be an array.');
         if( firstArray.length===secondArray.length ) {
             throw new Error();
         }
-        compareAllFieldsOneWay( firstArray, secondArray, strict, methodName );
+        SeLiteMisc.compareAllFieldsOneWay( firstArray, secondArray, strict, methodName );
     }
     catch( exception ) {
         if( throwOnDifference ) {
@@ -434,7 +436,7 @@ function compareArrays( firstArray, secondArray, strictOrMethodName, throwOnDiff
         return false;
     }
     return true;
-}
+};
 
 var SELITE_MISC_SORTED_OBJECT_KEYS= "SELITE_MISC_SORTED_OBJECT_KEYS";
 var SELITE_MISC_SORTED_OBJECT_COMPARE= "SELITE_MISC_SORTED_OBJECT_COMPARE";
@@ -449,7 +451,7 @@ var sortedObjectProxyHandler= {
             }
             else { // Locate the index to insert at, using a binary quick sort-like search
                 if( typeof sortCompare!=='function' ) {
-                    throw new Error("sortedObject() and sortedObjectProxyHandler require sortCompare to be a function, if set, but it is " +typeof sortCompare+ ': ' +sortCompare);
+                    throw new Error("SeLiteMisc.sortedObject() and sortedObjectProxyHandler require sortCompare to be a function, if set, but it is " +typeof sortCompare+ ': ' +sortCompare);
                 }
                 // Brute-force alternative:
                 // keys.push( key );
@@ -523,7 +525,7 @@ var sortedObjectProxyHandler= {
  * For now it works with for( .. in .. ) only. It doesn't keep the order when using Object.keys( .. )
  * @param mixed sortCompare It indicates auto-ordering. Either
  * - a function
- * - bool true if it should order naturally (see compareNatural)
+ * - bool true if it should order naturally - see SeLiteMisc.compareNatural()
  * - false to just honour browser-given order (not working for now - it will honour the order, but not for e.g. mixed negative/positive numeric keys)
  * @returns a new object
  * <br/>Old docs - relevant only if Firefox supprots object proxies properly. See
@@ -535,29 +537,29 @@ var sortedObjectProxyHandler= {
    There are 2 possibilities of ordering the fields:
    - client-managed, no re-positioning (other than on removal of an item). A new entry is added to the end of the list items.
    - auto-ordered, with automatic re-shuffling - A new entry is added to where it belongs to, based on sortCompare(). If sortCompare
-   is boolean true, then it uses natural sorting - see compareNatural().
+   is boolean true, then it uses natural sorting - see SeLiteMisc.compareNatural().
 // See http://stackoverflow.com/questions/648139/is-the-order-of-fields-in-a-javascript-object-predictable-when-looping-through-t
 // and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators
 I don't subclass Proxy - because it didn't work - the handler functions were not called.
 Also, in order to subclass Proxy, my constructor had to invoke Proxy.constructor.call(this, target, sortedObjectProxyHandler).
  */
-function sortedObject( sortCompare ) {
+SeLiteMisc.sortedObject= function( sortCompare ) {
     if( sortCompare===undefined ) {
         sortCompare= false;
     }
     if( sortCompare===true ) {
-        sortCompare= compareNatural;
+        sortCompare= SeLiteMisc.compareNatural;
     }
     if( sortCompare && typeof sortCompare!=='function' ) {
         throw new Error("SortedObect() requires parameter sortCompare to be a function or boolean, if specified.");
     }
-    var target= new SortedObjectTarget( sortCompare );
+    var target= new SeLiteMisc.SortedObjectTarget( sortCompare );
     return target;
     //return new Proxy( target, sortedObjectProxyHandler );
     //return  new SortedObjectProxy( target, sortedObjectProxyHandler );
-}
+};
 
-function SortedObjectTarget( sortCompare ) {
+SeLiteMisc.SortedObjectTarget= function( sortCompare ) {
     Object.defineProperty( this, SELITE_MISC_SORTED_OBJECT_COMPARE, {
       enumerable: false, configurable: false, writable: false,
       value: sortCompare
@@ -566,9 +568,9 @@ function SortedObjectTarget( sortCompare ) {
       enumerable: false, configurable: false, writable: false,
       value: []
     });*/
-}
+};
 
-SortedObjectTarget.prototype.__iterator__= function() {
+SeLiteMisc.SortedObjectTarget.prototype.__iterator__= function() {
     var i=0;
     var keys= Object.keys(this);
     if( this[SELITE_MISC_SORTED_OBJECT_COMPARE] ) {
@@ -594,7 +596,7 @@ SortedObjectTargetIterator.prototype.next= function() {
     }
     throw StopIteration;
 };
-SortedObjectTarget.prototype.__iterator__= function() {
+SeLiteMisc.SortedObjectTarget.prototype.__iterator__= function() {
     return new SortedObjectTargetIterator(this);
 };
 
@@ -633,22 +635,22 @@ function IterableArray( keys ) {
     this[SELITE_MISC_ITERABLE_ARRAY_KEYS]= keys!==undefined
         ? keys
         : [];
-    ensure( Array.isArray(this[SELITE_MISC_ITERABLE_ARRAY_KEYS]), "IterableArray(keys) expects keys to be an array, or undefined." );
+    SeLiteMisc.ensure( Array.isArray(this[SELITE_MISC_ITERABLE_ARRAY_KEYS]), "IterableArray(keys) expects keys to be an array, or undefined." );
     this.watch( SELITE_MISC_ITERABLE_ARRAY_KEYS, IterableArrayKeysWatchThrow );
 }
 IterableArray.prototype.__iterator__= function() {
     for( var i=0; i<this[SELITE_MISC_ITERABLE_ARRAY_KEYS].length; i++ ) {
         yield this[SELITE_MISC_ITERABLE_ARRAY_KEYS][i];
     }
-}
+};
 
 /** Sort fields in object by keys (keys are always strings).
  *  @param object object serving as an associative array
  *  @param function compareFunction Function that compares two keys. Optional; by default case-sensitive string comparison.
  *  @return new anonymous object serving as an associative array, with all fields and values from object, but in the sorted order
- *  @TODO remove, replace by sortedObject()
+ *  @TODO remove, replace by SeLiteMisc.sortedObject()
  * */
-function sortByKeys( object, compareFunction ) {
+SeLiteMisc.sortByKeys= function( object, compareFunction ) {
     if( !compareFunction ) {
         compareFunction= undefined;
     }
@@ -663,7 +665,7 @@ function sortByKeys( object, compareFunction ) {
         result[ name ]= object[ name ];
     }
     return result;
-}
+};
 
 /** @return a negative, 0 or positive number, depending on whether first is less
  *  than, equal to or greater than second, in case insensitive dictionary order.
@@ -673,9 +675,9 @@ function sortByKeys( object, compareFunction ) {
  *  var o={ false:0, null:-1, 5: 5 }
  *  for( var field in o ) { // typeof field is string. It's strictly equal to 'false' or 'null' or '5'
  *  }
- *  So you can pass this function as a second parameter to sortByKeys() with no other checks.
+ *  So you can pass this function as a second parameter to SeLiteMisc.sortByKeys() with no other checks.
  * */
-function compareCaseInsensitively( first, second ) {
+SeLiteMisc.compareCaseInsensitively= function( first, second ) {
     var firstLower= first.toLowerCase();
     var secondLower= second.toLowerCase();
     return firstLower===secondLower
@@ -684,14 +686,14 @@ function compareCaseInsensitively( first, second ) {
             ? -1
             : +1
           );
-}
+};
 
-/** Like compareCaseInsensitively(), but for numbers.
+/** Like SeLiteMisc.compareCaseInsensitively(), but for numbers.
  *  Don't use first-second, because that can overrun integer type limits.
  *  @param mixed number or numeric string first
  *  @param mixed number or numeric string second
  * */
-function compareAsNumbers( first, second ) {
+SeLiteMisc.compareAsNumbers= function( first, second ) {
     first= Number(first); // This works if it is already a number
     second= Number(second);
     return first===second
@@ -700,14 +702,14 @@ function compareAsNumbers( first, second ) {
             ? -1
             : 1
           );
-}
+};
 
-/** A blend of compareCaseInsensitively() and compareAsNumbers().
+/** A blend of SeLiteMisc.compareCaseInsensitively() and SeLiteMisc.compareAsNumbers().
  *  Non-numeric strings are sorted case insensitively. Numbers are sorted among themselves. Numbers will be before non-numeric strings.
  *  @return a negative, 0 or positive number, depending on whether first is less
  *  than, equal to or greater than second, in the order as described above.
  * */
-function compareNatural( first ,second ) {
+SeLiteMisc.compareNatural= function( first ,second ) {
     var firstNumber= Number(first); // This works if it is already a number
     var secondNumber= Number(second);
     
@@ -719,18 +721,18 @@ function compareNatural( first ,second ) {
                 : +1
               );
     }
-    return compareCaseInsensitively( first, second );
-}
+    return SeLiteMisc.compareCaseInsensitively( first, second );
+};
 
 /** @return an anonymous object, which has all fields from obj, and any
     extra fields from overriden. If the same field is in both obj and overriden,
     then the value from obj is used.
 */
-function objectsMerge( obj, overriden ) {
+SeLiteMisc.objectsMerge= function( obj, overriden ) {
     var result= {};
     var field= null;
     if( obj!=null ) {
-        objectCopyFields( obj, result );
+        SeLiteMisc.objectCopyFields( obj, result );
     }
     if( overriden!=null ) {
         for( field in overriden ) {
@@ -740,18 +742,18 @@ function objectsMerge( obj, overriden ) {
         }
     }
     return result;
-}
+};
 
 /** Copy all and any  fields (iterable ones) from source object to target object.
  *  If a same field exists in target object, it will be overwritten.
  *  @return object target
  **/
-function objectCopyFields( source, target ) {
+SeLiteMisc.objectCopyFields= function( source, target ) {
     for( var field in source ) {
         target[field]= source[field];
     }
     return target;
-}
+};
 
 /** This makes a shallow clone of a given object. If the original object had a prototype,
  *  then this uses it, too - any fields of the protype won't be copied, but will be referenced.
@@ -767,7 +769,7 @@ function objectCopyFields( source, target ) {
  *  it will be set to be the same as acceptableFields
  *  See https://developer.mozilla.org/en/JavaScript/Reference/Operators/Operator_Precedence
  **/
-function objectClone( original, acceptableFields, requiredFields, result ) {
+SeLiteMisc.objectClone= function( original, acceptableFields, requiredFields, result ) {
     acceptableFields= acceptableFields || [];
     requiredFields= requiredFields || [];
     if( requiredFields==='all' ) {
@@ -779,7 +781,7 @@ function objectClone( original, acceptableFields, requiredFields, result ) {
     }
     for( var i=0; i<requiredFields.length; i++ ) {
         if( original[ requiredFields[i] ]===undefined ) {
-            throw "objectClone(): Field " +requiredFields[i]+ " is required, but it's not present in the original.";
+            throw "SeLiteMisc.objectClone(): Field " +requiredFields[i]+ " is required, but it's not present in the original.";
         }
     }
     for( var field in original ) {
@@ -788,26 +790,26 @@ function objectClone( original, acceptableFields, requiredFields, result ) {
         }
     }
     return result;
-}
+};
 
 /** This deletes all iterable fields from the given object.
  *  @return obj
  **/
-function objectDeleteFields( obj ) {
+SeLiteMisc.objectDeleteFields= function( obj ) {
     for( var field in obj ) {
         delete obj[field];
     }
     return obj;
-}
+};
 
-function arrayClone( arr ) { return arr.slice(0); }
+SeLiteMisc.arrayClone= function( arr ) { return arr.slice(0); };
 
 /** @return an anonymous object, which has all values from obj as keys, and their
  *  respective original keys (field names) as values. If the same value is present for two or more
  *  fields in the original object, then it will be mapped to name of one of those fields (unspecified).
  *  If a value is not a string, it's appended to an empty string (i.e. its toString() will be used, or 'null').
  **/
-function objectReverse( obj ) {
+SeLiteMisc.objectReverse= function( obj ) {
     var result= {};
     for( var field in obj ) {
         var value= obj[field];
@@ -817,7 +819,7 @@ function objectReverse( obj ) {
         result[ value ]= field;
     }
     return result;
-}
+};
 
 /** @return mixed
  *  - if asObject is false: Return an array containing values of all iterable fields in the given object.
@@ -826,7 +828,7 @@ function objectReverse( obj ) {
         of occurrences of this value in the original object. Values of the original object are converted to strings by
         appending them to an empty string. Indeed, values of different type may map to the same string.
  **/
-function objectValues( obj, asObject ) {
+SeLiteMisc.objectValues= function( obj, asObject ) {
     var result= asObject ? {} : [];
     for( var field in obj ) {
         if( asObject ) {
@@ -838,7 +840,7 @@ function objectValues( obj, asObject ) {
         }
     }
     return result;
-}
+};
 
 /** @return string field name for the given value, or null. If there are several such
  *  fields, this will return one of them (unspecified which one).
@@ -846,14 +848,14 @@ function objectValues( obj, asObject ) {
  *  @param mixed value Value to search in the given object.
  *  @param bool strict Whether to compare strictly (using ===); false by default.
  **/
-function objectValueToField( obj, value, strict ) {
+SeLiteMisc.objectValueToField= function( obj, value, strict ) {
     for( var field in obj ) {
         if( value==obj[field] && (!strict || value===obj[field]) ) {
             return field;
         }
     }
     return null;
-}
+};
 
 /** This collects entries (objects or arrays i.e. rows) from an array of associative arrays (i.e. objects), by given field/column.
  *  It returns those entries indexed by value of that given column/field, which becomes a key in the result
@@ -861,7 +863,7 @@ function objectValueToField( obj, value, strict ) {
  *  chosen column (field) values may not be unique, then it returns the entries (objects/row) within
  *  an extra enclosing array, one per each key value - even if there is just one object/row for any key value.
  *  @param array of objects or an object (serving as an associative array) of objects (or of arrays of objects);
- *  it can be a result of SeLite DB Objects - select() or a previous result of collectByColumn().
+ *  it can be a result of SeLite DB Objects - select() or a previous result of SeLiteMisc.collectByColumn().
  *  Therefore any actual values must not be arrays themselves, because then you and
  *  existing consumers of result from this function couldn't tell them from the subindexed arrays.
  *  @param mixed columnorfieldname String name of the index key or object field, that we'll index by;
@@ -896,14 +898,14 @@ function objectValueToField( obj, value, strict ) {
  *  The result can't be an array, because Javascript arrays must have consecutive
  *  non-negative integer index range. General data doesn't fit that.
  */
-function collectByColumn( records, columnorfieldname, columnvaluesunique,
+SeLiteMisc.collectByColumn= function( records, columnorfieldname, columnvaluesunique,
 subindexcolumnorfieldname, result ) {
     result= result || {};
     if( Array.isArray(records) ) { // The records were not a result of previous call to this method.
         
         for( var i=0; i<records.length; i++ ) {
             var record= records[i];
-            collectByColumnRecord( record, result, columnorfieldname, columnvaluesunique,
+            SeLiteMisc.collectByColumnRecord( record, result, columnorfieldname, columnvaluesunique,
                 subindexcolumnorfieldname );
         }
     }
@@ -913,48 +915,48 @@ subindexcolumnorfieldname, result ) {
             
             if( Array.isArray(recordOrGroup) ) { // records was previously indexed by non-unique column and without sub-index
                 for( var j=0; j<recordOrGroup.length; j++ ) {
-                    collectByColumnRecord( recordOrGroup[j], result, columnorfieldname, columnvaluesunique,
+                    SeLiteMisc.collectByColumnRecord( recordOrGroup[j], result, columnorfieldname, columnvaluesunique,
                     subindexcolumnorfieldname );
                 }
             }
             else {
                 if( Array.isArray(recordOrGroup) ) { // Records were previously indexed by non-unique columnd and using sub-index
                     for( var existingSubIndex in recordOrGroup ) {
-                        collectByColumnRecord( recordOrGroup[existingSubIndex], result, columnorfieldname, columnvaluesunique,
+                        SeLiteMisc.collectByColumnRecord( recordOrGroup[existingSubIndex], result, columnorfieldname, columnvaluesunique,
                             subindexcolumnorfieldname );
                     }
                 }
                 else {
-                    collectByColumnRecord( recordOrGroup, result, columnorfieldname, columnvaluesunique,
+                    SeLiteMisc.collectByColumnRecord( recordOrGroup, result, columnorfieldname, columnvaluesunique,
                         subindexcolumnorfieldname );
                 }
             }
         }
     }
     return result;
-}
+};
 
 /** This groups sub-indexed records. I can't use an anonymous object, because then I couldn't
- *  distinguish it from user record objects, when running collectByColumn() on the previous result of collectByColumn().
+ *  distinguish it from user record objects, when running SeLiteMisc.collectByColumn() on the previous result of SeLiteMisc.collectByColumn().
  **/
-function RecordGroup() {}
+SeLiteMisc.RecordGroup= function() {};
 
-/** Internal only. Worker function called by collectByColumn().
+/** Internal only. Worker function called by SeLiteMisc.collectByColumn().
  **/
-function collectByColumnRecord( record, result, columnorfieldname, columnvaluesunique,
+SeLiteMisc.collectByColumnRecord= function( record, result, columnorfieldname, columnvaluesunique,
 subindexcolumnorfieldname ) {
-    var columnvalue= getField( record, columnorfieldname );
+    var columnvalue= SeLiteMisc.getField( record, columnorfieldname );
     if( columnvaluesunique ) {
         result[columnvalue]= record;
     }
     else {
         if( result[columnvalue]===undefined ) {
             result[columnvalue]= subindexcolumnorfieldname
-                ? new RecordGroup()
+                ? new SeLiteMisc.RecordGroup()
                 : [];
         }
         if( subindexcolumnorfieldname ) {
-            var subindexvalue= getField(record, subindexcolumnorfieldname);
+            var subindexvalue= SeLiteMisc.getField(record, subindexcolumnorfieldname);
             if( subindexvalue===undefined ) {
                 subindexvalue= null;
             }
@@ -964,19 +966,19 @@ subindexcolumnorfieldname ) {
             result[columnvalue].push( record );
         }
     }
-}
+};
 
-function getField( record, columnFieldNameOrFunction ) {
+SeLiteMisc.getField= function( record, columnFieldNameOrFunction ) {
     return typeof columnFieldNameOrFunction==='function'
         ? columnFieldNameOrFunction(record)
         : record[columnFieldNameOrFunction];
-}
+};
 
 /** Get all ASCII characters that match the given regex.
  *  @param RegExp regex Regular expression to match acceptable character(s)
  *  @return string containing of all ASCII characters that match
  **/
-function acceptableCharacters( regex ) {
+SeLiteMisc.acceptableCharacters= function( regex ) {
     var result= '';
     for( var code=0; code<256; code++ ) {
         var c= String.fromCharCode(code);
@@ -985,42 +987,42 @@ function acceptableCharacters( regex ) {
         }
     }
     return result;
-}
+};
 
 /** @param string acceptableChars String containign acceptable characters.
  *  @return string 1 random character from within acceptableChars
  *  @internal */
-function randomChar( acceptableChars ) {
+SeLiteMisc.randomChar= function( acceptableChars ) {
     if( acceptableChars.length==0 ) {
-        LOG.error( "randomChar() called with empty acceptableChars." );
+        LOG.error( "SeLiteMisc.randomChar() called with empty acceptableChars." );
         throw new Error();
     }
     // Math.random() returns from within [0, 1) i.e. 0 inclusive, 1 exclusive.
     // But that '1 exclusive' is weighted by the fact that 0.5 rounds up to 1
     var index= Math.round( Math.random()*(acceptableChars.length-1) );
     return acceptableChars[index];
-}
+};
 
 /** @param string acceptableChars String containign acceptable characters.
  *  @param number length Length of the result string.
  *  @return string of given length, made of random characters from within acceptableChars
  *  @internal */
-function randomString( acceptableChars, length ) {
+SeLiteMisc.randomString= function( acceptableChars, length ) {
     var result= '';
     for( var i=0; i<length; i++ ) {
-        result+= randomChar(acceptableChars);
+        result+= SeLiteMisc.randomChar(acceptableChars);
     }
     return result;
-}
+};
 
 /** This picks up a random item from the given array, and returns it.
  *  @param array Array of items
  *  @return mixed An item from within the array, at a random index
  **/
-function randomItem( items ) {
+SeLiteMisc.randomItem= function( items ) {
     var index= Math.round( Math.random()*(items.length-1) );
     return items[index];
-}
+};
 
 /** A helper function, so that custom Selenium actions can store results within
  *  fields/subfields of storedVars.
@@ -1031,7 +1033,7 @@ function randomItem( items ) {
  *  @param mixed value Value to set to the leaf field.
  *  @return void
  **/
-function setFields( object, fieldsString, value ) {
+SeLiteMisc.setFields= function( object, fieldsString, value ) {
     var fields= fieldsString.split('.');
 
     for( var i=0; i<fields.length; i++ ) {
@@ -1042,18 +1044,18 @@ function setFields( object, fieldsString, value ) {
             object= object[ fields[i] ];
         }
     }
-}
+};
 
 /** This returns random true or false, with threshold being the (average) ratio of true results against
  *  the number of all results.
  **/
-function random( threshold ) {
+SeLiteMisc.random= function( threshold ) {
     return Math.random()<=threshold;
-}
+};
 
 /**
  **/
-function xpath_escape_quote( string ) {
+SeLiteMisc.xpath_escape_quote= function( string ) {
     if( string.indexOf("'")>=0 ) {
         if( string.indexOf('"')<0 ) {
             return '"' +string+ '"';
@@ -1085,9 +1087,9 @@ function xpath_escape_quote( string ) {
         }
     }
     return 'concat(' +resultParts.join(',')+ ')';
-}
+};
 
-function unescape_xml( param ) {
+SeLiteMisc.unescape_xml= function( param ) {
     return param!==null
         ? (typeof param=='string' ? param : ''+param)
          .replace( /&amp;/g, '&' )
@@ -1096,30 +1098,30 @@ function unescape_xml( param ) {
          .replace( /&quot/g, '"')
          .replace( /&apos;/g, "'" )
         : null;
-}
+};
 
-/*  @param object prototype Optional; Instance of PrototypedObject or of same subclass as is the class of the
- *  object being created, or its parent class (a subclass of PrototypedObject). That instance serves as the prototype for the new object.
+/*  @param object prototype Optional; Instance of SeLiteMisc.PrototypedObject or of same subclass as is the class of the
+ *  object being created, or its parent class (a subclass of SeLiteMisc.PrototypedObject). That instance serves as the prototype for the new object.
  *  Any enumerable fields set in prototype (including those set to null) will be inherited (copied) at the time of calling this constructor.
  *  Any later changes to prototype object won't be reflected. To inherit from this class
- *  - the subclass constructor should: PrototypedObject.call( this, prototype );
+ *  - the subclass constructor should: SeLiteMisc.PrototypedObject.call( this, prototype );
  *  - after defining the subclass constructor (e.g. MyClass) set:
- *  -- MyClass.prototype= new ParentClass(); // or: new PrototypedObject() for 1st level children
+ *  -- MyClass.prototype= new ParentClass(); // or: new SeLiteMisc.PrototypedObject() for 1st level children
  *  -- MyClass.prototype.constructor= MyClass;
  *  See https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
  *  and also https://developer.mozilla.org/en/JavaScript/Guide/Inheritance_Revisited
  *  The above can be used outside of Selenium-based components - it works in Chrome, Safari, Opera, IE (as of Nov 2012).
- *  However, I haven't tested functionality of PrototypedObject() outside of Firefox.
+ *  However, I haven't tested functionality of SeLiteMisc.PrototypedObject() outside of Firefox.
  **/
-function PrototypedObject( prototype ) {
+SeLiteMisc.PrototypedObject= function( prototype ) {
     if( prototype ) {
         assert( this instanceof prototype.constructor, prototype.constructor.name+
-            " inherits from PrototypedObject, whose constructor only accepts an object of the same class as a parameter." );
+            " inherits from SeLiteMisc.PrototypedObject, whose constructor only accepts an object of the same class as a parameter." );
         for( var field in prototype ) {
             this[field]= prototype[field];
         }
     }
-}
+};
 
 /** This retrieves a web form password for a user. It doesn't work with .htaccess/HTTP authentication
     (that can be retrieved too, see the docs).
@@ -1128,7 +1130,7 @@ function PrototypedObject( prototype ) {
     @param username case-sensitive
     @return string password if found; null otherwise
 */
-function loginManagerPassword( hostname, username ) {
+SeLiteMisc.loginManagerPassword= function( hostname, username ) {
 /**
     https://developer.mozilla.org/En/Using_nsILoginManager
     https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsILoginManager
@@ -1147,52 +1149,52 @@ function loginManagerPassword( hostname, username ) {
         }
     }
     return null;
-}
+};
 
 /** @param mixed recordSet A RecordSet instance
  *  or some other object serving as an associative array,
- *  potentially a result of collectByColumn(), even if it used sub-indexing
+ *  potentially a result of SeLiteMisc.collectByColumn(), even if it used sub-indexing
  *  (but then the records must be instances of Record - which is so by default;
  *  otherwise the subindexed groups (objects serving as associative arrays) couldn't be differentiated from target objects/records).
  *  @param int position 0-based position of the value to return
  *  @return object the leaf record
  *  @throws Exception if position is negative, decimal or higher than the last available position
  **/
-function nthRecord( recordSet, position ) {
-    position>=0 || fail( "nthRecord() requires non-negative position, but it was: " +position);
+SeLiteMisc.nthRecord= function( recordSet, position ) {
+    position>=0 || SeLiteMisc.fail( "SeLiteMisc.nthRecord() requires non-negative position, but it was: " +position);
     return nthRecordOrLengthOrIndexesOf( recordSet, NTH_RECORD, position );
-}
+};
 
 /** @param mixed recordSet A RecordSet instance,
  *  or some other object serving as an associative array,
- *  potentially a result of collectByColumn(), even if it used sub-indexing
+ *  potentially a result of SeLiteMisc.collectByColumn(), even if it used sub-indexing
  *  (but then the records must be instances of Record - which is so by default;
  *  otherwise the subindexed groups (objects serving as associative arrays) couldn't be differentiated from target objects/records).
  *  @int number of leaf records
  */
-function numberOfRecords( recordSet ) {
+SeLiteMisc.numberOfRecords= function( recordSet ) {
     return nthRecordOrLengthOrIndexesOf( recordSet, NUMBER_OF_RECORDS );
-}
+};
 
 /** @param mixed recordSet A RecordSet instance,
  *  or some other object serving as an associative array,
- *  potentially a result of collectByColumn(), even if it used sub-indexing
+ *  potentially a result of SeLiteMisc.collectByColumn(), even if it used sub-indexing
  *  (but then the records must be instances of Record - which is so by default;
  *  otherwise the subindexed groups (objects serving as associative arrays) couldn't be differentiated from target objects/records).
  *  @param record object, record to search for.
  *  @return int 0-based index of that record if found,-1 otherwise.
  */
-function indexesOfRecord( recordSet, record ) {
+SeLiteMisc.indexesOfRecord= function( recordSet, record ) {
     return nthRecordOrLengthOrIndexesOf( recordSet, INDEXES_OF_RECORD, record );
-}
+};
 
 /** Acceptable values of parameter action for nthRecordOrLengthOrIndexesOf()
  * */
 var NTH_RECORD= 'NTH_RECORD', NUMBER_OF_RECORDS='NUMBER_OF_RECORDS', INDEXES_OF_RECORD= 'INDEXES_OF_RECORD';
 
-/** @private Implementation of nthRecord() and numberOfRecords() and indexesOfRecord(). Multi-purpose function
+/** @private Implementation of SeLiteMisc.nthRecord() and SeLiteMisc.numberOfRecords() and SeLiteMisc.indexesOfRecord(). Multi-purpose function
  *  that iterates over indexed (and optionally sub-indexed) records.
- *  @param mixed recordSet just like the same parameter in nthRecord() and numberOfRecords()
+ *  @param mixed recordSet just like the same parameter in SeLiteMisc.nthRecord() and SeLiteMisc.numberOfRecords()
  *  @param string action Determines the purpose and behavious of calling this function. action must be one of:
  *  NTH_RECORD, NUMBER_OF_RECORDS, INDEXES_OF_RECORD.
  *  @param mixed positionOrRecord Either
@@ -1209,9 +1211,9 @@ var NTH_RECORD= 'NTH_RECORD', NUMBER_OF_RECORDS='NUMBER_OF_RECORDS', INDEXES_OF_
  *  @throws Error on failure, or if action=NTH_RECORD and positionOrRecord is equal to or higher than number of records
  **/
 function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
-    ensureType( recordSet, 'object', 'recordSet must be an object');
-    ensureType( positionOrRecord, ['number', 'object', 'undefined'], 'positionOrRecord must be a number, or an object or undefined.');
-    ensureOneOf( action, [NTH_RECORD, NUMBER_OF_RECORDS, INDEXES_OF_RECORD], 'nthRecordOrLengthOrIndexesOf() called with wrong parameter action' );
+    SeLiteMisc.ensureType( recordSet, 'object', 'recordSet must be an object');
+    SeLiteMisc.ensureType( positionOrRecord, ['number', 'object', 'undefined'], 'positionOrRecord must be a number, or an object or undefined.');
+    SeLiteMisc.ensureOneOf( action, [NTH_RECORD, NUMBER_OF_RECORDS, INDEXES_OF_RECORD], 'nthRecordOrLengthOrIndexesOf() called with wrong parameter action' );
     
     // Following three booleans reflect what we're doing.
     var nthRecord= action===NTH_RECORD;
@@ -1225,8 +1227,8 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
         ? positionOrRecord
         : undefined;
     
-    ensureType( record, ['object', 'undefined'] );
-    ensureType( position, ['number', 'undefined'] );
+    SeLiteMisc.ensureType( record, ['object', 'undefined'] );
+    SeLiteMisc.ensureType( position, ['number', 'undefined'] );
     
     if( nthRecord && (position<0 || position!=Math.round(position) ) ) {
         throw new Error( "nthRecordOrLengthOrIndexesOf() requires non-decimal non-negative position, but it was: " +position);
@@ -1248,7 +1250,7 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
             currPosition+= entry.length;
         }
         else
-        if( entry instanceof RecordGroup ) {
+        if( entry instanceof SeLiteMisc.RecordGroup ) {
             for( var subindex in entry ) {
                 if( indexesOfRecord && entry[subindex]==record ) {
                     return [index, subindex];
@@ -1280,7 +1282,7 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
         throw new Error( 'nthRecordOrLengthOrIndexesOf(): There is no item at position ' +position+
             ' (starting from 0). The highest position is ' +currPosition );
     }
-}
+};
 
 /** Object serving as an associative array. Used by Core extensions, that are specified in Selenium IDE menu
  *  (and they are not Firefox extensions on their own), to indicate that an extension was loaded once or twice.
@@ -1290,8 +1292,10 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
  *  Passive - It's up to the Core extension to use this appropriately.
  *  For http://code.google.com/p/selenium/issues/detail?id=6697 Core extensions are loaded 2x
 */
-var nonXpiCoreExtensions= {};
+SeLiteMisc.nonXpiCoreExtensions= {};
 
+var EXPORTED_SYMBOLS= ['SeLiteMisc'];
+/*
 var EXPORTED_SYMBOLS= [ "fail", "stack", "ensure", "oneOf", "ensureOneOf", "ensureType", "ensureInstance",
     "item", "itemOrNull", "itemGeneric", "objectToString",
      "rowsToString", "timestampInSeconds", "isEmptyObject",
@@ -1305,4 +1309,4 @@ var EXPORTED_SYMBOLS= [ "fail", "stack", "ensure", "oneOf", "ensureOneOf", "ensu
     "compareAsNumbers", "compareCaseInsensitively", "compareNatural",
     "sortedObject", "SortedObjectTarget",
     "nthRecord", "numberOfRecords", "indexesOfRecord", "nonXpiCoreExtensions"
-];
+];*/
