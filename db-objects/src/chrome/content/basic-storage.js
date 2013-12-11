@@ -614,33 +614,37 @@ StorageFromSettings.prototype.constructor= StorageFromSettings;
 StorageFromSettings.prototype.open= function() { SeLiteMisc.fail('StorageFromSettings.open() is unsupported.'); };
 StorageFromSettings.prototype.close= function() { SeLiteMisc.fail('StorageFromSettings.close() is unsupported.'); };
 
-SeLiteSettings.addTestSuiteFolderChangeHandler(
-    function() {
-        //console.log('TestSuiteFolderChangeHandler will update ' +StorageFromSettings.instances.length+ ' instance(s) of StorageFromSettings with setting(s) associated with folder ' +SeLiteSettings.getTestSuiteFolder() );
-        StorageFromSettings.instances.length===0 || SeLiteSettings.getTestSuiteFolder()
-        || console.log( 'SeLiteSettings: there are ' +StorageFromSettings.instances.length+ ' instance(s) of StorageFromSettings, yet the current test suite has no folder yet.' );
-        for( var i=0; i<StorageFromSettings.instances.length; i++ ) { // @TODO for(.. of .. )
-            var instance= StorageFromSettings.instances[i];
-            instance instanceof StorageFromSettings || fail();
-            if( instance.connection ) {
-                Storage.prototype.close.call( instance, false );
-                instance.parameters.fileName= null;
+function testSuiteFolderChangeHandler() {
+    //console.log('TestSuiteFolderChangeHandler will update ' +StorageFromSettings.instances.length+ ' instance(s) of StorageFromSettings with setting(s) associated with folder ' +SeLiteSettings.getTestSuiteFolder() );
+    StorageFromSettings.instances.length===0 || SeLiteSettings.getTestSuiteFolder()
+    || console.log( 'SeLiteSettings: there are ' +StorageFromSettings.instances.length+ ' instance(s) of StorageFromSettings, yet the current test suite has no folder yet.' );
+    for( var i=0; i<StorageFromSettings.instances.length; i++ ) { // @TODO for(.. of .. )
+        var instance= StorageFromSettings.instances[i];
+        instance instanceof StorageFromSettings || fail();
+        if( instance.connection ) {
+            Storage.prototype.close.call( instance, false );
+            instance.parameters.fileName= null;
+        }
+        if( SeLiteSettings.getTestSuiteFolder() ) {
+            var newFileName= instance.field.getFieldsDownToFolder().entry;
+            //console.log( 'newFileName: ' +newFileName );
+            if( newFileName ) {
+                instance.parameters.fileName= newFileName;
+                Storage.prototype.open.call( instance );
+                //console.log( 'connection ' +instance.connection );
             }
-            if( SeLiteSettings.getTestSuiteFolder() ) {
-                var newFileName= instance.field.getFieldsDownToFolder().entry;
-                //console.log( 'newFileName: ' +newFileName );
-                if( newFileName ) {
-                    instance.parameters.fileName= newFileName;
-                    Storage.prototype.open.call( instance );
-                    //console.log( 'connection ' +instance.connection );
-                }
-                else {
-                    //console.log( 'SeLiteSettings: The current test suite has a folder, but field ' +instance.field+ ' is not defined for it.' );
-                }
+            else {
+                //console.log( 'SeLiteSettings: The current test suite has a folder, but field ' +instance.field+ ' is not defined for it.' );
             }
         }
     }
-);
+}
+SeLiteSettings.addTestSuiteFolderChangeHandler( testSuiteFolderChangeHandler );
+
+function ideCloseHandler() {
+    StorageFromSettings.instances= [];
+}
+SeLiteSettings.addClosingIdeHandler( ideCloseHandler );
 
 /** @TODO DOC We use synchronous DB API. That's because
  *  - with asynchronous API we'd have to wait for the query to finish before moving to next Selenium test step

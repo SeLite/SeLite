@@ -1294,7 +1294,7 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
  *  Passive - It's up to the Core extension to use this appropriately.
  *  For http://code.google.com/p/selenium/issues/detail?id=6697 Core extensions are loaded 2x
 */
-SeLiteMisc.nonXpiCoreExtensions= {};
+SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes= {};
 
 var robustNullToken= 'robustNullReplacementString';
 

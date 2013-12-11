@@ -1106,6 +1106,26 @@ function addTestSuiteFolderChangeHandler( handler, handlerName ) {
     }
 }
 
+var closingIdeHandlers= [];
+
+/** @private within SeLite family. Called when Se IDE is being closed down.
+ * */
+function closingIde() {
+    for( var i=0; i<closingIdeHandlers.length; i++ ) { //@TODO use loop for( .. of ..)
+        closingIdeHandlers[i].call();
+    }
+}
+
+/** Register a handler, that is invoked when Selenium IDE is being closed down.
+ *  This can only be called from Javascript components - loaded through Components.utils.import() -
+ *  and directly from Selenium Core extensions, because Core extensions get re-loaded on successive restarts
+ *  of Se IDE (during the same run of Firefox).
+ * */
+function addClosingIdeHandler( handler ) {
+    SeLiteMisc.ensureType( handler, 'function', 'handler must be a function' );
+    closingIdeHandlers.push( handler );
+}
+
 /** Calculate a composition of field values, based on manifests, preferences and field defaults,
  *  down from filesystem root to given folderPath.
  *  @param string folderPath Full path (absolute) to the folder where your test suite is.
@@ -1479,7 +1499,8 @@ var EXPORTED_SYMBOLS= [
     'Field', 'Module', 'register', 'savePrefFile', 'moduleNamesFromPreferences', 'fileNameToUrl', 'loadFromJavascript',
     'VALUES_MANIFEST_FILENAME', 'ASSOCIATIONS_MANIFEST_FILENAME',
     'ASSOCIATED_SET', 'SELECTED_SET', 'VALUES_MANIFEST', 'FIELD_DEFAULT', 'FIELD_NULL_OR_UNDEFINED',
-    'getTestSuiteFolder', 'setTestSuiteFolder', 'addTestSuiteFolderChangeHandler'
+    'getTestSuiteFolder', 'setTestSuiteFolder', 'addTestSuiteFolderChangeHandler',
+    'addClosingIdeHandler', 'closingIde'
 ];
 if( runningAsComponent ) {
     // I can load this module itself only after I set EXPORTED_SYMBOLS

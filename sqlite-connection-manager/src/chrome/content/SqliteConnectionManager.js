@@ -26,6 +26,7 @@ var runningAsComponent= (typeof window==='undefined' || window && window.locatio
 if( runningAsComponent ) {
     Components.utils.import("resource://gre/modules/Services.jsm");
     Components.utils.import("resource://gre/modules/FileUtils.jsm");
+    var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 }
 
 function SQLiteConnectionParameters() {}
@@ -278,6 +279,9 @@ SQLiteConnectionInfo.prototype.close= function( synchronous ) {
                 if( SQLiteConnectionInfo.connectionInfos[i]===this ) {
                     SQLiteConnectionInfo.connectionInfos.splice( i, 1 );
                 }
+            }
+            if( !synchronous ) {
+                console.log( "SQLiteConnectionInfo.close() successfully closed asynchronously." );
             }
         }
     };

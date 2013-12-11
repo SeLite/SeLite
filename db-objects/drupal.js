@@ -16,9 +16,9 @@
 
 (function() {
     Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
-    var loadedBeforeRunningSelenese= SeLiteMisc.nonXpiCoreExtensions['doDrupalUsers'] || false;
+    var loadedOddTimes= SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doDrupalUsers'] || false;
     // Ignore the first load, because Se IDE somehow discards that Selenium.prototype
-    if( loadedBeforeRunningSelenese ) {
+    if( loadedOddTimes ) {
         var SeLiteDbStorage= Components.utils.import('chrome://selite-db-objects/content/basic-storage.js', {});
         var SeLiteDbObjects= Components.utils.import( 'chrome://selite-db-objects/content/basic-objects.js', {} );
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
@@ -42,5 +42,5 @@
         };
         Selenium.prototype.testDb= storage;
     }
-    SeLiteMisc.nonXpiCoreExtensions['doDrupalUsers']= !loadedBeforeRunningSelenese;
+    SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doDrupalUsers']= !loadedOddTimes;
 })();

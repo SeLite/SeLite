@@ -28,6 +28,7 @@
         // result===true means that the window was closed (whether saved or not)
         if( result ) {
             SeLiteSettings.setTestSuiteFolder(undefined);
+            SeLiteSettings.closingIde();
         }
         //console.log( 'Editor.proto.confirmClose passed');
         return result;
