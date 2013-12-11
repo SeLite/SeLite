@@ -16,9 +16,9 @@
 
 (function() {
     Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
-    var numberOfTimesLoaded= SeLiteMisc.nonXpiCoreExtensions['doDrupalUsers'] || 0;
+    var loadedBeforeRunningSelenese= SeLiteMisc.nonXpiCoreExtensions['doDrupalUsers'] || false;
     // Ignore the first load, because Se IDE somehow discards that Selenium.prototype
-    if( numberOfTimesLoaded==1 ) {
+    if( loadedBeforeRunningSelenese ) {
         var SeLiteDbStorage= Components.utils.import('chrome://selite-db-objects/content/basic-storage.js', {});
         var SeLiteDbObjects= Components.utils.import( 'chrome://selite-db-objects/content/basic-objects.js', {} );
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
@@ -42,8 +42,5 @@
         };
         Selenium.prototype.testDb= storage;
     }
-    else if( numberOfTimesLoaded>1 ) {
-        SeLiteMisc.fail( 'Selenium IDE is trying to load this core extension for the 3rd time');
-    }
-    SeLiteMisc.nonXpiCoreExtensions['doDrupalUsers']= numberOfTimesLoaded+1;
+    SeLiteMisc.nonXpiCoreExtensions['doDrupalUsers']= !loadedBeforeRunningSelenese;
 })();

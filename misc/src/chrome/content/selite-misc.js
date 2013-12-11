@@ -1285,9 +1285,11 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
 };
 
 /** Object serving as an associative array. Used by Core extensions, that are specified in Selenium IDE menu
- *  (and they are not Firefox extensions on their own), to indicate that an extension was loaded once or twice.
+ *  (and they are not Firefox extensions on their own), to indicate whether an extension has been loaded once or twice
+ *  during the current run of Selenium IDE.
  *  {
- *      string core extension name: int How many times it was loaded so far.
+ *      string core extension name: boolean true if the extension was loaded once (that is, before running any Selenese), or odd number of times;
+ *          false (or not present) if the extension was not loaded yet, or it was loaded 2x or an even number of times
  *  }
  *  Passive - It's up to the Core extension to use this appropriately.
  *  For http://code.google.com/p/selenium/issues/detail?id=6697 Core extensions are loaded 2x
