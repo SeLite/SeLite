@@ -1295,18 +1295,3 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
 SeLiteMisc.nonXpiCoreExtensions= {};
 
 var EXPORTED_SYMBOLS= ['SeLiteMisc'];
-/*
-var EXPORTED_SYMBOLS= [ "fail", "stack", "ensure", "oneOf", "ensureOneOf", "ensureType", "ensureInstance",
-    "item", "itemOrNull", "itemGeneric", "objectToString",
-     "rowsToString", "timestampInSeconds", "isEmptyObject",
-    "objectsMerge", "objectCopyFields", "objectClone", "objectDeleteFields",
-    "arrayClone", "objectReverse", "objectValues", "objectValueToField",
-    "collectByColumn", "RecordGroup", "collectByColumnRecord", "getField",
-    "acceptableCharacters", "randomChar", "randomString", "randomItem",
-    "setFields", "random", "xpath_escape_quote", "unescape_xml",
-    "PrototypedObject", "loginManagerPassword",
-    "compareAllFields", "compareAllFieldsOneWay", "compareArrays", "sortByKeys",
-    "compareAsNumbers", "compareCaseInsensitively", "compareNatural",
-    "sortedObject", "SortedObjectTarget",
-    "nthRecord", "numberOfRecords", "indexesOfRecord", "nonXpiCoreExtensions"
-];*/

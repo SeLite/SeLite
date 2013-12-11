@@ -15,7 +15,7 @@
 "use strict";
 
 (function() {
-    var SeLiteMisc= Components.utils.import( 'chrome://selite-misc/content/selite-misc.js', {} ).SeLiteMisc;
+    Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
     var numberOfTimesLoaded= SeLiteMisc.nonXpiCoreExtensions['doDrupalUsers'] || 0;
     // Ignore the first load, because Se IDE somehow discards that Selenium.prototype
     if( numberOfTimesLoaded==1 ) {

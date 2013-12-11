@@ -16,7 +16,7 @@
 */
 "use strict";
 
-var SeLiteMisc= Components.utils.import( 'chrome://selite-misc/content/selite-misc.js', {} ).SeLiteMisc;
+Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
 Components.utils.import('chrome://selite-db-objects/content/basic-storage.js');
 
 /** @param object storage of class Storage
