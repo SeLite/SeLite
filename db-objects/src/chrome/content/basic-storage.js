@@ -623,7 +623,7 @@ SeLiteSettings.addTestSuiteFolderChangeHandler(
             var instance= StorageFromSettings.instances[i];
             instance instanceof StorageFromSettings || fail();
             if( instance.connection ) {
-                Storage.prototype.close.call( instance, true);
+                Storage.prototype.close.call( instance, false );
                 instance.parameters.fileName= null;
             }
             if( SeLiteSettings.getTestSuiteFolder() ) {
