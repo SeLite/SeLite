@@ -1294,4 +1294,15 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
 */
 SeLiteMisc.nonXpiCoreExtensions= {};
 
+var robustNullToken= 'robustNullReplacementString';
+
+/** This detects whether an expression within qs{expression} or prefixqs{expression} or prefixqs{expression}postfix evaluated into null.
+ *  @param valueOrSimpleLocator a result of 'expression' as passed to a Selenium action; its value
+ *  @return bool as described
+ */
+SeLiteMisc.isRobustNull= function( valueOrSimpleLocator ) {
+    // A bit simplified, but good enough. Prefix and Postfix around qs{...} should be simple and shouldn't contain robustNullToken
+    return typeof valueOrSimpleLocator=='string' && valueOrSimpleLocator.indexOf(robustNullToken)>=0;
+};
+
 var EXPORTED_SYMBOLS= ['SeLiteMisc'];

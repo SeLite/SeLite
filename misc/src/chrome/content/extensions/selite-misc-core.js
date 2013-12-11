@@ -18,18 +18,11 @@
 
 Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
 
-Selenium.prototype.robustNullToken= 'robustNullReplacementString';
-
-/** This detects whether an expression within qs{expression} or prefixqs{expression} or prefixqs{expression}postfix evaluated into null.
- *  @param valueOrSimpleLocator a result of 'expression' as passed to a Selenium action; its value
- *  @return bool as described
- */
-function isRobustNull( valueOrSimpleLocator ) {
-    // A bit simplified, but good enough. Prefix and Postfix around qs{...} should be simple and shouldn't contain robustNullToken
-    return typeof valueOrSimpleLocator=='string' && valueOrSimpleLocator.indexOf(Selenium.prototype.robustNullToken)>=0;
-};
-
-/** It returns value of given parameter (if present) from current URL;
+/** This is here, rather than in selite-misc.js component, because it needs to access global variable selenium.
+ *  I've tried to have it in selite-misc.js and to load the component using
+ *  Components.utils.import( "chrome://selite-misc/content/selite-misc.js", {selenium: selenium} );
+ *  above, but that failed, because variable selenium is not yet defined when selite-misc-core.js is processed.
+ *  It returns value of given parameter (if present) from current URL;
  *  if parameter name is not given, then it returns value of the last parameter in the URL.
  *  @param string paramName optional
  *  @return string value of the parameter; null if there are no parameters at all, or if the requested parameter is not present.
@@ -37,7 +30,7 @@ function isRobustNull( valueOrSimpleLocator ) {
  *  Selenium.prototype.getUrlParam= function( locator, unused ) {...};
  *  That auto-generated Selenium command storeUrlParam, but the parameters were not passed to it!
  */
-function getUrlParam( paramName ) {
+SeLiteMisc.getUrlParam= function( paramName ) {
     var search= selenium.browserbot.getCurrentWindow().location.search; // If the URL has no parameters, then this is an empty string
     if( search!=='' ) {
         search= search.substr( 1 ); // removing leading '?'
@@ -62,4 +55,3 @@ function getUrlParam( paramName ) {
     }
     return null;
 }
-
