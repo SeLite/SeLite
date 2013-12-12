@@ -604,25 +604,6 @@ function getStorageFromSettings( fieldOrFieldName ) {
     return instance;
 }
 
-/** Remove (unregister) an instance of StorageFromSettings, based on the given field (or its name).
- *  Needed (and only needed) if you have a Core extension that is loaded via SeLiteBootstrap,
- *  because it may be loaded multiple times during the same run of Se IDE.
- *  Then call this *before* getStorageFromSettings().
- *  Fail-safe - it can be called multiple times within the same run of Se IDE, even if there is no
- *  no such StorageFromSettings instance.
- *  @param fieldOrFieldName Either string, or SeLiteSettings.Field.SQLite instance.
- *  If it is a string, it must be a full field name. See SeLiteSettings.getField()
- *  @return void
- * */
-function removeStorageFromSettings( fieldOrFieldName ) {
-    fail('TODO remove, or close the connection here');
-    var field= typeof fieldOrFieldName==='string'
-        ? SeLiteSettings.getField(fieldOrFieldName)
-        : fieldOrFieldName;
-    field instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail('fieldOrFieldName must be an instance of SeLiteSettings.Field.SQLite, or string: ' +fieldOrFieldName+ '; field: ' +field );
-    delete StorageFromSettings.instances[field.name];
-}
-
 /** @private Object serving as an associative array {
  *      string full field name: instance of StorageFromSettings
  *  }
@@ -680,4 +661,4 @@ SeLiteSettings.addClosingIdeHandler( ideCloseHandler );
  *  and https://developer.mozilla.org/en/mozIStorageRow
  *  - handleResult() callback may be called several times per same statement!
  */
-var EXPORTED_SYMBOLS= ['Storage', 'SqlExpression', 'Settable', 'getStorageFromSettings', 'removeStorageFromSettings'];
+var EXPORTED_SYMBOLS= ['Storage', 'SqlExpression', 'Settable', 'getStorageFromSettings'];
