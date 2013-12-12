@@ -111,7 +111,7 @@ SeLiteData.Record.RECORD_TO_HOLDER_FIELD= 'RECORD_TO_HOLDER_FIELD';
  *  @param SeLiteData.Record instance
  *  @return RecordHolder for that instance.
  **/
-function recordHolder( record ) {
+SeLiteData.recordHolder= function( record ) {
     SeLiteMisc.ensureInstance( record, SeLiteData.Record, 'SeLiteData.Record' );
     return record[SeLiteData.Record.RECORD_TO_HOLDER_FIELD];
 }
@@ -456,13 +456,13 @@ SeLiteData.RecordSet.RECORDSET_TO_HOLDER_FIELD= 'RECORDSET_TO_HOLDER_FIELD';
 function recordSetHolder( recordSet ) {
     SeLiteMisc.ensureInstance(recordSet, SeLiteData.RecordSet, 'SeLiteData.RecordSet');
     return recordSet[SeLiteData.RecordSet.RECORDSET_TO_HOLDER_FIELD];
-}
+};
 
 /** @private
  * */
-function recordOrSetHolder( recordOrSet ) {
+SeLiteData.recordOrSetHolder= function( recordOrSet ) {
     if( recordOrSet instanceof SeLiteData.Record ) {
-        return recordHolder(recordOrSet);
+        return SeLiteData.recordHolder(recordOrSet);
     }
     else
     if( recordOrSet instanceof SeLiteData.RecordSet ) {
@@ -471,7 +471,7 @@ function recordOrSetHolder( recordOrSet ) {
     else {
         throw new Error( "Parameter recordOrSet must be an instance of SeLiteData.Record or SeLiteData.RecordSet, but it's:\n" +SeLiteMisc.objectToString(recordOrSet, 3) );
     }
-}
+};
 
 /** @param object formula instance of SeLiteData.RecordSetFormula
  *  @param mixed parametersOrCondition Any parameter values whose typeof is not 'string' or 'number'
