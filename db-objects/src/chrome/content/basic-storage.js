@@ -152,20 +152,6 @@ Storage.prototype.select= function( query, fields, bindings ) {
     if( !fields ) {
         fields= fieldNames( fieldParts( query ) );
     }
-    if( this instanceof StorageFromSettings ) {
-        var instance;
-        for( var i=0; i<StorageFromSettings.instances.length; i++ ) {
-            instance= StorageFromSettings.instances[i];
-            if( instance===this ) {
-                break;
-            }
-        }
-        instance || fail( 'Instance of StorageFromSettings is not among StorageFromSettings.instances.' );
-        instance.connection===this.connection || fail();
-    }
-    else {
-        console.log( 'Instance of Storage is not an instance of StorageFromSettings');
-    }
     this.connection || SeLiteMisc.fail( 'Storage.connection is not set.');
     //console.log( 'Query: ' +query );
     var stmt= this.connection.createStatement( query );
@@ -583,18 +569,13 @@ Object.defineProperty( Settable.prototype, 'set', {
         }
 } );
 
-/** @param fieldOrFieldName Either string, or SeLiteSettings.Field instance.
- *  If it is a string, it must be a full field name. See SeLiteSettings.getField()
+/** @private Subclass of Storage, that is based on SeLiteSettings.Field pointing to an SQLite source.
  * */
-function StorageFromSettings( fieldOrFieldName ) {
-    var field= typeof fieldOrFieldName==='string'
-        ? SeLiteSettings.getField(fieldOrFieldName)
-        : fieldOrFieldName;
-    field instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail('fieldOrFieldName must be an instance of SeLiteSettings.Field.SQLite, or string: ' +fieldOrFieldName+ '; field: ' +field );
+function StorageFromSettings( field ) {
     Storage.call( this );
     this.field= field;
-    StorageFromSettings.instances.push( this );
-    //console.log( 'StorageFromSettings(): ' +this+ '. instances has now ' +StorageFromSettings.instances.length+ ' item(s).' );
+    !(field.name in StorageFromSettings.instances) || fail('There already is an instance of StorageFromSettings for ' +field.name );
+    StorageFromSettings.instances[ field.name ]= this;
     if( SeLiteSettings.getTestSuiteFolder() ) {
         var newFileName= field.getFieldsDownToFolder().entry;
         //console.log( 'newFileName: ' +newFileName );
@@ -606,7 +587,47 @@ function StorageFromSettings( fieldOrFieldName ) {
     }
 }
 
-StorageFromSettings.instances= [];
+/** Create a new instance of StorageFromSettings, based on the given field (or its name), or
+ *  re-use an existing instance of StorageFromSettings based on that field.
+ *  @param fieldOrFieldName Either string, or SeLiteSettings.Field.SQLite instance.
+ *  If it is a string, it must be a full field name. See SeLiteSettings.getField()
+ *  @return StorageFromSettings instance
+ */
+function getStorageFromSettings( fieldOrFieldName ) {
+    var field= typeof fieldOrFieldName==='string'
+        ? SeLiteSettings.getField(fieldOrFieldName)
+        : fieldOrFieldName;
+    field instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail('fieldOrFieldName must be an instance of SeLiteSettings.Field.SQLite, or string: ' +fieldOrFieldName+ '; field: ' +field );
+    var instance= field.name in StorageFromSettings.instances
+        ? StorageFromSettings.instances[field.name]
+        : new StorageFromSettings( field );
+    return instance;
+}
+
+/** Remove (unregister) an instance of StorageFromSettings, based on the given field (or its name).
+ *  Needed (and only needed) if you have a Core extension that is loaded via SeLiteBootstrap,
+ *  because it may be loaded multiple times during the same run of Se IDE.
+ *  Then call this *before* getStorageFromSettings().
+ *  Fail-safe - it can be called multiple times within the same run of Se IDE, even if there is no
+ *  no such StorageFromSettings instance.
+ *  @param fieldOrFieldName Either string, or SeLiteSettings.Field.SQLite instance.
+ *  If it is a string, it must be a full field name. See SeLiteSettings.getField()
+ *  @return void
+ * */
+function removeStorageFromSettings( fieldOrFieldName ) {
+    fail('TODO remove, or close the connection here');
+    var field= typeof fieldOrFieldName==='string'
+        ? SeLiteSettings.getField(fieldOrFieldName)
+        : fieldOrFieldName;
+    field instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail('fieldOrFieldName must be an instance of SeLiteSettings.Field.SQLite, or string: ' +fieldOrFieldName+ '; field: ' +field );
+    delete StorageFromSettings.instances[field.name];
+}
+
+/** @private Object serving as an associative array {
+ *      string full field name: instance of StorageFromSettings
+ *  }
+ * */
+StorageFromSettings.instances= {};
 
 StorageFromSettings.prototype= new Storage();
 StorageFromSettings.prototype.constructor= StorageFromSettings;
@@ -616,10 +637,10 @@ StorageFromSettings.prototype.close= function() { SeLiteMisc.fail('StorageFromSe
 
 function testSuiteFolderChangeHandler() {
     //console.log('TestSuiteFolderChangeHandler will update ' +StorageFromSettings.instances.length+ ' instance(s) of StorageFromSettings with setting(s) associated with folder ' +SeLiteSettings.getTestSuiteFolder() );
-    StorageFromSettings.instances.length===0 || SeLiteSettings.getTestSuiteFolder()
+    Object.keys(StorageFromSettings.instances).length===0 || SeLiteSettings.getTestSuiteFolder()
     || console.log( 'SeLiteSettings: there are ' +StorageFromSettings.instances.length+ ' instance(s) of StorageFromSettings, yet the current test suite has no folder yet.' );
-    for( var i=0; i<StorageFromSettings.instances.length; i++ ) { // @TODO for(.. of .. )
-        var instance= StorageFromSettings.instances[i];
+    for( var fieldName in StorageFromSettings.instances ) {
+        var instance= StorageFromSettings.instances[fieldName];
         instance instanceof StorageFromSettings || fail();
         if( instance.connection ) {
             Storage.prototype.close.call( instance, false );
@@ -642,7 +663,7 @@ function testSuiteFolderChangeHandler() {
 SeLiteSettings.addTestSuiteFolderChangeHandler( testSuiteFolderChangeHandler );
 
 function ideCloseHandler() {
-    StorageFromSettings.instances= [];
+    StorageFromSettings.instances= {};
 }
 SeLiteSettings.addClosingIdeHandler( ideCloseHandler );
 
@@ -659,4 +680,4 @@ SeLiteSettings.addClosingIdeHandler( ideCloseHandler );
  *  and https://developer.mozilla.org/en/mozIStorageRow
  *  - handleResult() callback may be called several times per same statement!
  */
-var EXPORTED_SYMBOLS= ['Storage', 'StorageFromSettings', 'SqlExpression', 'Settable'];
+var EXPORTED_SYMBOLS= ['Storage', 'SqlExpression', 'Settable', 'getStorageFromSettings', 'removeStorageFromSettings'];

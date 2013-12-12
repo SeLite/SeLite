@@ -54,4 +54,4 @@ SeLiteMisc.getUrlParam= function( paramName ) {
         }
     }
     return null;
-}
+};

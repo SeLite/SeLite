@@ -14,16 +14,25 @@
 */
 "use strict";
 
-(function() {
-    Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
+(function() {  
+    // @TODO Doc
+    // If you don't use SeLite Bootstrap, then uncomment the following line
+    //Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
+    
+    // If you use SeLite Bootstrap, then this file may get loaded 2+ times per one run of Selenium IDE
+    // (not just per 
+    
     var loadedOddTimes= SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doDrupalUsers'] || false;
-    // Ignore the first load, because Se IDE somehow discards that Selenium.prototype
-    if( loadedOddTimes ) {
+    // @TODO Doc: If you don't use SeLite Bootstrap, but you load this file as a Core extension file
+    //  (not an XPI, but just a file pointed to from Selenium IDE > Options), then you need to have the following check:
+        // Ignore the first load, because Se IDE somehow discards that Selenium.prototype
+        // if( true || loadedOddTimes ) { .. }
+    if( true || loadedOddTimes ) {
         var SeLiteDbStorage= Components.utils.import('chrome://selite-db-objects/content/basic-storage.js', {});
         var SeLiteDbObjects= Components.utils.import( 'chrome://selite-db-objects/content/basic-objects.js', {} );
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 
-        var storage= new SeLiteDbStorage.StorageFromSettings('extensions.selite-settings.basic.testDb');
+        var storage= SeLiteDbStorage.getStorageFromSettings('extensions.selite-settings.basic.testDb');
         var db= new SeLiteDbObjects.Db( storage, '' ); //@TODO Prefix to come from SeLiteSettings - through the module definition?
 
         var users= new SeLiteDbObjects.Table( {
@@ -42,5 +51,5 @@
         };
         Selenium.prototype.testDb= storage;
     }
-    SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doDrupalUsers']= !loadedOddTimes;
+    //@TODO DOC see above SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doDrupalUsers']= !loadedOddTimes;
 })();
