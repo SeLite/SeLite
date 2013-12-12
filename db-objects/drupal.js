@@ -28,18 +28,18 @@
         Components.utils.import( 'chrome://selite-db-objects/content/basic-objects.js' );
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         
-        var storage= SeLiteDb.getStorageFromSettings('extensions.selite-settings.basic.testDb');
-        var db= new SeLiteDb.Db( storage, '' ); //@TODO Prefix to come from SeLiteSettings - through the module definition?
+        var storage= SeLiteData.getStorageFromSettings('extensions.selite-settings.basic.testDb');
+        var db= new SeLiteData.Db( storage, '' ); //@TODO Prefix to come from SeLiteSettings - through the module definition?
 
-        var users= new SeLiteDb.Table( {
+        var users= new SeLiteData.Table( {
            db:  db,
            name: 'users',
            columns: ['uid', 'name', 'pass', 'mail', 'theme']
         });
 
-        var usersFormula= new SeLiteDb.RecordSetFormula( {
+        var usersFormula= new SeLiteData.RecordSetFormula( {
             table: users,
-            columns: new SeLiteDb.Settable().set( users.name, SeLiteDb.RecordSetFormula.ALL_FIELDS )
+            columns: new SeLiteData.Settable().set( users.name, SeLiteData.RecordSetFormula.ALL_FIELDS )
         });
 
         Selenium.prototype.doDrupalUsers= function( first, second) {

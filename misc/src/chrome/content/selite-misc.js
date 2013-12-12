@@ -1151,11 +1151,11 @@ SeLiteMisc.loginManagerPassword= function( hostname, username ) {
     return null;
 };
 
-//@TODO Move these to SeLiteDb functions
-/** @param mixed recordSet A SeLiteDb.RecordSet instance
+//@TODO Move these to SeLiteData functions
+/** @param mixed recordSet A SeLiteData.RecordSet instance
  *  or some other object serving as an associative array,
  *  potentially a result of SeLiteMisc.collectByColumn(), even if it used sub-indexing
- *  (but then the records must be instances of SeLiteDb.Record - which is so by default;
+ *  (but then the records must be instances of SeLiteData.Record - which is so by default;
  *  otherwise the subindexed groups (objects serving as associative arrays) couldn't be differentiated from target objects/records).
  *  @param int position 0-based position of the value to return
  *  @return object the leaf record
@@ -1166,10 +1166,10 @@ SeLiteMisc.nthRecord= function( recordSet, position ) {
     return nthRecordOrLengthOrIndexesOf( recordSet, NTH_RECORD, position );
 };
 
-/** @param mixed recordSet A SeLiteDb.RecordSet instance,
+/** @param mixed recordSet A SeLiteData.RecordSet instance,
  *  or some other object serving as an associative array,
  *  potentially a result of SeLiteMisc.collectByColumn(), even if it used sub-indexing
- *  (but then the records must be instances of SeLiteDb.Record - which is so by default;
+ *  (but then the records must be instances of SeLiteData.Record - which is so by default;
  *  otherwise the subindexed groups (objects serving as associative arrays) couldn't be differentiated from target objects/records).
  *  @int number of leaf records
  */
@@ -1177,10 +1177,10 @@ SeLiteMisc.numberOfRecords= function( recordSet ) {
     return nthRecordOrLengthOrIndexesOf( recordSet, NUMBER_OF_RECORDS );
 };
 
-/** @param mixed recordSet A SeLiteDb.RecordSet instance,
+/** @param mixed recordSet A SeLiteData.RecordSet instance,
  *  or some other object serving as an associative array,
  *  potentially a result of SeLiteMisc.collectByColumn(), even if it used sub-indexing
- *  (but then the records must be instances of SeLiteDb.Record - which is so by default;
+ *  (but then the records must be instances of SeLiteData.Record - which is so by default;
  *  otherwise the subindexed groups (objects serving as associative arrays) couldn't be differentiated from target objects/records).
  *  @param record object, record to search for.
  *  @return int 0-based index of that record if found,-1 otherwise.

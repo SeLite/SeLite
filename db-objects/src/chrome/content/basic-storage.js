@@ -27,7 +27,7 @@ Components.utils.import( 'chrome://selite-db-objects/content/db.js' );
  *  but the code is procedural. The reason to have it as an object is not to
  *  have name clashes with functions in other files. See SeLite DB Objects for OOP layer on top of this.
  **/
-SeLiteDb.Storage= function() {
+SeLiteData.Storage= function() {
     this.parameters= new SQLiteConnectionParameters();
     this.parameters.errorHandler= console.error;
     this.connection= null; // This will be the actual connection - result of Services.storage.openDatabase(file)
@@ -37,7 +37,7 @@ SeLiteDb.Storage= function() {
  * Note: if you use this.connection.clone(), it won't inherit PRAGMA locking_mode
  * @return the new connection
  */
-SeLiteDb.Storage.prototype.open= function() {
+SeLiteData.Storage.prototype.open= function() {
     this.connection= this.parameters.connect();
 }
 
@@ -45,7 +45,7 @@ SeLiteDb.Storage.prototype.open= function() {
  *  @param synchronous boolean Whether to close it ; optional.
    *  @TODO check: If you have used any asynchronous (?!) statements, pass true. See same comment in SQLiteConnectionInfo.close()
  * */
-SeLiteDb.Storage.prototype.close= function( synchronous ) {
+SeLiteData.Storage.prototype.close= function( synchronous ) {
     this.parameters.close( synchronous );
     this.connection= null;
 };
@@ -56,7 +56,7 @@ SeLiteDb.Storage.prototype.close= function( synchronous ) {
  *  @return array of strings
  *  For internal use only.
  **/
-SeLiteDb.Storage.prototype.fieldNames= function( columnParts ) {
+SeLiteData.Storage.prototype.fieldNames= function( columnParts ) {
     var result= [];
     for( var i=0; i<columnParts.length; i++ ) {
         result[i]= this.fieldName( columnParts[i] );
@@ -64,7 +64,7 @@ SeLiteDb.Storage.prototype.fieldNames= function( columnParts ) {
     return result;
 }
 
-SeLiteDb.Storage.prototype.fieldName= function( columnPart ) {
+SeLiteData.Storage.prototype.fieldName= function( columnPart ) {
     var result= columnPart.trim();
     var lastSpaceIndex= result.lastIndexOf(' ');
     if( lastSpaceIndex>0 ) {
@@ -86,7 +86,7 @@ SeLiteDb.Storage.prototype.fieldName= function( columnPart ) {
 /** This collects fields from within SELECT... FROM part of the given query.
  *  For internal use only.
  **/
-SeLiteDb.Storage.prototype.fieldParts= function( query ) {
+SeLiteData.Storage.prototype.fieldParts= function( query ) {
     // Make lowercase. Make one or more whitespaces be a single space - so that we can locate 'select' and 'from' etc. easily.
     query= query.toLowerCase().replace( /\s+/g, ' ');
     var selectStart= query.indexOf( 'select ');
@@ -126,7 +126,7 @@ SeLiteDb.Storage.prototype.fieldParts= function( query ) {
 /** @return string SQL condition containing the given first and second condition(s), whichever of them is present.
  *   This doesn't put oval parenthesis around the condition parts.
  **/
-SeLiteDb.Storage.prototype.sqlAnd= function( first, second ) {
+SeLiteData.Storage.prototype.sqlAnd= function( first, second ) {
     var firstIsSet= first || first===0;
     var secondIsSet= second || second===0;
     if( firstIsSet ) {
@@ -148,12 +148,12 @@ SeLiteDb.Storage.prototype.sqlAnd= function( first, second ) {
  *  @return array of objects, one per DB row, each having DB column names as fields; empty array if no matching rows
  *  @throws error on failure
  **/
-SeLiteDb.Storage.prototype.select= function( query, fields, bindings ) {
+SeLiteData.Storage.prototype.select= function( query, fields, bindings ) {
     bindings= bindings || {};
     if( !fields ) {
         fields= fieldNames( fieldParts( query ) );
     }
-    this.connection || SeLiteMisc.fail( 'SeLiteDb.Storage.connection is not set.');
+    this.connection || SeLiteMisc.fail( 'SeLiteData.Storage.connection is not set.');
     //console.log( 'Query: ' +query );
     var stmt= this.connection.createStatement( query );
     for( var field in bindings ) {
@@ -187,7 +187,7 @@ SeLiteDb.Storage.prototype.select= function( query, fields, bindings ) {
  *  @return Associative array (i.e. object) for the row.
  *  @throws error on failure
  **/
-SeLiteDb.Storage.prototype.selectOne= function( query, fields, bindings ) {
+SeLiteData.Storage.prototype.selectOne= function( query, fields, bindings ) {
     var rows= this.select( query, fields, bindings );
     if( rows.length!=1 ) {
         throw "Query \"" +query+"\" was supposed to return one result, but it returned " +rows.length+ " of them.";
@@ -200,7 +200,7 @@ SeLiteDb.Storage.prototype.selectOne= function( query, fields, bindings ) {
  *  @return void
  *  @throws error on failure
  **/
-SeLiteDb.Storage.prototype.execute= function( query, bindings ) {
+SeLiteData.Storage.prototype.execute= function( query, bindings ) {
     if( bindings==null ) {
         this.connection.executeSimpleSQL( query );
     }
@@ -218,7 +218,7 @@ SeLiteDb.Storage.prototype.execute= function( query, bindings ) {
  * @return object of the DB record
  * @throws error on failure, or if no such record, or if more than 1 matching record
  **/
-SeLiteDb.Storage.prototype.getRecord= function( params ) {
+SeLiteData.Storage.prototype.getRecord= function( params ) {
     var records= this.getRecords( params );
     if( records.length!=1 ) {
         throw "Expected to find one matching record in DB, but found " +records.length+ " of them.";
@@ -259,7 +259,7 @@ SeLiteDb.Storage.prototype.getRecord= function( params ) {
  *   debugResult: optional, use true if you'd like it to show the result in a popup
  * }
  **/
-SeLiteDb.Storage.prototype.getRecords= function( params ) {
+SeLiteData.Storage.prototype.getRecords= function( params ) {
     var parameterNames= params.parameterNames || {};
     if( typeof params.columns=='string' ) {
         var columnsString= params.columns;
@@ -368,7 +368,7 @@ SeLiteDb.Storage.prototype.getRecords= function( params ) {
  * @return void
  * @throws an error on failure
  **/
-SeLiteDb.Storage.prototype.updateRecords= function( params ) {
+SeLiteData.Storage.prototype.updateRecords= function( params ) {
     var fieldsToProtect= params.fieldsToProtect!==undefined
         ? params.fieldsToProtect
         : [];
@@ -419,14 +419,14 @@ SeLiteDb.Storage.prototype.updateRecords= function( params ) {
  * @return void
  * @throws an error on failure
  */
-SeLiteDb.Storage.prototype.updateRecordByPrimary= function( params ) {
+SeLiteData.Storage.prototype.updateRecordByPrimary= function( params ) {
     var primaryKey= params.primary || 'id';
     var copiedParams= SeLiteMisc.objectClone( params, ['table', 'entries', 'fieldsToProtect', 'debugQuery'], ['table', 'entries'] );
     if( copiedParams.entries[primaryKey]===undefined ) {
         throw new Error( "updateRecordByPrimary(): params.entries." +primaryKey+ " is not set." );
     }
     copiedParams.entries= SeLiteMisc.objectClone( copiedParams.entries );
-    copiedParams.matching= new SeLiteDb.Settable().set( primaryKey, copiedParams.entries[primaryKey] );
+    copiedParams.matching= new SeLiteData.Settable().set( primaryKey, copiedParams.entries[primaryKey] );
     delete copiedParams.entries[primaryKey];
     this.updateRecords( copiedParams );
 }
@@ -436,7 +436,7 @@ SeLiteDb.Storage.prototype.updateRecordByPrimary= function( params ) {
  * @return void
  * @throws an error on failure
  */
-SeLiteDb.Storage.prototype.deleteRecordByPrimary= function( table, field, value ) {
+SeLiteData.Storage.prototype.deleteRecordByPrimary= function( table, field, value ) {
     var query= "DELETE FROM " +table+ " WHERE " +field+ "=" +this.quote(value);
     var stmt= this.connection.createStatement( query );
     stmt.execute();
@@ -456,7 +456,7 @@ SeLiteDb.Storage.prototype.deleteRecordByPrimary= function( table, field, value 
  * @return void
  * @throws an error on failure
  */
-SeLiteDb.Storage.prototype.insertRecord= function( params ) {
+SeLiteData.Storage.prototype.insertRecord= function( params ) {
     var fieldsToProtect= params.fieldsToProtect!==undefined
         ? params.fieldsToProtect
         : [];
@@ -486,7 +486,7 @@ SeLiteDb.Storage.prototype.insertRecord= function( params ) {
  *  @param string column Name of the column; optional - 'id' by default
  *  @return value of 'id' (or requested) column
 */
-SeLiteDb.Storage.prototype.lastInsertId= function( table, column ) {
+SeLiteData.Storage.prototype.lastInsertId= function( table, column ) {
     column= column || 'id';
     var query= "SELECT " +column+ " FROM " +table+ " WHERE rowid=last_insert_rowid()";
     var record= this.selectOne( query, [column] );
@@ -500,22 +500,22 @@ SeLiteDb.Storage.prototype.lastInsertId= function( table, column ) {
  *  (which returns an array of quoted items) through Array.join(). Otherwise, if we kept Javascript null values as they were,
  *  we couldn't use Array.join(), because it uses empty strings for Javascript nulls! See functions that call quoteValues().
  */
-SeLiteDb.Storage.prototype.quote= function( value ) {
+SeLiteData.Storage.prototype.quote= function( value ) {
     if( value===null ) {
         return 'NULL';
     }
-    if( value instanceof SeLiteDb.SqlExpression ) {
+    if( value instanceof SeLiteData.SqlExpression ) {
         return ''+value;
     }
     return "'" +(''+value).replace( "'", "''" )+ "'";
 }
 
-/** Use instances of SeLiteDb.SqlExpression so that they don't get quoted/escaped by quote() and quoteValues().
+/** Use instances of SeLiteData.SqlExpression so that they don't get quoted/escaped by quote() and quoteValues().
  **/
-SeLiteDb.SqlExpression= function( string ) {
+SeLiteData.SqlExpression= function( string ) {
     this.string= string;
 };
-SeLiteDb.SqlExpression.prototype.toString= function() {
+SeLiteData.SqlExpression.prototype.toString= function() {
     return this.string;
 };
 
@@ -525,7 +525,7 @@ SeLiteDb.SqlExpression.prototype.toString= function() {
  *  if passing SQL expressions for their values. fieldToProtect has only effect if entries is an object.
  *  @return new array or object, based on the original, with the treated values. Original array/object is not modified.
  **/
-SeLiteDb.Storage.prototype.quoteValues= function( entries, fieldsToProtect ) {
+SeLiteData.Storage.prototype.quoteValues= function( entries, fieldsToProtect ) {
     if( typeof entries !='object' ) {
         throw "quoteValues(): parameter should be an object or array, but it was " +values;
     }
@@ -550,30 +550,30 @@ SeLiteDb.Storage.prototype.quoteValues= function( entries, fieldsToProtect ) {
     return result;
 }
 
-/** Used to generate object parts of 'columns' part of the parameter to SeLiteDb.RecordSetFormula() constructor, if your table names are not constants,
+/** Used to generate object parts of 'columns' part of the parameter to SeLiteData.RecordSetFormula() constructor, if your table names are not constants,
     i.e. you have a configurable table prefix string, and you don't want to have a string variable for each table name itself, but you want
     to refer to .name property of the table object. Then your table name is not string constant, and you can't use string runtime expressions
-    as object keys in anonymous object construction {}. That's when you can use new SeLiteDb.Settable().set( tableXYZ.name, ...).set( tablePQR.name, ...)
-    as the value of 'columns' field of SeLiteDb.RecordSetFormula()'s parameter.
+    as object keys in anonymous object construction {}. That's when you can use new SeLiteData.Settable().set( tableXYZ.name, ...).set( tablePQR.name, ...)
+    as the value of 'columns' field of SeLiteData.RecordSetFormula()'s parameter.
     Its usage assumes that no table name (and no value for parameter field) is 'set'.
 */
-SeLiteDb.Settable= function() {
+SeLiteData.Settable= function() {
     if( arguments.length>0 ) {
         throw new Error( "Constructor Settable() doesn't use any parameters." );
     }
 };
 // I don't want method set() to show up when iterating using for( .. in..), therefore I use defineProperty():
-Object.defineProperty( SeLiteDb.Settable.prototype, 'set', {
+Object.defineProperty( SeLiteData.Settable.prototype, 'set', {
         value: function( field, value ) {
             this[field]= value;
             return this;
         }
 } );
 
-/** @private Subclass of SeLiteDb.Storage, that is based on SeLiteSettings.Field pointing to an SQLite source.
+/** @private Subclass of SeLiteData.Storage, that is based on SeLiteSettings.Field pointing to an SQLite source.
  * */
 function StorageFromSettings( field ) {
-    SeLiteDb.Storage.call( this );
+    SeLiteData.Storage.call( this );
     this.field= field;
     !(field.name in StorageFromSettings.instances) || fail('There already is an instance of StorageFromSettings for ' +field.name );
     StorageFromSettings.instances[ field.name ]= this;
@@ -582,7 +582,7 @@ function StorageFromSettings( field ) {
         //console.log( 'newFileName: ' +newFileName );
         if( newFileName ) {
             this.parameters.fileName= newFileName;
-            SeLiteDb.Storage.prototype.open.call( this );
+            SeLiteData.Storage.prototype.open.call( this );
             //console.log( 'StorageFromSettings(): connection ' +this.connection );
         }
     }
@@ -594,7 +594,7 @@ function StorageFromSettings( field ) {
  *  If it is a string, it must be a full field name. See SeLiteSettings.getField()
  *  @return StorageFromSettings instance
  */
-SeLiteDb.getStorageFromSettings= function( fieldOrFieldName ) {
+SeLiteData.getStorageFromSettings= function( fieldOrFieldName ) {
     var field= typeof fieldOrFieldName==='string'
         ? SeLiteSettings.getField(fieldOrFieldName)
         : fieldOrFieldName;
@@ -611,7 +611,7 @@ SeLiteDb.getStorageFromSettings= function( fieldOrFieldName ) {
  * */
 StorageFromSettings.instances= {};
 
-StorageFromSettings.prototype= new SeLiteDb.Storage();
+StorageFromSettings.prototype= new SeLiteData.Storage();
 StorageFromSettings.prototype.constructor= StorageFromSettings;
 
 StorageFromSettings.prototype.open= function() { SeLiteMisc.fail('StorageFromSettings.open() is unsupported.'); };
@@ -625,7 +625,7 @@ function testSuiteFolderChangeHandler() {
         var instance= StorageFromSettings.instances[fieldName];
         instance instanceof StorageFromSettings || fail();
         if( instance.connection ) {
-            SeLiteDb.Storage.prototype.close.call( instance, false );
+            SeLiteData.Storage.prototype.close.call( instance, false );
             instance.parameters.fileName= null;
         }
         if( SeLiteSettings.getTestSuiteFolder() ) {
@@ -633,7 +633,7 @@ function testSuiteFolderChangeHandler() {
             //console.log( 'newFileName: ' +newFileName );
             if( newFileName ) {
                 instance.parameters.fileName= newFileName;
-                SeLiteDb.Storage.prototype.open.call( instance );
+                SeLiteData.Storage.prototype.open.call( instance );
                 //console.log( 'connection ' +instance.connection );
             }
             else {
