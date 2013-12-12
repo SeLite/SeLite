@@ -138,7 +138,6 @@ Selenium.prototype.bootstrapReloadScripts= function() {
         else {
             msg+= 'non-syntax error';
         }
-        // @TODO If we need to report location & stack within the buggy file, then copy it to /tmp and load it from there - see below
         msg+= ' ' +error+ '. Following stack excludes the location(s) in that loaded file:\n' +error.stack;
         LOG.error( msg );
     }

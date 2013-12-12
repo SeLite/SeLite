@@ -18,8 +18,8 @@
 /*
  * This is a simple bootstrap reloader of javascript files that extend Selenium Core.
  * @TODO Since it re-loads javascript file(s), they must be written in a way that allows it.
- * Especially, don't chain existing methods unless you know how to chain them on the first load only.
- * -> @TODO compare functions using == or === operator?
+ * Especially, don't chain existing methods, unless you chain them on the first load only.
+ * - compare the current handler and your new handler functions
  * 
  * Or
  * 
