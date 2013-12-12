@@ -28,7 +28,7 @@ var charities= new Table( {
 
 var charitiesAll= new RecordSetFormula( {
     table: charities,
-    columns: new Settable().
+    columns: new SeLiteDb.Settable().
         set( charities.name, DbRecordSetFormula.ALL_FIELDS )
 } );
 

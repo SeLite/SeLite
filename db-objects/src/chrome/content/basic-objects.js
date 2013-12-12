@@ -18,6 +18,7 @@
 
 Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
 Components.utils.import('chrome://selite-db-objects/content/basic-storage.js');
+Components.utils.import('chrome://selite-db-objects/content/db.js');
 
 /** @param object storage of class Storage
  *  @param string tableNamePrefix optional
@@ -158,9 +159,9 @@ RecordHolder.prototype.insert= function() {
     }
     var entries= this.ownEntries();
     if( this.recordSetHolder.formula.generateInsertKey ) {// @TODO (low priority): || this.recordSetHolder.formula.table.generateInsertKey || this.recordSetHolder.formula.table.db.generateInsertKey
-        entries= SeLiteMisc.objectsMerge( new Settable().set(
+        entries= SeLiteMisc.objectsMerge( new SeLiteDb.Settable().set(
             this.recordSetHolder.formula.table.primary,
-            new SqlExpression( "(SELECT MAX(" +this.recordSetHolder.formula.table.primary+ ") FROM " +this.recordSetHolder.formula.table.name+ ")+1")
+            new SeLiteDb.SqlExpression( "(SELECT MAX(" +this.recordSetHolder.formula.table.primary+ ") FROM " +this.recordSetHolder.formula.table.name+ ")+1")
         ), entries );
     }
     this.recordSetHolder.storage().insertRecord( {
@@ -403,7 +404,7 @@ RecordSetFormula.prototype.columnsToAliases= function( tableName ) {
  **/
 RecordSetFormula.prototype.allAliasesToSource= function() {
     // @TODO update tableByName() to be similar to this, reuse:
-    var tableNamesToTables= new Settable().set( this.table.name, this.table );
+    var tableNamesToTables= new SeLiteDb.Settable().set( this.table.name, this.table );
     this.joins.forEach( function(join) {
         tableNamesToTables[ join.table.name ]= join.table;
     } );
