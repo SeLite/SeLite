@@ -19,7 +19,7 @@
 
 Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
 Components.utils.import("chrome://selite-sqlite-connection-manager/content/SqliteConnectionManager.js");
-var SeLiteSettings= Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js", {} );
+Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
 var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 Components.utils.import( 'chrome://selite-db-objects/content/db.js' );
 

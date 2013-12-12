@@ -18,7 +18,7 @@
 
 (function() { // Anonymous function to make the variables local
     //var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
-    var SeLiteSettings= Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
+    Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
   
     //@TODO Store the test suite folder via JS component. Have API to return via SeLiteSettings JS component.
     // Tail-intercept of TestSuite.loadFile(file)

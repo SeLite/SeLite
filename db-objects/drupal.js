@@ -23,9 +23,6 @@
     // Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
     // var loadedOddTimes= SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doDrupalUsers'] || false;
     // if( loadedOddTimes ) { // Ignore the first load, because Se IDE somehow discards that Selenium.prototype
-        Components.utils.import( 'chrome://selite-db-objects/content/db.js' );
-        Components.utils.import('chrome://selite-db-objects/content/basic-storage.js');
-        Components.utils.import( 'chrome://selite-db-objects/content/basic-objects.js' );
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         
         var storage= SeLiteData.getStorageFromSettings('extensions.selite-settings.basic.testDb');

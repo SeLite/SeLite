@@ -18,7 +18,7 @@
 
 (function() { // Anonymous function to make the variables local
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
-    var SeLiteSettings= Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
+    Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
     
     // Tail intercept of Editor.prototype.confirmClose and the same for its subclasses StandaloneEditor and SidebarEditor
     var originalConfirmClose= Editor.prototype.confirmClose;
