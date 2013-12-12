@@ -550,11 +550,11 @@ SeLiteDb.Storage.prototype.quoteValues= function( entries, fieldsToProtect ) {
     return result;
 }
 
-/** Used to generate object parts of 'columns' part of the parameter to RecordSetFormula() constructor, if your table names are not constants,
+/** Used to generate object parts of 'columns' part of the parameter to SeLiteDb.RecordSetFormula() constructor, if your table names are not constants,
     i.e. you have a configurable table prefix string, and you don't want to have a string variable for each table name itself, but you want
     to refer to .name property of the table object. Then your table name is not string constant, and you can't use string runtime expressions
     as object keys in anonymous object construction {}. That's when you can use new SeLiteDb.Settable().set( tableXYZ.name, ...).set( tablePQR.name, ...)
-    as the value of 'columns' field of RecordSetFormula()'s parameter.
+    as the value of 'columns' field of SeLiteDb.RecordSetFormula()'s parameter.
     Its usage assumes that no table name (and no value for parameter field) is 'set'.
 */
 SeLiteDb.Settable= function() {

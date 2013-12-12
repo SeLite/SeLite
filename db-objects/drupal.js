@@ -25,21 +25,21 @@
     // if( loadedOddTimes ) { // Ignore the first load, because Se IDE somehow discards that Selenium.prototype
         Components.utils.import( 'chrome://selite-db-objects/content/db.js' );
         Components.utils.import('chrome://selite-db-objects/content/basic-storage.js');
-        var SeLiteDbObjects= Components.utils.import( 'chrome://selite-db-objects/content/basic-objects.js', {} );
+        Components.utils.import( 'chrome://selite-db-objects/content/basic-objects.js' );
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         
         var storage= SeLiteDb.getStorageFromSettings('extensions.selite-settings.basic.testDb');
-        var db= new SeLiteDbObjects.Db( storage, '' ); //@TODO Prefix to come from SeLiteSettings - through the module definition?
+        var db= new SeLiteDb.Db( storage, '' ); //@TODO Prefix to come from SeLiteSettings - through the module definition?
 
-        var users= new SeLiteDbObjects.Table( {
+        var users= new SeLiteDb.Table( {
            db:  db,
            name: 'users',
            columns: ['uid', 'name', 'pass', 'mail', 'theme']
         });
 
-        var usersFormula= new SeLiteDbObjects.RecordSetFormula( {
+        var usersFormula= new SeLiteDb.RecordSetFormula( {
             table: users,
-            columns: new SeLiteDb.Settable().set( users.name, SeLiteDbObjects.RecordSetFormula.ALL_FIELDS )
+            columns: new SeLiteDb.Settable().set( users.name, SeLiteDb.RecordSetFormula.ALL_FIELDS )
         });
 
         Selenium.prototype.doDrupalUsers= function( first, second) {

@@ -23,14 +23,14 @@ Components.utils.import('chrome://selite-db-objects/content/db.js');
 /** @param object storage of class Storage
  *  @param string tableNamePrefix optional
  **/
-function Db( storage, tableNamePrefix ) {
+SeLiteDb.Db= function( storage, tableNamePrefix ) {
     this.storage= storage;
     this.tableNamePrefix= tableNamePrefix || '';
-}
+};
 
 /** If prototype.noNamePrefix is set to true or 1, then it cancels effect of prototype.db.tableNamePrefix
  */
-function Table( prototype ) {
+SeLiteDb.Table= function( prototype ) {
     this.db= prototype.db;
     var prefix= prototype.noNamePrefix ? '' : this.db.tableNamePrefix;
     this.name= prefix+prototype.name;
@@ -38,7 +38,7 @@ function Table( prototype ) {
     this.columns= prototype.columns; // Object{ of string colum name: true or object with more info}
     // where more info object { insert: string or function (optional field); update: string or function (optional field) }
     this.primary= prototype.primary || 'id';
-}
+};
 
 /** @private */
 function readOnlyPrimary( field ) {
@@ -59,24 +59,24 @@ function readOnlyJoined( field ) {
  *  It allows us to have methods to manipulate the record, without a name conflict
  *  between names of those methods and fields of the record itself.
  *  <br/>Keys (field names) in this.record and this.original (if set) are the aliased
- *  column names, as defined in the respective RecordSetFormula (and as retrieved from DB).
+ *  column names, as defined in the respective SeLiteDb.RecordSetFormula (and as retrieved from DB).
  *  See insert().
- *  @param mixed recordSetOrFormula RecordSetHolder recordSet, or RecordSetFormula formula. If it's a formula,
+ *  @param mixed recordSetOrFormula RecordSetHolder recordSet, or SeLiteDb.RecordSetFormula formula. If it's a formula,
  *  then this.original won't be set, and you can modify the this.record. You probably
- *  want to pass a RecordSetFormula instance if you intend to use this RecordHolder with insert() only.
+ *  want to pass a SeLiteDb.RecordSetFormula instance if you intend to use this RecordHolder with insert() only.
  *  @param object plainRecord Plain record from the result of the SELECT (using the column aliases, including any joined fields).
  *  Optional; if not present/null/empty object, then this.record will be set to an empty object
  *  (the passed one, if any; a new one otherwise) and its fields won't be checked by watch() - so you can
  *  set its fields later, and then use insert().
  *  DO NOT externally change existing .record field of RecordHolder instance after it was created,
  *  because this.record object won't be the same as plainRecord parameter passed here.
- *  this.record object links to a new Record instance.
+ *  this.record object links to a new SeLiteDb.Record instance.
  **/
 function RecordHolder( recordSetOrFormula, plainRecord ) {
  /*  I would like to use use Firefox JS Proxies https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
  *  -- try javascript:"use strict"; function MyProxy( target ) { Proxy.constructor.call(this, target, this ); } MyProxy.prototype.save= function() {}; var o=new MyProxy(); o.save()
  *  -- No need to set MyProxy.prototype.constructor to Proxy.constructor*/
-    if( recordSetOrFormula instanceof RecordSetFormula ) {
+    if( recordSetOrFormula instanceof SeLiteDb.RecordSetFormula ) {
         this.recordSetHolder= new RecordSetHolder( recordSetOrFormula );
     }
     else
@@ -84,10 +84,10 @@ function RecordHolder( recordSetOrFormula, plainRecord ) {
         this.recordSetHolder= recordSetOrFormula;
     }
     else {
-        throw new Error("RecordHolder() expects the first parameter to be an instance of RecordSetHolder or RecordSetFormula." );
+        throw new Error("RecordHolder() expects the first parameter to be an instance of RecordSetHolder or SeLiteDb.RecordSetFormula." );
     }
-    this.record= new Record( this, plainRecord );
-    if( recordSetOrFormula instanceof RecordSetFormula && Object.keys(this.record).length>0 ) {
+    this.record= new SeLiteDb.Record( this, plainRecord );
+    if( recordSetOrFormula instanceof SeLiteDb.RecordSetFormula && Object.keys(this.record).length>0 ) {
         this.setOriginalAndWatchEntries();
     }
 }
@@ -96,24 +96,24 @@ function RecordHolder( recordSetOrFormula, plainRecord ) {
  *   @param object recordHolder of class RecordHolder
  *   @param mixed Object with the record's data, or null/false.
  **/
-function Record( recordHolder, data ) {
+SeLiteDb.Record= function( recordHolder, data ) {
     // Set the link from record to its record holder. The field for this link is non-iterable.
-    Object.defineProperty( this, Record.RECORD_TO_HOLDER_FIELD, { value: recordHolder } );
+    Object.defineProperty( this, SeLiteDb.Record.RECORD_TO_HOLDER_FIELD, { value: recordHolder } );
     if( data ) {
         SeLiteMisc.objectCopyFields( data, this );
     }
-}
+};
 
 // This is configurable - if it ever gets in conflict with a field name in your DB table, change it here.
-Record.RECORD_TO_HOLDER_FIELD= 'RECORD_TO_HOLDER_FIELD';
+SeLiteDb.Record.RECORD_TO_HOLDER_FIELD= 'RECORD_TO_HOLDER_FIELD';
 
 /** @private
- *  @param Record instance
+ *  @param SeLiteDb.Record instance
  *  @return RecordHolder for that instance.
  **/
 function recordHolder( record ) {
-    SeLiteMisc.ensureInstance( record, Record, 'Record' );
-    return record[Record.RECORD_TO_HOLDER_FIELD];
+    SeLiteMisc.ensureInstance( record, SeLiteDb.Record, 'SeLiteDb.Record' );
+    return record[SeLiteDb.Record.RECORD_TO_HOLDER_FIELD];
 }
 
 RecordHolder.prototype.setOriginalAndWatchEntries= function() {
@@ -139,8 +139,8 @@ RecordHolder.prototype.setOriginalAndWatchEntries= function() {
     Object.seal( this.record );
 };
 
-RecordHolder.prototype.select= function() { throw new Error( "@TODO. In the meantimes, use RecordSetHolder.select() or RecordSetFormula.select()."); }
-RecordHolder.prototype.selectOne= function() { throw new Error( "@TODO. In the meantimes, use RecordSetHolder.selectOne() or RecordSetFormula.selectOne()."); }
+RecordHolder.prototype.select= function() { throw new Error( "@TODO. In the meantimes, use RecordSetHolder.select() or SeLiteDb.RecordSetFormula.select()."); }
+RecordHolder.prototype.selectOne= function() { throw new Error( "@TODO. In the meantimes, use RecordSetHolder.selectOne() or SeLiteDb.RecordSetFormula.selectOne()."); }
 
 // @TODO RecordHolder.insert() which is linked to an existing RecordSetHolder, and it adds itself to that recordSetHolder.
 //       But then the recordSetHolder may not match its formula anymore - have a flag/handler for that.
@@ -250,12 +250,12 @@ RecordHolder.prototype.remove= function() {
 
 /** Constructor of formula objects.
  *  @param object params Object serving as an associative array; optional; see in-code description.
- *  @param object prototype Optional; instance of RecordSetFormula which serves as the prototype for the new object.
+ *  @param object prototype Optional; instance of SeLiteDb.RecordSetFormula which serves as the prototype for the new object.
  *  Any fields not set in params will be inherited from prototype (if present), as they are at the time of calling this constructor.
  *  Any fields set in params will override respective fields in prototype (if any),
  *  except for field(s) present in params and set to null - then values will be copied from prototype, (if present).
  **/
-function RecordSetFormula( params, prototype ) {
+SeLiteDb.RecordSetFormula= function( params, prototype ) {
     SeLiteMisc.PrototypedObject.call( this, prototype );
     params= params ? params : {};
     SeLiteMisc.objectClone( params, ['table', 'alias', 'columns', 'joins', 'fetchCondition', 'fetchMatching', 'parameterNames', 'sort',
@@ -282,24 +282,24 @@ function RecordSetFormula( params, prototype ) {
     // @TODO check that all own table columns' aliases are unique: Object.keys( SeLiteMisc.objectReverse( ownColumns() ) )
     // @TODO similar check for joined columns?
 }
-RecordSetFormula.prototype.constructor= RecordSetFormula;
-RecordSetFormula.ALL_FIELDS= ["ALL_FIELDS"]; // I compare this using ==, so by making this an array we allow user column alias prefix 'ALL_FIELDS' if need be
+SeLiteDb.RecordSetFormula.prototype.constructor= SeLiteDb.RecordSetFormula;
+SeLiteDb.RecordSetFormula.ALL_FIELDS= ["ALL_FIELDS"]; // I compare this using ==, so by making this an array we allow user column alias prefix 'ALL_FIELDS' if need be
 
     // Object { table-name: columns-alias-info } where columns-alias-info is of mixed-type:
     //   string column alias prefix (it will be prepended in front of all column names); or
-    //   RecordSetFormula.ALL_FIELDS (all fields listed in the table object will be selected, unaliased); or
+    //   SeLiteDb.RecordSetFormula.ALL_FIELDS (all fields listed in the table object will be selected, unaliased); or
     //   an alias map object listing all columns that are to be selected, mapped to string alias, or mapped to true/1 if not aliased; or
     //   an array, listing one or more of the following
     //   - all unaliased columns
     //   - optional object(s) which is an alias map {string colum name: string alias}; such a map must map to string alias (it must not map to true/1)
-    //   - optional RecordSetFormula.ALL_FIELDS indicating usage of all columns under their names (unaliased), unless any map object(s) map them
-    // Any aliases must be unique; that will be checked by RecordSetFormula constructor. ---@TODO
+    //   - optional SeLiteDb.RecordSetFormula.ALL_FIELDS indicating usage of all columns under their names (unaliased), unless any map object(s) map them
+    // Any aliases must be unique; that will be checked by SeLiteDb.RecordSetFormula constructor. ---@TODO
     // The column list must list the primary key of the main table, and it must not be aliased. Their values must exist
     // - i.e. you can't have a join that selects records from join table(s) for which there is no record in the main table.
     // That's because RecordSetHolder.originals{} are indexed by it.
-RecordSetFormula.prototype.alias= null;
+SeLiteDb.RecordSetFormula.prototype.alias= null;
 
-RecordSetFormula.prototype.columns= {};
+SeLiteDb.RecordSetFormula.prototype.columns= {};
 
 /** Just like the same field passed to storage.getRecords(). I.e. Array of objects {
     table: table object;
@@ -308,37 +308,37 @@ RecordSetFormula.prototype.columns= {};
        on: string join condition
     }
 */
-RecordSetFormula.prototype.joins= [];
+SeLiteDb.RecordSetFormula.prototype.joins= [];
 
-RecordSetFormula.prototype.fetchCondition= null; // String SQL condition
+SeLiteDb.RecordSetFormula.prototype.fetchCondition= null; // String SQL condition
 // fetchMatching contains the values unescaped and unqoted; they will be escaped and quoted as needed.
 // Each value must represent SQL constant (string or non-string), or a function returning such value.
 // String values will be quoted, so they can't be SQL expressions. Javascript null value won't be quoted
 // and it will generate an IS NULL statement; other values will generate = comparison.
 // If matching-value is a function, it will be called at the time the data is to be fetched from DB.
 // Use a function e.g. to return a value of global variable which changes in runtime (not a good practice in general).
-RecordSetFormula.prototype.fetchMatching= {};
+SeLiteDb.RecordSetFormula.prototype.fetchMatching= {};
 
 // Names of any parameters.
 // They will be escaped & quoted as appropriate and they will replace occurrances of their placeholders :<parameter-name>.
 // The placeholders can be used in joins[i].on and in fetchCondition, fetchMatching, putCondition, putMatching.
-RecordSetFormula.prototype.parameterNames= [];
-RecordSetFormula.prototype.sort= null;
-RecordSetFormula.prototype.sortDirection= 'ASC';
-RecordSetFormula.prototype.subIndexBy= null;
+SeLiteDb.RecordSetFormula.prototype.parameterNames= [];
+SeLiteDb.RecordSetFormula.prototype.sort= null;
+SeLiteDb.RecordSetFormula.prototype.sortDirection= 'ASC';
+SeLiteDb.RecordSetFormula.prototype.subIndexBy= null;
 
 /** A function which will be called after fetching and indexing the records. Its two parameters will be
  *  records (RecordSet) and RecordSetHolder's bind parameters (if any). It should return RecordSet instance (either the same one, or a new one).
  **/
-RecordSetFormula.prototype.process= null;
-RecordSetFormula.prototype.debugQuery= false;
-RecordSetFormula.prototype.debugResult= false;
+SeLiteDb.RecordSetFormula.prototype.process= null;
+SeLiteDb.RecordSetFormula.prototype.debugQuery= false;
+SeLiteDb.RecordSetFormula.prototype.debugResult= false;
 
-RecordSetFormula.prototype.generateInsertKey= true; // @TODO make this default value null, and use something stored in connection/DB object
-RecordSetFormula.prototype.onInsert= {}; // aliasedFieldName: string value or function; used on insert; it overrides any existing value for that field
-RecordSetFormula.prototype.onUpdate= {}; // aliasedFieldName: string value or function; used on update; it overrides any existing value for that field
+SeLiteDb.RecordSetFormula.prototype.generateInsertKey= true; // @TODO make this default value null, and use something stored in connection/DB object
+SeLiteDb.RecordSetFormula.prototype.onInsert= {}; // aliasedFieldName: string value or function; used on insert; it overrides any existing value for that field
+SeLiteDb.RecordSetFormula.prototype.onUpdate= {}; // aliasedFieldName: string value or function; used on update; it overrides any existing value for that field
 
-RecordSetFormula.prototype.tableByName= function( tableName ) {
+SeLiteDb.RecordSetFormula.prototype.tableByName= function( tableName ) {
     if( this.table.name===tableName ) {
         return this.table;
     }
@@ -351,23 +351,23 @@ RecordSetFormula.prototype.tableByName= function( tableName ) {
 }
 
 /** @return object { string given table's column name: string column alias or the same column name (if no alias) }.
- *  That differs from definition field columns passed to RecordSetFormula() constructor, which allows
+ *  That differs from definition field columns passed to SeLiteDb.RecordSetFormula() constructor, which allows
  *  unaliased column names to be mapped to true/1. Here such columns get mapped to themselves (to the column names);
  *  that makes it easy to use with SeLiteMisc.objectValues() or SeLiteMisc.objectReverse().
  **/
-RecordSetFormula.prototype.columnsToAliases= function( tableName ) {
+SeLiteDb.RecordSetFormula.prototype.columnsToAliases= function( tableName ) {
     var columnsDefinition= this.columns[ tableName ];
     var result= {};
 
-    var listingAllColumns= columnsDefinition===RecordSetFormula.ALL_FIELDS ||
-        typeof columnsDefinition==="array" && columnsDefinition.indexOf(RecordSetFormula.ALL_FIELDS)>=0;
+    var listingAllColumns= columnsDefinition===SeLiteDb.RecordSetFormula.ALL_FIELDS ||
+        typeof columnsDefinition==="array" && columnsDefinition.indexOf(SeLiteDb.RecordSetFormula.ALL_FIELDS)>=0;
     if( listingAllColumns ) {
         var allColumns= this.tableByName(tableName).columns;
         for( var i=0; i<allColumns.length; i++ ) {
             result[ allColumns[i] ]= allColumns[i];
         }
     }
-    if( columnsDefinition!==RecordSetFormula.ALL_FIELDS ) {
+    if( columnsDefinition!==SeLiteDb.RecordSetFormula.ALL_FIELDS ) {
         if( Array.isArray(columnsDefinition) ) {
             for( var j=0; j<columnsDefinition.length; j++ ) {
                 var columnOrMap= columnsDefinition[j];
@@ -375,7 +375,7 @@ RecordSetFormula.prototype.columnsToAliases= function( tableName ) {
                     result[ columnOrMap ]= columnOrMap;
                 }
                 else
-                if( typeof columnOrMap ==='object' && columnOrMap!==RecordSetFormula.ALL_FIELDS ) {
+                if( typeof columnOrMap ==='object' && columnOrMap!==SeLiteDb.RecordSetFormula.ALL_FIELDS ) {
                     for( var column in columnOrMap ) {
                         result[ column ]= columnOrMap[column];
                     }
@@ -402,7 +402,7 @@ RecordSetFormula.prototype.columnsToAliases= function( tableName ) {
  *  the formula (from all its tables), each mapped to an object containing the table and the (unaliased) column name.
  *  @return { string column-alias: {table: table object, column: column-name}, ... }
  **/
-RecordSetFormula.prototype.allAliasesToSource= function() {
+SeLiteDb.RecordSetFormula.prototype.allAliasesToSource= function() {
     // @TODO update tableByName() to be similar to this, reuse:
     var tableNamesToTables= new SeLiteDb.Settable().set( this.table.name, this.table );
     this.joins.forEach( function(join) {
@@ -422,58 +422,58 @@ RecordSetFormula.prototype.allAliasesToSource= function() {
     return result;
 };
 
-/** This returns the RecordSet object, i.e. the records themselves.
+/** This returns the SeLiteDb.RecordSet object, i.e. the records themselves.
  *  @see RecordSetHolder.select().
  **/
-RecordSetFormula.prototype.select= function( parametersOrCondition ) {
+SeLiteDb.RecordSetFormula.prototype.select= function( parametersOrCondition ) {
     return new RecordSetHolder(this, parametersOrCondition ).select();
 };
 
-/** This returns the Record object, i.e. the record itself.
+/** This returns the SeLiteDb.Record object, i.e. the record itself.
  *  @see RecordSetHolder.selectOne()
  **/
-RecordSetFormula.prototype.selectOne= function( parametersOrCondition ) {
+SeLiteDb.RecordSetFormula.prototype.selectOne= function( parametersOrCondition ) {
     return new RecordSetHolder(this, parametersOrCondition ).selectOne();
 };
 
-/** RecordSet serves as an associative array, containing Record object(s), indexed by SeLiteMisc.collectBycolumn(formula.indexBy, formula.indexUnique, formula.subIndexBy)
+/** SeLiteDb.RecordSet serves as an associative array, containing SeLiteDb.Record object(s), indexed by SeLiteMisc.collectBycolumn(formula.indexBy, formula.indexUnique, formula.subIndexBy)
  *  for the formula of recordSetHolder. It is iterable but it doesn't guarantee the order of entries.
  *  It also keeps a non-iterable reference to recordSetHolder.
  *  @param object recordSetHolder of class RecordSetHolder
  **/
-function RecordSet( recordSetHolder ) {
+SeLiteDb.RecordSet= function( recordSetHolder ) {
     SeLiteMisc.ensureInstance( recordSetHolder, RecordSetHolder, 'RecordSetHolder');
     // Set the link from record to its record holder. The field for this link is non-iterable.
-    Object.defineProperty( this, RecordSet.RECORDSET_TO_HOLDER_FIELD, { value: recordSetHolder } );
-}
+    Object.defineProperty( this, SeLiteDb.RecordSet.RECORDSET_TO_HOLDER_FIELD, { value: recordSetHolder } );
+};
 // This is configurable - if it ever gets in conflict with an index key in your DB table, change it here.
-RecordSet.RECORDSET_TO_HOLDER_FIELD= 'RECORDSET_TO_HOLDER_FIELD';
+SeLiteDb.RecordSet.RECORDSET_TO_HOLDER_FIELD= 'RECORDSET_TO_HOLDER_FIELD';
 
 /** @private
- *  @param RecordSet instance
+ *  @param SeLiteDb.RecordSet instance
  *  @return RecordSetHolder for that instance.
  **/
 function recordSetHolder( recordSet ) {
-    SeLiteMisc.ensureInstance(recordSet, RecordSet, 'RecordSet');
-    return recordSet[RecordSet.RECORDSET_TO_HOLDER_FIELD];
+    SeLiteMisc.ensureInstance(recordSet, SeLiteDb.RecordSet, 'SeLiteDb.RecordSet');
+    return recordSet[SeLiteDb.RecordSet.RECORDSET_TO_HOLDER_FIELD];
 }
 
 /** @private
  * */
 function recordOrSetHolder( recordOrSet ) {
-    if( recordOrSet instanceof Record ) {
+    if( recordOrSet instanceof SeLiteDb.Record ) {
         return recordHolder(recordOrSet);
     }
     else
-    if( recordOrSet instanceof RecordSet ) {
+    if( recordOrSet instanceof SeLiteDb.RecordSet ) {
         return recordSetHolder(recordOrSet);
     }
     else {
-        throw new Error( "Parameter recordOrSet must be an instance of Record or RecordSet, but it's:\n" +SeLiteMisc.objectToString(recordOrSet, 3) );
+        throw new Error( "Parameter recordOrSet must be an instance of SeLiteDb.Record or SeLiteDb.RecordSet, but it's:\n" +SeLiteMisc.objectToString(recordOrSet, 3) );
     }
 }
 
-/** @param object formula instance of RecordSetFormula
+/** @param object formula instance of SeLiteDb.RecordSetFormula
  *  @param mixed parametersOrCondition Any parameter values whose typeof is not 'string' or 'number'
  *  will passed to formula's process() function (if set), but it won't be passed
  *  as a binding parameter (it won't apply to any parameters in condition/fetchMatching/join).
@@ -484,7 +484,7 @@ function RecordSetHolder( formula, parametersOrCondition ) {
     this.formula= formula;
     this.parametersOrCondition= parametersOrCondition || {};
     this.holders= {}; // Object serving as an associative array { primary key value: RecordHolder instance }
-    this.records= new RecordSet( this );
+    this.records= new SeLiteDb.RecordSet( this );
     this.originals= {}; // This will be set to object { primary-key-value: original object... }
     this.markedToRemove= {}; // It keeps RecordHolder instances scheduled to be removed; structure like this.holders
 }
@@ -493,7 +493,7 @@ RecordSetHolder.prototype.storage= function() {
     return this.formula.table.db.storage;
 };
 
-/** @return RecordSet object
+/** @return SeLiteDb.RecordSet object
  * */
 RecordSetHolder.prototype.select= function() {
     SeLiteMisc.objectDeleteFields( this.records );
@@ -600,7 +600,7 @@ RecordSetHolder.prototype.select= function() {
 };
 
 /** This runs the query just like select(). Then it checks whether there was exactly 1 result row.
- *  If yes, it returns that row (Record object). Otherwise it throws an exception.
+ *  If yes, it returns that row (SeLiteDb.Record object). Otherwise it throws an exception.
  **/
 RecordSetHolder.prototype.selectOne= function() {
     this.select();
@@ -645,6 +645,4 @@ RecordSetHolder.prototype.remove= function() { throw "TODO";
 RecordSetHolder.prototype.replace= function() {throw 'todo';
 };
 
-var EXPORTED_SYMBOLS= [ 'Db', 'Table', 'Record',
-    'RecordSetFormula', 'RecordSet'
-];
+var EXPORTED_SYMBOLS= [];
