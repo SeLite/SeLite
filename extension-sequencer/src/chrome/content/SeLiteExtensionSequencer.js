@@ -148,10 +148,14 @@ SeLiteExtensionSequencer.sortedPlugins= function() {
     var missingIndirectDependancies= {};
     
     if( unprocessedIds.length ) {
-        for( var pluginId of unprocessedIds ) {
+        // for( var pluginId of unprocessedIds ) { @TODO insteaf of the following loop - once NetBeans support it
+        for( var i=0; i< unprocessedIds.length; i++ ) {
+            var pluginId= unprocessedIds[i];
             //var isMissingDirectDependenciesOnly= true;
             var direct= [], indirect= [];
-            for( var requisiteId of pluginUnprocessedRequisites[pluginId] ) {
+            //for( var requisiteId of pluginUnprocessedRequisites[pluginId] ) { @TODO instead of the following
+            for( var j=0; j<pluginUnprocessedRequisites[pluginId].length; j++ ) {
+                var requisiteId= pluginUnprocessedRequisites[pluginId][j];
                 if( requisiteId in SeLiteExtensionSequencer.plugins ) {
                     indirect.push(requisiteId);
                 }

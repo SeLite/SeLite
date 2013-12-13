@@ -38,6 +38,9 @@ treechildren::-moz-tree-cell-text(SELITE_FIELD_NULL_OR_UNDEFINED) {
 
 " type="text/css"?>
 <window id="yourwindow" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml">
+    <!-- Can't have tooltip per cell. See http://forums.mozillazine.org/viewtopic.php?f=19&p=6445785
+    and https://developer.mozilla.org/en-US/docs/XUL/PopupGuide/Tooltips#Tooltips_in_Trees
+    -->
     <tooltip id="tooltipActive" label="Click at cells to make a set active"/>
     <tooltip id="tooltipChoice" label="Click at cells to toggle checked/unchecked or to select/deselect a choice (where applicable)"/>
     <tooltip id="tooltipValue" label="Click at cells to edit the value (where applicable)"/>
