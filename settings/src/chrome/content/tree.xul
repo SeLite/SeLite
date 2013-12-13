@@ -38,9 +38,13 @@ treechildren::-moz-tree-cell-text(SELITE_FIELD_NULL_OR_UNDEFINED) {
 
 " type="text/css"?>
 <window id="yourwindow" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml">
-    <tooltip id="tooltip" label="Hi mate. Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate.Hi mate."/>
+    <tooltip id="tooltipActive" label="Click at cells to make a set active"/>
+    <tooltip id="tooltipChoice" label="Click at cells to toggle checked/unchecked or to select/deselect a choice (where applicable)"/>
+    <tooltip id="tooltipValue" label="Click at cells to edit the value (where applicable)"/>
+    <tooltip id="tooltipNull" label="Click at cells to make the value null/undefined"/>
+    <tooltip id="tooltipManifest" label="Manifest (values or associations), or module definition, where the value(s) comes from"/>
     <script type="application/x-javascript" src="chrome://selite-settings/content/ui/ovOptions.js"/>
-				<vbox id="SeSettingsBox">
+				<vbox id="SeSettingsBox" flex="1">
                     <!--
                     <description >Changes and buttons have immediate effect.
                     The tree doesn't auto-update if you modify the preferences in another way.

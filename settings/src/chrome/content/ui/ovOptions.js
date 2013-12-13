@@ -252,6 +252,7 @@ function generateTreeColumns( allowModules, perFolder ) {
         treecol.setAttribute('type', 'checkbox');
         treecol.setAttribute('editable', 'true' );
         treecol.setAttribute( 'ordinal', '3');
+        treecol.setAttribute( 'tooltip', 'tooltipActive');
         treecols.appendChild(treecol);
         
         splitter= document.createElementNS( XUL_NS, 'splitter' );
@@ -264,6 +265,9 @@ function generateTreeColumns( allowModules, perFolder ) {
     treecol.setAttribute('type', 'checkbox');
     treecol.setAttribute('editable', ''+!perFolder );
     treecol.setAttribute( 'ordinal', '5');
+    if( !perFolder ) {
+        treecol.setAttribute( 'tooltip', 'tooltipChoice' );
+    }
     treecols.appendChild(treecol);
 
     splitter= document.createElementNS( XUL_NS, 'splitter' );
@@ -275,6 +279,9 @@ function generateTreeColumns( allowModules, perFolder ) {
     treecol.setAttribute('editable', ''+!perFolder );
     treecol.setAttribute( 'flex', '1');
     treecol.setAttribute( 'ordinal', '7');
+    if( !perFolder ) {
+        treecol.setAttribute( 'tooltip', 'tooltipValue');
+    }
     treecols.appendChild(treecol);
     
     if( perFolder || allowSets || allowMultivaluedNonChoices ) {
@@ -304,6 +311,10 @@ function generateTreeColumns( allowModules, perFolder ) {
     treecol.setAttribute('editable', 'false');
     treecol.setAttribute( 'flex', '1');
     treecol.setAttribute( 'ordinal', '11');
+    treecol.setAttribute( 'tooltip', perFolder
+        ? 'tooltipManifest'
+        : 'tooltipNull'
+    );
     treecols.appendChild(treecol);
     return treecols;
 }
@@ -566,6 +577,9 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         || field instanceof SeLiteSettings.Field.Choice
     ) {
         treecell.setAttribute('editable' , 'false');
+    }
+    else {
+        //treecell.setAttribute( 'tooltip', 'tooltip'); //@TODO?
     }
     var isNull, isNullOrUndefined;
     if( rowLevel===RowLevel.FIELD ) {
@@ -1501,7 +1515,6 @@ window.addEventListener( "load", function(e) {
             }
         }
     }
-    var settingsBox= document.getElementById('SeSettingsBox');
     var tree= document.createElementNS( XUL_NS, 'tree' );
     tree.setAttribute( 'id', 'settingsTree');
     tree.setAttribute( 'editable', ''+(targetFolder===null) );
@@ -1511,7 +1524,7 @@ window.addEventListener( "load", function(e) {
     tree.setAttribute( 'class', 'tree');
     tree.setAttribute( 'onblur', 'onTreeBlur()' );
     tree.setAttribute( 'flex', '1');
-    tree.setAttribute( 'rows', '25'); //@TODO This has to be specified, otherwise the tree is not shown at all (except for column headers). Investigate
+    var settingsBox= document.getElementById('SeSettingsBox');
     settingsBox.appendChild( tree );
     
     for( var moduleName in modules ) {
