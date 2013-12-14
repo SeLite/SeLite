@@ -36,12 +36,14 @@
     StandaloneEditor.prototype.confirmClose= Editor.prototype.confirmClose;
     SidebarEditor.prototype.confirmClose= Editor.prototype.confirmClose;
     //console.log( 'Editor.prototype.confirmClose intercept set up' );
-//@TODO:    
-var seLiteSettingsMenuItem= document.createElementNS( XUL_NS, 'menuitem' );
-seLiteSettingsMenuItem.setAttribute( 'label', 'SeLiteSettings module(s)' );
-seLiteSettingsMenuItem.setAttribute( 'oncommand', 'window.editor.showInBrowser("chrome://selite-settings/content/tree.xul")' );
-seLiteSettingsMenuItem.setAttribute( 'accesskey', 'S' );
-var optionsPopup= document.getElementById('options-popup');
-optionsPopup.appendChild(seLiteSettingsMenuItem);
-    
+
+    if (typeof(XUL_NS) == "undefined")  {
+        var XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+    }
+    var seLiteSettingsMenuItem= document.createElementNS( XUL_NS, 'menuitem' );
+    seLiteSettingsMenuItem.setAttribute( 'label', 'SeLiteSettings module(s)' );
+    seLiteSettingsMenuItem.setAttribute( 'oncommand', 'window.editor.showInBrowser("chrome://selite-settings/content/tree.xul")' );
+    seLiteSettingsMenuItem.setAttribute( 'accesskey', 'S' );
+    var optionsPopup= document.getElementById('options-popup');
+    optionsPopup.appendChild(seLiteSettingsMenuItem);
 })();
