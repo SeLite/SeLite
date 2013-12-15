@@ -46,4 +46,10 @@
     seLiteSettingsMenuItem.setAttribute( 'accesskey', 'S' );
     var optionsPopup= document.getElementById('options-popup');
     optionsPopup.appendChild(seLiteSettingsMenuItem);
+    
+    seLiteSettingsMenuItem= document.createElementNS( XUL_NS, 'menuitem' );
+    seLiteSettingsMenuItem.setAttribute( 'label', 'SeLiteSettings per folder' );
+    seLiteSettingsMenuItem.setAttribute( 'oncommand', 'window.editor.showInBrowser("chrome://selite-settings/content/tree.xul?selectFolder")' );
+    optionsPopup= document.getElementById('options-popup');
+    optionsPopup.appendChild(seLiteSettingsMenuItem);
 })();

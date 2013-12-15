@@ -947,9 +947,11 @@ function treeClickHandler( event ) {
                             alert( "Please select (or create and select) a different set before you remove this one." );
                             return;
                         }
-                        module.removeSet( selectedSetName);
-                        SeLiteSettings.savePrefFile(); // Must save here, before reload()
-                        window.location.reload();
+                        if( confirm('Are you sure you want to delete this set?') ) {
+                            module.removeSet( selectedSetName);
+                            SeLiteSettings.savePrefFile(); // Must save here, before reload()
+                            window.location.reload();
+                        }
                     }
                     if( (cellText===ADD_NEW_VALUE || cellText===DELETE_THE_VALUE) ) {
                         if( !field.multivalued || field instanceof SeLiteSettings.Field.Choice ) {
