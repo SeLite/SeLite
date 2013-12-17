@@ -582,7 +582,7 @@ function StorageFromSettings( field ) {
         //console.log( 'newFileName: ' +newFileName );
         if( newFileName ) {
             this.parameters.fileName= newFileName;
-            SeLiteData.Storage.prototype.open.call( this );
+            this.open();
             //console.log( 'StorageFromSettings(): connection ' +this.connection );
         }
     }
@@ -614,9 +614,6 @@ StorageFromSettings.instances= {};
 StorageFromSettings.prototype= new SeLiteData.Storage();
 StorageFromSettings.prototype.constructor= StorageFromSettings;
 
-StorageFromSettings.prototype.open= function() { SeLiteMisc.fail('StorageFromSettings.open() is unsupported.'); };
-StorageFromSettings.prototype.close= function() { SeLiteMisc.fail('StorageFromSettings.close() is unsupported.'); };
-
 function testSuiteFolderChangeHandler() {
     //console.log('TestSuiteFolderChangeHandler will update ' +StorageFromSettings.instances.length+ ' instance(s) of StorageFromSettings with setting(s) associated with folder ' +SeLiteSettings.getTestSuiteFolder() );
     Object.keys(StorageFromSettings.instances).length===0 || SeLiteSettings.getTestSuiteFolder()
@@ -625,7 +622,7 @@ function testSuiteFolderChangeHandler() {
         var instance= StorageFromSettings.instances[fieldName];
         instance instanceof StorageFromSettings || fail();
         if( instance.connection ) {
-            SeLiteData.Storage.prototype.close.call( instance, false );
+            instance.close( false );
             instance.parameters.fileName= null;
         }
         if( SeLiteSettings.getTestSuiteFolder() ) {
@@ -633,7 +630,7 @@ function testSuiteFolderChangeHandler() {
             //console.log( 'newFileName: ' +newFileName );
             if( newFileName ) {
                 instance.parameters.fileName= newFileName;
-                SeLiteData.Storage.prototype.open.call( instance );
+                instance.open();
                 //console.log( 'connection ' +instance.connection );
             }
             else {
