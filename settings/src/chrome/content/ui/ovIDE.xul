@@ -3,7 +3,7 @@
 
 <overlay id="settings_reload_toolbar_overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
     <toolbar id="toolbar2">
-		<toolbarbutton id="settings_reload_test" label="Reload test DB" tooltiptext="Reload test DB" class="icon" checked="false" onclick="window.editor.reload_test()" insertafter="reload-button"/>
-		<toolbarbutton id="settings_reload_both" label="Reload app and test DB" tooltiptext="Reload app and test DB" class="icon" checked="false" onclick="window.editor.reload_app_and_test()" insertafter="settings_reload_test"/>
+		<toolbarbutton id="settings_reload_test" label="Reload testDB from appDB" tooltiptext="Reload testDB from appDB" class="icon" checked="false" onclick="window.editor.reload_test()" insertafter="reload-button"/>
+		<toolbarbutton id="settings_reload_both" label="Reload appDB and testDB from vanillaDB" tooltiptext="Reload app and test DB" class="icon" checked="false" onclick="window.editor.reload_app_and_test()" insertafter="settings_reload_test"/>
     </toolbar>
 </overlay>
