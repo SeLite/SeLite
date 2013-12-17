@@ -53,3 +53,11 @@
     optionsPopup= document.getElementById('options-popup');
     optionsPopup.appendChild(seLiteSettingsMenuItem);
 })();
+
+this.editor.reload_test= function() {
+alert('hi');
+};
+
+this.editor.reload_app_and_test= function() {
+    alert('hi');
+};
