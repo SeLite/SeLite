@@ -592,16 +592,23 @@ function StorageFromSettings( field ) {
  *  re-use an existing instance of StorageFromSettings based on that field.
  *  @param fieldOrFieldName Either string, or SeLiteSettings.Field.SQLite instance.
  *  If it is a string, it must be a full field name. See SeLiteSettings.getField()
+ *  @param dontCreate boolean, if true then this won't create a storage object,
+ *  if it doesn't exist yet (then this returns null). False by default.
  *  @return StorageFromSettings instance
  */
-SeLiteData.getStorageFromSettings= function( fieldOrFieldName ) {
+SeLiteData.getStorageFromSettings= function( fieldOrFieldName, dontCreate ) {
     var field= typeof fieldOrFieldName==='string'
         ? SeLiteSettings.getField(fieldOrFieldName)
         : fieldOrFieldName;
-    field instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail('fieldOrFieldName must be an instance of SeLiteSettings.Field.SQLite, or string: ' +fieldOrFieldName+ '; field: ' +field );
+    field instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail('Parameter fieldOrFieldName must be an instance of SeLiteSettings.Field.SQLite, or string, but it is ' +fieldOrFieldName+ '; field: ' +field );
+    dontCreate= dontCreate || false;
+    SeLiteMisc.ensureType( dontCreate, 'boolean', 'Parameter dontCreate must be a boolean, if specified.' );
     var instance= field.name in StorageFromSettings.instances
         ? StorageFromSettings.instances[field.name]
-        : new StorageFromSettings( field );
+        : (dontCreate
+            ? null
+            : new StorageFromSettings( field )
+          );
     return instance;
 };
 

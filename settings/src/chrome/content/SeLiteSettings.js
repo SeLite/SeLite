@@ -883,6 +883,14 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function( setName ) {
     return result;
 };
 
+/** @param moduleName string 
+ *  @return string SeLiteSettigs.Module instance for that module if registered; undefined otherwise
+ * */
+SeLiteSettings.Module.forName= function( moduleName ) {
+    ensureType( moduleName, 'string', 'Parameter moduleName must be a string.' );
+    return modules[moduleName];
+};
+
 /** Read whole contents of the file. Assume UTF-8.
  * @param string fileName File name
  * @return string contents; false if no such file (compare the result strictly using ===false)

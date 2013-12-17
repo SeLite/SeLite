@@ -30,7 +30,7 @@ Selenium.prototype.scriptLoadTimestamps= {};
 (function() { // Anonymous function makes fileUtilsScope a local variable
     var fileUtilsScope= {};
     Components.utils.import("resource://gre/modules/FileUtils.jsm", fileUtilsScope );
-    Selenium.prototype.FileUtils= fileUtilsScope.FileUtils;
+    Selenium.prototype.FileUtils= fileUtilsScope.FileUtils; //@TODO maybe make it private in this file?
     var servicesScope= {};
     Components.utils.import("resource://gre/modules/Services.jsm", servicesScope );
     Selenium.prototype.Services= servicesScope.Services;

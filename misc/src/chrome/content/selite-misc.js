@@ -139,6 +139,21 @@ SeLiteMisc.isInstance= function( object, classes, className, message ) {
     return false;
 };
 
+/** @param any any type
+ *  @return string Either class name (constructor method name), or 'null', or a meaningful short message.
+ * */
+SeLiteMisc.classOf= function( any ) {
+    return typeof any==='object'
+        ? (any!==null
+                ? (any.constructor.name
+                        ? any.constructor.name
+                        : 'unknown object'
+                  )
+                : 'null'
+          )
+        : 'not an object, but ' +typeof any;
+};
+
 /** Validate that a parameter is an object and of a given class (or of one of given classes).
  *  @see SeLiteMisc.isInstance()
  * */
@@ -147,7 +162,7 @@ SeLiteMisc.ensureInstance= function( object, classes, className, message ) {
         +(className
             ? className
             : 'specific class(es)'
-        )+ ", but an instance of a different class was given. " +message );
+        )+ ", but was given " +SeLiteMisc.classOf(object)+ '. '+message );
 };
 
 /** @param mixed Container - object or array

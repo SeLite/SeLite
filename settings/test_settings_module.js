@@ -1,13 +1,13 @@
 "use strict";
 
-var appDb= new SeLiteSettings.Field.SQLite('appDb');
-var testDb= new SeLiteSettings.Field.SQLite('testDb');
-var vanillaDb= new SeLiteSettings.Field.SQLite('vanillaDb');
+var appDB= new SeLiteSettings.Field.SQLite('appDB');
+var testDB= new SeLiteSettings.Field.SQLite('testDB');
+var vanillaDB= new SeLiteSettings.Field.SQLite('vanillaDB');
 var appWebroot= new SeLiteSettings.Field.String('appWebroot', false, 'http://localhost/app');
 var maxNumberOfRuns= new SeLiteSettings.Field.Int('maxNumberOfRuns', false, 20);
 
 var module= new SeLiteSettings.Module( 'extensions.selite-settings.basic',
-    [appDb, testDb, vanillaDb, appWebroot, maxNumberOfRuns],
+    [appDB, testDB, vanillaDB, appWebroot, maxNumberOfRuns],
     true,
     'default',
     true,

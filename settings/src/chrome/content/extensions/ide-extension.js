@@ -16,10 +16,11 @@
 */
 "use strict";
 
-(function() { // Anonymous function to make the variables local
+(function(self) { // Anonymous function to make the variables local
+    var FileUtils= Components.utils.import("resource://gre/modules/FileUtils.jsm", {} ); // This must be local - otherwise it overrides FileUtils defined/loaded by Se IDE, and it causes problems at Se IDE start
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
     Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
-    
+
     // Tail intercept of Editor.prototype.confirmClose and the same for its subclasses StandaloneEditor and SidebarEditor
     var originalConfirmClose= Editor.prototype.confirmClose;
     Editor.prototype.confirmClose= function() {
@@ -42,22 +43,55 @@
     }
     var seLiteSettingsMenuItem= document.createElementNS( XUL_NS, 'menuitem' );
     seLiteSettingsMenuItem.setAttribute( 'label', 'SeLiteSettings module(s)' );
-    seLiteSettingsMenuItem.setAttribute( 'oncommand', 'window.editor.showInBrowser("chrome://selite-settings/content/tree.xul")' );
+    seLiteSettingsMenuItem.setAttribute( 'oncommand', 'window.editor.showInBrowser("chrome://selite-settings/content/tree.xul", true/*in a new window*/)' );
     seLiteSettingsMenuItem.setAttribute( 'accesskey', 'S' );
     var optionsPopup= document.getElementById('options-popup');
     optionsPopup.appendChild(seLiteSettingsMenuItem);
     
     seLiteSettingsMenuItem= document.createElementNS( XUL_NS, 'menuitem' );
     seLiteSettingsMenuItem.setAttribute( 'label', 'SeLiteSettings per folder' );
-    seLiteSettingsMenuItem.setAttribute( 'oncommand', 'window.editor.showInBrowser("chrome://selite-settings/content/tree.xul?selectFolder")' );
+    seLiteSettingsMenuItem.setAttribute( 'oncommand', 'window.editor.showInBrowser("chrome://selite-settings/content/tree.xul?selectFolder", true/*in a new window*/)' );
     optionsPopup= document.getElementById('options-popup');
     optionsPopup.appendChild(seLiteSettingsMenuItem);
-})();
 
-this.editor.reload_test= function() {
-alert('hi');
-};
+    /** Reload
+     *  - the appDB from given vanillaDbField (if set; this is optional), and
+     *  - the testDB from appDB
+     *  @param vanillaDbField SeLiteSettings.Field.SQLite (for extensions.selite-settings.basic.vanillaDB), or null
+     *  @return void
+     * */
+    self.editor.reload_test= function( vanillaDbField ) {
+        var appDbField= SeLiteSettings.getField( 'extensions.selite-settings.basic.appDB' );
+        var testDbField= SeLiteSettings.getField( 'extensions.selite-settings.basic.testDB' );
 
-this.editor.reload_app_and_test= function() {
-    alert('hi');
-};
+        var appDB= SeLiteData.getStorageFromSettings( appDbField, true );
+        !appDB || appDB.close();
+        var testDB= SeLiteData.getStorageFromSettings( testDbField, true );
+        !testDB || testDB.close();
+
+        vanillaDbField===null || SeLiteMisc.ensureInstance( vanillaDbField, SeLiteSettings.Field.SQLite, 'SeLiteSettings.Field.SQLite' );
+        var vanillaDbField= SeLiteData.getField( 'extensions.selite-settings.basic.vanillaDB' );
+        // next two lines only perform validation
+        var vanillaDB= SeLiteData.getStorageFromSettings( vanillaDbField, true );
+        !vanillaDB || fail( 'vanillaDB should not be accessed by tests' ); 
+
+        var module= SeLiteSettings.Module.forName( 'extensions.selite-settings.basic' );
+        var fields= module.getFieldsDownToFolder();
+        var appDBvalue= fields['appDB'].entry;
+
+        var file= new FileUtils.File(filePath); // Object of class nsIFile
+        if( vanillaDbField ) {
+
+        }
+
+        !appDB || appDB.open();
+        !testDB || testDB.open();
+    };
+
+    /** Reload testDB and appDB from vanillaDB.
+     * */
+    self.editor.reload_app_and_test= function() {
+        this.reload_test( true );
+    };
+
+})(this);
