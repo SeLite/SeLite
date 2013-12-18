@@ -887,7 +887,7 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function( setName ) {
  *  @return string SeLiteSettigs.Module instance for that module if registered; undefined otherwise
  * */
 SeLiteSettings.Module.forName= function( moduleName ) {
-    ensureType( moduleName, 'string', 'Parameter moduleName must be a string.' );
+    SeLiteMisc.ensureType( moduleName, 'string', 'Parameter moduleName must be a string.' );
     return modules[moduleName];
 };
 
