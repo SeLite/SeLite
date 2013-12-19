@@ -25,7 +25,7 @@
     // if( loadedOddTimes ) { // Ignore the first load, because Se IDE somehow discards that Selenium.prototype
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         
-        var storage= SeLiteData.getStorageFromSettings('extensions.selite-settings.basic.testDb');
+        var storage= SeLiteData.getStorageFromSettings('extensions.selite-settings.basic.testDB');
         var db= new SeLiteData.Db( storage, '' ); //@TODO Prefix to come from SeLiteSettings - through the module definition?
 
         var users= new SeLiteData.Table( {
