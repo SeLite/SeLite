@@ -28,29 +28,33 @@ SeLiteData.Db= function( storage, tableNamePrefix ) {
     this.tableNamePrefix= tableNamePrefix || '';
 };
 
-/** If prototype.noNamePrefix is set to true or 1, then it cancels effect of prototype.db.tableNamePrefix
+/** @param prototype Anonymous object {
+ *      db: SeLiteData.Db instance,
+ *      noNamePrefix: boolean, optional; if true, then it cancels effect of prototype.db.tableNamePrefix (if set),
+ *      name: string table name,
+ *      columns: array of string column names,
+ *      primary: string primary key name, optional - 'id' by default
  */
 SeLiteData.Table= function( prototype ) {
     this.db= prototype.db;
     var prefix= prototype.noNamePrefix ? '' : this.db.tableNamePrefix;
     this.name= prefix+prototype.name;
     
-    this.columns= prototype.columns; // Object{ of string colum name: true or object with more info}
-    // where more info object { insert: string or function (optional field); update: string or function (optional field) }
+    this.columns= prototype.columns;
     this.primary= prototype.primary || 'id';
 };
 
-/** @private */
+/** @private Not used directly outside of this file */
 function readOnlyPrimary( field ) {
     throw new Error( "This field '" +field+ "' is a primary key and therefore read-only." );
 }
 
-/** @private */
+/** @private Not used directly outside of this file */
 function readOnlyOriginal( field ) {
     throw new Error( "Original record is read-only, therefore this can't change field '" +field+ "'." );
 }
 
-/** @private */
+/** @private Not used directly outside of this file */
 function readOnlyJoined( field ) {
     throw new Error( "Field '" +field+ "' is from a joined record, therefore it can't be changed." );
 }
@@ -61,8 +65,9 @@ function readOnlyJoined( field ) {
  *  <br/>Keys (field names) in this.record and this.original (if set) are the aliased
  *  column names, as defined in the respective SeLiteData.RecordSetFormula (and as retrieved from DB).
  *  See insert().
- *  @param mixed recordSetOrFormula RecordSetHolder recordSet, or SeLiteData.RecordSetFormula formula. If it's a formula,
- *  then this.original won't be set, and you can modify the this.record. You probably
+ *  @private Not used directly outside of this file.
+ *  @param object recordSetHolderOrFormula An instance of either SeLiteData.RecordSetHolder, or of SeLiteData.RecordSetFormula. If it's a formula,
+ *  then this.original won't be set, and you can modify this.record. You probably
  *  want to pass a SeLiteData.RecordSetFormula instance if you intend to use this RecordHolder with insert() only.
  *  @param object plainRecord Plain record from the result of the SELECT (using the column aliases, including any joined fields).
  *  Optional; if not present/null/empty object, then this.record will be set to an empty object
@@ -72,28 +77,28 @@ function readOnlyJoined( field ) {
  *  because this.record object won't be the same as plainRecord parameter passed here.
  *  this.record object links to a new SeLiteData.Record instance.
  **/
-function RecordHolder( recordSetOrFormula, plainRecord ) {
+function RecordHolder( recordSetHolderOrFormula, plainRecord ) {
  /*  I would like to use use Firefox JS Proxies https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
  *  -- try javascript:"use strict"; function MyProxy( target ) { Proxy.constructor.call(this, target, this ); } MyProxy.prototype.save= function() {}; var o=new MyProxy(); o.save()
  *  -- No need to set MyProxy.prototype.constructor to Proxy.constructor*/
-    if( recordSetOrFormula instanceof SeLiteData.RecordSetFormula ) {
-        this.recordSetHolder= new RecordSetHolder( recordSetOrFormula );
+    if( recordSetHolderOrFormula instanceof SeLiteData.RecordSetFormula ) {
+        this.recordSetHolder= new RecordSetHolder( recordSetHolderOrFormula );
     }
     else
-    if( recordSetOrFormula instanceof RecordSetHolder ) {
-        this.recordSetHolder= recordSetOrFormula;
+    if( recordSetHolderOrFormula instanceof RecordSetHolder ) {
+        this.recordSetHolder= recordSetHolderOrFormula;
     }
     else {
         throw new Error("RecordHolder() expects the first parameter to be an instance of RecordSetHolder or SeLiteData.RecordSetFormula." );
     }
     this.record= new SeLiteData.Record( this, plainRecord );
-    if( recordSetOrFormula instanceof SeLiteData.RecordSetFormula && Object.keys(this.record).length>0 ) {
+    if( recordSetHolderOrFormula instanceof SeLiteData.RecordSetFormula && Object.keys(this.record).length>0 ) {
         this.setOriginalAndWatchEntries();
     }
 }
 
 /*** Constructor used for data objects.
- *   @param object recordHolder of class RecordHolder
+ *   @param object recordHolder of private class RecordHolder
  *   @param mixed Object with the record's data, or null/false.
  **/
 SeLiteData.Record= function( recordHolder, data ) {
@@ -104,10 +109,14 @@ SeLiteData.Record= function( recordHolder, data ) {
     }
 };
 
-// This is configurable - if it ever gets in conflict with a field name in your DB table, change it here.
+/** This is a name of Javascript field, used in instances of SeLiteData.Record,
+    for which the field value is an instance of private class RecordHolder.
+    If this string ever gets in conflict with a field name in your DB table, change it here.
+    @private
+*/
 SeLiteData.Record.RECORD_TO_HOLDER_FIELD= 'RECORD_TO_HOLDER_FIELD';
 
-/** @private
+/** @private Not a part of public API.
  *  @param SeLiteData.Record instance
  *  @return RecordHolder for that instance.
  **/
@@ -249,8 +258,27 @@ RecordHolder.prototype.remove= function() {
 };
 
 /** Constructor of formula objects.
- *  @param object params Object serving as an associative array; optional; see in-code description.
- *  @param object prototype Optional; instance of SeLiteData.RecordSetFormula which serves as the prototype for the new object.
+ *  @param object params Object serving as an associative array; optional, in form {
+ *      table
+ *      alias
+ *      columns
+ *      joins
+ *      fetchCondition
+ *      fetchMatching
+ *      parameterNames
+ *      sort
+ *      sortDirection
+ *      indexBy
+ *      indexUnique
+ *      subIndexBy
+ *      process
+ *      debugQuery
+ *      debugResult
+ *      generateInsertKey
+ *      onInsert
+ *      onUpdate
+ *  }
+ *  @param object prototype Instance of SeLiteData.RecordSetFormula which serves as the prototype for the new object. Optional.
  *  Any fields not set in params will be inherited from prototype (if present), as they are at the time of calling this constructor.
  *  Any fields set in params will override respective fields in prototype (if any),
  *  except for field(s) present in params and set to null - then values will be copied from prototype, (if present).
@@ -299,6 +327,16 @@ SeLiteData.RecordSetFormula.ALL_FIELDS= ["ALL_FIELDS"]; // I compare this using 
     // That's because RecordSetHolder.originals{} are indexed by it.
 SeLiteData.RecordSetFormula.prototype.alias= null;
 
+/** Object serving as an associative array {
+ *      string tableName: mixed, either
+ *       - SeLiteData.RecordSetFormula.ALL_FIELDS, or
+ *       - an array of [ string columnName or object columnMap, ...], or
+ *       - an anonymous object {
+ *              string columnName: string alias, or true
+ *         }
+ *        
+ *        SeLiteData.RecordSetFormula.ALL_FIELDS
+ * }*/
 SeLiteData.RecordSetFormula.prototype.columns= {};
 
 /** Just like the same field passed to storage.getRecords(). I.e. Array of objects {
@@ -369,7 +407,7 @@ SeLiteData.RecordSetFormula.prototype.columnsToAliases= function( tableName ) {
     }
     if( columnsDefinition!==SeLiteData.RecordSetFormula.ALL_FIELDS ) {
         if( Array.isArray(columnsDefinition) ) {
-            for( var j=0; j<columnsDefinition.length; j++ ) {
+            for( var j=0; j<columnsDefinition.length; j++ ) { //@TODO use loop: for( .. of ..), once NetBeans supports it
                 var columnOrMap= columnsDefinition[j];
                 if( typeof columnOrMap ==='string' ) {
                     result[ columnOrMap ]= columnOrMap;
