@@ -257,13 +257,38 @@ RecordHolder.prototype.remove= function() {
         this.record[ this.recordSetHolder.formulate.table.primary] );
 };
 
-/** Constructor of formula objects.
- *  @param object params Object serving as an associative array; optional, in form {
- *      table
- *      alias
- *      columns
- *      joins
- *      fetchCondition
+/** @constructor Constructor of formula objects.
+ *  @param {object} params - Object serving as an associative array; optional, in form {
+ *      table: SeLiteData.Table instance
+ *      alias: string, alias for this table, used in SQL, optional.
+ *          @TODO Check this old documentation - not applicable anymore: object, optional, in form { table-name: columns-alias-info } where each columns-alias-info is of mixed-type:
+            - string column alias prefix (it will be prepended in front of all column names); or
+            - SeLiteData.RecordSetFormula.ALL_FIELDS (all fields listed in the table object will be selected, unaliased); or
+            - an alias map object listing all columns that are to be selected, mapped to string alias, or mapped to true/1 if not aliased; or
+            - an array, listing one or more of the following
+            --- all unaliased columns
+            ---- optional object(s) which is an alias map {string colum name: string alias}; such a map must map to string alias (it must not map to true/1)
+            --- optional SeLiteData.RecordSetFormula.ALL_FIELDS indicating usage of all columns under their names (unaliased), unless any map object(s) map them
+            Each alias must be unique; that will be checked by SeLiteData.RecordSetFormula constructor. ---@TODO
+            The column list must list the primary key of the main table, and it must not be aliased. Their values must exist
+            - i.e. you can't have a join that selects records from join table(s) for which there is no record in the main table.
+            That's because RecordSetHolder.originals{} are indexed by it.
+ *      columns: Object serving as an associative array {
+    *      string tableName: mixed, either
+    *       - SeLiteData.RecordSetFormula.ALL_FIELDS, or
+    *       - an array of [ string columnName or object columnMap, ...], or
+    *       - an anonymous object {
+    *              string columnName: string alias, or true
+    *         }, or
+    *       - SeLiteData.RecordSetFormula.ALL_FIELDS
+    *      }
+ *      joins: Just like the same field passed to storage.getRecords(). I.e. Array of objects {
+               table: table object;
+               alias: string alias, optional;
+               type: string type 'INNER LEFT' etc.; optional
+               on: string join condition
+           }
+ *      fetchCondition: String SQL condition,
  *      fetchMatching
  *      parameterNames
  *      sort
@@ -311,44 +336,12 @@ SeLiteData.RecordSetFormula= function( params, prototype ) {
     // @TODO similar check for joined columns?
 }
 SeLiteData.RecordSetFormula.prototype.constructor= SeLiteData.RecordSetFormula;
-SeLiteData.RecordSetFormula.ALL_FIELDS= ["ALL_FIELDS"]; // I compare this using ==, so by making this an array we allow user column alias prefix 'ALL_FIELDS' if need be
+SeLiteData.RecordSetFormula.ALL_FIELDS= ["ALL_FIELDS"]; // I compare this using ==, so by making this an array we allow user column alias prefix 'ALL_FIELDS', if (ever) need be
 
-    // Object { table-name: columns-alias-info } where columns-alias-info is of mixed-type:
-    //   string column alias prefix (it will be prepended in front of all column names); or
-    //   SeLiteData.RecordSetFormula.ALL_FIELDS (all fields listed in the table object will be selected, unaliased); or
-    //   an alias map object listing all columns that are to be selected, mapped to string alias, or mapped to true/1 if not aliased; or
-    //   an array, listing one or more of the following
-    //   - all unaliased columns
-    //   - optional object(s) which is an alias map {string colum name: string alias}; such a map must map to string alias (it must not map to true/1)
-    //   - optional SeLiteData.RecordSetFormula.ALL_FIELDS indicating usage of all columns under their names (unaliased), unless any map object(s) map them
-    // Any aliases must be unique; that will be checked by SeLiteData.RecordSetFormula constructor. ---@TODO
-    // The column list must list the primary key of the main table, and it must not be aliased. Their values must exist
-    // - i.e. you can't have a join that selects records from join table(s) for which there is no record in the main table.
-    // That's because RecordSetHolder.originals{} are indexed by it.
 SeLiteData.RecordSetFormula.prototype.alias= null;
-
-/** Object serving as an associative array {
- *      string tableName: mixed, either
- *       - SeLiteData.RecordSetFormula.ALL_FIELDS, or
- *       - an array of [ string columnName or object columnMap, ...], or
- *       - an anonymous object {
- *              string columnName: string alias, or true
- *         }
- *        
- *        SeLiteData.RecordSetFormula.ALL_FIELDS
- * }*/
 SeLiteData.RecordSetFormula.prototype.columns= {};
-
-/** Just like the same field passed to storage.getRecords(). I.e. Array of objects {
-    table: table object;
-       alias: string alias (optional);
-       type: string type 'INNER LEFT' etc.; optional
-       on: string join condition
-    }
-*/
 SeLiteData.RecordSetFormula.prototype.joins= [];
-
-SeLiteData.RecordSetFormula.prototype.fetchCondition= null; // String SQL condition
+SeLiteData.RecordSetFormula.prototype.fetchCondition= null;
 // fetchMatching contains the values unescaped and unqoted; they will be escaped and quoted as needed.
 // Each value must represent SQL constant (string or non-string), or a function returning such value.
 // String values will be quoted, so they can't be SQL expressions. Javascript null value won't be quoted
