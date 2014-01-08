@@ -11,9 +11,6 @@
  * Provides commands for javascript-like looping and callable functions,
  *   with scoped variables, and XML driven parameterization.
  *
- * Add filepath to Options -> Options... "Selenium Core extensions"
- *   (not "Selenium IDE extensions", because we are accessing the Selenium object)
- *
  * Features:
  *  - Commands: if/else, loadVars, forXml, foreach, for, while, call/script/return
  *  - Script and loop parameters use regular selenium variables that are local to the block,
@@ -47,6 +44,8 @@
  * Changes since 1.2:
  * - Added continue & break for loops
  */
+
+// This file must not have "use strict"; because it depends on variables created by eval().
 
 // =============== global functions as script helpers ===============
 // getEval script helpers

@@ -1,4 +1,4 @@
-/*  Copyright 2011, 2012, 2013 Peter Kehl
+/*  Copyright 2011, 2012, 2013, 2014 Peter Kehl
     This file is part of SeLite Db Objects.
 
     SeLite DB Objects is free software: you can redistribute it and/or modify
@@ -97,7 +97,7 @@ function RecordHolder( recordSetHolderOrFormula, plainRecord ) {
     }
 }
 
-/*** Constructor used for data objects.
+/*** Constructor used for object that represents a record in a DB.
  *   @param object recordHolder of private class RecordHolder
  *   @param mixed Object with the record's data, or null/false.
  **/
@@ -135,7 +135,7 @@ RecordHolder.prototype.setOriginalAndWatchEntries= function() {
         this.original[field]= this.record[field];
         this.original.watch( field, readOnlyOriginal );
     }
-    Object.seal( this.original ); // This has an effect only in strict mode
+    Object.seal( this.original ); // This has effect only in strict mode
 
     // Don't allow change of joined columns:
     for( field in this.record ) {
@@ -159,7 +159,7 @@ RecordHolder.prototype.selectOne= function() { throw new Error( "@TODO. In the m
  *  @return mixed value of the primary key
  **/
 RecordHolder.prototype.insert= function() {
-    // Fields set in formula's onInsert{} override any fields with the same name in this.records
+    // Fields set in formula's onInsert{} override any fields with the same name in this.record
     for( var field in this.recordSetHolder.formula.onInsert ) {
         var value= typeof this.recordSetHolder.formula.onInsert[field]==='function'
             ? this.recordSetHolder.formula.onInsert[field]()
@@ -206,7 +206,7 @@ RecordHolder.prototype.ownEntries= function() {
 };
 
 RecordHolder.prototype.update= function() {
-     // Fields set in formula's onUpdate{} override any fields with the same name in this.records
+     // Fields set in formula's onUpdate{} override any fields with the same name in this.record
     for( var field in this.recordSetHolder.formula.onUpdate ) {
         var value= typeof this.recordSetHolder.formula.onUpdate[field]==='function'
             ? this.recordSetHolder.formula.onUpdate[field]()
