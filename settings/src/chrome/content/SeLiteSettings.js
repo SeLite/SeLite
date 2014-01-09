@@ -124,7 +124,7 @@ SeLiteSettings.getField= function( fullName ) {
 /** @param string name Name of the field
  *  @param bool multivalued Whether the field is multivalued; false by default
  *  @param defaultKey mixed Default key. It is the default value(s) for fields other than SeLiteSettings.Field.Choice. For SeLiteSettings.Field.Choice it is the default key(s).
- *  Optional. It can be undefined if you don't want a default key
+ *  Optional. Leave it undefined if you don't want a default key
  *  (then it won't be set and it will be inherited, if any). It can be null only for single-valued fields, then the default key is null.
  *  Otherwise, if the fiels is single valued, the default key should fit the particular type.
  *  If multivalued is true, it must be an array (potentially empty) or undefined; it can't be null.
@@ -459,8 +459,12 @@ SeLiteSettings.Field.String.prototype.constructor= SeLiteSettings.Field.String;
  *  @param defaultKey
  *  @param bool multivalued
  *  @param bool isFolder Whether this is for folder(s); otherwise it's for file(s)
+ *  @param requireAndPopulate
+ *  @param customValidate
+ *  @param saveFile Whether we're saving/creating a file, otherwise we're opening/reading. Optional, false by default.
+    Only needed when isFolder is false, because the file/folder picker dialog always lets you create new folder (if you have access).
  * */
-SeLiteSettings.Field.FileOrFolder= function( name, startInProfileFolder, filters, multivalued, defaultKey, isFolder, requireAndPopulate, customValidate ) {
+SeLiteSettings.Field.FileOrFolder= function( name, startInProfileFolder, filters, multivalued, defaultKey, isFolder, requireAndPopulate, customValidate, saveFile ) {
     SeLiteSettings.Field.NonChoice.call( this, name, multivalued, defaultKey, requireAndPopulate, customValidate );
     this.startInProfileFolder= startInProfileFolder || false;
     if( typeof this.startInProfileFolder!='boolean' ) {
@@ -470,6 +474,8 @@ SeLiteSettings.Field.FileOrFolder= function( name, startInProfileFolder, filters
     typeof(this.filters)==='object' && !Array.isArray(this.filters) || SeLiteMisc.fail( 'SeLiteSettings.Field.FileOrFolder() expects filters to be an object (not an array) serving as an associative array, if provided.');
     this.isFolder= isFolder || false;
     SeLiteMisc.ensureType( this.isFolder, 'boolean', "SeLiteSettings.Field.FileOrFolder(..) expects isFolder to be a boolean, if provided." );
+    this.saveFile= saveFile || false;
+    SeLiteMisc.ensureType( this.saveFile, 'boolean', "SeLiteSettings.Field.FileOrFolder(..) expects saveFile to be a boolean, if provided." );
 }
 SeLiteSettings.Field.FileOrFolder.prototype= new SeLiteSettings.Field.NonChoice('FileOrFolder.prototype');
 SeLiteSettings.Field.FileOrFolder.prototype.constructor= SeLiteSettings.Field.FileOrFolder;
@@ -491,8 +497,8 @@ SeLiteSettings.Field.FileOrFolder.prototype.equals= function( other ) {
  *  @param bool startInProfileFolder See SeLiteSettings.Field.FileOrFolder()
  *  @param filters See SeLiteSettings.Field.FileOrFolder()
  * */
-SeLiteSettings.Field.File= function( name, startInProfileFolder, filters, multivalued, defaultKey, requireAndPopulate, customValidate ) {
-    SeLiteSettings.Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultKey, false, requireAndPopulate, customValidate );
+SeLiteSettings.Field.File= function( name, startInProfileFolder, filters, multivalued, defaultKey, requireAndPopulate, customValidate, saveFile ) {
+    SeLiteSettings.Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultKey, false, requireAndPopulate, customValidate, saveFile );
 };
 SeLiteSettings.Field.File.prototype= new SeLiteSettings.Field.FileOrFolder('File.prototype');
 SeLiteSettings.Field.File.prototype.constructor= SeLiteSettings.Field.File;
@@ -502,15 +508,16 @@ SeLiteSettings.Field.File.prototype.constructor= SeLiteSettings.Field.File;
  *  @param filters See SeLiteSettings.Field.FileOrFolder()
  * */
 SeLiteSettings.Field.Folder= function( name, startInProfileFolder, filters, multivalued, defaultKey, requireAndPopulate, customValidate ) {
-    SeLiteSettings.Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultKey, true, requireAndPopulate, customValidate );
+    SeLiteSettings.Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultKey, true, requireAndPopulate, customValidate, false );
 };
 SeLiteSettings.Field.Folder.prototype= new SeLiteSettings.Field.FileOrFolder('Folder.prototype');
 SeLiteSettings.Field.Folder.prototype.constructor= SeLiteSettings.Field.Folder;
 
 /** It can only be single-valued. An SQLite DB cannot span across multiple files (or if it can, I'm not supporting that).
  * */
-SeLiteSettings.Field.SQLite= function( name, defaultKey, requireAndPopulate, customValidate ) {
-    SeLiteSettings.Field.File.call( this, name, true, { 'SQLite': '*.sqlite', 'any': null}, false, defaultKey, requireAndPopulate, customValidate );
+SeLiteSettings.Field.SQLite= function( name, defaultKey, requireAndPopulate, customValidate, saveFile ) {
+    // I match '*.sqlite*' rather than just '*.sqlite', because Drupal 7 adds DB prefix name to the end of the file name
+    SeLiteSettings.Field.File.call( this, name, true, { 'SQLite': '*.sqlite*', 'any': null}, false, defaultKey, requireAndPopulate, customValidate, saveFile );
 };
 SeLiteSettings.Field.SQLite.prototype= new SeLiteSettings.Field.File('SQLite.prototype', false, {}, false, '' );
 SeLiteSettings.Field.SQLite.prototype.constructor= SeLiteSettings.Field.SQLite;

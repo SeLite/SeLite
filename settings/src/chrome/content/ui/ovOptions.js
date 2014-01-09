@@ -1,4 +1,4 @@
-/*  Copyright 2013 Peter Kehl
+/*  Copyright 2013, 2014 Peter Kehl
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -41,17 +41,22 @@ var DELETE_THE_VALUE= "Delete the value";
         var column= { value: null }; // value is instance of TreeColumn.
     @param column instance of TreeColumn
     @param bool isFolder whether it's for a folder, rather than a file
-    @param string currentTargetFolder Used as the default folder, when field==null
+    @param string currentTargetFolder Used as the default folder, when field==null. Optional.
+    @param boolean saveFile Whether we're saving/creating a file, otherwise we're opening/reading. Optional, false by default.
+    Only needed when isFolder is false, because the file/folder picker dialog always lets you create new folder (if you have access).
     @return false if nothing selected, string file/folder path if selected
  * */
-function chooseFileOrFolder( field, tree, row, column, isFolder, currentTargetFolder ) {
+function chooseFileOrFolder( field, tree, row, column, isFolder, currentTargetFolder, saveFile ) {
     var filePicker = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
     filePicker.init(
         window,
         "Select a " +(isFolder ? "folder" : "file")+ (field ? " for " +field.name : ""),
         isFolder
         ? nsIFilePicker.modeGetFolder
-        : nsIFilePicker.modeOpen
+        : (saveFile
+            ? nsIFilePicker.modeSave
+            : nsIFilePicker.modeOpen
+          )
     );
     if( field ) {
         for( var filterName in field.filters ) {
@@ -924,7 +929,7 @@ function treeClickHandler( event ) {
                             tree.startEditing( row.value, column.value );
                         }
                         else {
-                            chooseFileOrFolder( field, tree, row.value, column.value, field.isFolder ); // On change that will trigger my custom setCellText()
+                            chooseFileOrFolder( field, tree, row.value, column.value, field.isFolder, undefined, field.saveFile ); // On change that will trigger my custom setCellText()
                         }
                     }
                 }
@@ -993,7 +998,7 @@ function treeClickHandler( event ) {
                             }
                             tree.boxObject.ensureRowIsVisible( row.value+1 );
                             if( field instanceof SeLiteSettings.Field.FileOrFolder ) {
-                                chooseFileOrFolder( field, tree, row.value+1, treeColumn(treeColumnElements.value), field.isFolder ); // On change that will trigger my custom setCellText()
+                                chooseFileOrFolder( field, tree, row.value+1, treeColumn(treeColumnElements.value), field.isFolder, undefined, field.saveFile ); // On change that will trigger my custom setCellText()
                             }
                             else {
                                 tree.startEditing( row.value+1, treeColumn(treeColumnElements.value) );

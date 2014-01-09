@@ -16,9 +16,10 @@
 
 (function() {  
     // @TODO Doc
-    // If you don't use SeLite Bootstrap, but you load this file as a Core extension file
-    // (not an XPI, but just a file pointed to from Selenium IDE > Options), then
-    // uncomment the following statements thare are commented out
+    // I suggest that you load this file via SeLite Bootstrap (Selenium IDE > Options > Options > SeLite Bootstrap > Selenium Core extension).
+    // If you don't, but you load this file as a Core extension file
+    // via Selenium IDE > Options > Options > 'Selenium Core extensions' instead, then
+    // you need to uncomment the following statements, along with the enclosing part of if(..)
     
     // Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
     // var loadedOddTimes= SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doDrupalUsers'] || false;
@@ -26,7 +27,8 @@
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         
         var storage= SeLiteData.getStorageFromSettings('extensions.selite-settings.basic.testDB');
-        var db= new SeLiteData.Db( storage, '' ); //@TODO Prefix to come from SeLiteSettings - through the module definition?
+        var module= SeLiteSettings.Module.forName('extensions.selite-settings');
+        var db= new SeLiteData.Db( storage, module.getFieldsDownToFolder()['dbPrefix'] ); //@TODO Prefix to come from SeLiteSettings - through the module definition?
 
         var users= new SeLiteData.Table( {
            db:  db,
