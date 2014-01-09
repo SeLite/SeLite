@@ -468,7 +468,7 @@ SeLiteData.RecordSetFormula.prototype.selectOne= function( parametersOrCondition
 };
 
 /** SeLiteData.RecordSet serves as an associative array, containing SeLiteData.Record object(s), indexed by SeLiteMisc.collectBycolumn(formula.indexBy, formula.indexUnique, formula.subIndexBy)
- *  for the formula of recordSetHolder. It is iterable but it doesn't guarantee the order of entries.
+ *  for the formula of recordSetHolder. It is iterable, but it doesn't guarantee the order of entries.
  *  It also keeps a non-iterable reference to recordSetHolder.
  *  @param object recordSetHolder of class RecordSetHolder
  **/
@@ -504,7 +504,9 @@ SeLiteData.recordOrSetHolder= function( recordOrSet ) {
     }
 };
 
-/** @param object formula instance of SeLiteData.RecordSetFormula
+/** Constructor of RecordSetHolder object.
+ *  @private
+ *  @param object formula instance of SeLiteData.RecordSetFormula
  *  @param mixed parametersOrCondition Any parameter values whose typeof is not 'string' or 'number'
  *  will passed to formula's process() function (if set), but it won't be passed
  *  as a binding parameter (it won't apply to any parameters in condition/fetchMatching/join).
@@ -515,7 +517,7 @@ function RecordSetHolder( formula, parametersOrCondition ) {
     this.formula= formula;
     this.parametersOrCondition= parametersOrCondition || {};
     this.holders= {}; // Object serving as an associative array { primary key value: RecordHolder instance }
-    this.records= new SeLiteData.RecordSet( this );
+    this.recordSet= new SeLiteData.RecordSet( this );
     this.originals= {}; // This will be set to object { primary-key-value: original object... }
     this.markedToRemove= {}; // It keeps RecordHolder instances scheduled to be removed; structure like this.holders
 }
@@ -527,7 +529,7 @@ RecordSetHolder.prototype.storage= function() {
 /** @return SeLiteData.RecordSet object
  * */
 RecordSetHolder.prototype.select= function() {
-    SeLiteMisc.objectDeleteFields( this.records );
+    SeLiteMisc.objectDeleteFields( this.recordSet );
     var formula= this.formula;
     
     var columns= {};
@@ -623,11 +625,11 @@ RecordSetHolder.prototype.select= function() {
         unindexedRecords.push( holder.record );
         this.originals[ holder.record[ formula.table.primary] ]= holder.original;
     }
-    SeLiteMisc.collectByColumn( unindexedRecords, formula.indexBy, formula.indexUnique, formula.subIndexBy, this.records );
+    SeLiteMisc.collectByColumn( unindexedRecords, formula.indexBy, formula.indexUnique, formula.subIndexBy, this.recordSet );
     if( formula.process ) {
-        this.records= formula.process( this.records, parametersForProcessHandler );
+        this.recordSet= formula.process( this.recordSet, parametersForProcessHandler );
     }
-    return this.records;
+    return this.recordSet;
 };
 
 /** This runs the query just like select(). Then it checks whether there was exactly 1 result row.
@@ -635,11 +637,11 @@ RecordSetHolder.prototype.select= function() {
  **/
 RecordSetHolder.prototype.selectOne= function() {
     this.select();
-    var keys= Object.keys(this.records);
+    var keys= Object.keys(this.recordSet);
     if( keys.length!==1 ) {
         throw new Error( "Expecting one record, but there was: " +keys.length+ " of them." );
     }
-    return this.records[ keys[0] ];
+    return this.recordSet[ keys[0] ];
 };
 
 RecordSetHolder.prototype.insert= function() { throw new Error( "@TODO if need be" );
@@ -654,7 +656,7 @@ RecordSetHolder.prototype.update= function() { throw new Error( "@TODO if need b
 RecordSetHolder.prototype.removeRecordHolder= function( recordHolder ) {
     var primaryKeyValue= recordHolder.record[this.formula.table.primary];
     delete this.holders[ primaryKeyValue ];
-    delete this.records[ SeLiteMisc.indexesOfRecord(this.records, recordHolder.record) ]; //@TODO This doesn't work if multi-indexed! Then we also need to delete 1st level index, if there are no subentries left.
+    delete this.recordSet[ SeLiteMisc.indexesOfRecord(this.recordSet, recordHolder.record) ]; //@TODO This doesn't work if multi-indexed! Then we also need to delete 1st level index, if there are no subentries left.
     delete this.originals[ primaryKeyValue ];
     delete this.markedToRemove[ primaryKeyValue ];
 };
