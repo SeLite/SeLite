@@ -793,7 +793,7 @@ SeLiteSettings.Module.prototype.setSelectedSetName= function( setName ) {
     this.prefsBranch.setCharPref( SeLiteSettings.SELECTED_SET_NAME, setName );
 };
 
-/** @param setName Name of the set; an empty string if the module doesn't allow sets, or if you want a selected set.
+/** @param setName Name of the set; optional; undefined or an empty string if the module doesn't allow sets, or if you want a selected set.
  *  @return Object with sorted keys, serving as associative array {
  *      string field name: anonymous object {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or is undefined

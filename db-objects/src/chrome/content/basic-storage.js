@@ -154,7 +154,7 @@ SeLiteData.Storage.prototype.select= function( query, fields, bindings ) {
         fields= fieldNames( fieldParts( query ) );
     }
     this.connection || SeLiteMisc.fail( 'SeLiteData.Storage.connection is not set.');
-    //console.log( 'Query: ' +query );
+    console.log( 'Query: ' +query );
     var stmt= this.connection.createStatement( query );
     for( var field in bindings ) {
         try { stmt.params[field]= bindings[field]; }
