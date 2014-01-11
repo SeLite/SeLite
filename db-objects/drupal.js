@@ -24,6 +24,12 @@
     // Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
     // var loadedOddTimes= SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doDrupalUsers'] || false;
     // if( loadedOddTimes ) { // Ignore the first load, because Se IDE somehow discards that Selenium.prototype
+    
+    // Do not pre-load any data here. SeLiteData.getStorageFromSettings() doesn't connect to SQLite,
+    // until you open/save a test suite. That's because it needs to know the test suite folder
+    // in order to resolve Settings field here. Test suite folder is not known when this is loaded,
+    // however SeLiteData.getStorageFromSettings() sets a handler via SeLiteSettings.addTestSuiteFolderChangeHandler().
+    // Once you open/save a test suite, storage object will get updated automatically and it will open an SQLite connection.
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         
         var storage= SeLiteData.getStorageFromSettings('extensions.selite-settings.basic.testDB');
