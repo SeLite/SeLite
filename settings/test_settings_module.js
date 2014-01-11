@@ -3,12 +3,11 @@
 var appDB= new SeLiteSettings.Field.SQLite('appDB');
 var testDB= new SeLiteSettings.Field.SQLite('testDB',  /*defaultKey*/undefined, /*requireAndPopulate*/undefined, /*customValidate*/undefined, /*saveFile*/true);
 var vanillaDB= new SeLiteSettings.Field.SQLite('vanillaDB', /*defaultKey*/undefined, /*requireAndPopulate*/undefined, /*customValidate*/undefined, /*saveFile*/true );
-var dbPrefix= new SeLiteSettings.Field.String('dbPrefix');
 var appWebroot= new SeLiteSettings.Field.String('appWebroot', false, 'http://localhost/app');
 var maxNumberOfRuns= new SeLiteSettings.Field.Int('maxNumberOfRuns', false, 20);
 
 var module= new SeLiteSettings.Module( 'extensions.selite-settings.basic',
-    [appDB, testDB, vanillaDB, dbPrefix, appWebroot, maxNumberOfRuns],
+    [appDB, testDB, vanillaDB, appWebroot, maxNumberOfRuns],
     true,
     'default',
     true,

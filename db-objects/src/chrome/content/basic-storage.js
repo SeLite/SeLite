@@ -644,6 +644,10 @@ function testSuiteFolderChangeHandler() {
                 //console.log( 'SeLiteSettings: The current test suite has a folder, but field ' +instance.field+ ' is not defined for it.' );
             }
         }
+        else {
+            // TODO consider getting the field for the active set, if any: module.getFieldsOfSet().
+            // Then updateTestFramework and SettingsInterface accordingly.
+        }
     }
 }
 SeLiteSettings.addTestSuiteFolderChangeHandler( testSuiteFolderChangeHandler );

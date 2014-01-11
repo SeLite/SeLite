@@ -33,9 +33,6 @@
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         
         var storage= SeLiteData.getStorageFromSettings('extensions.selite-settings.basic.testDB');
-        //@TODO DOC: Drupal DB prefix doesn't apply to table names, just to the DB file name (and as a postfix)....
-        //var module= SeLiteSettings.Module.forName('extensions.selite-settings.basic');
-        //var db= new SeLiteData.Db( storage, module.getFieldsOfSet()['dbPrefix'].entry );
         var db= new SeLiteData.Db( storage );
 
         var users= new SeLiteData.Table( {
