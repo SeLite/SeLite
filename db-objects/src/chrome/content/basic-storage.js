@@ -153,7 +153,7 @@ SeLiteData.Storage.prototype.select= function( query, fields, bindings ) {
     if( !fields ) {
         fields= fieldNames( fieldParts( query ) );
     }
-    this.connection || SeLiteMisc.fail( 'SeLiteData.Storage.connection is not set.');
+    this.connection || SeLiteMisc.fail( 'SeLiteData.Storage.connection is not set. SQLite file name: ' +this.parameters.fileName );
     console.log( 'Query: ' +query );
     var stmt= this.connection.createStatement( query );
     for( var field in bindings ) {
@@ -586,6 +586,13 @@ function StorageFromSettings( field ) {
             //console.log( 'StorageFromSettings(): connection ' +this.connection );
         }
     }
+    else {
+        var fields= field.module.getFieldsOfSet();
+        if( fields[field.name].entry ) {
+            this.parameters.fileName= fields[field.name].entry;
+            this.open();
+        }
+    }
 }
 
 /** Create a new instance of StorageFromSettings, based on the given field (or its name), or
@@ -632,6 +639,8 @@ function testSuiteFolderChangeHandler() {
             instance.close( false );
             instance.parameters.fileName= null;
         }
+        // @TODO for the following if(), another one in StorageFromSettings constructor, and 3x in ide-extension.js, make a short-hand function
+        // that returns SeLiteSettings.getTestSuiteFolder() ? field.getFieldsDownToFolder().entry : field.module.getFieldsOfSet()[field.name].entry
         if( SeLiteSettings.getTestSuiteFolder() ) {
             var newFileName= instance.field.getFieldsDownToFolder().entry;
             //console.log( 'newFileName: ' +newFileName );
@@ -645,8 +654,12 @@ function testSuiteFolderChangeHandler() {
             }
         }
         else {
-            // TODO consider getting the field for the active set, if any: module.getFieldsOfSet().
-            // Then updateTestFramework and SettingsInterface accordingly.
+            var fields= instance.field.module.getFieldsOfSet();
+            if( fields[instance.field.name].entry ) {
+                this.parameters.fileName= fields[instance.field.name].entry;
+                this.open();
+            }
+            // TODO Then updateTestFramework and SettingsInterface accordingly.
         }
     }
 }

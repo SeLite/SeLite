@@ -64,6 +64,7 @@
     self.editor.reload_test= function( reloadAppFromVanilla ) {
         var module= SeLiteSettings.Module.forName( 'extensions.selite-settings.basic' );
         module || fail( 'This requires SeLiteSettings module "extensions.selite-settings.basic" to be registered. It normally comes with SeLiteSettings.' );
+        // @TODO replace to use active set, if there is no test suiet
         var fields= module.getFieldsDownToFolder();
         
         var appDB= SeLiteData.getStorageFromSettings( 'extensions.selite-settings.basic.appDB', true/*dontCreate*/ );
