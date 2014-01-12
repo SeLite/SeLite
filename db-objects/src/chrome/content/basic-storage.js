@@ -639,27 +639,15 @@ function testSuiteFolderChangeHandler() {
             instance.close( false );
             instance.parameters.fileName= null;
         }
-        // @TODO for the following if(), another one in StorageFromSettings constructor, and 3x in ide-extension.js, make a short-hand function
-        // that returns SeLiteSettings.getTestSuiteFolder() ? field.getFieldsDownToFolder().entry : field.module.getFieldsOfSet()[field.name].entry
-        if( SeLiteSettings.getTestSuiteFolder() ) {
-            var newFileName= instance.field.getFieldsDownToFolder().entry;
-            //console.log( 'newFileName: ' +newFileName );
-            if( newFileName ) {
-                instance.parameters.fileName= newFileName;
-                instance.open();
-                //console.log( 'connection ' +instance.connection );
-            }
-            else {
-                //console.log( 'SeLiteSettings: The current test suite has a folder, but field ' +instance.field+ ' is not defined for it.' );
-            }
+        var newFileName= instance.field.getFieldsDownToFolder().entry;
+        //console.log( 'newFileName: ' +newFileName );
+        if( newFileName ) {
+            instance.parameters.fileName= newFileName;
+            instance.open();
+            //console.log( 'connection ' +instance.connection );
         }
         else {
-            var fields= instance.field.module.getFieldsOfSet();
-            if( fields[instance.field.name].entry ) {
-                this.parameters.fileName= fields[instance.field.name].entry;
-                this.open();
-            }
-            // TODO Then updateTestFramework and SettingsInterface accordingly.
+            //console.log( 'SeLiteSettings: The current test suite has a folder, but field ' +instance.field+ ' is not defined for it.' );
         }
     }
 }

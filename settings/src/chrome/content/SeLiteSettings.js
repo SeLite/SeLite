@@ -962,6 +962,8 @@ var cachedManifests= {};
 /** Collect manifest files (both values and associations fo set),
  *  down from filesystem root to given folderPath. Parse them.
  *  @param string folderPath Full path (absolute) to the folder where your test suite is.
+ *  Optional, defaults to current test suite's folder. If not specified and if there is no current
+ *  test suite folder, then such a call is valid and this function returns an object with no manifests.
  *  @param bool dontCache If true, then this doesn't cache manifest files (it doesn't use any
  *  previous result stored in the cache and it doesn't store result in the cache). For use by GUI.
  *  @return anonymous object {
@@ -991,30 +993,32 @@ var cachedManifests= {};
  *  }
  * */
 function manifestsDownToFolder( folderPath, dontCache ) {
+    folderPath= folderPath || testSuiteFolder;
     dontCache= dontCache || false;
-    if( !dontCache && folderPath in cachedManifests ) {
-        return cachedManifests[folderPath];
-    }
-    var folder= null;
-    try {
-        folder= new FileUtils.File(folderPath);
-    }
-    catch(e) {
-        throw new Error( "Can't locate folder associated with configuration sets: " +folderPath );
-    }
-    SeLiteMisc.ensure( folder!=null && folder.exists, 'Given folder does not exist.' );
-    SeLiteMisc.ensure( folder.isDirectory(), 'Configuration sets can only be associated with folders, not with files.' );
-    
-    // Array of string, each a full path of a folder on the path down to folderPath, including folderPath itself
     var folderNames= [];
-    var breadCrumb= folder;
-    do {
-        folderNames.push( breadCrumb.path );
-        breadCrumb= breadCrumb.parent;
-    }
-    while( breadCrumb!==null );
-    folderNames= folderNames.reverse(); // Now they start from the root/drive folder
-    
+    if( folderPath ) {
+        if( !dontCache && folderPath in cachedManifests ) {
+            return cachedManifests[folderPath];
+        }
+        var folder= null;
+        try {
+            folder= new FileUtils.File(folderPath);
+        }
+        catch(e) {
+            throw new Error( "Can't locate folder associated with configuration sets: " +folderPath );
+        }
+        SeLiteMisc.ensure( folder!=null && folder.exists, 'Given folder does not exist.' );
+        SeLiteMisc.ensure( folder.isDirectory(), 'Configuration sets can only be associated with folders, not with files.' );
+
+        // Array of string, each a full path of a folder on the path down to folderPath, including folderPath itself
+        var breadCrumb= folder;
+        do {
+            folderNames.push( breadCrumb.path );
+            breadCrumb= breadCrumb.parent;
+        }
+        while( breadCrumb!==null );
+        folderNames= folderNames.reverse(); // Now they start from the root/drive folder
+    }    
     var values= SeLiteMisc.sortedObject(true);
     var associations= SeLiteMisc.sortedObject(true);
     
@@ -1059,7 +1063,7 @@ function manifestsDownToFolder( folderPath, dontCache ) {
         values: values,
         associations: associations
     };
-    if( !dontCache ) {
+    if( !dontCache && folderPath ) {
         cachedManifests[folderPath]= result;
     }
     return result;
@@ -1144,10 +1148,10 @@ SeLiteSettings.addClosingIdeHandler= function( handler ) {
 };
 
 /** Calculate a composition of field values, based on manifests, preferences and field defaults,
- *  down from filesystem root to given folderPath.
+ *  down from filesystem root to given folderPath if set (if not set, then to the current test suite's folder, if any).
  *  @param string folderPath Full path (absolute) to the folder where your test suite is.
  *  If undefined/null, then this uses the folder of test suite currently open in Selenium IDE. If there is none,
- *  this fails.
+ *  it returns fields of the active set (or default values).
  *  @param bool dontCache If true, then this doesn't cache manifest files (it doesn't use any
  *  previous manifests stored in the cache and it doesn't store current manifests in the cache). For use by GUI.
  *  @return Object with sorted keys, serving as an associative array. A bit similar to result of getFieldsOfset(),
