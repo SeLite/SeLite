@@ -3,7 +3,12 @@
   -moz-image-region: rect(0px 52px 17px 0px);
 }
 
-#settings_reload_app_and_test{ 
+#settings_reload_app_and_test{
   list-style-image: url("reload_app_and_test.png");
-  -moz-image-region: rect(0px 65px 17px 0px);
+  -moz-image-region: rect(0px 78px 17px 0px);
+}
+
+#settings_reload_vanilla_and_test{
+  list-style-image: url("reload_vanilla_and_test.png");
+  -moz-image-region: rect(0px 78px 17px 0px);
 }
