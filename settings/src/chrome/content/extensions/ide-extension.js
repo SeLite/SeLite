@@ -95,6 +95,9 @@
                 ? appDB
                 : vanillaDB
             );
+            if( reloadAppAndTest ) {
+                new FileUtils.File(appDB).permissions= parseInt( fields['appDBpermissions'].entry, 8 );
+            }
         }
         reload( sourceDB, testDB );
         !appStorage || appDB.open();
