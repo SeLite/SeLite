@@ -54,62 +54,80 @@
     optionsPopup= document.getElementById('options-popup');
     optionsPopup.appendChild(seLiteSettingsMenuItem);
 
-    /** Reload
-     *  - the appDB from given vanillaDbField (if set; this is optional), and
-     *  - the testDB from appDB
-     *  It removes the old file(s). It copies the files, without adjusting permissions or ownership.
-     *  @param reloadAppFromVanilla boolean, whether to reload both appDB and testDB from vanlillaDB. Optional, false by default.
+    /** Reload the database file(s). It removes the old file(s). It copies the files, without adjusting permissions or ownership.
+     *  If called with no parameters, by default it copies appDB over testDB. Maximum one of the parameters can be true.
+     *  @param reloadAppAndTest boolean, whether to reload both appDB and testDB from vanillaDB. Optional, false by default.
+     *  @param reloadVanillaAndTest boolean, whether to reload both appDB and testDB from vanillaDB. Optional, false by default.
      *  @return void
      * */
-    self.editor.reload_test= function( reloadAppFromVanilla ) {
+    self.editor.reload_databases= function( reloadAppAndTest, reloadVanillaAndTest ) {
         var module= SeLiteSettings.Module.forName( 'extensions.selite-settings.basic' );
-        module || fail( 'This requires SeLiteSettings module "extensions.selite-settings.basic" to be registered. It normally comes with SeLiteSettings.' );
-        // @TODO replace to use active set, if there is no test suiet
+        module || SeLiteMisc.fail( 'This requires SeLiteSettings module "extensions.selite-settings.basic" to be registered. It normally comes with SeLiteSettings.' );
         var fields= module.getFieldsDownToFolder();
         
-        var appDB= SeLiteData.getStorageFromSettings( 'extensions.selite-settings.basic.appDB', true/*dontCreate*/ );
-        !appDB || appDB.close();
-        var testDB= SeLiteData.getStorageFromSettings( 'extensions.selite-settings.basic.testDB', true/*dontCreate*/ );
-        !testDB || testDB.close();
+        var appStorage= SeLiteData.getStorageFromSettings( 'extensions.selite-settings.basic.appDB', true/*dontCreate*/ );
+        !appStorage || appStorage.close();
+        var testStorage= SeLiteData.getStorageFromSettings( 'extensions.selite-settings.basic.testDB', true/*dontCreate*/ );
+        !testStorage || testStorage.close();
         
-        var appDBvalue= fields['appDB'].entry;
-        appDBvalue || fail( 'There is no value for SeLiteSettings field extensions.selite-settings.basic.appDB.' );
-        var testDBvalue= fields['testDB'].entry;
-        testDBvalue || fail( 'There is no value for SeLiteSettings field extensions.selite-settings.basic.testDB.' );
+        var appDB= fields['appDB'].entry;
+        appDB || SeLiteMisc.fail( 'There is no value for SeLiteSettings field extensions.selite-settings.basic.appDB.' );
+        var testDB= fields['testDB'].entry;
+        testDB || SeLiteMisc.fail( 'There is no value for SeLiteSettings field extensions.selite-settings.basic.testDB.' );
         
-        //appDB file may not exist, but its immediate parent directories must exist
-        var appFile= new FileUtils.File(appDBvalue);
-        if( reloadAppFromVanilla ) {
+        !(reloadAppAndTest && reloadVanillaAndTest) || SeLiteMisc.fail( "Maximum one parameter can be true." );
+        
+        var vanillaDB= fields['vanillaDB'].entry;
+        
+        // Reloading sequence is one of:
+        // appDB =>             testDB
+        // vanillaDB => appDB => testDB
+        // appDB => vanillaDB => testDB
+        var sourceDB= reloadAppAndTest
+            ? vanillaDB
+            : appDB;
+        if( reloadAppAndTest || reloadVanillaAndTest ) {
             // next two lines only perform validation
+            vanillaDB || SeLiteMisc.fail( 'There is no value for SeLiteSettings field extensions.selite-settings.basic.vanillaDB.' );
             !SeLiteData.getStorageFromSettings( 'extensions.selite-settings.basic.vanillaDB', true/*dontCreate*/ )
-                || fail( 'vanillaDB should not be accessed by tests, yet there is SeLiteSettings.StorageFromSettings instance that uses it.' );
-    
-            var vanillaDBvalue= fields['vanillaDB'].entry;
-            vanillaDBvalue || fail( 'There is no value for SeLiteSettings field extensions.selite-settings.basic.vanillaDB.' );
-            var vanillaFile= new FileUtils.File(vanillaDBvalue); // Object of class nsIFile
-            vanillaFile.exists() || fail( 'SeLiteSettings field extensions.selite-settings.basic.vanillaDB has value ' +vanillaDBvalue+', but there is no such file.' );
-            var appFolder= appFile.parent;
-            var appLeafName= appFile.leafName;
-            !appFile.exists() || appFile.remove( false/*recursive*/ );
-            vanillaFile.copyTo( appFolder, appLeafName );
-            appFile= new FileUtils.File(appDBvalue);
+                || SeLiteMisc.fail( 'vanillaDB should not be accessed by tests, yet there is SeLiteSettings.StorageFromSettings instance that uses it.' );
+            reload( sourceDB, reloadAppAndTest
+                ? appDB
+                : vanillaDB
+            );
         }
-        
-        //testDB file may not exist, but its immediate parent directories must exist
-        var testFile= new FileUtils.File(testDBvalue);
-        var testFolder= testFile.parent;
-        var testLeafName= testFile.leafName;
-        !testFile.exists() || testFile.remove( false/*recursive*/ );
-        appFile.copyTo( testFolder, testLeafName );
-        
-        !appDB || appDB.open();
-        !testDB || testDB.open();
+        reload( sourceDB, testDB );
+        !appStorage || appDB.open();
+        !testStorage || testStorage.open();
     };
-
-    /** Reload testDB and appDB from vanillaDB.
+    
+    /** Shorthand to make caller's intention clear.
+     * */
+    self.editor.reload_test= function() {
+        self.editor.reload_databases();
+    }
+    
+    /** @private
+    When reloading, the target file doesn't need to exist, but its immediate parent directories must exist
+     * */
+    function reload( fromFileName, toFileName ) {
+        var fromFile= new FileUtils.File(fromFileName); // Object of class nsIFile        
+        var toFile= new FileUtils.File(toFileName);
+        !toFile.exists() || toFile.remove( false/*recursive*/ );
+        toFile.parent.exists() || SeLiteMisc.fail( 'Target folder ' +toFile.parent.path+ ' does not exist' );
+        console.log( 'Copying ' +fromFileName+ ' to ' +toFileName );
+        fromFile.copyTo( toFile.parent, toFile.leafName );
+    }
+    
+    /** Reload testDB and appDB from vanillaDB: vanilla -&gt; green  -&gt; blue.
      * */
     self.editor.reload_app_and_test= function() {
-        this.reload_test( true );
+        this.reload_databases( true );
+    };
+    /** Reload vanillaDB and testDB from appDB: green -&gt; vanilla  -&gt; blue.
+     * */
+    self.editor.reload_vanilla_and_test= function() {
+        this.reload_databases( false, true );
     };
 
 })(this);
