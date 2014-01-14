@@ -95,7 +95,7 @@
                 ? appDB
                 : vanillaDB
             );
-            if( reloadAppAndTest ) {
+            if( reloadAppAndTest && fields['appDBpermissions'].entry ) {
                 new FileUtils.File(appDB).permissions= parseInt( fields['appDBpermissions'].entry, 8 );
             }
         }
