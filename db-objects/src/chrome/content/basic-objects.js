@@ -330,7 +330,7 @@ SeLiteData.RecordSetFormula= function( params, prototype ) {
         }
     }
     if( this.indexUnique && this.subIndexBy ) {
-        throw new Error( "Can't use both indexUnique and subIndexBy. indexUnique may be implied if indexing by this.table.primary (as by sdefault)." );
+        throw new Error( "Can't use both indexUnique and subIndexBy. indexUnique may be implied if indexing by this.table.primary (as is by default)." );
     }
     // @TODO check that all own table columns' aliases are unique: Object.keys( SeLiteMisc.objectReverse( ownColumns() ) )
     // @TODO similar check for joined columns?
@@ -467,7 +467,7 @@ SeLiteData.RecordSetFormula.prototype.selectOne= function( parametersOrCondition
     return new RecordSetHolder(this, parametersOrCondition ).selectOne();
 };
 
-/** SeLiteData.RecordSet serves as an associative array, containing SeLiteData.Record object(s), indexed by SeLiteMisc.collectBycolumn(formula.indexBy, formula.indexUnique, formula.subIndexBy)
+/** SeLiteData.RecordSet serves as an associative array, containing SeLiteData.Record object(s), indexed by SeLiteMisc.collectByColumn(formula.indexBy, formula.indexUnique, formula.subIndexBy)
  *  for the formula of recordSetHolder. It is iterable, but it doesn't guarantee the order of entries.
  *  It also keeps a non-iterable reference to recordSetHolder.
  *  @param object recordSetHolder of class RecordSetHolder

@@ -47,7 +47,11 @@
         });
 
         Selenium.prototype.doDrupalUsers= function( first, second) {
-            console.log( 'doDrupalUsers: ' +usersFormula.select() );
+            var users= usersFormula.select();
+            console.log( 'doDrupalUsers: ' +users );
+            for( var id in users ) {
+                console.log( users[id].uid );
+            }
         };
         Selenium.prototype.testDb= storage;
         
