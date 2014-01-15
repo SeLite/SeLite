@@ -1,4 +1,4 @@
-/*  Copyright 2013 Peter Kehl
+/*  Copyright 2013, 2014 Peter Kehl
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -50,7 +50,7 @@
             var users= usersFormula.select();
             console.log( 'doDrupalUsers: ' +users );
             for( var id in users ) {
-                console.log( users[id].uid );
+                console.log( ''+users[id] );
             }
         };
         Selenium.prototype.testDb= storage;

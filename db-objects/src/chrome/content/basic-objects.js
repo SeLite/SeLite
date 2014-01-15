@@ -116,6 +116,19 @@ SeLiteData.Record= function( recordHolder, data ) {
 */
 SeLiteData.Record.RECORD_TO_HOLDER_FIELD= 'RECORD_TO_HOLDER_FIELD';
 
+SeLiteData.Record.prototype.toString= function() { //@TODO Move to SeLiteMisc; then assign here
+    var result= '';
+    for( var field in this ) {
+        if( typeof this[field]!=='function' ) {
+            if( result ) {
+                result+= '\n';
+            }
+            result+= field+ ': ' +this[field];
+        }
+    }
+    return result;
+};
+
 /** @private Not a part of public API.
  *  @param SeLiteData.Record instance
  *  @return RecordHolder for that instance.

@@ -1,4 +1,4 @@
-/*  Copyright 2011, 2012, 2013 Peter Kehl
+/*  Copyright 2011, 2012, 2013, 2014 Peter Kehl
     This file is part of SeLite Db Objects.
 
     SeLite DB Storage is free software: you can redistribute it and/or modify
@@ -43,7 +43,7 @@ SeLiteData.Storage.prototype.open= function() {
 
 /** Close the connection.
  *  @param synchronous boolean Whether to close it ; optional.
-   *  @TODO check: If you have used any asynchronous (?!) statements, pass true. See same comment in SQLiteConnectionInfo.close()
+ *  @TODO check: If you have used any asynchronous (?!) statements, pass true. See same comment in SQLiteConnectionInfo.close()
  * */
 SeLiteData.Storage.prototype.close= function( synchronous ) {
     this.parameters.close( synchronous );
@@ -574,8 +574,13 @@ Object.defineProperty( SeLiteData.Settable.prototype, 'set', {
  * */
 function StorageFromSettings( field ) {
     SeLiteData.Storage.call( this );
+    // @TODO Test and doc: If I don't chain child class prototype properly, then overriding methods doesn't work,
+    // even if I set them in the child constructor after I've called the parent constructor:
+    // this.close= StorageFromSettings.prototype.close;
+    this.close= StorageFromSettingsClose;
+    
+    !(field.name in StorageFromSettings.instances) || SeLiteMisc.fail('There already is an instance of StorageFromSettings for ' +field.name );
     this.field= field;
-    !(field.name in StorageFromSettings.instances) || fail('There already is an instance of StorageFromSettings for ' +field.name );
     StorageFromSettings.instances[ field.name ]= this;
     if( SeLiteSettings.getTestSuiteFolder() ) {
         var newFileName= field.getFieldsDownToFolder().entry;
@@ -594,6 +599,15 @@ function StorageFromSettings( field ) {
         }
     }
 }
+// I don't need operator instanceof to work fully for StorageFromSettings. Therefore I don't tweak
+// StorageFromSettings.prototype here the same way as I do for SeLiteSettings.Field subclasses
+
+function StorageFromSettingsClose( synchronous ) {
+    console.log('StorageFromSettings.prototype.close');
+    SeLiteData.Storage.prototype.close.call( this, synchronous );
+    this.field.name in StorageFromSettings.instances || SeLiteMisc.fail( 'StorageFromSettings.close() for field ' +this.field.name+ " couldn't find a connection for this field." );
+    delete StorageFromSettings.instances[ this.field.name ];
+};
 
 /** Create a new instance of StorageFromSettings, based on the given field (or its name), or
  *  re-use an existing instance of StorageFromSettings based on that field.
@@ -631,12 +645,13 @@ StorageFromSettings.prototype.constructor= StorageFromSettings;
 function testSuiteFolderChangeHandler() {
     //console.log('TestSuiteFolderChangeHandler will update ' +StorageFromSettings.instances.length+ ' instance(s) of StorageFromSettings with setting(s) associated with folder ' +SeLiteSettings.getTestSuiteFolder() );
     Object.keys(StorageFromSettings.instances).length===0 || SeLiteSettings.getTestSuiteFolder()
-    || console.log( 'SeLiteSettings: there are ' +StorageFromSettings.instances.length+ ' instance(s) of StorageFromSettings, yet the current test suite has no folder yet.' );
+    || console.log( 'SeLiteSettings: there are ' +Object.keys(StorageFromSettings.instances).length+ ' instance(s) of StorageFromSettings, yet the current test suite has no folder yet.' );
     for( var fieldName in StorageFromSettings.instances ) {
         var instance= StorageFromSettings.instances[fieldName];
         instance instanceof StorageFromSettings || fail();
         if( instance.connection ) {
-            instance.close( false );
+            instance.close( false ); // This deletes StorageFromSettings.instances[fieldName].
+                                     // In Java that would upset an Iterator object; but in Firefox Javascript the loop continues to iterate well.
             instance.parameters.fileName= null;
         }
         var newFileName= instance.field.getFieldsDownToFolder().entry;

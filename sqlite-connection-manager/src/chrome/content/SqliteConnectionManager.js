@@ -1,4 +1,4 @@
-/*  Copyright 2011, 2012, 2013 Peter Kehl
+/*  Copyright 2011, 2012, 2013, 2014 Peter Kehl
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -85,8 +85,7 @@ SQLiteConnectionParameters.prototype= {
       return info.connection;
   },
           
-  /** This closes the connection asynchronously, if it is open.
-   *  @TODO docs whether that will set it to beingClosedDown
+  /** This closes the connection.
    *  @param mixed fileNameOrConnectionOrParameters
    *  - string: exact (case-sensitive equal) as 'fileName' field of 'parameters' parameter that has been passed to connect(), or
    *  - object: exact as (or equal to, but of the same class as) 'parameters' parameter that has been passed to connect(), or
@@ -275,11 +274,14 @@ SQLiteConnectionInfo.prototype.close= function( synchronous ) {
     var info= this;
     var completionHandler= {
         complete: function() {
+            // remove itself from SQLiteConnectionInfo.connectionInfos
             for( var i=0; i<SQLiteConnectionInfo.connectionInfos.length; i++ ) {
-                if( SQLiteConnectionInfo.connectionInfos[i]===this ) {
+                if( SQLiteConnectionInfo.connectionInfos[i]===info ) {
                     SQLiteConnectionInfo.connectionInfos.splice( i, 1 );
                 }
             }
+            this.beingClosedDown= false;
+            this.connection= null;
             if( !synchronous ) {
                 console.log( "SQLiteConnectionInfo.close() successfully closed asynchronously." );
             }
