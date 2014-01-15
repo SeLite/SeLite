@@ -282,7 +282,7 @@ RecordHolder.prototype.remove= function() {
     *         }, or
     *       - SeLiteData.RecordSetFormula.ALL_FIELDS
     *      }
- *      joins: Just like the same field passed to storage.getRecords(). I.e. Array of objects {
+ *      joins: Just like the same field passed to SeLiteData.Storage.getRecords(). I.e. Array of objects {
                table: table object;
                alias: string alias, optional;
                type: string type 'INNER LEFT' etc.; optional

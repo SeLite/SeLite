@@ -50,6 +50,8 @@
             console.log( 'doDrupalUsers: ' +usersFormula.select() );
         };
         Selenium.prototype.testDb= storage;
+        
+        //@TODO use selenium.browserbot.baseUrl
     // }
     // SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doDrupalUsers']= !loadedOddTimes;
 })();
