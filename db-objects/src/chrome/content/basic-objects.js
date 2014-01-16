@@ -282,7 +282,7 @@ RecordHolder.prototype.remove= function() {
             --- all unaliased columns
             ---- optional object(s) which is an alias map {string colum name: string alias}; such a map must map to string alias (it must not map to true/1)
             --- optional SeLiteData.RecordSetFormula.ALL_FIELDS indicating usage of all columns under their names (unaliased), unless any map object(s) map them
-            Each alias must be unique; that will be checked by SeLiteData.RecordSetFormula constructor. ---@TODO
+            Each alias must be unique; that will be checked by SeLiteData.RecordSetFormula constructor (--@TODO).
             The column list must list the primary key of the main table, and it must not be aliased. Their values must exist
             - i.e. you can't have a join that selects records from join table(s) for which there is no record in the main table.
             That's because RecordSetHolder.originals{} are indexed by it.
@@ -330,7 +330,7 @@ SeLiteData.RecordSetFormula= function( params, prototype ) {
         null, this );
 
     if( !Array.isArray(this.joins) ) {
-        throw new Error( "Parameter's field .joins must be an array (of objects)." );
+        throw new Error( "params.joins must be an array (of objects), if present." );
     }
 
     // The following doesn't apply to indexing of RecordSetHolder.originals.
@@ -466,7 +466,7 @@ SeLiteData.RecordSetFormula.prototype.allAliasesToSource= function() {
     return result;
 };
 
-/** This returns the SeLiteData.RecordSet object, i.e. the records themselves.
+/** This returns SeLiteData.RecordSet object, i.e. the records themselves.
  *  @see RecordSetHolder.select().
  **/
 SeLiteData.RecordSetFormula.prototype.select= function( parametersOrCondition ) {
@@ -587,7 +587,7 @@ RecordSetHolder.prototype.select= function() {
     if( !usingParameterCondition ) {
         for( var paramName in usingParameterCondition ) {
             if( formula.parameterNames.indexOf(paramName)<0 ) {
-                throw new Error( "Unlisted query parameter with name '" +paramName+ "' and value: " +usingParameterCondition[paramName] );
+                throw new Error( "Unexpected query parameter with name '" +paramName+ "' and value: " +usingParameterCondition[paramName] );
             }
         }
     }
@@ -615,13 +615,14 @@ RecordSetHolder.prototype.select= function() {
             delete parameters[param];
         }
     }
-
+    
+    var self= this;
     var data= this.storage().getRecords( {
         table: formula.table.name+ (formula.alias ? ' ' +formula.alias : ''),
         joins: joins,
         columns: columns,
         matching: matching,
-        condition: this.storage().sqlAnd( formula.fetchCondition, condition ),
+        condition: self.storage().sqlAnd( formula.fetchCondition, condition ),
         parameters: parameters,
         parameterNames: formula.parameterNames,
         sort: formula.sort,

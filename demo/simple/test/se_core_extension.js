@@ -29,7 +29,7 @@ var charities= new SeLiteData.Table( {
 var charitiesAll= new SeLiteData.RecordSetFormula( {
     table: charities,
     columns: new SeLiteData.Settable().
-        set( charities.name, DbRecordSetFormula.ALL_FIELDS )
+        set( charities.name, SeLiteData.RecordSetFormula.ALL_FIELDS )
 } );
 
 var charitiesById= new SeLiteData.RecordSetFormula( {
