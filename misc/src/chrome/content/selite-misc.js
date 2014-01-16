@@ -20,8 +20,6 @@ var runningAsComponent= (typeof window==='undefined' || window && window.locatio
 // runningAsComponent is false when loaded via <script src="file://..."> or <script src="http://..."> rather than via Components.utils.import().
 // Used for debugging; limited (because when it's not loaded via Components.utils.import() it can't access other components).
 if( runningAsComponent ) {
-    var loginManagerInstance = Components.classes["@mozilla.org/login-manager;1"].
-        getService(Components.interfaces.nsILoginManager);
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 }
 
@@ -1136,34 +1134,6 @@ SeLiteMisc.PrototypedObject= function( prototype ) {
             this[field]= prototype[field];
         }
     }
-};
-
-/** This retrieves a web form password for a user. It doesn't work with .htaccess/HTTP authentication
-    (that can be retrieved too, see the docs).
-    @param string hostname in form 'https://server-name.some.domain'. It can use http or https and it contain the port (if not standard),
-    but no trailing slash / neither any URI.
-    @param username case-sensitive
-    @return string password if found; null otherwise
-*/
-SeLiteMisc.loginManagerPassword= function( hostname, username ) {
-/**
-    https://developer.mozilla.org/En/Using_nsILoginManager
-    https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsILoginManager
-    https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsILoginInfo
-*/
-    // You could also use passwordManager.getAllLogins(); it returns an array of nsILoginInfo objects
-    var logins = loginManagerInstance.findLogins(
-        {}, hostname,
-        '', // null doesn't work here. See https://developer.mozilla.org/En/Using_nsILoginManager - it says to use blank for web form auth.
-        null
-    );
-    
-    for( var i=0; i<logins.length; i++ ) {
-        if( logins[i].username==username ) {
-            return logins[i].password;
-        }
-    }
-    return null;
 };
 
 //@TODO Move these to SeLiteData functions

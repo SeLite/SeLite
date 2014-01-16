@@ -18,7 +18,10 @@
 
 Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
 
-/** This is here, rather than in selite-misc.js component, because it needs to access global variable selenium.
+// Anonymous function to prevent leaking into Selenium global namespace
+( function() {
+
+/** This is here, rather than in selite-misc.js component, because it needs to access global variable 'selenium'.
  *  I've tried to have it in selite-misc.js and to load the component using
  *  Components.utils.import( "chrome://selite-misc/content/selite-misc.js", {selenium: selenium} );
  *  above, but that failed, because variable selenium is not yet defined when selite-misc-core.js is processed.
@@ -55,3 +58,48 @@ SeLiteMisc.getUrlParam= function( paramName ) {
     }
     return null;
 };
+
+    var loginManagerInstance = Components.classes["@mozilla.org/login-manager;1"].
+        getService(Components.interfaces.nsILoginManager);
+
+/** This retrieves a web form password for a user. It doesn't work with .htaccess/HTTP authentication
+    (that can be retrieved too, see the docs).
+    @param {string} username Case-sensitive username.
+    @param {mixed} hostnameOrUseBaseURL String hostname in form 'https://server-name.some.domain'. It must contain http or https. It can contain the port (if not standard),
+    but no trailing slash / neither any URI (path). Optional; if not present, then this uses the current website.
+    If it's true (boolean), then the function uses Selenium IDE's "Base URL" field - which may be different to the test website (e.g. single-sign-on).
+    @return {string} password if found; null otherwise
+*/
+SeLiteMisc.loginManagerPassword= function( username, hostnameOrUseBaseURL ) {
+/**
+    https://developer.mozilla.org/En/Using_nsILoginManager
+    https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsILoginManager
+    https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsILoginInfo
+*/
+    // You could also use passwordManager.getAllLogins(); it returns an array of nsILoginInfo objects
+    var testLocation= selenium.browserbot.getCurrentWindow().location;
+    SeLiteMisc.ensureType( hostnameOrUseBaseURL, ['undefined', 'string', 'boolean'], 'Param hostnameOrUseBaseURL must be undefined, string or a boolean.' );
+    var hostname= hostnameOrUseBaseURL
+        ? (typeof hostnameOrUseBaseURL==='string'
+            ? hostnameOrUseBaseURL
+            : selenium.browserbot.baseUrl // @TODO Once/if http://code.google.com/p/selenium/issues/detail?id=3116 is fixed, I'd need to extract the protocol+host+port here
+          )
+        : testLocation.protocol+ testLocation.hostname+
+            (testLocation.port
+            ? ':' +testLocation.port
+            : '');
+    var logins = loginManagerInstance.findLogins(
+        {}, hostname,
+        '', // null doesn't work here. See https://developer.mozilla.org/En/Using_nsILoginManager - it says to use blank for web form auth.
+        null
+    );
+    
+    for( var i=0; i<logins.length; i++ ) {
+        if( logins[i].username==username ) {
+            return logins[i].password;
+        }
+    }
+    return null;
+};
+
+}) ();

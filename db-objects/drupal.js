@@ -45,9 +45,12 @@
             table: users,
             columns: new SeLiteData.Settable().set( users.name, SeLiteData.RecordSetFormula.ALL_FIELDS )
         });
-
-        Selenium.prototype.doDrupalUsers= function( first, second) {
-            var users= usersFormula.select();
+        
+        /** @param {number} uid Optional uid to filter by. */
+        Selenium.prototype.doDrupalUsers= function( uid, ignored) {
+            var users= uid===''
+                ? usersFormula.select()
+                : usersFormula.select( 'uid=' +uid );
             console.log( 'doDrupalUsers: ' +users );
             for( var id in users ) {
                 console.log( ''+users[id] );

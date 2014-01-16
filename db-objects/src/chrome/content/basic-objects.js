@@ -360,7 +360,7 @@ SeLiteData.RecordSetFormula.prototype.fetchCondition= null;
 // String values will be quoted, so they can't be SQL expressions. Javascript null value won't be quoted
 // and it will generate an IS NULL statement; other values will generate = comparison.
 // If matching-value is a function, it will be called at the time the data is to be fetched from DB.
-// Use a function e.g. to return a value of global variable which changes in runtime (not a good practice in general).
+// Use it to return values which vary during runtime.
 SeLiteData.RecordSetFormula.prototype.fetchMatching= {};
 
 // Names of any parameters.
