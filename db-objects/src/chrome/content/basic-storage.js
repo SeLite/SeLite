@@ -157,7 +157,9 @@ SeLiteData.Storage.prototype.select= function( query, fields, bindings ) {
     console.log( 'Query: ' +query );
     var stmt= this.connection.createStatement( query );
     for( var field in bindings ) {
-        try { stmt.params[field]= bindings[field]; }
+        try {
+            stmt.params[field]= bindings[field];
+        }
         catch(e) {
             throw 'select(): Cannot set field "' +field+ '" to value "' +bindings[field]+ '" - SQLite/schema limitation.';
         }
