@@ -41,7 +41,7 @@ SeLiteData.Table= function( prototype ) {
     this.db= prototype.db;
     var prefix= prototype.noNamePrefix ? '' : this.db.tableNamePrefix;
     this.name= prefix+prototype.name;
-    
+
     this.columns= prototype.columns;
     this.primary= prototype.primary || 'id';
 };
@@ -142,7 +142,7 @@ SeLiteData.recordHolder= function( record ) {
 
 RecordHolder.prototype.setOriginalAndWatchEntries= function() {
     this.original= {};
-    
+
     var columnsToAliases= this.recordSetHolder.formula.columnsToAliases(this.recordSetHolder.formula.table.name);
     var columnAliases= SeLiteMisc.objectValues( columnsToAliases, true );
     // this.original will store own columns only
@@ -208,7 +208,7 @@ RecordHolder.prototype.ownEntries= function() {
                 "' with field '" +field+ "' which is not a listed alias in this formula." );
         }
     }
-    
+
     var columnsToAliases= this.recordSetHolder.formula.columnsToAliases(this.recordSetHolder.formula.table.name);
     var entries= {};
     for( var field in columnsToAliases ) {
@@ -291,18 +291,24 @@ RecordHolder.prototype.remove= function() {
  *      columns: Object serving as an associative array {
     *      string tableName: mixed, either
     *       - SeLiteData.RecordSetFormula.ALL_FIELDS, or
-    *       - an array of [ string columnName or object columnMap, ...], or
+    *       - an array of either
+    *           - string columnName, or
+    *           - object serving as a map, with exactly one entry { string columnName: string alias}
+    *         or
     *       - an anonymous object {
-    *              string columnName: string alias, or true
-    *         }, or
-    *       - SeLiteData.RecordSetFormula.ALL_FIELDS
+    *              string columnName: string alias; or
+    *              string columnName: true - to mark that the column should be retrieved - used when you need an alias for other column(s)
+    *         }
     *      }
- *      joins: Just like the same field passed to SeLiteData.Storage.getRecords(). I.e. Array of objects {
-               table: table object;
-               alias: string alias, optional;
-               type: string type 'INNER LEFT' etc.; optional
-               on: string join condition
-           }
+ *      joins: Similar to but not exact as the same field passed to SeLiteData.Storage.getRecords().
+ *          Array [
+ *              of objects {
+                    table: table object;
+                    alias: string table alias, optional;
+                    type: string type 'INNER LEFT' etc.; optional
+                    on: string join condition
+                }
+            ]
  *      fetchCondition: String SQL condition,
  *      fetchMatching
  *      parameterNames
@@ -355,7 +361,7 @@ SeLiteData.RecordSetFormula= function( params, prototype ) {
     // @TODO similar check for joined columns?
 }
 SeLiteData.RecordSetFormula.prototype.constructor= SeLiteData.RecordSetFormula;
-SeLiteData.RecordSetFormula.ALL_FIELDS= ["ALL_FIELDS"]; // I compare this using ==, so by making this an array we allow user column alias prefix 'ALL_FIELDS', if (ever) need be
+SeLiteData.RecordSetFormula.ALL_FIELDS= ["ALL_FIELDS"]; // I compare this by identity (using === and !==). That allow user column alias prefix 'ALL_FIELDS', if (ever) need be.
 
 SeLiteData.RecordSetFormula.prototype.alias= null;
 SeLiteData.RecordSetFormula.prototype.columns= {};
@@ -525,14 +531,22 @@ SeLiteData.recordOrSetHolder= function( recordOrSet ) {
 
 /** Constructor of RecordSetHolder object.
  *  @private
- *  @param object formula instance of SeLiteData.RecordSetFormula
- *  @param mixed parametersOrCondition Any parameter values whose typeof is not 'string' or 'number'
+ *  @param {SeLiteData.RecordSetFormula} formula Instance of SeLiteData.RecordSetFormula.
+ *  @param {Object|Array} [parametersOrCondition] Parameters or SQL condition.
+ *  If a string, then it's an SQL condition that will be AND-ed to other criteria of the formula (e.g. matching).
+ *  If an object, then it serves as an associative array, listing actual parameters in form {string parameter-name: mixed parameter-value, ...}.
+ *  Any parameter values which typeof is not 'string' or 'number'
  *  will passed to formula's process() function (if set), but it won't be passed
  *  as a binding parameter (it won't apply to any parameters in condition/fetchMatching/join).
  *  Any values with typeof 'number' will be transformed into strings.
  *  That's because SQLite only allows binding values with typeof 'string'.
+ *   If parameter-name matches either a table column name/alias or a join name/alias, it must not match any entry in parameterNames. Such a parameter
+ *   is then used as a subfilter, filtering by its respective column/alias, adding an 'AND' to the overall SQL WHERE part.
+ *   Note that if parameter-name matches two or more columns with same name (from two or more tables), the condition will probably fail
+ *   with an error - then use aliases.
  **/
 function RecordSetHolder( formula, parametersOrCondition ) {
+    formula instanceof SeLiteData.RecordSetFormula || SeLiteMisc.fail();
     this.formula= formula;
     this.parametersOrCondition= parametersOrCondition || {};
     this.holders= {}; // Object serving as an associative array { primary key value: RecordHolder instance }
@@ -550,7 +564,7 @@ RecordSetHolder.prototype.storage= function() {
 RecordSetHolder.prototype.select= function() {
     SeLiteMisc.objectDeleteFields( this.recordSet );
     var formula= this.formula;
-    
+
     var columns= {};
     // @TODO potentially use allAliasesToSource() to simplify the following
     for( var tableName in formula.columns ) {
@@ -612,7 +626,65 @@ RecordSetHolder.prototype.select= function() {
     var parametersForProcessHandler= !usingParameterCondition
         ? this.parametersOrCondition
         : {};
+    var unnamedParamFilters= []; // Filter conditions based on entries from parameters that match a table/join column/alias.
+                           // Such entries in parameters then serve as AND subfilters, rather than as named parameters.
     for( var param in parameters ) {
+        // If param matches a table column name/alias, or a column name/alias, then it's not a named parameter.
+        var paramIsColumnOrAlias= false; // This will be true if param is moved to unnamedParams.
+        paramIsColumnOrAlias= formula.table.columns.indexOf(param)>=0;
+        if( !paramIsColumnOrAlias ) {
+            // @TODO Do I need the following loop? This should be a subset of ones from formula.joins. I check formula.joins below anyway.
+            for( var tableName in formula.columns ) {
+                if( typeof formula.columns[tableName]==='object' ) {
+                    for( var columnName in formula.columns[tableName] ) {
+                        var columnAliasOrTrue= formula.columns[tableName][columnName];
+                        if( param===columnAliasOrTrue ) {
+                            paramIsColumnOrAlias= true;
+                            break;
+                        }
+                    }
+                }
+                if( typeof formula.columns[tableName]==='array' &&  formula.columns[tableName]!==SeLiteData.RecordSetFormula.ALL_FIELDS ) {
+                    for( var i=0; i<v.length; i++ ) {
+                        var columnNameOrMap= formula.columns[tableName][i];
+                        if( typeof columnNameOrMap==='object' ) {
+                            var columnName= Object.keys( columnNameOrMap )[0];
+                            var columnAliasOrTrue= columnNameOrMap[ columnName ];
+                            if( param===columnAliasOrTrue ) {
+                                paramIsColumnOrAlias= true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            // loop over join columns and aliases
+            loopOverJoins:
+            for( var i=0; i<formula.joins.length; i++ ) {
+                var entry= formula.joins[i];
+                var tableNameOrAlias= entry.alias
+                    ? entry.alias
+                    : entry.table.name;
+                for( var j=0; j<entry.table.columns.length; j++ ) {
+                    var column= entry.table.columns[j];
+                    if( param===column || param===tableNameOrAlias+'.'+column ) {
+                        paramIsColumnOrAlias= true;
+                        break loopOverJoins;
+                    }
+                }
+            }
+        }
+        if( paramIsColumnOrAlias ) {
+            // @TODO Move the following validation to SeLiteData.RecordSetFormula(). For that factor out the above logic that detemines paramIsColumn.
+            !(param in this.formula.parameterNames ) || SeLiteMisc.fail( "RecordSetHolder.select() received a parameter " +param+ " which matches a column or alias, but it also matches one of parameterNames of SeLiteData.RecordSetFormula instance." );
+            unnamedParamFilters.push( param+ '=' +
+                (typeof parameters[param]==='string'
+                 ? parameters[param]
+                 : "'" +this.storage().quote( parameters[param] )+ "'"
+                ) );
+            delete parameters[param];
+            continue;
+        }
         if( typeof parameters[param]==='number' ) {
             parameters[param]= ''+parameters[param];
         }
@@ -621,14 +693,15 @@ RecordSetHolder.prototype.select= function() {
             delete parameters[param];
         }
     }
-    
+    var conditions= unnamedParamFilters.slice();
+    conditions.splice( 0, formula.fetchCondition, condition );
     var self= this;
     var data= this.storage().getRecords( {
         table: formula.table.name+ (formula.alias ? ' ' +formula.alias : ''),
         joins: joins,
         columns: columns,
         matching: matching,
-        condition: self.storage().sqlAnd( formula.fetchCondition, condition ),
+        condition: self.storage().sqlAnd.apply( null, conditions ),
         parameters: parameters,
         parameterNames: formula.parameterNames,
         sort: formula.sort,

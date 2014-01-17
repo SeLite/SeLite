@@ -123,16 +123,20 @@ SeLiteData.Storage.prototype.fieldParts= function( query ) {
     return fields;
 }
 
-/** @return string SQL condition containing the given first and second condition(s), whichever of them is present.
+/** @return string SQL condition containing the given first and second condition(s), whichever of them is present and not empty;
+ *  an empty string if there's no condition at all.
  *   This doesn't put oval parenthesis around the condition parts.
+ *   It's not the same as [condition1, condition2... ].join( ' AND ' ), because that would put 'AND' between all
+ *   parameters, even if some are empty.
  **/
-SeLiteData.Storage.prototype.sqlAnd= function( first, second ) {
-    var firstIsSet= first || first===0;
-    var secondIsSet= second || second===0;
-    if( firstIsSet ) {
-        return secondIsSet ? first+' AND '+second : first;
+SeLiteData.Storage.prototype.sqlAnd= function( first, second, etc ) {
+    var argumentsPresent= [];
+    for( var i=0; i<arguments.length; i++ ) {
+        if( arguments[i] ) {
+            argumentsPresent.push( arguments[i] );
+        }
     }
-    return secondIsSet ? second : '';
+    return argumentsPresent.join( ' AND ' );
 }
 
 /** @param string query SQL query
@@ -397,7 +401,7 @@ SeLiteData.Storage.prototype.updateRecords= function( params ) {
     if( conditionParts.length ) {
         query+= " WHERE " +conditionParts.join(' AND ');
     }
-    
+
     if( params.debugQuery!==undefined && params.debugQuery ) {
         console.log( query );
     }
@@ -580,7 +584,7 @@ function StorageFromSettings( field ) {
     // even if I set them in the child constructor after I've called the parent constructor:
     // this.close= StorageFromSettings.prototype.close;
     this.close= StorageFromSettingsClose;
-    
+
     !(field.name in StorageFromSettings.instances) || SeLiteMisc.fail('There already is an instance of StorageFromSettings for ' +field.name );
     this.field= field;
     StorageFromSettings.instances[ field.name ]= this;
