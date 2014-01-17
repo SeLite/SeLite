@@ -1,6 +1,6 @@
 /*  Copyright 2013 Peter Kehl
     This file is part of SeLite Settings.
-    
+
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -29,7 +29,7 @@ if( runningAsComponent ) {
     Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
     var nsIPrefBranch= Components.interfaces.nsIPrefBranch;
     var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
-    var nsIIOService= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);    
+    var nsIIOService= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
     Components.utils.import("resource://gre/modules/osfile.jsm");
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 }
@@ -115,6 +115,7 @@ SeLiteSettings.getField= function( fullName ) {
     lastDotIndex>0 && lastDotIndex<fullName.length-1 || SeLiteMisc.fail('fullName does not contain a dot: ' +fullName );
     var moduleName= fullName.substring( 0, lastDotIndex );
     var fieldName= fullName.substring( lastDotIndex+1 );
+    SeLiteSettings.loadFromJavascript( moduleName );
     moduleName in modules || SeLiteMisc.fail( 'SeLiteSettings.Module ' +moduleName+ ' has not been loaded.' );
     var module= modules[moduleName];
     fieldName in module.fields || SeLiteMisc.fail( 'SeLiteSettings.Module ' +moduleName+ " doesn't contain field " +field );
@@ -154,7 +155,7 @@ SeLiteSettings.Field= function( name, multivalued, defaultKey, requireAndPopulat
     }
     loadingPackageDefinition || ensureFieldName( name, 'field name' );
     this.name= name;
-    
+
     multivalued= multivalued || false;
     if( typeof multivalued!=='boolean') {
         throw new Error( 'SeLiteSettings.Field("' +name+ ') expects multivalued to be a boolean, if provided.');
@@ -167,7 +168,7 @@ SeLiteSettings.Field= function( name, multivalued, defaultKey, requireAndPopulat
     SeLiteMisc.ensureType( this.requireAndPopulate, "boolean", "SeLiteSettings.Field() expects requireAndPopulate to be a boolean, if present.");
     this.customValidate= customValidate || undefined;
     SeLiteMisc.ensureType( this.customValidate, ['function', 'undefined'], 'SeLiteSettings.Field() expects customValidate to be a function, if present.' );
-    
+
     !(this.defaultKey===null && multivalued) || SeLiteMisc.fail( 'SeLiteSettings.Field ' +name+ " must have a non-null defaultKey (possibly undefined), because it's multivalued." );
     if( this.defaultKey!==undefined && this.defaultKey!==null ) {
         !this.multivalued || SeLiteMisc.ensureInstance( this.defaultKey, Array, "defaultKey of a multivalued field must be an array" );
@@ -182,13 +183,13 @@ SeLiteSettings.Field= function( name, multivalued, defaultKey, requireAndPopulat
                 +(this.module ? 'module ' +this.module.name+ ', ' : '')
                 +'field ' +this.name+ ' is ' +key+ " and that doesn't pass validation." );
         }
-    }    
-    
+    }
+
     if( !this.name.endsWith('.prototype') ) {
         if( this.constructor===SeLiteSettings.Field ) {
             throw new Error( "Can't instantiate SeLiteSettings.Field directly, except for prototype instances. name: " +this.name );
         }
-        SeLiteMisc.ensureInstance(this, 
+        SeLiteMisc.ensureInstance(this,
             [SeLiteSettings.Field.Bool, SeLiteSettings.Field.Int, SeLiteSettings.Field.Decimal, SeLiteSettings.Field.String, SeLiteSettings.Field.File, SeLiteSettings.Field.Folder, SeLiteSettings.Field.SQLite, SeLiteSettings.Field.Choice.Int, SeLiteSettings.Field.Choice.Decimal, SeLiteSettings.Field.Choice.String],
             "SeLiteSettings.Field.Bool, SeLiteSettings.Field.Int, SeLiteSettings.Field.String, SeLiteSettings.Field.Decimal, SeLiteSettings.Field.File, SeLiteSettings.Field.Folder, SeLiteSettings.Field.SQLite, SeLiteSettings.Field.Choice.Int, SeLiteSettings.Field.Choice.Decimal, SeLiteSettings.Field.Choice.String", "SeLiteSettings.Field " +this.name+ " is not of an acceptable class." );
     }
@@ -626,7 +627,7 @@ SeLiteSettings.Field.Choice.String.prototype.constructor= SeLiteSettings.Field.C
  *  @param allowSets bool Whether to allow multiple sets of settings for this module
  *  @param defaultSetName string Name of the default set. Optional, null by default; only allowed (but not required) if allowSets==true
  *  @param associatesWithFolders bool Whether the sets are to be used with folder paths (and manifest files in them)
- *  @param definitionJavascriptFile string Full path & filename (including the extension) of a javascript file which contains a 
+ *  @param definitionJavascriptFile string Full path & filename (including the extension) of a javascript file which contains a
  *  definition of this module. Optional; if present, it lets SeLiteSettings to load a definition automatically.
  *  If not set and the module was already registered with a javascript file and it gets re-registered,
  *  then the javascript file will get 'removed' from this module in the preferences - SeLiteSettings won't be able
@@ -651,7 +652,7 @@ SeLiteSettings.Module= function( name, fields, allowSets, defaultSetName, associ
         field.registerFor( this );
         this.fields[ field.name ]= field;
     }
-    
+
     this.allowSets= allowSets || false;
     if( typeof this.allowSets!='boolean' ) {
         throw new Error( 'SeLiteSettings.Module() expects allowSets to be a boolean, if provided.');
@@ -664,11 +665,11 @@ SeLiteSettings.Module= function( name, fields, allowSets, defaultSetName, associ
         throw new Error( 'SeLiteSettings.Module() allows optional parameter defaultSetName only if allowSets is true..');
     }
     defaultSetName===null || ensureFieldName( defaultSetName, 'defaultSetName', true );
-    
+
     this.associatesWithFolders= associatesWithFolders || false;
     SeLiteMisc.ensureType( this.associatesWithFolders, 'boolean', 'SeLiteSettings.Module() expects associatesWithFolders to be a boolean, if provided.');
     !this.associatesWithFolders || SeLiteMisc.ensure(this.allowSets, 'SeLiteSettings.Module() must be called with allowSets=true, if associatesWithFolders is true.' );
-    
+
     this.definitionJavascriptFile= definitionJavascriptFile || null;
     if( this.definitionJavascriptFile!=null && typeof this.definitionJavascriptFile!=='string') {
         throw new Error( 'SeLiteSettings.Module() expects definitionJavascriptFile to be a string, if provided.');
@@ -693,7 +694,7 @@ SeLiteSettings.register= function( module, createOrUpdate ) {
     }
     if( module.name in modules ) {
         var existingModule= modules[module.name];
-        
+
         !SeLiteMisc.compareAllFields(existingModule.fields, module.fields, 'equals')
             || SeLiteMisc.fail ( 'There already exists a module with name "' +module.name+ '" but it has different definition.');
         if( module.allowSets!==existingModule.allowSets ) {
@@ -732,11 +733,11 @@ function directChildList( prefsBranch, namePrefix ) {
     }
     var children= prefsBranch.getChildList( namePrefix,{} );
     var result= [];
-    
+
     var namePrefixLength= namePrefix.length;
     for( var i=0; i<children.length; i++ ) {
         var child= children[i];
-        
+
         var postfix= child.substring( namePrefixLength );
         var indexOfDot= postfix.indexOf('.');
         if( indexOfDot>0 ) {
@@ -817,7 +818,7 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function( setName ) {
         ? setName+ '.'
         : '';
     var result= SeLiteMisc.sortedObject(true);
-    
+
     for( var fieldName in this.fields ) {
         var field= this.fields[fieldName];
         var isChoice= field instanceof SeLiteSettings.Field.Choice;
@@ -884,13 +885,13 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function( setName ) {
             multivaluedOrChoiceFieldPreference===SeLiteSettings.NULL || SeLiteMisc.fail('This should have failed above already. SeLiteSettings.Module ' +field.module.name+ ', set ' +setName+ ', field ' +field.name+ ' has preference ' +fieldPreference );
             result[fieldName].entry= null;
         }
-        !isChoice || result[fieldName].entry===undefined || typeof(result[fieldName].entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value ' +typeof result[fieldName].entry ); 
+        !isChoice || result[fieldName].entry===undefined || typeof(result[fieldName].entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value ' +typeof result[fieldName].entry );
         result[ fieldName ].fromPreferences= fieldHasPreference || children.length>0;
     }
     return result;
 };
 
-/** @param moduleName string 
+/** @param moduleName string
  *  @return string SeLiteSettigs.Module instance for that module if registered; undefined otherwise
  * */
 SeLiteSettings.Module.forName= function( moduleName ) {
@@ -988,7 +989,7 @@ var cachedManifests= {};
  *              },
  *              ...
  *            ],
- *          ...  
+ *          ...
  *      }
  *  }
  * */
@@ -1018,10 +1019,10 @@ function manifestsDownToFolder( folderPath, dontCache ) {
         }
         while( breadCrumb!==null );
         folderNames= folderNames.reverse(); // Now they start from the root/drive folder
-    }    
+    }
     var values= SeLiteMisc.sortedObject(true);
     var associations= SeLiteMisc.sortedObject(true);
-    
+
     for( var i=0; i<folderNames.length; i++) {//@TODO use loop for of() once NetBeans supports it
         var folder=  folderNames[i];
         var fileName= OS.Path.join(folder, SeLiteSettings.VALUES_MANIFEST_FILENAME);
@@ -1041,7 +1042,7 @@ function manifestsDownToFolder( folderPath, dontCache ) {
                 } );
             }
         }
-        
+
         fileName= OS.Path.join(folder, SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME);
         var contents= readFile( fileName );
         if( contents!==false ) {
@@ -1180,7 +1181,7 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function( folderPath, don
     folderPath= folderPath || testSuiteFolder;
     this.associatesWithFolders || SeLiteMisc.fail( "SeLiteSettings.Module.getFieldsDownToFolder() requires module.associatesWithFolders to be true, but it was called for module " +this.name );
     dontCache= dontCache || false;
-    
+
     var result= SeLiteMisc.sortedObject(true);
     for( var fieldName in this.fields ) {
         result[ fieldName ]= {
@@ -1190,9 +1191,9 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function( folderPath, don
             setName: undefined
         };
     }
-    
+
     var manifests= manifestsDownToFolder(folderPath, dontCache);
-    
+
     // First, load values from values manifests.
     for( var manifestFolder in manifests.values ) {
         for( var i=0; i<manifests.values[manifestFolder].length; i++ ) {
@@ -1337,7 +1338,7 @@ SeLiteSettings.Module.prototype.createSet= function( setName ) {
         ensureFieldName( setName, 'set name', true);
     }
     SeLiteMisc.ensure( !(this.associatesWithFolders && setName===''), 'SeLiteSettings.Module associates with folders, therefore a set name cannot be empty.' );
-    
+
     var setNameDot= setName!==''
         ? setName+'.'
         : '';
@@ -1501,7 +1502,7 @@ SeLiteSettings.moduleNamesFromPreferences= function( namePrefix ) {
     var children= prefsBranch.getChildList( '', {} );
     children.sort( SeLiteMisc.compareCaseInsensitively );
     var result= [];
-    
+
     for( var i=0; i<children.length; i++ ) {
         var child= namePrefix+ children[i];
         if( child.endsWith(MODULE_DEFINITION_FILE_OR_URL) ) {
