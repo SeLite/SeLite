@@ -1448,12 +1448,12 @@ var moduleSetFields= {};
 window.addEventListener( "load", function(e) {
     var params= document.location.search.substring(1);
     if( document.location.search ) {
-        if( /load/.exec( params ) ) {
+        if( /register/.exec( params ) ) {
             var result= {};
             if( promptService.select(
                 window,
-                'How to load a module definition',
-                'You are about to load a Javascript definition of your module. How would you enter it?',
+                'How to register or update a module definition',
+                'You are about to register or update a Javascript definition of your configuration module. How would you enter it?',
                 2,
                 ['Locate as a local file', 'Enter a url'],
                 result
@@ -1473,7 +1473,7 @@ window.addEventListener( "load", function(e) {
                     }
                 }
                 if( url ) {
-                    subScriptLoader.loadSubScript( url.spec, {} );
+                    subScriptLoader.loadSubScript( url.spec, {SeLiteSettings: SeLiteSettings} );
                     window.location.search= '';
                 }
             }
