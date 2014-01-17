@@ -1473,6 +1473,7 @@ window.addEventListener( "load", function(e) {
                     }
                 }
                 if( url ) {
+                    console.log('loading settings definition from ' +url.spec );
                     subScriptLoader.loadSubScript( url.spec, {
                         SeLiteSettings: SeLiteSettings,
                         SELITE_SETTINGS_FILE_URL: url.spec

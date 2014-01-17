@@ -680,20 +680,22 @@ SeLiteSettings.savePrefFile= function() {
 
 /** Get an existing module with the same name, or the passed one. If there is an existing module, this checks that
  *  fields and other parameters are equal, otherwise it fails.
- *  If createOrUpdate is true (by default), this (re)registers the module, which calls nsIPrefService.savePrefFile().
- * @param module Object instance of SeLiteSettings.Module that you want to SeLiteSettings.register (or an equal one)
- *  @param createOrUpdate Boolean, optional, true by default; whether to create or update any existing sets by calling module.createOrUpdate()
+ * @param {SeLiteSettings.Module} module Object instance of SeLiteSettings.Module that you want to SeLiteSettings.register (or an equal one)
  *  @return An existing equal SeLiteSettings.Module instance, if any; given module otherwise.
  * */
-SeLiteSettings.register= function( module, createOrUpdate ) {
+SeLiteSettings.register= function( module ) {
     if( !(module instanceof SeLiteSettings.Module) ) {
         throw new Error( 'SeLiteSettings.register() expects module to be an instance of SeLiteSettings.Module.');
     }
     if( module.name in modules ) {
         var existingModule= modules[module.name];
         
+        // @TODO Simplify this. If I use chrome://selite-settings/content/tree.xul?register to re-load a new definition of an existing module,
+        // the old definition will obviously differ, and this will fail!
+        // Reloading a module definition may cause some memory leaks, but it's only during development.
+        // Keep SeLiteMisc.compareAllFields()
         !SeLiteMisc.compareAllFields(existingModule.fields, module.fields, 'equals')
-            || SeLiteMisc.fail ( 'There already exists a module with name "' +module.name+ '" but it has different definition.');
+            || SeLiteMisc.fail ( 'There already exists a module with name "' +module.name+ '" but it has a different definition.');
         if( module.allowSets!==existingModule.allowSets ) {
             throw new Error();
         }
@@ -708,12 +710,7 @@ SeLiteSettings.register= function( module, createOrUpdate ) {
     else {
         modules[module.name]= module;
     }
-    if( createOrUpdate===undefined) {
-        createOrUpdate= true;
-    }
-    if( createOrUpdate ) {
-        module.register();
-    }
+    module.register();
     return module;
 };
 
