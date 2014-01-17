@@ -12,8 +12,7 @@ var module= new SeLiteSettings.Module( 'extensions.selite-settings.basic',
     true,
     'default',
     true,
-    '~/selite/settings/test_settings_module.js'
-    //@TODO If the file doesn't exist, make it report an error.
+    SELITE_SETTINGS_FILE_URL // This will be set by SeLite
 );
 
 module= SeLiteSettings.register( module );
@@ -33,9 +32,7 @@ var module= new SeLiteSettings.Module( 'extensions.selite-settings.test',
     true,
     'mainSet',
     false,
-    '~/selite/settings/test_settings_module.js'
-    //@TODO If the file doesn't exist, make it report an error.
-    //'file:///home/pkehl/selite/settings/test_settings_module.js'
+    SELITE_SETTINGS_FILE_URL
 );
 
 module= SeLiteSettings.register( module );
@@ -72,7 +69,7 @@ var module2= new SeLiteSettings.Module( 'extensions.selite-settings.test2',
     false,
     null,
     false,
-    '~/selite/settings/test_settings_module.js'
+    SELITE_SETTINGS_FILE_URL
 );
 module2= SeLiteSettings.register( module2 );
 //-----------
@@ -100,8 +97,7 @@ var module= new SeLiteSettings.Module( 'extensions.selite-settings.withFolders',
     true,
     'globalSet',
     true, //associatesWithFolders
-    '~/selite/settings/test_settings_module.js'
-    //'file:///home/pkehl/selite/settings/test_settings_module.js'
+    SELITE_SETTINGS_FILE_URL
     );
 module= SeLiteSettings.register( module );
 
@@ -127,6 +123,6 @@ var module= new SeLiteSettings.Module( 'extensions.selite-settings.withFolders2'
     true,
     'globalSet',
     true, //associatesWithFolders
-    '~/selite/settings/test_settings_module.js'
+    SELITE_SETTINGS_FILE_URL
     );
 module= SeLiteSettings.register( module );

@@ -625,11 +625,10 @@ SeLiteSettings.Field.Choice.String.prototype.constructor= SeLiteSettings.Field.C
  *  @param allowSets bool Whether to allow multiple sets of settings for this module
  *  @param defaultSetName string Name of the default set. Optional, null by default; only allowed (but not required) if allowSets==true
  *  @param associatesWithFolders bool Whether the sets are to be used with folder paths (and manifest files in them)
- *  @param definitionJavascriptFile string Full path & filename (including the extension) of a javascript file which contains a 
- *  definition of this module. Optional; if present, it lets SeLiteSettings to load a definition automatically.
- *  If not set and the module was already registered with a javascript file and it gets re-registered,
- *  then the javascript file will get 'removed' from this module in the preferences - SeLiteSettings won't be able
- *  to load it automatically (unless it gets re-registered with the javascript file again).
+ *  @param definitionJavascriptFile string URL or filepath to the filename (including the extension) of a javascript file which contains a 
+ *  definition of this module. Optional; if present, it lets SeLiteSettings to load a definition automatically
+ *  by clients that only know the module name but not location of the file.
+ *  If not set and the module has been already registered, then it stays unchanged (in the preference).
  * */
 SeLiteSettings.Module= function( name, fields, allowSets, defaultSetName, associatesWithFolders, definitionJavascriptFile ) {
     this.name= name;
@@ -668,8 +667,8 @@ SeLiteSettings.Module= function( name, fields, allowSets, defaultSetName, associ
     SeLiteMisc.ensureType( this.associatesWithFolders, 'boolean', 'SeLiteSettings.Module() expects associatesWithFolders to be a boolean, if provided.');
     !this.associatesWithFolders || SeLiteMisc.ensure(this.allowSets, 'SeLiteSettings.Module() must be called with allowSets=true, if associatesWithFolders is true.' );
     
-    this.definitionJavascriptFile= definitionJavascriptFile || null;
-    if( this.definitionJavascriptFile!=null && typeof this.definitionJavascriptFile!=='string') {
+    this.definitionJavascriptFile= definitionJavascriptFile;
+    if( this.definitionJavascriptFile!==undefined && typeof this.definitionJavascriptFile!=='string') {
         throw new Error( 'SeLiteSettings.Module() expects definitionJavascriptFile to be a string, if provided.');
     }
     this.prefsBranch= prefs.getBranch( this.name+'.' );
@@ -1299,10 +1298,6 @@ SeLiteSettings.Module.prototype.register= function() {
     if( this.definitionJavascriptFile ) {
         this.prefsBranch.setCharPref( MODULE_DEFINITION_FILE_OR_URL, this.definitionJavascriptFile );
     }
-    else {
-        // @TODO verify the following line's comment
-        this.prefsBranch.clearUserPref( MODULE_DEFINITION_FILE_OR_URL ); // This works even if the preference doesn't exist
-    }
     if( this.allowSets ) {
         var setNames= this.setNames();
         // Update any existing sets
@@ -1438,7 +1433,7 @@ SeLiteSettings.fileNameToUrl= function( fileNameOrUrl ) {
  *  @param moduleFileOrUrl string. Either
  *  - file path + name of the module definition file; or
  *  - URL (either chrome:, resource: or file:) to the module definition file
- *  Optional; used if the module has not been registered yet - then it's required. Make your life easy: If you have it, pass it.
+ *  Optional; only used if the module has not been registered yet - then it's required.
  *  @param forceReload bool Whether reload the module and overwrite the already cached object,
  *  rather than return a cached definition, even if it has been loaded already. False by default (i.e. by default it returns
  *  the cached object, if present).
@@ -1456,6 +1451,7 @@ SeLiteSettings.loadFromJavascript= function( moduleName, moduleFileOrUrl, forceR
         }
     }
     var moduleUrl;
+    // If the module has been registered, then there is be a preference matching its full name to file path or url of its definition file
     var prefsBranch= prefs.getBranch( moduleName+'.' );
     if( prefsBranch.prefHasUserValue(MODULE_DEFINITION_FILE_OR_URL) ) {
         moduleUrl= SeLiteSettings.fileNameToUrl( prefsBranch.getCharPref(MODULE_DEFINITION_FILE_OR_URL) );
@@ -1474,10 +1470,12 @@ SeLiteSettings.loadFromJavascript= function( moduleName, moduleFileOrUrl, forceR
         // subScriptLoader.loadSubScript() doesn't cache the javascript and it (re)evaluates it, which makes development easier
         // and the cost of reloading is not important.
         subScriptLoader.loadSubScript( moduleUrl,
+            // Side note: Must specify the second parameter (the scope) of loadSubScript(), even if it is empty {} - otherwise there were conflicts
             {
-                SeLiteSettings: SeLiteSettings
+                SeLiteSettings: SeLiteSettings,
+                SELITE_SETTINGS_FILE_URL: moduleUrl
             }
-        ); // Must specify the second parameter (the scope), otherwise there were conflicts
+        );
     }
     catch(e ) {
         e.message= 'SeLiteSettings.Module ' +moduleName+ ': ' +e.message;

@@ -1473,7 +1473,10 @@ window.addEventListener( "load", function(e) {
                     }
                 }
                 if( url ) {
-                    subScriptLoader.loadSubScript( url.spec, {SeLiteSettings: SeLiteSettings} );
+                    subScriptLoader.loadSubScript( url.spec, {
+                        SeLiteSettings: SeLiteSettings,
+                        SELITE_SETTINGS_FILE_URL: url.spec
+                    } );
                     window.location.search= '';
                 }
             }
