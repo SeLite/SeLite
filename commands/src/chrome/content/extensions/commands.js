@@ -19,7 +19,7 @@
 Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
     
 // For all Selenium actions and locators defined here - i.e. functions with name doXXXX, isXXXXX, getXXXXX
-// see their documentation at ../reference.xml
+// see their user documentation at ../reference.xml
 
 // @TODO document/report this to Selenium
 // 1. As of Se IDE 1.5.0, contrary to http://release.seleniumhq.org/selenium-core/1.0/reference.html#extending-selenium

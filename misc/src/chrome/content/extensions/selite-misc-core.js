@@ -62,8 +62,12 @@ SeLiteMisc.getUrlParam= function( paramName ) {
     var loginManagerInstance = Components.classes["@mozilla.org/login-manager;1"].
         getService(Components.interfaces.nsILoginManager);
 
-/** This retrieves a web form password for a user. It doesn't work with .htaccess/HTTP authentication
-    (that can be retrieved too, see the docs).
+/** This retrieves a web form password for a user. It doesn't work with .htaccess/HTTP authentication,
+    but that can be retrieved too, see
+    <br> https://developer.mozilla.org/En/Using_nsILoginManager
+    <br> https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsILoginManager
+    <br> https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsILoginInfo
+
     @param {string} username Case-sensitive username.
     @param {mixed} hostnameOrUseBaseURL String hostname in form 'https://server-name.some.domain'. It must contain http or https. It can contain the port (if not standard),
     but no trailing slash / neither any URI (path). Optional; if not present, then this uses the current website.
@@ -71,11 +75,6 @@ SeLiteMisc.getUrlParam= function( paramName ) {
     @return {string} password if found; null otherwise
 */
 SeLiteMisc.loginManagerPassword= function( username, hostnameOrUseBaseURL ) {
-/**
-    https://developer.mozilla.org/En/Using_nsILoginManager
-    https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsILoginManager
-    https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsILoginInfo
-*/
     // You could also use passwordManager.getAllLogins(); it returns an array of nsILoginInfo objects
     var testLocation= selenium.browserbot.getCurrentWindow().location;
     SeLiteMisc.ensureType( hostnameOrUseBaseURL, ['undefined', 'string', 'boolean'], 'Param hostnameOrUseBaseURL must be undefined, string or a boolean.' );

@@ -20,7 +20,8 @@ Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
 Components.utils.import('chrome://selite-db-objects/content/basic-storage.js');
 Components.utils.import('chrome://selite-db-objects/content/db.js');
 
-/** @param object storage of class Storage
+/** @constructor
+ *  @param {SeLiteData.Storage} storage Underlying lower-level storage object.
  *  @param string tableNamePrefix optional
  **/
 SeLiteData.Db= function( storage, tableNamePrefix ) {
@@ -28,7 +29,8 @@ SeLiteData.Db= function( storage, tableNamePrefix ) {
     this.tableNamePrefix= tableNamePrefix || '';
 };
 
-/** @param prototype Anonymous object {
+/** @constructor
+ *  @param {Object} prototype Anonymous object {
  *      db: SeLiteData.Db instance,
  *      noNamePrefix: boolean, optional; if true, then it cancels effect of prototype.db.tableNamePrefix (if set),
  *      name: string table name,
@@ -98,8 +100,8 @@ function RecordHolder( recordSetHolderOrFormula, plainRecord ) {
 }
 
 /*** Constructor used for object that represents a record in a DB.
- *   @param object recordHolder of private class RecordHolder
- *   @param mixed Object with the record's data, or null/false.
+ *   @param {Object} recordHolder of private class RecordHolder
+ *   @param {?Object|boolean} Object with the record's data, or null/false.
  **/
 SeLiteData.Record= function( recordHolder, data ) {
     // Set the link from record to its record holder. The field for this link is non-iterable.
@@ -320,6 +322,10 @@ RecordHolder.prototype.remove= function() {
  *  Any fields not set in params will be inherited from prototype (if present), as they are at the time of calling this constructor.
  *  Any fields set in params will override respective fields in prototype (if any),
  *  except for field(s) present in params and set to null - then values will be copied from prototype, (if present).
+ *  @TODO putCondition, putMatching
+ *  @TODO Consider making some of parameterNames optional. fetchMatching already can contain callback functions, so extend the mechanism
+ *  to pass values of all actual parameters from user's select() call. Similar for putMatching, if we implement it. Possibly the similar for fetchCondition (and for putCondition, if we implement it).
+ *  @TODO consider applying fetchMatching in other ways than just SQL = comparison. E.g. LIKE, <>, IS NULL, IS NOT NULL. The same for passing optional column filters to SeLiteData.Storage.prototype.getRecords() via its params.parameters field.
  **/
 SeLiteData.RecordSetFormula= function( params, prototype ) {
     SeLiteMisc.PrototypedObject.call( this, prototype );
