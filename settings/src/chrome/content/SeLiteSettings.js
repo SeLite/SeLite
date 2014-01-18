@@ -1,4 +1,4 @@
-/*  Copyright 2013 Peter Kehl
+/*  Copyright 2013, 2014 Peter Kehl
     This file is part of SeLite Settings.
     
     This program is free software: you can redistribute it and/or modify
@@ -680,7 +680,7 @@ SeLiteSettings.savePrefFile= function() {
 
 /** Get an existing module with the same name, or the passed one. If there is an existing module, this checks that
  *  fields and other parameters are equal, otherwise it fails.
- * @param {SeLiteSettings.Module} module Object instance of SeLiteSettings.Module that you want to SeLiteSettings.register (or an equal one)
+ * @param {SeLiteSettings.Module} module Object instance of SeLiteSettings.Module that you want to SeLiteSettings.register
  *  @return An existing equal SeLiteSettings.Module instance, if any; given module otherwise.
  * */
 SeLiteSettings.register= function( module ) {
@@ -690,21 +690,13 @@ SeLiteSettings.register= function( module ) {
     if( module.name in modules ) {
         var existingModule= modules[module.name];
         
-        // @TODO Simplify this. If I use chrome://selite-settings/content/tree.xul?register to re-load a new definition of an existing module,
+        // If I use chrome://selite-settings/content/tree.xul?register to re-load a modified definition of an existing module,
         // the old definition will obviously differ, and this will fail!
-        // Reloading a module definition may cause some memory leaks, but it's only during development.
-        // Keep SeLiteMisc.compareAllFields()
-        !SeLiteMisc.compareAllFields(existingModule.fields, module.fields, 'equals')
-            || SeLiteMisc.fail ( 'There already exists a module with name "' +module.name+ '" but it has a different definition.');
-        if( module.allowSets!==existingModule.allowSets ) {
-            throw new Error();
-        }
-        if( module.defaultSetName!==existingModule.defaultSetName ) {
-            throw new Error();
-        }
-        if( SeLiteSettings.fileNameToUrl(module.definitionJavascriptFile)!==SeLiteSettings.fileNameToUrl(existingModule.definitionJavascriptFile) ) {
-            throw new Error();
-        }
+        // Reloading a module definition may cause some memory leaks, but it shoulds only happen during development.
+        // @TODO Store allowSets in preferences somehow, and check it here instead of the following
+        module.allowSets===existingModule.allowSets || SeLiteMisc.fail ( 'Settings module ' +module.name+ " can't have its allowSets changed!");
+        SeLiteSettings.fileNameToUrl(module.definitionJavascriptFile)===SeLiteSettings.fileNameToUrl(existingModule.definitionJavascriptFile)
+        || SeLiteMisc.fail ( 'Settings module ' +module.name+ ' has its definition file moved (or accessed under a different path), or there is a name conflict.');
         module= existingModule;
     }
     else {
