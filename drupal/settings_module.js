@@ -14,6 +14,6 @@ var module= new SeLiteSettings.Module( 'extensions.selite-settings.drupal-demo',
     true,
     SELITE_SETTINGS_FILE_URL // This will get set by SeLite
 );
-// @TODO Instead of the following, have a default parameter in SeLiteSettings.Module(): dontRegister, false by default
+//  @TODO Instead of the following, have a default parameter in SeLiteSettings.Module(): dontRegister, false by default
 // Then simplify test_settings_modules.js, too
 //module= SeLiteSettings.register( module );

@@ -618,19 +618,22 @@ SeLiteSettings.Field.Choice.String= function( name, multivalued, defaultKey, cho
 SeLiteSettings.Field.Choice.String.prototype= new SeLiteSettings.Field.Choice('ChoiceString.prototype');
 SeLiteSettings.Field.Choice.String.prototype.constructor= SeLiteSettings.Field.Choice.String;
 
-/** @param name string Name prefix for preferences/fields for this module.
+/** Create a Settings module. Do not use the result itself - use a result of .register(), to minimise memory leaks. @TODO Therefore remove 'dontCreate' param.
+ *  @param name string Name prefix for preferences/fields for this module.
  *  As per Mozilla standard, it should be dot-separated and start with 'extensions.' See Firefox url about:config.
  *  @param fields Array of SeLiteSettings.Field objects, in the order how they will be displayed.
  *  Beware: this.fields will not be an array, but an object serving as an associative array { string field name => SeLiteSettings.Field object}
  *  @param allowSets bool Whether to allow multiple sets of settings for this module
  *  @param defaultSetName string Name of the default set. Optional, null by default; only allowed (but not required) if allowSets==true
  *  @param associatesWithFolders bool Whether the sets are to be used with folder paths (and manifest files in them)
- *  @param definitionJavascriptFile string URL or filepath to the filename (including the extension) of a javascript file which contains a 
+ *  @param {string} [definitionJavascriptFile] URL or filepath to the filename (including the extension) of a javascript file which contains a 
  *  definition of this module. Optional; if present, it lets SeLiteSettings to load a definition automatically
  *  by clients that only know the module name but not location of the file.
  *  If not set and the module has been already registered, then it stays unchanged (in the preference).
+ *  Required if you want to registera brand new module; not needed if re-registering (upgrading) an already registered module.
+ *  @param {boolean} [dontRegister] Whether not to (re)register this module; by default it's false (i.e. do register).
  * */
-SeLiteSettings.Module= function( name, fields, allowSets, defaultSetName, associatesWithFolders, definitionJavascriptFile ) {
+SeLiteSettings.Module= function( name, fields, allowSets, defaultSetName, associatesWithFolders, definitionJavascriptFile, dontRegister ) {
     this.name= name;
     if( typeof this.name!='string' ) {
         throw new Error( 'SeLiteSettings.Module() expects a string name.');
@@ -672,6 +675,9 @@ SeLiteSettings.Module= function( name, fields, allowSets, defaultSetName, associ
         throw new Error( 'SeLiteSettings.Module() expects definitionJavascriptFile to be a string, if provided.');
     }
     this.prefsBranch= prefs.getBranch( this.name+'.' );
+    if( !dontRegister ) {
+        this.register();
+    }
 };
 
 SeLiteSettings.savePrefFile= function() {
@@ -680,21 +686,22 @@ SeLiteSettings.savePrefFile= function() {
 
 /** Get an existing module with the same name, or the passed one. If there is an existing module, this checks that
  *  fields and other parameters are equal, otherwise it fails.
- * @param {SeLiteSettings.Module} module Object instance of SeLiteSettings.Module that you want to SeLiteSettings.register
+ * @param {SeLiteSettings.Module} module Object instance of SeLiteSettings.Module that you want to register
  *  @return An existing equal SeLiteSettings.Module instance, if any; given module otherwise.
+ *  @TODO remove and merge to Module.register()
  * */
 SeLiteSettings.register= function( module ) {
-    if( !(module instanceof SeLiteSettings.Module) ) {
-        throw new Error( 'SeLiteSettings.register() expects module to be an instance of SeLiteSettings.Module.');
-    }
     if( module.name in modules ) {
         var existingModule= modules[module.name];
         
         // If I use chrome://selite-settings/content/tree.xul?register to re-load a modified definition of an existing module,
         // the old definition will obviously differ, and this will fail!
         // Reloading a module definition may cause some memory leaks, but it shoulds only happen during development.
-        // @TODO Store allowSets in preferences somehow, and check it here instead of the following
+        //  @TODO Store allowSets in preferences somehow, and check allowSets against what is in the preferences
+                //@TODO change module. -> this.
         module.allowSets===existingModule.allowSets || SeLiteMisc.fail ( 'Settings module ' +module.name+ " can't have its allowSets changed!");
+        // @TODO Keep the following check of this vs. modules[module.name], so that I prevent module name conflict
+        // @TODO nsIFile - try to figure out equality of 2 different relative/absolute paths/symlinks to the same file
         SeLiteSettings.fileNameToUrl(module.definitionJavascriptFile)===SeLiteSettings.fileNameToUrl(existingModule.definitionJavascriptFile)
         || SeLiteMisc.fail ( 'Settings module ' +module.name+ ' has its definition file moved (or accessed under a different path), or there is a name conflict.');
         module= existingModule;
@@ -1287,6 +1294,9 @@ SeLiteSettings.Module.prototype.register= function() {
     if( this.definitionJavascriptFile ) {
         this.prefsBranch.setCharPref( MODULE_DEFINITION_FILE_OR_URL, this.definitionJavascriptFile );
     }
+    else {
+        this.prefsBranch.prefHasUserValue( MODULE_DEFINITION_FILE_OR_URL ) || SeLiteMisc.fail( "Settings module " +this.name+ " has never been registered before, and it doesn't know location of its definition file. Pass SELITE_SETTINGS_FILE_URL when instantiating SeLiteSettings.Module." );
+    }
     if( this.allowSets ) {
         var setNames= this.setNames();
         // Update any existing sets
@@ -1470,9 +1480,7 @@ SeLiteSettings.loadFromJavascript= function( moduleName, moduleFileOrUrl, forceR
         e.message= 'SeLiteSettings.Module ' +moduleName+ ': ' +e.message;
         throw e;
     }
-    if( !(moduleName in modules) ) {
-        SeLiteMisc.fail( "Loaded definition of module " +moduleName+ " and it was found in preferences, but it didn't register itself properly. Make it call SeLiteSettings.register( theNewModule );" );
-    }
+    moduleName in modules || SeLiteMisc.fail( "Loaded definition of module " +moduleName+ " and it was found in preferences, but it didn't register itself properly. Fix its definition at " +moduleUrl+ " so that it registers itself." );
     return modules[ moduleName ];
 };
 

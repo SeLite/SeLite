@@ -12,4 +12,4 @@ var module= new SeLiteSettings.Module( 'extensions.selite-db-objects.basic',
     '~/selite/settings/test_settings_module.js'
 );
 
-module= SeLiteSettings.register( module );
+SeLiteSettings.register( module );

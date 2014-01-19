@@ -9,7 +9,7 @@ var maxNumberOfRuns= new SeLiteSettings.Field.Int('maxNumberOfRuns', false, 20);
 
 var module= new SeLiteSettings.Module( 'extensions.selite-settings.basic',
     [appDB, testDB, vanillaDB, appDBpermissions, appWebroot, maxNumberOfRuns],
-    true,
+    true/*allowSets*/,
     'default',
     true,
     SELITE_SETTINGS_FILE_URL // This will be set by SeLite
