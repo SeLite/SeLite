@@ -7,13 +7,10 @@ var appDBpermissions= new SeLiteSettings.Field.String( 'appDBpermissions', /*def
 //var appWebroot= new SeLiteSettings.Field.String('appWebroot', false, 'http://localhost/app');
 //var maxNumberOfRuns= new SeLiteSettings.Field.Int('maxNumberOfRuns', false, 20);
 
-var module= new SeLiteSettings.Module( 'extensions.selite-settings.drupal-demo',
+new SeLiteSettings.Module( 'extensions.selite-settings.drupal-demo',
     [appDB, testDB, vanillaDB, appDBpermissions/*, appWebroot, maxNumberOfRuns*/],
     true,
     'default',
     true,
     SELITE_SETTINGS_FILE_URL // This will get set by SeLite
 );
-//  @TODO Instead of the following, have a default parameter in SeLiteSettings.Module(): dontRegister, false by default
-// Then simplify test_settings_modules.js, too
-//module= SeLiteSettings.register( module );

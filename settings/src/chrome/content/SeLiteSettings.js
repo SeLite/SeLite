@@ -618,7 +618,7 @@ SeLiteSettings.Field.Choice.String= function( name, multivalued, defaultKey, cho
 SeLiteSettings.Field.Choice.String.prototype= new SeLiteSettings.Field.Choice('ChoiceString.prototype');
 SeLiteSettings.Field.Choice.String.prototype.constructor= SeLiteSettings.Field.Choice.String;
 
-/** Create a Settings module. Do not use the result itself - use a result of .register(), to minimise memory leaks. @TODO Therefore remove 'dontCreate' param.
+/** Create a Settings module.
  *  @param name string Name prefix for preferences/fields for this module.
  *  As per Mozilla standard, it should be dot-separated and start with 'extensions.' See Firefox url about:config.
  *  @param fields Array of SeLiteSettings.Field objects, in the order how they will be displayed.
@@ -682,35 +682,6 @@ SeLiteSettings.Module= function( name, fields, allowSets, defaultSetName, associ
 
 SeLiteSettings.savePrefFile= function() {
     prefs.savePrefFile( null );
-};
-
-/** Get an existing module with the same name, or the passed one. If there is an existing module, this checks that
- *  fields and other parameters are equal, otherwise it fails.
- * @param {SeLiteSettings.Module} module Object instance of SeLiteSettings.Module that you want to register
- *  @return An existing equal SeLiteSettings.Module instance, if any; given module otherwise.
- *  @TODO remove and merge to Module.register()
- * */
-SeLiteSettings.register= function( module ) {
-    if( module.name in modules ) {
-        var existingModule= modules[module.name];
-        
-        // If I use chrome://selite-settings/content/tree.xul?register to re-load a modified definition of an existing module,
-        // the old definition will obviously differ, and this will fail!
-        // Reloading a module definition may cause some memory leaks, but it shoulds only happen during development.
-        //  @TODO Store allowSets in preferences somehow, and check allowSets against what is in the preferences
-                //@TODO change module. -> this.
-        module.allowSets===existingModule.allowSets || SeLiteMisc.fail ( 'Settings module ' +module.name+ " can't have its allowSets changed!");
-        // @TODO Keep the following check of this vs. modules[module.name], so that I prevent module name conflict
-        // @TODO nsIFile - try to figure out equality of 2 different relative/absolute paths/symlinks to the same file
-        SeLiteSettings.fileNameToUrl(module.definitionJavascriptFile)===SeLiteSettings.fileNameToUrl(existingModule.definitionJavascriptFile)
-        || SeLiteMisc.fail ( 'Settings module ' +module.name+ ' has its definition file moved (or accessed under a different path), or there is a name conflict.');
-        module= existingModule;
-    }
-    else {
-        modules[module.name]= module;
-    }
-    module.register();
-    return module;
 };
 
 /** Like nsIPrefBranch.getChildList(), but it
@@ -1284,18 +1255,47 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function( folderPath, don
     return result;
 };
 
-/**(re)register the name of the module against definitionJavascriptFile, if the module was created with one.
+/** (Re)register this module.
+ * Get an existing module instance with the same name, if it was already loaded (i.e. registered in Firefox preferences and also loaded into memory).
+ *  If there was none, register this. Otherwise
+ *  - Check that both instances come from the same definition file.
+ *  - Check that both the definitions have same value of 'allowSets'. If the field definitions are different,
+ *    it means that the definition got updated - therefore replace the old loaded instance with this instance.
+ * Either way, then set up or upgrade set(s):
  * Create the main & only set, if module was created with allowSets=false.
  * Create a default set, if module was was created with allowSets==true and defaultSetName!=null.
  * If the module was registered already, update the only set or any existing sets (depending on allowSets and defaultSetName as above).
  * It calls nsIPrefService.savePrefFile().
+ * @return void
  * */
 SeLiteSettings.Module.prototype.register= function() {
     if( this.definitionJavascriptFile ) {
-        this.prefsBranch.setCharPref( MODULE_DEFINITION_FILE_OR_URL, this.definitionJavascriptFile );
+        this.prefsBranch.setCharPref( MODULE_DEFINITION_FILE_OR_URL, this.definitionJavascriptFile ); // If the definition file got moved, this keeps the track of it. That's good for clients of SeLiteSettings.loadFromJavascript() that don't know the location of the file.
     }
     else {
         this.prefsBranch.prefHasUserValue( MODULE_DEFINITION_FILE_OR_URL ) || SeLiteMisc.fail( "Settings module " +this.name+ " has never been registered before, and it doesn't know location of its definition file. Pass SELITE_SETTINGS_FILE_URL when instantiating SeLiteSettings.Module." );
+    }
+    
+    if( this.prefsBranch.prefHasUserValue('allowSets') ) {//@TODO
+        var oldAllowSets= this.prefsBranch.getBoolPref('');
+        //  @TODO Store allowSets in preferences somehow, and check allowSets against what is in the preferences
+        oldAllowSets===this.allowSets || SeLiteMisc.fail ( 'Settings module ' +this.name+ " used to have allowSets=" +oldAllowSets+ " and now it's " +this.allowSets+ ". It can't be changed!" );
+    }
+    else {
+        //this.prefsBranch.setBoolPref('allowSets');@TODO
+    }
+    if( this.name in modules ) {
+        var existingModule= modules[this.name];
+        // @TODO try to figure out equality of 2 different relative/absolute paths/symlinks to the same file (via nsIFile??)
+        SeLiteSettings.fileNameToUrl(this.definitionJavascriptFile)===SeLiteSettings.fileNameToUrl(existingModule.definitionJavascriptFile)
+        || SeLiteMisc.fail ( 'There are two Settings modules ' +this.name+ ' with different definition files. Old ' +existingModule.definitionJavascriptFile+ ' and new ' +this.definitionJavascriptFile+ ". If you've moved the file, restart Firefox." );
+        
+        if( !SeLiteMisc.compareAllFields(existingModule.fields, this.fields, 'equals' ) ) {
+            modules[this.name]= this;
+        }
+    }
+    else {
+        modules[this.name]= this;
     }
     if( this.allowSets ) {
         var setNames= this.setNames();
@@ -1429,10 +1429,12 @@ SeLiteSettings.fileNameToUrl= function( fileNameOrUrl ) {
  *  If called subsequently, it returns an already loaded instance.
  *  @param moduleNameFileUrl string Either
  *  - module name, that is name of the preference path/prefix up to the module (including the module name), excluding the trailing dot; or
- *  @param moduleFileOrUrl string. Either
+ *  @param {string} [moduleFileOrUrl] Either
  *  - file path + name of the module definition file; or
  *  - URL (either chrome:, resource: or file:) to the module definition file
  *  Optional; only used if the module has not been registered yet - then it's required.
+ *  Standard client code should only pass it when installing a module. Clients that expect a module to be installed
+ *  shouldn't pass moduleFileOrUrl.
  *  @param forceReload bool Whether reload the module and overwrite the already cached object,
  *  rather than return a cached definition, even if it has been loaded already. False by default (i.e. by default it returns
  *  the cached object, if present).
