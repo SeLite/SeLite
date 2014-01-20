@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://change-this-to-the-site-you-are-testing/" />
+<title>basics</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">basics</td></tr>
+</thead><tbody>
+<tr>
+	<td>script</td>
+	<td>logout</td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeElementPresent</td>
+	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
+	<td>userLoggedIn</td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>${userLoggedIn}</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//li[ contains(@class, 'logout') ]/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>endScript</td>
+	<td></td>
+	<td></td>
+</tr>
+<!----------------->
+<tr>
+	<td>script</td>
+	<td>login</td>
+	<td>username</td>
+</tr>
+<tr>
+	<td>storeElementPresent</td>
+	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
+	<td>userLoggedIn</td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>${userLoggedIn}</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//li[ contains(@class, 'logout') ]/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>drupalWebRoot()</td>
+	<td>drupalWebRoot</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>alert( typeof drupalWebRoot )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endScript</td>
+	<td></td>
+	<td></td>
+</tr>
+<!----------------->
+</tbody></table>
+</body>
+</html>

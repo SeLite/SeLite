@@ -589,7 +589,7 @@ function StorageFromSettings( field ) {
     this.field= field;
     StorageFromSettings.instances[ field.name ]= this;
     if( SeLiteSettings.getTestSuiteFolder() ) {
-        var newFileName= field.getFieldsDownToFolder().entry;
+        var newFileName= field.getDownToFolder().entry;
         //console.log( 'newFileName: ' +newFileName );
         if( newFileName ) {
             this.parameters.fileName= newFileName;
@@ -660,7 +660,7 @@ function testSuiteFolderChangeHandler() {
                                      // In Java that would upset an Iterator object; but in Firefox Javascript the loop continues to iterate well.
             instance.parameters.fileName= null;
         }
-        var newFileName= instance.field.getFieldsDownToFolder().entry;
+        var newFileName= instance.field.getDownToFolder().entry;
         //console.log( 'newFileName: ' +newFileName );
         if( newFileName ) {
             instance.parameters.fileName= newFileName;

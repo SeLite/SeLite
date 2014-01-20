@@ -134,7 +134,7 @@ SeLiteSettings.getField= function( fullName ) {
  *  <br/>defaultKey is only applied (copied into) to set(s) if requireAndPopulate==true and if SeLiteSettings.Module.associatesWithFolders==false.
  *  It is applied when creating or updating a configuration set
  *  (loading an existing configuration set which doesn't have a value for this field).
- *  But if SeLiteSettings.Module.associatesWithFolders==true, defaultKey is applied by getFieldsDownToFolder() no matter what requireAndPopulate.
+ *  But if SeLiteSettings.Module.associatesWithFolders==true, defaultKey is applied by getFieldsDownToFolder() and getDownToFolder() no matter what requireAndPopulate is.
  *  @param bool requireAndPopulate Whether to require a value (or SeLiteSettings.VALUE_PRESENT) to be stored for this field at all times.
  *  If false, the field may not to be stored in the set at all (Javascript: undefined). False by default.
  *  If false, and the field has no value stored in a a set,
@@ -383,7 +383,7 @@ SeLiteSettings.Field.prototype.equals= function( other ) {
     }
     @see SeLiteSettings.Module.getFieldsDownToFolder()
  * */
-SeLiteSettings.Field.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
+SeLiteSettings.Field.prototype.getDownToFolder= function( folderPath, dontCache ) {
     return this.module.getFieldsDownToFolder( folderPath, dontCache )[ this.name ];
 };
 

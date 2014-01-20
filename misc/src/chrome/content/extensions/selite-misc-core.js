@@ -21,11 +21,13 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
 // Anonymous function to prevent leaking into Selenium global namespace
 ( function() {
 
-/** This is here, rather than in selite-misc.js component, because it needs to access global variable 'selenium'.
+/*  This is here, rather than in selite-misc.js component, because it needs to access global variable 'selenium'.
  *  I've tried to have it in selite-misc.js and to load the component using
  *  Components.utils.import( "chrome://selite-misc/content/selite-misc.js", {selenium: selenium} );
  *  above, but that failed, because variable selenium is not yet defined when selite-misc-core.js is processed.
- *  It returns value of given parameter (if present) from current URL;
+ *  @TODO Document that in JavascriptAdvanced.wiki
+ */
+ /**  This returns value of given parameter (if present) from current URL;
  *  if parameter name is not given, then it returns value of the last parameter in the URL.
  *  @param string paramName optional
  *  @return string value of the parameter; null if there are no parameters at all, or if the requested parameter is not present.

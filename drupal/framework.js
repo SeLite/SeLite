@@ -12,7 +12,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-"use strict";
+// Do not have: "use strict";
+// See Bootstrap.wiki.
 
 (function() {
     // @TODO Doc
@@ -57,7 +58,15 @@
                 console.log( ''+users[id] );
             }
         };
-        Selenium.prototype.testDb= storage; // @TODO Do I need this?
+        //Selenium.prototype.testDb= storage; // @TODO Do I need this?
+        
+        var drupalSettingsModule= SeLiteSettings.loadFromJavascript('extensions.selite-settings.drupal-demo');
+        var webRootField= drupalSettingsModule.fields['webRoot'];
+        
+        // Do not define as: var drupalWebRoot=... See Bootstrap.wiki
+        drupalWebRoot= function() {
+            return webRootField.getDownToFolder().entry;
+        };
     // }
     // SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doDrupalUsers']= !loadedOddTimes;
 })();
