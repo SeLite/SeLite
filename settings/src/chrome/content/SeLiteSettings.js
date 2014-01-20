@@ -131,11 +131,11 @@ SeLiteSettings.getField= function( fullName ) {
  *  If multivalued is true, it must be an array (potentially empty) or undefined; it can't be null.
  *  For multivalued fields, this can be an empty array, or an array of keys (i.e. stored values, rather than labels to display, which may not be the same for SeLiteSettings.Field.Choice).
  *  If a non-null and not undefined, then the value (or values) will be each checked by validateKey(value).
- *  <br/>defaultKey is only applied (copied into) to set(s) if requireAndPopulate==true and if SeLiteSettings.Module.associatesWithFolders==false.
- *  It is applied when creating or updating a configuration set
- *  (loading an existing configuration set which doesn't have a value for this field).
- *  But if SeLiteSettings.Module.associatesWithFolders==true, defaultKey is applied by getFieldsDownToFolder() and getDownToFolder() no matter what requireAndPopulate is.
- *  @param bool requireAndPopulate Whether to require a value (or SeLiteSettings.VALUE_PRESENT) to be stored for this field at all times.
+ *  <br/>defaultKey is only applied (copied into) to set(s) if requireAndPopulate==true.
+ *  It is applied when creating or updating a configuration set (loading an existing configuration set which doesn't have a value for this field).
+ *  If requireAndPopulate is false and SeLiteSettings.Module.associatesWithFolders==true, defaultKey is applied by getFieldsDownToFolder() and getDownToFolder() anyway.
+ *  @param bool requireAndPopulate Whether to require a value (or SeLiteSettings.VALUE_PRESENT) to be stored for this field at all times
+ *  (if the field has a default value).s
  *  If false, the field may not to be stored in the set at all (Javascript: undefined). False by default.
  *  If false, and the field has no value stored in a a set,
  *  the behaviour is different to empty/blank or null,  as 'not present' means the field inherits the value from
@@ -1337,12 +1337,12 @@ SeLiteSettings.Module.prototype.createSet= function( setName ) {
         : '';
     for( var fieldName in this.fields ) {
         var field= this.fields[fieldName];
-        if( field.defaultKey!==undefined && field.requireAndPopulate && !this.associatesWithFolders ) {
+        if( field.defaultKey!==undefined && field.requireAndPopulate ) {
             if( !field.multivalued ) {
                 if( !(field instanceof SeLiteSettings.Field.Choice) ) {
                     if( !this.prefsBranch.prefHasUserValue(setNameDot+fieldName) ) {
                         // If we applied the following even for fields that have requireAndPopulate==false, it would
-                        // override 'undefined' value for existing sets, too! So, if you clear it in a set, it would get re-set again!
+                        // override 'undefined' value for existing sets, too! So, if you cleared it in a set, it would get re-set again!
                         field.setDefault( setName ); // That adds a dot, if necessary
                     }
                 }
