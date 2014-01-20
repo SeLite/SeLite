@@ -71,7 +71,7 @@ SeLiteMisc.getUrlParam= function( paramName ) {
     @param {string} username Case-sensitive username.
     @param {mixed} hostnameOrUseBaseURL String hostname in form 'https://server-name.some.domain'. It must contain http or https. It can contain the port (if not standard),
     but no trailing slash / neither any URI (path). Optional; if not present, then this uses the current website.
-    If it's true (boolean), then the function uses Selenium IDE's "Base URL" field - which may be different to the test website (e.g. single-sign-on).
+    If it's true (boolean), then the function uses Selenium IDE's "Base URL" field - which may be different to the test website (e.g. single-sign-on). @TODO Once/if http://code.google.com/p/selenium/issues/detail?id=3116 is fixed, I'd need to extract the protocol+host+port from Base URL here.
     @return {string} password if found; null otherwise
 */
 SeLiteMisc.loginManagerPassword= function( username, hostnameOrUseBaseURL ) {
@@ -81,7 +81,7 @@ SeLiteMisc.loginManagerPassword= function( username, hostnameOrUseBaseURL ) {
     var hostname= hostnameOrUseBaseURL
         ? (typeof hostnameOrUseBaseURL==='string'
             ? hostnameOrUseBaseURL
-            : selenium.browserbot.baseUrl // @TODO Once/if http://code.google.com/p/selenium/issues/detail?id=3116 is fixed, I'd need to extract the protocol+host+port here
+            : selenium.browserbot.baseUrl
           )
         : testLocation.protocol+ testLocation.hostname+
             (testLocation.port

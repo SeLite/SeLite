@@ -47,18 +47,16 @@
         });
 
         /** @param {number} uid Optional uid to filter by. */
-        Selenium.prototype.doDrupalUsers= function( uid, ignored) {
-            var users= uid===''
+        Selenium.prototype.doDrupalUsers= function( username, ignored) {
+            var users= username===''
                 ? usersFormula.select()
-                : usersFormula.select( {uid: uid} );
+                : usersFormula.select( {name: username} ); //@TODO detect numbers as such; everything else - put inside '' and escape '
             console.log( 'doDrupalUsers: ' +users );
             for( var id in users ) {
                 console.log( ''+users[id] );
             }
         };
         Selenium.prototype.testDb= storage;
-
-        //@TODO use selenium.browserbot.baseUrl
     // }
     // SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doDrupalUsers']= !loadedOddTimes;
 })();

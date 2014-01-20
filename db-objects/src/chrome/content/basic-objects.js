@@ -20,6 +20,8 @@ Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
 Components.utils.import('chrome://selite-db-objects/content/basic-storage.js');
 Components.utils.import('chrome://selite-db-objects/content/db.js');
 
+var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+
 /** @constructor
  *  @param {SeLiteData.Storage} storage Underlying lower-level storage object.
  *  @param string tableNamePrefix optional
@@ -627,7 +629,7 @@ RecordSetHolder.prototype.select= function() {
         ? this.parametersOrCondition
         : {};
     var unnamedParamFilters= []; // Filter conditions based on entries from parameters that match a table/join column/alias.
-                           // Such entries in parameters then serve as AND subfilters, rather than as named parameters.
+                           // Such entries in parameters then serve as AND subfilters, rather than as named parameters. @TODO factor out; check in RecordSetHolder() constructor, store there on the instance and reuse here - as a protective copy below
     for( var param in parameters ) {
         // If param matches a table column name/alias, or a column name/alias, then it's not a named parameter.
         var paramIsColumnOrAlias= false; // This will be true if param is moved to unnamedParams.
@@ -679,8 +681,8 @@ RecordSetHolder.prototype.select= function() {
             !(param in this.formula.parameterNames ) || SeLiteMisc.fail( "RecordSetHolder.select() received a parameter " +param+ " which matches a column or alias, but it also matches one of parameterNames of SeLiteData.RecordSetFormula instance." );
             unnamedParamFilters.push( param+ '=' +
                 (typeof parameters[param]==='string'
-                 ? parameters[param]
-                 : "'" +this.storage().quote( parameters[param] )+ "'"
+                 ? this.storage().quote( parameters[param] )
+                 : parameters[param]
                 ) );
             delete parameters[param];
             continue;
@@ -693,7 +695,7 @@ RecordSetHolder.prototype.select= function() {
             delete parameters[param];
         }
     }
-    var conditions= unnamedParamFilters.slice();
+    var conditions= unnamedParamFilters; // @TODO use .slice() protective copy, once we factor the above into constructor
     conditions.splice( 0, formula.fetchCondition, condition );
     var self= this;
     var data= this.storage().getRecords( {
