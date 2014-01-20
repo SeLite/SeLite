@@ -22,8 +22,7 @@ var runningAsComponent= (typeof window==='undefined' || window && window.locatio
 // Whether this file is being loaded.
 var loadingPackageDefinition= true;
 if( runningAsComponent ) {
-    // prefs is an instance of nsIPrefBranch
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
+    var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService); // -> instance of nsIPrefBranch
     Components.utils.import("resource://gre/modules/Services.jsm");
     Components.utils.import("resource://gre/modules/FileUtils.jsm");
     Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
@@ -1440,7 +1439,7 @@ SeLiteSettings.fileNameToUrl= function( fileNameOrUrl ) {
  *  @param {string} [moduleFileOrUrl] Either
  *  - file path + name of the module definition file; or
  *  - URL (either chrome:, resource: or file:) to the module definition file
- *  Optional; only used if the module has not been registered yet - then it's required.
+ *  Optional; even if it's specified, it's used only if the module has not been registered yet - and then it's required.
  *  Standard client code should only pass it when installing a module. Clients that expect a module to be installed
  *  shouldn't pass moduleFileOrUrl.
  *  @param forceReload bool Whether reload the module and overwrite the already cached object,
@@ -1460,7 +1459,7 @@ SeLiteSettings.loadFromJavascript= function( moduleName, moduleFileOrUrl, forceR
         }
     }
     var moduleUrl;
-    // If the module has been registered, then there is be a preference matching its full name to file path or url of its definition file
+    // If the module has been registered, then there isa preference matching its full name to file path or url of its definition file
     var prefsBranch= prefs.getBranch( moduleName+'.' );
     if( prefsBranch.prefHasUserValue(MODULE_DEFINITION_FILE_OR_URL) ) {
         moduleUrl= SeLiteSettings.fileNameToUrl( prefsBranch.getCharPref(MODULE_DEFINITION_FILE_OR_URL) );
@@ -1475,11 +1474,10 @@ SeLiteSettings.loadFromJavascript= function( moduleName, moduleFileOrUrl, forceR
     }
     try {
         // I don't use Components.utils.import( fileUrl.spec ) because that requires the javascript file to have EXPORTED_SYMBOLS array.
-        // Components.utils.import() would cache the javascript.
-        // subScriptLoader.loadSubScript() doesn't cache the javascript and it (re)evaluates it, which makes development easier
-        // and the cost of reloading is not important.
+        // Also, Components.utils.import() caches the file.
+        // subScriptLoader.loadSubScript() doesn't cache the javascript and it (re)evaluates it, which makes development easier.
+        // Side note: The following requires the second parameter (the scope) of loadSubScript(), even if it were empty {}.
         subScriptLoader.loadSubScript( moduleUrl,
-            // Side note: Must specify the second parameter (the scope) of loadSubScript(), even if it is empty {} - otherwise there were conflicts
             {
                 SeLiteSettings: SeLiteSettings,
                 SELITE_SETTINGS_FILE_URL: moduleUrl

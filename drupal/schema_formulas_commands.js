@@ -32,7 +32,7 @@
     // Once you open/save a test suite, storage object will get updated automatically and it will open an SQLite connection.
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 
-        var storage= SeLiteData.getStorageFromSettings('extensions.selite-settings.basic.testDB');
+        var storage= SeLiteData.getStorageFromSettings('extensions.selite-settings.drupal-demo.testDB');
         var db= new SeLiteData.Db( storage );
 
         var users= new SeLiteData.Table( {
