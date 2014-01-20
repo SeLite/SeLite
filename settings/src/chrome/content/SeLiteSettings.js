@@ -40,8 +40,10 @@ var modules= SeLiteMisc.sortedObject(true); // @private Object serving as an ass
 
 SeLiteSettings.SELECTED_SET_NAME= "SELITE_SELECTED_SET_NAME"; // CSS also depends on its value
 
-// SET_DEFINITION_JAVASCRIPT is an optional hidden field, which allows SeLiteSettings to load the definition automatically
+// SELITE_MODULE_DEFINITION_FILE_OR_URL is hidden preference of the module, which allows SeLiteSettings to load the definition automatically
 var MODULE_DEFINITION_FILE_OR_URL= "SELITE_MODULE_DEFINITION_FILE_OR_URL";
+// MODULE_DEFINITION_ALLOW_SETS is hidden preference of the module, which reflects 'allowSets' property of SeLiteSettings.Module instance.
+var MODULE_DEFINITION_ALLOW_SETS= 'MODULE_DEFINITION_ALLOW_SETS';
 
 // Following are not field names, but they're used in the tree for 'properties' metadata and for buttons that create or delete a set
 SeLiteSettings.SET_SELECTION_ROW= "SELITE_SET_SELECTION_ROW";
@@ -75,6 +77,7 @@ SeLiteSettings.FIELD_NULL_OR_UNDEFINED= 'SELITE_FIELD_NULL_OR_UNDEFINED';
 SeLiteSettings.reservedNames= [
     SeLiteSettings.SELECTED_SET_NAME,
     MODULE_DEFINITION_FILE_OR_URL,
+    MODULE_DEFINITION_ALLOW_SETS,
     SeLiteSettings.SET_SELECTION_ROW,
     SeLiteSettings.FIELD_MAIN_ROW,
     SeLiteSettings.FIELD_TREECHILDREN,
@@ -1276,13 +1279,12 @@ SeLiteSettings.Module.prototype.register= function() {
         this.prefsBranch.prefHasUserValue( MODULE_DEFINITION_FILE_OR_URL ) || SeLiteMisc.fail( "Settings module " +this.name+ " has never been registered before, and it doesn't know location of its definition file. Pass SELITE_SETTINGS_FILE_URL when instantiating SeLiteSettings.Module." );
     }
     
-    if( this.prefsBranch.prefHasUserValue('allowSets') ) {//@TODO
-        var oldAllowSets= this.prefsBranch.getBoolPref('');
-        //  @TODO Store allowSets in preferences somehow, and check allowSets against what is in the preferences
-        oldAllowSets===this.allowSets || SeLiteMisc.fail ( 'Settings module ' +this.name+ " used to have allowSets=" +oldAllowSets+ " and now it's " +this.allowSets+ ". It can't be changed!" );
+    if( this.prefsBranch.prefHasUserValue(MODULE_DEFINITION_ALLOW_SETS) ) {
+        var oldAllowSets= this.prefsBranch.getBoolPref(MODULE_DEFINITION_ALLOW_SETS);
+        oldAllowSets===this.allowSets || SeLiteMisc.fail ( 'Settings module ' +this.name+ " used to have allowSets=" +oldAllowSets+ " and now it's " +this.allowSets+ ". It can't be changed without manual intervention!" );
     }
     else {
-        //this.prefsBranch.setBoolPref('allowSets');@TODO
+        this.prefsBranch.setBoolPref( MODULE_DEFINITION_ALLOW_SETS, this.allowSets );
     }
     if( this.name in modules ) {
         var existingModule= modules[this.name];
@@ -1376,10 +1378,16 @@ SeLiteSettings.Module.prototype.createSet= function( setName ) {
             }
         }
     }
-    // I store an empty string to mark the presence of the set. That makes the set show up even if
+    // Following makes the set show up even if
     // it has no stored fields. That may happen initially (all fields have populateInSets==false), or later
     // (if the user deletes all the values in the set) - therefore I do this now.
-    this.prefsBranch.setCharPref( setName, SET_PRESENT);
+    try { // When following failed, the exception has very little information and no .stack. @TODO Factor out to a function and use it.
+        this.prefsBranch.setCharPref( setName, SET_PRESENT);
+    }
+    catch( e ) {
+        console.log( 'SeLiteSettings for module ' +this.name+ ' failed to mark set ' +setName+ ' with constant SET_PRESENT (value ' +SET_PRESENT+ ').' );
+        throw e;
+    }
 };
 
 /** Remove the set of the given name.
@@ -1479,7 +1487,7 @@ SeLiteSettings.loadFromJavascript= function( moduleName, moduleFileOrUrl, forceR
         );
     }
     catch(e ) {
-        e.message= 'SeLiteSettings.Module ' +moduleName+ ': ' +e.message;
+        console.log( 'Exception when loading SeLiteSettings.Module ' +moduleName+ ': ' +e+ '\nStack trace:\n' +e.stack );
         throw e;
     }
     moduleName in modules || SeLiteMisc.fail( "Loaded definition of module " +moduleName+ " and it was found in preferences, but it didn't register itself properly. Fix its definition at " +moduleUrl+ " so that it registers itself." );
