@@ -25,7 +25,7 @@ if( runningAsComponent ) {
 
 var SeLiteMisc= {};
 
-/** This throws the given error or a new error (containg the given message, if any). It also logs the current stack trase to console as a warning.
+/** This throws the given error or a new error (containg the given message, if any). It also logs the current stack trace to console as a warning.
  *  @param errorOrMessage An Error, or a string message, or undefined/null.
  *  @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
  *  - as it mentions, the rethrown exception will have incorreect stack information: Note that the thrown MyError will report incorrect lineNumber and fileName at least in Firefox.

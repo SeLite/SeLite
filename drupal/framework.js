@@ -48,15 +48,16 @@
 
         /** @param {number} uid Optional uid to filter by. */
         Selenium.prototype.doDrupalUsers= function( username, ignored) {
+             //@TODO in a separate function - detect numbers via e.g. parseInt or parseFloat
             var users= username===''
                 ? usersFormula.select()
-                : usersFormula.select( {name: username} ); //@TODO detect numbers as such; everything else - put inside '' and escape '
+                : usersFormula.select( {name: username} );
             console.log( 'doDrupalUsers: ' +users );
             for( var id in users ) {
                 console.log( ''+users[id] );
             }
         };
-        Selenium.prototype.testDb= storage;
+        Selenium.prototype.testDb= storage; // @TODO Do I need this?
     // }
     // SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doDrupalUsers']= !loadedOddTimes;
 })();

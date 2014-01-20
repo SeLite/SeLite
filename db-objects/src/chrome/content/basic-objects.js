@@ -679,11 +679,16 @@ RecordSetHolder.prototype.select= function() {
         if( paramIsColumnOrAlias ) {
             // @TODO Move the following validation to SeLiteData.RecordSetFormula(). For that factor out the above logic that detemines paramIsColumn.
             !(param in this.formula.parameterNames ) || SeLiteMisc.fail( "RecordSetHolder.select() received a parameter " +param+ " which matches a column or alias, but it also matches one of parameterNames of SeLiteData.RecordSetFormula instance." );
-            unnamedParamFilters.push( param+ '=' +
-                (typeof parameters[param]==='string'
-                 ? this.storage().quote( parameters[param] )
-                 : parameters[param]
-                ) );
+            unnamedParamFilters.push(
+                (parameters[param]!==null
+                 ? param+ '=' +
+                    (typeof parameters[param]==='string'
+                     ? this.storage().quote( parameters[param] )
+                     : parameters[param]
+                    )
+                 : param+ ' IS NULL'
+                )
+            );
             delete parameters[param];
             continue;
         }
