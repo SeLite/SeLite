@@ -58,15 +58,30 @@
                 console.log( ''+users[id] );
             }
         };
-        //Selenium.prototype.testDb= storage; // @TODO Do I need this?
         
         var drupalSettingsModule= SeLiteSettings.loadFromJavascript('extensions.selite-settings.drupal-demo');
         var webRootField= drupalSettingsModule.fields['webRoot'];
         
-        // Do not define as: var drupalWebRoot=... See Bootstrap.wiki
-        drupalWebRoot= function() {
+        // Following is a namespace-like object for the 'global' scope - see Bootstrap.wiki
+        Drupal= {};
+        Drupal.webRoot= function() {
             return webRootField.getDownToFolder().entry;
+        }
+        
+        /** Convert a given symbolic role name (prefixed with '&') to username, or return a given username unchanged.
+         *  @param {string} userNameOrRoleWithPrefix Either a symbolic role name, starting with '&', or a username.
+         *  @return {string} Username mapped to userNameOrRoleWithPrefix (after removeing '&' prefix) through extensions.selite-settings.drupal-demo settings. If userNameOrRoleWithPrefix doesn't start with '&', this returns it unchanged.
+         * */
+        Drupal.roleToUser= function( userNameOrRoleWithPrefix ) {
+            if( userNameOrRoleWithPrefix.startsWith('&') ) {
+                return userNameOrRoleWithPrefix.substring(1);
+                // @TODO Settings
+            }
+            else {
+                return userNameOrRoleWithPrefix;
+            }
         };
+        
     // }
     // SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doDrupalUsers']= !loadedOddTimes;
 })();

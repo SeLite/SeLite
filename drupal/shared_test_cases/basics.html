@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>script</td>
-	<td>logout</td>
+	<td>logOut</td>
 	<td></td>
 </tr>
 <tr>
@@ -44,9 +44,10 @@
 <!----------------->
 <tr>
 	<td>script</td>
-	<td>login</td>
-	<td>username</td>
+	<td>logIn</td>
+	<td>userNameOrRole</td>
 </tr>
+<!--if the user is logged in already, log him out:-->
 <tr>
 	<td>storeElementPresent</td>
 	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
@@ -67,14 +68,51 @@
 	<td></td>
 	<td></td>
 </tr>
+<!--make sure we're at login screen-->
+<tr>
+	<td>storeElementPresent</td>
+	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
+	<td>userNamePresent</td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>userNamePresent</td>
+	<td></td>
+</tr>
 <tr>
 	<td>storeEval</td>
-	<td>drupalWebRoot()</td>
+	<td>Drupal.webRoot()</td>
 	<td>drupalWebRoot</td>
 </tr>
 <tr>
-	<td>getEval</td>
-	<td>alert( typeof drupalWebRoot )</td>
+	<td>open</td>
+	<td>${drupalWebRoot}</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>type</td>
+	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
+	<td>${userName}</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>SeLiteMisc.loginManagerPassword( Drupal.roleToUser('${userNameOrRole}') )</td>
+	<td>password</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>//form[ @id='user-login-form' ]//input[ @id='edit-pass' ]</td>
+	<td>${password}</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//form[ @id='user-login-form' ]//input[ @id='edit-submit' ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -83,6 +121,11 @@
 	<td></td>
 </tr>
 <!----------------->
+<tr>
+	<td>call</td>
+	<td>logIn</td>
+	<td>userNameOrRole='&amp;pkehl'</td>
+</tr>
 </tbody></table>
 </body>
 </html>

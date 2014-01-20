@@ -85,10 +85,11 @@ SeLiteMisc.loginManagerPassword= function( username, hostnameOrUseBaseURL ) {
             ? hostnameOrUseBaseURL
             : selenium.browserbot.baseUrl
           )
-        : testLocation.protocol+ testLocation.hostname+
+        : testLocation.protocol+ '//' +testLocation.hostname+
             (testLocation.port
             ? ':' +testLocation.port
             : '');
+    console.log( 'SeLiteMisc.loginManagerPassword(): hostname is ' +hostname );
     var logins = loginManagerInstance.findLogins(
         {}, hostname,
         '', // null doesn't work here. See https://developer.mozilla.org/En/Using_nsILoginManager - it says to use blank for web form auth.
