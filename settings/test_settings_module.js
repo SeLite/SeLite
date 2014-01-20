@@ -34,12 +34,15 @@ var module= new SeLiteSettings.Module( 'extensions.selite-settings.test',
 );
 module.createSet( 'alternativeSet');
 
- // Testing that SeLiteSettings.Module() checks/compares modules properly: @TODO test
-/*mainDb= new SeLiteSettings.Field.File('mainDb', true, { 'SQLite': '.sqlite'});
-module= new SeLiteSettings.Module( 'extensions.selite-settings.test.',
+ // Testing that SeLiteSettings.Module() checks/compares and upgrades modules properly:
+ /*
+mainDb= new SeLiteSettings.Field.File('mainDb', true, { 'SQLite': '.sqlite'});
+module= new SeLiteSettings.Module( 'extensions.selite-settings.test',
     [mainDb],
     true,
-    'mainSet.'
+    'mainSet',
+    false,
+    SELITE_SETTINGS_FILE_URL
 );
 /**/
 
