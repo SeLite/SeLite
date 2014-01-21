@@ -22,7 +22,7 @@ var folders= new SeLiteSettings.Field.Folder( 'folders', false, false, true, [] 
 var bool= new SeLiteSettings.Field.Bool('aBooleanField', false);
 var appWebroot= new SeLiteSettings.Field.String('appWebroot', false, 'http://localhost/app');
 var maxNumberOfRuns= new SeLiteSettings.Field.Int('maxNumberOfRuns', false, 20);
-var multiNumbers= new SeLiteSettings.Field.Int('multiNumbers', true, [8,9], true );
+var multiNumbers= new SeLiteSettings.Field.Int('multiNumbers', true, [8,9], /*requireAndPopulate*/true );
 var decimal= new SeLiteSettings.Field.Decimal('decimal', false, 3.141 );
 
 var module= new SeLiteSettings.Module( 'extensions.selite-settings.test',
