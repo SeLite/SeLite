@@ -161,7 +161,9 @@ SeLiteSettings.Field= function( name, multivalued, defaultKey, requireAndPopulat
         throw new Error( 'SeLiteSettings.Field("' +name+ ') expects multivalued to be a boolean, if provided.');
     }
     this.multivalued= multivalued;
-    !this.multivalued || defaultKey===undefined || Array.isArray(defaultKey) || SeLiteMisc.fail( "Multi valued field " +name+ " must have default a default key - an array (possibly []) or undefined." );
+    !this.multivalued || defaultKey===undefined || Array.isArray(defaultKey)
+        || typeof defaultKey==='object' && this instanceof SeLiteSettings.Field.FixedMap
+        || SeLiteMisc.fail( "Multi valued field " +name+ " must have default a default key - an array (possibly empty []) or undefined." );
     this.multivalued || defaultKey===undefined || defaultKey===null || typeof defaultKey!=='object' || SeLiteMisc.fail( 'Single valued field ' +name+ " must have default key a primitive or null.");
     this.defaultKey= defaultKey;
     this.requireAndPopulate= requireAndPopulate || false;
@@ -171,9 +173,11 @@ SeLiteSettings.Field= function( name, multivalued, defaultKey, requireAndPopulat
     
     !(this.defaultKey===null && multivalued) || SeLiteMisc.fail( 'SeLiteSettings.Field ' +name+ " must have a non-null defaultKey (possibly undefined), because it's multivalued." );
     if( this.defaultKey!==undefined && this.defaultKey!==null ) {
-        !this.multivalued || SeLiteMisc.ensureInstance( this.defaultKey, Array, "defaultKey of a multivalued field must be an array" );
         var defaultKeys= this.multivalued
-            ? this.defaultKey
+            ? (this instanceof SeLiteSettings.Field.FixedMap
+                ? SeLiteMisc.objectValues(this.defaultKey)
+                : this.defaultKey
+              )
             : [this.defaultKey];
         for( var i=0; i<defaultKeys.length; i++ ) {//@TODO use loop for(.. of..) once NetBeans supports it
             var key= defaultKeys[i];
@@ -190,8 +194,8 @@ SeLiteSettings.Field= function( name, multivalued, defaultKey, requireAndPopulat
             throw new Error( "Can't instantiate SeLiteSettings.Field directly, except for prototype instances. name: " +this.name );
         }
         SeLiteMisc.ensureInstance(this, 
-            [SeLiteSettings.Field.Bool, SeLiteSettings.Field.Int, SeLiteSettings.Field.Decimal, SeLiteSettings.Field.String, SeLiteSettings.Field.File, SeLiteSettings.Field.Folder, SeLiteSettings.Field.SQLite, SeLiteSettings.Field.Choice.Int, SeLiteSettings.Field.Choice.Decimal, SeLiteSettings.Field.Choice.String],
-            "SeLiteSettings.Field.Bool, SeLiteSettings.Field.Int, SeLiteSettings.Field.String, SeLiteSettings.Field.Decimal, SeLiteSettings.Field.File, SeLiteSettings.Field.Folder, SeLiteSettings.Field.SQLite, SeLiteSettings.Field.Choice.Int, SeLiteSettings.Field.Choice.Decimal, SeLiteSettings.Field.Choice.String", "SeLiteSettings.Field " +this.name+ " is not of an acceptable class." );
+            [SeLiteSettings.Field.Bool, SeLiteSettings.Field.Int, SeLiteSettings.Field.Decimal, SeLiteSettings.Field.String, SeLiteSettings.Field.File, SeLiteSettings.Field.Folder, SeLiteSettings.Field.SQLite, SeLiteSettings.Field.Choice.Int, SeLiteSettings.Field.Choice.Decimal, SeLiteSettings.Field.Choice.String, SeLiteSettings.Field.FixedMap],
+            "SeLiteSettings.Field.Bool, SeLiteSettings.Field.Int, SeLiteSettings.Field.String, SeLiteSettings.Field.Decimal, SeLiteSettings.Field.File, SeLiteSettings.Field.Folder, SeLiteSettings.Field.SQLite, SeLiteSettings.Field.Choice.Int, SeLiteSettings.Field.Choice.Decimal, SeLiteSettings.Field.Choice.String, SeLiteSettings.Field.FixedMap", "SeLiteSettings.Field instance with name '" +this.name+ "' is not of an acceptable class." );
     }
     loadingPackageDefinition || this.name.indexOf('.')<0 || SeLiteMisc.fail( 'SeLiteSettings.Field() expects name not to contain a dot, but it received: ' +this.name);
     this.module= null; // instance of Module that this belongs to (once registered)
@@ -619,6 +623,18 @@ SeLiteSettings.Field.Choice.String= function( name, multivalued, defaultKey, cho
 };
 SeLiteSettings.Field.Choice.String.prototype= new SeLiteSettings.Field.Choice('ChoiceString.prototype');
 SeLiteSettings.Field.Choice.String.prototype.constructor= SeLiteSettings.Field.Choice.String;
+
+/** This represents a freetype map with a fixed keyset. This is an abstract class, serving as a parent.
+ *  @param {string} name
+ *  @param {string[]} keySet
+ * */
+SeLiteSettings.Field.FixedMap= function( name, keySet, defaultMappings, requireAndPopulate, customValidate ) {
+    SeLiteSettings.Field.NonChoice.call( this, name, /*multivalued*/true, defaultMappings, requireAndPopulate, customValidate );
+    this.keySet= keySet;
+};
+SeLiteSettings.Field.FixedMap.prototype= new SeLiteSettings.Field.NonChoice('FixedMap.prototype');
+SeLiteSettings.Field.FixedMap.prototype.constructor= SeLiteSettings.Field.FixedMap;
+
 
 /** Create a Settings module.
  *  @param name string Name prefix for preferences/fields for this module.
@@ -1359,13 +1375,21 @@ SeLiteSettings.Module.prototype.createSet= function( setName ) {
                 if( !this.prefsBranch.prefHasUserValue(setNameDot+fieldName) ) {
                     if( !fieldHasChildren ) {
                         var defaultKeys= field.getDefaultKey();
-                        if( defaultKeys.length>0 ) {
-                            for( var i=0; i<defaultKeys.length; i++ ) { // @TODO Replace the loop with for.. of.. loop once NetBeans support it
-                                field.addValue( setName, defaultKeys[i] ); // For SeLiteSettings.Field.Choice defaultKeys contains the keys rather than values
+                        if( field instanceof SeLiteSettings.Field.FixedMap ) {
+                            for( var key in defaultKeys ) {
+                                var value= defaultKeys[key];
+                                field.setValue( setName, key, value );
                             }
                         }
                         else {
-                            this.prefsBranch.setCharPref( setNameDot+ field.name, SeLiteSettings.VALUE_PRESENT );
+                            if( defaultKeys.length>0 ) {
+                                for( var i=0; i<defaultKeys.length; i++ ) { // @TODO Replace the loop with for.. of.. loop once NetBeans support it
+                                    field.addValue( setName, defaultKeys[i] ); // For SeLiteSettings.Field.Choice defaultKeys contains the keys rather than values
+                                }
+                            }
+                            else {
+                                this.prefsBranch.setCharPref( setNameDot+ field.name, SeLiteSettings.VALUE_PRESENT );
+                            }
                         }
                     }
                 }
