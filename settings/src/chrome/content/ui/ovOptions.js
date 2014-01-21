@@ -404,12 +404,18 @@ function valueCompound( field, setName ) {
  *  (not in per-folder mode).
  *  @param field Instance of SeLiteSettings.Field
  *  @param valueCompound One of entries of result of Module.Module.getFieldsOfSet().
- *  @param {boolean} atOptionLevel Whether this is called for RowLevel.OPTION. That can be only for instances of SeLiteSettings.Field.FixedMap.
+ *  @param {[boolean]} atOptionLevel Whether this is called for RowLevel.OPTION. That can be only for instances of SeLiteSettings.Field.FixedMap.
+ *  @param {[*]} value Value, or undefined or null. Optional; only used and required for SeLiteSettings.Field.FixedMap when atOptionLevel is true
  *  @return string Empty string, 'Null' or 'Undefine', as an appropriate action for this field.
  * */
-function nullOrUndefineLabel( field, valueCompound, atOptionLevel ) {
+function nullOrUndefineLabel( field, valueCompound, atOptionLevel, value ) {
     targetFolder===null || SeLiteMisc.fail();
-    if( !field.multivalued || atOptionLevel && field instanceof SeLiteSettings.Field.FixedMap ) {
+    if( atOptionLevel && field instanceof SeLiteSettings.Field.FixedMap ) {
+        return value===null
+            ? 'Undefine'
+            : 'Null';
+    }
+    else if( !field.multivalued ) {
         return valueCompound.entry===null
             ? (field.requireAndPopulate
                 ? ''
@@ -461,6 +467,7 @@ function nullOrUndefineLabel( field, valueCompound, atOptionLevel ) {
  *  @return object for a new element <treeitem> with one <treerow>
  * */
 function generateTreeItem( module, setName, field, valueOrPair, rowLevel, optionIsSelected, isNewValueRow, valueCompound ) {
+    if( field instanceof SeLiteSettings.Field.FixedMap ) { console.log( SeLiteMisc.objectToString(valueCompound, 3)); }
     if( !(rowLevel instanceof RowLevel) || rowLevel===RowLevel.CHECKBOX || rowLevel===RowLevel.ACTION ) {
         throw new Error("Parameter rowLevel must be an instance of RowLevel, but not CHECKBOX neither ACTION.");
     }
@@ -678,7 +685,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
             treerow.appendChild( treecell);
             treecell.setAttribute('editable', 'false');
             if( targetFolder===null ) {
-                treecell.setAttribute( 'label', nullOrUndefineLabel(field, valueCompound, rowLevel===RowLevel.OPTION) );
+                treecell.setAttribute( 'label', nullOrUndefineLabel(field, valueCompound, rowLevel===RowLevel.OPTION, value) );
             }
             else {
                 treecell.setAttribute( 'properties', valueCompound.folderPath!==null
