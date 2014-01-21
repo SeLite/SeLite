@@ -409,7 +409,7 @@ function valueCompound( field, setName ) {
  * */
 function nullOrUndefineLabel( field, valueCompound, atOptionLevel ) {
     targetFolder===null || SeLiteMisc.fail();
-    if( !field.multivalued || atOptionLevel && field instanceof SeLiteSettings.Field.FixedMap ) {//@TODO
+    if( !field.multivalued || atOptionLevel && field instanceof SeLiteSettings.Field.FixedMap ) {
         return valueCompound.entry===null
             ? (field.requireAndPopulate
                 ? ''
@@ -762,22 +762,38 @@ function generateFields( setChildren, module, setName, setFields ) {
             (field.multivalued || isChoice)
         ) {
             var fieldChildren= createTreeChildren( fieldItem );
-            var pairsToList= isChoice
-                ? field.choicePairs
-                : compound.entry;
-            
-            for( var key in pairsToList ) {////@TODO potential IterableArray
-                var pair= {};
-                pair[key]= pairsToList[key];
-                !isChoice || compound.entry===undefined || typeof(compound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value ' +typeof compound.entry );
-                var optionItem= generateTreeItem(module, setName, field, pair,
-                    RowLevel.OPTION,
-                    isChoice && typeof(compound.entry)==='object'
-                        && compound.entry!==null && key in compound.entry,
-                    false,
-                    compound
-                );
-                fieldChildren.appendChild( optionItem );
+            if( field instanceof SeLiteSettings.Field.FixedMap ) {
+                for( var i=0; i<field.keySet.length; i++ ) { //@TODO loop for( .. of ..) once NetBeans supports it
+                    var key= field.keySet[i];
+                    var pair= {};
+                    pair[key]= compound.entry[key];
+                    var optionItem= generateTreeItem(module, setName, field, pair,
+                        RowLevel.OPTION,
+                        /*optionIsSelected*/false,
+                        /*isNewValueRow*/false,
+                        compound
+                    );
+                    fieldChildren.appendChild( optionItem );
+                }
+            }
+            else {
+                var pairsToList= isChoice
+                    ? field.choicePairs
+                    : compound.entry;
+
+                for( var key in pairsToList ) {////@TODO potential IterableArray
+                    var pair= {};
+                    pair[key]= pairsToList[key];
+                    !isChoice || compound.entry===undefined || typeof(compound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value ' +typeof compound.entry );
+                    var optionItem= generateTreeItem(module, setName, field, pair,
+                        RowLevel.OPTION,
+                        isChoice && typeof(compound.entry)==='object'
+                            && compound.entry!==null && key in compound.entry,
+                        false,
+                        compound
+                    );
+                    fieldChildren.appendChild( optionItem );
+                }
             }
             treeRowsOrChildren[ module.name ][ setName ][ fieldName ][ SeLiteSettings.FIELD_TREECHILDREN ]= fieldChildren;
         }
