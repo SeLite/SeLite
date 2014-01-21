@@ -7,10 +7,10 @@ var appDBpermissions= new SeLiteSettings.Field.String( 'appDBpermissions', /*mul
 var webroot= new SeLiteSettings.Field.String('webRoot', /*multivalued:*/false, 'http://localhost/drupal7/', /*requireAndPopulate:*/true);
 //var maxNumberOfRuns= new SeLiteSettings.Field.Int('maxNumberOfRuns', false, 20);
 
-var users= new SeLiteSettings.Field.FixedMap.String( 'FixedMapTest', [], {} );
+var users= new SeLiteSettings.Field.FixedMap.String( 'FixedMapTest', ['admin', 'editor'], {admin: 'pkehl', editor: 'johns'}, /*requireAndPopulate*/true );
 
 new SeLiteSettings.Module( 'extensions.selite-settings.drupal-demo',
-    [appDB, testDB, vanillaDB, appDBpermissions, webroot/*, maxNumberOfRuns*/],
+    [appDB, testDB, vanillaDB, appDBpermissions, webroot/*, maxNumberOfRuns*/, users],
     true,
     'default',
     true,

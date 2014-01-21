@@ -332,19 +332,22 @@ SeLiteSettings.Field.prototype.setPref= function( setFieldKeyName, value ) {
  * @param mixed key as used to generate the preference name (key), appened after fieldName and a dot. String or number.
  * For non-choice multivalued fields it's also used as the value stored in preferences; and for Int
  * it transforms it into a number.
- * @TODO function to set a multivalued/choice field to undefined (if this.requireAndPopulate===false)
+ * @param {boolean|number|string} value Only used by SeLiteSettings.Field.FixedMap. Otherwise it must be undefined.
+ * @TODO Low priority: API function to set a multivalued/choice field to undefined (if this.requireAndPopulate===false)
  * */
-SeLiteSettings.Field.prototype.addValue= function( setName, key ) {
-    this.multivalued || this instanceof SeLiteSettings.Field.Choice || SeLiteMisc.fail();
+SeLiteSettings.Field.prototype.addValue= function( setName, key, value ) {
+    this.multivalued || this instanceof SeLiteSettings.Field.Choice || SeLiteMisc.fail("Use SeLiteSettings.Field.addValue() only for multivalued or choice fields.");
     var setNameDot= setName!==''
         ? setName+'.'
         : '';
-    if( !(this.multivalued || this instanceof SeLiteSettings.Field.Choice) ) {
-        throw new Error( "Use SeLiteSettings.Field.addValue() only for multivalued or choice fields." );
+    if( this instanceof SeLiteSettings.Field.FixedMap ) {
+        value!==undefined || SeLiteMisc.fail( ''+this+ '.addValue() was called with key=' +key+ ' and value===undefined.' );
     }
-    var value= this instanceof SeLiteSettings.Field.Choice
-        ? this.choicePairs[key]
-        : key;
+    else {
+        value= this instanceof SeLiteSettings.Field.Choice
+            ? this.choicePairs[key]
+            : key;
+    }
     this.setPref( setNameDot+ this.name+ '.' +key, value );
 };
 /** Only to be used with multivalued or choice fields. If the key was not set, then this returns without failing.
@@ -633,24 +636,23 @@ SeLiteSettings.Field.FixedMap= function( name, keySet, defaultMappings, requireA
         || SeLiteMisc.fail( "Can't define instances of SeLiteSettings.Field.FixedMap class itself outside the package. Use SeLiteSettings.Field.FixedMap.Bool, SeLiteSettings.Field.FixedMap.Int, SeLiteSettings.Field.FixedMap.Decimal or SeLiteSettings.Field.FixedMap.String." );
     SeLiteSettings.Field.NonChoice.call( this, name, /*multivalued*/true, defaultMappings, requireAndPopulate, customValidate );
     this.keySet= keySet;
-};
-SeLiteSettings.Field.FixedMap.prototype= new SeLiteSettings.Field.NonChoice('FixedMap.prototype');
-SeLiteSettings.Field.FixedMap.prototype.constructor= SeLiteSettings.Field.FixedMap;
-SeLiteSettings.Field.FixedMap.prototype.setValue= function( setName, key, value ) {
-    //@TODO
-};
-
-SeLiteSettings.Field.FixedMap.String= function( name, keySet, defaultMappings, requireAndPopulate, customValidate ) {
-    SeLiteSettings.Field.FixedMap.call( this, name, keySet, defaultMappings, requireAndPopulate, customValidate );
-    for( var key in keySet ) {
-        var value= keySet[key];
-        if( !SeLiteMisc.oneOf( typeof value, ['string', 'number']) ) {
+    for( var key in defaultMappings ) {
+        var value= defaultMappings[key];
+        this.keySet.indexOf( key )>=0 || SeLiteMisc.fail( ''+this+ ' has key ' +key+ ' in defaultMappings, which is not from its keySet.' );
+        // @TODO more custom validation:
+        if( !SeLiteMisc.oneOf( typeof value, ['string', 'number', 'boolean']) ) {
             throw new Error( 'SeLiteSettings.Field.FixedMap.String() for '
                 +(this.module ? 'module ' +this.module.name+', ' : '')+ 'field ' +this.name
                 +' expects values in keySet to be strings (or integers), but for key ' +key
                 +' it has ' +(typeof value)+ ': ' +value );
         }
     }
+};
+SeLiteSettings.Field.FixedMap.prototype= new SeLiteSettings.Field.NonChoice('FixedMap.prototype');
+SeLiteSettings.Field.FixedMap.prototype.constructor= SeLiteSettings.Field.FixedMap;
+
+SeLiteSettings.Field.FixedMap.String= function( name, keySet, defaultMappings, requireAndPopulate, customValidate ) {
+    SeLiteSettings.Field.FixedMap.call( this, name, keySet, defaultMappings, requireAndPopulate, customValidate );
 };
 SeLiteSettings.Field.FixedMap.String.prototype= new SeLiteSettings.Field.FixedMap('FixedMapString.prototype');
 SeLiteSettings.Field.FixedMap.String.prototype.constructor= SeLiteSettings.Field.FixedMap.String;
@@ -1397,7 +1399,7 @@ SeLiteSettings.Module.prototype.createSet= function( setName ) {
                         if( field instanceof SeLiteSettings.Field.FixedMap ) {
                             for( var key in defaultKeys ) {
                                 var value= defaultKeys[key];
-                                field.setValue( setName, key, value );
+                                field.addValue( setName, key, value );
                             }
                         }
                         else {
