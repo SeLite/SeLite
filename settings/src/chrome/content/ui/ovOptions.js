@@ -511,11 +511,15 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
             moduleName+' '+setName+' '+fieldName+ ' ' +key)
     );
     
-    // Cell for name of the Module/Set/Field:
+    // Cell for name of the Module/Set/Field, and for keys of SeLiteSettings.Field.FixedMap
     var treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
     treecell.setAttribute('label', !rowLevel.blank
-        ? rowLevel.forLevel( moduleName, setName, undefined, fieldName, '')
+        ? rowLevel.forLevel( moduleName, setName, undefined, fieldName,
+            field instanceof SeLiteSettings.Field.FixedMap
+                ? key
+                : ''
+          )
         : '' );
     treecell.setAttribute('editable', 'false');
 
