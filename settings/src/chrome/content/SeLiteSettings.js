@@ -194,8 +194,8 @@ SeLiteSettings.Field= function( name, multivalued, defaultKey, requireAndPopulat
             throw new Error( "Can't instantiate SeLiteSettings.Field directly, except for prototype instances. name: " +this.name );
         }
         SeLiteMisc.ensureInstance(this, 
-            [SeLiteSettings.Field.Bool, SeLiteSettings.Field.Int, SeLiteSettings.Field.Decimal, SeLiteSettings.Field.String, SeLiteSettings.Field.File, SeLiteSettings.Field.Folder, SeLiteSettings.Field.SQLite, SeLiteSettings.Field.Choice.Int, SeLiteSettings.Field.Choice.Decimal, SeLiteSettings.Field.Choice.String, SeLiteSettings.Field.FixedMap],
-            "SeLiteSettings.Field.Bool, SeLiteSettings.Field.Int, SeLiteSettings.Field.String, SeLiteSettings.Field.Decimal, SeLiteSettings.Field.File, SeLiteSettings.Field.Folder, SeLiteSettings.Field.SQLite, SeLiteSettings.Field.Choice.Int, SeLiteSettings.Field.Choice.Decimal, SeLiteSettings.Field.Choice.String, SeLiteSettings.Field.FixedMap", "SeLiteSettings.Field instance with name '" +this.name+ "' is not of an acceptable class." );
+            [SeLiteSettings.Field.Bool, SeLiteSettings.Field.Int, SeLiteSettings.Field.Decimal, SeLiteSettings.Field.String, SeLiteSettings.Field.File, SeLiteSettings.Field.Folder, SeLiteSettings.Field.SQLite, SeLiteSettings.Field.Choice.Int, SeLiteSettings.Field.Choice.Decimal, SeLiteSettings.Field.Choice.String, SeLiteSettings.Field.FixedMap.String],
+            "SeLiteSettings.Field.Bool, SeLiteSettings.Field.Int, SeLiteSettings.Field.String, SeLiteSettings.Field.Decimal, SeLiteSettings.Field.File, SeLiteSettings.Field.Folder, SeLiteSettings.Field.SQLite, SeLiteSettings.Field.Choice.Int, SeLiteSettings.Field.Choice.Decimal, SeLiteSettings.Field.Choice.String, SeLiteSettings.Field.FixedMap.String", "SeLiteSettings.Field instance with name '" +this.name+ "' is not of an acceptable class." );
     }
     loadingPackageDefinition || this.name.indexOf('.')<0 || SeLiteMisc.fail( 'SeLiteSettings.Field() expects name not to contain a dot, but it received: ' +this.name);
     this.module= null; // instance of Module that this belongs to (once registered)
@@ -539,7 +539,7 @@ SeLiteSettings.Field.Choice= function( name, multivalued, defaultKey, choicePair
     this.choicePairs= choicePairs || {}; // This is set before I call the parent constructor, so that it can validate defaultKey against this.choicePairs
     SeLiteSettings.Field.call( this, name, multivalued, defaultKey, requireAndPopulate, customValidate );
     loadingPackageDefinition || this.constructor!==SeLiteSettings.Field.Choice
-        || SeLiteMisc.fail( "Can't define instances of SeLiteSettings.Field.Choice class itself outside the package. Use SeLiteSettings.Field.Choice.Int or SeLiteSettings.Field.Choice.String." );
+        || SeLiteMisc.fail( "Can't define instances of SeLiteSettings.Field.Choice class itself outside the package. Use SeLiteSettings.Field.Choice.Int, SeLiteSettings.Field.Choice.Decimal or SeLiteSettings.Field.Choice.String." );
     loadingPackageDefinition || typeof(choicePairs)==='object' && !Array.isArray(choicePairs)
         || SeLiteMisc.fail( "Instances of subclasses of SeLiteSettings.Field.Choice require choicePairs to be an anonymous object serving as an associative array." );
     for( var key in this.choicePairs ) {
@@ -629,12 +629,31 @@ SeLiteSettings.Field.Choice.String.prototype.constructor= SeLiteSettings.Field.C
  *  @param {string[]} keySet
  * */
 SeLiteSettings.Field.FixedMap= function( name, keySet, defaultMappings, requireAndPopulate, customValidate ) {
+    loadingPackageDefinition || this.constructor!==SeLiteSettings.Field.FixedMap
+        || SeLiteMisc.fail( "Can't define instances of SeLiteSettings.Field.FixedMap class itself outside the package. Use SeLiteSettings.Field.FixedMap.Bool, SeLiteSettings.Field.FixedMap.Int, SeLiteSettings.Field.FixedMap.Decimal or SeLiteSettings.Field.FixedMap.String." );
     SeLiteSettings.Field.NonChoice.call( this, name, /*multivalued*/true, defaultMappings, requireAndPopulate, customValidate );
     this.keySet= keySet;
 };
 SeLiteSettings.Field.FixedMap.prototype= new SeLiteSettings.Field.NonChoice('FixedMap.prototype');
 SeLiteSettings.Field.FixedMap.prototype.constructor= SeLiteSettings.Field.FixedMap;
+SeLiteSettings.Field.FixedMap.prototype.setValue= function( setName, key, value ) {
+    //@TODO
+};
 
+SeLiteSettings.Field.FixedMap.String= function( name, keySet, defaultMappings, requireAndPopulate, customValidate ) {
+    SeLiteSettings.Field.FixedMap.call( this, name, keySet, defaultMappings, requireAndPopulate, customValidate );
+    for( var key in keySet ) {
+        var value= keySet[key];
+        if( !SeLiteMisc.oneOf( typeof value, ['string', 'number']) ) {
+            throw new Error( 'SeLiteSettings.Field.FixedMap.String() for '
+                +(this.module ? 'module ' +this.module.name+', ' : '')+ 'field ' +this.name
+                +' expects values in keySet to be strings (or integers), but for key ' +key
+                +' it has ' +(typeof value)+ ': ' +value );
+        }
+    }
+};
+SeLiteSettings.Field.FixedMap.String.prototype= new SeLiteSettings.Field.FixedMap('FixedMapString.prototype');
+SeLiteSettings.Field.FixedMap.String.prototype.constructor= SeLiteSettings.Field.FixedMap.String;
 
 /** Create a Settings module.
  *  @param name string Name prefix for preferences/fields for this module.
