@@ -1110,8 +1110,8 @@ function treeClickHandler( event ) {
                 
                 var fieldRow= fieldTreeRow(selectedSetName, field);
                 var valueCell= clickedOptionKey===undefined
-                    ? treeCell( fieldRow, RowLevel.FIELD )
-                    : treeCell( treeRowsOrChildren[moduleName][selectedSetName][field.name][ keys[0] ], RowLevel.CHECKBOX );
+                    ? treeCell( fieldRow, RowLevel.FIELD ) // field other than SeLiteSettings.Field.FixedMap
+                    : treeCell( treeRowsOrChildren[moduleName][selectedSetName][field.name][clickedOptionKey], RowLevel.CHECKBOX ); // for SeLiteSettings.Field.FixedMap
                 valueCell.setAttribute( 'properties', //@TODO check for FixedMap - clickedOptionKey!==undefined
                     cellText==='Null' || cellText==='Undefine'
                         ? SeLiteSettings.FIELD_NULL_OR_UNDEFINED
