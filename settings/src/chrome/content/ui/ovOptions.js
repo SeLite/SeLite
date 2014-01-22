@@ -367,8 +367,9 @@ function treeCell( treeRow, level ) {
     treeRow.tagName==='treerow' || SeLiteMisc.fail( 'treeCell() requires treeRow to be an XULElement object for <treerow>, but it received XULElement for ' +treeRow.tagName );
     level instanceof RowLevel || SeLiteMisc.fail( 'treeCell() requires level to be an instance of RowLevel.' );
     var cells= treeRow.getElementsByTagName( 'treecell' );
+    allowSets || level!==RowLevel.SET || SeLiteMisc.fail( 'allowSets is false, therefore level should not be RowLevel.SET.' );
     return cells[ allowSets
-        ? level.forLevel(0, 1, 2, 3, 4, 5)
+        ? level.forLevel(0,         1, 2, 3, 4, 5)
         : level.forLevel(0, undefined, 1, 2, 3, 4)
     ];
 }
@@ -1108,11 +1109,14 @@ function treeClickHandler( event ) {
             if( column.value.element!==treeColumnElements.selectedSet ) {
                 moduleSetFields[moduleName][selectedSetName]= module.getFieldsOfSet( selectedSetName );
                 
-                var fieldRow= fieldTreeRow(selectedSetName, field);
-                var valueCell= clickedOptionKey===undefined
-                    ? treeCell( fieldRow, RowLevel.FIELD ) // field other than SeLiteSettings.Field.FixedMap
-                    : treeCell( treeRowsOrChildren[moduleName][selectedSetName][field.name][clickedOptionKey], RowLevel.CHECKBOX ); // for SeLiteSettings.Field.FixedMap
-                valueCell.setAttribute( 'properties', //@TODO check for FixedMap - clickedOptionKey!==undefined
+                var fieldRow= clickedOptionKey===undefined
+                    ? fieldTreeRow(selectedSetName, field) // field other than SeLiteSettings.Field.FixedMap
+                    : treeRowsOrChildren[moduleName][selectedSetName][field.name][clickedOptionKey]; // for SeLiteSettings.Field.FixedMap
+                if( clickedOptionKey!==undefined ) {
+                    var stop= 1;
+                }
+                var valueCell= treeCell( fieldRow, RowLevel.FIELD );
+                valueCell.setAttribute( 'properties',
                     cellText==='Null' || cellText==='Undefine'
                         ? SeLiteSettings.FIELD_NULL_OR_UNDEFINED
                         : ''
@@ -1461,9 +1465,9 @@ function updateSpecial( setName, field, addOrRemove, keyOrValue, fixedKey ) {
     }
 }
 
-/* @var allowSets bool Whether to show the column for selection of a set. If we're only showing one module, this is module.allowSets
- * if we're not showing fields per folder.
- *  If we're showing more modules, then it's true if at least one of those modules has allowSets==true if we're not showing fields per folder.
+/* @var allowSets bool Whether to show the column for selection of a set. If we're only showing one module and we're not showing fields per folder,
+ * then this allowSets is same as module.allowSets.
+ *  If we're showing more modules, then it's true if at least one of those modules has allowSets==true and we're not showing fields per folder.
  *  This will be set depending on the definition of module(s).
 */
 var allowSets= false;
