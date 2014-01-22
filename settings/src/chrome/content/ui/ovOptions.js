@@ -1161,7 +1161,7 @@ function fieldTreeRow( setName, field ) {
         field: ??,
         treeRow: ??,
         oldKey: mixed, previous value
-        - string, the key as it was before this edit - for a multi-valued field
+        - string, the key as it was before this edit (or the fixed key for FixedMap) - for a multi-valued field
         - mixed previous value (including Javascript null/undefined) - for single-valued field
         validationPassed: boolean,
         valueChanged: boolean,
@@ -1260,7 +1260,7 @@ function gatherAndValidateCell( row, value ) {
 }
 
 /** This - nsITreeView.setCellText() - gets triggered only for string/number fields and for File fields; not for checkboxes.
- *  @param row
+ *  @param row is 0-based index among the expanded rows, not all rows.
  *  @param col I don't use it, because I use module definition to figure out the editable cell.
  *  @param string value new value
  *  @param object original The original TreeView
@@ -1279,7 +1279,8 @@ function setCellText( row, col, value, original) {
         info.field.setValue( info.setName, info.parsed );
         // I don't need to call updateSpecial() here - if the field was SeLiteSettings.NULL, then the above setValue() replaced that
     }
-    else {
+    else
+    if( !(info.field instanceof SeLiteSettings.Field.FixedMap) ) {
         var rowAfterNewPosition= null; // It may be null - then append the new row at the end; if same as treeRow, then the new value stays in treeRow.
             // If the new value still fits at the original position, then rowAfterNewPosition will be treeRow.
         for( var otherKey in info.fieldTreeRowsOrChildren ) {
@@ -1334,6 +1335,13 @@ function setCellText( row, col, value, original) {
         }
         info.field.addValue( info.setName, info.parsed );
     }
+    else {
+        updateSpecial( info.setName, info.field, +1 ); // unset SeLiteSettings.VALUE_PRESENT on the field, if applicable
+        var setNameDot= info.setName!==''
+            ? info.setName+'.'
+            : '';
+        info.field.setPref( setNameDot+ info.field.name+ '.' +info.oldKey, value );
+    }
     SeLiteSettings.savePrefFile(); //@TODO Do we need this line?
     moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName );
     return true;
@@ -1386,7 +1394,7 @@ function createTreeView(original) {
  *  Call this function before we set/add/remove the new value in preferences.
  *  @param setName string Name of the set; empty if the module doesn't allow multiple sets
  *  @param field Field instance
- *  @param int addOrRemove +1 if adding entry; -1 if removing it; any of 0/null/undefined if replacing or setting the whole field to null/undefined. It can be one of +1, -1 only if field.multivalued. If the field is an instance of SeLiteSettings.Field.FixedMap, then addOrRemove should be 0 even when setting an *option* (value for fixedKey) of the field to null/undefined. Therefore you usually need 2 calls to this function when handling SeLiteSettings.Field.FixedMap - that keeps this function simple.
+ *  @param int addOrRemove +1 if adding entry; -1 if removing it; any of 0/null/undefined if replacing or setting the whole field to null/undefined. It can be one of +1, -1 only if field.multivalued. If the field is an instance of SeLiteSettings.Field.FixedMap, then addOrRemove should be 0 when setting an *option* (value for fixedKey) of the field to null/undefined. Therefore you usually need 2 calls to this function when handling SeLiteSettings.Field.FixedMap - that keeps this function simple.
  *  @param {*} keyOrValue The new value to store, or (for Choice) the key for the new value to check.
  *  It can be anything (and is not used) if addOrRemove is +1 or -1, unless the field is an instance of SeLiteSettings.Field.FixedMap. Otherwise
  *  It should have been validated - this function doesn't validate keyOrValue.
