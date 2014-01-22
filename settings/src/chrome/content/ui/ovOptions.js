@@ -605,6 +605,10 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         isNull= valueCompound.entry===null;
         isNullOrUndefined= isNull || valueCompound.entry===undefined;
     }
+    else if( rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap ) {
+        isNull= value===null;
+        isNullOrUndefined= isNull || value===undefined;
+    }
     if( (typeof value==='string' || typeof value==='number' || isNullOrUndefined
         ) && !isNewValueRow
     ) {
@@ -1105,8 +1109,10 @@ function treeClickHandler( event ) {
                 moduleSetFields[moduleName][selectedSetName]= module.getFieldsOfSet( selectedSetName );
                 
                 var fieldRow= fieldTreeRow(selectedSetName, field);
-                var valueCell= treeCell( fieldRow, RowLevel.FIELD );
-                valueCell.setAttribute( 'properties',
+                var valueCell= clickedOptionKey===undefined
+                    ? treeCell( fieldRow, RowLevel.FIELD )
+                    : treeCell( treeRowsOrChildren[moduleName][selectedSetName][field.name][ keys[0] ], RowLevel.CHECKBOX );
+                valueCell.setAttribute( 'properties', //@TODO check for FixedMap - clickedOptionKey!==undefined
                     cellText==='Null' || cellText==='Undefine'
                         ? SeLiteSettings.FIELD_NULL_OR_UNDEFINED
                         : ''
@@ -1121,6 +1127,7 @@ function treeClickHandler( event ) {
                 if( column.value.element===treeColumnElements.checked ) { // This could be more narrowed down, but it doesn't matter
                     valueCell.setAttribute( 'label', '' );
                 }
+                //@TODO apply the following to FixedMap - clickedOptionKey!==undefined:
                 treeCell( fieldRow, RowLevel.NULL_OR_UNDEFINE).setAttribute( 'label',
                     nullOrUndefineLabel(field, valueCompound(field, selectedSetName) ) );
             }
@@ -1189,8 +1196,6 @@ function gatherAndValidateCell( row, value ) {
         treeRow instanceof XULElement && treeRow.tagName==='treerow' || SeLiteMisc.fail( 'treeRow should be an instance of XULElement for a <treerow>.');
         var oldKey= moduleSetFields[moduleName][setName][fieldName].entry;
         valueChanged= value!==''+oldKey;
-            //&& !(value==='null' && oldKey===null)
-            //&& !(value==='undefined' && oldKey===undefined);
     }
     else {
         fieldTreeRowsOrChildren= moduleRowsOrChildren[setName][fieldName];
@@ -1414,7 +1419,7 @@ function updateSpecial( setName, field, addOrRemove, keyOrValue, fixedKey ) {
     else {
         if( keyOrValue===null ) {
             if( fixedKey!==undefined && field instanceof SeLiteSettings.Field.FixedMap ) {
-                field.module.prefsBranch.setCharPref( setNameDot+field.name+ '.' +fixedKey, SeLiteSettings.NULL ); // @TODO use type-flexible method to set, rather than setCharPref()
+                field.module.prefsBranch.setCharPref( setNameDot+field.name+ '.' +fixedKey, SeLiteSettings.NULL );
             }
             else {
                 if( field instanceof SeLiteSettings.Field.Choice && Object.keys(compound.entry).length>0 ) {

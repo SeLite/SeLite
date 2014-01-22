@@ -881,6 +881,12 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function( setName ) {
                 value= this.prefsBranch.getIntPref(prefName);
             }
             if( multivaluedOrChoice ) {
+                // Jack schitt @TODO treat NULL here for FixedMap
+                if( field instanceof SeLiteSettings.Field.FixedMap ) {
+                    value= value!==SeLiteSettings.NULL
+                        ? value
+                        : null;
+                }
                 result[fieldName].entry[ prefName.substring(setNameWithDot.length+fieldNameWithDot.length) ]= value;
             }
             else {
