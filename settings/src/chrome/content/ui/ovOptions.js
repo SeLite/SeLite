@@ -1191,16 +1191,24 @@ function gatherAndValidateCell( row, value ) {
     var treeRow;
     var oldKey;
     var validationPassed= true;
-    var valueChanged;
+    /** @var {boolean}*/ var valueChanged;
     field!==undefined || SeLiteMisc.fail( 'field ' +fieldName+ ' is undefined');
     var trimmed= field.trim(value);
     var parsed;
     if( !field.multivalued ) {
-        treeRow= moduleRowsOrChildren[setName][fieldName];
-        // Can't use treeRow.constructor.name here - because it's a native object.
-        treeRow instanceof XULElement && treeRow.tagName==='treerow' || SeLiteMisc.fail( 'treeRow should be an instance of XULElement for a <treerow>.');
-        var oldKey= moduleSetFields[moduleName][setName][fieldName].entry;
-        valueChanged= value!==''+oldKey;
+        if( !(field instanceof SeLiteSettings.Field.FixedMap) ) {
+            treeRow= moduleRowsOrChildren[setName][fieldName];
+            // Can't use treeRow.constructor.name here - because it's a native object.
+            treeRow instanceof XULElement && treeRow.tagName==='treerow' || SeLiteMisc.fail( 'treeRow should be an instance of XULElement for a <treerow>.');
+            var oldKey= moduleSetFields[moduleName][setName][fieldName].entry;
+            valueChanged= value!==''+oldKey;
+        }
+        else {
+            //@TODO cast value to the exact type, then use strict comparison ===
+            //@TODO Check what if the whole field (.entry) is undefined. 
+            var oldValue= module.getFieldsOfSet( setName )[ field.name ].entry[ oldKey ];
+            valueChanged= value!=oldValue;
+        }
     }
     else {
         fieldTreeRowsOrChildren= moduleRowsOrChildren[setName][fieldName];
@@ -1231,12 +1239,21 @@ function gatherAndValidateCell( row, value ) {
         if( valueChanged ) {
             var fieldRow= fieldTreeRow(setName, field);
             treeCell( fieldRow, RowLevel.FIELD ).setAttribute( 'properties', '' ); // Clear it, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED
-            if( field.multivalued ) { //Clear it, in case it was 'undefined' (if this is the first value)
-                treeCell( fieldRow, RowLevel.FIELD ).setAttribute( 'label', '' );
+            if( !(field instanceof SeLiteSettings.Field.FixedMap) ) {
+                if( field.multivalued ) { //Clear it, in case it was 'undefined' (if this is the first value)
+                    treeCell( fieldRow, RowLevel.FIELD ).setAttribute( 'label', '' );
+                }
+                treeCell( fieldRow, RowLevel.NULL_OR_UNDEFINE ).setAttribute( 'label',
+                    nullOrUndefineLabel( field, valueCompound(field, setName) )
+                );
             }
-            treeCell( fieldRow, RowLevel.NULL_OR_UNDEFINE ).setAttribute( 'label',
-                nullOrUndefineLabel( field, valueCompound(field, setName) )
-            );
+            else {
+                var optionRow= treeRowsOrChildren[module.name][setName][field.name][oldKey];
+                treeCell( optionRow, RowLevel.FIELD ).setAttribute( 'properties', '' ); // Clear at option level, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED
+                treeCell( optionRow, RowLevel.NULL_OR_UNDEFINE ).setAttribute( 'label',
+                    nullOrUndefineLabel( field, valueCompound(field, setName), true, value ) 
+                );
+            }
         }
     }
     else {
@@ -1340,7 +1357,7 @@ function setCellText( row, col, value, original) {
         var setNameDot= info.setName!==''
             ? info.setName+'.'
             : '';
-        info.field.setPref( setNameDot+ info.field.name+ '.' +info.oldKey, value );
+        info.field.setPref( setNameDot+ info.field.name+ '.' +info.oldKey, value ); //@TODO Check this for Int/Decimal - may need to treat value
     }
     SeLiteSettings.savePrefFile(); //@TODO Do we need this line?
     moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName );
