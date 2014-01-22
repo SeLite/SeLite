@@ -815,7 +815,7 @@ function generateFields( setChildren, module, setName, setFields ) {
  *  - as applicable. Do not use with cells for set selection cells.
  *  @param level object of RowLevel. Here it acts more like a 'column' level, indicating which level we want the name for. Not all levels
  *  may apply. For level===RowLevel.OPTION this may return a string with space(s) in it.
- *  @return string name for the given level, or undefined otherwise.
+ *  @return string name for the given level, or undefined if there's no property (word) at that level.
  *  Side note: I would have used https://developer.mozilla.org/en-US/docs/Web/API/element.dataset,
  *  but I didn't know (and still don't know) how to get it for <treerow> element where the user clicked - tree.view doesn't let me.
  * */
@@ -874,6 +874,7 @@ function treeClickHandler( event ) {
     if( row.value>=0 && column.value ) {
         var modifiedPreferences= false;
         var rowProperties= tree.view.getRowProperties(row.value); // This requires Gecko 22+ (Firefox 22+). See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeView#getCellProperties%28%29
+        var clickedOptionKey= propertiesPart( rowProperties, RowLevel.OPTION );
         var moduleName= propertiesPart( rowProperties, RowLevel.MODULE );
         var module= modules[moduleName];
         var moduleRowsOrChildren= treeRowsOrChildren[moduleName];
@@ -909,7 +910,6 @@ function treeClickHandler( event ) {
                     // I don't need to call updateSpecial() here - if the field was SeLiteSettings.NULL, then the above setValue() replaced that
                 }
                 else {
-                    var clickedOptionKey= propertiesPart( rowProperties, RowLevel.OPTION );
                     var clickedTreeRow= moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ];
                     var clickedCell= treeCell( clickedTreeRow, RowLevel.CHECKBOX );
                     
@@ -1031,7 +1031,6 @@ function treeClickHandler( event ) {
                             }
                         }
                         if( cellText===DELETE_THE_VALUE ) {
-                            var clickedOptionKey= propertiesPart( rowProperties, RowLevel.OPTION );
                             var clickedTreeRow= moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ];
                             delete moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ];
                             treeChildren.removeChild( clickedTreeRow.parentNode );
@@ -1065,22 +1064,34 @@ function treeClickHandler( event ) {
                 }
                 else {
                     if( cellText==='Null' || cellText==='Undefine' ) {
-                        //@TODO fixedKey - SeLiteSettings.Field.FixedMap
-                        //todo determine whether the row is for the field, or foe its key
-                        //var clickedOptionKey= propertiesPart( rowProperties, RowLevel.OPTION );
-                        
-                        updateSpecial( selectedSetName, field, 0,
-                            cellText==='Null'
-                                ? null
-                                : undefined );
-                        var compound= moduleSetFields[moduleName][selectedSetName][field.name];
-                        if( field instanceof SeLiteSettings.Field.Bool && compound.entry ) {
-                            treeCell( fieldTreeRow(selectedSetName, field), RowLevel.CHECKBOX ).setAttribute( 'value', 'false' );
+                        if( clickedOptionKey!==undefined ) {
+                            field instanceof SeLiteSettings.Field.FixedMap || SeLiteMisc.fail( "Buttons Null/Undefine should show up at this level only for fields that are instances of SeLiteSettings.Field.FixedMap. However, it showed up for " +field );
+                            updateSpecial( selectedSetName, field, 0,
+                                cellText==='Null'
+                                    ? null
+                                    : undefined,
+                                clickedOptionKey
+                            );
+                            // Set/unset SeLiteSettings.VALUE_PRESENT on the field, if applicable:
+                            updateSpecial( selectedSetName, field,
+                                cellText==='Null'
+                                    ? 1
+                                    : -1 );
                         }
-                        if( !field.multivalued && field instanceof SeLiteSettings.Field.Choice && compound.entry ) {
-                            var keys= Object.keys(compound.entry);
-                            keys.length===1 || SeLiteMisc.fail();
-                            treeCell( treeRowsOrChildren[moduleName][selectedSetName][field.name][ keys[0] ], RowLevel.CHECKBOX ).setAttribute( 'value', 'false' );
+                        else {
+                            updateSpecial( selectedSetName, field, 0,
+                                cellText==='Null'
+                                    ? null
+                                    : undefined );
+                            var compound= moduleSetFields[moduleName][selectedSetName][field.name];
+                            if( field instanceof SeLiteSettings.Field.Bool && compound.entry ) {
+                                treeCell( fieldTreeRow(selectedSetName, field), RowLevel.CHECKBOX ).setAttribute( 'value', 'false' );
+                            }
+                            if( !field.multivalued && field instanceof SeLiteSettings.Field.Choice && compound.entry ) {
+                                var keys= Object.keys(compound.entry);
+                                keys.length===1 || SeLiteMisc.fail();
+                                treeCell( treeRowsOrChildren[moduleName][selectedSetName][field.name][ keys[0] ], RowLevel.CHECKBOX ).setAttribute( 'value', 'false' );
+                            }
                         }
                         modifiedPreferences= true;
                     }
