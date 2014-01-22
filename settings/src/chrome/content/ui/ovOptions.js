@@ -467,7 +467,7 @@ function nullOrUndefineLabel( field, valueCompound, atOptionLevel, value ) {
  *  @return object for a new element <treeitem> with one <treerow>
  * */
 function generateTreeItem( module, setName, field, valueOrPair, rowLevel, optionIsSelected, isNewValueRow, valueCompound ) {
-    if( field instanceof SeLiteSettings.Field.FixedMap ) { console.log( SeLiteMisc.objectToString(valueCompound, 3)); }
+    //if( field instanceof SeLiteSettings.Field.FixedMap ) { console.log( SeLiteMisc.objectToString(valueCompound, 3)); }
     if( !(rowLevel instanceof RowLevel) || rowLevel===RowLevel.CHECKBOX || rowLevel===RowLevel.ACTION ) {
         throw new Error("Parameter rowLevel must be an instance of RowLevel, but not CHECKBOX neither ACTION.");
     }
@@ -815,19 +815,16 @@ function generateFields( setChildren, module, setName, setFields ) {
  *  - as applicable. Do not use with cells for set selection cells.
  *  @param level object of RowLevel. Here it acts more like a 'column' level, indicating which level we want the name for. Not all levels
  *  may apply. For level===RowLevel.OPTION this may return a string with space(s) in it.
- *  @param string otherwise Value to return if there is no property for this level; optional, '' by default
- *  @return string name for the given level, or value of parameter otherwise
- *  I would have used https://developer.mozilla.org/en-US/docs/Web/API/element.dataset,
+ *  @return string name for the given level, or undefined otherwise.
+ *  Side note: I would have used https://developer.mozilla.org/en-US/docs/Web/API/element.dataset,
  *  but I didn't know (and still don't know) how to get it for <treerow> element where the user clicked - tree.view doesn't let me.
  * */
-function propertiesPart( properties, level, otherwise ) {
+function propertiesPart( properties, level ) {
     level instanceof RowLevel || SeLiteMisc.fail( "propertiesPart() expects parameter level to be an instance of RowLevel, but its type is " +(typeof level)+ ": " +level );
     var propertiesParts= properties.split( ' ' );
     
     if( level.level>=propertiesParts.length ) {
-        return otherwise!==undefined
-            ? otherwise
-            : '';
+        return undefined;
     }
     if( level!==RowLevel.OPTION ) {
         return propertiesParts[level.level];
@@ -1066,8 +1063,12 @@ function treeClickHandler( event ) {
                         window.open( SeLiteSettings.fileNameToUrl(module.definitionJavascriptFile), '_blank' );
                     }
                 }
-                else { // Set view - the column is Null/Undefine
+                else {
                     if( cellText==='Null' || cellText==='Undefine' ) {
+                        //@TODO fixedKey - SeLiteSettings.Field.FixedMap
+                        //todo determine whether the row is for the field, or foe its key
+                        //var clickedOptionKey= propertiesPart( rowProperties, RowLevel.OPTION );
+                        
                         updateSpecial( selectedSetName, field, 0,
                             cellText==='Null'
                                 ? null
@@ -1364,19 +1365,24 @@ function createTreeView(original) {
  *  Call this function before we set/add/remove the new value in preferences.
  *  @param setName string Name of the set; empty if the module doesn't allow multiple sets
  *  @param field Field instance
- *  @param int addOrRemove +1 if adding entry; -1 if removing it; any of 0/null/undefined if replacing or setting to null/undefined.
- *  It can be one of +1, -1 only if field.multivalued.
- *  @param mixed keyOrValue The new value to store, or (for Choice) the key for the new value to check.
- *  It can be anything (and is not used) if addOrRemove is +1 or -1. Otherwise
+ *  @param int addOrRemove +1 if adding entry; -1 if removing it; any of 0/null/undefined if replacing or setting the whole field to null/undefined. It can be one of +1, -1 only if field.multivalued. If the field is an instance of SeLiteSettings.Field.FixedMap, then addOrRemove should be 0 even when setting an *option* (value for fixedKey) of the field to null/undefined. Therefore you usually need 2 calls to this function when handling SeLiteSettings.Field.FixedMap - that keeps this function simple.
+ *  @param {*} keyOrValue The new value to store, or (for Choice) the key for the new value to check.
+ *  It can be anything (and is not used) if addOrRemove is +1 or -1, unless the field is an instance of SeLiteSettings.Field.FixedMap. Otherwise
  *  It should have been validated - this function doesn't validate keyOrValue.
  *  It can be null if it's a single-valued field.
  *  It can be undefined if !field.requireAndPopulate; then if it is multi-valued, the field must have
  *  no actual values (but it can/should contain VALUE_PRESENT).
+ *  @param {string} [fixedKey] Only used, when setting an option (key) of SeLiteSettings.Field.FixedMap to null/undefined.
+ *  But do not use when setting the whole value of a SeLiteSettings.Field.FixedMap field to undefined.
  * */
-function updateSpecial( setName, field, addOrRemove, keyOrValue ) {
+function updateSpecial( setName, field, addOrRemove, keyOrValue, fixedKey ) {
     !addOrRemove || field.multivalued || SeLiteMisc.fail("addOrRemove can be one of +1, -1 only if field.multivalued. addOrRemove is " +addOrRemove+ " and field.multivalued is " +field.multivalued);
-    addOrRemove || keyOrValue!==undefined || !field.requireAndPopulate || SeLiteMisc.fail("Field " +field.name+ " has requireAndPopulate==true, but keyOrValue is undefined.");
-    addOrRemove || keyOrValue!==null || !field.multivalued || SeLiteMisc.fail("Field " +field.name+ " is multivalued, yet keyOrValue is null.");
+    addOrRemove || keyOrValue!==undefined || !field.requireAndPopulate || field instanceof SeLiteSettings.Field.FixedMap
+        || SeLiteMisc.fail("Field " +field.name+ " has requireAndPopulate==true, but keyOrValue is undefined.");
+    addOrRemove || keyOrValue!==null || !field.multivalued || field instanceof SeLiteSettings.Field.FixedMap
+        || SeLiteMisc.fail("Field " +field.name+ " is multivalued, yet keyOrValue is null.");
+    fixedKey===undefined || field instanceof SeLiteSettings.Field.FixedMap
+        || SeLiteMisc.fail( 'fixedKey must be undefined, unless field is an instance of SeLiteSettings.Field.FixedMap.');
     var setNameDot= setName
         ? setName+'.'
         : setName;
@@ -1396,20 +1402,32 @@ function updateSpecial( setName, field, addOrRemove, keyOrValue ) {
     }
     else {
         if( keyOrValue===null ) {
-            if( field instanceof SeLiteSettings.Field.Choice && Object.keys(compound.entry).length>0 ) {
-                !field.multivalued && Object.keys(compound.entry).length===1 || SeLiteMisc.fail();
-                field.module.prefsBranch.clearUserPref( setNameDot+field.name+ '.' +Object.keys(compound.entry)[0] );
+            if( fixedKey!==undefined && field instanceof SeLiteSettings.Field.FixedMap ) {
+                field.module.prefsBranch.setCharPref( setNameDot+field.name+ '.' +fixedKey, SeLiteSettings.NULL ); // @TODO use type-flexible method to set, rather than setCharPref()
             }
-            if( field.module.prefsBranch.prefHasUserValue(setNameDot+field.name) && field.prefType()!==nsIPrefBranch.PREF_STRING ) {
-                field.module.prefsBranch.clearUserPref( setNameDot+field.name);
+            else {
+                if( field instanceof SeLiteSettings.Field.Choice && Object.keys(compound.entry).length>0 ) {
+                    !field.multivalued && Object.keys(compound.entry).length===1 || SeLiteMisc.fail();
+                    field.module.prefsBranch.clearUserPref( setNameDot+field.name+ '.' +Object.keys(compound.entry)[0] );
+                }
+                if( field.module.prefsBranch.prefHasUserValue(setNameDot+field.name) && field.prefType()!==nsIPrefBranch.PREF_STRING ) {
+                    field.module.prefsBranch.clearUserPref( setNameDot+field.name);
+                }
+                field.module.prefsBranch.setCharPref( setNameDot+field.name, SeLiteSettings.NULL );
             }
-            field.module.prefsBranch.setCharPref( setNameDot+field.name, SeLiteSettings.NULL );
         }
         else
         if( keyOrValue===undefined ) {
-            !field.multivalued || Object.keys(compound.entry).length===0 || SeLiteMisc.fail("Multivalued field " +field.name+ " has one or more entries, therefore keyOrValue must not be undefined.");
-            if( field.module.prefsBranch.prefHasUserValue(setNameDot+field.name) ) {
-                field.module.prefsBranch.clearUserPref(setNameDot+field.name);
+            if( fixedKey!==undefined && field instanceof SeLiteSettings.Field.FixedMap ) {
+                if( field.module.prefsBranch.prefHasUserValue(setNameDot+field.name+ '.' +fixedKey) ) {
+                    field.module.prefsBranch.clearUserPref( setNameDot+field.name+ '.' +fixedKey );
+                }
+            }
+            else {
+                !field.multivalued || Object.keys(compound.entry).length===0 || SeLiteMisc.fail("Multivalued field " +field.name+ " has one or more entries, therefore keyOrValue must not be undefined.");
+                if( field.module.prefsBranch.prefHasUserValue(setNameDot+field.name) ) {
+                    field.module.prefsBranch.clearUserPref(setNameDot+field.name);
+                }
             }
         }
         else 

@@ -629,17 +629,22 @@ SeLiteSettings.Field.Choice.String.prototype.constructor= SeLiteSettings.Field.C
 
 /** This represents a freetype map with a fixed keyset. This is an abstract class, serving as a parent.
  *  @param {string} name
- *  @param {string[]} keySet
+ *  @param {(string|number)[]} keySet We only allow strings, or numbers, because they're stored as strings (as a part of preference names). keySet specifically can't contain expression undefined, since updateSpecial() depends on that. Numbers get transformed to strings.
  * */
 SeLiteSettings.Field.FixedMap= function( name, keySet, defaultMappings, requireAndPopulate, customValidate ) {
     loadingPackageDefinition || this.constructor!==SeLiteSettings.Field.FixedMap
         || SeLiteMisc.fail( "Can't define instances of SeLiteSettings.Field.FixedMap class itself outside the package. Use SeLiteSettings.Field.FixedMap.Bool, SeLiteSettings.Field.FixedMap.Int, SeLiteSettings.Field.FixedMap.Decimal or SeLiteSettings.Field.FixedMap.String." );
     SeLiteSettings.Field.NonChoice.call( this, name, /*multivalued*/true, defaultMappings, requireAndPopulate, customValidate );
-    this.keySet= keySet;
+    this.keySet= keySet.slice();
+    for( var i=0; i<this.keySet.length; i++ ) {
+        var key= this.keySet[i];
+        SeLiteMisc.ensureType( key, ['string', 'number'], 'Parameter keySet must contain strings and/or numbers only.' );
+        this.keySet[i]= ''+key;
+    }
     for( var key in defaultMappings ) {
         var value= defaultMappings[key];
         this.keySet.indexOf( key )>=0 || SeLiteMisc.fail( ''+this+ ' has key ' +key+ ' in defaultMappings, which is not from its keySet.' );
-        // @TODO more custom validation:
+        // @TODO more custom validation - decimal vs int
         if( !SeLiteMisc.oneOf( typeof value, ['string', 'number', 'boolean']) ) {
             throw new Error( 'SeLiteSettings.Field.FixedMap.String() for '
                 +(this.module ? 'module ' +this.module.name+', ' : '')+ 'field ' +this.name
@@ -654,7 +659,7 @@ SeLiteSettings.Field.FixedMap.prototype.constructor= SeLiteSettings.Field.FixedM
 SeLiteSettings.Field.FixedMap.String= function( name, keySet, defaultMappings, requireAndPopulate, customValidate ) {
     SeLiteSettings.Field.FixedMap.call( this, name, keySet, defaultMappings, requireAndPopulate, customValidate );
 };
-SeLiteSettings.Field.FixedMap.String.prototype= new SeLiteSettings.Field.FixedMap('FixedMapString.prototype');
+SeLiteSettings.Field.FixedMap.String.prototype= new SeLiteSettings.Field.FixedMap('FixedMapString.prototype', [], {});
 SeLiteSettings.Field.FixedMap.String.prototype.constructor= SeLiteSettings.Field.FixedMap.String;
 
 /** Create a Settings module.
