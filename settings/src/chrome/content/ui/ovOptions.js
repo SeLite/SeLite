@@ -1112,9 +1112,6 @@ function treeClickHandler( event ) {
                 var fieldRow= clickedOptionKey===undefined
                     ? fieldTreeRow(selectedSetName, field) // field other than SeLiteSettings.Field.FixedMap
                     : treeRowsOrChildren[moduleName][selectedSetName][field.name][clickedOptionKey]; // for SeLiteSettings.Field.FixedMap
-                if( clickedOptionKey!==undefined ) {
-                    var stop= 1;
-                }
                 var valueCell= treeCell( fieldRow, RowLevel.FIELD );
                 valueCell.setAttribute( 'properties',
                     cellText==='Null' || cellText==='Undefine'
@@ -1131,9 +1128,13 @@ function treeClickHandler( event ) {
                 if( column.value.element===treeColumnElements.checked ) { // This could be more narrowed down, but it doesn't matter
                     valueCell.setAttribute( 'label', '' );
                 }
-                //@TODO apply the following to FixedMap - clickedOptionKey!==undefined:
                 treeCell( fieldRow, RowLevel.NULL_OR_UNDEFINE).setAttribute( 'label',
-                    nullOrUndefineLabel(field, valueCompound(field, selectedSetName) ) );
+                    clickedOptionKey===undefined
+                    ? nullOrUndefineLabel( field, valueCompound(field, selectedSetName) )
+                    : nullOrUndefineLabel( field, valueCompound(field, selectedSetName), true,
+                        moduleSetFields[moduleName][selectedSetName][field.name].entry[clickedOptionKey]
+                      )
+                );
             }
         }
     }
