@@ -339,7 +339,7 @@ function $X(xpath, contextNode) {
     // this is called before: execute a single command / run a testcase / run each testcase in a testsuite
     (function () { // wrapper makes origReset and origTestCaseDebugContextNextCommand private
       var origReset = Selenium.prototype.reset;
-      var origTestCaseDebugContextNextCommand= null;
+      var origTestCaseDebugContextNextCommand;
 
       Selenium.prototype.reset = function() {// this: selenium
         origReset.call(this);
@@ -358,10 +358,11 @@ function $X(xpath, contextNode) {
         
         // This is too late to override TestCase! It's instantiated already!
         // @TODO See if I can move override of nextCommand() to be outside of override of reset()
-        if( origTestCaseDebugContextNextCommand==null ) {
-            origTestCaseDebugContextNextCommand= TestCaseDebugContext.prototype.nextCommand;
+        if( origTestCaseDebugContextNextCommand===undefined ) {
+            origTestCaseDebugContextNextCommand= TestCaseDebugContext.prototype.nextCommand; //@TODO This fails - TestCaseDebugContext is not defined
             /**/
-            LOG.debug("SelBlocks Global replacing (by a test-intercept): TestCaseDebugContext.prototype.nextCommand()");
+            LOG.debug("SelBlocks Global replacing (by a head-intercept): TestCaseDebugContext.prototype.nextCommand()");
+            LOG.debug("SelBlocksGlobal: typeof origTestCaseDebugContextNextCommand: " +typeof origTestCaseDebugContextNextCommand );
             // See Selenium's {a6fd85ed-e919-4a43-a5af-8da18bda539f}/chrome/content/testCase.js
             // flow control - we don't just alter debugIndex on the fly, because the command
             // preceeding the destination would falsely get marked as successfully executed.

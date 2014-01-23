@@ -13,6 +13,37 @@
 </thead><tbody>
 <tr>
 	<td>script</td>
+	<td>ensureUnderWebRoot</td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>Drupal.webRoot()</td>
+	<td>drupalWebRoot</td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>!window.location.href.startsWith( '${drupalWebRoot}' )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>open</td>
+	<td>${drupalWebRoot}</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>endScript</td>
+	<td></td>
+	<td></td>
+</tr>
+<!---------------------->
+<tr>
+	<td>script</td>
 	<td>logOut</td>
 	<td></td>
 </tr>
@@ -21,9 +52,10 @@
 	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
 	<td>userLoggedIn</td>
 </tr>
+<!--if called with ${userLoggedIn} transforms boolean false to string false!-->
 <tr>
 	<td>if</td>
-	<td>${userLoggedIn}</td>
+	<td>qs{$userLoggedIn}</td>
 	<td></td>
 </tr>
 <tr>
@@ -121,10 +153,24 @@
 	<td></td>
 </tr>
 <!----------------->
+<!--IT looks like Selenese if with parameter false evaluates to true-->
+<!-------->
+<tr>
+	<td>storeElementPresent</td>
+	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
+	<td>userLoggedIn</td>
+</tr>
+<!--if called with ${userLoggedIn} transforms boolean false to string false!-->
+<!--So use qs{...} instead-->
+<tr>
+	<td>getEval</td>
+	<td>LOG.info( typeof qs{$userLoggedIn} )</td>
+	<td></td>
+</tr>
 <tr>
 	<td>call</td>
-	<td>logIn</td>
-	<td>userNameOrRole='&amp;pkehl'</td>
+	<td>logOut</td>
+	<td></td>
 </tr>
 </tbody></table>
 </body>
