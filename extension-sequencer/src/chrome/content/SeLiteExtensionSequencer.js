@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 "use strict";
+var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 
 function SeLiteExtensionSequencer() {}
 
@@ -48,6 +49,7 @@ SeLiteExtensionSequencer.plugins= {};
  *  @return void
 **/
 SeLiteExtensionSequencer.registerPlugin= function( prototype ) {
+    console.log( 'SeLiteExtensionSequencer.registerPlugin() called with a plugin that has pluginId: ' +prototype.pluginId );
     var plugin= {
         pluginId: prototype.pluginId,
         coreUrl: prototype.coreUrl || [],
@@ -174,6 +176,7 @@ SeLiteExtensionSequencer.sortedPlugins= function() {
             }
         }
     }
+    console.log( 'SeLiteExtensionSequencer.sortedPlugins() called and finished.' );
     return {
         missingDirectDependancies: missingDirectDependancies,
         missingIndirectDependancies: missingIndirectDependancies,
