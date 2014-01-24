@@ -1587,16 +1587,16 @@ SeLiteSettings.moduleNamesFromPreferences= function( namePrefix ) {
  * */
 SeLiteSettings.setModuleForReloadButtons= function( moduleOrName ) {
     SeLiteSettings.moduleForReloadButtons= SeLiteSettings.Module.forName( moduleOrName );
-    var testDbField= SeLiteSettings.moduleForReloadButtons.fields['testDbField'];
+    var testDbField= SeLiteSettings.moduleForReloadButtons.fields['testDb'];
     testDbField instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail();
     
-    var appDbField= SeLiteSettings.moduleForReloadButtons.fields['appDbField'];
+    var appDbField= SeLiteSettings.moduleForReloadButtons.fields['appDb'];
     !appDbField || appDbField instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail();
     
-    var vanillaDbField= SeLiteSettings.moduleForReloadButtons[ 'vanillaDbField' ];
+    var vanillaDbField= SeLiteSettings.moduleForReloadButtons[ 'vanillaDb' ];
     !vanillaDbField || vanillaDbField instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail();
     
-    testDbField && (appDbField || vanillaDbField) || SeLiteMisc.fail( 'There must be appDbField, and at least one of appDbField and vanillaDbField in a settings module passed to SeLiteSettings.setModuleForReloadButtons().' );
+    testDbField && (appDbField || vanillaDbField) || SeLiteMisc.fail( 'There must be Field.SQLite appDb, and at least one of appDb and vanillaDb in a settings module passed to SeLiteSettings.setModuleForReloadButtons().' );
 };
 
 loadingPackageDefinition= false;

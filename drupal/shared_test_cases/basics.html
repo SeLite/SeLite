@@ -52,7 +52,6 @@
 	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
 	<td>userLoggedIn</td>
 </tr>
-<!--if called with ${userLoggedIn} transforms boolean false to string false!-->
 <tr>
 	<td>if</td>
 	<td>qs{$userLoggedIn}</td>
@@ -153,15 +152,11 @@
 	<td></td>
 </tr>
 <!----------------->
-<!--IT looks like Selenese if with parameter false evaluates to true-->
-<!-------->
 <tr>
 	<td>storeElementPresent</td>
 	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
 	<td>userLoggedIn</td>
 </tr>
-<!--if called with ${userLoggedIn} transforms boolean false to string false!-->
-<!--So use qs{...} instead-->
 <tr>
 	<td>getEval</td>
 	<td>LOG.info( typeof qs{$userLoggedIn} )</td>
@@ -191,6 +186,11 @@
 <tr>
 	<td>getEval</td>
 	<td>LOG.info( Drupal.roleToUser('&amp;editor') )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;getEval</td>
+	<td>alert('hi')</td>
 	<td></td>
 </tr>
 </tbody></table>
