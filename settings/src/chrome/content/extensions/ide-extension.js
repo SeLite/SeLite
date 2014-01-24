@@ -54,26 +54,32 @@
     optionsPopup= document.getElementById('options-popup');
     optionsPopup.appendChild(seLiteSettingsMenuItem);
 
-    /** Reload the database file(s). It removes the old file(s). It copies the files, without adjusting permissions or ownership.
+    /** Reload the database file(s). It removes the old file(s). It copies the files. It adjusts permissions on test DB, if there's a setting for it.
      *  If called with no parameters, by default it copies appDB over testDB. Maximum one of the parameters can be true.
      *  @param reloadAppAndTest boolean, whether to reload both appDB and testDB from vanillaDB. Optional, false by default.
      *  @param reloadVanillaAndTest boolean, whether to reload both appDB and testDB from vanillaDB. Optional, false by default.
      *  @return void
      * */
     self.editor.reload_databases= function( reloadAppAndTest, reloadVanillaAndTest ) {
-        var module= SeLiteSettings.Module.forName( 'extensions.selite-settings.basic' );
-        module || SeLiteMisc.fail( 'This requires SeLiteSettings module "extensions.selite-settings.basic" to be registered. It normally comes with SeLiteSettings.' );
-        var fields= module.getFieldsDownToFolder();
-        
-        var appStorage= SeLiteData.getStorageFromSettings( 'extensions.selite-settings.basic.appDB', true/*dontCreate*/ );
-        !appStorage || appStorage.close();
-        var testStorage= SeLiteData.getStorageFromSettings( 'extensions.selite-settings.basic.testDB', true/*dontCreate*/ );
+        SeLiteSettings.moduleForReloadButtons || SeLiteMisc.fail( 'This requires SeLiteSettings module "extensions.selite-settings.basic" to be registered. It normally comes with SeLiteSettings.' );
+        var fields= SeLiteSettings.moduleForReloadButtons.getFieldsDownToFolder();
+
+        var testDbField= SeLiteSettings.moduleForReloadButtons.fields['testDbField'];
+        var appDbField= SeLiteSettings.moduleForReloadButtons.fields['appDbField'];
+        var vanillaDbField= SeLiteSettings.moduleForReloadButtons[ 'vanillaDbField' ];
+
+        var appStorage;
+        if( reloadAppAndTest ) {
+            appStorage= SeLiteData.getStorageFromSettings( appDbField, true/*dontCreate*/ );
+            !appStorage || appStorage.close();
+        }
+        var testStorage= SeLiteData.getStorageFromSettings( testDbField, true/*dontCreate*/ );
         !testStorage || testStorage.close();
         
         var appDB= fields['appDB'].entry;
-        appDB || SeLiteMisc.fail( 'There is no value for SeLiteSettings field extensions.selite-settings.basic.appDB.' );
+        appDB || SeLiteMisc.fail( 'There is no value for SeLiteSettings field ' +appDbField );
         var testDB= fields['testDB'].entry;
-        testDB || SeLiteMisc.fail( 'There is no value for SeLiteSettings field extensions.selite-settings.basic.testDB.' );
+        testDB || SeLiteMisc.fail( 'There is no value for SeLiteSettings field ' +testDbField );
         
         !(reloadAppAndTest && reloadVanillaAndTest) || SeLiteMisc.fail( "Maximum one parameter can be true." );
         
@@ -88,19 +94,19 @@
             : appDB;
         if( reloadAppAndTest || reloadVanillaAndTest ) {
             // next two lines only perform validation
-            vanillaDB || SeLiteMisc.fail( 'There is no value for SeLiteSettings field extensions.selite-settings.basic.vanillaDB.' );
+            vanillaDB || SeLiteMisc.fail( 'There is no value for SeLiteSettings field ' +vanillaDbField );
             !SeLiteData.getStorageFromSettings( 'extensions.selite-settings.basic.vanillaDB', true/*dontCreate*/ )
-                || SeLiteMisc.fail( 'vanillaDB should not be accessed by tests, yet there is SeLiteSettings.StorageFromSettings instance that uses it.' );
+                || SeLiteMisc.fail( 'vanillaDB should not be accessed by tests, yet there is SeLiteSettings.StorageFromSettings instance that uses it - ' +vanillaDbField );
             reload( sourceDB, reloadAppAndTest
                 ? appDB
                 : vanillaDB
             );
-            if( reloadAppAndTest && fields['appDBpermissions'].entry ) {
+            if( reloadAppAndTest && 'appDBpermissions' in fields && fields['appDBpermissions'].entry ) {
                 new FileUtils.File(appDB).permissions= parseInt( fields['appDBpermissions'].entry, 8 );
             }
         }
         reload( sourceDB, testDB );
-        !appStorage || appDB.open();
+        !appStorage || appStorage.open();
         !testStorage || testStorage.open();
     };
     

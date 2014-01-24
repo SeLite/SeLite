@@ -1251,7 +1251,7 @@ function gatherAndValidateCell( row, value ) {
                 var optionRow= treeRowsOrChildren[module.name][setName][field.name][oldKey];
                 treeCell( optionRow, RowLevel.FIELD ).setAttribute( 'properties', '' ); // Clear at option level, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED
                 treeCell( optionRow, RowLevel.NULL_OR_UNDEFINE ).setAttribute( 'label',
-                    nullOrUndefineLabel( field, valueCompound(field, setName), true, value ) 
+                    nullOrUndefineLabel( field, valueCompound(field, setName), true, value ) //@TODO cast value to the exact type
                 );
             }
         }

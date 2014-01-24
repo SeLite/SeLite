@@ -7,7 +7,7 @@ var appDBpermissions= new SeLiteSettings.Field.String( 'appDBpermissions', /*def
 var appWebroot= new SeLiteSettings.Field.String('appWebroot', false, 'http://localhost/app');
 var maxNumberOfRuns= new SeLiteSettings.Field.Int('maxNumberOfRuns', false, 20);
 
-new SeLiteSettings.Module( 'extensions.selite-settings.basic',
+new SeLiteSettings.Module( 'extensions.selite.basic',
     [appDB, testDB, vanillaDB, appDBpermissions, appWebroot, maxNumberOfRuns],
     true/*allowSets*/,
     'default',
@@ -25,7 +25,7 @@ var maxNumberOfRuns= new SeLiteSettings.Field.Int('maxNumberOfRuns', false, 20);
 var multiNumbers= new SeLiteSettings.Field.Int('multiNumbers', true, [8,9], /*requireAndPopulate*/true );
 var decimal= new SeLiteSettings.Field.Decimal('decimal', false, 3.141 );
 
-var module= new SeLiteSettings.Module( 'extensions.selite-settings.test',
+var module= new SeLiteSettings.Module( 'extensions.selite.test',
     [mainDb, oneFolder, files, folders, bool, appWebroot, maxNumberOfRuns, multiNumbers, decimal],
     true,
     'mainSet',
@@ -37,7 +37,7 @@ module.createSet( 'alternativeSet');
  // Testing that SeLiteSettings.Module() checks/compares and upgrades modules properly:
  /*
 mainDb= new SeLiteSettings.Field.File('mainDb', true, { 'SQLite': '.sqlite'});
-module= new SeLiteSettings.Module( 'extensions.selite-settings.test',
+module= new SeLiteSettings.Module( 'extensions.selite.test',
     [mainDb],
     true,
     'mainSet',
@@ -58,7 +58,7 @@ var choiceStrings= new SeLiteSettings.Field.Choice.String('choiceStrings', true,
 var choiceNumbersSingle= new SeLiteSettings.Field.Choice.Int('choiceNumbersSingle', false, 1, {1:1, 5:5, 10:10, 20:20} );
 var choiceStringsSingle= new SeLiteSettings.Field.Choice.String('choiceStringsSingle', false, '4', {1:"one", 2:"two", 4:"four", 8:"eight"} );
 
-new SeLiteSettings.Module( 'extensions.selite-settings.test2',
+new SeLiteSettings.Module( 'extensions.selite.test2',
     [mainDb2, bool2, appWebroot2, maxNumberOfRuns2, multiNumbers, multiStrings,
         choiceNumbers,  choiceStrings/**/,
         choiceNumbersSingle, choiceStringsSingle
@@ -86,7 +86,7 @@ var choiceStrings= new SeLiteSettings.Field.Choice.String('choiceStrings', true,
 var choiceNumbersSingle= new SeLiteSettings.Field.Choice.Int('choiceNumbersSingle', false, 1, {1:1, 5:5, 10:10, 20:20} );
 var choiceStringsSingle= new SeLiteSettings.Field.Choice.String('choiceStringsSingle', false, '4', {1:"one", 2:"two", 4:"four", 8:"eight"} );
 
-new SeLiteSettings.Module( 'extensions.selite-settings.withFolders',
+new SeLiteSettings.Module( 'extensions.selite.withFolders',
     [mainDb, oneFolder, files, folders, bool, appWebroot, maxNumberOfRuns,
      singleNumber, singleString,
      multiNumbers, multiStrings, choiceNumbers, choiceNumbersSingle, choiceStrings, choiceStringsSingle],
@@ -111,7 +111,7 @@ var choiceStrings= new SeLiteSettings.Field.Choice.String('choiceStrings', true,
 var choiceNumbersSingle= new SeLiteSettings.Field.Choice.Int('choiceNumbersSingle', false, 1, {1:1, 5:5, 10:10, 20:20} );
 var choiceStringsSingle= new SeLiteSettings.Field.Choice.String('choiceStringsSingle', false, '4', {1:"one", 2:"two", 4:"four", 8:"eight"} );
 
-new SeLiteSettings.Module( 'extensions.selite-settings.withFolders2',
+new SeLiteSettings.Module( 'extensions.selite.withFolders2',
     [mainDb, oneFolder, files, folders, bool, appWebroot, maxNumberOfRuns, multiNumbers,
      multiStrings, choiceNumbers, choiceNumbersSingle, choiceStrings, choiceStringsSingle],
     true,

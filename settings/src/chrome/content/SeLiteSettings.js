@@ -108,15 +108,18 @@ function ensureFieldName( name, description, asModuleOrSetName ) {
     }
 }
 
-/** @param fullName String, in form moduleName+fieldName, excluding any set.
- *  @return SeLiteSettings.Field instance if present. It fails otherwise.
+/** @param {string|SeLiteSettings.Field} fullNameOrField String, in form moduleName+fieldName, excluding any set; or a Field instance.
+ *  @return SeLiteSettings.Field instance if present and if fullNameOrField is a string; fullNameOrField if it is a Field. It fails otherwise.
  * */
-SeLiteSettings.getField= function( fullName ) {
-    SeLiteMisc.ensureType( fullName, 'string', 'SeLiteSettings.getField() expects fullName to be a string');
-    var lastDotIndex= fullName.lastIndexOf( '.' );
-    lastDotIndex>0 && lastDotIndex<fullName.length-1 || SeLiteMisc.fail('fullName does not contain a dot: ' +fullName );
-    var moduleName= fullName.substring( 0, lastDotIndex );
-    var fieldName= fullName.substring( lastDotIndex+1 );
+SeLiteSettings.getField= function( fullNameOrField ) {
+    if( fullNameOrField instanceof SeLiteSettings.Field ) {
+        return fullNameOrField;
+    }
+    SeLiteMisc.ensureType( fullNameOrField, 'string', 'SeLiteSettings.getField() expects fullNameOrField to be a string or a Field instance.');
+    var lastDotIndex= fullNameOrField.lastIndexOf( '.' );
+    lastDotIndex>0 && lastDotIndex<fullNameOrField.length-1 || SeLiteMisc.fail('fullNameOrField does not contain a dot: ' +fullNameOrField );
+    var moduleName= fullNameOrField.substring( 0, lastDotIndex );
+    var fieldName= fullNameOrField.substring( lastDotIndex+1 );
     var module= SeLiteSettings.loadFromJavascript( moduleName );
     fieldName in module.fields || SeLiteMisc.fail( 'SeLiteSettings.Module ' +moduleName+ " doesn't contain field " +field );
     return module.fields[fieldName];
@@ -904,12 +907,16 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function( setName ) {
     return result;
 };
 
-/** @param moduleName string 
- *  @return string SeLiteSettigs.Module instance for that module if registered; undefined otherwise
+/** @param {string|SeLiteSettings.Module} moduleNameOrModule
+ *  @return {SeLiteSettigs.Module} If moduleNameOrModule is a string, return an instance for that module if registered;
+ *  if moduleNameOrModule is SeLiteSettings.Module instance, return it; undefined otherwise.
  * */
-SeLiteSettings.Module.forName= function( moduleName ) {
-    SeLiteMisc.ensureType( moduleName, 'string', 'Parameter moduleName must be a string.' );
-    return modules[moduleName];
+SeLiteSettings.Module.forName= function( moduleNameOrModule ) {
+    if( moduleNameOrModule instanceof SeLiteSettings.Module ) {
+        return moduleNameOrModule;
+    }
+    SeLiteMisc.ensureType( moduleNameOrModule, 'string', 'Parameter moduleName must be a string.' );
+    return modules[moduleNameOrModule];
 };
 
 /** Read whole contents of the file. Assume UTF-8.
@@ -1567,6 +1574,29 @@ SeLiteSettings.moduleNamesFromPreferences= function( namePrefix ) {
         }
     }
     return result;
+};
+
+/** Associate a settings module to be used by GUI reload/snapshot buttons.
+ *  Call this from your framework. Do not call it from your settings module definition, otherwise if you load other such definitions by accident (e.g. by opening chrome://selite-settings/content/tree.xul), then the last call to this function would apply.
+ *  @param {SeLiteSettings.Module|string} moduleOrName Module, or its full name. The module definition must have fields
+ *  - testDbField SeLiteSettings.Field.SQLite that points to test SQLite DB; required
+ *  - appDbField SeLiteSettings.Field.SQLite that points to app SQLite DB; optional
+ *  - vanillaDbField SeLiteSettings.Field.SQLite that points to vanilla (snapshot) SQLite DB; optional
+ *  - appDBpermissions SeLiteSettings.Field.Strin octal unix-style permissions, used when reloading appDB; optional
+ *  At least two of appDbField and vanillaDbField must exist.
+ * */
+SeLiteSettings.setModuleForReloadButtons= function( moduleOrName ) {
+    SeLiteSettings.moduleForReloadButtons= SeLiteSettings.Module.forName( moduleOrName );
+    var testDbField= SeLiteSettings.moduleForReloadButtons.fields['testDbField'];
+    testDbField instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail();
+    
+    var appDbField= SeLiteSettings.moduleForReloadButtons.fields['appDbField'];
+    !appDbField || appDbField instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail();
+    
+    var vanillaDbField= SeLiteSettings.moduleForReloadButtons[ 'vanillaDbField' ];
+    !vanillaDbField || vanillaDbField instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail();
+    
+    testDbField && (appDbField || vanillaDbField) || SeLiteMisc.fail( 'There must be appDbField, and at least one of appDbField and vanillaDbField in a settings module passed to SeLiteSettings.setModuleForReloadButtons().' );
 };
 
 loadingPackageDefinition= false;

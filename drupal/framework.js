@@ -33,7 +33,7 @@
     // Once you open/save a test suite, storage object will get updated automatically and it will open an SQLite connection.
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 
-        var storage= SeLiteData.getStorageFromSettings('extensions.selite-settings.drupal-demo.testDB');
+        var storage= SeLiteData.getStorageFromSettings('extensions.selite.drupal.testDB');
         var db= new SeLiteData.Db( storage );
 
         var users= new SeLiteData.Table( {
@@ -59,8 +59,8 @@
             }
         };
         
-        var drupalSettingsModule= SeLiteSettings.loadFromJavascript('extensions.selite-settings.drupal-demo');
-        var webRootField= drupalSettingsModule.fields['webRoot'];
+        var settingsModule= SeLiteSettings.loadFromJavascript('extensions.selite.drupal');
+        var webRootField= settingsModule.fields['webRoot'];
         
         // Following is a namespace-like object for the 'global' scope - see Bootstrap.wiki
         Drupal= {};
@@ -70,18 +70,19 @@
         
         /** Convert a given symbolic role name (prefixed with '&') to username, or return a given username unchanged.
          *  @param {string} userNameOrRoleWithPrefix Either a symbolic role name, starting with '&', or a username.
-         *  @return {string} Username mapped to userNameOrRoleWithPrefix (after removeing '&' prefix) through extensions.selite-settings.drupal-demo settings. If userNameOrRoleWithPrefix doesn't start with '&', this returns it unchanged.
+         *  @return {string} Username mapped to userNameOrRoleWithPrefix (after removeing '&' prefix) through extensions.selite.drupal settings. If userNameOrRoleWithPrefix doesn't start with '&', this returns it unchanged.
          * */
         Drupal.roleToUser= function( userNameOrRoleWithPrefix ) {
             if( userNameOrRoleWithPrefix.startsWith('&') ) {
-                return userNameOrRoleWithPrefix.substring(1);
-                // @TODO Settings
+                var role= userNameOrRoleWithPrefix.substring(1);
+                return settingsModule.getFieldsDownToFolder()[ 'roles' ].entry[ role ];
             }
             else {
                 return userNameOrRoleWithPrefix;
             }
         };
         
+        SeLiteSettings.setModuleForReloadButtons( settingsModule );
     // }
     // SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doDrupalUsers']= !loadedOddTimes;
 })();
