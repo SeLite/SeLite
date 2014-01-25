@@ -78,6 +78,11 @@
 	<td>logIn</td>
 	<td>userNameOrRole</td>
 </tr>
+<tr>
+	<td>storeEval</td>
+	<td>Drupal.roleToUser('${userNameOrRole}')</td>
+	<td>userName</td>
+</tr>
 <!--if the user is logged in already, log him out:-->
 <tr>
 	<td>storeElementPresent</td>
@@ -133,7 +138,7 @@
 </tr>
 <tr>
 	<td>storeEval</td>
-	<td>SeLiteMisc.loginManagerPassword( Drupal.roleToUser('${userNameOrRole}') )</td>
+	<td>SeLiteMisc.loginManagerPassword( '${userName}' )</td>
 	<td>password</td>
 </tr>
 <tr>
@@ -152,47 +157,6 @@
 	<td></td>
 </tr>
 <!----------------->
-<tr>
-	<td>storeElementPresent</td>
-	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
-	<td>userLoggedIn</td>
-</tr>
-<tr>
-	<td>getEval</td>
-	<td>LOG.info( typeof qs{$userLoggedIn} )</td>
-	<td></td>
-</tr>
-<tr>
-	<td>call</td>
-	<td>logOut</td>
-	<td></td>
-</tr>
-<!---->
-<tr>
-	<td>getEval</td>
-	<td>LOG.info( typeof Drupal.roleToUser )</td>
-	<td></td>
-</tr>
-<tr>
-	<td>getEval</td>
-	<td>LOG.info( Drupal.roleToUser('&amp;admin') )</td>
-	<td></td>
-</tr>
-<tr>
-	<td>getEval</td>
-	<td>LOG.info( Drupal.roleToUser('&amp;contributor') )</td>
-	<td></td>
-</tr>
-<tr>
-	<td>getEval</td>
-	<td>LOG.info( Drupal.roleToUser('&amp;editor') )</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;getEval</td>
-	<td>alert('hi')</td>
-	<td></td>
-</tr>
 </tbody></table>
 </body>
 </html>

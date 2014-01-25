@@ -988,8 +988,8 @@ SeLiteMisc.getField= function( record, columnFieldNameOrFunction ) {
 };
 
 /** Get all ASCII characters that match the given regex.
- *  @param RegExp regex Regular expression to match acceptable character(s)
- *  @return string containing of all ASCII characters that match
+ *  @param {RegExp} regex Regular expression to match acceptable character(s)
+ *  @return {string} containing of all ASCII characters that match
  **/
 SeLiteMisc.acceptableCharacters= function( regex ) {
     var result= '';
@@ -1017,7 +1017,7 @@ SeLiteMisc.randomChar= function( acceptableChars ) {
 };
 
 /** @param string acceptableChars String containign acceptable characters.
- *  @param number length Length of the result string.
+ *  @param number length Length of the result string (possibly 0)
  *  @return string of given length, made of random characters from within acceptableChars
  *  @internal */
 SeLiteMisc.randomString= function( acceptableChars, length ) {

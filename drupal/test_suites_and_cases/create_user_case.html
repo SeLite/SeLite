@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://change-this-to-the-site-you-are-testing/" />
+<title>create_user_case</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">create_user_case</td></tr>
+</thead><tbody>
+<tr>
+	<td>call</td>
+	<td>ensureUnderWebRoot</td>
+	<td></td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>logOut</td>
+	<td></td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>logIn</td>
+	<td>userNameOrRole='&amp;admin'</td>
+</tr>
+<!---->
+<!--For some reason clickAndWait sometimes failed for id=toolbar-link-admin-people-->
+<!--Sometimes //li[ contains(@class, 'path-admin-people') ]/a didn't work either-->
+<tr>
+	<td>pause</td>
+	<td>1000</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//ul[ @id='toolbar-menu' ]/li[ contains(@class, 'path-admin-people') ]/a</td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>clickAndWait</td>
+	<td>//div[ @id='content' ]//ul/li/a[ contains(@href, 'admin/people/create') ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>id=edit-name</td>
+	<td>obj{maxLength:60, type:'word', store:'newUserName'}</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>id=edit-mail</td>
+	<td>obj{maxLength: 254, type:'email', store:'newUserEmail'}</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>id=edit-pass-pass1</td>
+	<td>obj{type:'password', store:'newUserPassword'}</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=edit-pass-pass2</td>
+	<td>qs{$newUserPassword}</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>id=edit-submit</td>
+	<td></td>
+</tr>
+</tbody></table>
+</body>
+</html>

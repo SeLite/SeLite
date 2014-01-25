@@ -161,7 +161,7 @@
                     <dt>minLength</dt>
                     <dd>int, if present then it must be at least 1, otherwise it's set to 1.
                         You can't use this function to generate an empty string.
-                        If params.email is set, then minLength must be at least 7 (e.g. a@hi.it), otherwise it's set to 7
+                        If type==='email', then minLength must be at least 7 (e.g. a@hi.it), otherwise it's set to 7. If type==='password' and minLength is not set, then it defaults to 9.
                     </dd>
                     <dt>maxLength</dt>
                     <dd>int, if present then it must be at least minLength;
@@ -171,9 +171,11 @@
                     <dd>string indicating type of the field (and what it can/should accept/refuse). Possible values:
                         <dl>
                             <dt>'email'</dt><dd>when generating an email address</dd>
-                            <dt>'name'</dt><dd>when generating a random human name (and some random letters A-Za-z)</dd>
+                            <dt>'name'</dt><dd>when generating a human name (and some random letters A-Za-z)</dd>
+                            <dt>'word'</dt><dd>word (random letter a-z)</dd>
                             <dt>'number'</dt><dd>when generating a non-negative number; see more options below</dd>
                             <dt>'text'</dt><dd>When generating random word(s) (and random letter-based text)</dd>
+                            <dt>'password'</dt><dd>Password that contains at least one of a-z, A-Z, 0-9 and '!@#$%^&*()-_'</dd>
                             <dt>'ugly'</dt><dd>When generating bad characters (possibly used for SQL injection, filesystem access).
                                 It will try to include all unique ugly characters at least once, so it may always generate more
                                 characters than minLength, therefore leaving some combinations untested.

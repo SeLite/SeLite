@@ -375,7 +375,7 @@ Selenium.prototype.randomText= function( locator, params, extraParams ) {
     params= params || {};
     var type= params.type || null;
     if( type && 
-        (typeof type!=='string' || ['email', 'name', 'number', 'text', 'ugly'].indexOf(type)<0)
+        (typeof type!=='string' || ['email', 'name', 'word', 'number', 'text', 'password', 'ugly'].indexOf(type)<0)
     ) {
         LOW.error( "randomText(): params.type='" +type+ "' is not recognised." );
         throw new Error();
@@ -384,7 +384,7 @@ Selenium.prototype.randomText= function( locator, params, extraParams ) {
 
     var minLength= params.minLength || 1;
     minLength= Math.max( minLength, 1 );
-    if( type=='email' ) {
+    if( type==='email' ) {
         minLength= Math.max( minLength, 7 );
     }
     var maxLength= params.maxLength ||
@@ -393,28 +393,31 @@ Selenium.prototype.randomText= function( locator, params, extraParams ) {
     maxLength= Math.max( minLength, maxLength );
 
     var charRange= ''; // We'll use ASCII characters from within this range
-    if( !type || type=='email' ) {
+    if( !type || type==='email' ) {
         charRange+= 'a-zA-Z'; // Email characters @ and . will be added when generating an email address
     }
-    if(  !type || type=='number' ) {
+    if(  !type || type==='number' ) {
         charRange+= '0-9';
     }
-    if( type=='name' ) {
+    if( type=='name=' || type==='word' ) {
         charRange+= 'a-z'; // Only used to fill-up after 'nice' first & last name
     }
-    if( type=='text' ) {
+    if( type==='text' ) {
         charRange+= ' a-z';
+    }
+    if( type==='password' ) {
+        charRange+= 'a-z'; // There's more added below
     }
     if( !type ) {
         charRange+= ' _-';
     }
-    if( type=='ugly' ) {
+    if( type==='ugly' ) {
         charRange= "'\"./<>();";
     }
     var acceptableChars= SeLiteMisc.acceptableCharacters( new RegExp( '['+charRange+']' ) );
     var result= '';
     
-    if( type=='name' ) {
+    if( type==='name' ) {
         result= SeLiteMisc.randomItem( this.randomFirstNames )+ ' ' +SeLiteMisc.randomItem( this.randomSurnames );
 
         // Append random name-like string, min. randomThirdNameMinLength letters, max. randomThirdNameMaxLength letters,
@@ -430,7 +433,7 @@ Selenium.prototype.randomText= function( locator, params, extraParams ) {
         result= result.substr( 0, maxLength ); // In case we've overrun it (by first or first+' '+last)
     }
     else
-    if( type=='email' ) {
+    if( type==='email' ) {
         if( extraParams ) {
             var name= '';
             var baseOnName= extraParams.baseOnName.replace( / /g, '-' );
@@ -477,14 +480,17 @@ Selenium.prototype.randomText= function( locator, params, extraParams ) {
         result= name+ '@'+ midDomain+ '.' +topDomain;
     }
     else
-    if( !type || type=='text' || type=='ugly' || type=='number' ) {
-        if( type=='ugly' ) {
+    if( !type || ['word', 'text', 'password', 'ugly', 'number'].indexOf(type)>=0 ) {
+        if( type==='ugly' ) {
             // If possible, try to type all ugly characters at least once. But don't type more than maxLength
             minLength= Math.min( maxLength, Math.max(minLength,acceptableChars.length) );
         }
+        if( type==='password' && minLength===1 ) {
+            minLength= 9;
+        }
         var totalLength= minLength+ Math.round( Math.random()*(maxLength-minLength) );
         
-        if( type=='text' ) {
+        if( type==='text' ) {
             while( result.length<totalLength ) {
                 if( result ) {
                     result+= ' ';
@@ -493,8 +499,17 @@ Selenium.prototype.randomText= function( locator, params, extraParams ) {
             }
             result= result.substr( 0, maxLength ); // In case we've overrun it (by appending the last random word etc.)
         }
-        else
-        if( type=='ugly' ) {
+        else if( type==='password' ) {
+            var capitals= SeLiteMisc.acceptableCharacters( new RegExp( '[A-Z]' ) );
+            while( result.length+4<=minLength ) {
+                result+= SeLiteMisc.randomChar( acceptableChars );
+                result+= SeLiteMisc.randomChar( capitals );
+                result+= SeLiteMisc.randomChar( '0123456789' );
+                result+= SeLiteMisc.randomChar( '!@#$%^&*()-_' );
+            }
+            result+= SeLiteMisc.randomString(acceptableChars, totalLength-result.length );
+        }
+        else if( type==='ugly' ) {
             // Typing as many unique ugly characters as possible
             var numFirstUglies= Math.min( maxLength, acceptableChars.length );
             result= acceptableChars.substr(0, numFirstUglies);
@@ -502,7 +517,7 @@ Selenium.prototype.randomText= function( locator, params, extraParams ) {
             result+= SeLiteMisc.randomString(acceptableChars, totalLength-numFirstUglies);
         }
         else
-        if( type=='number' ) {
+        if( type==='number' ) {
             if( params.decimal ) {
                 if( totalLength<3 ) {
                     totalLength= 3;
