@@ -671,19 +671,26 @@ SeLiteSettings.Field.FixedMap.String.prototype.constructor= SeLiteSettings.Field
  *  */
 SeLiteSettings.TestDbKeeper= function() {};
 
-/** Load any relevant test data from testStorage to memory
- *  @param {SeLiteData.Storage} testStorage
- *  @TODO consider removing param testStorage, and move it to a new function: initialise()
- * */
-SeLiteSettings.TestDbKeeper.prototype.load= function( testStorage ) {};
 /** Insert/update any relevant test data from memory to testStorage
  *  @param {SeLiteData.Storage} testStorage
  * */
-SeLiteSettings.TestDbKeeper.prototype.store= function( testStorage ) {};
+SeLiteSettings.TestDbKeeper.prototype.initialise= function( testStorage ) {
+    this.testStorage= testStorage;
+};
+/** Load any relevant test data from testStorage to memory.
+ * */
+SeLiteSettings.TestDbKeeper.prototype.load= function() {};
+/** Update any relevant test data from memory to testStorage. For records that don't exist there, this may re-create them (up to the implementation).
+ * */
+SeLiteSettings.TestDbKeeper.prototype.store= function() {};
 
-/** @param {object} description Object serving as an associative array {
+/** Simple implementation of SeLiteSettings.TestDbKeeper. It loads all data (the given columns)
+ *  from test DB. Then after test DB is reloaded from vanilla or app DB, it updates all given columns
+ *  on matching records. It doesn't re-create any missing records - if a record existing in test DB before the reload
+ *  but it doesn't exist in the reloaded data, it won't get re-created.
+ *  @param {object} description Object serving as an associative array {
  *  string table name: object {
-       'key': string column name that serves as a matching key;
+       'key': string column name that serves as a matching key; values of this key must be unique across all records
        'columns: array of string column(s) to preserve; columns[] must include the matching key
  *  }
  * */
@@ -701,34 +708,54 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.constructor= SeLiteSettings.TestDb
 
 /**  @param {SeLiteData.Storage} testStorage
  */
-SeLiteSettings.TestDbKeeper.Columns.prototype.load= function( testStorage ) {
+SeLiteSettings.TestDbKeeper.Columns.prototype.initialise= function( testStorage ) {
+    SeLiteSettings.TestDbKeeper.prototype.initialise.call( testStorage );
+    this.db= new SeLiteData.Db( this.testStorage );
+    //this.tables= {}; // string tableName => SeLiteData.Table
+    this.formulas= {}; // string tableName => SeLiteData.RecordSetFormula
     for( var tableName in this.description ) {
-        this.data[tableName]= []; //@TODO Consider a Formula, and index by tableDetails.key
-        try { // The table may not exist in testStorage (yet)
-            testStorage.select( 'SELECT count(*) FROM ' +tableName );
+        var tableDetails= this.description[tableName];
+        var table= new SeLiteData.Table( {
+            db: this.db,
+            name: tableName,
+            columns: tableDetails.columns,
+        });
+        //this.tables[ tableName ]= table;
+        var formula= new SeLiteData.RecordSetFormula( {
+            table: table,
+            columns: new SeLiteData.Settable().set( tableName, tableDetails.columns ),
+            indexBy: tableDetails.key,
+            indexUnique: true
+        });
+        this.formulas[ tableName ]= formula;
+    }
+};
+SeLiteSettings.TestDbKeeper.Columns.prototype.load= function() {
+    for( var tableName in this.formulas ) {
+        this.data[tableName]= {}; // indexByValue => object record
+        try { // The table may not exist in this.testStorage (yet). If it doesn't, then we just skip it.
+            this.testStorage.select( 'SELECT count(*) FROM ' +tableName );
         }
         catch( e ) {
             continue;
         }
-        var tableDetails= this.description[tableName];
-        try { // The table may be out of date - then just skip it
-            this.data[tableName]= testStorage.select( 'SELECT ' +tableDetails.columns.join(',')+ ' FROM ' +tableName );
+        try { // The table may be out of date - then log it and skip it
+            this.data[ tableName ]= this.formulas[ tableName ].select();
+            //this.data[tableName]= this.testStorage.select( 'SELECT ' +tableDetails.columns.join(',')+ ' FROM ' +tableName );
         }
         catch( e ) {
             console.log( e ); //@TODO better logging
         }
     }
 };
-/**  @param {SeLiteData.Storage} testStorage
- */
-SeLiteSettings.TestDbKeeper.Columns.prototype.store= function( testStorage ) {
+SeLiteSettings.TestDbKeeper.Columns.prototype.store= function() {
     for( var tableName in this.description ) {
         var tableDetails= this.description[tableName];
         try {
             for( var i=0; i<this.data[tableName].length; i++ ) { // @TODO for(.. of ..)
                 var record= this.data[tableName][i];
                 var keyValue= record[ tableDetails.key ];
-                var keysPresent= testStorage.select( 'SELECT ' +tableDetails.key+ ' FROM ' +tableName ); //@TODO index by tableDetails.key, or use a Formula
+                var keysPresent= this.testStorage.select( 'SELECT ' +tableDetails.key+ ' FROM ' +tableName ); //@TODO index by tableDetails.key, or use a Formula
                 for( var j=0; j<this.data[ tableName ].length; j ++ ) {// @TODO Formula
                     var key= xxx;
                     if( key in keysPresent ) {

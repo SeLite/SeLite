@@ -542,7 +542,7 @@ SeLiteData.recordOrSetHolder= function( recordOrSet ) {
  *  as a binding parameter (it won't apply to any parameters in condition/fetchMatching/join).
  *  Any values with typeof 'number' will be transformed into strings.
  *  That's because SQLite only allows binding values with typeof 'string'.
- *   If parameter-name matches either a table column name/alias or a join name/alias, it must not match any entry in parameterNames. Such a parameter
+ *   If parameter-name matches either a table column name/alias or a join name/alias, it must not match any entry in parameterNames - @TODO factor out a similar check from RecordSetHolder.prototype.select() - see unnamedParamFilters; then re-apply the check here. Such a parameter
  *   is then used as a subfilter, filtering by its respective column/alias, adding an 'AND' to the overall SQL WHERE part.
  *   Note that if parameter-name matches two or more columns with same name (from two or more tables), the condition will probably fail
  *   with an error - then use aliases.
@@ -677,7 +677,7 @@ RecordSetHolder.prototype.select= function() {
             }
         }
         if( paramIsColumnOrAlias ) {
-            // @TODO Move the following validation to SeLiteData.RecordSetFormula(). For that factor out the above logic that detemines paramIsColumn.
+            // @TODO Move the following validation to SeLiteData.RecordSetFormula()? For that factor out the above logic that detemines paramIsColumn. Apply a similar validation to RecordSetHolder() constructor?
             !(param in this.formula.parameterNames ) || SeLiteMisc.fail( "RecordSetHolder.select() received a parameter " +param+ " which matches a column or alias, but it also matches one of parameterNames of SeLiteData.RecordSetFormula instance." );
             unnamedParamFilters.push(
                 (parameters[param]!==null
