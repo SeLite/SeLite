@@ -665,6 +665,89 @@ SeLiteSettings.Field.FixedMap.String= function( name, keySet, defaultMappings, r
 SeLiteSettings.Field.FixedMap.String.prototype= new SeLiteSettings.Field.FixedMap('FixedMapString.prototype', [], {});
 SeLiteSettings.Field.FixedMap.String.prototype.constructor= SeLiteSettings.Field.FixedMap.String;
 
+/** It loads to memory and then inserts/updates what should be preserved in the test DB when it gets reloaded.
+ * It keeps the data in memory in any way (e.g. in an instance field) - there should be just one instance of it at any time.
+ * However, load() should clear that memory, to remove any data from previous calls.
+ *  */
+SeLiteSettings.TestDbKeeper= function() {};
+
+/** Load any relevant test data from testStorage to memory
+ *  @param {SeLiteData.Storage} testStorage
+ *  @TODO consider removing param testStorage, and move it to a new function: initialise()
+ * */
+SeLiteSettings.TestDbKeeper.prototype.load= function( testStorage ) {};
+/** Insert/update any relevant test data from memory to testStorage
+ *  @param {SeLiteData.Storage} testStorage
+ * */
+SeLiteSettings.TestDbKeeper.prototype.store= function( testStorage ) {};
+
+/** @param {object} description Object serving as an associative array {
+ *  string table name: object {
+       'key': string column name that serves as a matching key;
+       'columns: array of string column(s) to preserve; columns[] must include the matching key
+ *  }
+ * */
+SeLiteSettings.TestDbKeeper.Columns= function( description ) {
+    this.description= description;
+    for( tableName in description ) {
+        var tableDetails= description[tableName];
+        tableDetails.key in tableDetails.columns || SeLiteMisc.fail();
+    }
+    this.data= {};
+};
+
+SeLiteSettings.TestDbKeeper.Columns.prototype= new SeLiteSettings.TestDbKeeper();
+SeLiteSettings.TestDbKeeper.Columns.prototype.constructor= SeLiteSettings.TestDbKeeper.Columns;
+
+/**  @param {SeLiteData.Storage} testStorage
+ */
+SeLiteSettings.TestDbKeeper.Columns.prototype.load= function( testStorage ) {
+    for( var tableName in this.description ) {
+        this.data[tableName]= []; //@TODO Consider a Formula, and index by tableDetails.key
+        try { // The table may not exist in testStorage (yet)
+            testStorage.select( 'SELECT count(*) FROM ' +tableName );
+        }
+        catch( e ) {
+            continue;
+        }
+        var tableDetails= this.description[tableName];
+        try { // The table may be out of date - then just skip it
+            this.data[tableName]= testStorage.select( 'SELECT ' +tableDetails.columns.join(',')+ ' FROM ' +tableName );
+        }
+        catch( e ) {
+            console.log( e ); //@TODO better logging
+        }
+    }
+};
+/**  @param {SeLiteData.Storage} testStorage
+ */
+SeLiteSettings.TestDbKeeper.Columns.prototype.store= function( testStorage ) {
+    for( var tableName in this.description ) {
+        var tableDetails= this.description[tableName];
+        try {
+            for( var i=0; i<this.data[tableName].length; i++ ) { // @TODO for(.. of ..)
+                var record= this.data[tableName][i];
+                var keyValue= record[ tableDetails.key ];
+                var keysPresent= testStorage.select( 'SELECT ' +tableDetails.key+ ' FROM ' +tableName ); //@TODO index by tableDetails.key, or use a Formula
+                for( var j=0; j<this.data[ tableName ].length; j ++ ) {// @TODO Formula
+                    var key= xxx;
+                    if( key in keysPresent ) {
+
+                    }
+                    else {
+                        
+                    }
+                }
+                // For: tableDetails.columns -> typeof -> put in quotes, or not
+                // - or better : formula
+            }
+        }
+        catch( e ) {
+            console.log( e ); //@TODO better logging
+        }
+    }
+};
+
 /** Create a Settings module.
  *  @param name string Name prefix for preferences/fields for this module.
  *  As per Mozilla standard, it should be dot-separated and start with 'extensions.' See Firefox url about:config.
@@ -678,9 +761,10 @@ SeLiteSettings.Field.FixedMap.String.prototype.constructor= SeLiteSettings.Field
  *  by clients that only know the module name but not location of the file.
  *  If not set and the module has been already registered, then it stays unchanged (in the preference).
  *  Required if you want to registera brand new module; not needed if re-registering (upgrading) an already registered module.
+ *  @param {SeLiteMisc.TestDbKeeper} [testDbKeeper]
  *  @param {boolean} [dontRegister] Whether not to (re)register this module; by default it's false (i.e. do register).
  * */
-SeLiteSettings.Module= function( name, fields, allowSets, defaultSetName, associatesWithFolders, definitionJavascriptFile, dontRegister ) {
+SeLiteSettings.Module= function( name, fields, allowSets, defaultSetName, associatesWithFolders, definitionJavascriptFile, testDbKeeper, dontRegister ) {
     this.name= name;
     if( typeof this.name!='string' ) {
         throw new Error( 'SeLiteSettings.Module() expects a string name.');
@@ -721,6 +805,9 @@ SeLiteSettings.Module= function( name, fields, allowSets, defaultSetName, associ
     if( this.definitionJavascriptFile!==undefined && typeof this.definitionJavascriptFile!=='string') {
         throw new Error( 'SeLiteSettings.Module() expects definitionJavascriptFile to be a string, if provided.');
     }
+    this.testDbKeeper= testDbKeeper || null;
+    testDbKeeper===null || testDbKeeper instanceof SeLiteSettings.TestDbKeeper || SeLiteMisc.fail( 'SeLiteSettings.Module() must be called with testDbKeeper set to an instance of SeLiteSettings.TestDbKeeper, if used.' );
+    
     this.prefsBranch= prefs.getBranch( this.name+'.' );
     if( !dontRegister ) {
         this.register();

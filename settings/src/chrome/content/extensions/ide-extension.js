@@ -61,7 +61,7 @@
      *  @return void
      * */
     self.editor.reload_databases= function( reloadAppAndTest, reloadVanillaAndTest ) {
-        SeLiteSettings.moduleForReloadButtons || SeLiteMisc.fail( 'This requires SeLiteSettings module "extensions.selite-settings.basic" to be registered. It normally comes with SeLiteSettings.' );
+        SeLiteSettings.moduleForReloadButtons || SeLiteMisc.fail( 'This requires your Core extension to call SeLiteSettings.setModuleForReloadButtons().' );
         var fields= SeLiteSettings.moduleForReloadButtons.getFieldsDownToFolder();
 
         var testDbField= SeLiteSettings.moduleForReloadButtons.fields['testDbField'];

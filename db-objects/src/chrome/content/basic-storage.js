@@ -139,7 +139,8 @@ SeLiteData.Storage.prototype.sqlAnd= function( first, second, etc ) {
     return argumentsPresent.join( ' AND ' );
 }
 
-/** @param string query SQL query
+/** @param string query SQL query. It can contain placeholders in format :placeholderName
+ *  (see https://developer.mozilla.org/en/docs/Storage > Binding Parameters.
  *  @param array fields Optional; array of strings SQL fields (columns) to collect; must match case-sensitively columns
  *  coming from the query. If not present,
  *  then this function will try to collect the column names, providing
