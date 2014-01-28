@@ -157,6 +157,41 @@
 	<td></td>
 </tr>
 <!----------------->
+<tr>
+	<td>script</td>
+	<td>createUser</td>
+	<td></td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>id=edit-name</td>
+	<td>obj{maxLength:60, type:'word', store:'newUserName'}</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>id=edit-mail</td>
+	<td>obj{maxLength: 254, type:'email', store:'newUserEmail'}</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>id=edit-pass-pass1</td>
+	<td>obj{type:'password', store:'newUserPassword'}</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=edit-pass-pass2</td>
+	<td>qs{$newUserPassword}</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>id=edit-submit</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endScript</td>
+	<td></td>
+	<td></td>
+</tr>
 </tbody></table>
 </body>
 </html>
