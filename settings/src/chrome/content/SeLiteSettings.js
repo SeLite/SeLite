@@ -690,15 +690,18 @@ SeLiteSettings.TestDbKeeper.prototype.store= function() {};
  *  but it doesn't exist in the reloaded data, it won't get re-created.
  *  @param {object} description Object serving as an associative array {
  *  string table name: object {
-       'key': string column name that serves as a matching key; values of this key must be unique across all records
-       'columns: array of string column(s) to preserve; columns[] must include the matching key
+       key: string column name that serves as a matching key; values of this key must be unique across all records
+       columns: array of string column(s) to preserve; columns[] must include the matching key
  *  }
  * */
 SeLiteSettings.TestDbKeeper.Columns= function( description ) {
+    typeof description==='object' || SeLiteMisc.fail();
     this.description= description;
-    for( tableName in description ) {
+    for( var tableName in description ) {
         var tableDetails= description[tableName];
-        tableDetails.key in tableDetails.columns || SeLiteMisc.fail();
+        SeLiteMisc.ensureType( tableDetails.key, 'string' );
+        SeLiteMisc.ensureInstance( tableDetails.columns, Array );
+        tableDetails.columns.indexOf(tableDetails.key)>=0 || SeLiteMisc.fail( 'SeLiteSettings.TestDbKeeper.Columns() needs a parameter slice for table ' +tableName+ ' to contain the key you have given - ' +tableDetails.key );
     }
     this.data= {};
 };

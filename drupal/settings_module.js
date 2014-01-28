@@ -18,5 +18,10 @@ new SeLiteSettings.Module( 'extensions.selite.drupal',
     'default',
     true,
     SELITE_SETTINGS_FILE_URL, // This will be passed by SeLite
-    null //@TODO new SeLiteSettings.TestDbKeeper.Columns(..)
+    new SeLiteSettings.TestDbKeeper.Columns( {
+        users: {
+            key: 'name',
+            columns: ['name', 'pass']
+        }
+    })
 );
