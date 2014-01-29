@@ -156,7 +156,7 @@ SeLiteData.Storage.prototype.sqlAnd= function( first, second, etc ) {
 SeLiteData.Storage.prototype.select= function( query, fields, bindings ) {
     bindings= bindings || {};
     if( !fields ) {
-        fields= fieldNames( fieldParts( query ) );
+        fields= this.fieldNames( this.fieldParts( query ) );
     }
     this.connection || SeLiteMisc.fail( 'SeLiteData.Storage.connection is not set. SQLite file name: ' +this.parameters.fileName );
     console.log( 'Query: ' +query );

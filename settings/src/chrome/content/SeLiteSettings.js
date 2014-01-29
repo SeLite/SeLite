@@ -750,6 +750,7 @@ SeLiteSettings.TestDbKeeper.prototype.store= function() {};
  *  }
  * */
 SeLiteSettings.TestDbKeeper.Columns= function( description ) {
+    SeLiteSettings.TestDbKeeper.call( this );
     typeof description==='object' || SeLiteMisc.fail();
     this.description= description;
     for( var tableName in description ) {
@@ -767,7 +768,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.constructor= SeLiteSettings.TestDb
 /**  @param {SeLiteData.Storage} testStorage
  */
 SeLiteSettings.TestDbKeeper.Columns.prototype.initialise= function( testStorage ) {
-    SeLiteSettings.TestDbKeeper.prototype.initialise.call( testStorage );
+    SeLiteSettings.TestDbKeeper.prototype.initialise.call( this, testStorage );
     this.db= new SeLiteData.Db( this.testStorage );
     //this.tables= {}; // string tableName => SeLiteData.Table
     this.formulas= {}; // string tableName => SeLiteData.RecordSetFormula
@@ -792,7 +793,9 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.load= function() {
     for( var tableName in this.formulas ) {
         this.data[tableName]= {}; // indexByValue => object record
         try { // The table may not exist in this.testStorage (yet). If it doesn't, then we just skip it.
-            this.testStorage.select( 'SELECT count(*) FROM ' +tableName );
+            // I must pass 2nd parameter (fields), otherwise it tries to collect them from the query and
+            // it fails since the query uses star *
+            this.testStorage.select( 'SELECT count(*) AS num FROM ' +tableName, ['num'] );
         }
         catch( e ) {
             console.log( 'SeLiteSettings.TestDbKeeper.Columns failed to select from test table ' +tableName );
@@ -810,7 +813,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.load= function() {
 SeLiteSettings.TestDbKeeper.Columns.prototype.store= function() {
     for( var tableName in this.formulas ) {
         try { // The table may not exist in this.testStorage (anymore). If it doesn't, then we just skip it.
-            this.testStorage.select( 'SELECT count(*) FROM ' +tableName );
+            this.testStorage.select( 'SELECT count(*) AS num FROM ' +tableName, ['num'] );
         }
         catch( e ) {
             console.log( 'SeLiteSettings.TestDbKeeper.Columns failed to select from test table ' +tableName );
