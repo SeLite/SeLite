@@ -1,4 +1,4 @@
-/*  Copyright 2011, 2012, 2013 Peter Kehl
+/*  Copyright 2011, 2012, 2013, 2014 Peter Kehl
     This file is part of SeLite Commands.
 
     SeLite Commands is free software: you can redistribute it and/or modify
@@ -223,12 +223,13 @@ Selenium.prototype.waitForDistinctTimestamp= function( timestampName, precisionI
         return;
     }
     LOG.debug( 'waitForDistinctTimestampXXX: waiting for next ' +timeOutFromNow/1000+ ' sec.' );
-
+    
+    var self= this;
     return Selenium.decorateFunctionWithTimeout(
         function () {
             // Somewhere here Firefox 23.0.1 Browser Console reports a false positive bug: 'anonymous function does not always return a value'. Ingore that.
             if( Date.now()>timestampBecomesDistinct ) {
-                this.noteTimestamp( timestampName, precisionInMilliseconds );
+                self.noteTimestamp( timestampName, precisionInMilliseconds );
                 return true;
             }
             return false;
@@ -620,6 +621,21 @@ Selenium.prototype.doSelectMapped= function( locator, params ) {
 Selenium.prototype.isSelectMapped= function( locator, params ) {
 };
 
+Selenium.prototype.doWaitForFrameAndSelect= function( locator, unused ) {
+    var self= this;
+    return Selenium.decorateFunctionWithTimeout(
+        function () {
+            var wrappedElementOrNull= self.page().findElementOrNull(locator);
+            if( wrappedElementOrNull!==null ) {
+                self.doSelectFrame( locator );
+                return true;
+            }
+            return false;
+        },
+        this.defaultTimeout
+    );
+};
+        
 //--------------------------
 // Based on http://thom.org.uk/2006/03/12/disabling-javascript-from-selenium/
 (function() {
