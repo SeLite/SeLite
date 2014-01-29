@@ -30,91 +30,55 @@
 <!--For some reason clickAndWait sometimes failed for id=toolbar-link-admin-people-->
 <!--Sometimes //li[ contains(@class, 'path-admin-people') ]/a didn't work either-->
 <tr>
-	<td>open</td>
-	<td>http://localhost/drupal7/</td>
+	<td>click</td>
+	<td>id=toolbar-link-admin-people</td>
 	<td></td>
 </tr>
 <tr>
-	<td>type</td>
+	<td>waitForElementPresent</td>
+	<td>//iframe[contains(@title, 'People dialog')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectFrame</td>
+	<td>//iframe[contains(@title, 'People dialog')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//div[ @id='content' ]//ul/li/a[ contains(@href, 'admin/people/create') ]</td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>selectFrame</td>
+	<td>relative=top</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementPresent</td>
+	<td>//iframe[contains(@title, 'People dialog')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectFrame</td>
+	<td>//iframe[contains(@title, 'People dialog')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>createUser</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementPresent</td>
 	<td>id=edit-name</td>
-	<td>pkehl</td>
-</tr>
-<tr>
-	<td>type</td>
-	<td>id=edit-pass</td>
-	<td>m0nk3y</td>
-</tr>
-<tr>
-	<td>clickAndWait</td>
-	<td>id=edit-submit</td>
 	<td></td>
 </tr>
 <tr>
-	<td>click</td>
-	<td>id=toolbar-link-admin-people</td>
-	<td></td>
-</tr>
-<tr>
-	<td>waitForElementPresent</td>
-	<td>//iframe[contains(@title, 'People dialog')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>selectFrame</td>
-	<td>//iframe[contains(@title, 'People dialog')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>clickAndWait</td>
-	<td>//div[ @id='content' ]//ul/li/a[ contains(@href, 'admin/people/create') ]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>break</td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
-	<td>waitForElementPresent</td>
-	<td>//ul[ @id='toolbar-menu' ]/li[ contains(@class, 'path-admin-people') ]/a</td>
-	<td></td>
-</tr>
-<tr>
-	<td>clickAndWait</td>
-	<td>//ul[ @id='toolbar-menu' ]/li[ contains(@class, 'path-admin-people') ]/a</td>
-	<td></td>
-</tr>
-<!---->
-<tr>
-	<td>clickAndWait</td>
-	<td>//div[ @id='content' ]//ul/li/a[ contains(@href, 'admin/people/create') ]</td>
-	<td></td>
-</tr>
-<!---->
-<tr>
-	<td>click</td>
-	<td>id=toolbar-link-admin-people</td>
-	<td></td>
-</tr>
-<tr>
-	<td>waitForElementPresent</td>
-	<td>//iframe[contains(@title, 'People dialog')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>selectFrame</td>
-	<td>//iframe[contains(@title, 'People dialog')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>clickAndWait</td>
-	<td>//ul[ @id='toolbar-menu' ]/li[ contains(@class, 'path-admin-people') ]/a</td>
-	<td></td>
-</tr>
-<tr>
-	<td>clickAndWait</td>
-	<td>//div[ @id='content' ]//ul/li/a[ contains(@href, 'admin/people/create') ]</td>
-	<td></td>
+	<td>storeElementPresent</td>
+	<td>id=edit-name</td>
+	<td>namePresen</td>
 </tr>
 </tbody></table>
 </body>
