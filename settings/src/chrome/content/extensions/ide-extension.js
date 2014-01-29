@@ -64,9 +64,9 @@
         SeLiteSettings.moduleForReloadButtons || SeLiteMisc.fail( 'This requires your Core extension to call SeLiteSettings.setModuleForReloadButtons().' );
         var fields= SeLiteSettings.moduleForReloadButtons.getFieldsDownToFolder();
 
-        var testDbField= SeLiteSettings.moduleForReloadButtons.fields['testDbField'];
-        var appDbField= SeLiteSettings.moduleForReloadButtons.fields['appDbField'];
-        var vanillaDbField= SeLiteSettings.moduleForReloadButtons[ 'vanillaDbField' ];
+        var testDbField= SeLiteSettings.moduleForReloadButtons.fields['testDB'];
+        var appDbField= SeLiteSettings.moduleForReloadButtons.fields['appDB'];
+        var vanillaDbField= SeLiteSettings.moduleForReloadButtons[ 'vanillaDB' ];
 
         var appStorage;
         if( reloadAppAndTest ) {
@@ -105,7 +105,9 @@
                 new FileUtils.File(appDB).permissions= parseInt( fields['appDBpermissions'].entry, 8 );
             }
         }
+        !SeLiteSettings.moduleForReloadButtons.testDbKeeper || SeLiteSettings.moduleForReloadButtons.testDbKeeper.load();
         reload( sourceDB, testDB );
+        !SeLiteSettings.moduleForReloadButtons.testDbKeeper || SeLiteSettings.moduleForReloadButtons.testDbKeeper.store();
         !appStorage || appStorage.open();
         !testStorage || testStorage.open();
     };

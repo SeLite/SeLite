@@ -807,6 +807,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.load= function() {
     }
 };
 SeLiteSettings.TestDbKeeper.Columns.prototype.store= function() {
+    return;
     for( var tableName in this.description ) {
         var tableDetails= this.description[tableName];
         try {
