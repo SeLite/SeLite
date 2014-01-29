@@ -798,12 +798,11 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.load= function() {
             this.testStorage.select( 'SELECT count(*) AS num FROM ' +tableName, ['num'] );
         }
         catch( e ) {
-            console.log( 'SeLiteSettings.TestDbKeeper.Columns failed to select from test table ' +tableName+ ':\n' +e );
+            console.log( 'SeLiteSettings.TestDbKeeper.Columns failed to select from test table ' +tableName+ ':\n' +e+ '\n' +e.stack );
             continue;
         }
         try { // The table may be out of date - then log it and skip it
             this.data[ tableName ]= this.formulas[ tableName ].select();
-            //this.data[tableName]= this.testStorage.select( 'SELECT ' +tableDetails.columns.join(',')+ ' FROM ' +tableName );
         }
         catch( e ) {
             console.log( e ); //@TODO better logging
@@ -816,7 +815,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function() {
             this.testStorage.select( 'SELECT count(*) AS num FROM ' +tableName, ['num'] );
         }
         catch( e ) {
-            console.log( 'SeLiteSettings.TestDbKeeper.Columns failed to select from test table ' +tableName+ ':\n' +e );
+            console.log( 'SeLiteSettings.TestDbKeeper.Columns failed to select from test table ' +tableName+ ':\n' +e+ '\n' +e.stack );
             continue;
         }
         try { // The (old test) table may be out of date (incompatible with the new test table) - then log it and skip it
@@ -825,28 +824,36 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function() {
             for( var keyValue in this.data[tableName] ) {
                 if( keyValue in reloadedData ) {
                     var query= "UPDATE " +tableName+ " SET ";
+                    var updatePart= '';
                     var bindings= {};
                     for( var i=0; i<tableDetails.columns.length; i++ ) {// @TODO for(..of..)
                         var column= tableDetails.columns[i];
-                        var oldValue= this.data[ tableName ][ keyValue ];
-                        query+= 'column=' +(typeof oldValue==='string'
-                            ? "'"+oldValue+"'"
-                            : oldValue
-                            );
-                        if( i>0 ) {
-                            query+= ', ';
-                        }
-                        query+= ' WHERE ' +tableDetails.key+ '=' +(typeof keyValue==='string'
-                                ? "'"+keyValue+"'"
-                                : keyValue
+                        if( column!==tableDetails.key ) {
+                            var oldValue= this.data[ tableName ][ keyValue ][ column ];
+                            if( updatePart ) {
+                                updatePart+= ', ';
+                            }
+                            updatePart+= column+'=' +(typeof oldValue==='string'
+                                ? ":"+column+""
+                                : ':' +column
                                 );
+                            bindings[ column ]= oldValue;
+                        }
                     }
-                    this.testStorage.execute( query, new SeLiteData.Settable().set( tableDetails.key, keyValue) );
+                    query+= updatePart+ ' WHERE ' +tableDetails.key+ '=' +(typeof keyValue==='string'
+                            ? ":"+tableDetails.key+""
+                            : ':'+tableDetails.key
+                            );
+                    bindings[ tableDetails.key ]= keyValue;
+                    console.log( query );
+                    console.log( SeLiteMisc.objectToString(bindings, 2) );
+                    this.testStorage.execute( query, bindings );
                 }
             }
         }
         catch( e ) {
-            console.log( e ); //@TODO better logging
+            console.log( ''+e+'\n'+e.stack ); //@TODO better logging
+            throw e; //@TODO
         }
     }
 };

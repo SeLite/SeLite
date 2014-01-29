@@ -75,7 +75,7 @@
         }
         !SeLiteSettings.moduleForReloadButtons.testDbKeeper || SeLiteSettings.moduleForReloadButtons.testDbKeeper.load();
         var testStorage= SeLiteData.getStorageFromSettings( testDbField, true/*dontCreate*/ );
-        !testStorage || testStorage.close();
+        !testStorage || testStorage.close(true); // When I called testStorage.close() without parameter true, things failed later on unless there was a time break (e.g. when debugging)
         
         var appDB= fields['appDB'].entry;
         appDB || SeLiteMisc.fail( 'There is no value for SeLiteSettings field ' +appDbField );
