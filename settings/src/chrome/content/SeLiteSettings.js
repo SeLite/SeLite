@@ -795,6 +795,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.load= function() {
             this.testStorage.select( 'SELECT count(*) FROM ' +tableName );
         }
         catch( e ) {
+            console.log( 'SeLiteSettings.TestDbKeeper.Columns failed to select from test table ' +tableName );
             continue;
         }
         try { // The table may be out of date - then log it and skip it
@@ -807,25 +808,38 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.load= function() {
     }
 };
 SeLiteSettings.TestDbKeeper.Columns.prototype.store= function() {
-    return;
-    for( var tableName in this.description ) {
-        var tableDetails= this.description[tableName];
-        try {
-            for( var i=0; i<this.data[tableName].length; i++ ) { // @TODO for(.. of ..)
-                var record= this.data[tableName][i];
-                var keyValue= record[ tableDetails.key ];
-                var keysPresent= this.testStorage.select( 'SELECT ' +tableDetails.key+ ' FROM ' +tableName ); //@TODO index by tableDetails.key, or use a Formula
-                for( var j=0; j<this.data[ tableName ].length; j ++ ) {// @TODO Formula
-                    var key= xxx;
-                    if( key in keysPresent ) {
-
+    for( var tableName in this.formulas ) {
+        try { // The table may not exist in this.testStorage (anymore). If it doesn't, then we just skip it.
+            this.testStorage.select( 'SELECT count(*) FROM ' +tableName );
+        }
+        catch( e ) {
+            console.log( 'SeLiteSettings.TestDbKeeper.Columns failed to select from test table ' +tableName );
+            continue;
+        }
+        try { // The (old test) table may be out of date (incompatible with the new test table) - then log it and skip it
+            var reloadedData= this.formulas[ tableName ].select();
+            var tableDetails= this.description[tableName];
+            for( var keyValue in this.data[tableName] ) {
+                if( keyValue in reloadedData ) {
+                    var query= "UPDATE " +tableName+ " SET ";
+                    var bindings= {};
+                    for( var i=0; i<tableDetails.columns.length; i++ ) {// @TODO for(..of..)
+                        var column= tableDetails.columns[i];
+                        var oldValue= this.data[ tableName ][ keyValue ];
+                        query+= 'column=' +(typeof oldValue==='string'
+                            ? "'"+oldValue+"'"
+                            : oldValue
+                            );
+                        if( i>0 ) {
+                            query+= ', ';
+                        }
+                        query+= ' WHERE ' +tableDetails.key+ '=' +(typeof keyValue==='string'
+                                ? "'"+keyValue+"'"
+                                : keyValue
+                                );
                     }
-                    else {
-                        
-                    }
+                    this.testStorage.execute( query, new SeLiteData.Settable().set( tableDetails.key, keyValue) );
                 }
-                // For: tableDetails.columns -> typeof -> put in quotes, or not
-                // - or better : formula
             }
         }
         catch( e ) {
