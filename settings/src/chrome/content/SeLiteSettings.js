@@ -33,7 +33,63 @@ if( runningAsComponent ) {
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 }
 
+// -------
+// This component provides optional functionality (SeLiteSettings.TestDbKeeper.Columns), which depends on SeLiteData.
+// That makes both JS components circularly dependent. Therefore here I define EXPORTED_SYMBOLS and any functionality required by SeLiteData,
+// so that they both can be loaded well.
 var SeLiteSettings= {};
+var EXPORTED_SYMBOLS= ['SeLiteSettings'];
+
+/** @private Array of functions, that are called whenever the test suite folder changes.
+ * */
+var unnamedTestSuiteFolderChangeHandlers= [];
+
+/** Add a handler, that will be called whenever the current test suite folder is changed in Se IDE.
+ *  It won't be called when Se IDE is closed. When you invoke SeLiteSettings.addTestSuiteFolderChangeHandler(handler)
+ *  and Se IDE already has a test suite from a known folder, this won't invoke the handler on that known folder.
+ *  The handler will only be called on any subsequent changes. That should be OK, since this is intended for Core extensions,
+ *  which are loaded at Se IDE start (before user opens a test suite). Se IDE 2.4.0 starts with the last opened test suite,
+ *  which is fine - by that time the handlers are in place.
+ *  <br/>The order of calling handlers is not guarenteed.
+ *  @param handler Function, with 1 parameter, which will be a string folder (or undefined, if the suite is unsaved and temporary).
+ *  @param handlerName String; Required if you call this from a Core extension,
+    because those get re-loaded if you re-start Se IDE (without restarting Firefox).
+    Optional if you call this from a Javascript component - loaded through Components.utils.import()
+    - because those won't get re-loaded if you restart Se IDE. If there already was a handler registered with the same handlerName,
+ *  this replaces the previously registered function with the one given now.
+ * */
+SeLiteSettings.addTestSuiteFolderChangeHandler= function( handler, handlerName ) {
+    SeLiteMisc.ensureType( handler, 'function');
+    SeLiteMisc.ensureType( handlerName, ['string', 'undefined'] );
+    if( handlerName===undefined ) {
+        unnamedTestSuiteFolderChangeHandlers.push(handler);
+    }
+    else {
+        namedTestSuiteFolderChangeHandlers[handlerName]= handler;
+    }
+};
+
+var closingIdeHandlers= [];
+
+/** Register a handler, that is invoked when Selenium IDE is being closed down.
+ *  This can only be called from Javascript components - loaded through Components.utils.import() -
+ *  and directly from Selenium Core extensions, because Core extensions get re-loaded on successive restarts
+ *  of Se IDE (during the same run of Firefox).
+ * */
+SeLiteSettings.addClosingIdeHandler= function( handler ) {
+    SeLiteMisc.ensureType( handler, 'function', 'handler must be a function' );
+    closingIdeHandlers.push( handler );
+};
+// -------- end of functionality requierd by SeLiteData
+
+try {
+    Components.utils.import('chrome://selite-db-objects/content/basic-objects.js');
+    Components.utils.import('chrome://selite-db-objects/content/db.js');
+}
+catch( e ) {
+    console.log( 'SeLiteSettings component is loaded, but there is no SeLiteData component. That is required by SeLiteSettings.TestDbKeeper.Columns. You can use the rest of SeLiteSettings.' );
+    throw e;
+}
 
 var modules= SeLiteMisc.sortedObject(true); // @private Object serving as an associative array { string module.name => SeLiteSettings.Module instance }
 
@@ -686,8 +742,7 @@ SeLiteSettings.TestDbKeeper.prototype.store= function() {};
 
 /** Simple implementation of SeLiteSettings.TestDbKeeper. It loads all data (the given columns)
  *  from test DB. Then after test DB is reloaded from vanilla or app DB, it updates all given columns
- *  on matching records. It doesn't re-create any missing records - if a record existing in test DB before the reload
- *  but it doesn't exist in the reloaded data, it won't get re-created.
+ *  on matching records. It doesn't re-create any missing records - if a record existing in test DB before the reload but it doesn't exist in the reloaded data, it won't get re-created.
  *  @param {object} description Object serving as an associative array {
  *  string table name: object {
        key: string column name that serves as a matching key; values of this key must be unique across all records
@@ -1212,10 +1267,6 @@ function manifestsDownToFolder( folderPath, dontCache ) {
  */
 var testSuiteFolder= undefined;
 
-/** @private Array of functions, that are called whenever the test suite folder changes.
- * */
-var unnamedTestSuiteFolderChangeHandlers= [];
-
 /** @private Object serving as an associative array of functions, that are called whenever the test suite folder changes.
  * */
 var namedTestSuiteFolderChangeHandlers= {};
@@ -1240,49 +1291,12 @@ SeLiteSettings.setTestSuiteFolder= function( folder ) {
     }
 };
 
-/** Add a handler, that will be called whenever the current test suite folder is changed in Se IDE.
- *  It won't be called when Se IDE is closed. When you invoke SeLiteSettings.addTestSuiteFolderChangeHandler(handler)
- *  and Se IDE already has a test suite from a known folder, this won't invoke the handler on that known folder.
- *  The handler will only be called on any subsequent changes. That should be OK, since this is intended for Core extensions,
- *  which are loaded at Se IDE start (before user opens a test suite). Se IDE 2.4.0 starts with the last opened test suite,
- *  which is fine - by that time the handlers are in place.
- *  <br/>The order of calling handlers is not guarenteed.
- *  @param handler Function, with 1 parameter, which will be a string folder (or undefined, if the suite is unsaved and temporary).
- *  @param handlerName String; Required if you call this from a Core extension,
-    because those get re-loaded if you re-start Se IDE (without restarting Firefox).
-    Optional if you call this from a Javascript component - loaded through Components.utils.import()
-    - because those won't get re-loaded if you restart Se IDE. If there already was a handler registered with the same handlerName,
- *  this replaces the previously registered function with the one given now.
- * */
-SeLiteSettings.addTestSuiteFolderChangeHandler= function( handler, handlerName ) {
-    SeLiteMisc.ensureType( handler, 'function');
-    SeLiteMisc.ensureType( handlerName, ['string', 'undefined'] );
-    if( handlerName===undefined ) {
-        unnamedTestSuiteFolderChangeHandlers.push(handler);
-    }
-    else {
-        namedTestSuiteFolderChangeHandlers[handlerName]= handler;
-    }
-};
-
-var closingIdeHandlers= [];
-
 /** @private within SeLite family. Called when Se IDE is being closed down.
  * */
 SeLiteSettings.closingIde= function() {
     for( var i=0; i<closingIdeHandlers.length; i++ ) { //@TODO use loop for( .. of ..)
         closingIdeHandlers[i].call();
     }
-};
-
-/** Register a handler, that is invoked when Selenium IDE is being closed down.
- *  This can only be called from Javascript components - loaded through Components.utils.import() -
- *  and directly from Selenium Core extensions, because Core extensions get re-loaded on successive restarts
- *  of Se IDE (during the same run of Firefox).
- * */
-SeLiteSettings.addClosingIdeHandler= function( handler ) {
-    SeLiteMisc.ensureType( handler, 'function', 'handler must be a function' );
-    closingIdeHandlers.push( handler );
 };
 
 /** Calculate a composition of field values, based on manifests, preferences and field defaults,
@@ -1714,8 +1728,10 @@ SeLiteSettings.setModuleForReloadButtons= function( moduleOrName ) {
     !vanillaDbField || vanillaDbField instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail();
     
     testDbField && (appDbField || vanillaDbField) || SeLiteMisc.fail( 'There must be Field.SQLite appDB, and at least one of appDB and vanillaDB in a settings module passed to SeLiteSettings.setModuleForReloadButtons().' );
+    
+    if( SeLiteSettings.moduleForReloadButtons.testDbKeeper ) {
+        SeLiteSettings.moduleForReloadButtons.testDbKeeper.initialise( SeLiteData.getStorageFromSettings(testDbField) );
+    }
 };
 
 loadingPackageDefinition= false;
-
-var EXPORTED_SYMBOLS= ['SeLiteSettings'];
