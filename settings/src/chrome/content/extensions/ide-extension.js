@@ -73,6 +73,7 @@
             appStorage= SeLiteData.getStorageFromSettings( appDbField, true/*dontCreate*/ );
             !appStorage || appStorage.close();
         }
+        !SeLiteSettings.moduleForReloadButtons.testDbKeeper || SeLiteSettings.moduleForReloadButtons.testDbKeeper.load();
         var testStorage= SeLiteData.getStorageFromSettings( testDbField, true/*dontCreate*/ );
         !testStorage || testStorage.close();
         
@@ -105,11 +106,10 @@
                 new FileUtils.File(appDB).permissions= parseInt( fields['appDBpermissions'].entry, 8 );
             }
         }
-        !SeLiteSettings.moduleForReloadButtons.testDbKeeper || SeLiteSettings.moduleForReloadButtons.testDbKeeper.load();
         reload( sourceDB, testDB );
-        !SeLiteSettings.moduleForReloadButtons.testDbKeeper || SeLiteSettings.moduleForReloadButtons.testDbKeeper.store();
         !appStorage || appStorage.open();
         !testStorage || testStorage.open();
+        !SeLiteSettings.moduleForReloadButtons.testDbKeeper || SeLiteSettings.moduleForReloadButtons.testDbKeeper.store();
     };
     
     /** Shorthand to make caller's intention clear.

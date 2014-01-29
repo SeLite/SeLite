@@ -798,7 +798,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.load= function() {
             this.testStorage.select( 'SELECT count(*) AS num FROM ' +tableName, ['num'] );
         }
         catch( e ) {
-            console.log( 'SeLiteSettings.TestDbKeeper.Columns failed to select from test table ' +tableName );
+            console.log( 'SeLiteSettings.TestDbKeeper.Columns failed to select from test table ' +tableName+ ':\n' +e );
             continue;
         }
         try { // The table may be out of date - then log it and skip it
@@ -816,7 +816,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function() {
             this.testStorage.select( 'SELECT count(*) AS num FROM ' +tableName, ['num'] );
         }
         catch( e ) {
-            console.log( 'SeLiteSettings.TestDbKeeper.Columns failed to select from test table ' +tableName );
+            console.log( 'SeLiteSettings.TestDbKeeper.Columns failed to select from test table ' +tableName+ ':\n' +e );
             continue;
         }
         try { // The (old test) table may be out of date (incompatible with the new test table) - then log it and skip it
