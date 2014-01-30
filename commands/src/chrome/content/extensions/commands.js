@@ -21,6 +21,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
 // For all Selenium actions and locators defined here - i.e. functions with name doXXXX, isXXXXX, getXXXXX
 // see their user documentation at ../reference.xml
 
+// @TODO Document getQs in reference.xml
 // @TODO document/report this to Selenium
 // 1. As of Se IDE 1.5.0, contrary to http://release.seleniumhq.org/selenium-core/1.0/reference.html#extending-selenium
 // (documentation on how to write custom getXXX functions),
@@ -620,7 +621,7 @@ Selenium.prototype.doSelectMapped= function( locator, params ) {
 
 Selenium.prototype.isSelectMapped= function( locator, params ) {
 };
-
+//@TODO document in reference.xml
 Selenium.prototype.doWaitForFrameAndSelect= function( locator, unused ) {
     var self= this;
     return Selenium.decorateFunctionWithTimeout(
@@ -635,7 +636,31 @@ Selenium.prototype.doWaitForFrameAndSelect= function( locator, unused ) {
         this.defaultTimeout
     );
 };
-        
+//@TODO document in reference.xml
+Selenium.prototype.doWaitForFrameFromTopAndSelect= function( locatorOrLocators, unused ) {
+    if( typeof locatorOrLocators==='string' ) {
+        locatorOrLocators= [locatorOrLocators];
+    }
+    
+    var self= this;
+    return Selenium.decorateFunctionWithTimeout(
+        function () {
+            self.doSelectFrame( 'relative=top' );
+            for( var i=0; i<locatorOrLocators.length; i++ ) {//@TODO for(..of..)
+                var locator= locatorOrLocators[i];
+                var wrappedElementOrNull= self.page().findElementOrNull( locator );
+                if( wrappedElementOrNull!==null ) {
+                    self.doSelectFrame( locator );
+                    continue;
+                }
+                return false;
+            }
+            return true;
+        },
+        this.defaultTimeout
+    );
+};
+
 //--------------------------
 // Based on http://thom.org.uk/2006/03/12/disabling-javascript-from-selenium/
 (function() {

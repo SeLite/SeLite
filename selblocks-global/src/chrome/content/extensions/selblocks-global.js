@@ -928,9 +928,10 @@ function $X(xpath, contextNode) {
     // This is not related to parseArgs(str) in chrome/content/selenium-core/test/RemoteRunnerTest.js
     function parseArgs(argSpec) { // comma-sep -> new prop-set
       var args = {};
-      /* @TODO check & document whether I need to care about qs{} here. Maybe just don't support $qs{...} for 'call' command.
-         $variableName should work for 'call' without using qs{...}. 'call' works with qs{..}, but it's not recommended for now.
-       
+      /* @TODO check & document whether I need to care about qs{} here. Maybe just don't support $qs{...} for 'call' command. $variableName should work for 'call' without using qs{...}. 'call' works with qs{..}, but it's not recommended for now.
+      
+      @TODO See preprocessParameter() in this file.
+        
       // Split argSpec if it is in format fieldA=valueA,fieldB=..qs{...},fieldC=..qs{..},..
       // This regex allows parameter values within qs{..} to contain commas or assignment =.
       // The values within qs{...} can't contain curly brackets { and }.
@@ -1243,7 +1244,7 @@ function $X(xpath, contextNode) {
              object as the second parameter to 'typeRandom' action (function doTypeRandom).
         */
         LOG.debug('SelBlocksGlobal tail override of preprocessParameter(): ' +value );
-        match= value.match( /^\s*obj(\{(.|\r?\n)+\})\s*$/ );
+        var match= value.match( /^\s*obj(\{(.|\r?\n)+\})\s*$/ );
         if( match ) {
             var expression= match[1].replace( /\$(\w[a-zA-Z_0-9]*)/g, 'storedVars.$1' );
             LOG.debug( 'obj{}: ' +expression );
@@ -1251,11 +1252,18 @@ function $X(xpath, contextNode) {
             // '{field: "value"}' and 'return {field: "value"}'. That's why I assign to local variable 'object' first, and then I return it.
             return eval( 'var object= ' +expression+ '; object' );
         }
+        // Match array[...] and evaluate it as an array of Javascript expressions. Replace $... parts with respective stored variables.
+        var match= value.match( /^\s*array(\[(.|\r?\n)+\])\s*$/ );
+        if( match ) {
+            var expression= match[1].replace( /\$(\w[a-zA-Z_0-9]*)/g, 'storedVars.$1' );
+            LOG.debug( 'array[]: ' +expression );
+            return eval( expression );
+        }
         // Match ...qs{...}.... 
         // Spaces in the following regex are here only to make it more readable; they get removed.
         var spacedRegex= /^ ( ((?!qs\{)[^=])* )  qs\{((.|\r?\n)+)\}  (([^}])*)$/;
         var regex= new RegExp( spacedRegex.source.replace( / /g, '') );
-        var match = value.match( regex );
+        match = value.match( regex );
         if( match ) {
             var prefix= match[1];
             var mainPart= match[3];
