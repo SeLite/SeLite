@@ -208,11 +208,104 @@
 	<td>obj{name: $newUserName, mail: $newUserEmail, pass: $newUserPassword}</td>
 	<td></td>
 </tr>
+<!---->
+<tr>
+	<td>call</td>
+	<td>logInAsStoredUser</td>
+	<td>userName=$newUserName</td>
+</tr>
 <tr>
 	<td>endScript</td>
 	<td></td>
 	<td></td>
 </tr>
+<!----------------->
+<!--This requires the password to be stored in the test DB in plain text. Like for accounts created by script createUser.-->
+<tr>
+	<td>script</td>
+	<td>logInAsStoredUser</td>
+	<td>userName</td>
+</tr>
+<tr>
+	<td>storeDrupalUser</td>
+	<td>$userName</td>
+	<td>user</td>
+</tr>
+<!--if the user is logged in already, log him out:-->
+<tr>
+	<td>storeElementPresent</td>
+	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
+	<td>userLoggedIn</td>
+</tr>
+<!--TODO tet whether the following if skips logout when we're already logged ni. Or should it use qs{ ... } instead?-->
+<tr>
+	<td>if</td>
+	<td>${userLoggedIn}</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//li[ contains(@class, 'logout') ]/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<!--make sure we're at login screen-->
+<tr>
+	<td>storeElementPresent</td>
+	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
+	<td>userNamePresent</td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>userNamePresent</td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>Drupal.webRoot()</td>
+	<td>drupalWebRoot</td>
+</tr>
+<tr>
+	<td>open</td>
+	<td>${drupalWebRoot}</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>type</td>
+	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
+	<td>$userName</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>SeLiteMisc.loginManagerPassword( '${userName}' )</td>
+	<td>password</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>//form[ @id='user-login-form' ]//input[ @id='edit-pass' ]</td>
+	<td>qs{ $user.pass }</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//form[ @id='user-login-form' ]//input[ @id='edit-submit' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endScript</td>
+	<td></td>
+	<td></td>
+</tr>
+<!----------------->
 </tbody></table>
 </body>
 </html>

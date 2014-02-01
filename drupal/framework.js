@@ -51,9 +51,11 @@
             columns: new SeLiteData.Settable().set( usersTable.name, SeLiteData.RecordSetFormula.ALL_FIELDS )
         });
 
-        /** @param {number} uid Optional uid to filter by. */
+        /** @param {string} username Optional users.name to filter by.
+         *  @TODO transform this to getXXX, or make it somehow useable
+         *   */
         Selenium.prototype.doDrupalUsers= function( username, ignored) {
-             //@TODO in a separate function - detect numbers via e.g. parseInt or parseFloat
+             //@TODO in a separate function - detect numbers via e.g. parseInt or parseFloat, and treat them as uid?
             var users= username===''
                 ? usersFormula.select()
                 : usersFormula.select( {name: username} );
@@ -61,6 +63,17 @@
             for( var id in users ) {
                 console.log( ''+users[id] );
             }
+        };
+        
+        Selenium.prototype.getDrupalUser= function( username ) {
+            var users= usersFormula.select( {name: username} );
+            console.log( 'getDrupalUser: ' +users );
+            var numUsers= Object.keys(users).length;
+            numUsers===0 || numUsers===1 || SeLiteMisc.fail();
+            for( var id in users ) {
+                return users[id];
+            }
+            return null;
         };
         
         Selenium.prototype.doDrupalInsertUser= function( recordObject, ignored) {

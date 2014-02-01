@@ -575,7 +575,7 @@ function RecordSetHolder( formula, parametersOrCondition ) {
     this.formula= formula;
     this.parametersOrCondition= parametersOrCondition || {};
     this.holders= {}; // Object serving as an associative array { primary key value: RecordHolder instance }
-    this.recordSet= new SeLiteData.RecordSet( undefined, this );
+    this.recordSet= new SeLiteData.RecordSet( this );
     this.originals= {}; // This will be set to object { primary-key-value: original object... }
     this.markedToRemove= {}; // It keeps RecordHolder instances scheduled to be removed; structure like this.holders
 }
