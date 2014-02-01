@@ -769,7 +769,7 @@ SeLiteMisc.objectsMerge= function( obj, overriden ) {
 };
 
 /** Copy all and any  fields (iterable ones) from source object to target object.
- *  If a same field exists in target object, it will be overwritten.
+ *  If the same field exists in target object, it will be overwritten.
  *  @return object target
  **/
 SeLiteMisc.objectCopyFields= function( source, target ) {

@@ -64,11 +64,7 @@
         };
         
         Selenium.prototype.doDrupalInsertUser= function( recordObject, ignored) {
-            var record= new SeLiteData.Record();
-            for( var column in recordObject ) {
-                usersTable.columns.indexOf(column)>=0 || SeLiteMisc.fail( "Column " +column+ " is not among columns of table " +usersTable.name );
-                record[ column ]= recordObject[ column ];
-            }
+            var record= new SeLiteData.Record(recordObject);
             usersTable.insert(record);
         };
         

@@ -56,6 +56,9 @@ SeLiteData.Table.prototype.insert= function( record ) {
     var givenColumns= [];
     var bindings= {};
     for( var column in record ) {
+        if( column==='toString' ) {
+            continue;
+        }
         this.columns.indexOf(column)>=0 || SeLiteMisc.fail( "Column " +column+ " is not among columns defined for table " +this.name );
         givenColumns.push( column );
         bindings[ column ]= record[ column ];
@@ -114,17 +117,17 @@ function RecordHolder( recordSetHolderOrFormula, plainRecord ) {
     else if( recordSetHolderOrFormula!==null ) {
         throw new Error("RecordHolder() expects the first parameter to be an instance of RecordSetHolder or SeLiteData.RecordSetFormula." );
     }
-    this.record= new SeLiteData.Record( this, plainRecord );
+    this.record= new SeLiteData.Record( plainRecord, this );
     if( recordSetHolderOrFormula instanceof SeLiteData.RecordSetFormula && Object.keys(this.record).length>0 ) {
         this.setOriginalAndWatchEntries();
     }
 }
 
 /*** Constructor used for object that represents a record in a DB.
- *   @param {?RecordHolder} recordHolder Respective instance of private class RecordHolder, or null.
- *   @param {?(Object|boolean)} Object with the record's data, or null/false.
+ *   @param {[?(Object|boolean)]} Object with the record's data, or null/false/undefined.
+ *   @param {[?RecordHolder]} recordHolder Respective instance of private class RecordHolder, or null/undefined.
  **/
-SeLiteData.Record= function( recordHolder, data ) {
+SeLiteData.Record= function( data, recordHolder ) {
     // Set the link from record to its record holder. The field for this link is non-iterable.
     Object.defineProperty( this, SeLiteData.Record.RECORD_TO_HOLDER_FIELD, { value: recordHolder } );
     if( data ) {
@@ -139,6 +142,7 @@ SeLiteData.Record= function( recordHolder, data ) {
 */
 SeLiteData.Record.RECORD_TO_HOLDER_FIELD= 'RECORD_TO_HOLDER_FIELD';
 
+// @TODO Document: this won't work if a table column is 'toString'
 SeLiteData.Record.prototype.toString= function() { //@TODO Move to SeLiteMisc; then assign here
     var result= '';
     for( var field in this ) {
@@ -571,7 +575,7 @@ function RecordSetHolder( formula, parametersOrCondition ) {
     this.formula= formula;
     this.parametersOrCondition= parametersOrCondition || {};
     this.holders= {}; // Object serving as an associative array { primary key value: RecordHolder instance }
-    this.recordSet= new SeLiteData.RecordSet( this );
+    this.recordSet= new SeLiteData.RecordSet( undefined, this );
     this.originals= {}; // This will be set to object { primary-key-value: original object... }
     this.markedToRemove= {}; // It keeps RecordHolder instances scheduled to be removed; structure like this.holders
 }
