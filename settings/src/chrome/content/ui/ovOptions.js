@@ -1523,10 +1523,6 @@ function createTreeChildren( parent ) {
         parent.setAttribute('open', 'false');
     }
     parent.appendChild( treeChildren);
-            var treeitem= document.createElementNS( XUL_NS, 'button');
-            treeitem.setAttribute( 'label', 'Button veryyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy long');
-            //topTreeChildren.appendChild( treeitem );
-            treeChildren.appendChild( treeitem );
     return treeChildren;
 }
 
@@ -1652,12 +1648,6 @@ window.addEventListener( "load", function(e) {
         for( var moduleName in modules ) {
             var moduleTreeItem= generateTreeItem( modules[moduleName], null, null, null, RowLevel.MODULE );
             topTreeChildren.appendChild( moduleTreeItem );
-            
-            /*var treeitem= document.createElementNS( XUL_NS, 'button');
-            treeitem.setAttribute( 'label', 'Button veryyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy long');
-            //topTreeChildren.appendChild( treeitem );
-            moduleTreeItem.appendChild( treeitem );*/
-            
             
             var moduleChildren= createTreeChildren( moduleTreeItem );
             generateSets( moduleChildren, modules[moduleName] );
