@@ -2,16 +2,20 @@
 <window id="yourwindow" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml">
     <script type="application/x-javascript" src="chrome://selite-settings/content/ui/ovOptions.js"/>
     <vbox>
-        <tree id="tree" editable="true" seltype="single" class="tree" flex="1" rows="10">
+        <tree id="tree" editable="true" seltype="single" class="tree" flex="1" rows="10" enableColumnDrag="true">
             <treecols>
                 <treecol label="1st column" flex="2" primary="true" ordinal="1"/>
-                <treecol label="2nd column -editable" editable="true" ordinal="1"/>
+                <splitter class="tree-splitter" />
+                <treecol label="2nd column -editable" editable="true" flex="3" overflow="true"/>
+                <splitter class="tree-splitter" />
+                <treecol label="3rd column -editable" editable="true" flex="3"/>
             </treecols>
             <treechildren>
                 <treeitem>
                     <treerow>
                         <treecell label="1st cell" editable="false"></treecell>
-                        <treecell label="n2d cell - editable" editable="true"></treecell>
+                        <treecell label="n2d cell - editable sdksopk fsopk fsopdkf sdopk sopdk fsopdk sdop kops k" editable="true" overflow="false"></treecell>
+                        <treecell label="" editable="true"></treecell> <!-- This must be empty for overflow to work. -->
                     </treerow>
                 </treeitem>
             </treechildren>
@@ -19,13 +23,13 @@
     </vbox>
    <script type="application/x-javascript">
     "use strict";
-    window.addEventListener( "load", function(e) {
+    /*window.addEventListener( "load", function(e) {
         var tree= document.getElementById('tree');
         
         tree.view.setCellText= function( row, col, value ) {
             //alert('edited');
             return true;
         };
-    } );
+    } );*/  
    </script>
 </window>

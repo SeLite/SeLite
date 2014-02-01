@@ -48,6 +48,25 @@ SeLiteData.Table= function( prototype ) {
     this.primary= prototype.primary || 'id';
 };
 
+/** Insert the given record to the DB.
+ *  @param {SeLiteData.Record} record
+ * */
+SeLiteData.Table.prototype.insert= function( record ) {
+    // I don't use asynchronous API, because I don't know how to use it with classic program control flow. Therefore I need to list all columns.
+    var givenColumns= [];
+    var bindings= {};
+    for( var column in record ) {
+        this.columns.indexOf(column)>=0 || SeLiteMisc.fail( "Column " +column+ " is not among columns defined for table " +this.name );
+        givenColumns.push( column );
+        bindings[ column ]= record[ column ];
+    }
+    var query= 'INSERT INTO ' +this.name+ '('+ givenColumns.join(', ')+ ') '+
+        'VALUES (:' +givenColumns.join(', :')+ ')';
+    console.log( query );
+    console.log( SeLiteMisc.objectToString(bindings, 2) );
+    this.db.storage.execute( query, bindings );
+};
+
 /** @private Not used directly outside of this file */
 function readOnlyPrimary( field ) {
     throw new Error( "This field '" +field+ "' is a primary key and therefore read-only." );
@@ -70,7 +89,7 @@ function readOnlyJoined( field ) {
  *  column names, as defined in the respective SeLiteData.RecordSetFormula (and as retrieved from DB).
  *  See insert().
  *  @private Not used directly outside of this file.
- *  @param object recordSetHolderOrFormula An instance of either SeLiteData.RecordSetHolder, or of SeLiteData.RecordSetFormula. If it's a formula,
+ *  @param {SeLiteData.RecordSetFormula|RecordSetHolder|null} object recordSetHolderOrFormula An instance of either SeLiteData.RecordSetHolder, or of SeLiteData.RecordSetFormula, or null. If it's a formula,
  *  then this.original won't be set, and you can modify this.record. You probably
  *  want to pass a SeLiteData.RecordSetFormula instance if you intend to use this RecordHolder with insert() only.
  *  @param object plainRecord Plain record from the result of the SELECT (using the column aliases, including any joined fields).
@@ -92,7 +111,7 @@ function RecordHolder( recordSetHolderOrFormula, plainRecord ) {
     if( recordSetHolderOrFormula instanceof RecordSetHolder ) {
         this.recordSetHolder= recordSetHolderOrFormula;
     }
-    else {
+    else if( recordSetHolderOrFormula!==null ) {
         throw new Error("RecordHolder() expects the first parameter to be an instance of RecordSetHolder or SeLiteData.RecordSetFormula." );
     }
     this.record= new SeLiteData.Record( this, plainRecord );
@@ -102,8 +121,8 @@ function RecordHolder( recordSetHolderOrFormula, plainRecord ) {
 }
 
 /*** Constructor used for object that represents a record in a DB.
- *   @param {Object} recordHolder of private class RecordHolder
- *   @param {?Object|boolean} Object with the record's data, or null/false.
+ *   @param {?RecordHolder} recordHolder Respective instance of private class RecordHolder, or null.
+ *   @param {?(Object|boolean)} Object with the record's data, or null/false.
  **/
 SeLiteData.Record= function( recordHolder, data ) {
     // Set the link from record to its record holder. The field for this link is non-iterable.
@@ -166,7 +185,7 @@ RecordHolder.prototype.setOriginalAndWatchEntries= function() {
 };
 
 RecordHolder.prototype.select= function() { throw new Error( "@TODO. In the meantimes, use RecordSetHolder.select() or SeLiteData.RecordSetFormula.select()."); }
-RecordHolder.prototype.selectOne= function() { throw new Error( "@TODO. In the meantimes, use RecordSetHolder.selectOne() or SeLiteData.RecordSetFormula.selectOne()."); }
+RecordHolder.prototype.selectOne= function() { throw new Error( "@TODO. In the meantime, use RecordSetHolder.selectOne() or SeLiteData.RecordSetFormula.selectOne()."); }
 
 // @TODO RecordHolder.insert() which is linked to an existing RecordSetHolder, and it adds itself to that recordSetHolder.
 //       But then the recordSetHolder may not match its formula anymore - have a flag/handler for that.

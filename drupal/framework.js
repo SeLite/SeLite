@@ -36,15 +36,19 @@
         var storage= SeLiteData.getStorageFromSettings('extensions.selite.drupal.testDB');
         var db= new SeLiteData.Db( storage );
 
-        var users= new SeLiteData.Table( {
+        var usersTable= new SeLiteData.Table( {
            db:  db,
            name: 'users',
-           columns: ['uid', 'name', 'pass', 'mail', 'theme']
+           columns: ['uid', 'name'/*login*/, 'pass', 'mail', 'theme', 'signature', 'signature_format',
+               'created', 'access', 'login', // timestamps in seconds since Epoch
+               'status', 'timezone', 'language', 'picture', 'init', 'data'
+           ],
+           primary: 'uid' // However, for purpose of matching users I usually use name
         });
-
+        
         var usersFormula= new SeLiteData.RecordSetFormula( {
-            table: users,
-            columns: new SeLiteData.Settable().set( users.name, SeLiteData.RecordSetFormula.ALL_FIELDS )
+            table: usersTable,
+            columns: new SeLiteData.Settable().set( usersTable.name, SeLiteData.RecordSetFormula.ALL_FIELDS )
         });
 
         /** @param {number} uid Optional uid to filter by. */
@@ -59,6 +63,15 @@
             }
         };
         
+        Selenium.prototype.doDrupalInsertUser= function( recordObject, ignored) {
+            var record= new SeLiteData.Record();
+            for( var column in recordObject ) {
+                usersTable.columns.indexOf(column)>=0 || SeLiteMisc.fail( "Column " +column+ " is not among columns of table " +usersTable.name );
+                record[ column ]= recordObject[ column ];
+            }
+            usersTable.insert(record);
+        };
+        
         var settingsModule= SeLiteSettings.loadFromJavascript('extensions.selite.drupal');
         var webRootField= settingsModule.fields['webRoot'];
         
@@ -66,7 +79,7 @@
         Drupal= {};
         Drupal.webRoot= function() {
             return webRootField.getDownToFolder().entry;
-        }
+        };
         
         /** Convert a given symbolic role name (prefixed with '&') to username, or return a given username unchanged.
          *  @param {string} userNameOrRoleWithPrefix Either a symbolic role name, starting with '&', or a username.
