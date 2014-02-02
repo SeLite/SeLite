@@ -637,7 +637,7 @@ Selenium.prototype.doWaitForFrameAndSelect= function( locator, unused ) {
     );
 };
 //@TODO document in reference.xml
-Selenium.prototype.doWaitForFrameFromTopAndSelect= function( locatorOrLocators, unused ) {
+Selenium.prototype.doSelectTopFrameAnd= function( locatorOrLocators, unused ) {
     if( typeof locatorOrLocators==='string' ) {
         locatorOrLocators= [locatorOrLocators];
     }

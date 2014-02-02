@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://change-this-to-the-site-you-are-testing/" />
+<title>setup_content</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">setup_content</td></tr>
+</thead><tbody>
+<!--Run this once only on a vanilla installation.-->
+<!--Set up the front page.-->
+<tr>
+	<td>call</td>
+	<td>logIn</td>
+	<td>userNameOrRole='&amp;admin'</td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>//div[ @class=&quot;content&quot; ]/div[ @id=&quot;first-time&quot; ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>//div[ @class=&quot;content&quot; ]/div[ @id=&quot;first-time&quot; and count(.//a)=1 ]</td>
+	<td></td>
+</tr>
+<!--Not sure whether the following needs 'AndWait', but the next step failed without it once. With 'AndWait' it times out...-->
+<tr>
+	<td>clickAndWait</td>
+	<td>//div[ @class=&quot;content&quot; ]/div[ @id=&quot;first-time&quot; ]//a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectTopFrameAnd</td>
+	<td>//iframe[contains(@title, 'Add content dialog')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//div[ @class=&quot;content&quot; ]/ul/li//a[ contains(@href, '/?q=node/add/page' ) ]</td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>selectTopFrameAnd</td>
+	<td>//iframe[contains(@title, 'Create Basic page dialog')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=edit-title</td>
+	<td>Front page</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=edit-body-und-0-value</td>
+	<td>Content of the front page</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>edit-submit</td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>selectTopFrameAnd</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ contains(@href, '/?q=admin/config' ) ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectTopFrameAnd</td>
+	<td>//iframe[contains(@title, 'Configuration dialog')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ contains(@href, '/?q=admin/config/system/site-information' ) ]</td>
+	<td></td>
+</tr>
+</tbody></table>
+</body>
+</html>
