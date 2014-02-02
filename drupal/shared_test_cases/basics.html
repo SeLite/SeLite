@@ -153,6 +153,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>verifyElementPresent</td>
+	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
+	<td>userLoggedIn</td>
+</tr>
+<tr>
 	<td>endScript</td>
 	<td></td>
 	<td></td>
@@ -227,8 +232,13 @@
 	<td>userName</td>
 </tr>
 <tr>
+	<td>selectFrame</td>
+	<td>relative=top</td>
+	<td></td>
+</tr>
+<tr>
 	<td>storeDrupalUser</td>
-	<td>$userName</td>
+	<td>${userName}</td>
 	<td>user</td>
 </tr>
 <!--if the user is logged in already, log him out:-->
@@ -283,12 +293,7 @@
 <tr>
 	<td>type</td>
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
-	<td>$userName</td>
-</tr>
-<tr>
-	<td>storeEval</td>
-	<td>SeLiteMisc.loginManagerPassword( '${userName}' )</td>
-	<td>password</td>
+	<td>${userName}</td>
 </tr>
 <tr>
 	<td>type</td>
@@ -299,6 +304,11 @@
 	<td>clickAndWait</td>
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-submit' ]</td>
 	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
+	<td>userLoggedIn</td>
 </tr>
 <tr>
 	<td>endScript</td>
