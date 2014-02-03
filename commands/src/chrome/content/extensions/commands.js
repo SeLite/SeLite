@@ -636,7 +636,7 @@ Selenium.prototype.doWaitForFrameAndSelect= function( locator, unused ) {
         this.defaultTimeout
     );
 };
-//@TODO document in reference.xml
+
 Selenium.prototype.doSelectTopFrameAnd= function( locatorOrLocators, unused ) {
     if( typeof locatorOrLocators==='string' ) {
         locatorOrLocators= [locatorOrLocators];
