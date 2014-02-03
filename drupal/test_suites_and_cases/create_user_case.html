@@ -24,7 +24,7 @@
 <tr>
 	<td>call</td>
 	<td>logIn</td>
-	<td>userNameOrRole='&amp;admin'</td>
+	<td>userNameOrAmpersandRole='&amp;admin'</td>
 </tr>
 <!---->
 <!--For some reason clickAndWait sometimes failed for id=toolbar-link-admin-people-->
@@ -56,8 +56,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>selectFrame</td>
-	<td>relative=top</td>
+	<td>selectTopFrameAnd</td>
+	<td></td>
 	<td></td>
 </tr>
 <tr>
@@ -82,11 +82,6 @@
 	<td></td>
 </tr>
 <tr>
-	<td>selectFrame</td>
-	<td>relative=top</td>
-	<td></td>
-</tr>
-<tr>
 	<td>selectTopFrameAnd</td>
 	<td>//iframe[contains(@title, 'People dialog')]</td>
 	<td></td>
@@ -107,16 +102,6 @@
 	<td>call</td>
 	<td>createUser</td>
 	<td></td>
-</tr>
-<tr>
-	<td>waitForElementPresent</td>
-	<td>id=edit-name</td>
-	<td></td>
-</tr>
-<tr>
-	<td>storeElementPresent</td>
-	<td>id=edit-name</td>
-	<td>namePresen</td>
 </tr>
 </tbody></table>
 </body>
