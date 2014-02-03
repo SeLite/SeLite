@@ -244,7 +244,7 @@
 <function name="enableJavascript">
     <comment>Disable Javascript for the web application that is being tested</comment>
 </function>
-<function name="doSelectTopFrameAnd">
+<function name="selectTopFrameAnd">
     <param name="locatorOrLocators">Either
         <ul>
         </ul>
@@ -252,7 +252,7 @@
     </param>
     <comment>
         Select the top frame. Then 
-        <br/>It waits for any specified frames to become present. However, it doesn't wait for the top frame. For that you should use 'andWait'in the last command that loaded the current page. So you shouldn't need to use <b>doSelectTopFrameAndAndWait</b> at all.
+        <br/>It waits for any specified frames to become present. However, it doesn't wait for the top frame. For that you should use 'andWait'in the last command that loaded the current page. So you shouldn't need to use <b>selectTopFrameAndAndWait</b> at all.
     </comment>
 </function>
 </apidoc>
