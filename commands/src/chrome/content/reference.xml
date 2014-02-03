@@ -175,7 +175,7 @@
                             <dt>'word'</dt><dd>word (random letter a-z)</dd>
                             <dt>'number'</dt><dd>when generating a non-negative number; see more options below</dd>
                             <dt>'text'</dt><dd>When generating random word(s) (and random letter-based text)</dd>
-                            <dt>'password'</dt><dd>Password that contains at least one of a-z, A-Z, 0-9 and '!@#$%^&*()-_'</dd>
+                            <dt>'password'</dt><dd>Password that contains at least one of a-z, A-Z, 0-9 and '!@#$%^&amp;*()-_'</dd>
                             <dt>'ugly'</dt><dd>When generating bad characters (possibly used for SQL injection, filesystem access).
                                 It will try to include all unique ugly characters at least once, so it may always generate more
                                 characters than minLength, therefore leaving some combinations untested.
