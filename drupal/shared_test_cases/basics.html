@@ -213,16 +213,17 @@
 </tr>
 <tr>
 	<td>drupalInsertUser</td>
-	<td>obj{name: $newUserName, mail: $newUserEmail, pass: $newUserPassword}</td>
+	<td>obj{name: $newUserName, mail: $newUserEmail, pass: $newUserPassword, mail:$newUserEmail}</td>
 	<td></td>
 </tr>
-<!--Verify-->
+<!--Login and verify-->
 <tr>
 	<td>call</td>
 	<td>logInAsStoredUser</td>
 	<td>userName=$newUserName</td>
 </tr>
-<!--Click at 'My account'. If you'd like to use a simpler XPath, vote for https://code.google.com/p/selite/wiki/ThirdPartyIssues > Support XPath 2.0-->
+<!--If you'd like the following XPaths to be simpler, vote for https://code.google.com/p/selite/wiki/ThirdPartyIssues > Support XPath 2.0-->
+<!--Click at 'My account'.-->
 <tr>
 	<td>clickAndWait</td>
 	<td>//ul/li/a[ contains(@href, '/?q=user') and substring-after(@href, '/?q=user')='' ]</td>
@@ -232,6 +233,17 @@
 <tr>
 	<td>verifyElementPresent</td>
 	<td>//div[ @id='content' ]//h1[ @id='page-title' and contains(., '${newUserName}') ]</td>
+	<td></td>
+</tr>
+<!--Click at 'Edit' tab-->
+<tr>
+	<td>clickAndWait</td>
+	<td>//div[ @class='tabs' ]/ul/li/a[ contains(@href, '?q=user/') and translate( substring-after(@href, '?q=user/'), '0123456789', '')='/edit' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//input[ @id='edit-mail' and @value='${newUserEmail}' ]</td>
 	<td></td>
 </tr>
 <tr>
