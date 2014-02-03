@@ -32,7 +32,8 @@ var SeLiteMisc= {};
  *  and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw?redirectlocale=en-US&redirectslug=JavaScript%2FReference%2FStatements%2Fthrow
 */
 SeLiteMisc.fail= function( errorOrMessage ) {
-    console.warn( stack() );
+    console.error( errorOrMessage );
+    console.error( stack() );
     throw errorOrMessage
         ?(typeof errorOrMessage==='object' &&  errorOrMessage.constructor.name==='Error'
             ? errorOrMessage

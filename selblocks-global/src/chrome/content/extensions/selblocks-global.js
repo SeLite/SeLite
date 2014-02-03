@@ -1,5 +1,5 @@
 /* Copyright 2011 Chris Noe
- * Copyright 2011, 2012, 2013 Peter Kehl
+ * Copyright 2011, 2012, 2013, 2014 Peter Kehl
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 1.1. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/1.1/.
@@ -50,11 +50,6 @@
 // =============== global functions as script helpers ===============
 // getEval script helpers
 
-// @TODO Here and other Se IDE extensions that are in SeLite: for some reason, this file is called 2x
-// 1.at start of Se IDE
-// 2. the first time a test command or a test case is run
-// alert('hi');
-
 // find an element via locator independent of any selenium commands
 // (selenium can only provide the first if multiple matches)
 function $e(locator) {
@@ -85,6 +80,7 @@ function $X(xpath, contextNode) {
 
 // Anonymous function serves as a wrapper, to keep any variables defined directly by it private
 (function(){
+    Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
 
     // =============== javascript extensions as script helpers ===============
 
@@ -174,8 +170,9 @@ function $X(xpath, contextNode) {
     // @return numeric (not a Number object) 0-based index of the respective command within its test case
     function localIdx( globIdxValue ) {
       // Can't use assert() here, since assert indirectly calls fmtCmdRef() which calls localIdx() - recursion
+      SeLiteMisc.ensureType( globIdxValue, 'string', 'globIdxValue must be a string' );
       if( typeof globIdxValue !== 'string' ) {
-          var msg= 'globIdxValue must be a string.';
+          SeLiteMisc.fail( 'globIdxValue must be a string, but got ' +(typeof globIdxValue)+ ': ' +globIdxValue );
           LOG.error( msg );
           throw new Error(msg);
       }
