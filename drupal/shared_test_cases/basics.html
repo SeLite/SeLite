@@ -60,7 +60,7 @@
 </tr>
 <tr>
 	<td>if</td>
-	<td>qs{$userLoggedIn}</td>
+	<td>stored{$userLoggedIn}</td>
 	<td></td>
 </tr>
 <tr>
@@ -121,7 +121,7 @@
 	<td></td>
 	<td></td>
 </tr>
-<!--TODO DOC: don't have qs{} around the whole following expression-->
+<!--TODO DOC: don't have stored{} around the whole following expression-->
 <tr>
 	<td>storeEval</td>
 	<td>Drupal.roleToUser( '${userNameOrAmpersandRole}' )</td>
@@ -172,7 +172,7 @@
 </tr>
 <tr>
 	<td>selectTopFrameAnd</td>
-	<td>//iframe[contains(@title, 'People dialog')]</td>
+	<td>array{ &quot;//iframe[contains(@title, 'People dialog')]&quot; }</td>
 	<td></td>
 </tr>
 <tr>
@@ -189,22 +189,22 @@
 <tr>
 	<td>typeRandom</td>
 	<td>id=edit-name</td>
-	<td>obj{maxLength:60, type:'word', store:'newUserName'}</td>
+	<td>object{maxLength:60, type:'word', store:'newUserName'}</td>
 </tr>
 <tr>
 	<td>typeRandom</td>
 	<td>id=edit-mail</td>
-	<td>obj{maxLength: 254, type:'email', store:'newUserEmail'}</td>
+	<td>object{maxLength: 254, type:'email', store:'newUserEmail'}</td>
 </tr>
 <tr>
 	<td>typeRandom</td>
 	<td>id=edit-pass-pass1</td>
-	<td>obj{type:'password', store:'newUserPassword'}</td>
+	<td>object{type:'password', store:'newUserPassword'}</td>
 </tr>
 <tr>
 	<td>type</td>
 	<td>id=edit-pass-pass2</td>
-	<td>qs{$newUserPassword}</td>
+	<td>stored{$newUserPassword}</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
@@ -213,7 +213,7 @@
 </tr>
 <tr>
 	<td>drupalInsertUser</td>
-	<td>obj{name: $newUserName, mail: $newUserEmail, pass: $newUserPassword, mail:$newUserEmail}</td>
+	<td>object{name: $newUserName, mail: $newUserEmail, pass: $newUserPassword, mail:$newUserEmail}</td>
 	<td></td>
 </tr>
 <!--Login and verify-->
@@ -259,8 +259,8 @@
 	<td>userName</td>
 </tr>
 <tr>
-	<td>selectFrame</td>
-	<td>relative=top</td>
+	<td>selectTopFrameAnd</td>
+	<td></td>
 	<td></td>
 </tr>
 <tr>
@@ -274,7 +274,7 @@
 	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
 	<td>userLoggedIn</td>
 </tr>
-<!--TODO tet whether the following if skips logout when we're already logged ni. Or should it use qs{ ... } instead?-->
+<!--TODO tet whether the following if skips logout when we're already logged ni. Or should it use stored{ ... } instead?-->
 <tr>
 	<td>if</td>
 	<td>${userLoggedIn}</td>
@@ -325,7 +325,7 @@
 <tr>
 	<td>type</td>
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-pass' ]</td>
-	<td>qs{ $user.pass }</td>
+	<td>stored{ $user.pass }</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>

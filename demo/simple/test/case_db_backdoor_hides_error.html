@@ -125,7 +125,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>qs{ &quot;xpath=( //table[@id='charities']//tr )[&quot; +$xpathRowIndex+ &quot;] /td[@class='name' and text()=&quot; +SeLiteMisc.xpath_escape_quote( SeLiteMisc.unescape_xml(storedVars.name) )+ &quot;]&quot; }</td>
+	<td>stored{ &quot;xpath=( //table[@id='charities']//tr )[&quot; +$xpathRowIndex+ &quot;] /td[@class='name' and text()=&quot; +SeLiteMisc.xpath_escape_quote( SeLiteMisc.unescape_xml(storedVars.name) )+ &quot;]&quot; }</td>
 	<td></td>
 </tr>
 <tr>
@@ -156,7 +156,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>qs{&quot;//table[@id='charities' and count(.//tr)=&quot;+($items.length%$MAX_DISPLAYED_ITEMS+1)+&quot; ]&quot; }</td>
+	<td>stored{&quot;//table[@id='charities' and count(.//tr)=&quot;+($items.length%$MAX_DISPLAYED_ITEMS+1)+&quot; ]&quot; }</td>
 	<td></td>
 </tr>
 <!---->
