@@ -95,8 +95,11 @@
          *  @return {string} Username mapped to userNameOrRoleWithPrefix (after removeing '&' prefix) through extensions.selite.drupal settings. If userNameOrRoleWithPrefix doesn't start with '&', this returns it unchanged.
          * */
         Drupal.roleToUser= function( userNameOrRoleWithPrefix ) {
+            LOG.info( 'Drupal.roleToUser: userNameOrRoleWithPrefix: ' +userNameOrRoleWithPrefix );
             if( userNameOrRoleWithPrefix.startsWith('&') ) {
                 var role= userNameOrRoleWithPrefix.substring(1);
+                LOG.info( 'role: ' +role );
+                LOG.info( 'settingsModule.getFieldsDownToFolder()[ "roles" ].entry[ role ]: ' +settingsModule.getFieldsDownToFolder()[ 'roles' ].entry[ role ]);
                 return settingsModule.getFieldsDownToFolder()[ 'roles' ].entry[ role ];
             }
             else {

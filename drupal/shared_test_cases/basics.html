@@ -82,7 +82,7 @@
 <tr>
 	<td>script</td>
 	<td>logIn</td>
-	<td>userNameOrRole</td>
+	<td>userNameOrAmpersandRole</td>
 </tr>
 <!--if the user is logged in already, log him out:-->
 <tr>
@@ -121,7 +121,12 @@
 	<td></td>
 	<td></td>
 </tr>
-<!---->
+<!--TODO DOC: don't have qs{} around the whole following expression-->
+<tr>
+	<td>storeEval</td>
+	<td>Drupal.roleToUser( '${userNameOrAmpersandRole}' )</td>
+	<td>userName</td>
+</tr>
 <tr>
 	<td>type</td>
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
