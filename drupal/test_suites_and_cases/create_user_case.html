@@ -12,13 +12,8 @@
 <tr><td rowspan="1" colspan="3">create_user_case</td></tr>
 </thead><tbody>
 <tr>
-	<td>call</td>
-	<td>ensureUnderWebRoot</td>
+	<td>selectTopFrameAnd</td>
 	<td></td>
-</tr>
-<tr>
-	<td>call</td>
-	<td>logOut</td>
 	<td></td>
 </tr>
 <tr>
@@ -27,76 +22,6 @@
 	<td>userNameOrAmpersandRole='&amp;admin'</td>
 </tr>
 <!---->
-<!--For some reason clickAndWait sometimes failed for id=toolbar-link-admin-people-->
-<!--Sometimes //li[ contains(@class, 'path-admin-people') ]/a didn't work either-->
-<tr>
-	<td>click</td>
-	<td>id=toolbar-link-admin-people</td>
-	<td></td>
-</tr>
-<tr>
-	<td>waitForElementPresent</td>
-	<td>//iframe[contains(@title, 'People dialog')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>selectFrame</td>
-	<td>//iframe[contains(@title, 'People dialog')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>clickAndWait</td>
-	<td>//div[ @id='content' ]//ul/li/a[ contains(@href, 'admin/people/create') ]</td>
-	<td></td>
-</tr>
-<!---->
-<tr>
-	<td>if</td>
-	<td>false</td>
-	<td></td>
-</tr>
-<tr>
-	<td>selectTopFrameAnd</td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
-	<td>waitForElementPresent</td>
-	<td>//iframe[contains(@title, 'People dialog')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>selectFrame</td>
-	<td>//iframe[contains(@title, 'People dialog')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>endIf</td>
-	<td></td>
-	<td></td>
-</tr>
-<!---->
-<tr>
-	<td>if</td>
-	<td>false</td>
-	<td></td>
-</tr>
-<tr>
-	<td>selectTopFrameAnd</td>
-	<td>//iframe[contains(@title, 'People dialog')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>endIf</td>
-	<td></td>
-	<td></td>
-</tr>
-<!---->
-<tr>
-	<td>selectTopFrameAnd</td>
-	<td>array[ &quot;//iframe[contains(@title, 'People dialog')]&quot; ]</td>
-	<td></td>
-</tr>
 <!------>
 <tr>
 	<td>call</td>

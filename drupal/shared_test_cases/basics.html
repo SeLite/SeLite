@@ -149,8 +149,8 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
-	<td>userLoggedIn</td>
+	<td>//ul/li/a[ contains(@href, '/?q=user/logout') ]</td>
+	<td>Verify that we are logged in</td>
 </tr>
 <tr>
 	<td>endScript</td>
@@ -163,26 +163,29 @@
 	<td>createUser</td>
 	<td></td>
 </tr>
+<!--For some reason clickAndWait sometimes failed for id=toolbar-link-admin-people-->
+<!--Sometimes //li[ contains(@class, 'path-admin-people') ]/a didn't work either-->
 <tr>
-	<td>if</td>
-	<td>false</td>
+	<td>clickAndWait</td>
+	<td>id=toolbar-link-admin-people</td>
 	<td></td>
 </tr>
 <tr>
-	<td>selectFrame</td>
-	<td>relative=top</td>
-	<td></td>
-</tr>
-<tr>
-	<td>selectFrame</td>
+	<td>selectTopFrameAnd</td>
 	<td>//iframe[contains(@title, 'People dialog')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>endIf</td>
-	<td></td>
+	<td>clickAndWait</td>
+	<td>//div[ @id='content' ]//ul/li/a[ contains(@href, '/?q=admin/people/create') ]</td>
 	<td></td>
 </tr>
+<tr>
+	<td>selectTopFrameAnd</td>
+	<td>//iframe[contains(@title, 'People dialog')]</td>
+	<td></td>
+</tr>
+<!---->
 <tr>
 	<td>typeRandom</td>
 	<td>id=edit-name</td>
@@ -213,11 +216,23 @@
 	<td>obj{name: $newUserName, mail: $newUserEmail, pass: $newUserPassword}</td>
 	<td></td>
 </tr>
-<!---->
+<!--Verify-->
 <tr>
 	<td>call</td>
 	<td>logInAsStoredUser</td>
 	<td>userName=$newUserName</td>
+</tr>
+<!--Click at 'My account'. If you'd like to use a simpler XPath, vote for https://code.google.com/p/selite/wiki/ThirdPartyIssues > Support XPath 2.0-->
+<tr>
+	<td>clickAndWait</td>
+	<td>//ul/li/a[ contains(@href, '/?q=user') and substring-after(@href, '/?q=user')='' ]</td>
+	<td></td>
+</tr>
+<!--Check the username. (Xpath must use contains(), because Drupal adds extra whitespace.)-->
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//div[ @id='content' ]//h1[ @id='page-title' and contains(., '${newUserName}') ]</td>
+	<td></td>
 </tr>
 <tr>
 	<td>endScript</td>
@@ -289,7 +304,7 @@
 	<td></td>
 	<td></td>
 </tr>
-<!---->
+<!--Verify that we can log in-->
 <tr>
 	<td>type</td>
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
@@ -305,10 +320,11 @@
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-submit' ]</td>
 	<td></td>
 </tr>
+<!---->
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
-	<td></td>
+	<td>//ul/li/a[ contains(@href, '/?q=user/logout') ]</td>
+	<td>Verify that we are logged in</td>
 </tr>
 <tr>
 	<td>endScript</td>
