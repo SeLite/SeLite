@@ -104,6 +104,21 @@
             }
         };
         
+        // Can't use: return selenium.browserbot.getCurrentWindow().location.href
+        // - it's only available when implementing Selenese
+        /** Get node ID of the current page, if applicable.
+         *  @param {Window} window It must be passed from your test case.
+         *  @return {(number|null)} ID of the node, or null.
+         * */
+        Drupal.currentPageNodeId= function(window) {
+            var href= window.location.href;
+            var match= href.match( /\/?q=node\/([0-9]+)/ );
+            if( match ) {
+                return match[1];
+            }
+            return null;
+        };
+        
         SeLiteSettings.setModuleForReloadButtons( settingsModule );
     // }
     // SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doDrupalUsers']= !loadedOddTimes;

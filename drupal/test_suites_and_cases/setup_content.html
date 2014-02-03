@@ -67,6 +67,11 @@
 </tr>
 <!---->
 <tr>
+	<td>storeEval</td>
+	<td>Drupal.currentPageNodeId(window)</td>
+	<td>newPageNodeId</td>
+</tr>
+<tr>
 	<td>selectTopFrameAnd</td>
 	<td></td>
 	<td></td>
@@ -84,6 +89,21 @@
 <tr>
 	<td>clickAndWait</td>
 	<td>//a[ contains(@href, '/?q=admin/config/system/site-information' ) ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectTopFrameAnd</td>
+	<td>//iframe[ @title='Site information dialog' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=edit-site-frontpage</td>
+	<td>node/qs{$newPageNodeId}</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>id=edit-submit</td>
 	<td></td>
 </tr>
 </tbody></table>
