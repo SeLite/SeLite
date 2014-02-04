@@ -81,6 +81,8 @@ function $X(xpath, contextNode) {
 // Anonymous function serves as a wrapper, to keep any variables defined directly by it private
 (function(){
     Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
+    //var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+
 
     // =============== javascript extensions as script helpers ===============
 
@@ -151,9 +153,11 @@ function $X(xpath, contextNode) {
 
     /** This serves to generate unique global identifiers for test script commands.
      *  Results of this functions are usually values of symbols[] and other structures.
-     *  @param TestCase givenTestCase optional; using testCase by default
+     *  @param {number} commandIndex
+     *  @param {TestCase} [givenTestCase] optional; using testCase by default
     // I'd rather use objects, but Javascript doesn't compare objects field by field
     // - try javascript:a={first: 1}; b={first: 1}; a==b
+     @returns {string} global index of the command, in form testCaseIndex/commandIndex
     */
     function globIdx( commandIndex, givenTestCase) {
       givenTestCase= givenTestCase || testCase;
@@ -255,7 +259,8 @@ function $X(xpath, contextNode) {
     var symbols = {};
 
     var cmdAttrs = new CmdAttrs();  // static command attributes stored by globIdx value
-    var callStack;    // command execution stack
+    /** @var {Stack} callStack Command execution stack */
+    var callStack;
 
     function hereGlobIdx() {
       // Must not use assert() here, because that calls notifyFatalHere() which calls hereGlobIdx()
@@ -269,12 +274,15 @@ function $X(xpath, contextNode) {
     // command attributes, stored by command global index
     function CmdAttrs() {
       var cmds = {}; // changed this from [] @TODO check whether good; Do we use .length anywhere?
-      /** @param a result of globIdx() function
+      /** @param {string} i A result of globIdx() function
+       *  @param {Object} [attrs] Extra details to add.
+       *  @return {TODO} Entry just added to this collection.
        **/
       cmds.init = function(i, attrs) {
         assert( typeof testCase.commands ==='object', 'CmdAttrs::init() - testCase.commands is of bad type.');
         // @TODO assert regex numeric/numeric
         assert( typeof i ==='string', 'CmdAttrs::init() - param i must be a globIdx() result.');
+        // @TODO change to use 'this' instead of 'cmds' - it will be clearer.
         cmds[i] = attrs || {};
         cmds[i].idx = i;
         cmds[i].cmdName = localCase(i).commands[ localIdx(i) ].command;
