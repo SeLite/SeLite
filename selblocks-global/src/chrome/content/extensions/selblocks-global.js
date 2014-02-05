@@ -46,6 +46,7 @@
  */
 
 // This file must not have "use strict"; because it depends on variables created by eval().
+// @TODO have "use strict"; in functions that can have it
 
 // =============== global functions as script helpers ===============
 // getEval script helpers
@@ -80,7 +81,7 @@ function $X(xpath, contextNode) {
 
 // Anonymous function serves as a wrapper, to keep any variables defined directly by it private
 (function(){
-    Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
+    //Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
     //var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 
 
@@ -327,7 +328,7 @@ function $X(xpath, contextNode) {
 
     // Body of this currentCommand() was copied verbatim from Selenium's content/testCase.js
 
-    // This is a global index - globIdx() value
+    // This is a global index of the next command - set to a result of globIdx()
     var branchIdx = null;
 
     // @param globIdx value
@@ -347,9 +348,8 @@ function $X(xpath, contextNode) {
       var origTestCaseDebugContextNextCommand;
 
       Selenium.prototype.reset = function() {// this: selenium
+        //console.error( 'Selenium.prototype.reset() called as overriden by SelBlocksGlobal: ' +SeLiteMisc.stack() );
         origReset.call(this);
-        //alert( testCase.file.path );
-        //alert( 'editor.app.testCase==testCase: ' +(testCase==editor.app.testCase) ); // --> TRUE (in Selenium 1.5.0)
 
         // TBD: skip during single command execution
         try {
@@ -388,7 +388,7 @@ function $X(xpath, contextNode) {
                 else {
                   if( branchIdx!=null ) {
                     LOG.debug("Selblocks branch => " + fmtCmdRef(branchIdx));
-                    // Following us because the original nextCommand() will increase this.debugIndex by 1 when invoked below
+                    // Following uses -1 because the original nextCommand() will increase this.debugIndex by 1 when invoked below
                     this.debugIndex = localIdx(branchIdx)-1;
                     
                     testCase= this.testCase= localCase(branchIdx);
@@ -523,7 +523,7 @@ function $X(xpath, contextNode) {
                 assertNotAndWaitSuffix(cmdIdx);
                 assertBlockIsPending("script", cmdIdx, lexStack, ", is not valid outside of a script/endScript block");
                 var scrpt = lexStack.find(function(attrs) { return (attrs.cmdName == "script"); });
-                cmdAttrs.init(cmdIdx, { scrIdx: scrpt.idx });    // return -> script
+                cmdAttrs.init(cmdIdx, { scriptIdx: scrpt.idx });    // return -> script
                 break;
               case "endScript":
                 assertNotAndWaitSuffix(cmdIdx);
@@ -533,7 +533,7 @@ function $X(xpath, contextNode) {
                 if (cmdTarget)
                   assertMatching(scrAttrs.name, cmdTarget, cmdIdx, scrAttrs.idx); // match-up on script name
                 cmdAttrs[scrAttrs.idx].endIdx = cmdIdx;          // script -> endscript
-                cmdAttrs.init(cmdIdx, { scrIdx: scrAttrs.idx }); // endScript -> script
+                cmdAttrs.init(cmdIdx, { scriptIdx: scrAttrs.idx }); // endScript -> script
                 break;
               default:
             }
@@ -549,6 +549,7 @@ function $X(xpath, contextNode) {
       assert( testCaseOriginalIndex>=0, "testCaseOriginalIndex mut be non-negative!")
       editor.app.showTestCaseFromSuite( editor.app.getTestSuite().tests[testCaseOriginalIndex] );
       testCase= testCaseOriginal;
+      testCase.debugContext.testCase= testCase;
     }
 
     //@TODO check - moved the following functions out of the loop
@@ -841,19 +842,23 @@ function $X(xpath, contextNode) {
     // ================================================================================
     Selenium.prototype.doCall = function(scrName, argSpec)
     {
+      var loop = currentTest || htmlTestRunner.currentTest; // See Selenium.prototype.doRollup()
       assertRunning(); // TBD: can we do single execution, ie, run from this point then break on return?
-      var scrIdx = symbols[scrName];
-      assert( scrIdx, " Script does not exist: " + scrName + "." );
+      var scriptIdx = symbols[scrName];
+      assert( scriptIdx, " Script does not exist: " + scrName + "." );
 
       var callAttrs = cmdAttrs.here();
       var callFrame = callStack.top();
       if( callFrame.isReturning && callFrame.returnIdx==hereGlobIdx() ) {
+        //console.error( 'doCall returning\n ' +SeLiteMisc.stack() );
         // returning from completed script
         var popped= callStack.pop();
+        loop.commandError= popped.originalCommandError;
         restoreVarState( popped.savedVars );
         assert( testCase==popped.testCase, "The popped testCase is different." ); // Not sure why, but this seems to be true.
       }
       else {
+        //  console.error( 'doCall calling\n ' +SeLiteMisc.stack() );
         // Support $stored-variablename, just like stored{} and getQs, storeQs...
         argSpec= argSpec.replace( /\$([a-zA-Z_][a-zA-Z_0-9]*)/g, 'storedVars.$1' );
         // save existing variable state and set args as local variables
@@ -861,26 +866,45 @@ function $X(xpath, contextNode) {
         var savedVars = getVarStateFor(args);
         setVars(args);
 
+        var originalCommandError= loop.commandError;
+        // There can be several cascading layers of these calls - one per script call level.
+        loop.commandError= function( result ) {
+            //console.error( 'doCall: commandError(). editor: ' +(typeof editor)+ '\n ' +SeLiteMisc.stack() );
+            var popped= callStack.pop();
+            this.commandError= popped.originalCommandError;
+            restoreVarState( popped.savedVars );
+            //debugger;
+            testCase= popped.testCase;
+            testCase.debugContext.testCase= testCase;
+            editor.selDebugger.pause();
+            //selenium.reset(); // This doesn't help
+            
+            originalCommandError.call( this, result ); // I've restored this.commandError *before* calling originalCommandError(), because if this was a deeper script call then originalCommandError() will restore any previous version of this.commandError, and I don't want to step on its feet here
+            //@TODO setNextCommand(??)??
+        };
+        
         callStack.push( {
-            scrIdx: scrIdx,
+            scriptIdx: scriptIdx,
             name: scrName,
             args: args,
             returnIdx: hereGlobIdx(),
             savedVars: savedVars,
             cmdStack: new Stack(),
-            testCase: testCase
+            testCase: testCase,
+            originalCommandError: originalCommandError
         });
         // jump to script body
-        setNextCommand(scrIdx);
+        setNextCommand(scriptIdx);
       }
     }
     Selenium.prototype.doScript = function(scrName)
     {
       assertRunning();
-
+      var loop = currentTest || htmlTestRunner.currentTest;
+      LOG.error( 'doScript: loop.commandError: ' +loop.commandError.toSource() );
       var scrAttrs = cmdAttrs.here();
       var callFrame = callStack.top();
-      if( callFrame.scrIdx==hereGlobIdx() ) {
+      if( callFrame.scriptIdx==hereGlobIdx() ) {
         // get parameter values
         setVars(callFrame.args);
       }
@@ -901,7 +925,7 @@ function $X(xpath, contextNode) {
       assertRunning();
       var endAttrs = cmdAttrs.here();
       var callFrame = callStack.top();
-      if( callFrame.scrIdx==endAttrs.scrIdx ) {
+      if( callFrame.scriptIdx==endAttrs.scriptIdx ) {
         if( returnVal ) {
             storedVars._result = evalWithVars(returnVal);
         }

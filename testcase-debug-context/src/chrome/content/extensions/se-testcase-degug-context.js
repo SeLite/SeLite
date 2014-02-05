@@ -18,10 +18,6 @@
  */
 
 // Do not have: "use strict"; - otherwise I can't defined TestCaseDebugContext at Selenium scope
-// @TODO Here and SelBlocksGlobal etc - for some reason, this is called 2x
-// 1.at start of Se IDE
-// 2. the first time a test command or a test case is run
-// See http://code.google.com/p/selenium/issues/detail?id=6697. It was so even before this used SeLiteExtensionSequencer
 
 /*var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 try {
@@ -30,11 +26,15 @@ try {
     console.log( e.stack );
 }*/
 if( typeof TestCaseDebugContext==="undefined" ) {
-    // Do not use function TestCaseDebugContext(testCase) { ... } here, because it won't be visible outside
-    // Use TestCaseDebugContext= function( testCase ) { ... } instead.
-    // Do not use 'var' in the following, i.e. do not use TestCaseDebugContext= function( testCase ) { ... },
+    // I do not define TestCaseDebugContext using
+    //       function TestCaseDebugContext(testCase) { ... }
+    // because it wouldn't be visible outside. Therefore I use
+    //       TestCaseDebugContext= function( testCase ) { ... };
+    // Do not use 'var' in the following, i.e. do not use
+    //       var TestCaseDebugContext= function( testCase ) { ... };
     // otherwise it won't get set at Selenium scope.
     TestCaseDebugContext= function( testCase ) {
+        //debugger;
         this.testCase= testCase;
     };
 
