@@ -33,7 +33,7 @@ var SeLiteMisc= {};
 */
 SeLiteMisc.fail= function( errorOrMessage ) {
     console.error( errorOrMessage );
-    console.error( stack() );
+    console.error( SeLiteMisc.stack() );
     throw errorOrMessage
         ?(typeof errorOrMessage==='object' &&  errorOrMessage.constructor.name==='Error'
             ? errorOrMessage
@@ -42,14 +42,16 @@ SeLiteMisc.fail= function( errorOrMessage ) {
         : new Error();
 }
 
-function stack() {
+/** @return {string} Current stack (including the call to this function).
+ * */
+SeLiteMisc.stack= function() {
     try {
         throw new Error();
     }
     catch( e ) {
         return e.stack;
     }
-}
+};
 
 /** This asserts the condition to be true (compared non-strictly). If false, it fails with an error (containg the given message, if any).
  *  It's not called assert(), so that wouldn't conflict with assert() defined by Selenium IDE.
