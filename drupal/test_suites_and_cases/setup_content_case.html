@@ -18,6 +18,7 @@
 	<td>logIn</td>
 	<td>userNameOrAmpersandRole='&amp;admin'</td>
 </tr>
+<!--Navigate to create a new page. Following navigation only works if there is no current front page.-->
 <tr>
 	<td>assertElementPresent</td>
 	<td>//div[ @class=&quot;content&quot; ]/div[ @id=&quot;first-time&quot; ]</td>
@@ -28,7 +29,8 @@
 	<td>//div[ @class=&quot;content&quot; ]/div[ @id=&quot;first-time&quot; and count(.//a)=1 ]</td>
 	<td></td>
 </tr>
-<!--Not sure whether the following needs 'AndWait', but the next step failed without it once. With 'AndWait' it times out...-->
+<!--TODO Not sure whether the following needs 'AndWait', but the next step failed without it once. With 'AndWait' it times out...-->
+<!--TODO See a similar comment in DrupalTutorial.wiki-->
 <tr>
 	<td>clickAndWait</td>
 	<td>//div[ @class=&quot;content&quot; ]/div[ @id=&quot;first-time&quot; ]//a</td>
@@ -44,7 +46,7 @@
 	<td>//div[ @class=&quot;content&quot; ]/ul/li//a[ contains(@href, '/?q=node/add/page' ) ]</td>
 	<td></td>
 </tr>
-<!---->
+<!--Fill in the new page and submit-->
 <tr>
 	<td>selectTopFrameAnd</td>
 	<td>//iframe[contains(@title, 'Create Basic page dialog')]</td>
@@ -65,12 +67,13 @@
 	<td>edit-submit</td>
 	<td></td>
 </tr>
-<!---->
+<!--Capture node ID of the new page.-->
 <tr>
 	<td>storeEval</td>
 	<td>Drupal.currentPageNodeId(window)</td>
 	<td>newPageNodeId</td>
 </tr>
+<!--Set the front page to use node ID of that new page-->
 <tr>
 	<td>selectTopFrameAnd</td>
 	<td></td>
