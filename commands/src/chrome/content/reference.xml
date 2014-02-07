@@ -149,8 +149,7 @@
     </comment>
 </function>
 <function name="typeRandom">
-    <comment>Type random characters into an input. It always types at least 1 character
-        - use standard 'type' action for typing an empty string.
+    <comment>Type random characters into an input. It always types at least 1 character.
     </comment>
     <param name="locator">Locator of the text input</param>
     <param name="paramsOrStore">optional, either
@@ -160,7 +159,6 @@
                 <dl>
                     <dt>minLength</dt>
                     <dd>int, if present then it must be at least 1, otherwise it's set to 1.
-                        You can't use this function to generate an empty string.
                         If type==='email', then minLength must be at least 7 (e.g. a@hi.it), otherwise it's set to 7. If type==='password' and minLength is not set, then it defaults to 9.
                     </dd>
                     <dt>maxLength</dt>
@@ -247,6 +245,8 @@
 <function name="selectTopFrameAnd">
     <param name="locatorOrLocators">Either
         <ul>
+            <li>string - a locator, or</li>
+            <li>array of locators, passed as array{ 'locator1', 'locator2'... } where each locator is an escaped Javascript string. You can use string expressions, not just string literals.</li>
         </ul>
         It's optional. If nothing is passed, then the command just selects the top frame.
     </param>
