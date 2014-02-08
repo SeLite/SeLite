@@ -231,9 +231,6 @@ RecordHolder.prototype.insert= function() {
         // This requires that the primary key is never aliased. @TODO use column alias, if present?
         this.record[ this.recordSetHolder.formula.table.primary ]= primaryKeyValue;
     }
-    else {
-        throw '@TODO';
-    }
     return primaryKeyValue;
 };
 
@@ -275,7 +272,7 @@ RecordHolder.prototype.update= function() {
     this.setOriginalAndWatchEntries();
 };
 
-/** @return null on update; id of the new record on insert; -1 on remove (RecordSetHolder depends on -1)
+/** @return {(number?)} null on update; id of the new record on insert; -1 on remove (RecordSetHolder depends on -1)
  **/
 RecordHolder.prototype.put= function() {
     if( Object.isFrozen(this.record) ) {
@@ -299,7 +296,7 @@ RecordHolder.prototype.put= function() {
         }
     }
     else {
-        throw '@TODO';
+        throw '@TODO Have a flag indicating whether the record exists in the DB already, or not.';
     }
 };
 
