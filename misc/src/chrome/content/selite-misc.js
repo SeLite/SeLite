@@ -896,28 +896,28 @@ SeLiteMisc.objectValueToField= function( obj, value, strict ) {
  *  it can be a result of SeLite DB Objects - select() or a previous result of SeLiteMisc.collectByColumn().
  *  Therefore any actual values must not be arrays themselves, because then you and
  *  existing consumers of result from this function couldn't tell them from the subindexed arrays.
- *  @param mixed columnorfieldname String name of the index key or object field, that we'll index by;
+ *  @param mixed columnOrFieldName String name of the index key or object field, that we'll index by;
  *  or a function that returns value of such a field/key. The function accepts 1 argument which is the object to be indexed.
- *  @param bool columnvaluesunique whether the given column (field) is guaranteed to have unique values
- *  @param mixed subindexcolumnorfieldname String, if passed, then the records will be sub-indexed by value of this column/field.
- *  It only makes sense (and is used) if columnvaluesunique==false. If used then its values should be guaranteed to be unique
+ *  @param bool columnValuesUnique whether the given column (field) is guaranteed to have unique values
+ *  @param mixed subIndexColumnOrFieldName String, if passed, then the records will be sub-indexed by value of this column/field.
+ *  It only makes sense (and is used) if columnValuesUnique==false. If used then its values should be guaranteed to be unique
  *  within the rows for any possible value of the main index; otherwise only the last record (for given sub-index value) will be kept here.
  *  Or a function that returns value of such a field/key. The function accepts 1 argument which is the object to be sub-indexed.
  *  @param object result The result object, see description of @return; optional - if not present, then a new anonymous object is used.
  *  Don't use same object as records.
  *  @return An object serving as an associative array of various structure and depth, depending on the parameters.
  *  In the following, 'entry' means an original entry from records.
- *  If columnvaluesunique==true:
+ *  If columnValuesUnique==true:
  *  object {
  *     index value => entry
  *     ...
  *  }
- *  If columnvaluesunique==false and subindexcolumnorfieldname==null:
+ *  If columnValuesUnique==false and subIndexColumnOrFieldName==null:
  *  object {
  *     index value => array( entry... )
  *     ...
  *  }
- *  If columnvaluesunique==false and subindexcolumnorfieldname!=null
+ *  If columnValuesUnique==false and subIndexColumnOrFieldName!=null
  *  object {
  *     index value => object {
  *        subindex value => entry
@@ -928,15 +928,15 @@ SeLiteMisc.objectValueToField= function( obj, value, strict ) {
  *  The result can't be an array, because Javascript arrays must have consecutive
  *  non-negative integer index range. General data doesn't fit that.
  */
-SeLiteMisc.collectByColumn= function( records, columnorfieldname, columnvaluesunique,
-subindexcolumnorfieldname, result ) {
+SeLiteMisc.collectByColumn= function( records, columnOrFieldName, columnValuesUnique,
+subIndexColumnOrFieldName, result ) {
     result= result || {};
     if( Array.isArray(records) ) { // The records were not a result of previous call to this method.
         
         for( var i=0; i<records.length; i++ ) {
             var record= records[i];
-            SeLiteMisc.collectByColumnRecord( record, result, columnorfieldname, columnvaluesunique,
-                subindexcolumnorfieldname );
+            SeLiteMisc.collectByColumnRecord( record, result, columnOrFieldName, columnValuesUnique,
+                subIndexColumnOrFieldName );
         }
     }
     else {
@@ -945,20 +945,20 @@ subindexcolumnorfieldname, result ) {
             
             if( Array.isArray(recordOrGroup) ) { // records was previously indexed by non-unique column and without sub-index
                 for( var j=0; j<recordOrGroup.length; j++ ) {
-                    SeLiteMisc.collectByColumnRecord( recordOrGroup[j], result, columnorfieldname, columnvaluesunique,
-                    subindexcolumnorfieldname );
+                    SeLiteMisc.collectByColumnRecord( recordOrGroup[j], result, columnOrFieldName, columnValuesUnique,
+                    subIndexColumnOrFieldName );
                 }
             }
             else {
                 if( Array.isArray(recordOrGroup) ) { // Records were previously indexed by non-unique columnd and using sub-index
                     for( var existingSubIndex in recordOrGroup ) {
-                        SeLiteMisc.collectByColumnRecord( recordOrGroup[existingSubIndex], result, columnorfieldname, columnvaluesunique,
-                            subindexcolumnorfieldname );
+                        SeLiteMisc.collectByColumnRecord( recordOrGroup[existingSubIndex], result, columnOrFieldName, columnValuesUnique,
+                            subIndexColumnOrFieldName );
                     }
                 }
                 else {
-                    SeLiteMisc.collectByColumnRecord( recordOrGroup, result, columnorfieldname, columnvaluesunique,
-                        subindexcolumnorfieldname );
+                    SeLiteMisc.collectByColumnRecord( recordOrGroup, result, columnOrFieldName, columnValuesUnique,
+                        subIndexColumnOrFieldName );
                 }
             }
         }
@@ -973,20 +973,20 @@ SeLiteMisc.RecordGroup= function() {};
 
 /** Internal only. Worker function called by SeLiteMisc.collectByColumn().
  **/
-SeLiteMisc.collectByColumnRecord= function( record, result, columnorfieldname, columnvaluesunique,
-subindexcolumnorfieldname ) {
-    var columnvalue= SeLiteMisc.getField( record, columnorfieldname );
-    if( columnvaluesunique ) {
+SeLiteMisc.collectByColumnRecord= function( record, result, columnOrFieldName, columnValuesUnique,
+subIndexColumnOrFieldName ) {
+    var columnvalue= SeLiteMisc.getField( record, columnOrFieldName );
+    if( columnValuesUnique ) {
         result[columnvalue]= record;
     }
     else {
         if( result[columnvalue]===undefined ) {
-            result[columnvalue]= subindexcolumnorfieldname
+            result[columnvalue]= subIndexColumnOrFieldName
                 ? new SeLiteMisc.RecordGroup()
                 : [];
         }
-        if( subindexcolumnorfieldname ) {
-            var subindexvalue= SeLiteMisc.getField(record, subindexcolumnorfieldname);
+        if( subIndexColumnOrFieldName ) {
+            var subindexvalue= SeLiteMisc.getField(record, subIndexColumnOrFieldName);
             if( subindexvalue===undefined ) {
                 subindexvalue= null;
             }

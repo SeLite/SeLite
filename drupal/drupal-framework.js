@@ -77,6 +77,7 @@
          *   */
         Selenium.prototype.doDrupalUsers= function( username, ignored) {
              //@TODO in a separate function - detect numbers via e.g. parseInt or parseFloat, and treat them as uid?
+             //@TODO remove this function, or make it generic and the result useable
             var users= username===''
                 ? usersFormula.select()
                 : usersFormula.select( {name: username} );
@@ -86,6 +87,8 @@
             }
         };
         
+        // @TODO Move the following 2 to basic-objects.js
+        // @TODO -> doGetRecord( {primaryKeyValue|object} conditionOrMatchingPairs, table) or ({primaryKeyValue|object} conditionOrMatchingPairs, formula)
         Selenium.prototype.getDrupalUser= function( username ) {
             var users= usersFormula.select( {name: username} );
             console.log( 'getDrupalUser: ' +users );
