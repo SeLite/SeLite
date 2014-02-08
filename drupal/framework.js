@@ -36,7 +36,11 @@
         var storage= SeLiteData.getStorageFromSettings('extensions.selite.drupal.testDB');
         var db= new SeLiteData.Db( storage );
 
-        var usersTable= new SeLiteData.Table( {
+        // Following is a namespace-like object for the 'global' scope - see Bootstrap.wiki
+        Drupal= {};
+        Drupal.tables= {};
+        
+        Drupal.tables.users= new SeLiteData.Table( {
            db:  db,
            name: 'users',
            columns: ['uid', 'name'/*login*/, 'pass', 'mail', 'theme', 'signature', 'signature_format',
@@ -47,10 +51,27 @@
         });
         
         var usersFormula= new SeLiteData.RecordSetFormula( {
-            table: usersTable,
-            columns: new SeLiteData.Settable().set( usersTable.name, SeLiteData.RecordSetFormula.ALL_FIELDS )
+            table: Drupal.tables.users,
+            columns: new SeLiteData.Settable().set( Drupal.tables.users.name, SeLiteData.RecordSetFormula.ALL_FIELDS )
         });
 
+        Drupal.tables.node= new SeLiteData.Table( {
+           db:  db,
+           name: 'node',
+           columns: ['nid', 'vid', 'type', 'language', 'title', 'uid', 'status',
+               'created', 'changed',
+               'comment', 'promote', 'sticky', 'tnid', 'translate'
+           ],
+           primary: 'nid'
+        });
+        
+        Drupal.tables.field_data_body= new SeLiteData.Table( {
+            db: db,
+            name: 'field_data_body',
+            columns: ['entity_type', 'bundle', 'deleted', 'entity_id', 'revision_id', 'language', 'delta', 'body_value', 'body_sumary', 'body_format'],
+            primary: '@TODO group of columns'
+        });
+        
         /** @param {string} username Optional users.name to filter by.
          *  @TODO transform this to getXXX, or make it somehow useable
          *   */
@@ -76,16 +97,17 @@
             return null;
         };
         
-        Selenium.prototype.doDrupalInsertUser= function( recordObject, ignored) {
+        //@TODO Move to DB Objects or Commands XPI
+        //@param recordObject anonymous object
+        //@param table SeLiteData.Table instance for the table to insert to.
+        Selenium.prototype.doInsertRecord= function( recordObject, table) {
             var record= new SeLiteData.Record(recordObject);
-            usersTable.insert(record);
+            table.insert(record);
         };
         
         var settingsModule= SeLiteSettings.loadFromJavascript('extensions.selite.drupal');
         var webRootField= settingsModule.fields['webRoot'];
         
-        // Following is a namespace-like object for the 'global' scope - see Bootstrap.wiki
-        Drupal= {};
         Drupal.webRoot= function() {
             return webRootField.getDownToFolder().entry;
         };

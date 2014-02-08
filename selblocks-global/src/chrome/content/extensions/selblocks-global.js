@@ -1273,6 +1273,7 @@ function $X(xpath, contextNode) {
              object as the second parameter to 'typeRandom' action (function doTypeRandom).
         */
         LOG.debug('SelBlocksGlobal tail override of preprocessParameter(): ' +value );
+        // Match object{..} and evaluate as a definition of anonymous Javascript object. Replace $... parts with respective stored variables. There can be no prefix or postfix before/after eval{ and }.
         var match= value.match( /^\s*object(\{(.|\r?\n)+\})\s*$/ );
         if( match ) {
             var expression= match[1].replace( /\$(\w[a-zA-Z_0-9]*)/g, 'storedVars.$1' );
@@ -1281,14 +1282,21 @@ function $X(xpath, contextNode) {
             // '{field: "value"}' and 'return {field: "value"}'. That's why I assign to local variable 'object' first, and then I return it.
             return eval( 'var object= ' +expression+ '; object' );
         }
-        // Match array[...] and evaluate it as an array of Javascript expressions. Replace $... parts with respective stored variables.
+        // Match array[...] and evaluate it as an array of Javascript expressions. Replace $... parts with respective stored variables. There can be no prefix or postfix before/after eval{ and }.
         var match= value.match( /^\s*array(\[(.|\r?\n)+\])\s*$/ );
         if( match ) {
             var expression= match[1].replace( /\$(\w[a-zA-Z_0-9]*)/g, 'storedVars.$1' );
             LOG.debug( 'array[]: ' +expression );
             return eval( expression );
         }
-        // Match ...stored{...}.... 
+        // Match eval{...} and evaluate it as a Javascript expression. Replace $... parts with respective stored variables. There can be no prefix or postfix before/after eval{ and }.
+        var match= value.match( /^\s*eval\{((.|\r?\n)+)\}\s*$/ );
+        if( match ) {
+            var expression= match[1].replace( /\$(\w[a-zA-Z_0-9]*)/g, 'storedVars.$1' );
+            LOG.debug( 'eval{}: ' +expression );
+            return eval( expression );
+        }
+        // Match ...stored{...}....  Evaluate it as a string with an optional prefix and postfix, replace $... part(s) with respective stored variables.
         // Spaces in the following regex are here only to make it more readable; they get removed.
         var spacedRegex= /^ ( ((?!stored\{)[^=])* )  stored\{((.|\r?\n)+)\}  (([^}])*)$/;
         var regex= new RegExp( spacedRegex.source.replace( / /g, '') );

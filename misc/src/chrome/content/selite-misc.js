@@ -144,19 +144,22 @@ SeLiteMisc.isInstance= function( object, classes, className, message ) {
     return false;
 };
 
-/** @param any any type
+/** @param {(object|function)} objectOrConstructor An object (instance), or a constructor of a clas (a function).
  *  @return string Either class name (constructor method name), or 'null', or a meaningful short message.
  * */
-SeLiteMisc.classNameOf= function( any ) {
-    return typeof any==='object'
-        ? (any!==null
-                ? (any.constructor.name
-                        ? any.constructor.name
-                        : 'unnamed class' // E.g.: var anonymousConstructor= function() {}; -> it has: anonymousConstructor.name===''
-                  )
+SeLiteMisc.classNameOf= function( objectOrConstructor ) {
+    return typeof objectOrConstructor==='object'
+        ? (objectOrConstructor!==null
+                ? SeLiteMisc.classNameOf( objectOrConstructor.constructor )
                 : 'null'
           )
-        : 'not an object, but ' +typeof any;
+        : (typeof objectOrConstructor==='function'
+            ?(objectOrConstructor.name
+                        ? objectOrConstructor.name
+                        : 'unnamed class' // E.g.: var anonymousConstructor= function() {}; -> it has: anonymousConstructor.name===''
+             )
+            : 'not an object, neither a function, but ' +typeof objectOrConstructor
+        );
 };
 
 /** Validate that a parameter is an object and of a given class (or of one of given classes).
