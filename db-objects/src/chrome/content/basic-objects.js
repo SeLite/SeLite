@@ -37,7 +37,7 @@ SeLiteData.Db= function( storage, tableNamePrefix ) {
  *      noNamePrefix: boolean, optional; if true, then it cancels effect of prototype.db.tableNamePrefix (if set),
  *      name: string table name,
  *      columns: array of string column names,
- *      primary: string primary key name, optional - 'id' by default
+ *      primary: string primary key name, or array of string key names; optional - 'id' by default
  */
 SeLiteData.Table= function( prototype ) {
     this.db= prototype.db;
@@ -46,6 +46,7 @@ SeLiteData.Table= function( prototype ) {
 
     this.columns= prototype.columns;
     this.primary= prototype.primary || 'id';
+    typeof this.primary==='string' || Array.isArray(this.primary) || SeLiteMisc.fail( 'prototype.primary must be a string or an array.' );
 };
 
 /** Insert the given record to the DB.
@@ -184,7 +185,9 @@ RecordHolder.prototype.setOriginalAndWatchEntries= function() {
         }
     }
     // Don't allow change of primary key. That's because RecordSetHolder.originals are indexed by primary key.
-    this.record.watch( this.recordSetHolder.formula.table.primary, readOnlyPrimary );
+    if( typeof this.recordSetHolder.formula.table.primary==='string' ) {
+        this.record.watch( this.recordSetHolder.formula.table.primary, readOnlyPrimary );
+    }
     Object.seal( this.record );
 };
 
@@ -208,6 +211,7 @@ RecordHolder.prototype.insert= function() {
     }
     var entries= this.ownEntries();
     if( this.recordSetHolder.formula.generateInsertKey ) {// @TODO (low priority): || this.recordSetHolder.formula.table.generateInsertKey || this.recordSetHolder.formula.table.db.generateInsertKey
+        typeof this.recordSetHolder.formula.table.primary==='string' || SeLiteMisc.fail( "The formula has generateInsertKey set, but table " +this.recordSetHolder.formula.table +" uses multi-column key: " +this.recordSetHolder.formula.table.primary );
         entries= SeLiteMisc.objectsMerge( new SeLiteData.Settable().set(
             this.recordSetHolder.formula.table.primary,
             new SeLiteData.SqlExpression( "(SELECT MAX(" +this.recordSetHolder.formula.table.primary+ ") FROM " +this.recordSetHolder.formula.table.name+ ")+1")
@@ -216,12 +220,20 @@ RecordHolder.prototype.insert= function() {
     this.recordSetHolder.storage().insertRecord( {
         table: this.recordSetHolder.formula.table.name,
         entries: entries,
-        fieldsToProtect: [this.recordSetHolder.formula.table.primary],
+        fieldsToProtect: typeof this.recordSetHolder.formula.table.primary==='string'
+            ? [this.recordSetHolder.formula.table.primary]
+            : [],
         debugQuery: this.recordSetHolder.formula.debugQuery
     });
-    var primaryKeyValue= this.recordSetHolder.storage().lastInsertId( this.recordSetHolder.formula.table.name, this.recordSetHolder.formula.table.primary );
-    // This requires that the primary key is never aliased. @TODO use column alias, if present?
-    this.record[ this.recordSetHolder.formula.table.primary ]= primaryKeyValue;
+    var primaryKeyValue;
+    if( typeof this.recordSetHolder.formula.table.primary==='string' ) {
+        primaryKeyValue= this.recordSetHolder.storage().lastInsertId( this.recordSetHolder.formula.table.name, this.recordSetHolder.formula.table.primary );
+        // This requires that the primary key is never aliased. @TODO use column alias, if present?
+        this.record[ this.recordSetHolder.formula.table.primary ]= primaryKeyValue;
+    }
+    else {
+        throw '@TODO';
+    }
     return primaryKeyValue;
 };
 
@@ -254,7 +266,7 @@ RecordHolder.prototype.update= function() {
         this.record[ field ]= value;
     }
     var entries= this.ownEntries();
-    this.recordSetHolder.storage().updateRecordByPrimary( {
+    this.recordSetHolder.storage().updateRecordByPrimary( {//@TODO SeLiteDbObjects.Storage.updateRecordByPrimary() for multi-column primary key
         table: this.recordSetHolder.formula.table.name,
         primary: this.recordSetHolder.formula.table.primary,
         entries: entries,
@@ -276,25 +288,40 @@ RecordHolder.prototype.put= function() {
     else
     // Insert or update the record, depending on whether its primary key is set (it can be set to 0)
     // @return primary key value, but only when it run an insert
-    if( this.record[this.recordSetHolder.formula.table.primary]!==undefined ) {
-        // @TODO compare to this.original
-        this.update();
-        return null;
+    if( typeof this.recordSetHolder.formula.table.primary==='string' ) {
+        if( this.record[this.recordSetHolder.formula.table.primary]!==undefined ) {
+            // @TODO compare to this.original
+            this.update();
+            return null;
+        }
+        else {
+            return this.insert();
+        }
     }
     else {
-        return this.insert();
+        throw '@TODO';
     }
 };
 
 RecordHolder.prototype.markToRemove= function() {
     this.markedToRemove= true;
-    this.recordSetHolder.markedToRemove[ this.record[this.recordSetHolder.formula.table.primary] ]= this;
+    if( typeof this.recordSetHolder.formula.table.primary==='string' ) {
+        this.recordSetHolder.markedToRemove[ this.record[this.recordSetHolder.formula.table.primary] ]= this;
+    }
+    else {
+        throw '@TODO';
+    }
     Object.freeze( this.record );
 };
 
 RecordHolder.prototype.remove= function() {
-    this.recordSetHolder.storage().removeRecordByPrimary( this.recordSetHolder.formulate.table.name, this.recordSetHolder.formulate.table.primary,
-        this.record[ this.recordSetHolder.formulate.table.primary] );
+    if( typeof this.recordSetHolder.formula.table.primary==='string' ) {
+        this.recordSetHolder.storage().removeRecordByPrimary( this.recordSetHolder.formulate.table.name, this.recordSetHolder.formulate.table.primary,
+            this.record[ this.recordSetHolder.formulate.table.primary] );
+    }
+    else {
+        throw '@TODO';
+    }
 };
 
 /** @constructor Constructor of formula objects.
@@ -372,11 +399,16 @@ SeLiteData.RecordSetFormula= function( params, prototype ) {
 
     // The following doesn't apply to indexing of RecordSetHolder.originals.
     if( this.table && this.table.primary ) {
-        if( this.indexBy===undefined ) {
-            this.indexBy= this.table.primary;
+        if( typeof this.table.primary==='string' ) {
+            if( this.indexBy===undefined ) {
+                this.indexBy= this.table.primary;
+            }
+            if( this.indexUnique===undefined ) {
+                this.indexUnique= this.indexBy==this.table.primary;
+            }
         }
-        if( this.indexUnique===undefined ) {
-            this.indexUnique= this.indexBy==this.table.primary;
+        else {
+            throw '@TODO';
         }
     }
     if( this.indexUnique && this.subIndexBy ) {
@@ -744,6 +776,7 @@ RecordSetHolder.prototype.select= function() {
     this.originals= {};
     for( var j=0; j<data.length; j++ ) {
         var holder= new RecordHolder( this, data[j] );
+        //@TODO if( typeof this.recordSetHolder.formula.table.primary==='string' )
         this.holders[ holder.record[formula.table.primary] ]= holder;
         unindexedRecords.push( holder.record );
         this.originals[ holder.record[ formula.table.primary] ]= holder.original;
@@ -777,6 +810,7 @@ RecordSetHolder.prototype.update= function() { throw new Error( "@TODO if need b
  *  remove the actual DB record.
  **/
 RecordSetHolder.prototype.removeRecordHolder= function( recordHolder ) {
+    //@TODO if( typeof this.recordSetHolder.formula.table.primary==='string' ) 
     var primaryKeyValue= recordHolder.record[this.formula.table.primary];
     delete this.holders[ primaryKeyValue ];
     delete this.recordSet[ SeLiteMisc.indexesOfRecord(this.recordSet, recordHolder.record) ]; //@TODO This doesn't work if multi-indexed! Then we also need to delete 1st level index, if there are no subentries left.

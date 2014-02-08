@@ -413,7 +413,7 @@ SeLiteData.Storage.prototype.updateRecords= function( params ) {
 /** Update a in the DB, matching it by 'id' field (i.e. params.entries.id).
  * @param object params Object in form {
  *   table: string table name,
- *   primary: string primary key name, optional - 'id' by default,
+ *   primary: string primary key name, or an array of string column names (for a multi-column primary key); optional - 'id' by default,
  *   entries: object (serving as an associative array) with the columns to update in the given table. In form
  *       { field: value,
  *         field: value...
@@ -428,13 +428,21 @@ SeLiteData.Storage.prototype.updateRecords= function( params ) {
  */
 SeLiteData.Storage.prototype.updateRecordByPrimary= function( params ) {
     var primaryKey= params.primary || 'id';
+    typeof primaryKey==='string' || SeLiteMisc.fail('@TODO');
     var copiedParams= SeLiteMisc.objectClone( params, ['table', 'entries', 'fieldsToProtect', 'debugQuery'], ['table', 'entries'] );
-    if( copiedParams.entries[primaryKey]===undefined ) {
-        throw new Error( "updateRecordByPrimary(): params.entries." +primaryKey+ " is not set." );
-    }
     copiedParams.entries= SeLiteMisc.objectClone( copiedParams.entries );
+    var primaryKeyColumns= typeof primaryKey==='string'
+        ? [primaryKey]
+        : primaryKey;
+    for( var i=0; i<primaryKeyColumns.length; i++ ) { //@TODO for(..of..) once NetBeans like it
+        var column= primaryKeyColumns[i];
+        if( copiedParams.entries[column]===undefined ) {
+            throw new Error( "updateRecordByPrimary(): params.entries." +column+ " is not set." );
+        }
+    }
+    //@TODO in a loop:
     copiedParams.matching= new SeLiteData.Settable().set( primaryKey, copiedParams.entries[primaryKey] );
-    delete copiedParams.entries[primaryKey];
+    delete copiedParams.entries[primaryKey]; //@TODO
     this.updateRecords( copiedParams );
 }
 
