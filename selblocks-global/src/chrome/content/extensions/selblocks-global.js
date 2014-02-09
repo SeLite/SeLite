@@ -1298,7 +1298,7 @@ function $X(xpath, contextNode) {
         }
         // Match ...stored{...}....  Evaluate it as a string with an optional prefix and postfix, replace $... part(s) with respective stored variables.
         // Spaces in the following regex are here only to make it more readable; they get removed.
-        var spacedRegex= /^ ( ((?!stored\{)[^=])* )  stored\{((.|\r?\n)+)\}  (([^}])*)$/;
+        var spacedRegex= /^ ( ((?!stored\{).)* )  stored\{((.|\r?\n)+)\}  (([^}])*)$/;
         var regex= new RegExp( spacedRegex.source.replace( / /g, '') );
         match = value.match( regex );
         if( match ) {
