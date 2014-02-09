@@ -901,7 +901,7 @@ function $X(xpath, contextNode) {
     {
       assertRunning();
       var loop = currentTest || htmlTestRunner.currentTest;
-      LOG.error( 'doScript: loop.commandError: ' +loop.commandError.toSource() );
+      //LOG.error( 'doScript: loop.commandError: ' +loop.commandError.toSource() );
       var scrAttrs = cmdAttrs.here();
       var callFrame = callStack.top();
       if( callFrame.scriptIdx==hereGlobIdx() ) {

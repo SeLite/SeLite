@@ -50,7 +50,8 @@
            primary: 'uid' // However, for purpose of matching users I usually use name
         });
         
-        var usersFormula= new SeLiteData.RecordSetFormula( {
+        SeLiteData.formulas= {};
+        SeLiteData.formulas.users= new SeLiteData.RecordSetFormula( {
             table: Drupal.tables.users,
             columns: new SeLiteData.Settable().set( Drupal.tables.users.name, SeLiteData.RecordSetFormula.ALL_FIELDS )
         });
@@ -71,42 +72,6 @@
             columns: ['entity_type', 'bundle', 'deleted', 'entity_id', 'revision_id', 'language', 'delta', 'body_value', 'body_sumary', 'body_format'],
             primary: '@TODO group of columns'
         });
-        
-        /** @param {string} username Optional users.name to filter by.
-         *  @TODO transform this to getXXX, or make it somehow useable
-         *   */
-        Selenium.prototype.doDrupalUsers= function( username, ignored) {
-             //@TODO in a separate function - detect numbers via e.g. parseInt or parseFloat, and treat them as uid?
-             //@TODO remove this function, or make it generic and the result useable
-            var users= username===''
-                ? usersFormula.select()
-                : usersFormula.select( {name: username} );
-            console.log( 'doDrupalUsers: ' +users );
-            for( var id in users ) {
-                console.log( ''+users[id] );
-            }
-        };
-        
-        // @TODO Move the following 2 to basic-objects.js
-        // @TODO -> doGetRecord( {primaryKeyValue|object} conditionOrMatchingPairs, table) or ({primaryKeyValue|object} conditionOrMatchingPairs, formula)
-        Selenium.prototype.getDrupalUser= function( username ) {
-            var users= usersFormula.select( {name: username} );
-            console.log( 'getDrupalUser: ' +users );
-            var numUsers= Object.keys(users).length;
-            numUsers===0 || numUsers===1 || SeLiteMisc.fail();
-            for( var id in users ) {
-                return users[id];
-            }
-            return null;
-        };
-        
-        //@TODO Move to DB Objects or Commands XPI
-        //@param recordObject anonymous object
-        //@param table SeLiteData.Table instance for the table to insert to.
-        Selenium.prototype.doInsertRecord= function( recordObject, table) {
-            var record= new SeLiteData.Record(recordObject);
-            table.insert(record);
-        };
         
         var settingsModule= SeLiteSettings.loadFromJavascript('extensions.selite.drupal');
         var webRootField= settingsModule.fields['webRoot'];

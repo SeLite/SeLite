@@ -790,10 +790,12 @@ SeLiteMisc.objectCopyFields= function( source, target ) {
  *  The new object is based on a plain object {}, so if the original object was created
  *  using a constructor function, the result object won't be; therefore operator instanceof
  *  will return false for the result object.
- *  @param object original The original object.
- *  @param array acceptableFields optional; if present, then it contains the only fields
+ *  @param {Object} original The original object.
+ *  @param {array} [acceptableFields] optional; if present, then it contains the only fields
  *  that will be copied (if present in original). If acceptableFields is not present/empty,
  *  then any fields are copied.
+ *  @param {array} [requiredFields] Required fields; if any are missing, this fails. If this parameter is not provided, then no fields are required.
+ *  @param {object} [result] Result object to use; if not provided, then it creates a new object.
  *  @param mixed requiredFields Array of fields that are required to exist in original
  *  (even though their value may be null). If requiredFields==='all' (as a string), then
  *  it will be set to be the same as acceptableFields
