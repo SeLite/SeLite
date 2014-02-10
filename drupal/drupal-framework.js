@@ -50,8 +50,8 @@
            primary: 'uid' // However, for purpose of matching users I usually use name
         });
         
-        SeLiteData.formulas= {};
-        SeLiteData.formulas.users= new SeLiteData.RecordSetFormula( {
+        Drupal.formulas= {};
+        Drupal.formulas.users= new SeLiteData.RecordSetFormula( {
             table: Drupal.tables.users,
             columns: new SeLiteData.Settable().set( Drupal.tables.users.name, SeLiteData.RecordSetFormula.ALL_FIELDS )
         });

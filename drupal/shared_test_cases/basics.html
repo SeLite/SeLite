@@ -21,6 +21,7 @@
 	<td>Drupal.webRoot()</td>
 	<td>drupalWebRoot</td>
 </tr>
+<!--@TODO remove { and }?-->
 <tr>
 	<td>if</td>
 	<td>!window.location.href.startsWith( '${drupalWebRoot}' )</td>
@@ -60,7 +61,7 @@
 </tr>
 <tr>
 	<td>if</td>
-	<td>stored{$userLoggedIn}</td>
+	<td>$userLoggedIn</td>
 	<td></td>
 </tr>
 <tr>
@@ -103,7 +104,7 @@
 </tr>
 <tr>
 	<td>if</td>
-	<td>userNamePresent</td>
+	<td>$userNamePresent</td>
 	<td></td>
 </tr>
 <tr>
@@ -293,7 +294,7 @@
 <!--TODO tet whether the following if skips logout when we're already logged ni. Or should it use stored{ ... } instead?-->
 <tr>
 	<td>if</td>
-	<td>${userLoggedIn}</td>
+	<td>$userLoggedIn</td>
 	<td></td>
 </tr>
 <tr>
@@ -314,7 +315,7 @@
 </tr>
 <tr>
 	<td>if</td>
-	<td>userNamePresent</td>
+	<td>$userNamePresent</td>
 	<td></td>
 </tr>
 <tr>

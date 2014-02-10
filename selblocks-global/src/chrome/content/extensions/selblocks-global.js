@@ -576,12 +576,20 @@ function $X(xpath, contextNode) {
       // NOOP
     };
     commandNames.push("label");
-
+    
+    var expandStoredVarsRegex= /\$(\w[a-zA-Z_0-9]*)/g;
+    /** @param {string} expression
+     *  @return {string} expression, with any $xyz replaced by storedVars.xyz
+     * */
+    function expandStoredVars( expression ) {
+        return expression.replace( expandStoredVarsRegex, 'storedVars.$1' );
+    }
+    
     // skip the next N commands (default is 1)
     Selenium.prototype.doSkipNext = function(amount)
     {
       assertRunning();
-      var n = parseInt(evalWithVars(amount), 10);
+      var n = parseInt(Selenium.evalWithExpandedStoredVars(amount), 10);
       if (isNaN(n))
         n = 1;
       if (n != 0) {// if n=0, execute the next command as usual
@@ -601,7 +609,7 @@ function $X(xpath, contextNode) {
     Selenium.prototype.doGotoIf = function(condExpr, label)
     {
       assertRunning();
-      if (evalWithVars(condExpr))
+      if (Selenium.evalWithExpandedStoredVars(condExpr))
         this.doGoto(label);
     }
 
@@ -611,7 +619,7 @@ function $X(xpath, contextNode) {
       assertRunning();
       var ifState = { idx: hereGlobIdx() };
       callStack.top().cmdStack.push(ifState);
-      if (evalWithVars(condExpr)) {
+      if (Selenium.evalWithExpandedStoredVars(condExpr)) {
         ifState.skipElseBlock = true;
         // fall through into if-block
       }
@@ -649,7 +657,7 @@ function $X(xpath, contextNode) {
             return null;
         }
         ,function() { } // initialize
-        ,function() { return (evalWithVars(condExpr)); } // continue?
+        ,function() { return (Selenium.evalWithExpandedStoredVars(condExpr)); } // continue?
         ,function() { } // iterate
       );
     }
@@ -672,9 +680,9 @@ function $X(xpath, contextNode) {
             if (localVarsSpec) localVarNames = localVarsSpec.split(",");
             return localVarNames;
         }
-        ,function(loop) { evalWithVars(loop.initStmt); }          // initialize
-        ,function(loop) { return (evalWithVars(loop.condExpr)); } // continue?
-        ,function(loop) { evalWithVars(loop.iterStmt); }          // iterate
+        ,function(loop) { Selenium.evalWithExpandedStoredVars(loop.initStmt); }          // initialize
+        ,function(loop) { return (Selenium.evalWithExpandedStoredVars(loop.condExpr)); } // continue?
+        ,function(loop) { Selenium.evalWithExpandedStoredVars(loop.iterStmt); }          // iterate
       );
     }
     Selenium.prototype.doEndFor = function() {
@@ -688,7 +696,7 @@ function $X(xpath, contextNode) {
         function(loop) { // validate
             assert(varName, " 'foreach' requires a variable name.");
             assert(valueExpr, " 'foreach' requires comma-separated values.");
-            loop.values = evalWithVars("[" + valueExpr + "]");
+            loop.values = Selenium.evalWithExpandedStoredVars("[" + valueExpr + "]");
             if (loop.values.length == 1 && Array.isArray(loop.values[0]) ) {
               loop.values = loop.values[0]; // if sole element is an array, than use it
             }
@@ -716,19 +724,19 @@ function $X(xpath, contextNode) {
       if (!selector && !xmlReader.EOF()) {
         notifyFatal("Multiple var sets not valid for 'loadVars'. (A specific var set can be selected: name=value.)");
       }
-      var result = evalWithVars(selector);
+      var result = Selenium.evalWithExpandedStoredVars(selector);
       if (typeof result !=="boolean") {
         LOG.warn(fmtCmdRef(hereGlobIdx()) + ", " + selector + " is not a boolean expression");
       }
 
       // read until specified set found
       var isEof = xmlReader.EOF();
-      while (!isEof && evalWithVars(selector) != true) {
+      while (!isEof && Selenium.evalWithExpandedStoredVars(selector) != true) {
         xmlReader.next(); // read next <vars> and set values on storedVars
         isEof = xmlReader.EOF();
       }
 
-      if (!evalWithVars(selector))
+      if (!Selenium.evalWithExpandedStoredVars(selector))
         notifyFatal("<vars> element not found for selector expression: " + selector
           + "; in xmlfile " + xmlReader.xmlFilepath);
     }
@@ -831,7 +839,7 @@ function $X(xpath, contextNode) {
     function dropToLoop(condExpr)
     {
       assertRunning();
-      if (condExpr && !evalWithVars(condExpr))
+      if (condExpr && !Selenium.evalWithExpandedStoredVars(condExpr))
         return;
       var activeCmdStack = callStack.top().cmdStack;
       var loopState = activeCmdStack.unwindTo(Stack.isLoopBlock);
@@ -860,7 +868,7 @@ function $X(xpath, contextNode) {
       else {
         //  console.error( 'doCall calling\n ' +SeLiteMisc.stack() );
         // Support $stored-variablename, just like stored{} and getQs, storeQs...
-        argSpec= argSpec.replace( /\$([a-zA-Z_][a-zA-Z_0-9]*)/g, 'storedVars.$1' );
+        argSpec= expandStoredVars(argSpec);
         // save existing variable state and set args as local variables
         var args = parseArgs(argSpec);
         var savedVars = getVarStateFor(args);
@@ -927,7 +935,7 @@ function $X(xpath, contextNode) {
       var callFrame = callStack.top();
       if( callFrame.scriptIdx==endAttrs.scriptIdx ) {
         if( returnVal ) {
-            storedVars._result = evalWithVars(returnVal);
+            storedVars._result = Selenium.evalWithExpandedStoredVars(returnVal);
         }
         callFrame.isReturning = true;
         // jump back to call command
@@ -941,18 +949,25 @@ function $X(xpath, contextNode) {
 
     // ========= storedVars management =========
 
-    function evalWithVars(expr) {
+    Selenium.evalWithExpandedStoredVars= function(expr) {
       try {
+        typeof expr==='string' || expr===undefined || SeLiteMisc.fail( 'expr must be a string or undefined' );
+        var expanded= expr!==undefined
+            ? expandStoredVars(expr)
+            : undefined;
+        LOG.debug( 'Selenium.evalWithExpandedStoredVars(): ' +expr+ ' expanded to: ' +expanded );
+        // Firefox eval() doesn't return values of some expression strings, including
+        // '{field: "value"}' and 'return {field: "value"}'. That's why I assign to local variable 'Selenium.evalWithExpandedStoredVarsResult' first, and then I return it.
         // EXTENSION REVIEWERS: Use of eval is consistent with the Selenium extension itself.
         // Scripted expressions run in the Selenium window, separate from browser windows.
-        var result = eval("with (storedVars) {" + expr + "}");
-        //alert( expr+ ' -> ' +result );
+        var result = eval( "var evalWithExpandedStoredVarsResult= " +expanded+ "; evalWithExpandedStoredVarsResult" );
+        LOG.debug( 'result: ' +typeof result+ ': ' +SeLiteMisc.objectToString(result, 2) );
+        return result;
       }
       catch (err) {
-        notifyFatalErr(" While evaluating Javascript expression: " + expr, err);
+        notifyFatalErr(" While evaluating Javascript expression: " + expr+ " expanded as " +expanded, err);
       }
-      return result;
-    }
+    };
     
     // This is not related to parseArgs(str) in chrome/content/selenium-core/test/RemoteRunnerTest.js
     function parseArgs(argSpec) { // comma-sep -> new prop-set
@@ -983,14 +998,14 @@ function $X(xpath, contextNode) {
             alert( 'param ' +key+ ' has value (to evaluate): ' +value+ ' with constructor ' +value.constructor.name );
             // For some reason, LOG.debug() doesn't work here.
         }
-        args[ key ] = evalWithVars( value );
+        args[ key ] = Selenium.evalWithExpandedStoredVars( value );
       }
       return args;/**/
       // original from SelBlocks:
       var parms = argSpec.split(",");
       for (var i = 0; i < parms.length; i++) {
         var keyValue = parms[i].split("=");
-        args[ keyValue[0].trim() ] = evalWithVars(keyValue[1]);
+        args[ keyValue[0].trim() ] = Selenium.evalWithExpandedStoredVars(keyValue[1]);
       }
       return args;/**/
     }
@@ -1276,25 +1291,17 @@ function $X(xpath, contextNode) {
         // Match object{..} and evaluate as a definition of anonymous Javascript object. Replace $... parts with respective stored variables. There can be no prefix or postfix before/after eval{ and }.
         var match= value.match( /^\s*object(\{(.|\r?\n)+\})\s*$/ );
         if( match ) {
-            var expression= match[1].replace( /\$(\w[a-zA-Z_0-9]*)/g, 'storedVars.$1' );
-            LOG.debug( 'object{}: ' +expression );
-            // Firefox eval() doesn't return values of some expression strings, including
-            // '{field: "value"}' and 'return {field: "value"}'. That's why I assign to local variable 'object' first, and then I return it.
-            return eval( 'var object= ' +expression+ '; object' );
+            return Selenium.evalWithExpandedStoredVars( match[1] );
         }
         // Match array[...] and evaluate it as an array of Javascript expressions. Replace $... parts with respective stored variables. There can be no prefix or postfix before/after eval{ and }.
         var match= value.match( /^\s*array(\[(.|\r?\n)+\])\s*$/ );
         if( match ) {
-            var expression= match[1].replace( /\$(\w[a-zA-Z_0-9]*)/g, 'storedVars.$1' );
-            LOG.debug( 'array[]: ' +expression );
-            return eval( expression );
+            return Selenium.evalWithExpandedStoredVars( match[1] );
         }
         // Match eval{...} and evaluate it as a Javascript expression. Replace $... parts with respective stored variables. There can be no prefix or postfix before/after eval{ and }.
         var match= value.match( /^\s*eval\{((.|\r?\n)+)\}\s*$/ );
         if( match ) {
-            var expression= match[1].replace( /\$(\w[a-zA-Z_0-9]*)/g, 'storedVars.$1' );
-            LOG.debug( 'eval{}: ' +expression );
-            return eval( expression );
+            return Selenium.evalWithExpandedStoredVars( match[1] );
         }
         // Match ...stored{...}....  Evaluate it as a string with an optional prefix and postfix, replace $... part(s) with respective stored variables.
         // Spaces in the following regex are here only to make it more readable; they get removed.
@@ -1305,19 +1312,18 @@ function $X(xpath, contextNode) {
             var prefix= match[1];
             var mainPart= match[3];
             var postfix= match[5];
-            var expression= mainPart.replace( /\$(\w[a-zA-Z_0-9]*)/g, 'storedVars.$1' );
             LOG.debug( 'stored{}: ' +
                 (prefix!=='' ? 'prefix: '+prefix+', ' : '')+
-                'expression: ' +expression+
+                'mainPart: ' +mainPart+
                 (postfix!=='' ? ', postfix: '+postfix : '')
             );
-            var evalResult= eval( expression );
+            var evalResult= Selenium.evalWithExpandedStoredVars( mainPart );
 
             if( evalResult!==null && evalResult!==undefined ) {
                 evalResult= '' +evalResult;
             }
             else {
-                evalResult= this.robustNullToken;//@TODO sel;ite-misc-ide as a separate extension, or as a part of SelBlocks Global
+                evalResult= this.robustNullToken;//@TODO selite-misc-ide as a separate extension, or as a part of SelBlocks Global
             }
             LOG.debug( '...stored{}... transformed to: ' +prefix+evalResult+postfix);
             return prefix+evalResult+postfix;

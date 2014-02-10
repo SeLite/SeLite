@@ -14,7 +14,8 @@ Components.utils.import( "chrome://selite-db-objects/content/basic-functions.js"
 Selenium.prototype.getRecord= function( info, unused ) {
     /** @type {SeLiteData.Table} */ var table;
     /** @type SeLiteData.RecordSetFormula*/var formula;
-    if( table in info ) {
+    LOG.debug( 'getRecord info: ' +typeof info+ ': ' +SeLiteMisc.objectToString(info, 2));
+    if( 'table' in info ) {
         table= info.table;
         table instanceof SeLiteData.Table || SeLiteMisc.fail( 'info.table must be an instance of SeLiteData.Table');
         formula= new SeLiteData.RecordSetFormula( {
