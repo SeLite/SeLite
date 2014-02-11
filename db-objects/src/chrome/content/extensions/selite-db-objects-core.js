@@ -1,7 +1,6 @@
 "use strict";
 
-// Following import() calls load SeLiteData into Selenium Core scope, so that it can be used by Selenese
-Components.utils.import( "chrome://selite-db-objects/content/db.js" );
+Components.utils.import( "chrome://selite-db-objects/content/db.js" ); // this loads 'SeLiteData' object into Selenium Core scope, so that it can be used by Selenese
 Components.utils.import( "chrome://selite-db-objects/content/basic-storage.js" );
 Components.utils.import( "chrome://selite-db-objects/content/basic-objects.js" );
 Components.utils.import( "chrome://selite-db-objects/content/basic-functions.js" );
