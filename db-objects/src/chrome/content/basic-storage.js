@@ -39,7 +39,7 @@ SeLiteData.Storage= function() {
  */
 SeLiteData.Storage.prototype.open= function() {
     this.connection= this.parameters.connect();
-}
+};
 
 /** Close the connection.
  *  @param synchronous boolean Whether to close it ; optional.
@@ -62,7 +62,7 @@ SeLiteData.Storage.prototype.fieldNames= function( columnParts ) {
         result[i]= this.fieldName( columnParts[i] );
     }
     return result;
-}
+};
 
 SeLiteData.Storage.prototype.fieldName= function( columnPart ) {
     var result= columnPart.trim();
@@ -81,7 +81,7 @@ SeLiteData.Storage.prototype.fieldName= function( columnPart ) {
         result= result.substr( 1, result.length-2 );
     }
     return result;
-}
+};
 
 /** This collects fields from within SELECT... FROM part of the given query.
  *  For internal use only.
@@ -121,7 +121,7 @@ SeLiteData.Storage.prototype.fieldParts= function( query ) {
         throw "Query \"" +query+ "\" has an empty SELECT list.";
     }
     return fields;
-}
+};
 
 /** @return string SQL condition containing the given first and second condition(s), whichever of them is present and not empty;
  *  an empty string if there's no condition at all.
@@ -137,7 +137,7 @@ SeLiteData.Storage.prototype.sqlAnd= function( first, second, etc ) {
         }
     }
     return argumentsPresent.join( ' AND ' );
-}
+};
 
 /** @param string query SQL query. It can contain placeholders in format :placeholderName
  *  (see https://developer.mozilla.org/en/docs/Storage > Binding Parameters.
@@ -186,7 +186,7 @@ SeLiteData.Storage.prototype.select= function( query, fields, bindings ) {
         stmt.reset();
     }
     return result;
-}
+};
 
 /** It selects 1 row from the DB. If there are no such rows, or more than one, then it throws an error.
  *  @param string query full SQL query
@@ -200,7 +200,7 @@ SeLiteData.Storage.prototype.selectOne= function( query, fields, bindings ) {
         throw "Query \"" +query+"\" was supposed to return one result, but it returned " +rows.length+ " of them.";
     }
     return rows[0];
-}
+};
 
 /** @param string query SQL query
  *  @param object bindings Optional; see select()
@@ -218,7 +218,7 @@ SeLiteData.Storage.prototype.execute= function( query, bindings ) {
         }
         stmt.execute();
     }
-}
+};
 
 /** Get one record from the DB.
  * @param object params Object just like the same-called parameter for getRecords()
@@ -231,7 +231,7 @@ SeLiteData.Storage.prototype.getRecord= function( params ) {
         throw "Expected to find one matching record in DB, but found " +records.length+ " of them.";
     }
     return records[0];
-}
+};
 
 /** Get (matching) records from the DB.
  * @param object params Object in form {
@@ -354,7 +354,7 @@ SeLiteData.Storage.prototype.getRecords= function( params ) {
         console.log( SeLiteMisc.rowsToString(result) );
     }
     return result;
-}
+};
 
 /** Update (matching) records in the DB.
  * @param object params Object in form {
@@ -408,7 +408,7 @@ SeLiteData.Storage.prototype.updateRecords= function( params ) {
     }
     var stmt= this.connection.createStatement( query );
     stmt.execute();
-}
+};
 
 /** Update a in the DB, matching it by 'id' field (i.e. params.entries.id).
  * @param object params Object in form {
@@ -434,17 +434,15 @@ SeLiteData.Storage.prototype.updateRecordByPrimary= function( params ) {
     var primaryKeyColumns= typeof primaryKey==='string'
         ? [primaryKey]
         : primaryKey;
+    copiedParams.matching= {};
     for( var i=0; i<primaryKeyColumns.length; i++ ) { //@TODO for(..of..) once NetBeans like it
         var column= primaryKeyColumns[i];
-        if( copiedParams.entries[column]===undefined ) {
-            throw new Error( "updateRecordByPrimary(): params.entries." +column+ " is not set." );
-        }
+        copiedParams.entries[column]!==undefined || SeLiteMisc.fail( "updateRecordByPrimary(): params.entries." +column+ " is not set." );
+        copiedParams.matching[column]= copiedParams.entries[column];
+        delete copiedParams.entries[column];
     }
-    //@TODO in a loop:
-    copiedParams.matching= new SeLiteData.Settable().set( primaryKey, copiedParams.entries[primaryKey] );
-    delete copiedParams.entries[primaryKey]; //@TODO
     this.updateRecords( copiedParams );
-}
+};
 
 /** Delete a record in the DB, matching it by the given field and its value.
  *  The value will be quoted and it must not be null.
@@ -455,7 +453,7 @@ SeLiteData.Storage.prototype.deleteRecordByPrimary= function( table, field, valu
     var query= "DELETE FROM " +table+ " WHERE " +field+ "=" +this.quote(value);
     var stmt= this.connection.createStatement( query );
     stmt.execute();
-}
+};
 
 /**Insert the  record into the DB.
  * @param object params Object in form {
@@ -489,7 +487,7 @@ SeLiteData.Storage.prototype.insertRecord= function( params ) {
     }
     var stmt= this.connection.createStatement( query );
     stmt.execute();
-}
+};
 
 /** This returns value of 'id' (or given column) of the last inserted/updated record.
  *  It only works when called right after the relevant INSERT statement, i.e. there must
@@ -506,7 +504,7 @@ SeLiteData.Storage.prototype.lastInsertId= function( table, column ) {
     var query= "SELECT " +column+ " FROM " +table+ " WHERE rowid=last_insert_rowid()";
     var record= this.selectOne( query, [column] );
     return record[column];
-}
+};
 
 /** This adds enclosing apostrophes and doubles any apostrophes in the given value, if it's a string.
  *  <br>It does add enclosing apostrophes around Javascript strings "null" or "NULL" etc! So use Javascript null instead.
@@ -523,7 +521,7 @@ SeLiteData.Storage.prototype.quote= function( value ) {
         return ''+value;
     }
     return "'" +(''+value).replace( "'", "''" )+ "'";
-}
+};
 
 /** Use instances of SeLiteData.SqlExpression so that they don't get quoted/escaped by quote() and quoteValues().
  **/
@@ -563,7 +561,7 @@ SeLiteData.Storage.prototype.quoteValues= function( entries, fieldsToProtect ) {
         }
     }
     return result;
-}
+};
 
 /** Used to generate object parts of 'columns' part of the parameter to SeLiteData.RecordSetFormula() constructor, if your table names are not constants,
     i.e. you have a configurable table prefix string, and you don't want to have a string variable for each table name itself, but you want
@@ -622,7 +620,7 @@ function StorageFromSettingsClose( synchronous ) {
     SeLiteData.Storage.prototype.close.call( this, synchronous );
     this.field.name in StorageFromSettings.instances || SeLiteMisc.fail( 'StorageFromSettings.close() for field ' +this.field.name+ " couldn't find a connection for this field." );
     delete StorageFromSettings.instances[ this.field.name ];
-};
+}
 
 /** Create a new instance of StorageFromSettings, based on the given field (or its name), or
  *  re-use an existing instance of StorageFromSettings based on that field.

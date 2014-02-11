@@ -96,7 +96,7 @@
         if( reloadAppAndTest || reloadVanillaAndTest ) {
             // next two lines only perform validation
             vanillaDB || SeLiteMisc.fail( 'There is no value for SeLiteSettings field ' +vanillaDbField );
-            !SeLiteData.getStorageFromSettings( 'extensions.selite-settings.basic.vanillaDB', true/*dontCreate*/ )
+            !SeLiteData.getStorageFromSettings( vanillaDbField, true/*dontCreate*/ )
                 || SeLiteMisc.fail( 'vanillaDB should not be accessed by tests, yet there is SeLiteSettings.StorageFromSettings instance that uses it - ' +vanillaDbField );
             reload( sourceDB, reloadAppAndTest
                 ? appDB
@@ -124,6 +124,7 @@
     function reload( fromFileName, toFileName ) {
         var fromFile= new FileUtils.File(fromFileName); // Object of class nsIFile        
         var toFile= new FileUtils.File(toFileName);
+        !toFile.exists() || console.log( 'Removing ' +toFileName );
         !toFile.exists() || toFile.remove( false/*recursive*/ );
         toFile.parent.exists() || SeLiteMisc.fail( 'Target folder ' +toFile.parent.path+ ' does not exist' );
         console.log( 'Copying ' +fromFileName+ ' to ' +toFileName );

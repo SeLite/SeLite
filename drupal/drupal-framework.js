@@ -32,7 +32,7 @@
     // however SeLiteData.getStorageFromSettings() sets a handler via SeLiteSettings.addTestSuiteFolderChangeHandler().
     // Once you open/save a test suite, storage object will get updated automatically and it will open an SQLite connection.
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
-
+        
         var storage= SeLiteData.getStorageFromSettings('extensions.selite.drupal.testDB');
         var db= new SeLiteData.Db( storage );
 

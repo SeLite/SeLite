@@ -263,7 +263,7 @@ RecordHolder.prototype.update= function() {
         this.record[ field ]= value;
     }
     var entries= this.ownEntries();
-    this.recordSetHolder.storage().updateRecordByPrimary( {//@TODO SeLiteDbObjects.Storage.updateRecordByPrimary() for multi-column primary key
+    this.recordSetHolder.storage().updateRecordByPrimary( {
         table: this.recordSetHolder.formula.table.name,
         primary: this.recordSetHolder.formula.table.primary,
         entries: entries,
