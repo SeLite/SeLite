@@ -45,9 +45,7 @@
  * - Added continue & break for loops
  */
 
-// This file must not have "use strict"; because it depends on variables created by eval().
-// @TODO have "use strict"; in functions that can have it
-
+"use strict";
 // =============== global functions as script helpers ===============
 // getEval script helpers
 
@@ -229,7 +227,7 @@ function $X(xpath, contextNode) {
      *  It contains test cases in the same order as in editor.app.testSuite.tests[],
      *  but here they are as they come from editor.getTestCase()
      **/
-    testCases= [];
+    var testCases= [];
 
     // @return TestCase test case for the given global index
     function localCase( globIdxValue ) {
