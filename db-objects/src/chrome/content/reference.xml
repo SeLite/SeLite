@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml-stylesheet type="text/xsl" href="https://selite.googlecode.com/git/selenese_reference_to_html.xsl"?>
+<!-- If you'd like to preview this reference.xml in Firefox, open it either from https://selite.googlecode.com/git/db-objects/src/chrome/content/reference.xml, or (once you install SeLite DB Objects) as chrome://selite-db-objects/content/reference.xml.
+
+Xml-stylesheet (whether remote or even local) didn't load up work when you open this in a browser locally via file://
+-->
+<apidoc package-name="SeLite DB Objects">
+<function name="readRecord">
+    <param name="info">Anonymous object in form {
+        <dl>
+            <dt>table</dt>
+            <dd>SeLiteData.Table instance; optional - it must be specified if there is no <i>formula</i></dd>
+            <dt>formula</dt>
+            <dd>SeLiteData.RecordSetFormula instance; optional - it must be specified if there is no <i>table</i></dd>
+            <dt>columnName; optional</dt>
+            <dd>matchingValue</dd>
+            <dt>anotherColumnName; optional; there may be any number of matching columns</dt>
+            <dd>matchingValue</dd>
+            <dt>store</dt>
+            <dd>Name of the stored variable to put the record to, string, optional - you can use the second Selenese parameter <i>storedVariableName</i> instead.</dd>
+        </dl>
+    </param>
+    <param name="(storedVariableName)">Name of the stored variable to put the record to, string, optional - required if you don't provide <i>store</i> field in the first parameter <i>info</i>.
+    </param>
+    <comment>Load max. one record from DB and put it into a stored variable. If there's no matching record, store null. If there are two or more matching records, fail.
+    </comment>
+</function>
+<function name="insertRecord">
+    <param name="recordObject">Anonymous object with the fields to store, or SeLiteData.Record instance.</param>
+    <param name="table">SeLiteData.Table instance</param>
+    <comment>Insert the given object as a new record in the given table.
+    </comment>
+</function>
+</apidoc>

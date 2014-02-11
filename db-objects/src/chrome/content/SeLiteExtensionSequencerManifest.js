@@ -6,5 +6,6 @@ SeLiteExtensionSequencer.registerPlugin( {
         'sqlite-connection-manager@selite.googlecode.com': 'SQLite Connection Manager',
         'settings@selite.googlecode.com': 'SeLite Settings'
     },
-    coreUrl: 'chrome://selite-db-objects/content/extensions/selite-db-objects-core.js'
+    coreUrl: 'chrome://selite-db-objects/content/extensions/selite-db-objects-core.js',
+    xmlUrl: 'chrome://selite-db-objects/content/reference.xml',
 } );

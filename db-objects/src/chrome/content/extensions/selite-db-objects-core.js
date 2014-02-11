@@ -6,12 +6,7 @@ Components.utils.import( "chrome://selite-db-objects/content/basic-storage.js" )
 Components.utils.import( "chrome://selite-db-objects/content/basic-objects.js" );
 Components.utils.import( "chrome://selite-db-objects/content/basic-functions.js" );
 
-/** Subject to change
- * @param info Object containing
- * - table or formula - pass exactly one of them
- * - zero, one or several matching pairs - column: value
- */
-Selenium.prototype.getRecord= function( info, unused ) {
+Selenium.prototype.doReadRecord= function( info, storedVariableName ) {
     /** @type {SeLiteData.Table} */ var table;
     /** @type SeLiteData.RecordSetFormula*/var formula;
     LOG.debug( 'getRecord info: ' +typeof info+ ': ' +SeLiteMisc.objectToString(info, 2));
@@ -31,6 +26,8 @@ Selenium.prototype.getRecord= function( info, unused ) {
     else {
         SeLiteMisc.fail('getRecord() expects info.table or info.formula to be present.');
     }
+    storedVariableName= storedVariableName || info.store;
+    typeof storedVariableName==='string' || SeLiteMisc.fail( 'You must provide storedVariableName or info.store, a string name of the stored variable to load the record into.' );
     /**@type {object}*/var matchingPairs= SeLiteMisc.objectClone(info, table.columns );
     delete matchingPairs.info;
     delete matchingPairs.formula;
@@ -39,16 +36,17 @@ Selenium.prototype.getRecord= function( info, unused ) {
 
     var records= formula.select( matchingPairs );
     LOG.debug( 'getRecords: ' +records );
-    var numRecords= Object.keys(records).length;
-    numRecords===0 || numRecords===1 || SeLiteMisc.fail();
-    for( var id in numRecords ) { // Return the only record, if any:
-        return numRecords[id];
+    var record= null;
+    for( var key in records ) { // Return the only record, if any:
+        if( record!==null ) {
+            SeLiteMisc.fail( 'There is more than one record.' );
+        }
+        record= records[key];
     }
-    return null;
+    LOG.debug( 'record: ' +SeLiteMisc.objectToString(record, 2) );
+    storedVars[storedVariableName]= record;
 };
 
-//@param recordObject anonymous object
-//@param table SeLiteData.Table instance for the table to insert to.
 Selenium.prototype.doInsertRecord= function( recordObject, table) {
     var record= new SeLiteData.Record(recordObject);
     table.insert(record);

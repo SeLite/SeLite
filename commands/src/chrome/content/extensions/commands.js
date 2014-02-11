@@ -179,6 +179,8 @@ Selenium.prototype.noteTimestamp= function( timestampName, timestampPrecision ) 
 /** This and similar functions have name starting with 'doWaitFor'. That way when you type 'waitForDistinctTimestamp' in Selenium IDE,
  *  it doesn't auto-suggest '...AndWait' alternatives, which we don't want and which would confuse user. If the function name
  *  was any doXyz that doesn't start with 'doWaitFor', Selenium IDE would auto-suggest '..AndWait' alternative, which don't make sense.
+ *  Some functions are not implemented as Selenium.prototype.getXyz, because getXyz() only receives the first Selenese parameter (target)
+ *  and not the second parameter. That's undertandable, since getXyz auto-generates storeXyz, which uses the second parameter (value) as a namce of a stored variable. However, getXyz (and storeXyz) don't allow the first parameter to be a composite. E.g. if you use EnhancedSyntax object{} or array[] as the parameter, those don't get passed well. Allowing that would mean a tremendous workaround, or modifying Selenium IDE - each out of scope for now.
  * */
 Selenium.prototype.doWaitForTimestampDistinctDownToMilliseconds= function( timestampName, precisionInMilliseconds ) {
     precisionInMilliseconds= precisionInMilliseconds || 1;
@@ -240,14 +242,16 @@ Selenium.prototype.waitForDistinctTimestamp= function( timestampName, precisionI
 };
 
 Selenium.prototype.doIndexBy= function( columnOrDetails, sourceVariableName ) {
-    var indexBy= columnOrDetails, subIndexBy= null, resultVariableName= sourceVariableName;
+    var indexBy= columnOrDetails;
+    var subIndexBy= null;
+    var resultVariableName= sourceVariableName;
     if( typeof columnOrDetails==='object' ) {
         indexBy= columnOrDetails.indexBy;
         if( columnOrDetails.subIndexBy===undefined ) {
             subIndexBy= columnOrDetails.subIndexBy;
         }
-        if( columnOrDetails.target===undefined ) {
-            resultVariableName= columnOrDetails.target;
+        if( columnOrDetails.store===undefined ) {
+            resultVariableName= columnOrDetails.store;
         }
     }
     storedVars[resultVariableName]= SeLiteMisc.collectByColumn( storedVars[sourceVariableName], indexBy, !subIndexBy, subIndexBy );
@@ -620,21 +624,6 @@ Selenium.prototype.doSelectMapped= function( locator, params ) {
 };
 
 Selenium.prototype.isSelectMapped= function( locator, params ) {
-};
-//@TODO document in reference.xml
-Selenium.prototype.doWaitForFrameAndSelect= function( locator, unused ) {
-    var self= this;
-    return Selenium.decorateFunctionWithTimeout(
-        function () {
-            var wrappedElementOrNull= self.page().findElementOrNull(locator);
-            if( wrappedElementOrNull!==null ) {
-                self.doSelectFrame( locator );
-                return true;
-            }
-            return false;
-        },
-        this.defaultTimeout
-    );
 };
 
 Selenium.prototype.doSelectTopFrameAnd= function( locatorOrLocators, unused ) {

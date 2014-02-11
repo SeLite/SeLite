@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <?xml-stylesheet type="text/xsl" href="https://selite.googlecode.com/git/selenese_reference_to_html.xsl"?>
-<!-- remote or even local reference to xml-stylesheet doesn't seem to work when you open this reference.xml in a browser locally via file://-->
+<!-- If you'd like to preview this reference.xml in Firefox, open it either from https://selite.googlecode.com/git/commands/src/chrome/content/reference.xml, or (once you install SeLite Commands) as chrome://selite-commands/content/reference.xml.
+
+Xml-stylesheet (whether remote or even local) didn't load up work when you open this in a browser locally via file://
+-->
 <apidoc package-name="SeLite Commands">
 <function name="typeRobust">
     <param name="target">identifier of the element to type the value for</param>
@@ -106,7 +109,7 @@
                             Used to index within groups or objects that have same <code>indexBy</code> value.
                             Values of this field must be unique within each group.
                         </dd>
-                    <dt>target</dt>
+                    <dt>store</dt>
                     <dd>string, name of the result stored variable; optional</dd>
                 </dl>
                 }
@@ -252,7 +255,7 @@
     </param>
     <comment>
         Select the top frame. Then 
-        <br/>It waits for any specified frames to become present. However, it doesn't wait for the top frame. For that you should use 'andWait'in the last command that loaded the current page. So you shouldn't need to use <b>selectTopFrameAndAndWait</b> at all.
+        <br/>It waits for any specified frames to become present. However, it doesn't wait for the top frame. For that you should use 'andWait' postifx for the last command that loaded the current page. So you shouldn't need to use <b>selectTopFrameAndAndWait</b> at all.
     </comment>
 </function>
 </apidoc>
