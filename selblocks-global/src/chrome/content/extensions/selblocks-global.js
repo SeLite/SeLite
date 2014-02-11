@@ -865,7 +865,7 @@ function $X(xpath, contextNode) {
       }
       else {
         //  console.error( 'doCall calling\n ' +SeLiteMisc.stack() );
-        // Support $stored-variablename, just like stored{} and getQs, storeQs...
+        // Support $stored-variablename, just like string{} and getQs, storeQs...
         argSpec= expandStoredVars(argSpec);
         // save existing variable state and set args as local variables
         var args = parseArgs(argSpec);
@@ -970,17 +970,17 @@ function $X(xpath, contextNode) {
     // This is not related to parseArgs(str) in chrome/content/selenium-core/test/RemoteRunnerTest.js
     function parseArgs(argSpec) { // comma-sep -> new prop-set
       var args = {};
-      /* @TODO check & document whether I need to care about stored{} here. Maybe just don't support stored{...} for 'call' command. $variableName should work for 'call' without using stored{...}. 'call' works with stored{..}, but it's not recommended for now.
+      /* @TODO check & document whether I need to care about string{} here. Maybe just don't support string{...} for 'call' command. $variableName should work for 'call' without using string{...}. 'call' works with string{..}, but it's not recommended for now.
       
       @TODO See preprocessParameter() in this file.
         
-      // Split argSpec if it is in format fieldA=valueA,fieldB=..stored{...},fieldC=..stored{..},..
-      // This regex allows parameter values within stored{..} to contain commas or assignment =.
-      // The values within stored{...} can't contain curly brackets { and }.
-      // @TODO Also support commas within '' or ""? But for now using stored{} is a workaround.
+      // Split argSpec if it is in format fieldA=valueA,fieldB=..string{...},fieldC=..string{..},..
+      // This regex allows parameter values within string{..} to contain commas or assignment =.
+      // The values within string{...} can't contain curly brackets { and }.
+      // @TODO Also support commas within '' or ""? But for now using string{} is a workaround.
 
       // This regex is optimistic - assuming that argSpec is well-formed
-      var spacedRegex= /=\s*([^q][^,]*|stored\{[^}]*)\}?\s*,?/;
+      var spacedRegex= /=\s*([^q][^,]*|string{{[^}]*)\}?\s*,?/;
       var regex= new RegExp( spacedRegex.source.replace( / /g, '') );
 
       var parms= argSpec.split( regex );
@@ -988,7 +988,7 @@ function $X(xpath, contextNode) {
       for( var i = 0; i < parms.length-1; i+=2 ) {
         var key= parms[i].trim();
         var value = parms[i+1];
-        if( value.substr(0, 7)==='stored{' ) {
+        if( value.substr(0, 7)==='string{' ) {
             value= value.substr( 7 );
         }
         if( typeof value !=='string' ) {
@@ -1252,13 +1252,13 @@ function $X(xpath, contextNode) {
     // This adds support for
     // - quick object notation using object{ field: value... } - that can't be mixed with anything else in the value,
     // it must be the only content passed as a value of a Se IDE command parameter
-    // - 'Quick Stored' - stored{javascript-expression-here with $stored-var-name support}
-    // and any-prefixstored{expression}postfix (including variations with empty prefix/postfix: any-prefixstored{expression} or stored{expression}postfix or stored{expression}).
+    // - 'Quick Stored' - string{javascript-expression-here with $stored-var-name support}
+    // and any-prefixstring{expression}postfix (including variations with empty prefix/postfix: any-prefixstring{expression} or string{expression}postfix or string{expression}).
     // Prefix and Postfix must not contain characters { and }. Prefix must not contain character = so that we
-    // can use stored{} in parameter values for SelBlocks' action call (stored{} in a parameter value there doesn't allow any prefix/postfix).
+    // can use string{} in parameter values for SelBlocks' action call (string{} in a parameter value there doesn't allow any prefix/postfix).
     Selenium.prototype.preprocessParameter = function(value) {
-        // @TODO @TODO @TODO Do we need stored{..} at all? Standard Se preprocessParameter() supports multiple ${...} for stored vars.
-        // stored{} was intended only so that there can be prefix and/or postfix around it: prefix... stored{expression} postfix...
+        // @TODO @TODO @TODO Do we need string{..} at all? Standard Se preprocessParameter() supports multiple ${...} for stored vars.
+        // string{} was intended only so that there can be prefix and/or postfix around it: prefix... string{expression} postfix...
         // But that can be accomplished with javascript{ 'prefix...' +(expression)+ 'postfix...' }
         // But javascript{..} doesn't replace ${variableName}.
         // Either way, replacing stored variables within Javascript statements/selectors using ${...}
@@ -1266,23 +1266,18 @@ function $X(xpath, contextNode) {
         // - they would need to put apostrophes around it (for XPath), or quotes/apostrophes around it (for Javascript).
         // Selenese ${variableName} requires {}, which is good because it separates it from the rest of the target/value,
         // so it's robust yet easy to use.
-        // stored{ ... $xxx ... } replaces $xxx by the symbol/reference to the stored variable, so its typed and it doesn't need to be quote
+        // string{ ... $xxx ... } replaces $xxx by the symbol/reference to the stored variable, so its typed and it doesn't need to be quote
         // (unless you're passing it to XPath).
         // 
-        // stored{ ... ${...} .... } doesn't work. No sure there's a need for it. If it worked substitituing as in other Selenese,
+        // string{ ... ${...} .... } doesn't work. No sure there's a need for it. If it worked substitituing as in other Selenese,
         // it could involve unexpected errors if ${variableName} were a number and later it would become a non-numeric string
         // and if there were no quotes/apostrophes around it.
-        // @TODO: Support ${xxx} and $xxx in javascript{...}. Then support prefix & postfix around javascript{}. Then get rid of stored{}.
         
-        /** stored{} - quick script. Access stored variables using $xyz. If the stored
+        /** string{} - quick script. Access stored variables using $xyz. If the stored
             variable is an object/array, you can access its fields - i.e. $object-var-name.fieldXYZ or $array-var-name[index].
-           stored{} transforms the evaluated result into a string. This way we can use it with standard Se actions
+           string{} transforms the evaluated result into a string. This way we can use it with standard Se actions
            click/select/type, even if the evaluated value is a number.
-           That limits the usage of stored{}: you normally don't want stored{} to yield an object/array. For such cases use either
-           - actions getQs, storeQs with the javascript expression (returning an object) without using stored{} neither object{};
-             but {field: value... } won't work there as the overall value of the expression; for that you need object{}
-           - object{ javascript-expression-returning-on-object }
-             when passing a Javascript object in form {field: value, ...} as a parameter to an action. E.g. passing an
+           That limits the usage of string{}: you normally don't want string{} to yield an object/array. For such cases use object{...} or array[...]. E.g. passing an
              object as the second parameter to 'typeRandom' action (function doTypeRandom).
         */
         LOG.debug('SelBlocksGlobal tail override of preprocessParameter(): ' +value );
@@ -1301,16 +1296,16 @@ function $X(xpath, contextNode) {
         if( match ) {
             return Selenium.evalWithExpandedStoredVars( match[1] );
         }
-        // Match ...stored{...}....  Evaluate it as a string with an optional prefix and postfix, replace $... part(s) with respective stored variables.
+        // Match ...string{...}....  Evaluate it as a string with an optional prefix and postfix, replace $... part(s) with respective stored variables.
         // Spaces in the following regex are here only to make it more readable; they get removed.
-        var spacedRegex= /^ ( ((?!stored\{).)* )  stored\{((.|\r?\n)+)\}  (([^}])*)$/;
+        var spacedRegex= /^ ( ((?!string\{).)* )  string\{((.|\r?\n)+)\}  (([^}])*)$/;
         var regex= new RegExp( spacedRegex.source.replace( / /g, '') );
         match = value.match( regex );
         if( match ) {
             var prefix= match[1];
             var mainPart= match[3];
             var postfix= match[5];
-            LOG.debug( 'stored{}: ' +
+            LOG.debug( 'string{}: ' +
                 (prefix!=='' ? 'prefix: '+prefix+', ' : '')+
                 'mainPart: ' +mainPart+
                 (postfix!=='' ? ', postfix: '+postfix : '')
@@ -1323,7 +1318,7 @@ function $X(xpath, contextNode) {
             else {
                 evalResult= this.robustNullToken;//@TODO selite-misc-ide as a separate extension, or as a part of SelBlocks Global
             }
-            LOG.debug( '...stored{}... transformed to: ' +prefix+evalResult+postfix);
+            LOG.debug( '...string{}... transformed to: ' +prefix+evalResult+postfix);
             return prefix+evalResult+postfix;
         }
         return originalPreprocessParameter.call( this, value );

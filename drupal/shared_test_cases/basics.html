@@ -122,7 +122,7 @@
 	<td></td>
 	<td></td>
 </tr>
-<!--TODO DOC: don't have stored{} around the whole following expression-->
+<!--TODO DOC: don't have string{} around the whole following expression-->
 <tr>
 	<td>storeEval</td>
 	<td>Drupal.roleToUser( '${userNameOrAmpersandRole}' )</td>
@@ -221,7 +221,7 @@
 <tr>
 	<td>type</td>
 	<td>id=edit-pass-pass2</td>
-	<td>stored{$newUserPassword}</td>
+	<td>string{$newUserPassword}</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
@@ -291,7 +291,7 @@
 	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
 	<td>userLoggedIn</td>
 </tr>
-<!--TODO tet whether the following if skips logout when we're already logged ni. Or should it use stored{ ... } instead?-->
+<!--TODO tet whether the following if skips logout when we're already logged ni. Or should it use string{ ... } instead?-->
 <tr>
 	<td>if</td>
 	<td>$userLoggedIn</td>
@@ -342,7 +342,7 @@
 <tr>
 	<td>type</td>
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-pass' ]</td>
-	<td>stored{ $user.pass }</td>
+	<td>string{ $user.pass }</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>

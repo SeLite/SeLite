@@ -1303,12 +1303,12 @@ SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes= {};
 
 var robustNullToken= 'robustNullReplacementString';
 
-/** This detects whether an expression within stored{expression} or prefixstored{expression} or prefixstored{expression}postfix evaluated into null.
+/** This detects whether an expression within string{expression} or prefixstring{expression} or prefixstring{expression}postfix evaluated into null.
  *  @param valueOrSimpleLocator a result of 'expression' as passed to a Selenium action; its value
  *  @return bool as described
  */
 SeLiteMisc.isRobustNull= function( valueOrSimpleLocator ) {
-    // A bit simplified, but good enough. Prefix and Postfix around stored{...} should be simple and shouldn't contain robustNullToken
+    // A bit simplified, but good enough. Prefix and Postfix around string{...} should be simple and shouldn't contain robustNullToken
     return typeof valueOrSimpleLocator=='string' && valueOrSimpleLocator.indexOf(robustNullToken)>=0;
 };
 
