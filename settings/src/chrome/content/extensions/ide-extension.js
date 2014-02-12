@@ -66,7 +66,7 @@
 
         var testDbField= SeLiteSettings.moduleForReloadButtons.fields['testDB'];
         var appDbField= SeLiteSettings.moduleForReloadButtons.fields['appDB'];
-        var vanillaDbField= SeLiteSettings.moduleForReloadButtons[ 'vanillaDB' ];
+        var vanillaDbField= SeLiteSettings.moduleForReloadButtons.fields[ 'vanillaDB' ];
 
         var appDB= fields['appDB'].entry;
         appDB || SeLiteMisc.fail( 'There is no value for SeLiteSettings field ' +appDbField );
