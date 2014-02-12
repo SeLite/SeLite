@@ -733,7 +733,7 @@ SeLiteSettings.TestDbKeeper= function() {};
 SeLiteSettings.TestDbKeeper.prototype.initialise= function( testStorage ) {
     this.testStorage= testStorage;
 };
-/** Load any relevant test data from testStorage to memory.
+/** Load any relevant test data from testStorage to memory. It must be robust - there may not be any test DB yet, or with an out of date schema.
  * */
 SeLiteSettings.TestDbKeeper.prototype.load= function() {};
 /** Update any relevant test data from memory to testStorage. For records that don't exist there, this may re-create them (up to the implementation).

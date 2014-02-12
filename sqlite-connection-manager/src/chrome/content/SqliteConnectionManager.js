@@ -184,14 +184,26 @@ function preloadCache( connection, errorHandler ) {
  *  @return void
  *  @throws Error on failure */
 SQLiteConnectionInfo.prototype.open= function() {
+    console.log( 'SQLiteConnectionInfo.open(): Trying to open ' +this.parameters.fileName );
     var file;
     try {
         file= FileUtils.getFile( "ProfD", [this.parameters.fileName] );
     }
     catch( error ) {
-        file= new FileUtils.File( this.parameters.fileName );
+        try {
+            file= new FileUtils.File( this.parameters.fileName );
+        }
+        catch( anotherError ) {
+            return;
+        }
     }
-    var connection= Services.storage.openDatabase( file );
+    var connection;
+    try {
+        connection= Services.storage.openDatabase( file );
+    }
+    catch( error ) {
+        return;
+    }
     // There's no need neither a way to 'close' file. See https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsIFile
     if( !connection.connectionReady ) {
         throw "Created the connection, but it wasn't ready.";
