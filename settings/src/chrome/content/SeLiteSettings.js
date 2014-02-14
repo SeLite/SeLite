@@ -1738,7 +1738,6 @@ SeLiteSettings.moduleNamesFromPreferences= function( namePrefix ) {
  *  - testDbField SeLiteSettings.Field.SQLite that points to test SQLite DB; required
  *  - appDbField SeLiteSettings.Field.SQLite that points to app SQLite DB; optional
  *  - vanillaDbField SeLiteSettings.Field.SQLite that points to vanilla (snapshot) SQLite DB; optional
- *  - appDBpermissions SeLiteSettings.Field.Strin octal unix-style permissions, used when reloading appDB; optional
  *  At least two of appDbField and vanillaDbField must exist.
  * */
 SeLiteSettings.setModuleForReloadButtons= function( moduleOrName ) {
