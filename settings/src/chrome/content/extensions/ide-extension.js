@@ -54,7 +54,7 @@
     optionsPopup= document.getElementById('options-popup');
     optionsPopup.appendChild(seLiteSettingsMenuItem);
 
-    /** Reload the database file(s). It removes the old file(s). It copies the files. It adjusts permissions on test DB, if there's a setting for it.
+    /** Reload the database file(s). It copies the files.
      *  If called with no parameters, by default it copies appDB over testDB. Maximum one of the parameters can be true.
      *  @param reloadAppAndTest boolean, whether to reload both appDB and testDB from vanillaDB. Optional, false by default.
      *  @param reloadVanillaAndTest boolean, whether to reload both appDB and testDB from vanillaDB. Optional, false by default.
@@ -122,8 +122,6 @@
     function reload( fromFileName, toFileName ) {
         var fromFile= new FileUtils.File(fromFileName); // Object of class nsIFile        
         var toFile= new FileUtils.File(toFileName);
-        !toFile.exists() || console.log( 'Removing ' +toFileName );
-        !toFile.exists() || toFile.remove( false/*recursive*/ );
         toFile.parent.exists() || SeLiteMisc.fail( 'Target folder ' +toFile.parent.path+ ' does not exist' );
         console.log( 'Copying ' +fromFileName+ ' to ' +toFileName );
         fromFile.copyTo( toFile.parent, toFile.leafName );
