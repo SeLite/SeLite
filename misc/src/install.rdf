@@ -4,7 +4,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>misc@selite.googlecode.com</em:id>
     <em:name>SeLite Miscellaneous</em:name>
-    <em:version>0.68</em:version>
+    <em:version>0.69</em:version>
     <em:creator>Peter Kehl</em:creator>
     <em:homepageURL>https://code.google.com/p/selite/</em:homepageURL>
     <em:description>Miscellaneous Internal Components for various parts of SeLite group of extensions</em:description>
