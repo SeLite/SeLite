@@ -5,8 +5,8 @@
  * You can obtain one at http://mozilla.org/MPL/1.1/.
  */
 /**
- * SelBlocks Global = SelBlocks with scripts callable across test cases.
- * Based on SelBlocks 1.3.
+ * SelBlocks Global = SelBlocks with functions callable across test cases.
+ * Based on SelBlocks 1.3 with 'script' renamed to 'function' as per SelBlocks 2.0.1
  * 
  * Provides commands for javascript-like looping and callable functions,
  *   with scoped variables, and XML driven parameterization.
@@ -249,7 +249,7 @@ function $X(xpath, contextNode) {
         return ''+testCaseIdx(givenTestCase)+ '/'+ label;
     }
 
-    // @TODO on insert, validate that function names are unique, i.e. no script overriding
+    // @TODO on insert, validate that function names are unique, i.e. no function overriding
     /** @var object symbols {
      *    string equal to function's name => globIdx value
      *    string 'testCaseIndex:label-name' => globIdx value
@@ -512,26 +512,26 @@ function $X(xpath, contextNode) {
                 assertNotAndWaitSuffix(cmdIdx);
                 cmdAttrs.init(cmdIdx);
                 break;
-              case "script":
+              case "function":
                 assertNotAndWaitSuffix(cmdIdx);
                 symbols[cmdTarget] = cmdIdx;
                 lexStack.push(cmdAttrs.init(cmdIdx, { name: cmdTarget }));
                 break;
               case "return":
                 assertNotAndWaitSuffix(cmdIdx);
-                assertBlockIsPending("script", cmdIdx, lexStack, ", is not valid outside of a script/endScript block");
-                var scrpt = lexStack.find(function(attrs) { return (attrs.cmdName == "script"); });
-                cmdAttrs.init(cmdIdx, { scriptIdx: scrpt.idx });    // return -> script
+                assertBlockIsPending("function", cmdIdx, lexStack, ", is not valid outside of a function/endFunction block");
+                var scrpt = lexStack.find(function(attrs) { return (attrs.cmdName == "function"); });
+                cmdAttrs.init(cmdIdx, { functionIdx: scrpt.idx });    // return -> function
                 break;
-              case "endScript":
+              case "endFunction":
                 assertNotAndWaitSuffix(cmdIdx);
-                assertBlockIsPending("script", cmdIdx, lexStack);
+                assertBlockIsPending("function", cmdIdx, lexStack);
                 var scrAttrs = lexStack.pop();
-                assertMatching(scrAttrs.cmdName, "script", cmdIdx, scrAttrs.idx);
+                assertMatching(scrAttrs.cmdName, "function", cmdIdx, scrAttrs.idx);
                 if (cmdTarget)
-                  assertMatching(scrAttrs.name, cmdTarget, cmdIdx, scrAttrs.idx); // match-up on script name
-                cmdAttrs[scrAttrs.idx].endIdx = cmdIdx;          // script -> endscript
-                cmdAttrs.init(cmdIdx, { scriptIdx: scrAttrs.idx }); // endScript -> script
+                  assertMatching(scrAttrs.name, cmdTarget, cmdIdx, scrAttrs.idx); // match-up on function name
+                cmdAttrs[scrAttrs.idx].endIdx = cmdIdx;          // function -> endFunction
+                cmdAttrs.init(cmdIdx, { functionIdx: scrAttrs.idx }); // endFunction -> function
                 break;
               default:
             }
@@ -601,7 +601,7 @@ function $X(xpath, contextNode) {
       assertRunning();
       var symbol_index= labelIdx(label);
       assert( symbols[symbol_index], " Target label '" + label + "' is not found.");
-      setNextCommand( symbols[symbol_index] ); // goto only works outside of scripts, so no global index here
+      setNextCommand( symbols[symbol_index] ); // goto only works outside of functions, so no global index here
     };
 
     Selenium.prototype.doGotoIf = function(condExpr, label)
@@ -833,7 +833,7 @@ function $X(xpath, contextNode) {
 
     // unwind the command stack to the inner-most active loop block
     // (unless the optional condition evaluates to false)
-    // @TODO check that it only unwinds within the current script, if any
+    // @TODO check that it only unwinds within the current function, if any
     function dropToLoop(condExpr)
     {
       assertRunning();
@@ -850,14 +850,14 @@ function $X(xpath, contextNode) {
     {
       var loop = currentTest || htmlTestRunner.currentTest; // See Selenium.prototype.doRollup()
       assertRunning(); // TBD: can we do single execution, ie, run from this point then break on return?
-      var scriptIdx = symbols[scrName];
-      assert( scriptIdx, " Script does not exist: " + scrName + "." );
+      var functionIdx = symbols[scrName];
+      assert( functionIdx, " Function does not exist: " + scrName + "." );
 
       var callAttrs = cmdAttrs.here();
       var callFrame = callStack.top();
       if( callFrame.isReturning && callFrame.returnIdx==hereGlobIdx() ) {
         //console.error( 'doCall returning\n ' +SeLiteMisc.stack() );
-        // returning from completed script
+        // returning from completed function
         var popped= callStack.pop();
         loop.commandError= popped.originalCommandError;
         restoreVarState( popped.savedVars );
@@ -873,7 +873,7 @@ function $X(xpath, contextNode) {
         setVars(args);
 
         var originalCommandError= loop.commandError;
-        // There can be several cascading layers of these calls - one per script call level.
+        // There can be several cascading layers of these calls - one per function call level.
         loop.commandError= function( result ) {
             //console.error( 'doCall: commandError(). editor: ' +(typeof editor)+ '\n ' +SeLiteMisc.stack() );
             var popped= callStack.pop();
@@ -885,12 +885,12 @@ function $X(xpath, contextNode) {
             editor.selDebugger.pause();
             //selenium.reset(); // This doesn't help
             
-            originalCommandError.call( this, result ); // I've restored this.commandError *before* calling originalCommandError(), because if this was a deeper script call then originalCommandError() will restore any previous version of this.commandError, and I don't want to step on its feet here
+            originalCommandError.call( this, result ); // I've restored this.commandError *before* calling originalCommandError(), because if this was a deeper function call then originalCommandError() will restore any previous version of this.commandError, and I don't want to step on its feet here
             //@TODO setNextCommand(??)??
         };
         
         callStack.push( {
-            scriptIdx: scriptIdx,
+            functionIdx: functionIdx,
             name: scrName,
             args: args,
             returnIdx: hereGlobIdx(),
@@ -899,39 +899,39 @@ function $X(xpath, contextNode) {
             testCase: testCase,
             originalCommandError: originalCommandError
         });
-        // jump to script body
-        setNextCommand(scriptIdx);
+        // jump to function body
+        setNextCommand(functionIdx);
       }
     }
-    Selenium.prototype.doScript = function(scrName)
+    Selenium.prototype.doFunction = function(scrName)
     {
       assertRunning();
       var loop = currentTest || htmlTestRunner.currentTest;
-      //LOG.error( 'doScript: loop.commandError: ' +loop.commandError.toSource() );
+      //LOG.error( 'doFunction: loop.commandError: ' +loop.commandError.toSource() );
       var scrAttrs = cmdAttrs.here();
       var callFrame = callStack.top();
-      if( callFrame.scriptIdx==hereGlobIdx() ) {
+      if( callFrame.functionIdx==hereGlobIdx() ) {
         // get parameter values
         setVars(callFrame.args);
       }
       else {
-        // no active call, skip around script body
+        // no active call, skip around function body
         setNextCommand(scrAttrs.endIdx);
       }
     }
     Selenium.prototype.doReturn = function(value) {
-      returnFromScript(value);
+      returnFromFunction(value);
     }
-    Selenium.prototype.doEndScript = function() {
-      returnFromScript();
+    Selenium.prototype.doEndFunction = function() {
+      returnFromFunction();
     }
 
-    function returnFromScript(returnVal)
+    function returnFromFunction(returnVal)
     {
       assertRunning();
       var endAttrs = cmdAttrs.here();
       var callFrame = callStack.top();
-      if( callFrame.scriptIdx==endAttrs.scriptIdx ) {
+      if( callFrame.functionIdx==endAttrs.functionIdx ) {
         if( returnVal ) {
             storedVars._result = Selenium.evalWithExpandedStoredVars(returnVal);
         }
@@ -940,7 +940,7 @@ function $X(xpath, contextNode) {
         setNextCommand(callFrame.returnIdx);
       }
       else {
-        // no active call, we're skipping around a script block
+        // no active call, we're skipping around a function block
       }
     }
 
@@ -1070,7 +1070,7 @@ function $X(xpath, contextNode) {
     function assert(cond, msg) { if (!cond) notifyFatalHere(msg); }
     // TBD: can we at least show result of expressions?
     function assertRunning() {
-      assert(testCase.debugContext.started, " Command is only valid in a running script.");
+      assert(testCase.debugContext.started, " Command is only valid in a running function.");
     }
     function assertActiveCmd(expectedIdx) {
       var activeIdx = callStack.top().cmdStack.top().idx;
@@ -1273,7 +1273,7 @@ function $X(xpath, contextNode) {
         // it could involve unexpected errors if ${variableName} were a number and later it would become a non-numeric string
         // and if there were no quotes/apostrophes around it.
         
-        /** string{} - quick script. Access stored variables using $xyz. If the stored
+        /** string{} - evaluate the expression and cast it as a string. Access stored variables using $xyz. If the stored
             variable is an object/array, you can access its fields - i.e. $object-var-name.fieldXYZ or $array-var-name[index].
            string{} transforms the evaluated result into a string. This way we can use it with standard Se actions
            click/select/type, even if the evaluated value is a number.
