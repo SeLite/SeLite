@@ -24,7 +24,7 @@ var console= Components.utils.import("resource://gre/modules/devtools/Console.js
 
 /** @constructor
  *  @param {SeLiteData.Storage} storage Underlying lower-level storage object.
- *  @param string tableNamePrefix optional
+ *  @param {string} [tableNamePrefix] optional prefix, which will be applied to all tables (except for tables that have noNamePrefix=true when constructed)
  **/
 SeLiteData.Db= function( storage, tableNamePrefix ) {
     this.storage= storage;
