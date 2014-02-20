@@ -67,7 +67,8 @@
         var testDbField= SeLiteSettings.moduleForReloadButtons.fields['testDB'];
         var appDbField= SeLiteSettings.moduleForReloadButtons.fields['appDB'];
         var vanillaDbField= SeLiteSettings.moduleForReloadButtons.fields[ 'vanillaDB' ];
-
+        var tablePrefixField= SeLiteSettings.moduleForReloadButtons.fields['tablePrefix'];
+        
         var appDB= fields['appDB'].entry;
         appDB || SeLiteMisc.fail( 'There is no value for SeLiteSettings field ' +appDbField );
         var testDB= fields['testDB'].entry;
@@ -76,12 +77,12 @@
         
         var appStorage;
         if( reloadAppAndTest ) {
-            appStorage= SeLiteData.getStorageFromSettings( appDbField, true/*dontCreate*/ );
+            appStorage= SeLiteData.getStorageFromSettings( appDbField, undefined, true/*dontCreate*/ );
             // appStorage.connection may be null, if the app DB file doesn't exist yet
             !appStorage || !appStorage.connection || appStorage.close();
         }
         !SeLiteSettings.moduleForReloadButtons.testDbKeeper || SeLiteSettings.moduleForReloadButtons.testDbKeeper.load();
-        var testStorage= SeLiteData.getStorageFromSettings( testDbField, true/*dontCreate*/ );
+        var testStorage= SeLiteData.getStorageFromSettings( testDbField, tablePrefixField, true/*dontCreate*/ );
         // testStorage.connection may be null, if the test DB file doesn't exist yet
         !testStorage || !testStorage.connection || testStorage.close(true); // When I called testStorage.close() without parameter true, things failed later on unless there was a time break (e.g. when debugging)
         
@@ -97,7 +98,7 @@
         if( reloadAppAndTest || reloadVanillaAndTest ) {
             // next two lines only perform validation
             vanillaDB || SeLiteMisc.fail( 'There is no value for SeLiteSettings field ' +vanillaDbField );
-            !SeLiteData.getStorageFromSettings( vanillaDbField, true/*dontCreate*/ )
+            !SeLiteData.getStorageFromSettings( vanillaDbField, undefined, true/*dontCreate*/ )
                 || SeLiteMisc.fail( 'vanillaDB should not be accessed by tests, yet there is SeLiteSettings.StorageFromSettings instance that uses it - ' +vanillaDbField );
             reload( sourceDB, reloadAppAndTest
                 ? appDB
@@ -107,7 +108,10 @@
         reload( sourceDB, testDB );
         !appStorage || appStorage.open();
         !testStorage || testStorage.open();
-        !SeLiteSettings.moduleForReloadButtons.testDbKeeper || SeLiteSettings.moduleForReloadButtons.testDbKeeper.store();
+        if( testStorage && appStorage && SeLiteSettings.moduleForReloadButtons.testDbKeeper ) {
+            SeLiteSettings.moduleForReloadButtons.testDbKeeper.store();
+        }
+        !appStorage || appStorage.close(); // The web application shouldn't use SQLiteConnectionManager, so let's close the connection here.
     };
     
     /** Shorthand to make caller's intention clear.

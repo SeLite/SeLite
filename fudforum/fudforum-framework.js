@@ -33,7 +33,7 @@
     // Once you open/save a test suite, storage object will get updated automatically and it will open an SQLite connection.
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         
-        var storage= SeLiteData.getStorageFromSettings('extensions.selite.fudforum.testDB');
+        var storage= SeLiteData.getStorageFromSettings( 'extensions.selite.fudforum.testDB', 'extensions.selite.fudforum.tablePrefix' );
         var db= new SeLiteData.Db( storage );
 
         // Following is a namespace-like object for the 'global' scope - see Bootstrap.wiki

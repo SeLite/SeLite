@@ -24,11 +24,19 @@ var console= Components.utils.import("resource://gre/modules/devtools/Console.js
 
 /** @constructor
  *  @param {SeLiteData.Storage} storage Underlying lower-level storage object.
- *  @param {string} [tableNamePrefix] optional prefix, which will be applied to all tables (except for tables that have noNamePrefix=true when constructed)
+ *  @param {string} [tableNamePrefix] optional prefix, which will be applied to all tables (except for tables that have noNamePrefix=true when constructed). If not set, then storage.tableNamePrefix is used (if any).
  **/
 SeLiteData.Db= function( storage, tableNamePrefix ) {
     this.storage= storage;
-    this.tableNamePrefix= tableNamePrefix || '';
+    this.tableNamePrefix= tableNamePrefix;
+};
+
+/** @return {string} Table prefix, or an empty string. It never returns undefined.
+ * */
+SeLiteData.Db.prototype.tablePrefix= function() {
+    return this.tableNamePrefix!==undefined
+        ? this.tableNamePrefix
+        : this.storage.tablePrefix();
 };
 
 /** @constructor
@@ -42,11 +50,17 @@ SeLiteData.Db= function( storage, tableNamePrefix ) {
 SeLiteData.Table= function( prototype ) {
     this.db= prototype.db;
     var prefix= prototype.noNamePrefix ? '' : this.db.tableNamePrefix;
-    this.name= prefix+prototype.name;
+    this.nameWithoutPrefix= prototype.name;
 
     this.columns= prototype.columns;
     this.primary= prototype.primary || 'id';
     typeof this.primary==='string' || Array.isArray(this.primary) || SeLiteMisc.fail( 'prototype.primary must be a string or an array.' );
+};
+
+SeLiteData.Table.prototype.name= function() {
+    return prototype.noNamePrefix
+        ? this.nameWithoutPrefix
+        : this.db.tablePrefix()+this.nameWithoutPrefix;
 };
 
 /** Insert the given record to the DB.

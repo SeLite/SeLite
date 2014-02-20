@@ -33,6 +33,10 @@ SeLiteData.Storage= function() {
     this.connection= null; // This will be the actual connection - result of Services.storage.openDatabase(file)
 };
 
+/** @return {string} Table prefix, or an empty string. It never returns undefined.
+ * */
+SeLiteData.Storage.prototype.tablePrefix= function() { return ''; }
+
 /** Open a new SQLite connection, as specified in parameters. Set it as the connection for this object.
  * Note: if you use this.connection.clone(), it won't inherit PRAGMA locking_mode
  * @return the new connection
@@ -583,20 +587,23 @@ Object.defineProperty( SeLiteData.Settable.prototype, 'set', {
         }
 } );
 
-/** @private Subclass of SeLiteData.Storage, that is based on SeLiteSettings.Field pointing to an SQLite source.
+/** @private Subclass of SeLiteData.Storage, that is based on SeLiteSettings.Field pointing to an SQLite source, and an optional Field indicating table prefix.
  * */
-function StorageFromSettings( field ) {
+function StorageFromSettings( dbField, tablePrefixField ) {
     SeLiteData.Storage.call( this );
     // @TODO Test and doc: If I don't chain child class prototype properly, then overriding methods doesn't work,
     // even if I set them in the child constructor after I've called the parent constructor:
     // this.close= StorageFromSettings.prototype.close;
     this.close= StorageFromSettingsClose;
 
-    !(field.name in StorageFromSettings.instances) || SeLiteMisc.fail('There already is an instance of StorageFromSettings for ' +field.name );
-    this.field= field;
-    StorageFromSettings.instances[ field.name ]= this;
+    !(dbField.name in StorageFromSettings.instances) || SeLiteMisc.fail('There already is an instance of StorageFromSettings for ' +dbField.name );
+    this.dbField= dbField;
+    this.tablePrefixField= tablePrefixField;
+    this.tablePrefix= undefined; // This will be a cached value of Field this.tablePrefixField for current test suite (once known)
+    
+    StorageFromSettings.instances[ dbField.name ]= this;
     if( SeLiteSettings.getTestSuiteFolder() ) {
-        var newFileName= field.getDownToFolder().entry;
+        var newFileName= dbField.getDownToFolder().entry;
         //console.log( 'newFileName: ' +newFileName );
         if( newFileName ) {
             this.parameters.fileName= newFileName;
@@ -605,44 +612,21 @@ function StorageFromSettings( field ) {
         }
     }
     else {
-        var fields= field.module.getFieldsOfSet();
-        if( fields[field.name].entry ) {
-            this.parameters.fileName= fields[field.name].entry;
+        var fields= dbField.module.getFieldsOfSet();
+        if( fields[dbField.name] && fields[dbField.name].entry ) {
+            this.parameters.fileName= fields[dbField.name].entry;
             this.open();
         }
     }
 }
-// I don't need operator instanceof to work fully for StorageFromSettings. Therefore I don't tweak
-// StorageFromSettings.prototype here the same way as I do for SeLiteSettings.Field subclasses
 
 function StorageFromSettingsClose( synchronous ) {
     console.log('StorageFromSettings.prototype.close');
     SeLiteData.Storage.prototype.close.call( this, synchronous );
+    this.tablePrefix= undefined;
     this.field.name in StorageFromSettings.instances || SeLiteMisc.fail( 'StorageFromSettings.close() for field ' +this.field.name+ " couldn't find a connection for this field." );
     delete StorageFromSettings.instances[ this.field.name ];
 }
-
-/** Create a new instance of StorageFromSettings, based on the given field (or its name), or
- *  re-use an existing instance of StorageFromSettings based on that field.
- *  @param {string|SeLiteSettings.Field} fieldOrFieldName Either string, or SeLiteSettings.Field.SQLite instance.
- *  If it is a string, it must be a full field name. See SeLiteSettings.getField()
- *  @param {boolean} dontCreate If true then this won't create a storage object,
- *  if it doesn't exist yet (then this returns null). False by default.
- *  @return StorageFromSettings instance
- */
-SeLiteData.getStorageFromSettings= function( fieldOrFieldName, dontCreate ) {
-    var field= SeLiteSettings.getField(fieldOrFieldName);
-    field instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail('Parameter fieldOrFieldName must be an instance of SeLiteSettings.Field.SQLite, or string, but it is ' +fieldOrFieldName+ '; field: ' +field );
-    dontCreate= dontCreate || false;
-    SeLiteMisc.ensureType( dontCreate, 'boolean', 'Parameter dontCreate must be a boolean, if specified.' );
-    var instance= field.name in StorageFromSettings.instances
-        ? StorageFromSettings.instances[field.name]
-        : (dontCreate
-            ? null
-            : new StorageFromSettings( field )
-          );
-    return instance;
-};
 
 /** @private Object serving as an associative array {
  *      string full field name: instance of StorageFromSettings
@@ -652,6 +636,64 @@ StorageFromSettings.instances= {};
 
 StorageFromSettings.prototype= new SeLiteData.Storage();
 StorageFromSettings.prototype.constructor= StorageFromSettings;
+
+StorageFromSettings.prototype.open= function() {
+    SeLiteData.Storage.prototype.open.call( this );
+    if( this.tablePrefixField ) {
+        if( SeLiteSettings.getTestSuiteFolder() ) {
+            var fieldEntry= this.tablePrefixField.getDownToFolder().entry;
+            this.tablePrefix= fieldEntry!==undefined
+                ? fieldEntry
+                : '';
+        }
+        else {
+            var fields= dbField.module.getFieldsOfSet();
+            this.tablePrefix= fields[this.tablePrefixField.name] && fields[this.tablePrefixField.name].entry!==undefined
+                ? fields[this.tablePrefixField.name].entry
+                : '';
+        }
+    }
+    else {
+        this.tablePrefix= '';
+    }
+};
+
+/** @return {string} Table prefix, or an empty string. It never returns undefined.
+ *  @overrides SeLiteData.Storage.tablePrefix()
+ * */
+StorageFromSettings.prototype.tablePrefix= function() {
+    return this.tablePrefix;
+};
+
+/** Create a new instance of StorageFromSettings, based on the given field (or its name), or
+ *  re-use an existing instance of StorageFromSettings based on that field.
+ *  @param {string|SeLiteSettings.Field} appDbFieldOrFieldName Either string, or SeLiteSettings.Field.SQLite instance.
+ *  If it is a string, it must be a full field name. See SeLiteSettings.getField().
+ *  @param {string|SeLiteSettings.Field} [tablePrefixFieldOrFieldName] Either string, or SeLiteSettings.Field.SQLite instance.
+ *  If it is a string, it must be a full field name. See SeLiteSettings.getField().
+ *  @param {boolean} [dontCreate=false] If true then this won't create a storage object,
+ *  if it doesn't exist yet (then this returns null). False by default.
+ *  @return StorageFromSettings instance
+ */
+SeLiteData.getStorageFromSettings= function( appDbFieldOrFieldName, tablePrefixFieldOrFieldName, dontCreate ) {
+    var appDBfield= SeLiteSettings.getField(appDbFieldOrFieldName);
+    appDBfield instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail('Parameter appDbFieldOrFieldName must be an instance of SeLiteSettings.Field.SQLite, or string, but it is ' +appDbFieldOrFieldName+ '; appDBfield: ' +appDBfield );
+    
+    var tablePrefixDBfield= tablePrefixFieldOrFieldName!==undefined
+        ? SeLiteSettings.getField(tablePrefixFieldOrFieldName)
+        : undefined;
+    tablePrefixFieldOrFieldName===undefined || tablePrefixDBfield instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail('Parameter tablePrefixDBfield must be an instance of SeLiteSettings.Field.SQLite, or string, but it is ' +tablePrefixFieldOrFieldName+ '; tablePrefixField: ' +tablePrefixDBfield );
+    
+    dontCreate= dontCreate || false;
+    SeLiteMisc.ensureType( dontCreate, 'boolean', 'Parameter dontCreate must be a boolean, if specified.' );
+    var instance= appDBfield.name in StorageFromSettings.instances
+        ? StorageFromSettings.instances[appDBfield.name]
+        : (dontCreate
+            ? null
+            : new StorageFromSettings( appDBfield, tablePrefixDBfield )
+          );
+    return instance;
+};
 
 function testSuiteFolderChangeHandler() {
     //console.log('TestSuiteFolderChangeHandler will update ' +StorageFromSettings.instances.length+ ' instance(s) of StorageFromSettings with setting(s) associated with folder ' +SeLiteSettings.getTestSuiteFolder() );

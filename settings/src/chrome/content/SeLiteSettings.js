@@ -1753,8 +1753,10 @@ SeLiteSettings.setModuleForReloadButtons= function( moduleOrName ) {
     
     testDbField && (appDbField || vanillaDbField) || SeLiteMisc.fail( 'There must be Field.SQLite appDB, and at least one of appDB and vanillaDB in a settings module passed to SeLiteSettings.setModuleForReloadButtons().' );
     
+    var tablePrefixField= SeLiteSettings.moduleForReloadButtons.fields['tablePrefix'];
+    
     if( SeLiteSettings.moduleForReloadButtons.testDbKeeper ) {
-        SeLiteSettings.moduleForReloadButtons.testDbKeeper.initialise( SeLiteData.getStorageFromSettings(testDbField) );
+        SeLiteSettings.moduleForReloadButtons.testDbKeeper.initialise( SeLiteData.getStorageFromSettings(testDbField, tablePrefixField) );
     }
 };
 
