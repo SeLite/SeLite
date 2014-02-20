@@ -258,7 +258,7 @@ var OBJECT_TO_STRING_INDENTATION= "  ";
  *  Use 'Object' to exclude listing of fields of anonymous objects. E.g. ['MyBigClass', 'Object' ] will not list any fields of instances of MyBigClass or anonymous objects.
  *  Use '' for some internal Firefox/XUL/XPCOM? objects.
  *  @param array higherObjects Optional; array of objects/arrays that are being processed by the direct/indirect caller of this function
- *  (i.e. recursive array/object reference). For internal use only - only set when this function calls itself recursively.
+ *  (i.e. recursive array/object reference). For internal use only - only set when this function calls itself recursively through objectFieldToString().
  *  @param bool includeNonEnumerable Whether to include non-enumerable fields; false by default.
  *  @return string
  */

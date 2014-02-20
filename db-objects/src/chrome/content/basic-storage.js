@@ -28,14 +28,20 @@ Components.utils.import( 'chrome://selite-db-objects/content/db.js' );
  *  have name clashes with functions in other files. See SeLite DB Objects for OOP layer on top of this.
  **/
 SeLiteData.Storage= function() {
+    console.warn( 'SeLiteData.Storage:\n' +SeLiteMisc.stack());
     this.parameters= new SQLiteConnectionParameters();
     this.parameters.errorHandler= console.error;
     this.connection= null; // This will be the actual connection - result of Services.storage.openDatabase(file)
 };
 
 /** @return {string} Table prefix, or an empty string. It never returns undefined.
+ *  SeLiteData.Storage doesn't actively use tablePrefix.
+ *  When SeLiteData.Storage receives a call to update a record, e.g. SeLiteData.Storage.insertRecord(..),
+ *  it doesn't add this tablePrefix to any of the table names - the client must do that. That's because
+ *  SeLiteData.Storage doesn't modify queries passed from the client either.
+ *  Overriden in private subclass StorageFromSettings.
  * */
-SeLiteData.Storage.prototype.tablePrefix= function() { return ''; }
+SeLiteData.Storage.prototype.tablePrefix= function() { return ''; };
 
 /** Open a new SQLite connection, as specified in parameters. Set it as the connection for this object.
  * Note: if you use this.connection.clone(), it won't inherit PRAGMA locking_mode
@@ -216,6 +222,7 @@ SeLiteData.Storage.prototype.execute= function( query, bindings ) {
         this.connection.executeSimpleSQL( query );
     }
     else {
+        console.log( 'query: ' + query);
         var stmt= this.connection.createStatement( query );
         for( var field in bindings ) {
             stmt.params[field]= bindings[field];
@@ -499,13 +506,13 @@ SeLiteData.Storage.prototype.insertRecord= function( params ) {
  *  insert into a different table.
  *  It requires the DB table not to have any column called "rowid", "oid" or "_rowid_".
  *  See http://sqlite.org/lang_corefunc.html and http://sqlite.org/lang_createtable.html#rowid
- *  @param string table table name; it must be the table that was used with INSERT/UPDATE.
+ *  @param {string} tableName Table name (including any prefix); it must be the table that was used with the last INSERT/UPDATE.
  *  @param string column Name of the column; optional - 'id' by default
  *  @return value of 'id' (or requested) column
 */
-SeLiteData.Storage.prototype.lastInsertId= function( table, column ) {
+SeLiteData.Storage.prototype.lastInsertId= function( tableName, column ) {
     column= column || 'id';
-    var query= "SELECT " +column+ " FROM " +table+ " WHERE rowid=last_insert_rowid()";
+    var query= "SELECT " +column+ " FROM " +tableName+ " WHERE rowid=last_insert_rowid()";
     var record= this.selectOne( query, [column] );
     return record[column];
 };
@@ -590,6 +597,7 @@ Object.defineProperty( SeLiteData.Settable.prototype, 'set', {
 /** @private Subclass of SeLiteData.Storage, that is based on SeLiteSettings.Field pointing to an SQLite source, and an optional Field indicating table prefix.
  * */
 function StorageFromSettings( dbField, tablePrefixField ) {
+    console.warn( 'StorageFromSettings:\n' +SeLiteMisc.stack() );
     SeLiteData.Storage.call( this );
     // @TODO Test and doc: If I don't chain child class prototype properly, then overriding methods doesn't work,
     // even if I set them in the child constructor after I've called the parent constructor:
@@ -599,7 +607,7 @@ function StorageFromSettings( dbField, tablePrefixField ) {
     !(dbField.name in StorageFromSettings.instances) || SeLiteMisc.fail('There already is an instance of StorageFromSettings for ' +dbField.name );
     this.dbField= dbField;
     this.tablePrefixField= tablePrefixField;
-    this.tablePrefix= undefined; // This will be a cached value of Field this.tablePrefixField for current test suite (once known)
+    this.tablePrefixValue= undefined; // This will be a cached value of Field this.tablePrefixField for current test suite (once known)
     
     StorageFromSettings.instances[ dbField.name ]= this;
     if( SeLiteSettings.getTestSuiteFolder() ) {
@@ -623,10 +631,13 @@ function StorageFromSettings( dbField, tablePrefixField ) {
 function StorageFromSettingsClose( synchronous ) {
     console.log('StorageFromSettings.prototype.close');
     SeLiteData.Storage.prototype.close.call( this, synchronous );
-    this.tablePrefix= undefined;
+    this.tablePrefixValue= undefined;
     this.field.name in StorageFromSettings.instances || SeLiteMisc.fail( 'StorageFromSettings.close() for field ' +this.field.name+ " couldn't find a connection for this field." );
-    delete StorageFromSettings.instances[ this.field.name ];
+    //delete StorageFromSettings.instances[ this.field.name ]; //@TODO Is this good? User's framework's DB object will keep referring to this instance.
 }
+
+StorageFromSettings.prototype= new SeLiteData.Storage();
+StorageFromSettings.prototype.constructor= StorageFromSettings;
 
 /** @private Object serving as an associative array {
  *      string full field name: instance of StorageFromSettings
@@ -634,27 +645,24 @@ function StorageFromSettingsClose( synchronous ) {
  * */
 StorageFromSettings.instances= {};
 
-StorageFromSettings.prototype= new SeLiteData.Storage();
-StorageFromSettings.prototype.constructor= StorageFromSettings;
-
 StorageFromSettings.prototype.open= function() {
     SeLiteData.Storage.prototype.open.call( this );
     if( this.tablePrefixField ) {
         if( SeLiteSettings.getTestSuiteFolder() ) {
             var fieldEntry= this.tablePrefixField.getDownToFolder().entry;
-            this.tablePrefix= fieldEntry!==undefined
+            this.tablePrefixValue= fieldEntry!==undefined
                 ? fieldEntry
                 : '';
         }
         else {
             var fields= dbField.module.getFieldsOfSet();
-            this.tablePrefix= fields[this.tablePrefixField.name] && fields[this.tablePrefixField.name].entry!==undefined
+            this.tablePrefixValue= fields[this.tablePrefixField.name] && fields[this.tablePrefixField.name].entry!==undefined
                 ? fields[this.tablePrefixField.name].entry
                 : '';
         }
     }
     else {
-        this.tablePrefix= '';
+        this.tablePrefixValue= '';
     }
 };
 
@@ -662,7 +670,7 @@ StorageFromSettings.prototype.open= function() {
  *  @overrides SeLiteData.Storage.tablePrefix()
  * */
 StorageFromSettings.prototype.tablePrefix= function() {
-    return this.tablePrefix;
+    return this.tablePrefixValue;
 };
 
 /** Create a new instance of StorageFromSettings, based on the given field (or its name), or

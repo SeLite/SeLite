@@ -34,6 +34,9 @@ SeLiteData.Db= function( storage, tableNamePrefix ) {
 /** @return {string} Table prefix, or an empty string. It never returns undefined.
  * */
 SeLiteData.Db.prototype.tablePrefix= function() {
+    console.warn( 'this.storage:\n' +SeLiteMisc.objectToString(this.storage, 1, false));
+    console.warn( 'this.storage.prototype: \n' +SeLiteMisc.objectToString(this.storage.prototype, 3, true) );
+    console.warn( 'stack\n' +SeLiteMisc.stack( ));
     return this.tableNamePrefix!==undefined
         ? this.tableNamePrefix
         : this.storage.tablePrefix();
@@ -49,18 +52,21 @@ SeLiteData.Db.prototype.tablePrefix= function() {
  */
 SeLiteData.Table= function( prototype ) {
     this.db= prototype.db;
-    var prefix= prototype.noNamePrefix ? '' : this.db.tableNamePrefix;
-    this.nameWithoutPrefix= prototype.name;
+    var prefix= prototype.noNamePrefix
+        ? ''
+        : this.db.tableNamePrefix;
+    this.name= prototype.name; /** @var {string} Be careful - this excludes prefix (if any). So this is a 'logical' name. It's mostly used when setting up
+        SeLiteData.RecordSetFormula instances, table aliases in joins etc. If you need to generate custom SQL query, use method nameWithPrefix() to get the full name of the table. */
 
     this.columns= prototype.columns;
     this.primary= prototype.primary || 'id';
     typeof this.primary==='string' || Array.isArray(this.primary) || SeLiteMisc.fail( 'prototype.primary must be a string or an array.' );
 };
 
-SeLiteData.Table.prototype.name= function() {
-    return prototype.noNamePrefix
-        ? this.nameWithoutPrefix
-        : this.db.tablePrefix()+this.nameWithoutPrefix;
+SeLiteData.Table.prototype.nameWithPrefix= function() {
+    return this.noNamePrefix
+        ? this.name
+        : this.db.tablePrefix()+this.name;
 };
 
 /** Insert the given record to the DB.
@@ -74,11 +80,11 @@ SeLiteData.Table.prototype.insert= function( record ) {
         if( column==='toString' ) {
             continue;
         }
-        this.columns.indexOf(column)>=0 || SeLiteMisc.fail( "Column " +column+ " is not among columns defined for table " +this.name );
+        this.columns.indexOf(column)>=0 || SeLiteMisc.fail( "Column " +column+ " is not among columns defined for table " +this.nameWithPrefix() );
         givenColumns.push( column );
         bindings[ column ]= record[ column ];
     }
-    var query= 'INSERT INTO ' +this.name+ '('+ givenColumns.join(', ')+ ') '+
+    var query= 'INSERT INTO ' +this.nameWithPrefix()+ '('+ givenColumns.join(', ')+ ') '+
         'VALUES (:' +givenColumns.join(', :')+ ')';
     console.log( query );
     console.log( SeLiteMisc.objectToString(bindings, 2) );
@@ -183,7 +189,7 @@ SeLiteData.recordHolder= function( record ) {
 RecordHolder.prototype.setOriginalAndWatchEntries= function() {
     this.original= {};
 
-    var columnsToAliases= this.recordSetHolder.formula.columnsToAliases(this.recordSetHolder.formula.table.name);
+    var columnsToAliases= this.recordSetHolder.formula.columnsToAliases( this.recordSetHolder.formula.table.name );
     var columnAliases= SeLiteMisc.objectValues( columnsToAliases, true );
     // this.original will store own columns only
     for( var field in columnAliases ) {
@@ -228,11 +234,11 @@ RecordHolder.prototype.insert= function() {
         typeof this.recordSetHolder.formula.table.primary==='string' || SeLiteMisc.fail( "The formula has generateInsertKey set, but table " +this.recordSetHolder.formula.table +" uses multi-column key: " +this.recordSetHolder.formula.table.primary );
         entries= SeLiteMisc.objectsMerge( new SeLiteData.Settable().set(
             this.recordSetHolder.formula.table.primary,
-            new SeLiteData.SqlExpression( "(SELECT MAX(" +this.recordSetHolder.formula.table.primary+ ") FROM " +this.recordSetHolder.formula.table.name+ ")+1")
+            new SeLiteData.SqlExpression( "(SELECT MAX(" +this.recordSetHolder.formula.table.primary+ ") FROM " +this.recordSetHolder.formula.table.nameWithPrefix()+ ")+1")
         ), entries );
     }
     this.recordSetHolder.storage().insertRecord( {
-        table: this.recordSetHolder.formula.table.name,
+        table: this.recordSetHolder.formula.table.nameWithPrefix(),
         entries: entries,
         fieldsToProtect: typeof this.recordSetHolder.formula.table.primary==='string'
             ? [this.recordSetHolder.formula.table.primary]
@@ -241,7 +247,7 @@ RecordHolder.prototype.insert= function() {
     });
     var primaryKeyValue;
     if( typeof this.recordSetHolder.formula.table.primary==='string' ) {
-        primaryKeyValue= this.recordSetHolder.storage().lastInsertId( this.recordSetHolder.formula.table.name, this.recordSetHolder.formula.table.primary );
+        primaryKeyValue= this.recordSetHolder.storage().lastInsertId( this.recordSetHolder.formula.table.nameWithPrefix(), this.recordSetHolder.formula.table.primary );
         // This requires that the primary key is never aliased. @TODO use column alias, if present?
         this.record[ this.recordSetHolder.formula.table.primary ]= primaryKeyValue;
     }
@@ -252,7 +258,7 @@ RecordHolder.prototype.ownEntries= function() {
     var allAliasesToSource= this.recordSetHolder.formula.allAliasesToSource();
     for( var field in this.record ) {
         if( !(field in allAliasesToSource) ) {
-            throw new Error( "Trying to insert/update a record to table '" +this.recordSetHolder.formula.table.name+
+            throw new Error( "Trying to insert/update a record to table '" +this.recordSetHolder.formula.table.nameWithPrefix()+
                 "' with field '" +field+ "' which is not a listed alias in this formula." );
         }
     }
@@ -326,9 +332,9 @@ RecordHolder.prototype.markToRemove= function() {
 };
 
 RecordHolder.prototype.remove= function() {
-    if( typeof this.recordSetHolder.formula.table.primary==='string' ) {
-        this.recordSetHolder.storage().removeRecordByPrimary( this.recordSetHolder.formulate.table.name, this.recordSetHolder.formulate.table.primary,
-            this.record[ this.recordSetHolder.formulate.table.primary] );
+    if( typeof this.recordSetHolder.formula.table.primary==='string' ) {//@TODO Storage.removeRecordByPrimary
+        this.recordSetHolder.storage().removeRecordByPrimary( this.recordSetHolder.formula.table.nameWithPrefix(), this.recordSetHolder.formulate.table.primary,
+            this.record[ this.recordSetHolder.formula.table.primary] );
     }
     else {
         throw '@TODO';
@@ -462,6 +468,9 @@ SeLiteData.RecordSetFormula.prototype.generateInsertKey= true; // @TODO make thi
 SeLiteData.RecordSetFormula.prototype.onInsert= {}; // aliasedFieldName: string value or function; used on insert; it overrides any existing value for that field
 SeLiteData.RecordSetFormula.prototype.onUpdate= {}; // aliasedFieldName: string value or function; used on update; it overrides any existing value for that field
 
+/** @param {string} tableName Table name - either the name of the main table of the formula, or an alias of any join. It excludes any table prefix.
+ *  @return {(SeLiteData.Table|null)} A table for this table/alias name. Null if none.
+ * */
 SeLiteData.RecordSetFormula.prototype.tableByName= function( tableName ) {
     if( this.table.name===tableName ) {
         return this.table;
@@ -474,7 +483,8 @@ SeLiteData.RecordSetFormula.prototype.tableByName= function( tableName ) {
     return null;
 }
 
-/** @return object { string given table's column name: string column alias or the same column name (if no alias) }.
+/** @param {string} tableName Table name (without prefix).
+ *  @return {object} { string given table's column name: string column alias or the same column name (if no alias) }.
  *  That differs from definition field columns passed to SeLiteData.RecordSetFormula() constructor, which allows
  *  unaliased column names to be mapped to true/1. Here such columns get mapped to themselves (to the column names);
  *  that makes it easy to use with SeLiteMisc.objectValues() or SeLiteMisc.objectReverse().
@@ -524,7 +534,12 @@ SeLiteData.RecordSetFormula.prototype.columnsToAliases= function( tableName ) {
 
 /** A bit like columnsToAliases(), but this returns the aliases for all columns used by
  *  the formula (from all its tables), each mapped to an object containing the table and the (unaliased) column name.
- *  @return { string column-alias: {table: table object, column: column-name}, ... }
+ *  @return {object} { string column-alias: {
+ *              table: table object,
+ *              column: column-name
+ *            },
+ *            ...
+ *          }
  **/
 SeLiteData.RecordSetFormula.prototype.allAliasesToSource= function() {
     // @TODO update tableByName() to be similar to this, reuse:
@@ -635,7 +650,7 @@ RecordSetHolder.prototype.select= function() {
 
     var columns= {};
     // @TODO potentially use allAliasesToSource() to simplify the following
-    for( var tableName in formula.columns ) {
+    for( var tableName in formula.columns ) { // excluding prefix
         var columnsToAliases= formula.columnsToAliases( tableName );
         if( tableName==formula.table.name ) {
             var tableAlias= formula.alias;
@@ -682,7 +697,7 @@ RecordSetHolder.prototype.select= function() {
     var joins= [];
     formula.joins.forEach( function(join) {
         var joinClone= SeLiteMisc.objectClone(join);
-        joinClone.table= join.table.name;
+        joinClone.table= join.table.nameWithPrefix();
         joins.push( joinClone );
     } );
     var condition= usingParameterCondition
@@ -770,7 +785,7 @@ RecordSetHolder.prototype.select= function() {
     conditions.splice( 0, formula.fetchCondition, condition );
     var self= this;
     var data= this.storage().getRecords( {
-        table: formula.table.name+ (formula.alias ? ' ' +formula.alias : ''),
+        table: formula.table.nameWithPrefix()+ (formula.alias ? ' ' +formula.alias : ''),
         joins: joins,
         columns: columns,
         matching: matching,

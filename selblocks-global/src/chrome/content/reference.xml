@@ -148,7 +148,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
         </ol>
     </comment>
 </function>
-<function name="script">
+<function name="function">
     <comment>Start of a script, which is a callable block, like a function/method in common programming languages.
         It gets invoked via <code>call</code> statement. It can (optionally) receive parameter(s)
         and it can (optionally) return a value via <code>return</code>.
@@ -163,7 +163,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
         flow control to the caller and passing given value as stored variable <code>_result</code>.
     </comment>
 </function>
-<function name="endScript">
+<function name="endFunction">
     <comment>It ends the currently executed <code>script</code>, returning the
         flow control to the caller, without setting stored variable <code>_result</code>.
     </comment>
