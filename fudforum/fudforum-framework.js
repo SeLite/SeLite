@@ -33,6 +33,7 @@
     // Once you open/save a test suite, storage object will get updated automatically and it will open an SQLite connection.
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         
+        // @TODO a shorthand method, where I just pass ''extensions.selite.fudforum'. Seame field naming convention is required by SeLiteSettings' ide-extension.js
         var storage= SeLiteData.getStorageFromSettings( 'extensions.selite.fudforum.testDB', 'extensions.selite.fudforum.tablePrefix' );
         var db= new SeLiteData.Db( storage );
 
@@ -43,11 +44,12 @@
         FUDforum.tables.users= new SeLiteData.Table( {
            db:  db,
            name: 'users',
-           columns: ['uid', 'name'/*login*/, 'pass', 'mail', 'theme', 'signature', 'signature_format',
-               'created', 'access', 'login', // timestamps in seconds since Epoch
-               'status', 'timezone', 'language', 'picture', 'init', 'data'
+           columns: ['id', 'login', 'alias', 'passwd', 'salt', 'name', 'email',
+               'location', 'interests', 'occupation', 'avatar', 'avatar_loc',
+               'icq', 'aim', 'yahoo', 'msnm', 'jabber', 'affero', 'google', 'skype', 'twitter',
+               'posts_ppg', 'time_zone', 'birthday'
            ],
-           primary: 'uid' // However, for purpose of matching users I usually use name
+           primary: 'id' // However, for purpose of matching users I usually use 'login'
         });
         
         FUDforum.formulas= {};
@@ -55,7 +57,7 @@
             table: FUDforum.tables.users,
             columns: new SeLiteData.Settable().set( FUDforum.tables.users.login, SeLiteData.RecordSetFormula.ALL_FIELDS )
         });
-        //@TODO
+        /*@TODO
         FUDforum.tables.node= new SeLiteData.Table( {
            db:  db,
            name: 'node',
@@ -71,7 +73,7 @@
             name: 'field_data_body',
             columns: ['entity_type', 'bundle', 'deleted', 'entity_id', 'revision_id', 'language', 'delta', 'body_value', 'body_sumary', 'body_format'],
             primary: '@TODO group of columns'
-        });
+        });*/
         
         var settingsModule= SeLiteSettings.loadFromJavascript('extensions.selite.fudforum');
         var webRootField= settingsModule.fields['webRoot'];
@@ -95,21 +97,6 @@
             else {
                 return userNameOrRoleWithPrefix;
             }
-        };
-        
-        // Can't use: return selenium.browserbot.getCurrentWindow().location.href
-        // - it's only available when implementing Selenese
-        /** Get node ID of the current page, if applicable.
-         *  @param {Window} window It must be passed from your test case.
-         *  @return {(number|null)} ID of the node, or null.
-         * */
-        FUDforum.currentPageNodeId= function(window) {
-            var href= window.location.href;
-            var match= href.match( /\/?q=node\/([0-9]+)/ );
-            if( match ) {
-                return match[1];
-            }
-            return null;
         };
         
         SeLiteSettings.setModuleForReloadButtons( settingsModule );

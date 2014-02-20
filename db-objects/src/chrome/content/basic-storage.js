@@ -685,12 +685,12 @@ StorageFromSettings.prototype.tablePrefix= function() {
  */
 SeLiteData.getStorageFromSettings= function( appDbFieldOrFieldName, tablePrefixFieldOrFieldName, dontCreate ) {
     var appDBfield= SeLiteSettings.getField(appDbFieldOrFieldName);
-    appDBfield instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail('Parameter appDbFieldOrFieldName must be an instance of SeLiteSettings.Field.SQLite, or string, but it is ' +appDbFieldOrFieldName+ '; appDBfield: ' +appDBfield );
+    appDBfield instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail('Parameter appDbFieldOrFieldName must be an instance of SeLiteSettings.Field.SQLite, or a string, but it is ' +appDbFieldOrFieldName+ '; appDBfield: ' +appDBfield );
     
     var tablePrefixDBfield= tablePrefixFieldOrFieldName!==undefined
         ? SeLiteSettings.getField(tablePrefixFieldOrFieldName)
         : undefined;
-    tablePrefixFieldOrFieldName===undefined || tablePrefixDBfield instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail('Parameter tablePrefixDBfield must be an instance of SeLiteSettings.Field.SQLite, or string, but it is ' +tablePrefixFieldOrFieldName+ '; tablePrefixField: ' +tablePrefixDBfield );
+    tablePrefixFieldOrFieldName===undefined || tablePrefixDBfield instanceof SeLiteSettings.Field.String || SeLiteMisc.fail('Parameter tablePrefixDBfield must be an instance of SeLiteSettings.Field.String, or a string, but it is ' +tablePrefixFieldOrFieldName+ '; tablePrefixField: ' +tablePrefixDBfield );
     
     dontCreate= dontCreate || false;
     SeLiteMisc.ensureType( dontCreate, 'boolean', 'Parameter dontCreate must be a boolean, if specified.' );
