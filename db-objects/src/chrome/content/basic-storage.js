@@ -632,8 +632,8 @@ function StorageFromSettingsClose( synchronous ) {
     console.log('StorageFromSettings.prototype.close');
     SeLiteData.Storage.prototype.close.call( this, synchronous );
     this.tablePrefixValue= undefined;
-    this.field.name in StorageFromSettings.instances || SeLiteMisc.fail( 'StorageFromSettings.close() for field ' +this.field.name+ " couldn't find a connection for this field." );
-    //delete StorageFromSettings.instances[ this.field.name ]; //@TODO Is this good? User's framework's DB object will keep referring to this instance.
+    this.dbField.name in StorageFromSettings.instances || SeLiteMisc.fail( 'StorageFromSettings.close() for field ' +this.dbField.name+ " couldn't find a connection for dbField." );
+    //delete StorageFromSettings.instances[ this.dbField.name ]; //@TODO Is this good? User's framework's DB object will keep referring to this instance.
 }
 
 StorageFromSettings.prototype= new SeLiteData.Storage();
