@@ -587,7 +587,7 @@ function $X(xpath, contextNode) {
     Selenium.prototype.doSkipNext = function(amount)
     {
       assertRunning();
-      var n = parseInt(Selenium.evalWithExpandedStoredVars(amount), 10);
+      var n = parseInt(this.evalWithExpandedStoredVars(amount), 10);
       if (isNaN(n))
         n = 1;
       if (n != 0) {// if n=0, execute the next command as usual
@@ -607,7 +607,7 @@ function $X(xpath, contextNode) {
     Selenium.prototype.doGotoIf = function(condExpr, label)
     {
       assertRunning();
-      if (Selenium.evalWithExpandedStoredVars(condExpr))
+      if (this.evalWithExpandedStoredVars(condExpr))
         this.doGoto(label);
     }
 
@@ -617,7 +617,7 @@ function $X(xpath, contextNode) {
       assertRunning();
       var ifState = { idx: hereGlobIdx() };
       callStack.top().cmdStack.push(ifState);
-      if (Selenium.evalWithExpandedStoredVars(condExpr)) {
+      if (this.evalWithExpandedStoredVars(condExpr)) {
         ifState.skipElseBlock = true;
         // fall through into if-block
       }
@@ -649,13 +649,14 @@ function $X(xpath, contextNode) {
     // ================================================================================
     Selenium.prototype.doWhile = function(condExpr)
     {
+      var self= this;
       enterLoop(
         function() {    // validate
             assert(condExpr, " 'while' requires a condition expression.");
             return null;
         }
         ,function() { } // initialize
-        ,function() { return (Selenium.evalWithExpandedStoredVars(condExpr)); } // continue?
+        ,function() { return (self.evalWithExpandedStoredVars(condExpr)); } // continue?
         ,function() { } // iterate
       );
     }
@@ -666,6 +667,7 @@ function $X(xpath, contextNode) {
     // ================================================================================
     Selenium.prototype.doFor = function(forSpec, localVarsSpec)
     {
+      var self= this;
       enterLoop(
         function(loop) { // validate
             assert(forSpec, " 'for' requires: <initial-val>; <condition>; <iter-stmt>.");
@@ -678,9 +680,9 @@ function $X(xpath, contextNode) {
             if (localVarsSpec) localVarNames = localVarsSpec.split(",");
             return localVarNames;
         }
-        ,function(loop) { Selenium.evalWithExpandedStoredVars(loop.initStmt); }          // initialize
-        ,function(loop) { return (Selenium.evalWithExpandedStoredVars(loop.condExpr)); } // continue?
-        ,function(loop) { Selenium.evalWithExpandedStoredVars(loop.iterStmt); }          // iterate
+        ,function(loop) { self.evalWithExpandedStoredVars(loop.initStmt); }          // initialize
+        ,function(loop) { return (this.evalWithExpandedStoredVars(loop.condExpr)); } // continue?
+        ,function(loop) { self.evalWithExpandedStoredVars(loop.iterStmt); }          // iterate
       );
     }
     Selenium.prototype.doEndFor = function() {
@@ -690,11 +692,12 @@ function $X(xpath, contextNode) {
     // ================================================================================
     Selenium.prototype.doForeach = function(varName, valueExpr)
     {
+      var self= this;
       enterLoop(
         function(loop) { // validate
             assert(varName, " 'foreach' requires a variable name.");
             assert(valueExpr, " 'foreach' requires comma-separated values.");
-            loop.values = Selenium.evalWithExpandedStoredVars("[" + valueExpr + "]");
+            loop.values = self.evalWithExpandedStoredVars("[" + valueExpr + "]");
             if (loop.values.length == 1 && Array.isArray(loop.values[0]) ) {
               loop.values = loop.values[0]; // if sole element is an array, than use it
             }
@@ -722,19 +725,19 @@ function $X(xpath, contextNode) {
       if (!selector && !xmlReader.EOF()) {
         notifyFatal("Multiple var sets not valid for 'loadVars'. (A specific var set can be selected: name=value.)");
       }
-      var result = Selenium.evalWithExpandedStoredVars(selector);
+      var result = this.evalWithExpandedStoredVars(selector);
       if (typeof result !=="boolean") {
         LOG.warn(fmtCmdRef(hereGlobIdx()) + ", " + selector + " is not a boolean expression");
       }
 
       // read until specified set found
       var isEof = xmlReader.EOF();
-      while (!isEof && Selenium.evalWithExpandedStoredVars(selector) != true) {
+      while (!isEof && this.evalWithExpandedStoredVars(selector) != true) {
         xmlReader.next(); // read next <vars> and set values on storedVars
         isEof = xmlReader.EOF();
       }
 
-      if (!Selenium.evalWithExpandedStoredVars(selector))
+      if (!this.evalWithExpandedStoredVars(selector))
         notifyFatal("<vars> element not found for selector expression: " + selector
           + "; in xmlfile " + xmlReader.xmlFilepath);
     }
@@ -811,7 +814,7 @@ function $X(xpath, contextNode) {
 
     // ================================================================================
     Selenium.prototype.doContinue = function(condExpr) {
-      var loopState = dropToLoop(condExpr);
+      var loopState = this.dropToLoop(condExpr);
       if (loopState) {
         // jump back to top of loop for next iteration, if any
         var ftrCmd = cmdAttrs[loopState.idx];
@@ -823,7 +826,7 @@ function $X(xpath, contextNode) {
     // I could make doBreak() do either job, depending on the context - i.e. within a loop it would break the loop, otherwise
     // it would stop the test. However, it would make tests unclear, there's no real need for it and it wasn't feasible anyway.
     Selenium.prototype.doBreakLoop = function(condExpr) {
-          var loopState = dropToLoop(condExpr);
+          var loopState = this.dropToLoop(condExpr);
           if (loopState) {
             loopState.isComplete = true;
             // jump to bottom of loop for exit
@@ -834,10 +837,10 @@ function $X(xpath, contextNode) {
     // unwind the command stack to the inner-most active loop block
     // (unless the optional condition evaluates to false)
     // @TODO check that it only unwinds within the current function, if any
-    function dropToLoop(condExpr)
+    Selenium.prototype.dropToLoop= function(condExpr)
     {
       assertRunning();
-      if (condExpr && !Selenium.evalWithExpandedStoredVars(condExpr))
+      if (condExpr && !this.evalWithExpandedStoredVars(condExpr))
         return;
       var activeCmdStack = callStack.top().cmdStack;
       var loopState = activeCmdStack.unwindTo(Stack.isLoopBlock);
@@ -868,7 +871,7 @@ function $X(xpath, contextNode) {
         // Support $stored-variablename, just like string{} and getQs, storeQs...
         argSpec= expandStoredVars(argSpec);
         // save existing variable state and set args as local variables
-        var args = parseArgs(argSpec);
+        var args = this.parseArgs(argSpec);
         var savedVars = getVarStateFor(args);
         setVars(args);
 
@@ -920,20 +923,20 @@ function $X(xpath, contextNode) {
       }
     }
     Selenium.prototype.doReturn = function(value) {
-      returnFromFunction(value);
+      this.returnFromFunction(value);
     }
     Selenium.prototype.doEndFunction = function() {
-      returnFromFunction();
+      this.returnFromFunction();
     }
 
-    function returnFromFunction(returnVal)
+    Selenium.prototype.returnFromFunction= function(returnVal)
     {
       assertRunning();
       var endAttrs = cmdAttrs.here();
       var callFrame = callStack.top();
       if( callFrame.functionIdx==endAttrs.functionIdx ) {
         if( returnVal ) {
-            storedVars._result = Selenium.evalWithExpandedStoredVars(returnVal);
+            storedVars._result = this.evalWithExpandedStoredVars(returnVal);
         }
         callFrame.isReturning = true;
         // jump back to call command
@@ -942,20 +945,21 @@ function $X(xpath, contextNode) {
       else {
         // no active call, we're skipping around a function block
       }
-    }
+    };
 
 
     // ========= storedVars management =========
 
-    Selenium.evalWithExpandedStoredVars= function(expr) {
+    Selenium.prototype.evalWithExpandedStoredVars= function(expr) {
       try {
         typeof expr==='string' || expr===undefined || SeLiteMisc.fail( 'expr must be a string or undefined' );
         var expanded= expr!==undefined
             ? expandStoredVars(expr)
             : undefined;
-        LOG.debug( 'Selenium.evalWithExpandedStoredVars(): ' +expr+ ' expanded to: ' +expanded );
+        LOG.debug( 'Selenium.prototype.evalWithExpandedStoredVars(): ' +expr+ ' expanded to: ' +expanded );
+        var window = this.browserbot.getCurrentWindow();
         // Firefox eval() doesn't return values of some expression strings, including
-        // '{field: "value"}' and 'return {field: "value"}'. That's why I assign to local variable 'Selenium.evalWithExpandedStoredVarsResult' first, and then I return it.
+        // '{field: "value"}' and 'return {field: "value"}'. That's why I assign to local variable 'evalWithExpandedStoredVarsResult' first, and then I return it.
         // EXTENSION REVIEWERS: Use of eval is consistent with the Selenium extension itself.
         // Scripted expressions run in the Selenium window, separate from browser windows.
         var result = eval( "var evalWithExpandedStoredVarsResult= " +expanded+ "; evalWithExpandedStoredVarsResult" );
@@ -968,7 +972,7 @@ function $X(xpath, contextNode) {
     };
     
     // This is not related to parseArgs(str) in chrome/content/selenium-core/test/RemoteRunnerTest.js
-    function parseArgs(argSpec) { // comma-sep -> new prop-set
+    Selenium.prototype.parseArgs= function(argSpec) { // comma-sep -> new prop-set
       var args = {};
       /* @TODO check & document whether I need to care about string{} here. Maybe just don't support string{...} for 'call' command. $variableName should work for 'call' without using string{...}. 'call' works with string{..}, but it's not recommended for now.
       
@@ -996,14 +1000,14 @@ function $X(xpath, contextNode) {
             alert( 'param ' +key+ ' has value (to evaluate): ' +value+ ' with constructor ' +value.constructor.name );
             // For some reason, LOG.debug() doesn't work here.
         }
-        args[ key ] = Selenium.evalWithExpandedStoredVars( value );
+        args[ key ] = this.evalWithExpandedStoredVars( value ); // This would fail, since parseArgs() is not a member of Selenium.prototype
       }
       return args;/**/
       // original from SelBlocks:
       var parms = argSpec.split(",");
       for (var i = 0; i < parms.length; i++) {
         var keyValue = parms[i].split("=");
-        args[ keyValue[0].trim() ] = Selenium.evalWithExpandedStoredVars(keyValue[1]);
+        args[ keyValue[0].trim() ] = this.evalWithExpandedStoredVars(keyValue[1]);
       }
       return args;/**/
     }
@@ -1284,17 +1288,17 @@ function $X(xpath, contextNode) {
         // Match object{..} and evaluate as a definition of anonymous Javascript object. Replace $... parts with respective stored variables. There can be no prefix or postfix before/after eval{ and }.
         var match= value.match( /^\s*object(\{(.|\r?\n)+\})\s*$/ );
         if( match ) {
-            return Selenium.evalWithExpandedStoredVars( match[1] );
+            return this.evalWithExpandedStoredVars( match[1] );
         }
         // Match array[...] and evaluate it as an array of Javascript expressions. Replace $... parts with respective stored variables. There can be no prefix or postfix before/after eval{ and }.
         var match= value.match( /^\s*array(\[(.|\r?\n)+\])\s*$/ );
         if( match ) {
-            return Selenium.evalWithExpandedStoredVars( match[1] );
+            return this.evalWithExpandedStoredVars( match[1] );
         }
         // Match eval{...} and evaluate it as a Javascript expression. Replace $... parts with respective stored variables. There can be no prefix or postfix before/after eval{ and }.
         var match= value.match( /^\s*eval\{((.|\r?\n)+)\}\s*$/ );
         if( match ) {
-            return Selenium.evalWithExpandedStoredVars( match[1] );
+            return this.evalWithExpandedStoredVars( match[1] );
         }
         // Match ...string{...}....  Evaluate it as a string with an optional prefix and postfix, replace $... part(s) with respective stored variables.
         // Spaces in the following regex are here only to make it more readable; they get removed.
@@ -1310,7 +1314,7 @@ function $X(xpath, contextNode) {
                 'mainPart: ' +mainPart+
                 (postfix!=='' ? ', postfix: '+postfix : '')
             );
-            var evalResult= Selenium.evalWithExpandedStoredVars( mainPart );
+            var evalResult= this.evalWithExpandedStoredVars( mainPart );
 
             if( evalResult!==null && evalResult!==undefined ) {
                 evalResult= '' +evalResult;

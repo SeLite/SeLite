@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://change-this-to-the-site-you-are-testing/" />
+<title>basics</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">basics</td></tr>
+</thead><tbody>
+<tr>
+	<td>function</td>
+	<td>ensureUnderWebRoot</td>
+	<td>forceReload</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>FUDforum.webRoot()</td>
+	<td>webRoot</td>
+</tr>
+<!--@TODO remove { and }?-->
+<tr>
+	<td>if</td>
+	<td>LOG.warn( 'Location: ' +window.location.href )</td>
+	<td>This evaluates to chrome://selenium-ide/content/selenium-ide.xul</td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td>But when in getEval, it evaluates to correct URL.</td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>LOG.warn( &quot;!window.location.href.startsWith( '${webRoot}' ): &quot; +typeof(!window.location.href.startsWith( '${webRoot}' ))+ ': ' +!window.location.href.startsWith( '${webRoot}' ) )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>LOG.warn( 'forceReload: ' +$forceReload )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>!window.location.href.startsWith( '${webRoot}' ) || $forceReload</td>
+	<td></td>
+</tr>
+<tr>
+	<td>open</td>
+	<td>${webRoot}</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!---------------------->
+<tr>
+	<td>function</td>
+	<td>logOut</td>
+	<td></td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>ensureUnderWebRoot</td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeElementPresent</td>
+	<td>//ul/li/a[ contains(@href, 'logout=1' ) ]</td>
+	<td>userLoggedIn</td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>$userLoggedIn</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//ul/li/a[ contains(@href, 'logout=1' ) ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!----------------->
+<tr>
+	<td>function</td>
+	<td>logInQuick</td>
+	<td>userNameOrAmpersandRole</td>
+</tr>
+<!--if the user is logged in already, log him out:-->
+<tr>
+	<td>call</td>
+	<td>logOut</td>
+	<td></td>
+</tr>
+<!--make sure we're at login screen-->
+<tr>
+	<td>storeElementPresent</td>
+	<td>//form[ @id='user-login-form'&nbsp;&nbsp;]//input[ @name='quick_login' ]</td>
+	<td>loginFormPresent</td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>$loginFormPresent</td>
+	<td></td>
+</tr>
+<!--TODO DOC: don't have string{} around the whole following expression-->
+<tr>
+	<td>storeEval</td>
+	<td>FUDforum.roleToUser( '${userNameOrAmpersandRole}' )</td>
+	<td>userName</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>//form[ @id='user-login-form'&nbsp;&nbsp;]//input[ @name='quick_login' ]</td>
+	<td>${userName}</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>SeLiteMisc.loginManagerPassword( '${userName}' )</td>
+	<td>password</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>//form[ @id='user-login-form'&nbsp;&nbsp;]//input[ @name='quick_password' ]</td>
+	<td>${password}</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//form[ @id='user-login-form'&nbsp;&nbsp;]//input[ @name='quick_login_submit' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//ul/li/a[ contains(@href, 'logout=1' ) ]</td>
+	<td>Verify that we are logged in</td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!----------------->
+<tr>
+	<td>function</td>
+	<td>register</td>
+	<td></td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>logOut</td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeElementPresent</td>
+	<td>//ul/li/a[ contains(@href, 't=register' ) ]</td>
+	<td>registerLinkPresent</td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>$registerLinkPresent</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!------------------->
+<tr>
+	<td>function</td>
+	<td>createUser</td>
+	<td></td>
+</tr>
+<!--For some reason clickAndWait sometimes failed for id=toolbar-link-admin-people-->
+<!--Sometimes //li[ contains(@class, 'path-admin-people') ]/a didn't work either-->
+<tr>
+	<td>clickAndWait</td>
+	<td>id=toolbar-link-admin-people</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectTopFrameAnd</td>
+	<td>array[ &quot;//iframe[contains(@title, 'People dialog')]&quot; ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>false</td>
+	<td></td>
+</tr>
+<!--TODO investigate why the following didn't fail. array{} should be array[], therefore it should fail.-->
+<tr>
+	<td>selectTopFrameAnd</td>
+	<td>array{ &quot;//iframe[contains(@title, 'People dialog')]&quot; }</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//div[ @id='content' ]//ul/li/a[ contains(@href, '/?q=admin/people/create') ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectTopFrameAnd</td>
+	<td>//iframe[contains(@title, 'People dialog')]</td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>typeRandom</td>
+	<td>id=edit-name</td>
+	<td>object{maxLength:60, type:'word', store:'newUserName'}</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>id=edit-mail</td>
+	<td>object{maxLength: 254, type:'email', store:'newUserEmail'}</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>id=edit-pass-pass1</td>
+	<td>object{type:'password', store:'newUserPassword'}</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=edit-pass-pass2</td>
+	<td>string{$newUserPassword}</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>id=edit-submit</td>
+	<td></td>
+</tr>
+<tr>
+	<td>insertRecord</td>
+	<td>object{name: $newUserName, mail: $newUserEmail, pass: $newUserPassword}</td>
+	<td>eval{FUDforum.tables.users}</td>
+</tr>
+<!--Login and verify-->
+<tr>
+	<td>call</td>
+	<td>logInAsStoredUser</td>
+	<td>userName=$newUserName</td>
+</tr>
+<!--If you'd like the following XPaths to be simpler, vote for https://code.google.com/p/selite/wiki/ThirdPartyIssues > Support XPath 2.0-->
+<!--Click at 'My account'.-->
+<tr>
+	<td>clickAndWait</td>
+	<td>//ul/li/a[ contains(@href, '/?q=user') and substring-after(@href, '/?q=user')='' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//div[ @id='content' ]//h1[ @id='page-title' and contains(., '${newUserName}') ]</td>
+	<td></td>
+</tr>
+<!--Click at 'Edit' tab-->
+<tr>
+	<td>clickAndWait</td>
+	<td>//div[ @class='tabs' ]/ul/li/a[ contains(@href, '?q=user/') and translate( substring-after(@href, '?q=user/'), '0123456789', '')='/edit' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//input[ @id='edit-mail' and @value='${newUserEmail}' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!----------------->
+<!--This requires the password to be stored in the test DB in plain text. Like for accounts created by script createUser.-->
+<tr>
+	<td>function</td>
+	<td>logInAsStoredUser</td>
+	<td>userName</td>
+</tr>
+<tr>
+	<td>selectTopFrameAnd</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>readRecord</td>
+	<td>object{ formula: FUDforum.formulas.users, name: $userName }</td>
+	<td>user</td>
+</tr>
+<!--if the user is logged in already, log him out:-->
+<tr>
+	<td>storeElementPresent</td>
+	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
+	<td>userLoggedIn</td>
+</tr>
+<!--TODO whether the following 'if' skips logout when we're already logged ni. Or should it use string{ ... } instead?-->
+<tr>
+	<td>if</td>
+	<td>$userLoggedIn</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//li[ contains(@class, 'logout') ]/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<!--make sure we're at login screen-->
+<tr>
+	<td>storeElementPresent</td>
+	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
+	<td>userNamePresent</td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>$userNamePresent</td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>FUDforum.webRoot()</td>
+	<td>webRoot</td>
+</tr>
+<tr>
+	<td>open</td>
+	<td>${webRoot}</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<!--Verify that we can log in-->
+<tr>
+	<td>type</td>
+	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
+	<td>${userName}</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>//form[ @id='user-login-form' ]//input[ @id='edit-pass' ]</td>
+	<td>string{ $user.pass }</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//form[ @id='user-login-form' ]//input[ @id='edit-submit' ]</td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//ul/li/a[ contains(@href, '/?q=user/logout') ]</td>
+	<td>Verify that we are logged in</td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!----------------->
+</tbody></table>
+</body>
+</html>
