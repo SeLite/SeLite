@@ -114,6 +114,11 @@
 	<td>logInQuick</td>
 	<td>userNameOrAmpersandRole</td>
 </tr>
+<tr>
+	<td>call</td>
+	<td>ensureUnderWebRoot</td>
+	<td>forceReload=true</td>
+</tr>
 <!--if the user is logged in already, log him out:-->
 <tr>
 	<td>call</td>
@@ -123,7 +128,7 @@
 <!--make sure we're at login screen-->
 <tr>
 	<td>storeElementPresent</td>
-	<td>//form[ @id='user-login-form'&nbsp;&nbsp;]//input[ @name='quick_login' ]</td>
+	<td>//form[ @id='quick_login_form'&nbsp;&nbsp;]//input[ @name='quick_login' ]</td>
 	<td>loginFormPresent</td>
 </tr>
 <tr>
@@ -139,7 +144,7 @@
 </tr>
 <tr>
 	<td>type</td>
-	<td>//form[ @id='user-login-form'&nbsp;&nbsp;]//input[ @name='quick_login' ]</td>
+	<td>//form[ @id='quick_login_form'&nbsp;&nbsp;]//input[ @name='quick_login' ]</td>
 	<td>${userName}</td>
 </tr>
 <tr>
@@ -149,12 +154,12 @@
 </tr>
 <tr>
 	<td>type</td>
-	<td>//form[ @id='user-login-form'&nbsp;&nbsp;]//input[ @name='quick_password' ]</td>
+	<td>//form[ @id='quick_login_form'&nbsp;&nbsp;]//input[ @name='quick_password' ]</td>
 	<td>${password}</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>//form[ @id='user-login-form'&nbsp;&nbsp;]//input[ @name='quick_login_submit' ]</td>
+	<td>//form[ @id='quick_login_form'&nbsp;&nbsp;]//input[ @name='quick_login_submit' ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -207,104 +212,6 @@
 <tr>
 	<td>function</td>
 	<td>createUser</td>
-	<td></td>
-</tr>
-<!--For some reason clickAndWait sometimes failed for id=toolbar-link-admin-people-->
-<!--Sometimes //li[ contains(@class, 'path-admin-people') ]/a didn't work either-->
-<tr>
-	<td>clickAndWait</td>
-	<td>id=toolbar-link-admin-people</td>
-	<td></td>
-</tr>
-<tr>
-	<td>selectTopFrameAnd</td>
-	<td>array[ &quot;//iframe[contains(@title, 'People dialog')]&quot; ]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>if</td>
-	<td>false</td>
-	<td></td>
-</tr>
-<!--TODO investigate why the following didn't fail. array{} should be array[], therefore it should fail.-->
-<tr>
-	<td>selectTopFrameAnd</td>
-	<td>array{ &quot;//iframe[contains(@title, 'People dialog')]&quot; }</td>
-	<td></td>
-</tr>
-<tr>
-	<td>endIf</td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
-	<td>clickAndWait</td>
-	<td>//div[ @id='content' ]//ul/li/a[ contains(@href, '/?q=admin/people/create') ]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>selectTopFrameAnd</td>
-	<td>//iframe[contains(@title, 'People dialog')]</td>
-	<td></td>
-</tr>
-<!---->
-<tr>
-	<td>typeRandom</td>
-	<td>id=edit-name</td>
-	<td>object{maxLength:60, type:'word', store:'newUserName'}</td>
-</tr>
-<tr>
-	<td>typeRandom</td>
-	<td>id=edit-mail</td>
-	<td>object{maxLength: 254, type:'email', store:'newUserEmail'}</td>
-</tr>
-<tr>
-	<td>typeRandom</td>
-	<td>id=edit-pass-pass1</td>
-	<td>object{type:'password', store:'newUserPassword'}</td>
-</tr>
-<tr>
-	<td>type</td>
-	<td>id=edit-pass-pass2</td>
-	<td>string{$newUserPassword}</td>
-</tr>
-<tr>
-	<td>clickAndWait</td>
-	<td>id=edit-submit</td>
-	<td></td>
-</tr>
-<tr>
-	<td>insertRecord</td>
-	<td>object{name: $newUserName, mail: $newUserEmail, pass: $newUserPassword}</td>
-	<td>eval{FUDforum.tables.users}</td>
-</tr>
-<!--Login and verify-->
-<tr>
-	<td>call</td>
-	<td>logInAsStoredUser</td>
-	<td>userName=$newUserName</td>
-</tr>
-<!--If you'd like the following XPaths to be simpler, vote for https://code.google.com/p/selite/wiki/ThirdPartyIssues > Support XPath 2.0-->
-<!--Click at 'My account'.-->
-<tr>
-	<td>clickAndWait</td>
-	<td>//ul/li/a[ contains(@href, '/?q=user') and substring-after(@href, '/?q=user')='' ]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>verifyElementPresent</td>
-	<td>//div[ @id='content' ]//h1[ @id='page-title' and contains(., '${newUserName}') ]</td>
-	<td></td>
-</tr>
-<!--Click at 'Edit' tab-->
-<tr>
-	<td>clickAndWait</td>
-	<td>//div[ @class='tabs' ]/ul/li/a[ contains(@href, '?q=user/') and translate( substring-after(@href, '?q=user/'), '0123456789', '')='/edit' ]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>verifyElementPresent</td>
-	<td>//input[ @id='edit-mail' and @value='${newUserEmail}' ]</td>
 	<td></td>
 </tr>
 <tr>

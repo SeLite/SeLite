@@ -6,7 +6,14 @@
  */
 /**
  * SelBlocks Global = SelBlocks with functions callable across test cases.
- * Based on SelBlocks 1.3 with 'script' renamed to 'function' as per SelBlocks 2.0.1
+ * Based on SelBlocks 1.3 with 'script' renamed to 'function' as per SelBlocks 2.0.1.
+ * SelBlocksGlobal change log, as compared to SelBlocks, in chronological order:
+ * - made functions (formerly scripts) callable across test cases
+ * - made it compatible with Javscript strict mode - "use strict";
+ * -- for that I've removed automatic access to stored variables (without using $). That affects mostly 'for' loop and right side of parameter assignments of 'call'. See SelBlocksGlobal.wiki.
+ * - added some syntax sugar to Selenese: string{..}, object{..}, eval{..}, array[..]. See EnhancedSyntax.wiki.
+ * - if/while/for, call, string{}, object{}, eval{} and array[] now recognise object "window" - just like getEval() did. 
+ * -- therefore evalWithExpandedStoredVars, dropToLoop, returnFromFunction, parseArgs are now a part of Selenium.prototype
  * 
  * Provides commands for javascript-like looping and callable functions,
  *   with scoped variables, and XML driven parameterization.
@@ -96,7 +103,7 @@ function $X(xpath, contextNode) {
         }
       }
       return false;
-    }
+    };
 
     // eg: "red".mapTo("primary", ["red","green","blue"]) => primary
     String.prototype.mapTo = function(/* pairs of: string, array */)
@@ -111,7 +118,7 @@ function $X(xpath, contextNode) {
         }
       }
       return this;
-    }
+    };
 
     /** @param TestCase optional
      *  @return int 0-based index of given test case within the list of test cases
@@ -286,43 +293,43 @@ function $X(xpath, contextNode) {
         cmds[i].idx = i;
         cmds[i].cmdName = localCase(i).commands[ localIdx(i) ].command;
         return cmds[i];
-      }
+      };
       cmds.here = function() {
         var curIdx = hereGlobIdx();
         if (!cmds[curIdx])
           LOG.warn("No cmdAttrs defined curIdx=" + curIdx);
         return cmds[curIdx];
-      }
+      };
       return cmds;
     }
 
     // an Array object with stack functionality
     function Stack() {
       var stack = [];
-      stack.isEmpty = function() { return stack.length == 0; }
-      stack.top = function()     { return stack[stack.length-1]; }
-      stack.find = function(_testfunc) { return stack[stack.indexWhere(_testfunc)]; }
+      stack.isEmpty = function() { return stack.length == 0; };
+      stack.top = function()     { return stack[stack.length-1]; };
+      stack.find = function(_testfunc) { return stack[stack.indexWhere(_testfunc)]; };
       stack.indexWhere = function(_testfunc) { // undefined if not found
         for (var i = stack.length-1; i >= 0; i--) {
           if (_testfunc(stack[i]))
             return i;
         }
         return undefined;
-      }
+      };
       stack.unwindTo = function(_testfunc) {
         while (!_testfunc(stack.top()))
           stack.pop();
         return stack.top();
-      }
+      };
       stack.isHere = function() {
         return stack.length>0 && stack.top().idx==hereGlobIdx();
-      }
+      };
       return stack;
     }
 
     Stack.isLoopBlock = function(stackFrame) {
       return (cmdAttrs[stackFrame.idx].blockNature == "loop");
-    }
+    };
 
     // Body of this currentCommand() was copied verbatim from Selenium's content/testCase.js
 
@@ -399,7 +406,7 @@ function $X(xpath, contextNode) {
             };
             /* */
         }
-      }
+      };
     })();
 
 
@@ -594,7 +601,7 @@ function $X(xpath, contextNode) {
           //alert( 'globIdx gu');
         setNextCommand( globIdx(testCase.debugContext.debugIndex+n+1) );
       }
-    }
+    };
 
     Selenium.prototype.doGoto = function(label)
     {
@@ -609,7 +616,7 @@ function $X(xpath, contextNode) {
       assertRunning();
       if (this.evalWithExpandedStoredVars(condExpr))
         this.doGoto(label);
-    }
+    };
 
     // ================================================================================
     Selenium.prototype.doIf = function(condExpr, locator)
@@ -629,7 +636,7 @@ function $X(xpath, contextNode) {
         else
           setNextCommand(ifAttrs.endIdx);
       }
-    }
+    };
     Selenium.prototype.doElse = function()
     {
       assertRunning();
@@ -638,13 +645,13 @@ function $X(xpath, contextNode) {
       if( ifState.skipElseBlock ) {
         setNextCommand( cmdAttrs.here().endIdx );
       }
-    }
+    };
     Selenium.prototype.doEndIf = function() {
       assertRunning();
       assertActiveCmd(cmdAttrs.here().ifIdx);
       callStack.top().cmdStack.pop();
       // fall out of loop
-    }
+    };
 
     // ================================================================================
     Selenium.prototype.doWhile = function(condExpr)
@@ -659,10 +666,10 @@ function $X(xpath, contextNode) {
         ,function() { return (self.evalWithExpandedStoredVars(condExpr)); } // continue?
         ,function() { } // iterate
       );
-    }
+    };
     Selenium.prototype.doEndWhile = function() {
       iterateLoop();
-    }
+    };
 
     // ================================================================================
     Selenium.prototype.doFor = function(forSpec, localVarsSpec)
@@ -684,10 +691,10 @@ function $X(xpath, contextNode) {
         ,function(loop) { return (this.evalWithExpandedStoredVars(loop.condExpr)); } // continue?
         ,function(loop) { self.evalWithExpandedStoredVars(loop.iterStmt); }          // iterate
       );
-    }
+    };
     Selenium.prototype.doEndFor = function() {
       iterateLoop();
-    }
+    };
 
     // ================================================================================
     Selenium.prototype.doForeach = function(varName, valueExpr)
@@ -710,10 +717,10 @@ function $X(xpath, contextNode) {
               storedVars[varName] = loop.values[loop.i];
         }
       );
-    }
+    };
     Selenium.prototype.doEndForeach = function() {
       iterateLoop();
-    }
+    };
 
     // ================================================================================
     Selenium.prototype.doLoadVars = function(xmlfile, selector)
@@ -740,7 +747,7 @@ function $X(xpath, contextNode) {
       if (!this.evalWithExpandedStoredVars(selector))
         notifyFatal("<vars> element not found for selector expression: " + selector
           + "; in xmlfile " + xmlReader.xmlFilepath);
-    }
+    };
 
     // ================================================================================
     Selenium.prototype.doForXml = function(xmlpath)
@@ -760,10 +767,10 @@ function $X(xpath, contextNode) {
         }
         ,function() { }
       );
-    }
+    };
     Selenium.prototype.doEndForXml = function() {
       iterateLoop();
-    }
+    };
 
     // --------------------------------------------------------------------------------
     // Note: Selenium variable expansion occurs before command processing, therefore we re-execute
@@ -820,19 +827,19 @@ function $X(xpath, contextNode) {
         var ftrCmd = cmdAttrs[loopState.idx];
         setNextCommand( cmdAttrs[ftrCmd.ftrIdx].hdrIdx );
       }
-    }
+    };
 
     // This is what original SelBlocks had for doBreak(). That was in conflict with Selenium's doBreak() (which stops the test).
     // I could make doBreak() do either job, depending on the context - i.e. within a loop it would break the loop, otherwise
     // it would stop the test. However, it would make tests unclear, there's no real need for it and it wasn't feasible anyway.
     Selenium.prototype.doBreakLoop = function(condExpr) {
-          var loopState = this.dropToLoop(condExpr);
-          if (loopState) {
-            loopState.isComplete = true;
-            // jump to bottom of loop for exit
-            setNextCommand( cmdAttrs[loopState.idx].ftrIdx );
-          }
-        };
+      var loopState = this.dropToLoop(condExpr);
+      if (loopState) {
+        loopState.isComplete = true;
+        // jump to bottom of loop for exit
+        setNextCommand( cmdAttrs[loopState.idx].ftrIdx );
+      }
+    };
 
     // unwind the command stack to the inner-most active loop block
     // (unless the optional condition evaluates to false)
@@ -845,7 +852,7 @@ function $X(xpath, contextNode) {
       var activeCmdStack = callStack.top().cmdStack;
       var loopState = activeCmdStack.unwindTo(Stack.isLoopBlock);
       return loopState;
-    }
+    };
 
 
     // ================================================================================
@@ -905,7 +912,7 @@ function $X(xpath, contextNode) {
         // jump to function body
         setNextCommand(functionIdx);
       }
-    }
+    };
     Selenium.prototype.doFunction = function(scrName)
     {
       assertRunning();
@@ -921,13 +928,13 @@ function $X(xpath, contextNode) {
         // no active call, skip around function body
         setNextCommand(scrAttrs.endIdx);
       }
-    }
+    };
     Selenium.prototype.doReturn = function(value) {
       this.returnFromFunction(value);
-    }
+    };
     Selenium.prototype.doEndFunction = function() {
       this.returnFromFunction();
-    }
+    };
 
     Selenium.prototype.returnFromFunction= function(returnVal)
     {
@@ -1010,7 +1017,7 @@ function $X(xpath, contextNode) {
         args[ keyValue[0].trim() ] = this.evalWithExpandedStoredVars(keyValue[1]);
       }
       return args;/**/
-    }
+    };
     
     function initVarState(names) { // new -> storedVars(names)
       if (names) {
@@ -1126,7 +1133,7 @@ function $X(xpath, contextNode) {
 
       this.EOF = function() {
         return (curVars == null || curVars >= varNodes.length);
-      }
+      };
 
       this.next = function() {
         if (this.EOF()) {
@@ -1146,7 +1153,7 @@ function $X(xpath, contextNode) {
         }
         retrieveVarset(curVars, storedVars);
         curVars++;
-      }
+      };
 
       //- retrieve a varset row into the given object, if an Array return names only
       function retrieveVarset(vs, resultObj) {
