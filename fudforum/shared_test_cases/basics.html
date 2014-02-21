@@ -180,8 +180,13 @@
 <!----------------->
 <tr>
 	<td>function</td>
-	<td>register</td>
+	<td>registerUser</td>
 	<td></td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>ensureUnderWebRoot</td>
+	<td>forceReload=true</td>
 </tr>
 <tr>
 	<td>call</td>
@@ -189,18 +194,18 @@
 	<td></td>
 </tr>
 <tr>
-	<td>storeElementPresent</td>
+	<td>verifyElementPresent</td>
 	<td>//ul/li/a[ contains(@href, 't=register' ) ]</td>
-	<td>registerLinkPresent</td>
-</tr>
-<tr>
-	<td>if</td>
-	<td>$registerLinkPresent</td>
 	<td></td>
 </tr>
 <tr>
-	<td>endIf</td>
+	<td>assertElementPresent</td>
+	<td>hugo Fail</td>
 	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//ul/li/a[ contains(@href, 't=register' ) ]</td>
 	<td></td>
 </tr>
 <tr>

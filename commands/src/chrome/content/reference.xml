@@ -254,8 +254,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
         It's optional. If nothing is passed, then the command just selects the top frame.
     </param>
     <comment>
-        Select the top frame. Then 
-        <br/>It waits for any specified frames to become present. However, it doesn't wait for the top frame. For that you should use 'andWait' postifx for the last command that loaded the current page. So you shouldn't need to use <b>selectTopFrameAndAndWait</b> at all.
+        Select the top frame. Then it waits for any specified frames to become present. However, it doesn't wait for the top frame. For that you should use 'andWait' postifx for the last command that loaded the current page. So you shouldn't need to use <b>selectTopFrameAndAndWait</b> at all.
     </comment>
 </function>
 </apidoc>

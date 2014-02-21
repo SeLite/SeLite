@@ -625,11 +625,14 @@ Selenium.prototype.doSelectMapped= function( locator, params ) {
 
 Selenium.prototype.isSelectMapped= function( locator, params ) {
 };
-
+// @TODO use the 2nd parameter - for an (optional) timeout
 Selenium.prototype.doSelectTopFrameAnd= function( locatorOrLocators, unused ) {
     if( typeof locatorOrLocators==='string' ) {
-        locatorOrLocators= [locatorOrLocators];
+        locatorOrLocators= locatorOrLocators!==''
+            ? [locatorOrLocators]
+            : [];
     }
+    Array.isArray(locatorOrLocators) || SeLiteMisc.fail( 'locatorOrLocators must be a selector string, or an array (of selector strings)');
     
     var self= this;
     return Selenium.decorateFunctionWithTimeout(

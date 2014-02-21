@@ -12,8 +12,18 @@
 <tr><td rowspan="1" colspan="3">create_user_case</td></tr>
 </thead><tbody>
 <tr>
+	<td>selectTopFrameAnd</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
 	<td>getEval</td>
 	<td>true</td>
+	<td></td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>false</td>
 	<td></td>
 </tr>
 <tr>
@@ -26,7 +36,22 @@
 	<td>logOut</td>
 	<td></td>
 </tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
 <!---->
+<tr>
+	<td>call</td>
+	<td>registerUser</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>LOG.warn( 'passed' )</td>
+	<td></td>
+</tr>
 <tr>
 	<td>call</td>
 	<td>logInQuick</td>
