@@ -599,10 +599,6 @@ Object.defineProperty( SeLiteData.Settable.prototype, 'set', {
 function StorageFromSettings( dbField, tablePrefixField ) {
     console.warn( 'StorageFromSettings:\n' +SeLiteMisc.stack() );
     SeLiteData.Storage.call( this );
-    // @TODO Test and doc: If I don't chain child class prototype properly, then overriding methods doesn't work,
-    // even if I set them in the child constructor after I've called the parent constructor:
-    // this.close= StorageFromSettings.prototype.close;
-    this.close= StorageFromSettingsClose;
 
     !(dbField.name in StorageFromSettings.instances) || SeLiteMisc.fail('There already is an instance of StorageFromSettings for ' +dbField.name );
     this.dbField= dbField;
@@ -626,14 +622,6 @@ function StorageFromSettings( dbField, tablePrefixField ) {
             this.open();
         }
     }
-}
-
-function StorageFromSettingsClose( synchronous ) {
-    console.log('StorageFromSettings.prototype.close');
-    SeLiteData.Storage.prototype.close.call( this, synchronous );
-    this.tablePrefixValue= undefined;
-    this.dbField.name in StorageFromSettings.instances || SeLiteMisc.fail( 'StorageFromSettings.close() for field ' +this.dbField.name+ " couldn't find a connection for dbField." );
-    //delete StorageFromSettings.instances[ this.dbField.name ]; //@TODO Is this good? User's framework's DB object will keep referring to this instance.
 }
 
 StorageFromSettings.prototype= new SeLiteData.Storage();
@@ -664,6 +652,13 @@ StorageFromSettings.prototype.open= function() {
     else {
         this.tablePrefixValue= '';
     }
+};
+
+StorageFromSettings.prototype.close= function( synchronous ) {
+    console.log('StorageFromSettings.prototype.close');
+    SeLiteData.Storage.prototype.close.call( this, synchronous );
+    this.tablePrefixValue= undefined;
+    this.dbField.name in StorageFromSettings.instances || SeLiteMisc.fail( 'StorageFromSettings.close() for field ' +this.dbField.name+ " couldn't find a connection for dbField." );
 };
 
 /** @return {string} Table prefix, or an empty string. It never returns undefined.
