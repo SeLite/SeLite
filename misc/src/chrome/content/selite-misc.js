@@ -1026,8 +1026,7 @@ SeLiteMisc.acceptableCharacters= function( regex ) {
  *  @internal */
 SeLiteMisc.randomChar= function( acceptableChars ) {
     if( acceptableChars.length==0 ) {
-        LOG.error( "SeLiteMisc.randomChar() called with empty acceptableChars." );
-        throw new Error();
+        SeLiteMisc.fail( "SeLiteMisc.randomChar() called with empty acceptableChars." );
     }
     // Math.random() returns from within [0, 1) i.e. 0 inclusive, 1 exclusive.
     // But that '1 exclusive' is weighted by the fact that 0.5 rounds up to 1

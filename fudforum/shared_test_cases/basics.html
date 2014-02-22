@@ -194,19 +194,49 @@
 	<td></td>
 </tr>
 <tr>
-	<td>verifyElementPresent</td>
+	<td>clickAndWait</td>
 	<td>//ul/li/a[ contains(@href, 't=register' ) ]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>assertElementPresent</td>
-	<td>hugo Fail</td>
 	<td></td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>//ul/li/a[ contains(@href, 't=register' ) ]</td>
+	<td>//input[ @name='agree' ]</td>
 	<td></td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>//input[ @name='reg_login' ]</td>
+	<td>object{maxLength:50, type:'word', store:'login'}</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>//input[ @name='reg_plaintext_passwd' ]</td>
+	<td>object{maxLength:40, type:'password', store:'passwd'}</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>//input[ @name='reg_plaintext_passwd_conf' ]</td>
+	<td>string{$passwd}</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>//input[ @name='reg_email' ]</td>
+	<td>object{maxLength: 255, type:'email', store:'email'}</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>//input[ @name='reg_name' ]</td>
+	<td>object{maxLength: 255, type:'name', store:'name'}</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//input[ @name='fud_submit' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>insertRecord</td>
+	<td>object{login: $login, passwd:$passwd, email:$email, name:$name}</td>
+	<td>eval{FUDforum.tables.users}</td>
 </tr>
 <tr>
 	<td>endFunction</td>

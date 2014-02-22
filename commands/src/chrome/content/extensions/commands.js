@@ -405,7 +405,7 @@ Selenium.prototype.randomText= function( locator, params, extraParams ) {
     if(  !type || type==='number' ) {
         charRange+= '0-9';
     }
-    if( type=='name=' || type==='word' ) {
+    if( type==='name' || type==='word' ) {
         charRange+= 'a-z'; // Only used to fill-up after 'nice' first & last name
     }
     if( type==='text' ) {
