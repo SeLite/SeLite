@@ -55,11 +55,11 @@ then
   pwd > $EXTENSION_FOLDER/testcase-debug-context@selite.googlecode.com
 fi
 
-if [ ! -e $EXTENSION_FOLDER/selblocks-global\@selite.googlecode.com.xpi ]
-then
-  cd ../../selblocks-global/src
-  pwd > $EXTENSION_FOLDER/selblocks-global@selite.googlecode.com
-fi
+#if [ ! -e $EXTENSION_FOLDER/selblocks-global\@selite.googlecode.com.xpi ]
+#then
+#  cd ../../selblocks-global/src
+#  pwd > $EXTENSION_FOLDER/selblocks-global@selite.googlecode.com
+#fi
 
 if [ ! -e $EXTENSION_FOLDER/misc\@selite.googlecode.com.xpi ]
 then

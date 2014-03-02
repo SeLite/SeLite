@@ -6,9 +6,7 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 mkdir xpi 1>/dev/null 2>&1
 rm -f xpi/*
 
-cd selblocks-global/src # This is only so that following sections look similar
-
-cd ../../bootstrap/src
+cd bootstrap/src
 zip -r ../../xpi/bootstrap.xpi *
 
 cd ../../commands/src
@@ -23,8 +21,8 @@ zip -r ../../xpi/db-objects.xpi *
 cd ../../misc/src
 zip -r ../../xpi/misc.xpi *
 
-cd ../../selblocks-global/src
-zip -r ../../xpi/selblocks-global.xpi *
+#cd ../../selblocks-global/src
+#zip -r ../../xpi/selblocks-global.xpi *
 
 cd ../../sqlite-connection-manager/src
 zip -r ../../xpi/sqlite-connection-manager.xpi *

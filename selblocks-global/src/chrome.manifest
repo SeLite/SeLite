@@ -1,4 +1,0 @@
-content selite-selblocks-global  chrome/content/
-
-# custom extension(s)
-overlay chrome://browser/content/browser.xul chrome://selite-selblocks-global/content/extensions/browser.xul
