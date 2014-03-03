@@ -643,7 +643,7 @@ StorageFromSettings.prototype.open= function() {
                 : '';
         }
         else {
-            var fields= dbField.module.getFieldsOfSet();
+            var fields= this.tablePrefixField.module.getFieldsOfSet();
             this.tablePrefixValue= fields[this.tablePrefixField.name] && fields[this.tablePrefixField.name].entry!==undefined
                 ? fields[this.tablePrefixField.name].entry
                 : '';
