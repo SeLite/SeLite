@@ -25,18 +25,18 @@
 
 /** @var Object serving as an associative array [string file path] => int lastModifiedTime
  **/
-Selenium.prototype.scriptLoadTimestamps= {};
+Selenium.scriptLoadTimestamps= {};
 
-(function() { // Anonymous function makes fileUtilsScope a local variable
+(function() { // Anonymous function makes FileUtils, Services local variables
+                // @TODO remove fileUtilsScope and the other
     var fileUtilsScope= {};
     Components.utils.import("resource://gre/modules/FileUtils.jsm", fileUtilsScope );
-    Selenium.prototype.FileUtils= fileUtilsScope.FileUtils; //@TODO maybe make it private in this file?
+    var FileUtils= fileUtilsScope.FileUtils; //@TODO maybe make it private in this file?
     var servicesScope= {};
     Components.utils.import("resource://gre/modules/Services.jsm", servicesScope );
-    Selenium.prototype.Services= servicesScope.Services;
-})();
+    var Services= servicesScope.Services;
 
-/** There are two sets of events when we want to call doReloadScripts(), which are handled separately:
+/** There are two sets of events when we want to call reloadScripts(), which are handled separately:
     - executing a single test command / run a testcase / run each testcase in a testsuite.
       Handled by tail-intercept of Selenium.prototype.reset() below.
     - run a testcase/testsuite, pause it (or not), modify a file loaded via SeBootstrap
@@ -51,9 +51,9 @@ Selenium.prototype.scriptLoadTimestamps= {};
 // Tail intercept of Selenium.reset().
 (function () { // wrapper makes variables private
   var origReset = Selenium.prototype.reset;
-  
-  Selenium.prototype.reset = function() {// this: selenium
-        this.bootstrapReloadScripts();
+  // @TODO Use interceptBefore()
+  Selenium.prototype.reset = function() {
+        Selenium.reloadScripts();
         origReset.call(this);
   };
 } )();
@@ -65,7 +65,7 @@ const subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;
  *   or if they were modified since then. It also reloads them if their timestamp changed, but the contents didn't
  *   - no harm in that.
  */
-Selenium.prototype.bootstrapReloadScripts= function() {
+Selenium.reloadScripts= function() {
     editor.seleniumAPI.Selenium= Selenium;
     editor.seleniumAPI.LOG= LOG;
     
@@ -74,26 +74,26 @@ Selenium.prototype.bootstrapReloadScripts= function() {
         return;
     }
     try {
-        var file= new this.FileUtils.File(filePath); // Object of class nsIFile
+        var file= new FileUtils.File(filePath); // Object of class nsIFile
     }
     catch( exception ) {
         LOG.warn( "SeBootstrap tried to (re)load a non-existing file " +filePath );
         return;
     }
 
-    if( filePath in this.scriptLoadTimestamps && this.scriptLoadTimestamps[filePath]===file.lastModifiedTime ) {
+    if( filePath in Selenium.scriptLoadTimestamps && Selenium.scriptLoadTimestamps[filePath]===file.lastModifiedTime ) {
         return;
     }
     // Let's set the timestamp before loading & executing the file. If something goes wrong in that file, it won't be re-run
     // until it's updated (or until you reload Selenium IDE).
-    this.scriptLoadTimestamps[filePath]= file.lastModifiedTime;
+    Selenium.scriptLoadTimestamps[filePath]= file.lastModifiedTime;
     
-    var tmpFile= this.FileUtils.getFile( "TmpD", [file.leafName+'-'+Date.now()] ); //  The second parameter is just a suggested name. FileUtils ensures I get a unique file.
+    var tmpFile= FileUtils.getFile( "TmpD", [file.leafName+'-'+Date.now()] ); //  The second parameter is just a suggested name. FileUtils ensures I get a unique file.
     tmpFile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, FileUtils.PERMS_FILE); // This creates an empty file
     tmpFile.remove( false ); // Need to remove it, otherwise copyTo(..) wouldn't copy over an existing file
     file.copyTo( tmpFile.parent, tmpFile.leafName );
     
-    var tmpFileUrl= this.Services.io.newFileURI( tmpFile ); // object of type nsIURI
+    var tmpFileUrl= Services.io.newFileURI( tmpFile ); // object of type nsIURI
     try {
         subScriptLoader.loadSubScript( tmpFileUrl.spec, editor.seleniumAPI ); // It can't access outer scope!
     }
@@ -144,11 +144,5 @@ Selenium.prototype.bootstrapReloadScripts= function() {
  */
 };
 
-// I could load the custom JS (if any) here, so that any Selenese and/or functions/variables are available right away.
-// However, LOG wouldn't got to Selenium IDE log, but to Firefox > Tools > Web Developr > Error Console.
-// And the same would apply to LOG.xxx() by any Selenese actions/getters defined in the custom JS, on any further
-// invocations of those actions/getters, until the custom file would be updated and reloaded, which would reload
-// definitions of those actions/getters.
-// That's why I don't use the following:
-//var temporarySelenium= new Selenium();
-//temporarySelenium.bootstrapReloadScripts();
+// I don't load the custom JS here straight away, because some functions/variables are not available yet. (E.g. I think LOG didn't show up in Selenium IDE log, but it went to to Firefox > Tools > Web Developer > Error Console.)
+})();
