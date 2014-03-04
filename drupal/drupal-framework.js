@@ -12,8 +12,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-// Do not have: "use strict";
-// See Bootstrap.wiki.
+"use strict";
+
+// Following is a namespace-like object in the global scope.
+var Drupal= {};
 
 (function() {
     // @TODO Doc
@@ -36,8 +38,6 @@
         var storage= SeLiteData.getStorageFromSettings('extensions.selite.drupal.testDB');
         var db= new SeLiteData.Db( storage );
 
-        // Following is a namespace-like object for the 'global' scope - see Bootstrap.wiki
-        Drupal= {};
         Drupal.tables= {};
         
         Drupal.tables.users= new SeLiteData.Table( {
