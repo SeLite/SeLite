@@ -27,7 +27,9 @@
  **/
 Selenium.scriptLoadTimestamps= {};
 
-(function() { // Anonymous function makes FileUtils, Services local variables
+/** @param {object} globalObject Global object, as per https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects. Its value is value of operator 'this'. I need it, so that I can call loadSubScript() with charset set to 'UTF-8'.
+ * */
+(function(globalObject) { // Anonymous function makes FileUtils, Services local variables
                 // @TODO remove fileUtilsScope and the other
     var fileUtilsScope= {};
     Components.utils.import("resource://gre/modules/FileUtils.jsm", fileUtilsScope );
@@ -87,9 +89,8 @@ Selenium.reloadScripts= function() {
     
     var tmpFileUrl= Services.io.newFileURI( tmpFile ); // object of type nsIURI
     try {
-        // I don't pass the second parameter (scope). This way any 'global' variables defined by that extension with keyword _var_ (at the top level) will be available to Selenese expressions.
         // When I passed editor.seleniumAPI, then bootstrapped extension must have defined global variables (without _var_ keyword) and therefore it couldn't use Javascript strict mode.
-        subScriptLoader.loadSubScript( tmpFileUrl.spec ); // It can't access outer scope!
+        subScriptLoader.loadSubScript( tmpFileUrl.spec, globalObject, 'UTF-8' );
     }
     catch(error ) {
         var msg= "SeBootstrap tried to evaluate " +filePath+ " and it failed with "
@@ -139,4 +140,4 @@ Selenium.reloadScripts= function() {
 };
 
 // I don't load the custom JS here straight away, because some functions/variables are not available yet. (E.g. I think LOG didn't show up in Selenium IDE log, but it went to to Firefox > Tools > Web Developer > Error Console.)
-})();
+})(this);
