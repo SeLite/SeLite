@@ -87,7 +87,9 @@ Selenium.reloadScripts= function() {
     
     var tmpFileUrl= Services.io.newFileURI( tmpFile ); // object of type nsIURI
     try {
-        subScriptLoader.loadSubScript( tmpFileUrl.spec, editor.seleniumAPI ); // It can't access outer scope!
+        // I don't pass the second parameter (scope). This way any 'global' variables defined by that extension with keyword _var_ (at the top level) will be available to Selenese expressions.
+        // When I passed editor.seleniumAPI, then bootstrapped extension must have defined global variables (without _var_ keyword) and therefore it couldn't use Javascript strict mode.
+        subScriptLoader.loadSubScript( tmpFileUrl.spec ); // It can't access outer scope!
     }
     catch(error ) {
         var msg= "SeBootstrap tried to evaluate " +filePath+ " and it failed with "
