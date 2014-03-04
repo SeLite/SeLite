@@ -37,21 +37,13 @@ Selenium.scriptLoadTimestamps= {};
     var Services= servicesScope.Services;
 
 /** There are two sets of events when we want to call reloadScripts(), which are handled separately:
-    - executing a single test command / run a testcase / run each testcase in a testsuite.
-      Handled by tail-intercept of Selenium.prototype.reset() below.
-    - run a testcase/testsuite, pause it (or not), modify a file loaded via SeBootstrap
-        (and make the test continue if you paused it earlier), SeBootstrap will not re-trigger Selenium.prototype.reset()
-        (until next run of a single command/testcase/testsuite). That's handled by
-        TestCaseDebugContext.prototype.nextCommand - as a part of separate (sister) extension testcase-debug-context.
-        However, testCase.debugContext.nextCommand doesn't get triggered when running a single test command, therefore 
-        I tail intercept both functions.
-    If you change the filename in SeBootstrap options, it can't 'unload' a file that it run already. Then if you change the options
-    back, it won't re-run the file, unless its timestamp changed.
+    - executing a single test command / run a testcase / run each testcase in a testsuite. Handled by tail-intercept of Selenium.prototype.reset() below.
+    - run a testcase/testsuite, pause it (or not), modify a file loaded via SeBootstrap (and make the test continue if you paused it earlier), SeBootstrap will not re-trigger Selenium.prototype.reset() (until next run of a single command/testcase/testsuite). That's handled by TestCaseDebugContext.prototype.nextCommand(). This function is defined in sister extension testcase-debug-context. Then it's intercepted in sel-blocks-global.
 */
 // Tail intercept of Selenium.reset().
 (function () { // wrapper makes variables private
   var origReset = Selenium.prototype.reset;
-  // @TODO Use interceptBefore()
+  // @TODO Use interceptBefore() from SelBlocks - if it stays a part of SeLite
   Selenium.prototype.reset = function() {
         Selenium.reloadScripts();
         origReset.call(this);
