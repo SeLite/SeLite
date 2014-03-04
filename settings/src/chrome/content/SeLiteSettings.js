@@ -1695,11 +1695,13 @@ SeLiteSettings.loadFromJavascript= function( moduleName, moduleFileOrUrl, forceR
         // Also, Components.utils.import() caches the file.
         // subScriptLoader.loadSubScript() doesn't cache the javascript and it (re)evaluates it, which makes development easier.
         // Side note: The following requires the second parameter (the scope) of loadSubScript(), even if it were empty {}.
-        subScriptLoader.loadSubScript( moduleUrl,
+        subScriptLoader.loadSubScript(
+            moduleUrl,
             {
                 SeLiteSettings: SeLiteSettings,
                 SELITE_SETTINGS_FILE_URL: moduleUrl
-            }
+            },
+            'UTF-8'
         );
     }
     catch(e ) {

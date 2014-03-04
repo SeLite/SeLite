@@ -37,9 +37,11 @@
                     if( addon.isActive && addon.hasResource( 'chrome/content/SeLiteExtensionSequencerManifest.js') ) {
                         var fileUrl= addon.getResourceURI('chrome/content/SeLiteExtensionSequencerManifest.js').spec;
                         try {
-                            subScriptLoader.loadSubScript( fileUrl,
+                            subScriptLoader.loadSubScript(
+                                fileUrl,
                                 { SeLiteExtensionSequencer: SeLiteExtensionSequencer
-                                }
+                                },
+                                'UTF-8'
                             );
                         }
                         catch( e ) {
