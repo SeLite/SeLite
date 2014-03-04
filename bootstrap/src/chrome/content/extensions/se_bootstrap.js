@@ -98,45 +98,8 @@ Selenium.reloadScripts= function() {
         LOG.error( msg );
     }
     
-    /* Following are 2 more ways to load a javascript file. They both cache the file, therefore I copy it under a new temporary name.
-     * They both are not useful, though, because the JS file can't access the (incoming) outer scope.
-     
-        Components.utils.unload( previousTmpFileUrl ); // If an older file was loaded earlier
-        Components.utils.import( tmpFileUrl.spec ); // The .js file has to define var EXPORTED_SYMBOLS= ['..', '..'...]; and it can't use any objects from outer scope (including Selenium.prototype etc)
-    
-    or
-        // This uses eval(), therefore we can't have "use strict"; at the top of this file
-        var fstream = Components.classes["@mozilla.org/network/file-input-stream;1"].
-                  createInstance(Components.interfaces.nsIFileInputStream);
-    var cstream = Components.classes["@mozilla.org/intl/converter-input-stream;1"].
-                  createInstance(Components.interfaces.nsIConverterInputStream);
-    fstream.init(file, -1, -1, 0);
-    cstream.init(fstream, "UTF-8", 0, 0);
-
-    var contents= "";
-    var str= {};
-    var read = 0;
-    do {
-        read = cstream.readString(0xffffffff, str); // read as much as we can and put it in str.value
-        contents += str.value;
-    } while (read != 0);
-    cstream.close(); // this closes fstream, too
-
-    try {
-        eval( contents );
-    }
-    catch( error )  {
-        var msg= "SeBootstrap tried to evaluate " +filePath+ " and it failed with ";
-        if( error instanceof SyntaxError) {
-            msg+= 'syntax error';
-        }
-        else {
-            msg+= 'non-syntax error';
-        }
-        msg+= ' ' +error+ '. Following stack excludes the location(s) in that loaded file:\n' +error.stack;
-        LOG.error( msg );
-    }
- */
+    /* This could also be done via Components.utils.import( tmpFileUrl.spec, scope ) and Components.utils.unload(url). However, the .js file would have to define var EXPORTED_SYMBOLS= ['symbol1', 'symbol2', ...];
+    */
 };
 
 // I don't load the custom JS here straight away, because some functions/variables are not available yet. (E.g. I think LOG didn't show up in Selenium IDE log, but it went to to Firefox > Tools > Web Developer > Error Console.)
