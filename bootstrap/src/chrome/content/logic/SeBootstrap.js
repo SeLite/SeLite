@@ -62,10 +62,9 @@ function SeBootstrap(editor) {
         // This gets called
         // 1. at start of Se IDE (invoked by SeBootstrap constructor)
         // 2. whenever you save Se IDE options, whether scriptFileName changed or not
-        function optionsChanged(options) {
+        SeBootstrap.prototype.optionsChanged= function optionsChanged(options) {
           this.scriptFileName = options.se_bootstrap_scriptFileName;
         };
-        SeBootstrap.prototype.optionsChanged= optionsChanged;
     }
 )();
 /** This will be the (only) instance of SeBootstrap, once instantiated.

@@ -32,7 +32,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
     // at chrome/content/selenium-core/scripts/selenium-commandhandlers.js
     // @TODO If Selenium people fix function AccessorResult, then
     // undo the non-null check, and return null as it is.
-    function getQs( target ) {
+    Selenium.prototype.getQs= function getQs( target ) {
         var newTarget= target.replace( /\$([a-zA-Z_][a-zA-Z_0-9]*)/g, 'storedVars.$1' );
         LOG.debug( 'getQs(): ' +target+ ' -> ' +newTarget );
         try {
@@ -46,12 +46,11 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
         return result!==null && result!==undefined
             ? result
             : false;
-    }
-    Selenium.prototype.getQs= getQs;
+    };
 
     /** @TODO eliminate? Or, keep, if we use NaN
      **/
-    function doTypeRobust(target, value) {
+    Selenium.prototype.doTypeRobust= function doTypeRobust(target, value) {
         if( !target || !value ) {
             LOG.info( 'typeRobust skipped, since target or value was empty/0/false.' );
         }
@@ -66,10 +65,9 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
         else {
             this.doType( target, value );
         }
-    }
-    Selenium.prototype.doTypeRobust= doTypeRobust;
+    };
 
-    function doSelectRobust( selectLocator, optionLocator) {
+    Selenium.prototype.doSelectRobust= function doSelectRobust( selectLocator, optionLocator) {
         if( !selectLocator || !optionLocator ) {
             LOG.info( 'selectRobust skipped, since selectLocator or optionLocator was empty/0/false.' );
         }
@@ -84,10 +82,9 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
         else {
             this.doSelect( selectLocator, optionLocator );
         }
-    }
-    Selenium.prototype.doSelectRobust= doSelectRobust;
+    };
 
-    function doClickRobust( locator, valueUnused) {
+    Selenium.prototype.doClickRobust= function doClickRobust( locator, valueUnused) {
         if( locator==='' ) {
             LOG.info( 'clickRobust skipped, since locator was an empty string.' );
         }
@@ -98,29 +95,24 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
         else {
             this.doClick( locator, valueUnused );
         }
-    }
-    Selenium.prototype.doClickRobust= doClickRobust;
+    };
     
-    function isTimestampDownToMilliseconds( locator, timestampInMilliseconds ) {
+    Selenium.prototype.isTimestampDownToMilliseconds= function isTimestampDownToMilliseconds( locator, timestampInMilliseconds ) {
         return this.timestampComparesTo( locator, timestampInMilliseconds, 1, true );
     };
-    Selenium.prototype.isTimestampDownToMilliseconds= isTimestampDownToMilliseconds;
     
-    function isTimestampDownToSeconds( locator, timestampInMilliseconds ) {
+    Selenium.prototype.isTimestampDownToSeconds= function isTimestampDownToSeconds( locator, timestampInMilliseconds ) {
         return this.timestampComparesTo( locator, timestampInMilliseconds, 1000, true );
     };
-    Selenium.prototype.isTimestampDownToSeconds= isTimestampDownToSeconds;
     
-    function isTimestampDownToMinutes( locator, timestampInMilliseconds ) {
+    Selenium.prototype.isTimestampDownToMinutes= function isTimestampDownToMinutes( locator, timestampInMilliseconds ) {
        return this.timestampComparesTo( locator, timestampInMilliseconds, 60000, true );
-    }
-    Selenium.prototype.isTimestampDownToMinutes= isTimestampDownToMinutes;
+    };
     
-    function isTimestampDownToPrecision( locator, timestampDetails ) {
+    Selenium.prototype.isTimestampDownToPrecision= function isTimestampDownToPrecision( locator, timestampDetails ) {
         return this.timestampComparesTo( locator, timestampDetails.timestamp,
             timestampDetails.precision, timestampDetails.validatePrecision, timestampDetails.timezone );
     };
-    Selenium.prototype.isTimestampDownToPrecision= isTimestampDownToPrecision;
     
     /** Internal function, used to compare a displayed human-readable timestamp to a numeric timestamp,
      *  allowing for difference of maxTimeDifference (sec) and this.defaultTimeout (ms) and 1x display time unit (displayPrecisionInSeconds).
@@ -138,7 +130,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
      *  See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTimezoneOffset and
      *  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat/supportedLocalesOf
      **/
-    function timestampComparesTo( locator, timestampInMilliseconds, displayPrecisionInMilliseconds, validatePrecision, timezoneTODO ) {
+    Selenium.prototype.timestampComparesTo= function timestampComparesTo( locator, timestampInMilliseconds, displayPrecisionInMilliseconds, validatePrecision, timezoneTODO ) {
         var element= this.page().findElement(locator);
         var displayedTimeString= element.value!==undefined
             ? element.value
@@ -154,8 +146,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
             throw new Error(msg);
         }
         return Math.abs( timestampInMilliseconds-displayedTime) <= maxDifference;
-    }
-    Selenium.prototype.timestampComparesTo= timestampComparesTo;
+    };
 
     /** Anonymous object (serving as an associative array) {
      *  string timestampName: anonymous object {
@@ -179,15 +170,14 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
      *  Records with different timestampName can get same timestamps, because they are not supposed to be compared to each other.
      *  @param int timestampPrecision, the precision (lowest unit) of the timestamp, in milliseconds
      **/
-    function noteTimestamp( timestampName, timestampPrecision ) {
+    Selenium.prototype.noteTimestamp= function noteTimestamp( timestampName, timestampPrecision ) {
         timestampPrecision= Number(timestampPrecision);
         var nextDistinctTimestamp= Date.now()+ maxTimeDifference*1000 +timestampPrecision+ Number(this.defaultTimeout);
         this.distinctTimestamps[timestampName]= {
             precision: timestampPrecision,
             nextDistinctTimestamp: nextDistinctTimestamp
         };
-    }
-    Selenium.prototype.noteTimestamp= noteTimestamp;
+    };
 
     /** This and similar functions have name starting with 'doWaitFor'. That way when you type 'waitForDistinctTimestamp' in Selenium IDE,
      *  it doesn't auto-suggest '...AndWait' alternatives, which we don't want and which would confuse user. If the function name

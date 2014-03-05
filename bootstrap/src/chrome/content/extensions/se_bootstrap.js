@@ -44,12 +44,11 @@ Selenium.scriptLoadTimestamps= {};
 */
 // Tail intercept of Selenium.reset().
   var origReset = Selenium.prototype.reset;
-  function reset() {
+  Selenium.prototype.reset= function reset() {
   // @TODO Use interceptBefore() from SelBlocks - if SelBlocksGlobal stays as a part of SeLite
         Selenium.reloadScripts();
         origReset.call(this);
-  }
-  Selenium.prototype.reset = reset;
+  };
 
 const subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
         .getService(Components.interfaces.mozIJSSubScriptLoader);
@@ -58,7 +57,7 @@ const subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;
  *   or if they were modified since then. It also reloads them if their timestamp changed, but the contents didn't
  *   - no harm in that.
  */
-function reloadScripts() {
+Selenium.reloadScripts= function reloadScripts() {
     editor.seleniumAPI.Selenium= Selenium;
     editor.seleniumAPI.LOG= LOG;
     
@@ -99,8 +98,7 @@ function reloadScripts() {
     
     /* This could also be done via Components.utils.import( tmpFileUrl.spec, scope ) and Components.utils.unload(url). However, the .js file would have to define var EXPORTED_SYMBOLS= ['symbol1', 'symbol2', ...];
     */
-}
-Selenium.reloadScripts= reloadScripts;
+};
 
 // I don't load the custom JS here straight away, because some functions/variables are not available yet. (E.g. I think LOG didn't show up in Selenium IDE log, but it went to to Firefox > Tools > Web Developer > Error Console.)
 })(this);
