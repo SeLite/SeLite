@@ -138,7 +138,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
      *  See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTimezoneOffset and
      *  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat/supportedLocalesOf
      **/
-    Selenium.prototype.timestampComparesTo= function( locator, timestampInMilliseconds, displayPrecisionInMilliseconds, validatePrecision, timezoneTODO ) {
+    function timestampComparesTo( locator, timestampInMilliseconds, displayPrecisionInMilliseconds, validatePrecision, timezoneTODO ) {
         var element= this.page().findElement(locator);
         var displayedTimeString= element.value!==undefined
             ? element.value
@@ -154,7 +154,8 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
             throw new Error(msg);
         }
         return Math.abs( timestampInMilliseconds-displayedTime) <= maxDifference;
-    };
+    }
+    Selenium.prototype.timestampComparesTo= timestampComparesTo;
 
     /** Anonymous object (serving as an associative array) {
      *  string timestampName: anonymous object {
@@ -178,14 +179,15 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
      *  Records with different timestampName can get same timestamps, because they are not supposed to be compared to each other.
      *  @param int timestampPrecision, the precision (lowest unit) of the timestamp, in milliseconds
      **/
-    Selenium.prototype.noteTimestamp= function( timestampName, timestampPrecision ) {
+    function noteTimestamp( timestampName, timestampPrecision ) {
         timestampPrecision= Number(timestampPrecision);
         var nextDistinctTimestamp= Date.now()+ maxTimeDifference*1000 +timestampPrecision+ Number(this.defaultTimeout);
         this.distinctTimestamps[timestampName]= {
             precision: timestampPrecision,
             nextDistinctTimestamp: nextDistinctTimestamp
         };
-    };
+    }
+    Selenium.prototype.noteTimestamp= noteTimestamp;
 
     /** This and similar functions have name starting with 'doWaitFor'. That way when you type 'waitForDistinctTimestamp' in Selenium IDE,
      *  it doesn't auto-suggest '...AndWait' alternatives, which we don't want and which would confuse user. If the function name
@@ -193,20 +195,23 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
      *  Some functions are not implemented as Selenium.prototype.getXyz, because getXyz() only receives the first Selenese parameter (target)
      *  and not the second parameter. That's undertandable, since getXyz auto-generates storeXyz, which uses the second parameter (value) as a namce of a stored variable. However, getXyz (and storeXyz) don't allow the first parameter to be a composite. E.g. if you use EnhancedSyntax object{} or array[] as the parameter, those don't get passed well. Allowing that would mean a tremendous workaround, or modifying Selenium IDE - each out of scope for now.
      * */
-    Selenium.prototype.doWaitForTimestampDistinctDownToMilliseconds= function( timestampName, precisionInMilliseconds ) {
+    function doWaitForTimestampDistinctDownToMilliseconds( timestampName, precisionInMilliseconds ) {
         precisionInMilliseconds= precisionInMilliseconds || 1;
         this.waitForDistinctTimestamp( timestampName, precisionInMilliseconds );
-    };
+    }
+    Selenium.prototype.doWaitForTimestampDistinctDownToMilliseconds= doWaitForTimestampDistinctDownToMilliseconds;
 
-    Selenium.prototype.doWaitForTimestampDistinctDownToSeconds= function( timestampName, precisionInSeconds ) {
+    function doWaitForTimestampDistinctDownToSeconds( timestampName, precisionInSeconds ) {
         precisionInSeconds= precisionInSeconds || 1;
         this.waitForDistinctTimestamp( timestampName, precisionInSeconds*1000 );
-    };
+    }
+    Selenium.prototype.doWaitForTimestampDistinctDownToSeconds= doWaitForTimestampDistinctDownToSeconds;
 
-    Selenium.prototype.doWaitTimestampDistinctDownToMinutes= function( timestampName, precisionInMinutes ) {
+    function doWaitTimestampDistinctDownToMinutes( timestampName, precisionInMinutes ) {
         precisionInMinutes= precisionInMinutes || 1;
         this.waitForDistinctTimestamp( timestampName, precisionInMinutes*60000 );
-    };
+    }
+    Selenium.prototype.doWaitTimestampDistinctDownToMinutes= doWaitTimestampDistinctDownToMinutes;
 
     /**I don't use prefix 'do' in the name of this function
        because it's not intended to be run as Selenium command.
@@ -215,7 +220,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
      *  @return true if it's safe to create a new timestamp for this type of record, and the timestamp
      *  will be distinguishable from the previous one.
      **/
-    Selenium.prototype.waitForDistinctTimestamp= function( timestampName, precisionInMilliseconds ) {
+    function waitForDistinctTimestamp( timestampName, precisionInMilliseconds ) {
         if( !(timestampName in this.distinctTimestamps) ) {
             LOG.info( 'waitForDistinctTimestampXXX: No previous timestamp for timestamp name ' +timestampName );
         }
@@ -250,9 +255,10 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
             },
             timeOutFromNow
         );
-    };
+    }
+    Selenium.prototype.waitForDistinctTimestamp= waitForDistinctTimestamp;
 
-    Selenium.prototype.doIndexBy= function( columnOrDetails, sourceVariableName ) {
+    function doIndexBy( columnOrDetails, sourceVariableName ) {
         var indexBy= columnOrDetails;
         var subIndexBy= null;
         var resultVariableName= sourceVariableName;
@@ -267,10 +273,11 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
         }
         storedVars[resultVariableName]= SeLiteMisc.collectByColumn( storedVars[sourceVariableName], indexBy, !subIndexBy, subIndexBy );
     }
+    Selenium.prototype.doIndexBy= doIndexBy;
 
     // I don't use prefix 'get' or 'do' in the name of this function
     // because it's not intended to be run as Selenium getter/command.
-    Selenium.prototype.randomElement= function( elementSetXPath ) {
+    function randomElement( elementSetXPath ) {
         /** This clicks at a random radio button from within a set of radio buttons identified by locator.
          *  @param string elementSetXPath XPath expression to locate the element(s). Don't include leading 'xpath='.
          *  It can't be any other Selenium locator. You probably want to match them
@@ -294,21 +301,23 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
         }
         var elementIndex= Math.round( Math.random()*(elements.length-1) );
         return elements[elementIndex];
-    };
+    }
+    Selenium.prototype.randomElement= randomElement;
 
-    Selenium.prototype.doClickRandom= function( radiosXPath, store ) {
+    function doClickRandom( radiosXPath, store ) {
         var radio= this.randomElement( radiosXPath );
         this.browserbot.clickElement( radio );
 
         if( store ) {
             SeLiteMisc.setFields( storedVars, store, radio.value );
         }
-    };
+    }
+    Selenium.prototype.doClickRandom= doClickRandom;
 
     /**I don't use prefix 'do' or 'get' in the name of this function
        because it's not intended to be run as Selenium command/getter.
     */
-    Selenium.prototype.randomOption= function( selectLocator, params ) {
+    function randomOption( selectLocator, params ) {
         /** This returns a random option from within <select>...</select> identified by locator.
          *  It doesn't return any optgroup elements.
          *  @param string selectLocator Locator of the <select>...</select>
@@ -329,9 +338,10 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
         var optionIndex= firstIndex+ Math.round( Math.random()*randomRange );
         var option= options[optionIndex];
         return option;
-    };
+    }
+    Selenium.prototype.randomOption= randomOption;
 
-    Selenium.prototype.doSelectRandom= function( selectLocator, paramsOrStore ) {
+    function doSelectRandom( selectLocator, paramsOrStore ) {
         var params= paramsOrStore || {};
         if( typeof params =='string' ) {
             params= {store: params};
@@ -345,7 +355,8 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
             //storedVars[params.store]= option.value;
             SeLiteMisc.setFields( storedVars, params.store, option.value );
         }
-    };
+    }
+    Selenium.prototype.doSelectRandom= doSelectRandom
 
     Selenium.prototype.randomFirstNames= [
         'Alice', 'Betty', 'Charlie', 'Dan', 'Erwin', 'Frank', 'Geraldine', 'Hugo', 'Ismael', 'Julie', 'Karl', 'Lucy', 'Marc',
@@ -363,20 +374,17 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
     /**I don't use prefix 'do' or 'get' in the name of this function
        because it's not intended to be run as Selenium command/getter.
     */
-    Selenium.prototype.randomTopDomainsShort= (function(){
-        var result= [];
-        for( var i=0; i<Selenium.prototype.randomTopDomains.length; i++ ) {
-            if( Selenium.prototype.randomTopDomains[i].length==2 ) {
-                result.push( Selenium.prototype.randomTopDomains[i] );
-            }
+    Selenium.prototype.randomTopDomainsShort= [];
+    for( var i=0; i<Selenium.prototype.randomTopDomains.length; i++ ) {
+        if( Selenium.prototype.randomTopDomains[i].length==2 ) {
+            Selenium.prototype.randomTopDomainsShort.push( Selenium.prototype.randomTopDomains[i] );
         }
-        return result;
-    })();
+    }
 
     /**I don't use prefix 'do' or 'get' in the name of this function
        because it's not intended to be run as Selenium command/getter.
     */
-    Selenium.prototype.randomText= function( locator, params, extraParams ) {
+    function randomText( locator, params, extraParams ) {
         /** Return a random text, restricted by params, and fit for an input element identified by locator,
          *  It always returns at least 1 character.
          * @parameter string locator Locator of the text input
@@ -579,9 +587,10 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
             throw new Error( "Error in randomText(): type=" +type );
         }
         return result;
-    };
+    }
+    Selenium.prototype.randomText= randomText;
 
-    Selenium.prototype.doTypeRandom= function( locator, paramsOrStore ) {
+    function doTypeRandom( locator, paramsOrStore ) {
         var params= paramsOrStore || {};
         if( typeof params =='string' ) {
             params= {store: params};
@@ -593,7 +602,9 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
         if( params.store ) {
             SeLiteMisc.setFields( storedVars, params.store, resultString );
         }
-    };
+    }
+    Selenium.prototype.doTypeRandom= doTypeRandom;
+    
     // @TODO This doesn't work well
     Selenium.prototype.doTypeRandomEmail= function( locator, params ) {
         params= params || {};
