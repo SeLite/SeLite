@@ -38,9 +38,8 @@ var FUDforum= {};
         // @TODO a shorthand method, where I just pass ''extensions.selite.fudforum'. Seame field naming convention is required by SeLiteSettings' ide-extension.js
         var storage= SeLiteData.getStorageFromSettings( 'extensions.selite.fudforum.testDB', 'extensions.selite.fudforum.tablePrefix' );
         var db= new SeLiteData.Db( storage );
-        console.error( 'FUDforum db: ' +db.constructor.name );
-        FUDforum.tables= {};
         
+        FUDforum.tables= {};
         FUDforum.tables.users= new SeLiteData.Table( {
            db:  db,
            name: 'users',
