@@ -109,10 +109,11 @@
 	<td></td>
 </tr>
 <!----------------->
+<!--Log in via the small login form (below the list of forums). Parameter 'givenPassword' is optional; if not passed, then this uses password from Firefox login manager.-->
 <tr>
 	<td>function</td>
 	<td>logInQuick</td>
-	<td>userNameOrAmpersandRole</td>
+	<td>userNameOrAmpersAndRole, givenPassword</td>
 </tr>
 <tr>
 	<td>call</td>
@@ -139,7 +140,7 @@
 <!--TODO DOC: don't have string{} around the whole following expression-->
 <tr>
 	<td>storeEval</td>
-	<td>FUDforum.roleToUser( '${userNameOrAmpersandRole}' )</td>
+	<td>FUDforum.roleToUser( '${userNameOrAmpersAndRole}' )</td>
 	<td>userName</td>
 </tr>
 <tr>
@@ -148,9 +149,29 @@
 	<td>${userName}</td>
 </tr>
 <tr>
+	<td>if</td>
+	<td>$givenPassword!==undefined</td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>'${givenPassword}'</td>
+	<td>password</td>
+</tr>
+<tr>
+	<td>else</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
 	<td>storeEval</td>
 	<td>SeLiteMisc.loginManagerPassword( '${userName}' )</td>
 	<td>password</td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
 </tr>
 <tr>
 	<td>type</td>
@@ -240,9 +261,19 @@
 </tr>
 <!---->
 <tr>
+	<td>if</td>
+	<td>false</td>
+	<td></td>
+</tr>
+<tr>
 	<td>call</td>
 	<td>logInAsStoredUser</td>
 	<td>userName='${login}'</td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
 </tr>
 <tr>
 	<td>endFunction</td>
@@ -258,37 +289,18 @@
 	<td>userName</td>
 </tr>
 <tr>
-	<td>selectTopFrameAnd</td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
 	<td>readRecord</td>
 	<td>object{ formula: FUDforum.formulas.users, name: $userName }</td>
 	<td>user</td>
 </tr>
 <!--if the user is logged in already, log him out:-->
 <tr>
-	<td>storeElementPresent</td>
-	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
-	<td>userLoggedIn</td>
-</tr>
-<!--TODO whether the following 'if' skips logout when we're already logged ni. Or should it use string{ ... } instead?-->
-<tr>
-	<td>if</td>
-	<td>$userLoggedIn</td>
+	<td>call</td>
+	<td>logOut</td>
 	<td></td>
 </tr>
-<tr>
-	<td>clickAndWait</td>
-	<td>//li[ contains(@class, 'logout') ]/a</td>
-	<td></td>
-</tr>
-<tr>
-	<td>endIf</td>
-	<td></td>
-	<td></td>
-</tr>
+<!---->
+<!--Follow 'Login' link-->
 <!--make sure we're at login screen-->
 <tr>
 	<td>storeElementPresent</td>
