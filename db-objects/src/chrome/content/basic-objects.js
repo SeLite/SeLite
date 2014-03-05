@@ -233,7 +233,7 @@ RecordHolder.prototype.selectOne= selectOne;
  *  @TODO set/modify this.originals.
  *  @return mixed value of the primary key
  **/
-RecordHolder.prototype.insert= function() {
+RecordHolder.prototype.insert= function insert() {
     // Fields set in formula's onInsert{} override any fields with the same name in this.record
     for( var field in this.recordSetHolder.formula.onInsert ) {
         var value= typeof this.recordSetHolder.formula.onInsert[field]==='function'
@@ -266,7 +266,7 @@ RecordHolder.prototype.insert= function() {
     return primaryKeyValue;
 };
 
-RecordHolder.prototype.ownEntries= function() {
+RecordHolder.prototype.ownEntries= function ownEntries() {
     var allAliasesToSource= this.recordSetHolder.formula.allAliasesToSource();
     for( var field in this.record ) {
         if( !(field in allAliasesToSource) ) {
@@ -286,7 +286,7 @@ RecordHolder.prototype.ownEntries= function() {
     return entries;
 };
 
-RecordHolder.prototype.update= function() {
+RecordHolder.prototype.update= function update() {
      // Fields set in formula's onUpdate{} override any fields with the same name in this.record
     for( var field in this.recordSetHolder.formula.onUpdate ) {
         var value= typeof this.recordSetHolder.formula.onUpdate[field]==='function'
@@ -306,7 +306,7 @@ RecordHolder.prototype.update= function() {
 
 /** @return {(number?)} null on update; id of the new record on insert; -1 on remove (RecordSetHolder depends on -1)
  **/
-RecordHolder.prototype.put= function() {
+RecordHolder.prototype.put= function put() {
     if( Object.isFrozen(this.record) ) {
         throw "The record was frozen!";
     }
@@ -332,7 +332,7 @@ RecordHolder.prototype.put= function() {
     }
 };
 
-RecordHolder.prototype.markToRemove= function() {
+RecordHolder.prototype.markToRemove= function markToRemove() {
     this.markedToRemove= true;
     if( typeof this.recordSetHolder.formula.table.primary==='string' ) {
         this.recordSetHolder.markedToRemove[ this.record[this.recordSetHolder.formula.table.primary] ]= this;
@@ -343,7 +343,7 @@ RecordHolder.prototype.markToRemove= function() {
     Object.freeze( this.record );
 };
 
-RecordHolder.prototype.remove= function() {
+RecordHolder.prototype.remove= function remove() {
     if( typeof this.recordSetHolder.formula.table.primary==='string' ) {//@TODO Storage.removeRecordByPrimary
         this.recordSetHolder.storage().removeRecordByPrimary( this.recordSetHolder.formula.table.nameWithPrefix(), this.recordSetHolder.formulate.table.primary,
             this.record[ this.recordSetHolder.formula.table.primary] );
@@ -414,7 +414,7 @@ RecordHolder.prototype.remove= function() {
  *  to pass values of all actual parameters from user's select() call. Similar for putMatching, if we implement it. Possibly the similar for fetchCondition (and for putCondition, if we implement it).
  *  @TODO consider applying fetchMatching in other ways than just SQL = comparison. E.g. LIKE, <>, IS NULL, IS NOT NULL. The same for passing optional column filters to SeLiteData.Storage.prototype.getRecords() via its params.parameters field.
  **/
-SeLiteData.RecordSetFormula= function( params, prototype ) {
+SeLiteData.RecordSetFormula= function RecordSetFormula( params, prototype ) {
     SeLiteMisc.PrototypedObject.call( this, prototype );
     params= params ? params : {};
     SeLiteMisc.objectClone( params, ['table', 'alias', 'columns', 'joins', 'fetchCondition', 'fetchMatching', 'parameterNames', 'sort',
@@ -445,7 +445,8 @@ SeLiteData.RecordSetFormula= function( params, prototype ) {
     }
     // @TODO check that all own table columns' aliases are unique: Object.keys( SeLiteMisc.objectReverse( ownColumns() ) )
     // @TODO similar check for joined columns?
-}
+};
+
 SeLiteData.RecordSetFormula.prototype.constructor= SeLiteData.RecordSetFormula;
 SeLiteData.RecordSetFormula.ALL_FIELDS= ["ALL_FIELDS"]; // I compare this by identity (using === and !==). That allow user column alias prefix 'ALL_FIELDS', if (ever) need be.
 
@@ -483,7 +484,7 @@ SeLiteData.RecordSetFormula.prototype.onUpdate= {}; // aliasedFieldName: string 
 /** @param {string} tableName Table name - either the name of the main table of the formula, or an alias of any join. It excludes any table prefix.
  *  @return {(SeLiteData.Table|null)} A table for this table/alias name. Null if none.
  * */
-SeLiteData.RecordSetFormula.prototype.tableByName= function( tableName ) {
+SeLiteData.RecordSetFormula.prototype.tableByName= function tableByName( tableName ) {
     if( this.table.name===tableName ) {
         return this.table;
     }
@@ -493,7 +494,7 @@ SeLiteData.RecordSetFormula.prototype.tableByName= function( tableName ) {
         }
     }
     return null;
-}
+};
 
 /** @param {string} tableName Table name (without prefix).
  *  @return {object} { string given table's column name: string column alias or the same column name (if no alias) }.
@@ -501,7 +502,7 @@ SeLiteData.RecordSetFormula.prototype.tableByName= function( tableName ) {
  *  unaliased column names to be mapped to true/1. Here such columns get mapped to themselves (to the column names);
  *  that makes it easy to use with SeLiteMisc.objectValues() or SeLiteMisc.objectReverse().
  **/
-SeLiteData.RecordSetFormula.prototype.columnsToAliases= function( tableName ) {
+SeLiteData.RecordSetFormula.prototype.columnsToAliases= function columnsToAliases( tableName ) {
     var columnsDefinition= this.columns[ tableName ];
     var result= {};
 
