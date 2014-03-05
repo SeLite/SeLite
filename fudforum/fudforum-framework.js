@@ -55,7 +55,7 @@ var FUDforum= {};
         FUDforum.formulas= {};
         FUDforum.formulas.users= new SeLiteData.RecordSetFormula( {
             table: FUDforum.tables.users,
-            columns: new SeLiteData.Settable().set( FUDforum.tables.users.login, SeLiteData.RecordSetFormula.ALL_FIELDS )
+            columns: new SeLiteData.Settable().set( FUDforum.tables.users.name/* same as 'users' */, SeLiteData.RecordSetFormula.ALL_FIELDS )
         });
         /*@TODO
         FUDforum.tables.node= new SeLiteData.Table( {

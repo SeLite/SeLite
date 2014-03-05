@@ -53,7 +53,7 @@ var Drupal= {};
         Drupal.formulas= {};
         Drupal.formulas.users= new SeLiteData.RecordSetFormula( {
             table: Drupal.tables.users,
-            columns: new SeLiteData.Settable().set( Drupal.tables.users.name, SeLiteData.RecordSetFormula.ALL_FIELDS )
+            columns: new SeLiteData.Settable().set( Drupal.tables.users.name/* same as 'users'*/, SeLiteData.RecordSetFormula.ALL_FIELDS )
         });
 
         Drupal.tables.node= new SeLiteData.Table( {
