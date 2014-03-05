@@ -27,9 +27,9 @@
  **/
 Selenium.scriptLoadTimestamps= {};
 
-/** @param {object} globalObject Global object, as per https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects. Its value is value of operator 'this'. I need it, so that I can call loadSubScript() with charset set to 'UTF-8'.
+/** @param {object} global Global object, as per https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects. Its value is value of operator 'this'. I need it, so that I can call loadSubScript() with charset set to 'UTF-8'.
  * */
-(function(globalObject) { // Anonymous function makes FileUtils, Services local variables
+(function(global) { // Anonymous function makes FileUtils, Services local variables
                 // @TODO remove fileUtilsScope and the other
     var fileUtilsScope= {};
     Components.utils.import("resource://gre/modules/FileUtils.jsm", fileUtilsScope );
@@ -43,14 +43,13 @@ Selenium.scriptLoadTimestamps= {};
     - run a testcase/testsuite, pause it (or not), modify a file loaded via SeBootstrap (and make the test continue if you paused it earlier), SeBootstrap will not re-trigger Selenium.prototype.reset() (until next run of a single command/testcase/testsuite). That's handled by TestCaseDebugContext.prototype.nextCommand(). This function is defined in sister extension testcase-debug-context. Then it's intercepted in sel-blocks-global.
 */
 // Tail intercept of Selenium.reset().
-(function () { // wrapper makes variables private
   var origReset = Selenium.prototype.reset;
-  // @TODO Use interceptBefore() from SelBlocks - if it stays a part of SeLite
-  Selenium.prototype.reset = function() {
+  function reset() {
+  // @TODO Use interceptBefore() from SelBlocks - if SelBlocksGlobal stays as a part of SeLite
         Selenium.reloadScripts();
         origReset.call(this);
-  };
-} )();
+  }
+  Selenium.prototype.reset = reset;
 
 const subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
         .getService(Components.interfaces.mozIJSSubScriptLoader);
@@ -59,7 +58,7 @@ const subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;
  *   or if they were modified since then. It also reloads them if their timestamp changed, but the contents didn't
  *   - no harm in that.
  */
-Selenium.reloadScripts= function() {
+function reloadScripts() {
     editor.seleniumAPI.Selenium= Selenium;
     editor.seleniumAPI.LOG= LOG;
     
@@ -90,7 +89,7 @@ Selenium.reloadScripts= function() {
     var tmpFileUrl= Services.io.newFileURI( tmpFile ); // object of type nsIURI
     try {
         // When I passed editor.seleniumAPI, then bootstrapped extension must have defined global variables (without _var_ keyword) and therefore it couldn't use Javascript strict mode.
-        subScriptLoader.loadSubScript( tmpFileUrl.spec, globalObject, 'UTF-8' );
+        subScriptLoader.loadSubScript( tmpFileUrl.spec, global, 'UTF-8' );
     }
     catch(error ) {
         var msg= "SeBootstrap tried to evaluate " +filePath+ " and it failed with "
@@ -100,7 +99,8 @@ Selenium.reloadScripts= function() {
     
     /* This could also be done via Components.utils.import( tmpFileUrl.spec, scope ) and Components.utils.unload(url). However, the .js file would have to define var EXPORTED_SYMBOLS= ['symbol1', 'symbol2', ...];
     */
-};
+}
+Selenium.reloadScripts= reloadScripts;
 
 // I don't load the custom JS here straight away, because some functions/variables are not available yet. (E.g. I think LOG didn't show up in Selenium IDE log, but it went to to Firefox > Tools > Web Developer > Error Console.)
 })(this);
