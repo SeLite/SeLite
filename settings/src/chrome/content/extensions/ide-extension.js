@@ -16,7 +16,7 @@
 */
 "use strict";
 
-(function(self) { // Anonymous function to make the variables local
+(function(global) { // Anonymous function to make the variables local
     var FileUtils= Components.utils.import("resource://gre/modules/FileUtils.jsm", {} ).FileUtils; // This must be local - otherwise it overrides FileUtils defined/loaded by Se IDE, and it causes problems at Se IDE start
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
     Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
@@ -60,7 +60,7 @@
      *  @param reloadVanillaAndTest boolean, whether to reload both appDB and testDB from vanillaDB. Optional, false by default.
      *  @return void
      * */
-    self.editor.reload_databases= function( reloadAppAndTest, reloadVanillaAndTest ) {
+    global.editor.reload_databases= function( reloadAppAndTest, reloadVanillaAndTest ) {
         SeLiteSettings.moduleForReloadButtons || SeLiteMisc.fail( 'This requires your Core extension to call SeLiteSettings.setModuleForReloadButtons().' );
         var fields= SeLiteSettings.moduleForReloadButtons.getFieldsDownToFolder();
 
@@ -116,8 +116,8 @@
     
     /** Shorthand to make caller's intention clear.
      * */
-    self.editor.reload_test= function() {
-        self.editor.reload_databases();
+    global.editor.reload_test= function() {
+        global.editor.reload_databases();
     }
     
     /** @private
@@ -133,12 +133,12 @@
     
     /** Reload testDB and appDB from vanillaDB: vanilla -&gt; green  -&gt; blue.
      * */
-    self.editor.reload_app_and_test= function() {
+    global.editor.reload_app_and_test= function() {
         this.reload_databases( true );
     };
     /** Reload vanillaDB and testDB from appDB: green -&gt; vanilla  -&gt; blue.
      * */
-    self.editor.reload_vanilla_and_test= function() {
+    global.editor.reload_vanilla_and_test= function() {
         this.reload_databases( false, true );
     };
 
