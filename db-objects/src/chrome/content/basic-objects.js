@@ -34,14 +34,15 @@ SeLiteData.Db= Db;
 
 /** @return {string} Table prefix, or an empty string. It never returns undefined.
  * */
-SeLiteData.Db.prototype.tablePrefix= function() {
+function tablePrefix() {
     console.warn( 'this.storage:\n' +SeLiteMisc.objectToString(this.storage, 1, false));
     console.warn( 'this.storage.prototype: \n' +SeLiteMisc.objectToString(this.storage.prototype, 3, true) );
     console.warn( 'stack\n' +SeLiteMisc.stack( ));
     return this.tableNamePrefix!==undefined
         ? this.tableNamePrefix
         : this.storage.tablePrefix();
-};
+}
+SeLiteData.Db.prototype.tablePrefix= tablePrefix;
 
 /** @constructor
  *  @param {Object} prototype Anonymous object {
@@ -51,7 +52,7 @@ SeLiteData.Db.prototype.tablePrefix= function() {
  *      columns: array of string column names,
  *      primary: string primary key name, or array of string key names; optional - 'id' by default
  */
-SeLiteData.Table= function( prototype ) {
+function Table( prototype ) {
     this.db= prototype.db;
     var prefix= prototype.noNamePrefix
         ? ''
@@ -62,18 +63,20 @@ SeLiteData.Table= function( prototype ) {
     this.columns= prototype.columns;
     this.primary= prototype.primary || 'id';
     typeof this.primary==='string' || Array.isArray(this.primary) || SeLiteMisc.fail( 'prototype.primary must be a string or an array.' );
-};
+}
+SeLiteData.Table= Table;
 
-SeLiteData.Table.prototype.nameWithPrefix= function() {
+function nameWithPrefix() {
     return this.noNamePrefix
         ? this.name
         : this.db.tablePrefix()+this.name;
-};
+}
+SeLiteData.Table.prototype.nameWithPrefix= nameWithPrefix;
 
 /** Insert the given record to the DB.
  *  @param {SeLiteData.Record} record
  * */
-SeLiteData.Table.prototype.insert= function( record ) {
+function insert( record ) {
     // I don't use asynchronous API, because I don't know how to use it with classic program control flow. Therefore I need to list all columns.
     var givenColumns= [];
     var bindings= {};
@@ -90,7 +93,8 @@ SeLiteData.Table.prototype.insert= function( record ) {
     console.log( query );
     console.log( SeLiteMisc.objectToString(bindings, 2) );
     this.db.storage.execute( query, bindings );
-};
+}
+SeLiteData.Table.prototype.insert= insert;
 
 /** @private Not used directly outside of this file */
 function readOnlyPrimary( field ) {
@@ -149,13 +153,14 @@ function RecordHolder( recordSetHolderOrFormula, plainRecord ) {
  *   @param {[?(Object|boolean)]} Object with the record's data, or null/false/undefined.
  *   @param {[?RecordHolder]} recordHolder Respective instance of private class RecordHolder, or null/undefined.
  **/
-SeLiteData.Record= function( data, recordHolder ) {
+function Record( data, recordHolder ) {
     // Set the link from record to its record holder. The field for this link is non-iterable.
     Object.defineProperty( this, SeLiteData.Record.RECORD_TO_HOLDER_FIELD, { value: recordHolder } );
     if( data ) {
         SeLiteMisc.objectCopyFields( data, this );
     }
-};
+}
+SeLiteData.Record= Record;
 
 /** This is a name of Javascript field, used in instances of SeLiteData.Record,
     for which the field value is an instance of private class RecordHolder.
@@ -165,7 +170,7 @@ SeLiteData.Record= function( data, recordHolder ) {
 SeLiteData.Record.RECORD_TO_HOLDER_FIELD= 'RECORD_TO_HOLDER_FIELD';
 
 // @TODO Document: this won't work if a table column is 'toString'
-SeLiteData.Record.prototype.toString= function() { //@TODO Move to SeLiteMisc; then assign here
+function toString() { //@TODO Move to SeLiteMisc; then assign here
     var result= '';
     for( var field in this ) {
         if( typeof this[field]!=='function' ) {
@@ -176,18 +181,20 @@ SeLiteData.Record.prototype.toString= function() { //@TODO Move to SeLiteMisc; t
         }
     }
     return result;
-};
+}
+SeLiteData.Record.prototype.toString= toString;
 
 /** @private Not a part of public API.
  *  @param SeLiteData.Record instance
  *  @return RecordHolder for that instance.
  **/
-SeLiteData.recordHolder= function( record ) {
+function recordHolder( record ) {
     SeLiteMisc.ensureInstance( record, SeLiteData.Record, 'SeLiteData.Record' );
     return record[SeLiteData.Record.RECORD_TO_HOLDER_FIELD];
 }
+SeLiteData.recordHolder= recordHolder;
 
-RecordHolder.prototype.setOriginalAndWatchEntries= function() {
+function setOriginalAndWatchEntries() {
     this.original= {};
 
     var columnsToAliases= this.recordSetHolder.formula.columnsToAliases( this.recordSetHolder.formula.table.name );
@@ -210,10 +217,14 @@ RecordHolder.prototype.setOriginalAndWatchEntries= function() {
         this.record.watch( this.recordSetHolder.formula.table.primary, readOnlyPrimary );
     }
     Object.seal( this.record );
-};
+}
+RecordHolder.prototype.setOriginalAndWatchEntries= setOriginalAndWatchEntries;
 
-RecordHolder.prototype.select= function() { throw new Error( "@TODO. In the meantimes, use RecordSetHolder.select() or SeLiteData.RecordSetFormula.select()."); }
-RecordHolder.prototype.selectOne= function() { throw new Error( "@TODO. In the meantime, use RecordSetHolder.selectOne() or SeLiteData.RecordSetFormula.selectOne()."); }
+function select() { throw new Error( "@TODO. In the meantimes, use RecordSetHolder.select() or SeLiteData.RecordSetFormula.select()."); }
+RecordHolder.prototype.select= select;
+
+function selectOne() { throw new Error( "@TODO. In the meantime, use RecordSetHolder.selectOne() or SeLiteData.RecordSetFormula.selectOne()."); }
+RecordHolder.prototype.selectOne= selectOne;
 
 // @TODO RecordHolder.insert() which is linked to an existing RecordSetHolder, and it adds itself to that recordSetHolder.
 //       But then the recordSetHolder may not match its formula anymore - have a flag/handler for that.
