@@ -6,38 +6,46 @@ Components.utils.import('chrome://selite-db-objects/content/db.js');
 Components.utils.import('chrome://selite-db-objects/content/basic-storage.js');
 Components.utils.import('chrome://selite-db-objects/content/basic-objects.js');
 
-SeLiteData.select= function( recordOrSet ) {
+function select( recordOrSet ) {
     return SeLiteData.recordOrSetHolder(recordOrSet).select();
-};
+}
+SeLiteData.select= select;
 
-SeLiteData.selectOne= function( recordOrSet ) {
+function selectOne( recordOrSet ) {
     return SeLiteData.recordOrSetHolder(recordOrSet).selectOne();
 }
+SeLiteData.selectOne= selectOne;
 
-SeLiteData.insert= function( recordOrSet ) {
-    return SeLiteData.recordOrSetHolder(recordOrSet).insert();
-};
+function insert( recordOrSet ) {
+    return SeLteData.recordOrSetHolder(recordOrSet).insert();
+}
+SeLiteData.insert= insert;
 
-SeLiteData.update= function( recordOrSet ) {
+function update( recordOrSet ) {
     SeLiteData.recordOrSetHolder(recordOrSet).update();
 }
+SeLiteData.update= update;
 
-SeLiteData.markToRemove= function( record ) {
+function markToRemove( record ) {
     SeLiteData.recordHolder(record).markToRemove();
 }
+SeLiteData.markToRemove= markToRemove;
 
 //@TODO RecordSetHolder.put() - should it be instead of replace()?
-SeLiteData.put= function( recordOrSet ) {
+function put( recordOrSet ) {
     SeLiteData.recordOrSetHolder(recordOrSet).put();
 }
+SeLiteData.put= put;
 
-SeLiteData.remove= function( recordOrSet ) {
+function remove( recordOrSet ) {
     SeLiteData.recordOrSetHolder(recordOrSet).remove();
 }
+SeLiteData.remove= remove;
 
-SeLiteData.randomRecord= function( recordSet ) {
+function randomRecord( recordSet ) {
     var numRecords= SeLiteMisc.numberOfRecords( recordSet );
     return SeLiteMisc.nthRecord( recordSet, Math.round( Math.random()*(numRecords-1) ) );
 }
+SeLiteData.randomRecord= randomRecord;
 
 var EXPORTED_SYMBOLS= [];
