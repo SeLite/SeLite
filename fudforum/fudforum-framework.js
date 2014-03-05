@@ -12,9 +12,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-// Do not have: "use strict";
 "use strict";
-// See Bootstrap.wiki.
 
 // Following is a namespace-like object in the global scope.
 var FUDforum= {};
@@ -36,11 +34,11 @@ var FUDforum= {};
     // however SeLiteData.getStorageFromSettings() sets a handler via SeLiteSettings.addTestSuiteFolderChangeHandler().
     // Once you open/save a test suite, storage object will get updated automatically and it will open an SQLite connection.
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
-        console.error('FUDforum framework reloaded');
+        
         // @TODO a shorthand method, where I just pass ''extensions.selite.fudforum'. Seame field naming convention is required by SeLiteSettings' ide-extension.js
         var storage= SeLiteData.getStorageFromSettings( 'extensions.selite.fudforum.testDB', 'extensions.selite.fudforum.tablePrefix' );
         var db= new SeLiteData.Db( storage );
-
+        console.error( 'FUDforum db: ' +db.constructor.name );
         FUDforum.tables= {};
         
         FUDforum.tables.users= new SeLiteData.Table( {

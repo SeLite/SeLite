@@ -238,22 +238,18 @@
 	<td>object{login: $login, alias:$login, passwd:$passwd, email:$email, name:$name}</td>
 	<td>eval{FUDforum.tables.users}</td>
 </tr>
+<!---->
+<tr>
+	<td>call</td>
+	<td>logInAsStoredUser</td>
+	<td>userName='${login}'</td>
+</tr>
 <tr>
 	<td>endFunction</td>
 	<td></td>
 	<td></td>
 </tr>
 <!------------------->
-<tr>
-	<td>function</td>
-	<td>createUser</td>
-	<td></td>
-</tr>
-<tr>
-	<td>endFunction</td>
-	<td></td>
-	<td></td>
-</tr>
 <!----------------->
 <!--This requires the password to be stored in the test DB in plain text. Like for accounts created by script createUser.-->
 <tr>
