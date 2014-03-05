@@ -26,10 +26,11 @@ var console= Components.utils.import("resource://gre/modules/devtools/Console.js
  *  @param {SeLiteData.Storage} storage Underlying lower-level storage object.
  *  @param {string} [tableNamePrefix] optional prefix, which will be applied to all tables (except for tables that have noNamePrefix=true when constructed). If not set, then storage.tableNamePrefix is used (if any).
  **/
-SeLiteData.Db= function( storage, tableNamePrefix ) {
+function Db( storage, tableNamePrefix ) {
     this.storage= storage;
     this.tableNamePrefix= tableNamePrefix;
 };
+SeLiteData.Db= Db;
 
 /** @return {string} Table prefix, or an empty string. It never returns undefined.
  * */
@@ -783,13 +784,12 @@ RecordSetHolder.prototype.select= function() {
     }
     var conditions= unnamedParamFilters; // @TODO use .slice() protective copy, once we factor the above into constructor
     conditions.splice( 0, formula.fetchCondition, condition );
-    var self= this;
     var data= this.storage().getRecords( {
         table: formula.table.nameWithPrefix()+ (formula.alias ? ' ' +formula.alias : ''),
         joins: joins,
         columns: columns,
         matching: matching,
-        condition: self.storage().sqlAnd.apply( null, conditions ),
+        condition: this.storage().sqlAnd.apply( null, conditions ),
         parameters: parameters,
         parameterNames: formula.parameterNames,
         sort: formula.sort,
