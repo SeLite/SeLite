@@ -653,12 +653,16 @@ RecordSetHolder.prototype.select= function() {
     // @TODO potentially use allAliasesToSource() to simplify the following
     for( var tableName in formula.columns ) { // excluding prefix
         var columnsToAliases= formula.columnsToAliases( tableName );
+        var tableAlias; // tableAlias, if specified
+        var table; // Table object for tableName. Used to get table name with prefix if tableAlias is undefined.
         if( tableName==formula.table.name ) {
-            var tableAlias= formula.alias;
+            tableAlias= formula.alias;
+            table= formula.table;
         }
         else {
+            var join;
             for( var i=0; i<formula.joins.length; i++ ) {//@TODO if I need to do something similar again, extend SeLiteMisc.objectValueToField() to accept a callback function
-                var join= formula.joins[i];
+                join= formula.joins[i];
                 if( join.table.name==tableName ) {
                     break;
                 }
@@ -666,10 +670,11 @@ RecordSetHolder.prototype.select= function() {
             if( i==formula.joins.length ) {
                 throw new Error( "Formula defined columns for table '" +tableName+ "' but it's not the main table neither a join table." );
             }
-            var tableAlias= join.alias;
+            tableAlias= join.alias;
+            table= join.table;
         }
         if( !tableAlias ) {
-            tableAlias= tableName;
+            tableAlias= table.nameWithPrefix(); //@TODO ass prefix
         }
         var columnAliases= {};
         for( var column in columnsToAliases ) {
