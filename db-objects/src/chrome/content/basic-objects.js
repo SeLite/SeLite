@@ -674,7 +674,7 @@ RecordSetHolder.prototype.select= function() {
             table= join.table;
         }
         if( !tableAlias ) {
-            tableAlias= table.nameWithPrefix(); //@TODO ass prefix
+            tableAlias= table.nameWithPrefix();
         }
         var columnAliases= {};
         for( var column in columnsToAliases ) {

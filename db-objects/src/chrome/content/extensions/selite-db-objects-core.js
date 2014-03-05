@@ -46,6 +46,9 @@ Selenium.prototype.doReadRecord= function( info, storedVariableName ) {
     storedVars[storedVariableName]= record;
 };
 
+/** @param {object} recordObject
+ *  @param {SeLiteData.Table} table
+ * */
 Selenium.prototype.doInsertRecord= function( recordObject, table) {
     var record= new SeLiteData.Record(recordObject);
     table.insert(record);
