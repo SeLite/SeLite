@@ -606,7 +606,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
     Selenium.prototype.doTypeRandom= doTypeRandom;
     
     // @TODO This doesn't work well
-    Selenium.prototype.doTypeRandomEmail= function( locator, params ) {
+    function doTypeRandomEmail( locator, params ) {
         params= params || {};
         var paramsToPass= { type: 'email' };
         if( typeof params==='string' ) {
@@ -638,17 +638,21 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
         if( params.store ) {
             SeLiteMisc.setFields( storedVars, params.store, resultString );
         }
-    };
+    }
+    Selenium.prototype.doTypeRandomEmail= doTypeRandomEmail;
 
     // @TODO what did I want to do here?
     // @TODO similar doClickMapped?
-    Selenium.prototype.doSelectMapped= function( locator, params ) {
-    };
+    function doSelectMapped( locator, params ) {
+    }
+    Selenium.prototype.doSelectMapped= doSelectMapped;
 
-    Selenium.prototype.isSelectMapped= function( locator, params ) {
-    };
-    // @TODO use the 2nd parameter - for an (optional) timeout
-    Selenium.prototype.doSelectTopFrameAnd= function( locatorOrLocators, unused ) {
+    function isSelectMapped( locator, params ) {
+    }
+    Selenium.prototype.isSelectMapped= isSelectMapped;
+    
+    // @TODO use the 2nd parameter - for an (optional) timeout in milliseconds
+    function doSelectTopFrameAnd( locatorOrLocators, unused ) {
         if( typeof locatorOrLocators==='string' ) {
             locatorOrLocators= locatorOrLocators!==''
                 ? [locatorOrLocators]
@@ -673,26 +677,31 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
             },
             this.defaultTimeout
         );
-    };
+    }
+    Selenium.prototype.doSelectTopFrameAnd= doSelectTopFrameAnd;
 
 //--------------------------
 // Based on http://thom.org.uk/2006/03/12/disabling-javascript-from-selenium/
-    Selenium.prototype.preferencesService= Components.classes["@mozilla.org/preferences-service;1"]
+    var preferencesService= Components.classes["@mozilla.org/preferences-service;1"]
                .getService(Components.interfaces.nsIPrefBranch);
     /**I don't use prefix 'do' or 'get' in the name of this function
        because it's not intended to be run as Selenium command/getter.
     */
-    Selenium.prototype.setJavascriptPref= function(bool) {
-       this.preferencesService.setBoolPref("javascript.enabled", bool);
+    function setJavascriptPref( bool ) {
+       preferencesService.setBoolPref("javascript.enabled", bool);
     }
+    Selenium.prototype.setJavascriptPref= setJavascriptPref;
+    
     // Beware: this disables Javascript in whole Firefox (for all tabs). The setting
     // will stay after you close Selenium.
-    Selenium.prototype.doDisableJavascript = function() {
+    function doDisableJavascript() {
         this.setJavascriptPref(false);
-    };
+    }
+    Selenium.prototype.doDisableJavascript= doDisableJavascript;
 
-    Selenium.prototype.doEnableJavascript = function() {
+    function doEnableJavascript() {
         this.setJavascriptPref(true);
-    };
+    }
+    Selenium.prototype.doEnableJavascript= doEnableJavascript;
   }
 )();
