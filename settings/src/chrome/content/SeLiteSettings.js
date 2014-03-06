@@ -58,7 +58,7 @@ var unnamedTestSuiteFolderChangeHandlers= [];
     - because those won't get re-loaded if you restart Se IDE. If there already was a handler registered with the same handlerName,
  *  this replaces the previously registered function with the one given now.
  * */
-SeLiteSettings.addTestSuiteFolderChangeHandler= function( handler, handlerName ) {
+SeLiteSettings.addTestSuiteFolderChangeHandler= function addTestSuiteFolderChangeHandler( handler, handlerName ) {
     SeLiteMisc.ensureType( handler, 'function');
     SeLiteMisc.ensureType( handlerName, ['string', 'undefined'] );
     if( handlerName===undefined ) {
@@ -76,7 +76,7 @@ var closingIdeHandlers= [];
  *  and directly from Selenium Core extensions, because Core extensions get re-loaded on successive restarts
  *  of Se IDE (during the same run of Firefox).
  * */
-SeLiteSettings.addClosingIdeHandler= function( handler ) {
+SeLiteSettings.addClosingIdeHandler= function addClosingIdeHandler( handler ) {
     SeLiteMisc.ensureType( handler, 'function', 'handler must be a function' );
     closingIdeHandlers.push( handler );
 };
@@ -167,7 +167,7 @@ function ensureFieldName( name, description, asModuleOrSetName ) {
 /** @param {string|SeLiteSettings.Field} fullNameOrField String, in form moduleName+fieldName, excluding any set; or a Field instance.
  *  @return SeLiteSettings.Field instance if present and if fullNameOrField is a string; fullNameOrField if it is a Field. It fails otherwise.
  * */
-SeLiteSettings.getField= function( fullNameOrField ) {
+SeLiteSettings.getField= function getField( fullNameOrField ) {
     if( fullNameOrField instanceof SeLiteSettings.Field ) {
         return fullNameOrField;
     }
@@ -205,7 +205,7 @@ SeLiteSettings.getField= function( fullNameOrField ) {
  *  - 2 parameters: 'key' and 'value' for SeLiteSettings.Field.Choice and its subclasses
  *  It returns boolean - true on success, false on failure. Optional.
  * */
-SeLiteSettings.Field= function( name, multivalued, defaultKey, requireAndPopulate, customValidate ) {
+SeLiteSettings.Field= function Field( name, multivalued, defaultKey, requireAndPopulate, customValidate ) {
     if( typeof name!=='string' ) {
         throw new Error( 'SeLiteSettings.Field() expects a string name ("primitive" string, not new String(..)).');
     }
@@ -262,26 +262,26 @@ SeLiteSettings.Field= function( name, multivalued, defaultKey, requireAndPopulat
 
 /** Perform the custom validation on a default key.
  * */
-SeLiteSettings.Field.prototype.customValidateDefault= function( key ) {
+SeLiteSettings.Field.prototype.customValidateDefault= function customValidateDefault( key ) {
     return true;
 };
 /** 'Abstract' class. It serves to separate behaviour between freetype/boolean and Choice fields.
  * */
-SeLiteSettings.Field.NonChoice= function( name, multivalued, defaultKey, requireAndPopulate, customValidate ) {
+SeLiteSettings.Field.NonChoice= function NonChoice( name, multivalued, defaultKey, requireAndPopulate, customValidate ) {
     SeLiteSettings.Field.call( this, name, multivalued, defaultKey, requireAndPopulate, customValidate );
 };
 
 SeLiteSettings.Field.NonChoice.prototype= new SeLiteSettings.Field('NonChoice.prototype');
 SeLiteSettings.Field.NonChoice.prototype.constructor= SeLiteSettings.Field.NonChoice;
 
-SeLiteSettings.Field.NonChoice.prototype.customValidateDefault= function( key ) {
+SeLiteSettings.Field.NonChoice.prototype.customValidateDefault= function customValidateDefault( key ) {
     return !this.customValidate || this.customValidate(key);
 };
 
 /** Return the default key, or a protective copy if it's an array.
  *  @return mixed
  * */
-SeLiteSettings.Field.prototype.getDefaultKey= function() {
+SeLiteSettings.Field.prototype.getDefaultKey= function getDefaultKey() {
     if( Array.isArray(this.defaultKey) ) {
         return this.defaultKey.slice();
     }

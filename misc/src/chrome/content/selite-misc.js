@@ -600,7 +600,7 @@ SeLiteMisc.SortedObjectTarget= function SortedObjectTarget( sortCompare ) {
     });*/
 };
 
-SeLiteMisc.SortedObjectTarget.prototype.__iterator__= function() {
+SeLiteMisc.SortedObjectTarget.prototype.__iterator__= function __iterator__() {
     var i=0;
     var keys= Object.keys(this);
     if( this[SELITE_MISC_SORTED_OBJECT_COMPARE] ) {
@@ -668,7 +668,7 @@ function IterableArray( keys ) {
     SeLiteMisc.ensure( Array.isArray(this[SELITE_MISC_ITERABLE_ARRAY_KEYS]), "IterableArray(keys) expects keys to be an array, or undefined." );
     this.watch( SELITE_MISC_ITERABLE_ARRAY_KEYS, IterableArrayKeysWatchThrow );
 }
-IterableArray.prototype.__iterator__= function() {
+IterableArray.prototype.__iterator__= function __iterator__() {
     for( var i=0; i<this[SELITE_MISC_ITERABLE_ARRAY_KEYS].length; i++ ) {
         yield this[SELITE_MISC_ITERABLE_ARRAY_KEYS][i];
     }
@@ -680,7 +680,7 @@ IterableArray.prototype.__iterator__= function() {
  *  @return new anonymous object serving as an associative array, with all fields and values from object, but in the sorted order
  *  @TODO remove, replace by SeLiteMisc.sortedObject()
  * */
-SeLiteMisc.sortByKeys= function( object, compareFunction ) {
+SeLiteMisc.sortByKeys= function sortByKeys( object, compareFunction ) {
     if( !compareFunction ) {
         compareFunction= undefined;
     }
@@ -707,7 +707,7 @@ SeLiteMisc.sortByKeys= function( object, compareFunction ) {
  *  }
  *  So you can pass this function as a second parameter to SeLiteMisc.sortByKeys() with no other checks.
  * */
-SeLiteMisc.compareCaseInsensitively= function( first, second ) {
+SeLiteMisc.compareCaseInsensitively= function compareCaseInsensitively( first, second ) {
     var firstLower= first.toLowerCase();
     var secondLower= second.toLowerCase();
     return firstLower===secondLower
@@ -723,7 +723,7 @@ SeLiteMisc.compareCaseInsensitively= function( first, second ) {
  *  @param mixed number or numeric string first
  *  @param mixed number or numeric string second
  * */
-SeLiteMisc.compareAsNumbers= function( first, second ) {
+SeLiteMisc.compareAsNumbers= function compareAsNumbers( first, second ) {
     first= Number(first); // This works if it is already a number
     second= Number(second);
     return first===second
@@ -739,7 +739,7 @@ SeLiteMisc.compareAsNumbers= function( first, second ) {
  *  @return a negative, 0 or positive number, depending on whether first is less
  *  than, equal to or greater than second, in the order as described above.
  * */
-SeLiteMisc.compareNatural= function( first ,second ) {
+SeLiteMisc.compareNatural= function compareNatural( first ,second ) {
     var firstNumber= Number(first); // This works if it is already a number
     var secondNumber= Number(second);
     
@@ -758,7 +758,7 @@ SeLiteMisc.compareNatural= function( first ,second ) {
     extra fields from overriden. If the same field is in both obj and overriden,
     then the value from obj is used.
 */
-SeLiteMisc.objectsMerge= function( obj, overriden ) {
+SeLiteMisc.objectsMerge= function objectsMerge( obj, overriden ) {
     var result= {};
     var field= null;
     if( obj!=null ) {
@@ -778,7 +778,7 @@ SeLiteMisc.objectsMerge= function( obj, overriden ) {
  *  If the same field exists in target object, it will be overwritten.
  *  @return object target
  **/
-SeLiteMisc.objectCopyFields= function( source, target ) {
+SeLiteMisc.objectCopyFields= function objectCopyFields( source, target ) {
     for( var field in source ) {
         target[field]= source[field];
     }
@@ -801,7 +801,7 @@ SeLiteMisc.objectCopyFields= function( source, target ) {
  *  it will be set to be the same as acceptableFields
  *  See https://developer.mozilla.org/en/JavaScript/Reference/Operators/Operator_Precedence
  **/
-SeLiteMisc.objectClone= function( original, acceptableFields, requiredFields, result ) {
+SeLiteMisc.objectClone= function objectClone( original, acceptableFields, requiredFields, result ) {
     acceptableFields= acceptableFields || [];
     requiredFields= requiredFields || [];
     if( requiredFields==='all' ) {
@@ -827,21 +827,21 @@ SeLiteMisc.objectClone= function( original, acceptableFields, requiredFields, re
 /** This deletes all iterable fields from the given object.
  *  @return obj
  **/
-SeLiteMisc.objectDeleteFields= function( obj ) {
+SeLiteMisc.objectDeleteFields= function objectDeleteFields( obj ) {
     for( var field in obj ) {
         delete obj[field];
     }
     return obj;
 };
 
-SeLiteMisc.arrayClone= function( arr ) { return arr.slice(0); };
+SeLiteMisc.arrayClone= function arrayClone( arr ) { return arr.slice(0); };
 
 /** @return an anonymous object, which has all values from obj as keys, and their
  *  respective original keys (field names) as values. If the same value is present for two or more
  *  fields in the original object, then it will be mapped to name of one of those fields (unspecified).
  *  If a value is not a string, it's appended to an empty string (i.e. its toString() will be used, or 'null').
  **/
-SeLiteMisc.objectReverse= function( obj ) {
+SeLiteMisc.objectReverse= function objectReverse( obj ) {
     var result= {};
     for( var field in obj ) {
         var value= obj[field];
@@ -860,7 +860,7 @@ SeLiteMisc.objectReverse= function( obj ) {
         of occurrences of this value in the original object. Values of the original object are converted to strings by
         appending them to an empty string. Indeed, values of different type may map to the same string.
  **/
-SeLiteMisc.objectValues= function( obj, asObject ) {
+SeLiteMisc.objectValues= function objectValues( obj, asObject ) {
     var result= asObject ? {} : [];
     for( var field in obj ) {
         if( asObject ) {
@@ -880,7 +880,7 @@ SeLiteMisc.objectValues= function( obj, asObject ) {
  *  @param mixed value Value to search in the given object.
  *  @param bool strict Whether to compare strictly (using ===); false by default.
  **/
-SeLiteMisc.objectValueToField= function( obj, value, strict ) {
+SeLiteMisc.objectValueToField= function objectValueToField( obj, value, strict ) {
     for( var field in obj ) {
         if( value==obj[field] && (!strict || value===obj[field]) ) {
             return field;
@@ -930,7 +930,7 @@ SeLiteMisc.objectValueToField= function( obj, value, strict ) {
  *  The result can't be an array, because Javascript arrays must have consecutive
  *  non-negative integer index range. General data doesn't fit that.
  */
-SeLiteMisc.collectByColumn= function( records, columnOrFieldName, columnValuesUnique,
+SeLiteMisc.collectByColumn= function collectByColumn( records, columnOrFieldName, columnValuesUnique,
 subIndexColumnOrFieldName, result ) {
     result= result || {};
     if( Array.isArray(records) ) { // The records were not a result of previous call to this method.
@@ -971,11 +971,11 @@ subIndexColumnOrFieldName, result ) {
 /** This groups sub-indexed records. I can't use an anonymous object, because then I couldn't
  *  distinguish it from user record objects, when running SeLiteMisc.collectByColumn() on the previous result of SeLiteMisc.collectByColumn().
  **/
-SeLiteMisc.RecordGroup= function() {};
+SeLiteMisc.RecordGroup= function RecordGroup() {};
 
 /** Internal only. Worker function called by SeLiteMisc.collectByColumn().
  **/
-SeLiteMisc.collectByColumnRecord= function( record, result, columnOrFieldName, columnValuesUnique,
+SeLiteMisc.collectByColumnRecord= function collectByColumnRecord( record, result, columnOrFieldName, columnValuesUnique,
 subIndexColumnOrFieldName ) {
     var columnvalue= SeLiteMisc.getField( record, columnOrFieldName );
     if( columnValuesUnique ) {
@@ -1000,7 +1000,7 @@ subIndexColumnOrFieldName ) {
     }
 };
 
-SeLiteMisc.getField= function( record, columnFieldNameOrFunction ) {
+SeLiteMisc.getField= function getField( record, columnFieldNameOrFunction ) {
     return typeof columnFieldNameOrFunction==='function'
         ? columnFieldNameOrFunction(record)
         : record[columnFieldNameOrFunction];
@@ -1010,7 +1010,7 @@ SeLiteMisc.getField= function( record, columnFieldNameOrFunction ) {
  *  @param {RegExp} regex Regular expression to match acceptable character(s)
  *  @return {string} containing of all ASCII characters that match
  **/
-SeLiteMisc.acceptableCharacters= function( regex ) {
+SeLiteMisc.acceptableCharacters= function acceptableCharacters( regex ) {
     var result= '';
     for( var code=0; code<256; code++ ) {
         var c= String.fromCharCode(code);
@@ -1024,7 +1024,7 @@ SeLiteMisc.acceptableCharacters= function( regex ) {
 /** @param string acceptableChars String containign acceptable characters.
  *  @return string 1 random character from within acceptableChars
  *  @internal */
-SeLiteMisc.randomChar= function( acceptableChars ) {
+SeLiteMisc.randomChar= function randomChar( acceptableChars ) {
     if( acceptableChars.length==0 ) {
         SeLiteMisc.fail( "SeLiteMisc.randomChar() called with empty acceptableChars." );
     }
@@ -1038,7 +1038,7 @@ SeLiteMisc.randomChar= function( acceptableChars ) {
  *  @param number length Length of the result string (possibly 0)
  *  @return string of given length, made of random characters from within acceptableChars
  *  @internal */
-SeLiteMisc.randomString= function( acceptableChars, length ) {
+SeLiteMisc.randomString= function randomString( acceptableChars, length ) {
     var result= '';
     for( var i=0; i<length; i++ ) {
         result+= SeLiteMisc.randomChar(acceptableChars);
@@ -1050,7 +1050,7 @@ SeLiteMisc.randomString= function( acceptableChars, length ) {
  *  @param array Array of items
  *  @return mixed An item from within the array, at a random index
  **/
-SeLiteMisc.randomItem= function( items ) {
+SeLiteMisc.randomItem= function randomItem( items ) {
     var index= Math.round( Math.random()*(items.length-1) );
     return items[index];
 };
@@ -1064,7 +1064,7 @@ SeLiteMisc.randomItem= function( items ) {
  *  @param mixed value Value to set to the leaf field.
  *  @return void
  **/
-SeLiteMisc.setFields= function( object, fieldsString, value ) {
+SeLiteMisc.setFields= function setFields( object, fieldsString, value ) {
     var fields= fieldsString.split('.');
 
     for( var i=0; i<fields.length; i++ ) {
@@ -1080,13 +1080,13 @@ SeLiteMisc.setFields= function( object, fieldsString, value ) {
 /** This returns random true or false, with threshold being the (average) ratio of true results against
  *  the number of all results.
  **/
-SeLiteMisc.random= function( threshold ) {
+SeLiteMisc.random= function random( threshold ) {
     return Math.random()<=threshold;
 };
 
 /**
  **/
-SeLiteMisc.xpath_escape_quote= function( string ) {
+SeLiteMisc.xpath_escape_quote= function xpath_escape_quote( string ) {
     if( string.indexOf("'")>=0 ) {
         if( string.indexOf('"')<0 ) {
             return '"' +string+ '"';
@@ -1120,7 +1120,7 @@ SeLiteMisc.xpath_escape_quote= function( string ) {
     return 'concat(' +resultParts.join(',')+ ')';
 };
 
-SeLiteMisc.unescape_xml= function( param ) {
+SeLiteMisc.unescape_xml= function unescape_xml( param ) {
     return param!==null
         ? (typeof param=='string' ? param : ''+param)
          .replace( /&amp;/g, '&' )
@@ -1144,8 +1144,8 @@ SeLiteMisc.unescape_xml= function( param ) {
  *  The above can be used outside of Selenium-based components - it works in Chrome, Safari, Opera, IE (as of Nov 2012).
  *  However, I haven't tested functionality of SeLiteMisc.PrototypedObject() outside of Firefox.
  **/
-SeLiteMisc.PrototypedObject= function( prototype ) {
-    if( prototype ) {
+SeLiteMisc.PrototypedObject= function PrototypedObject( prototype ) {
+    if( prototype ) { 
         assert( this instanceof prototype.constructor, prototype.constructor.name+
             " inherits from SeLiteMisc.PrototypedObject, whose constructor only accepts an object of the same class as a parameter." );
         for( var field in prototype ) {
@@ -1164,7 +1164,7 @@ SeLiteMisc.PrototypedObject= function( prototype ) {
  *  @return object the leaf record
  *  @throws Exception if position is negative, decimal or higher than the last available position
  **/
-SeLiteMisc.nthRecord= function( recordSet, position ) {
+SeLiteMisc.nthRecord= function nthRecord( recordSet, position ) {
     position>=0 || SeLiteMisc.fail( "SeLiteMisc.nthRecord() requires non-negative position, but it was: " +position);
     return nthRecordOrLengthOrIndexesOf( recordSet, NTH_RECORD, position );
 };
@@ -1176,7 +1176,7 @@ SeLiteMisc.nthRecord= function( recordSet, position ) {
  *  otherwise the subindexed groups (objects serving as associative arrays) couldn't be differentiated from target objects/records).
  *  @int number of leaf records
  */
-SeLiteMisc.numberOfRecords= function( recordSet ) {
+SeLiteMisc.numberOfRecords= function numberOfRecords( recordSet ) {
     return nthRecordOrLengthOrIndexesOf( recordSet, NUMBER_OF_RECORDS );
 };
 
@@ -1188,7 +1188,7 @@ SeLiteMisc.numberOfRecords= function( recordSet ) {
  *  @param record object, record to search for.
  *  @return int 0-based index of that record if found,-1 otherwise.
  */
-SeLiteMisc.indexesOfRecord= function( recordSet, record ) {
+SeLiteMisc.indexesOfRecord= function indexesOfRecord( recordSet, record ) {
     return nthRecordOrLengthOrIndexesOf( recordSet, INDEXES_OF_RECORD, record );
 };
 
@@ -1306,7 +1306,7 @@ var robustNullToken= 'robustNullReplacementString';
  *  @param valueOrSimpleLocator a result of 'expression' as passed to a Selenium action; its value
  *  @return bool as described
  */
-SeLiteMisc.isRobustNull= function( valueOrSimpleLocator ) {
+SeLiteMisc.isRobustNull= function isRobustNull( valueOrSimpleLocator ) {
     // A bit simplified, but good enough. Prefix and Postfix around string{...} should be simple and shouldn't contain robustNullToken
     return typeof valueOrSimpleLocator=='string' && valueOrSimpleLocator.indexOf(robustNullToken)>=0;
 };
