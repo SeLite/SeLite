@@ -5,7 +5,7 @@ Components.utils.import( "chrome://selite-db-objects/content/basic-storage.js" )
 Components.utils.import( "chrome://selite-db-objects/content/basic-objects.js" );
 Components.utils.import( "chrome://selite-db-objects/content/basic-functions.js" );
 
-Selenium.prototype.doReadRecord= function( info, storedVariableName ) {
+Selenium.prototype.doReadRecord= function doReadRecord( info, storedVariableName ) {
     /** @type {SeLiteData.Table} */ var table;
     /** @type SeLiteData.RecordSetFormula*/var formula;
     LOG.debug( 'getRecord info: ' +typeof info+ ': ' +SeLiteMisc.objectToString(info, 2));
@@ -49,7 +49,7 @@ Selenium.prototype.doReadRecord= function( info, storedVariableName ) {
 /** @param {object} recordObject
  *  @param {SeLiteData.Table} table
  * */
-Selenium.prototype.doInsertRecord= function( recordObject, table) {
+Selenium.prototype.doInsertRecord= function doInsertRecord( recordObject, table) {
     var record= new SeLiteData.Record(recordObject);
     table.insert(record);
 };

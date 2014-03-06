@@ -543,7 +543,7 @@ SeLiteData.RecordSetFormula.prototype.columnsToAliases= function columnsToAliase
  *            ...
  *          }
  **/
-SeLiteData.RecordSetFormula.prototype.allAliasesToSource= function() {
+SeLiteData.RecordSetFormula.prototype.allAliasesToSource= function allAliasesToSource() {
     // @TODO update tableByName() to be similar to this, reuse:
     var tableNamesToTables= new SeLiteData.Settable().set( this.table.name, this.table );
     this.joins.forEach( function(join) {
@@ -566,14 +566,14 @@ SeLiteData.RecordSetFormula.prototype.allAliasesToSource= function() {
 /** This returns SeLiteData.RecordSet object, i.e. the records themselves.
  *  @see RecordSetHolder.select().
  **/
-SeLiteData.RecordSetFormula.prototype.select= function( parametersOrCondition ) {
+SeLiteData.RecordSetFormula.prototype.select= function select( parametersOrCondition ) {
     return new RecordSetHolder(this, parametersOrCondition ).select();
 };
 
 /** This returns the SeLiteData.Record object, i.e. the record itself.
  *  @see RecordSetHolder.selectOne()
  **/
-SeLiteData.RecordSetFormula.prototype.selectOne= function( parametersOrCondition ) {
+SeLiteData.RecordSetFormula.prototype.selectOne= function selectOne( parametersOrCondition ) {
     return new RecordSetHolder(this, parametersOrCondition ).selectOne();
 };
 
@@ -582,7 +582,7 @@ SeLiteData.RecordSetFormula.prototype.selectOne= function( parametersOrCondition
  *  It also keeps a non-iterable reference to recordSetHolder.
  *  @param object recordSetHolder of class RecordSetHolder
  **/
-SeLiteData.RecordSet= function( recordSetHolder ) {
+SeLiteData.RecordSet= function RecordSet( recordSetHolder ) {
     SeLiteMisc.ensureInstance( recordSetHolder, RecordSetHolder, 'RecordSetHolder');
     // Set the link from record to its record holder. The field for this link is non-iterable.
     Object.defineProperty( this, SeLiteData.RecordSet.RECORDSET_TO_HOLDER_FIELD, { value: recordSetHolder } );
@@ -601,7 +601,7 @@ function recordSetHolder( recordSet ) {
 
 /** @private
  * */
-SeLiteData.recordOrSetHolder= function( recordOrSet ) {
+SeLiteData.recordOrSetHolder= function recordOrSetHolder( recordOrSet ) {
     if( recordOrSet instanceof SeLiteData.Record ) {
         return SeLiteData.recordHolder(recordOrSet);
     }
@@ -640,13 +640,13 @@ function RecordSetHolder( formula, parametersOrCondition ) {
     this.markedToRemove= {}; // It keeps RecordHolder instances scheduled to be removed; structure like this.holders
 }
 
-RecordSetHolder.prototype.storage= function() {
+RecordSetHolder.prototype.storage= function storage() {
     return this.formula.table.db.storage;
 };
 
 /** @return SeLiteData.RecordSet object
  * */
-RecordSetHolder.prototype.select= function() {
+RecordSetHolder.prototype.select= function select() {
     SeLiteMisc.objectDeleteFields( this.recordSet );
     var formula= this.formula;
 
@@ -823,7 +823,7 @@ RecordSetHolder.prototype.select= function() {
 /** This runs the query just like select(). Then it checks whether there was exactly 1 result row.
  *  If yes, it returns that row (SeLiteData.Record object). Otherwise it throws an exception.
  **/
-RecordSetHolder.prototype.selectOne= function() {
+RecordSetHolder.prototype.selectOne= function selectOne() {
     this.select();
     var keys= Object.keys(this.recordSet);
     if( keys.length!==1 ) {
@@ -832,16 +832,16 @@ RecordSetHolder.prototype.selectOne= function() {
     return this.recordSet[ keys[0] ];
 };
 
-RecordSetHolder.prototype.insert= function() { throw new Error( "@TODO if need be" );
+RecordSetHolder.prototype.insert= function insert() { throw new Error( "@TODO if need be" );
 }
 
-RecordSetHolder.prototype.update= function() { throw new Error( "@TODO if need be" );
+RecordSetHolder.prototype.update= function update() { throw new Error( "@TODO if need be" );
 };
 
 /** This removes the record holder and its record from this set holder and its set. It doesn't
  *  remove the actual DB record.
  **/
-RecordSetHolder.prototype.removeRecordHolder= function( recordHolder ) {
+RecordSetHolder.prototype.removeRecordHolder= function removeRecordHolder( recordHolder ) {
     //@TODO if( typeof this.recordSetHolder.formula.table.primary==='string' ) 
     var primaryKeyValue= recordHolder.record[this.formula.table.primary];
     delete this.holders[ primaryKeyValue ];
@@ -850,7 +850,7 @@ RecordSetHolder.prototype.removeRecordHolder= function( recordHolder ) {
     delete this.markedToRemove[ primaryKeyValue ];
 };
 
-RecordSetHolder.prototype.put= function() {
+RecordSetHolder.prototype.put= function put() {
     for( var i=0; i<this.holders.length; i++ ) {
         var recordHolder= this.holders[i];
         var recordResult= recordHolder.put();
@@ -861,10 +861,10 @@ RecordSetHolder.prototype.put= function() {
     }
 };
 
-RecordSetHolder.prototype.remove= function() { throw "TODO";
+RecordSetHolder.prototype.remove= function remove() { throw "TODO";
 };
 
-RecordSetHolder.prototype.replace= function() {throw 'todo';
+RecordSetHolder.prototype.replace= function replace() {throw 'todo';
 };
 
 var EXPORTED_SYMBOLS= [];
