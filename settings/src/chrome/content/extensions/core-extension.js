@@ -23,7 +23,7 @@
     //@TODO Store the test suite folder via JS component. Have API to return via SeLiteSettings JS component.
     // Tail-intercept of TestSuite.loadFile(file)
     var originalLoadFile= TestSuite.loadFile;
-    TestSuite.loadFile= function(file) {
+    TestSuite.loadFile= function loadFile(file) {
         var result= originalLoadFile.call( this, file );
         SeLiteSettings.setTestSuiteFolder( file.parent.path );
         return result;
@@ -31,7 +31,7 @@
     
     // Tail-intercept of TestSuite.prototype.save(newFile)
     var originalSave= TestSuite.prototype.save;
-    TestSuite.prototype.save= function(newFile) {
+    TestSuite.prototype.save= function save(newFile) {
         var result= originalSave.call(this, newFile);
         // If !this.file or newFile, then the original function call is not saving the file, but it calls itself recursively.
         // That recursive call has this.file and newFile. See the original code in IDE's chrome/content/testSuite.js
@@ -44,7 +44,7 @@
     // Tail-intercept TestSuite constructor itself. Copy all the fields (i.e. static methods & prototype).
     // That (as of Se IDE 2.4.0) is compatible with how original IDE's chrome/content/testSuite.js applies observable(TestSuite) - see also IDE's chrome/content/tools.js
     var originalTestSuite= TestSuite;
-    TestSuite= function() {
+    TestSuite= function TestSuite() {
         originalTestSuite.call(this);
         SeLiteSettings.setTestSuiteFolder( undefined );
     };

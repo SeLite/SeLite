@@ -136,7 +136,7 @@ RowLevel.CHECKBOX= new RowLevel('CHECKBOX', -1);
 RowLevel.ACTION= new RowLevel('ACTION', -1, true);
 RowLevel.NULL_OR_UNDEFINE= new RowLevel('NULL_OR_UNDEFINE', -1);
 
-RowLevel.prototype.toString= function() {
+RowLevel.prototype.toString= function toString() {
     return 'RowLevel.' +this.name;
 };
 
@@ -144,7 +144,7 @@ RowLevel.prototype.toString= function() {
  *  @return bool Whether this is at a more detailed level (i.e. 'below') other.
  *  sameLevel.below(sameLevel) is false.
  * */
-RowLevel.prototype.below= function( other ) {
+RowLevel.prototype.below= function below( other ) {
     if( !(other instanceof RowLevel) ) {
         throw new Error( 'RowLevel.below(other) expects other to be an instance of RowLevel.');
     }
@@ -165,7 +165,7 @@ if( !RowLevel.SET.below(RowLevel.MODULE) ) {
  *  that select an item from within a list depending on RowLevel instance.
  *  @return one of forModule, forSet, forField, forOption or forNullOrUndefine, depending on the level
  * */
-RowLevel.prototype.forLevel= function( forModule, forSet, forCheckbox, forField, forOption, forNullOrUndefine ) {
+RowLevel.prototype.forLevel= function forLevel( forModule, forSet, forCheckbox, forField, forOption, forNullOrUndefine ) {
     if( this===RowLevel.MODULE ) {
         return forModule;
     }

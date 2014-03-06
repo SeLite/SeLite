@@ -288,7 +288,7 @@ SeLiteSettings.Field.prototype.getDefaultKey= function getDefaultKey() {
     return this.defaultKey;
 };
 
-SeLiteSettings.Field.prototype.toString= function() {
+SeLiteSettings.Field.prototype.toString= function toString() {
     return this.constructor.name+ '[module: ' +(this.module ? this.module.name : 'unknown')+ ', name: ' +this.name+ ']';
 };
 
@@ -297,14 +297,14 @@ SeLiteSettings.Field.prototype.toString= function() {
  *  @param key User-typed value
  *  @return trimmed value (or unchanged value of key)
  * */
-SeLiteSettings.Field.prototype.trim= function( key ) { return key; };
+SeLiteSettings.Field.prototype.trim= function trim( key ) { return key; };
 
 /** Parse a free-typed value. Cast it as needed. This is called after the value went through trim().
  *  Do not check for 'null' or 'undefined' - these are handled by ovOptions.js.
  *  @param key User-typed value
  *  @return parsed/processed value
  * */
-SeLiteSettings.Field.prototype.parse= function( key ) { return key; };
+SeLiteSettings.Field.prototype.parse= function parse( key ) { return key; };
 
 /** This validates a single value (i.e. other than undefined or null).
  *  If the field is an instance of SeLiteSettings.Field.Choice, this validates the value/label (not the key).
@@ -312,7 +312,7 @@ SeLiteSettings.Field.prototype.parse= function( key ) { return key; };
  *  also for validation of default key(s) of any field (including SeLiteSettings.Field.Choice). Overriden as needed.
  *  @param key mixed string or number
  * */
-SeLiteSettings.Field.prototype.validateKey= function( key ) {
+SeLiteSettings.Field.prototype.validateKey= function validateKey( key ) {
     return typeof key==='string';
 };
 
@@ -322,11 +322,11 @@ SeLiteSettings.Field.prototype.validateKey= function( key ) {
  *  @param string/number secondValue
  *  @return int -1, 0, or 1, see SeLiteMisc.compareCaseInsensitively()
  * */
-SeLiteSettings.Field.prototype.compareValues= function( firstValue, secondValue ) {
+SeLiteSettings.Field.prototype.compareValues= function compareValues( firstValue, secondValue ) {
     return SeLiteMisc.compareCaseInsensitively( firstValue, secondValue );
 };
 
-SeLiteSettings.Field.prototype.registerFor= function( module ) {
+SeLiteSettings.Field.prototype.registerFor= function registerFor( module ) {
     if( !(module instanceof SeLiteSettings.Module) ) {
         throw new Error( "SeLiteSettings.Field.registerFor(module) expects module to be an instance of SeLiteSettings.Module.");
     };
@@ -338,13 +338,13 @@ SeLiteSettings.Field.prototype.registerFor= function( module ) {
 
 /** Only used when creating new sets that populate default keys. See docs of parameter defaultKey of constructor SeLiteSettings.Field().
  * */
-SeLiteSettings.Field.prototype.setDefault= function( setName ) {
+SeLiteSettings.Field.prototype.setDefault= function setDefault( setName ) {
     this.setValue( setName, this.defaultKey );
 };
 /** This returns the preference type used for storing legitimate non-null value(s) of this field.
  *  @return string one of: nsIPrefBranch.PREF_STRING, nsIPrefBranch.PREF_BOOL, nsIPrefBranch.PREF_INT
  * */
-SeLiteSettings.Field.prototype.prefType= function() {
+SeLiteSettings.Field.prototype.prefType= function prefType() {
     return nsIPrefBranch.PREF_STRING;
 };
 /** Set/update a value of a singlevalued non-choice field.
@@ -352,7 +352,7 @@ SeLiteSettings.Field.prototype.prefType= function() {
  * @param setName string
  * @param value mixed; currently it must not be null or undefined - @TODO
  * */
-SeLiteSettings.Field.prototype.setValue= function( setName, value ) {
+SeLiteSettings.Field.prototype.setValue= function setValue( setName, value ) {
     !this.multivalued && !(this instanceof SeLiteSettings.Field.Choice) || SeLiteMisc.fail( "Can't call setValue() on field " +this.name+ " because it's multivalued or a SeLiteSettings.Field.Choice." );
     var setNameWithDot= setName!==''
         ? setName+'.'
@@ -370,7 +370,7 @@ SeLiteSettings.Field.prototype.setValue= function( setName, value ) {
 /** Set a field (with the given field and key name) to the given value. It doesn't call nsIPrefService.savePrefFile()
  *  but they get saved somehow anyway.
  * */
-SeLiteSettings.Field.prototype.setPref= function( setFieldKeyName, value ) {
+SeLiteSettings.Field.prototype.setPref= function setPref( setFieldKeyName, value ) {
     var prefType= this.prefType();
     if( prefType===nsIPrefBranch.PREF_STRING ) {
         this.module.prefsBranch.setCharPref( setFieldKeyName, value );
@@ -394,7 +394,7 @@ SeLiteSettings.Field.prototype.setPref= function( setFieldKeyName, value ) {
  * @param {boolean|number|string} value Only used by SeLiteSettings.Field.FixedMap. Otherwise it must be undefined.
  * @TODO Low priority: API function to set a multivalued/choice field to undefined (if this.requireAndPopulate===false)
  * */
-SeLiteSettings.Field.prototype.addValue= function( setName, key, value ) {
+SeLiteSettings.Field.prototype.addValue= function addValue( setName, key, value ) {
     this.multivalued || this instanceof SeLiteSettings.Field.Choice || SeLiteMisc.fail("Use SeLiteSettings.Field.addValue() only for multivalued or choice fields.");
     var setNameDot= setName!==''
         ? setName+'.'
@@ -414,7 +414,7 @@ SeLiteSettings.Field.prototype.addValue= function( setName, key, value ) {
  * @param string setName May be empty.
  * @param mixed key as used to generate the preference name (key), appened after fieldName and a dot. String or number.
  * */
-SeLiteSettings.Field.prototype.removeValue= function( setName, key ) {
+SeLiteSettings.Field.prototype.removeValue= function removeValue( setName, key ) {
     this.multivalued || this instanceof SeLiteSettings.Field.Choice || SeLiteMisc.fail();
     var setNameDot= setName!==''
         ? setName+'.'
@@ -429,7 +429,7 @@ SeLiteSettings.Field.prototype.removeValue= function( setName, key ) {
 
 /** @return bool
  * */
-SeLiteSettings.Field.prototype.equals= function( other ) {
+SeLiteSettings.Field.prototype.equals= function equals( other ) {
     return this.name===other.name
         && this.constructor===other.constructor
         && (!this.multivalued
@@ -449,70 +449,70 @@ SeLiteSettings.Field.prototype.equals= function( other ) {
     }
     @see SeLiteSettings.Module.getFieldsDownToFolder()
  * */
-SeLiteSettings.Field.prototype.getDownToFolder= function( folderPath, dontCache ) {
+SeLiteSettings.Field.prototype.getDownToFolder= function getDownToFolder( folderPath, dontCache ) {
     return this.module.getFieldsDownToFolder( folderPath, dontCache )[ this.name ];
 };
 
 // @TODO Move this line to Javascript.wiki?: See also https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
 /** There's no parameter 'customValidate' for Bool.
  * */
-SeLiteSettings.Field.Bool= function( name, defaultKey, requireAndPopulate ) {
+SeLiteSettings.Field.Bool= function Bool( name, defaultKey, requireAndPopulate ) {
     SeLiteSettings.Field.NonChoice.call( this, name, false, defaultKey, requireAndPopulate );
 };
 SeLiteSettings.Field.Bool.prototype= new SeLiteSettings.Field.NonChoice('Bool.prototype');
 SeLiteSettings.Field.Bool.prototype.constructor= SeLiteSettings.Field.Bool;
-SeLiteSettings.Field.Bool.prototype.validateKey= function( key ) {
+SeLiteSettings.Field.Bool.prototype.validateKey= function validateKey( key ) {
     return typeof key==='boolean';
 };
-SeLiteSettings.Field.Bool.prototype.prefType= function() {
+SeLiteSettings.Field.Bool.prototype.prefType= function prefType() {
     return nsIPrefBranch.PREF_BOOL;
 };
 
-SeLiteSettings.Field.Int= function( name, multivalued, defaultKey, requireAndPopulate, customValidate ) {
+SeLiteSettings.Field.Int= function Int( name, multivalued, defaultKey, requireAndPopulate, customValidate ) {
     SeLiteSettings.Field.NonChoice.call( this, name, multivalued, defaultKey, requireAndPopulate, customValidate );
 };
 SeLiteSettings.Field.Int.prototype= new SeLiteSettings.Field.NonChoice('Int.prototype');
 SeLiteSettings.Field.Int.prototype.constructor= SeLiteSettings.Field.Int;
-SeLiteSettings.Field.Int.prototype.trim= function( key ) { return key.trim(); };
-SeLiteSettings.Field.Int.prototype.parse= function( key ) {
+SeLiteSettings.Field.Int.prototype.trim= function trim( key ) { return key.trim(); };
+SeLiteSettings.Field.Int.prototype.parse= function parse( key ) {
     return key!==''
         ? Number(key)
         : Number.NaN; // Number('') or Number(' ') etc. returns 0 - not good for validation!
 };
-SeLiteSettings.Field.Int.prototype.validateKey= function( key ) {
+SeLiteSettings.Field.Int.prototype.validateKey= function validateKey( key ) {
     return typeof key==='number' && Math.round(key)===key; // This also handles (fails for) NaN, since Number.NaN!==Number.NaN
 };
-SeLiteSettings.Field.Int.prototype.prefType= function() {
+SeLiteSettings.Field.Int.prototype.prefType= function prefType() {
     return nsIPrefBranch.PREF_INT;
 };
 /** This works even if one or both parameters are strings - it transforms them into numbers.
  *  We need this for XUL GUI setCellText handler.
  * */
-SeLiteSettings.Field.Int.prototype.compareValues= function( firstValue, secondValue ) {
+SeLiteSettings.Field.Int.prototype.compareValues= function compareValues( firstValue, secondValue ) {
     return SeLiteMisc.compareAsNumbers(firstValue, secondValue );
 };
 
-SeLiteSettings.Field.Decimal= function( name, multivalued, defaultKey, requireAndPopulate, customValidate ) {
+SeLiteSettings.Field.Decimal= function Decimal( name, multivalued, defaultKey, requireAndPopulate, customValidate ) {
     SeLiteSettings.Field.NonChoice.call( this, name, multivalued, defaultKey, requireAndPopulate, customValidate );
 };
 SeLiteSettings.Field.Decimal.prototype= new SeLiteSettings.Field.NonChoice('Decimal.prototype');
 SeLiteSettings.Field.Decimal.prototype.constructor= SeLiteSettings.Field.Decimal;
 SeLiteSettings.Field.Decimal.prototype.trim= SeLiteSettings.Field.Int.prototype.trim;
 SeLiteSettings.Field.Decimal.prototype.parse= SeLiteSettings.Field.Int.prototype.parse;
-SeLiteSettings.Field.Decimal.prototype.validateKey= function( key ) {
+SeLiteSettings.Field.Decimal.prototype.validateKey= function validateKey( key ) {
     return typeof key==='number' && !isNaN(key);
 };
-SeLiteSettings.Field.Decimal.prototype.prefType= function() {
+SeLiteSettings.Field.Decimal.prototype.prefType= function prefType() {
     return nsIPrefBranch.PREF_STRING;
 };
 /** This works even if one or both parameters are strings - it transforms them into numbers.
  *  We need this for XUL GUI setCellText handler.
  * */
-SeLiteSettings.Field.Decimal.prototype.compareValues= function( firstValue, secondValue ) {
+SeLiteSettings.Field.Decimal.prototype.compareValues= function compareValues( firstValue, secondValue ) {
     return SeLiteMisc.compareAsNumbers(firstValue, secondValue );
 };
 
-SeLiteSettings.Field.String= function( name, multivalued, defaultKey, requireAndPopulate, customValidate ) {
+SeLiteSettings.Field.String= function String( name, multivalued, defaultKey, requireAndPopulate, customValidate ) {
     SeLiteSettings.Field.NonChoice.call( this, name, multivalued, defaultKey, requireAndPopulate, customValidate );
 };
 SeLiteSettings.Field.String.prototype= new SeLiteSettings.Field.NonChoice('String.prototype');
@@ -531,7 +531,7 @@ SeLiteSettings.Field.String.prototype.constructor= SeLiteSettings.Field.String;
  *  @param saveFile Whether we're saving/creating a file, otherwise we're opening/reading. Optional, false by default.
     Only needed when isFolder is false, because the file/folder picker dialog always lets you create new folder (if you have access).
  * */
-SeLiteSettings.Field.FileOrFolder= function( name, startInProfileFolder, filters, multivalued, defaultKey, isFolder, requireAndPopulate, customValidate, saveFile ) {
+SeLiteSettings.Field.FileOrFolder= function FileOrFolder( name, startInProfileFolder, filters, multivalued, defaultKey, isFolder, requireAndPopulate, customValidate, saveFile ) {
     SeLiteSettings.Field.NonChoice.call( this, name, multivalued, defaultKey, requireAndPopulate, customValidate );
     this.startInProfileFolder= startInProfileFolder || false;
     if( typeof this.startInProfileFolder!='boolean' ) {
@@ -548,7 +548,7 @@ SeLiteSettings.Field.FileOrFolder.prototype= new SeLiteSettings.Field.NonChoice(
 SeLiteSettings.Field.FileOrFolder.prototype.constructor= SeLiteSettings.Field.FileOrFolder;
 
 SeLiteSettings.Field.FileOrFolder.prototype.parentEquals= SeLiteSettings.Field.prototype.equals;
-SeLiteSettings.Field.FileOrFolder.prototype.equals= function( other ) {
+SeLiteSettings.Field.FileOrFolder.prototype.equals= function equals( other ) {
     if( !this.parentEquals(other)
     || this.startInProfileFolder!==other.startInProfileFolder
     || this.isFolder!==other.isFolder ) {
@@ -564,7 +564,7 @@ SeLiteSettings.Field.FileOrFolder.prototype.equals= function( other ) {
  *  @param bool startInProfileFolder See SeLiteSettings.Field.FileOrFolder()
  *  @param filters See SeLiteSettings.Field.FileOrFolder()
  * */
-SeLiteSettings.Field.File= function( name, startInProfileFolder, filters, multivalued, defaultKey, requireAndPopulate, customValidate, saveFile ) {
+SeLiteSettings.Field.File= function File( name, startInProfileFolder, filters, multivalued, defaultKey, requireAndPopulate, customValidate, saveFile ) {
     SeLiteSettings.Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultKey, false, requireAndPopulate, customValidate, saveFile );
 };
 SeLiteSettings.Field.File.prototype= new SeLiteSettings.Field.FileOrFolder('File.prototype');
@@ -574,7 +574,7 @@ SeLiteSettings.Field.File.prototype.constructor= SeLiteSettings.Field.File;
  *  @param bool startInProfileFolder See SeLiteSettings.Field.FileOrFolder()
  *  @param filters See SeLiteSettings.Field.FileOrFolder()
  * */
-SeLiteSettings.Field.Folder= function( name, startInProfileFolder, filters, multivalued, defaultKey, requireAndPopulate, customValidate ) {
+SeLiteSettings.Field.Folder= function Folder( name, startInProfileFolder, filters, multivalued, defaultKey, requireAndPopulate, customValidate ) {
     SeLiteSettings.Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultKey, true, requireAndPopulate, customValidate, false );
 };
 SeLiteSettings.Field.Folder.prototype= new SeLiteSettings.Field.FileOrFolder('Folder.prototype');
@@ -582,7 +582,7 @@ SeLiteSettings.Field.Folder.prototype.constructor= SeLiteSettings.Field.Folder;
 
 /** It can only be single-valued. An SQLite DB cannot span across multiple files (or if it can, I'm not supporting that).
  * */
-SeLiteSettings.Field.SQLite= function( name, defaultKey, requireAndPopulate, customValidate, saveFile ) {
+SeLiteSettings.Field.SQLite= function SQLite( name, defaultKey, requireAndPopulate, customValidate, saveFile ) {
     // I match '*.sqlite*' rather than just '*.sqlite', because Drupal 7 adds DB prefix name to the end of the file name
     SeLiteSettings.Field.File.call( this, name, true, { 'SQLite': '*.sqlite*', 'any': null}, false, defaultKey, requireAndPopulate, customValidate, saveFile );
 };
@@ -597,7 +597,7 @@ SeLiteSettings.Field.SQLite.prototype.constructor= SeLiteSettings.Field.SQLite;
  *  label reflects how it is shown when using Firefox url about:config.
  *  Also, Javascript transforms object field/key names to strings, even if they were set to number/boolean.
  * */
-SeLiteSettings.Field.Choice= function( name, multivalued, defaultKey, choicePairs, requireAndPopulate, customValidate ) {
+SeLiteSettings.Field.Choice= function Choice( name, multivalued, defaultKey, choicePairs, requireAndPopulate, customValidate ) {
     this.choicePairs= choicePairs || {}; // This is set before I call the parent constructor, so that it can validate defaultKey against this.choicePairs
     SeLiteSettings.Field.call( this, name, multivalued, defaultKey, requireAndPopulate, customValidate );
     loadingPackageDefinition || this.constructor!==SeLiteSettings.Field.Choice
@@ -624,30 +624,30 @@ SeLiteSettings.Field.Choice= function( name, multivalued, defaultKey, choicePair
 };
 SeLiteSettings.Field.Choice.prototype= new SeLiteSettings.Field('Choice.prototype');
 SeLiteSettings.Field.Choice.prototype.constructor= SeLiteSettings.Field.Choice;
-SeLiteSettings.Field.Choice.prototype.compareValues= function() {
+SeLiteSettings.Field.Choice.prototype.compareValues= function compareValues() {
     throw new Error( 'Do not use SeLiteSettings.Field.Choice.compareValues(). Sort choicePairs yourself.');
 };
-SeLiteSettings.Field.Choice.prototype.setDefault= function() {
+SeLiteSettings.Field.Choice.prototype.setDefault= function setDefault() {
     throw new Error("Do not call setDefault() on SeLiteSettings.Field.Choice family.");
 };
-SeLiteSettings.Field.Choice.prototype.setValue= function() {
+SeLiteSettings.Field.Choice.prototype.setValue= function setValue() {
     throw new Error("Do not call setValue() on SeLiteSettings.Field.Choice family.");
 };
 /** It requires the key to be
  *  - among keys in this.choicePairs
  *  - a string or a number
  *  */
-SeLiteSettings.Field.Choice.prototype.validateKey= function( key ) {
+SeLiteSettings.Field.Choice.prototype.validateKey= function validateKey( key ) {
     return SeLiteMisc.oneOf( typeof key, ['string', 'number']) && key in this.choicePairs;
 };
 
 /** Validate a value. Only present for SeLiteSettings.Field.Choice (and subclasses).
  * */
-SeLiteSettings.Field.Choice.prototype.validateValue= function( value ) {
+SeLiteSettings.Field.Choice.prototype.validateValue= function validateValue( value ) {
     return SeLiteMisc.oneOf( typeof value, ['string', 'number']);
 };
 
-SeLiteSettings.Field.Choice.Int= function( name, multivalued, defaultKey, choicePairs, requireAndPopulate, customValidate ) {
+SeLiteSettings.Field.Choice.Int= function Int( name, multivalued, defaultKey, choicePairs, requireAndPopulate, customValidate ) {
     SeLiteSettings.Field.Choice.call( this, name, multivalued, defaultKey, choicePairs, requireAndPopulate, customValidate );
 };
 SeLiteSettings.Field.Choice.Int.prototype= new SeLiteSettings.Field.Choice('ChoiceInt.prototype');
@@ -655,11 +655,11 @@ SeLiteSettings.Field.Choice.Int.prototype.constructor= SeLiteSettings.Field.Choi
 SeLiteSettings.Field.Choice.Int.prototype.trim= SeLiteSettings.Field.Int.prototype.trim;
 SeLiteSettings.Field.Choice.Int.prototype.parse= SeLiteSettings.Field.Int.prototype.parse;
 SeLiteSettings.Field.Choice.Int.prototype.prefType= SeLiteSettings.Field.Int.prototype.prefType;
-SeLiteSettings.Field.Choice.Int.prototype.validateValue= function( value ) {
+SeLiteSettings.Field.Choice.Int.prototype.validateValue= function validateValue( value ) {
     return typeof value==='number' && Math.round(value)===value;
 };
 
-SeLiteSettings.Field.Choice.Decimal= function( name, multivalued, defaultKey, choicePairs, requireAndPopulate, customValidate ) {
+SeLiteSettings.Field.Choice.Decimal= function Decimal( name, multivalued, defaultKey, choicePairs, requireAndPopulate, customValidate ) {
     SeLiteSettings.Field.Choice.call( this, name, multivalued, defaultKey, choicePairs, requireAndPopulate, customValidate );
 };
 SeLiteSettings.Field.Choice.Decimal.prototype= new SeLiteSettings.Field.Choice('ChoiceDecimal.prototype');
@@ -667,11 +667,11 @@ SeLiteSettings.Field.Choice.Decimal.prototype.constructor= SeLiteSettings.Field.
 SeLiteSettings.Field.Choice.Decimal.prototype.trim= SeLiteSettings.Field.Decimal.prototype.trim;
 SeLiteSettings.Field.Choice.Decimal.prototype.parse= SeLiteSettings.Field.Decimal.prototype.parse;
 SeLiteSettings.Field.Choice.Decimal.prototype.prefType= SeLiteSettings.Field.Decimal.prototype.prefType;
-SeLiteSettings.Field.Choice.Decimal.prototype.validateValue= function( value ) {
+SeLiteSettings.Field.Choice.Decimal.prototype.validateValue= function validateValue( value ) {
     return typeof value==='number' && !isNaN(value);
 };
 
-SeLiteSettings.Field.Choice.String= function( name, multivalued, defaultKey, choicePairs, requireAndPopulate, customValidate ) {
+SeLiteSettings.Field.Choice.String= function String( name, multivalued, defaultKey, choicePairs, requireAndPopulate, customValidate ) {
     SeLiteSettings.Field.Choice.call( this, name, multivalued, defaultKey, choicePairs, requireAndPopulate, customValidate );
     for( var key in this.choicePairs ) {
         var value= this.choicePairs[key];
@@ -690,7 +690,7 @@ SeLiteSettings.Field.Choice.String.prototype.constructor= SeLiteSettings.Field.C
  *  @param {string} name
  *  @param {(string|number)[]} keySet We only allow strings, or numbers, because they're stored as strings (as a part of preference names). keySet specifically can't contain expression undefined, since updateSpecial() depends on that. Numbers get transformed to strings.
  * */
-SeLiteSettings.Field.FixedMap= function( name, keySet, defaultMappings, requireAndPopulate, customValidate ) {
+SeLiteSettings.Field.FixedMap= function FixedMap( name, keySet, defaultMappings, requireAndPopulate, customValidate ) {
     loadingPackageDefinition || this.constructor!==SeLiteSettings.Field.FixedMap
         || SeLiteMisc.fail( "Can't define instances of SeLiteSettings.Field.FixedMap class itself outside the package. Use SeLiteSettings.Field.FixedMap.Bool, SeLiteSettings.Field.FixedMap.Int, SeLiteSettings.Field.FixedMap.Decimal or SeLiteSettings.Field.FixedMap.String." );
     SeLiteSettings.Field.NonChoice.call( this, name, /*multivalued*/true, defaultMappings, requireAndPopulate, customValidate );
@@ -715,7 +715,7 @@ SeLiteSettings.Field.FixedMap= function( name, keySet, defaultMappings, requireA
 SeLiteSettings.Field.FixedMap.prototype= new SeLiteSettings.Field.NonChoice('FixedMap.prototype');
 SeLiteSettings.Field.FixedMap.prototype.constructor= SeLiteSettings.Field.FixedMap;
 
-SeLiteSettings.Field.FixedMap.String= function( name, keySet, defaultMappings, requireAndPopulate, customValidate ) {
+SeLiteSettings.Field.FixedMap.String= function String( name, keySet, defaultMappings, requireAndPopulate, customValidate ) {
     SeLiteSettings.Field.FixedMap.call( this, name, keySet, defaultMappings, requireAndPopulate, customValidate );
 };
 SeLiteSettings.Field.FixedMap.String.prototype= new SeLiteSettings.Field.FixedMap('FixedMapString.prototype', [], {});
@@ -725,20 +725,20 @@ SeLiteSettings.Field.FixedMap.String.prototype.constructor= SeLiteSettings.Field
  * It keeps the data in memory in any way (e.g. in an instance field) - there should be just one instance of it at any time.
  * However, load() should clear that memory, to remove any data from previous calls.
  *  */
-SeLiteSettings.TestDbKeeper= function() {};
+SeLiteSettings.TestDbKeeper= function TestDbKeeper() {};
 
 /** Insert/update any relevant test data from memory to testStorage
  *  @param {SeLiteData.Storage} testStorage
  * */
-SeLiteSettings.TestDbKeeper.prototype.initialise= function( testStorage ) {
+SeLiteSettings.TestDbKeeper.prototype.initialise= function initialise( testStorage ) {
     this.testStorage= testStorage;
 };
 /** Load any relevant test data from testStorage to memory. It must be robust - there may not be any test DB yet, or with an out of date schema.
  * */
-SeLiteSettings.TestDbKeeper.prototype.load= function() {};
+SeLiteSettings.TestDbKeeper.prototype.load= function load() {};
 /** Update any relevant test data from memory to testStorage. For records that don't exist there, this may re-create them (up to the implementation).
  * */
-SeLiteSettings.TestDbKeeper.prototype.store= function() {};
+SeLiteSettings.TestDbKeeper.prototype.store= function store() {};
 
 /** Simple implementation of SeLiteSettings.TestDbKeeper. It loads all data (the given columns)
  *  from test DB. Then after test DB is reloaded from vanilla or app DB, it updates all given columns
@@ -749,7 +749,7 @@ SeLiteSettings.TestDbKeeper.prototype.store= function() {};
        columns: array of string column(s) to preserve; columns[] must include the matching key
  *  }
  * */
-SeLiteSettings.TestDbKeeper.Columns= function( description ) {
+SeLiteSettings.TestDbKeeper.Columns= function Columns( description ) {
     SeLiteSettings.TestDbKeeper.call( this );
     typeof description==='object' || SeLiteMisc.fail();
     this.description= description;
@@ -767,7 +767,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.constructor= SeLiteSettings.TestDb
 
 /**  @param {SeLiteData.Storage} testStorage
  */
-SeLiteSettings.TestDbKeeper.Columns.prototype.initialise= function( testStorage ) {
+SeLiteSettings.TestDbKeeper.Columns.prototype.initialise= function initialise( testStorage ) {
     SeLiteSettings.TestDbKeeper.prototype.initialise.call( this, testStorage );
     this.db= new SeLiteData.Db( this.testStorage );
     //this.tables= {}; // string tableName => SeLiteData.Table
@@ -789,7 +789,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.initialise= function( testStorage 
         this.formulas[ tableName ]= formula;
     }
 };
-SeLiteSettings.TestDbKeeper.Columns.prototype.load= function() {
+SeLiteSettings.TestDbKeeper.Columns.prototype.load= function load() {
     for( var tableName in this.formulas ) {
         this.data[tableName]= {}; // indexByValue => object record
         try { // The table may not exist in this.testStorage (yet). If it doesn't, then we just skip it.
@@ -809,7 +809,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.load= function() {
         }
     }
 };
-SeLiteSettings.TestDbKeeper.Columns.prototype.store= function() {
+SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
     for( var tableName in this.formulas ) {
         try { // The table may not exist in this.testStorage (anymore). If it doesn't, then we just skip it.
             this.testStorage.select( 'SELECT count(*) AS num FROM ' +tableName, ['num'] );
@@ -874,7 +874,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function() {
  *  @param {SeLiteMisc.TestDbKeeper} [testDbKeeper]
  *  @param {boolean} [dontRegister] Whether not to (re)register this module; by default it's false (i.e. do register).
  * */
-SeLiteSettings.Module= function( name, fields, allowSets, defaultSetName, associatesWithFolders, definitionJavascriptFile, testDbKeeper, dontRegister ) {
+SeLiteSettings.Module= function Module( name, fields, allowSets, defaultSetName, associatesWithFolders, definitionJavascriptFile, testDbKeeper, dontRegister ) {
     this.name= name;
     if( typeof this.name!='string' ) {
         throw new Error( 'SeLiteSettings.Module() expects a string name.');
@@ -924,7 +924,7 @@ SeLiteSettings.Module= function( name, fields, allowSets, defaultSetName, associ
     }
 };
 
-SeLiteSettings.savePrefFile= function() {
+SeLiteSettings.savePrefFile= function savePrefFile() {
     prefs.savePrefFile( null );
 };
 
@@ -961,7 +961,7 @@ function directChildList( prefsBranch, namePrefix ) {
 /**@return array of strings names of sets as they are in the preferences DB, or [''] if the module
  * doesn't allow sets
  * */
-SeLiteSettings.Module.prototype.setNames= function() {
+SeLiteSettings.Module.prototype.setNames= function setNames() {
     if( !this.allowSets ) {
         return [''];
     }
@@ -980,7 +980,7 @@ SeLiteSettings.Module.prototype.setNames= function() {
 /** @return string name of the selected (active) set, including a trailing dot '.'. Null if no set is selected.
  *  @throws If the module doesn't allow sets.
  * */
-SeLiteSettings.Module.prototype.selectedSetName= function() {
+SeLiteSettings.Module.prototype.selectedSetName= function selectedSetName() {
     if( !this.allowSets ) {
         throw new Error( "SeLiteSettings.Module '" +this.name+ "' doesn't allow sets.");
     }
@@ -994,7 +994,7 @@ SeLiteSettings.Module.prototype.selectedSetName= function() {
  *  @param string name of the set to become selected (active), including a trailing dot '.'
  *  @throws If the module doesn't allow sets.
  * */
-SeLiteSettings.Module.prototype.setSelectedSetName= function( setName ) {
+SeLiteSettings.Module.prototype.setSelectedSetName= function setSelectedSetName( setName ) {
     if( !this.allowSets ) {
         throw new Error( "SeLiteSettings.Module '" +this.name+ "' doesn't allow sets.");
     }
@@ -1016,7 +1016,7 @@ SeLiteSettings.Module.prototype.setSelectedSetName= function( setName ) {
  *  }
  *  It doesn't inject any defaults from the module configuration or values manifests for fields that are not defined in the set.
  * */
-SeLiteSettings.Module.prototype.getFieldsOfSet= function( setName ) {
+SeLiteSettings.Module.prototype.getFieldsOfSet= function getFieldsOfSet( setName ) {
     if( setName===undefined || setName===null ) {
         setName= this.allowSets
             ? this.selectedSetName()
@@ -1108,7 +1108,7 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function( setName ) {
  *  @return {SeLiteSettigs.Module} If moduleNameOrModule is a string, return an instance for that module if registered;
  *  if moduleNameOrModule is SeLiteSettings.Module instance, return it; undefined otherwise.
  * */
-SeLiteSettings.Module.forName= function( moduleNameOrModule ) {
+SeLiteSettings.Module.forName= function forName( moduleNameOrModule ) {
     if( moduleNameOrModule instanceof SeLiteSettings.Module ) {
         return moduleNameOrModule;
     }
@@ -1298,12 +1298,12 @@ var namedTestSuiteFolderChangeHandlers= {};
 
 /** @return string Full path of the current Se IDE test suite folder. Or undefined - see testSuiteFolder.
  * */
-SeLiteSettings.getTestSuiteFolder= function() { return testSuiteFolder; };
+SeLiteSettings.getTestSuiteFolder= function getTestSuiteFolder() { return testSuiteFolder; };
 
 /** @note Internal. Used by extensions/core-extension.js which stores the path of the test suite here.
  *  @param folder string or undefined
  * */
-SeLiteSettings.setTestSuiteFolder= function( folder ) {
+SeLiteSettings.setTestSuiteFolder= function setTestSuiteFolder( folder ) {
     //console.log( 'setTestSuiteFolder ' +folder );
     if( testSuiteFolder!==folder ) {
         testSuiteFolder= folder;
@@ -1318,7 +1318,7 @@ SeLiteSettings.setTestSuiteFolder= function( folder ) {
 
 /** @private within SeLite family. Called when Se IDE is being closed down.
  * */
-SeLiteSettings.closingIde= function() {
+SeLiteSettings.closingIde= function closingIde() {
     for( var i=0; i<closingIdeHandlers.length; i++ ) { //@TODO use loop for( .. of ..)
         closingIdeHandlers[i].call();
     }
@@ -1353,7 +1353,7 @@ SeLiteSettings.closingIde= function() {
  *  - a values manifest
  *  - default key (value) of the field
 * */
-SeLiteSettings.Module.prototype.getFieldsDownToFolder= function( folderPath, dontCache ) {
+SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToFolder( folderPath, dontCache ) {
     folderPath= folderPath || testSuiteFolder;
     this.associatesWithFolders || SeLiteMisc.fail( "SeLiteSettings.Module.getFieldsDownToFolder() requires module.associatesWithFolders to be true, but it was called for module " +this.name );
     dontCache= dontCache || false;
@@ -1480,7 +1480,7 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function( folderPath, don
  * It calls nsIPrefService.savePrefFile().
  * @return void
  * */
-SeLiteSettings.Module.prototype.register= function() {
+SeLiteSettings.Module.prototype.register= function register() {
     if( this.definitionJavascriptFile ) {
         this.prefsBranch.setCharPref( MODULE_DEFINITION_FILE_OR_URL, this.definitionJavascriptFile ); // If the definition file got moved, this keeps the track of it. That's good for clients of SeLiteSettings.loadFromJavascript() that don't know the location of the file.
     }
@@ -1530,7 +1530,7 @@ SeLiteSettings.Module.prototype.register= function() {
 /** (Re)create a set of the given name - create it, or add any missing fields.
  *  @param setName string name of the set to create/update; optional. If empty or null, it operates on the main & only set.
  * */
-SeLiteSettings.Module.prototype.createSet= function( setName ) {
+SeLiteSettings.Module.prototype.createSet= function createSet( setName ) {
     if( setName===undefined || setName===null ) {
         setName= '';
     }
@@ -1610,7 +1610,7 @@ SeLiteSettings.Module.prototype.createSet= function( setName ) {
 /** Remove the set of the given name.
     @param setName string name of the set to create/update. If empty, it operates on the main & only set.
  * */
-SeLiteSettings.Module.prototype.removeSet= function( setName ) {
+SeLiteSettings.Module.prototype.removeSet= function removeSet( setName ) {
     if( setName===undefined ) {
         setName= '';
     }
@@ -1639,7 +1639,7 @@ SeLiteSettings.Module.prototype.removeSet= function( setName ) {
 /** Convert given file name to a URL (a string), if it's a valid file path + file name. Otherwise return it unchanged.
  * @private It's only exported for internal usage within SeLite Settings (ovOptions.js).
  * */
-SeLiteSettings.fileNameToUrl= function( fileNameOrUrl ) {
+SeLiteSettings.fileNameToUrl= function fileNameToUrl( fileNameOrUrl ) {
     try {
         var file= new FileUtils.File(fileNameOrUrl);
         return Services.io.newFileURI( file ).spec;
@@ -1666,7 +1666,7 @@ SeLiteSettings.fileNameToUrl= function( fileNameOrUrl ) {
  *  @return SeLiteSettings.Module instance
  *  @throws an error if no such preference branch, or preferences don't contain javascript file, or the javascript file doesn't exist.
  * */
-SeLiteSettings.loadFromJavascript= function( moduleName, moduleFileOrUrl, forceReload ) {
+SeLiteSettings.loadFromJavascript= function loadFromJavascript( moduleName, moduleFileOrUrl, forceReload ) {
    ensureFieldName( moduleName, 'SeLiteSettings.Module name', true );
    if( modules[moduleName] ) {
         if( forceReload ) {
@@ -1712,7 +1712,7 @@ SeLiteSettings.loadFromJavascript= function( moduleName, moduleFileOrUrl, forceR
     return modules[ moduleName ];
 };
 
-SeLiteSettings.moduleNamesFromPreferences= function( namePrefix ) {
+SeLiteSettings.moduleNamesFromPreferences= function moduleNamesFromPreferences( namePrefix ) {
     if( namePrefix===undefined ) {
         namePrefix= '';
     }
@@ -1742,7 +1742,7 @@ SeLiteSettings.moduleNamesFromPreferences= function( namePrefix ) {
  *  - vanillaDbField SeLiteSettings.Field.SQLite that points to vanilla (snapshot) SQLite DB; optional
  *  At least two of appDbField and vanillaDbField must exist.
  * */
-SeLiteSettings.setModuleForReloadButtons= function( moduleOrName ) {
+SeLiteSettings.setModuleForReloadButtons= function setModuleForReloadButtons( moduleOrName ) {
     SeLiteSettings.moduleForReloadButtons= SeLiteSettings.Module.forName( moduleOrName );
     var testDbField= SeLiteSettings.moduleForReloadButtons.fields['testDB'];
     testDbField instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail();

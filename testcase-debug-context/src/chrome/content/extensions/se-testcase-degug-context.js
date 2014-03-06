@@ -33,18 +33,18 @@ if( typeof TestCaseDebugContext==="undefined" ) {
     // Do not use 'var' in the following, i.e. do not use
     //       var TestCaseDebugContext= function( testCase ) { ... };
     // otherwise it won't get set at Selenium scope.
-    TestCaseDebugContext= function( testCase ) {
+    TestCaseDebugContext= function TestCaseDebugContext( testCase ) {
         //debugger;
         this.testCase= testCase;
     };
 
-    TestCaseDebugContext.prototype.reset= function() {
+    TestCaseDebugContext.prototype.reset= function reset() {
         this.failed = false;
         this.started = false;
         this.debugIndex = -1;
     };
 
-    TestCaseDebugContext.prototype.nextCommand= function() {
+    TestCaseDebugContext.prototype.nextCommand= function nextCommand() {
         if (!this.started) {
             this.started = true;
             this.debugIndex = this.testCase.startPoint
@@ -62,7 +62,7 @@ if( typeof TestCaseDebugContext==="undefined" ) {
         return null;
     };
 
-    TestCaseDebugContext.prototype.currentCommand= function() {
+    TestCaseDebugContext.prototype.currentCommand= function currentCommand() {
         var command = this.testCase.commands[this.debugIndex];
         if (!command) {
             this.testCase.log.warn("currentCommand() not found: commands.length=" + this.testCase.commands.length + ", debugIndex=" + this.debugIndex);
@@ -79,7 +79,7 @@ if( typeof TestCaseDebugContext==="undefined" ) {
 
             // Do not use function TestCase(tempTitle) { ... } here, because that won't make it visible outside of the anonymous function
             // use TestCase=function(tempTitle) { ... }; instead
-            TestCase= function(tempTitle) {
+            TestCase= function TestCase(tempTitle) {
                 if (!tempTitle) tempTitle = "Untitled";
                 this.log = new Log("TestCase");
                 this.tempTitle = tempTitle;

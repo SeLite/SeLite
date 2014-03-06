@@ -23,7 +23,7 @@
 
     // Tail intercept of Editor.prototype.confirmClose and the same for its subclasses StandaloneEditor and SidebarEditor
     var originalConfirmClose= Editor.prototype.confirmClose;
-    Editor.prototype.confirmClose= function() {
+    Editor.prototype.confirmClose= function confirmClose() {
         //console.log( 'Editor.prototype.confirmClose intercept invoked' );
         var result= originalConfirmClose.call(this);
         // result===true means that the window was closed (whether saved or not)
@@ -60,7 +60,7 @@
      *  @param reloadVanillaAndTest boolean, whether to reload both appDB and testDB from vanillaDB. Optional, false by default.
      *  @return void
      * */
-    global.editor.reload_databases= function( reloadAppAndTest, reloadVanillaAndTest ) {
+    global.editor.reload_databases= function reload_databases( reloadAppAndTest, reloadVanillaAndTest ) {
         SeLiteSettings.moduleForReloadButtons || SeLiteMisc.fail( 'This requires your Core extension to call SeLiteSettings.setModuleForReloadButtons().' );
         var fields= SeLiteSettings.moduleForReloadButtons.getFieldsDownToFolder();
 
@@ -116,7 +116,7 @@
     
     /** Shorthand to make caller's intention clear.
      * */
-    global.editor.reload_test= function() {
+    global.editor.reload_test= function reload_test() {
         global.editor.reload_databases();
     }
     
@@ -133,12 +133,12 @@
     
     /** Reload testDB and appDB from vanillaDB: vanilla -&gt; green  -&gt; blue.
      * */
-    global.editor.reload_app_and_test= function() {
+    global.editor.reload_app_and_test= function reload_app_and_test() {
         this.reload_databases( true );
     };
     /** Reload vanillaDB and testDB from appDB: green -&gt; vanilla  -&gt; blue.
      * */
-    global.editor.reload_vanilla_and_test= function() {
+    global.editor.reload_vanilla_and_test= function reload_vanilla_and_test() {
         this.reload_databases( false, true );
     };
 

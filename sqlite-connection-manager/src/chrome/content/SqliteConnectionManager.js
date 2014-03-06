@@ -183,7 +183,7 @@ function preloadCache( connection, errorHandler ) {
  *  assigns the connection to this.connection; otherwise it returns without setting it.
  *  @return void
  *  @throws Error on failure */
-SQLiteConnectionInfo.prototype.open= function() {
+SQLiteConnectionInfo.prototype.open= function open() {
     console.log( 'SQLiteConnectionInfo.open(): Trying to open ' +this.parameters.fileName );
     var file;
     try {
@@ -279,7 +279,7 @@ SQLiteConnectionInfo.prototype.open= function() {
  * @return void
  * @throw on error (or if beingClosedDown was set already)
  * */
-SQLiteConnectionInfo.prototype.close= function( synchronous ) {
+SQLiteConnectionInfo.prototype.close= function close( synchronous ) {
     if( this.beingClosedDown ) {
         throw new Error( 'SQLiteConnectionInfo.close(): the connection is already being closed down.' );
     }
