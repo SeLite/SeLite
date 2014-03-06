@@ -445,7 +445,7 @@ SeLiteMisc.compareAllFieldsOneWay= function compareAllFieldsOneWay( firstContain
     }
 };
 
-SeLiteMisc.compareArrays= function( firstArray, secondArray, strictOrMethodName, throwOnDifference ) {
+SeLiteMisc.compareArrays= function compareArrays( firstArray, secondArray, strictOrMethodName, throwOnDifference ) {
     strictOrMethodName= strictOrMethodName || false;
     var strict= typeof strictOrMethodName=='boolean' && strictOrMethodName;
     var methodName= typeof strictOrMethodName=='string'
@@ -573,7 +573,7 @@ var sortedObjectProxyHandler= {
 I don't subclass Proxy - because it didn't work - the handler functions were not called.
 Also, in order to subclass Proxy, my constructor had to invoke Proxy.constructor.call(this, target, sortedObjectProxyHandler).
  */
-SeLiteMisc.sortedObject= function( sortCompare ) {
+SeLiteMisc.sortedObject= function sortedObject( sortCompare ) {
     if( sortCompare===undefined ) {
         sortCompare= false;
     }
@@ -589,7 +589,7 @@ SeLiteMisc.sortedObject= function( sortCompare ) {
     //return  new SortedObjectProxy( target, sortedObjectProxyHandler );
 };
 
-SeLiteMisc.SortedObjectTarget= function( sortCompare ) {
+SeLiteMisc.SortedObjectTarget= function SortedObjectTarget( sortCompare ) {
     Object.defineProperty( this, SELITE_MISC_SORTED_OBJECT_COMPARE, {
       enumerable: false, configurable: false, writable: false,
       value: sortCompare
