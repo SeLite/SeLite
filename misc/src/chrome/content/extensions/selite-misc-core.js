@@ -36,7 +36,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
  *  Selenium.prototype.getUrlParam= function( locator, unused ) {...};
  *  That auto-generated Selenium command storeUrlParam, but the parameters were not passed to it!
  */
-SeLiteMisc.getUrlParam= function( paramName ) {
+SeLiteMisc.getUrlParam= function getUrlParam( paramName ) {
     var search= selenium.browserbot.getCurrentWindow().location.search; // If the URL has no parameters, then this is an empty string
     if( search!=='' ) {
         search= search.substr( 1 ); // removing leading '?'
@@ -77,7 +77,7 @@ SeLiteMisc.getUrlParam= function( paramName ) {
     If it's true (boolean), then the function uses Selenium IDE's "Base URL" field - which may be different to the test website (e.g. single-sign-on). @TODO Once/if http://code.google.com/p/selenium/issues/detail?id=3116 is fixed, I'd need to extract the protocol+host+port from Base URL here.
     @return {string} password if found; null otherwise
 */
-SeLiteMisc.loginManagerPassword= function( username, hostnameOrUseBaseURL ) {
+SeLiteMisc.loginManagerPassword= function loginManagerPassword( username, hostnameOrUseBaseURL ) {
     // You could also use passwordManager.getAllLogins(); it returns an array of nsILoginInfo objects
     var testLocation= selenium.browserbot.getCurrentWindow().location;
     SeLiteMisc.ensureType( hostnameOrUseBaseURL, ['undefined', 'string', 'boolean'], 'Param hostnameOrUseBaseURL must be undefined, string or a boolean.' );

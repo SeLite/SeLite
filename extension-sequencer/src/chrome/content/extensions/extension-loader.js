@@ -63,7 +63,7 @@
                             dependancyPluginNames[dependencyPluginId]= plugin.optionalRequisitePlugins[dependencyPluginId];
                         }
                     }                
-                    var pluginIdToName= function(pluginId) {
+                    var pluginIdToName= function pluginIdToName(pluginId) {
                         return dependancyPluginNames[pluginId];
                     };
 

@@ -31,7 +31,7 @@ var SeLiteMisc= {};
  *  - as it mentions, the rethrown exception will have incorreect stack information: Note that the thrown MyError will report incorrect lineNumber and fileName at least in Firefox.
  *  and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw?redirectlocale=en-US&redirectslug=JavaScript%2FReference%2FStatements%2Fthrow
 */
-SeLiteMisc.fail= function( errorOrMessage ) {
+SeLiteMisc.fail= function fail( errorOrMessage ) {
     console.error( errorOrMessage );
     console.error( SeLiteMisc.stack() );
     throw errorOrMessage
@@ -44,7 +44,7 @@ SeLiteMisc.fail= function( errorOrMessage ) {
 
 /** @return {string} Current stack (including the call to this function).
  * */
-SeLiteMisc.stack= function() {
+SeLiteMisc.stack= function stack() {
     try {
         throw new Error();
     }
@@ -67,18 +67,18 @@ SeLiteMisc.stack= function() {
  *  On the other hand, if you have message ready anyway (e.g. a constant string or a value received as a parameter from a caller function),
  *  then by using SeLiteMisc.ensure(..) you make your intention clearer.
  * */
-SeLiteMisc.ensure= function( condition, message ) {
+SeLiteMisc.ensure= function ensure( condition, message ) {
     if( !condition ) {
         SeLiteMisc.fail( message );
     }
 };
 
-SeLiteMisc.oneOf= function( item, choices ) {
+SeLiteMisc.oneOf= function oneOf( item, choices ) {
     Array.isArray(choices) || SeLiteMisc.fail( 'SeLiteMisc.ensureOneOf() expects choices to be an array');
     return choices.indexOf(item)>=0;
 };
 
-SeLiteMisc.ensureOneOf= function( item, choices, message ) {
+SeLiteMisc.ensureOneOf= function ensureOneOf( item, choices, message ) {
     SeLiteMisc.ensure( SeLiteMisc.oneOf(item, choices),
         message || 'Expecting one of [' +choices.join(',')+ '], but got ' +item );
 };
@@ -88,7 +88,7 @@ SeLiteMisc.ensureOneOf= function( item, choices, message ) {
  *  @param typeStringOrStrings string, one of: 'number', 'string', 'object', 'function', 'boolean', 'undefined'
  *  @param {string} [message] Message to produce on validation failure, optional.
  * */
-SeLiteMisc.ensureType= function( item, typeStringOrStrings, message ) {
+SeLiteMisc.ensureType= function ensureType( item, typeStringOrStrings, message ) {
     message= message || '';
     if( !Array.isArray(typeStringOrStrings) ) {
         if( typeof typeStringOrStrings!=='string' ) {
@@ -119,7 +119,7 @@ var globalClasses= ['Array', 'Boolean', 'Date', 'Function', 'Iterator', 'Number'
  *  @param message string, extra message, optional
  *  @TODO here and ensureInstance() - remove 'classNames; use classNameOf()
  */
-SeLiteMisc.isInstance= function( object, classes, className, message ) {
+SeLiteMisc.isInstance= function isInstance( object, classes, className, message ) {
     typeof object==='object'
     || SeLiteMisc.fail( 'Expecting an '
         +(className
@@ -147,7 +147,7 @@ SeLiteMisc.isInstance= function( object, classes, className, message ) {
 /** @param {(object|function)} objectOrConstructor An object (instance), or a constructor of a clas (a function).
  *  @return string Either class name (constructor method name), or 'null', or a meaningful short message.
  * */
-SeLiteMisc.classNameOf= function( objectOrConstructor ) {
+SeLiteMisc.classNameOf= function classNameOf( objectOrConstructor ) {
     return typeof objectOrConstructor==='object'
         ? (objectOrConstructor!==null
                 ? SeLiteMisc.classNameOf( objectOrConstructor.constructor )
@@ -170,7 +170,7 @@ SeLiteMisc.classNameOf= function( objectOrConstructor ) {
  *  @param message string, extra message, optional
  *  @see SeLiteMisc.isInstance()
  * */
-SeLiteMisc.ensureInstance= function( object, classes, className, message ) {
+SeLiteMisc.ensureInstance= function ensureInstance( object, classes, className, message ) {
     SeLiteMisc.isInstance(object, classes, className, message)
     || SeLiteMisc.fail( 'Expecting an instance of '
         +(className
@@ -186,13 +186,13 @@ SeLiteMisc.ensureInstance= function( object, classes, className, message ) {
  *  @return mixed The item. It returns an empty string if not found or if the actual item is null - that is benefitial
  *  when using this function in parameters to Selenium actions (which fail if passing null).
  **/
-SeLiteMisc.item= function( container, field, fieldAnother, fieldYetAnother ) {
+SeLiteMisc.item= function item( container, field, fieldAnother, fieldYetAnother ) {
     return SeLiteMisc.itemGeneric( arguments, '', '' );
 };
 
 /** Just like item(...), but nulls are not translated at all.
  **/
-SeLiteMisc.itemOrNull= function( container, field, fieldAnother, fieldYetAnother ) {
+SeLiteMisc.itemOrNull= function itemOrNull( container, field, fieldAnother, fieldYetAnother ) {
     return SeLiteMisc.itemGeneric( arguments, null, null );
 };
 
@@ -209,7 +209,7 @@ SeLiteMisc.itemOrNull= function( container, field, fieldAnother, fieldYetAnother
  *  @return mixed The item, as described
  * @internal
  **/
-SeLiteMisc.itemGeneric= function( containerAndFields, nullReplacement, targetNullReplacement ) {
+SeLiteMisc.itemGeneric= function itemGeneric( containerAndFields, nullReplacement, targetNullReplacement ) {
     if( nullReplacement===undefined) {
         nullReplacement= null;
     }
@@ -262,7 +262,7 @@ var OBJECT_TO_STRING_INDENTATION= "  ";
  *  @param bool includeNonEnumerable Whether to include non-enumerable fields; false by default.
  *  @return string
  */
-SeLiteMisc.objectToString= function( object, recursionDepth, includeFunctions, leafClassNames,
+SeLiteMisc.objectToString= function objectToString( object, recursionDepth, includeFunctions, leafClassNames,
 higherObjects, includeNonEnumerable ) {
     if( typeof object!=='object' || object===null ) {
         return ''+object;
@@ -343,7 +343,7 @@ function objectFieldToString( object, field, recursionDepth, includeFunctions, l
  *  @return string
  *  Used for debugging.
  **/
-SeLiteMisc.rowsToString= function( rows, includeFunctions ) {
+SeLiteMisc.rowsToString= function rowsToString( rows, includeFunctions ) {
     var resultLines= [];
     if( Array.isArray(rows) ) {
         for( var i=0; i<rows.length; i++ ) {
@@ -363,14 +363,14 @@ SeLiteMisc.rowsToString= function( rows, includeFunctions ) {
 
 /** @return number Number of seconds since Epoch.
  **/
-SeLiteMisc.timestampInSeconds= function() {
+SeLiteMisc.timestampInSeconds= function timestampInSeconds() {
     return Math.round( Date.now()/1000 );
 };
 
 /** @return true if the object is empty (no fields availabel to iterate through); false otherwise.
  *  @throws Error if the parameter is not an object.
  **/
-SeLiteMisc.isEmptyObject= function( obj ) {
+SeLiteMisc.isEmptyObject= function isEmptyObject( obj ) {
     SeLiteMisc.ensureType( obj, "object", 'Parameter of SeLiteMisc.isEmptyObject() must be an object.' );
     for( var field in obj ) {
         return false;
@@ -390,7 +390,7 @@ SeLiteMisc.isEmptyObject= function( obj ) {
  *  @param boolean throwOnDifference Whether to throw an error if different
  *  @return boolean Whether both objects have same fields and their values
  * */
-SeLiteMisc.compareAllFields= function( firstContainer, secondContainer, strictOrMethodName, throwOnDifference ) {
+SeLiteMisc.compareAllFields= function compareAllFields( firstContainer, secondContainer, strictOrMethodName, throwOnDifference ) {
     strictOrMethodName= strictOrMethodName || false;
     var strict= typeof strictOrMethodName=='boolean' && strictOrMethodName;
     var methodName= typeof strictOrMethodName=='string'
@@ -416,7 +416,7 @@ SeLiteMisc.compareAllFields= function( firstContainer, secondContainer, strictOr
  *  See SeLiteMisc.compareAllFields().
  *  @return void
  * */
-SeLiteMisc.compareAllFieldsOneWay= function( firstContainer, secondContainer, strict, methodName ) {
+SeLiteMisc.compareAllFieldsOneWay= function compareAllFieldsOneWay( firstContainer, secondContainer, strict, methodName ) {
     for( var fieldName in firstContainer ) { // for() works if the container is null
         if( !(fieldName in secondContainer) ) {
             throw new Error();
