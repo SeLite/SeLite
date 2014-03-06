@@ -185,23 +185,20 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
      *  Some functions are not implemented as Selenium.prototype.getXyz, because getXyz() only receives the first Selenese parameter (target)
      *  and not the second parameter. That's undertandable, since getXyz auto-generates storeXyz, which uses the second parameter (value) as a namce of a stored variable. However, getXyz (and storeXyz) don't allow the first parameter to be a composite. E.g. if you use EnhancedSyntax object{} or array[] as the parameter, those don't get passed well. Allowing that would mean a tremendous workaround, or modifying Selenium IDE - each out of scope for now.
      * */
-    function doWaitForTimestampDistinctDownToMilliseconds( timestampName, precisionInMilliseconds ) {
+    Selenium.prototype.doWaitForTimestampDistinctDownToMilliseconds= function doWaitForTimestampDistinctDownToMilliseconds( timestampName, precisionInMilliseconds ) {
         precisionInMilliseconds= precisionInMilliseconds || 1;
         this.waitForDistinctTimestamp( timestampName, precisionInMilliseconds );
-    }
-    Selenium.prototype.doWaitForTimestampDistinctDownToMilliseconds= doWaitForTimestampDistinctDownToMilliseconds;
+    };
 
-    function doWaitForTimestampDistinctDownToSeconds( timestampName, precisionInSeconds ) {
+    Selenium.prototype.doWaitForTimestampDistinctDownToSeconds= function doWaitForTimestampDistinctDownToSeconds( timestampName, precisionInSeconds ) {
         precisionInSeconds= precisionInSeconds || 1;
         this.waitForDistinctTimestamp( timestampName, precisionInSeconds*1000 );
-    }
-    Selenium.prototype.doWaitForTimestampDistinctDownToSeconds= doWaitForTimestampDistinctDownToSeconds;
+    };
 
-    function doWaitTimestampDistinctDownToMinutes( timestampName, precisionInMinutes ) {
+    Selenium.prototype.doWaitTimestampDistinctDownToMinutes= function doWaitTimestampDistinctDownToMinutes( timestampName, precisionInMinutes ) {
         precisionInMinutes= precisionInMinutes || 1;
         this.waitForDistinctTimestamp( timestampName, precisionInMinutes*60000 );
-    }
-    Selenium.prototype.doWaitTimestampDistinctDownToMinutes= doWaitTimestampDistinctDownToMinutes;
+    };
 
     /**I don't use prefix 'do' in the name of this function
        because it's not intended to be run as Selenium command.
@@ -210,7 +207,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
      *  @return true if it's safe to create a new timestamp for this type of record, and the timestamp
      *  will be distinguishable from the previous one.
      **/
-    function waitForDistinctTimestamp( timestampName, precisionInMilliseconds ) {
+    Selenium.prototype.waitForDistinctTimestamp= function waitForDistinctTimestamp( timestampName, precisionInMilliseconds ) {
         if( !(timestampName in this.distinctTimestamps) ) {
             LOG.info( 'waitForDistinctTimestampXXX: No previous timestamp for timestamp name ' +timestampName );
         }
@@ -245,10 +242,9 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
             },
             timeOutFromNow
         );
-    }
-    Selenium.prototype.waitForDistinctTimestamp= waitForDistinctTimestamp;
+    };
 
-    function doIndexBy( columnOrDetails, sourceVariableName ) {
+    Selenium.prototype.doIndexBy= function doIndexBy( columnOrDetails, sourceVariableName ) {
         var indexBy= columnOrDetails;
         var subIndexBy= null;
         var resultVariableName= sourceVariableName;
@@ -262,12 +258,11 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
             }
         }
         storedVars[resultVariableName]= SeLiteMisc.collectByColumn( storedVars[sourceVariableName], indexBy, !subIndexBy, subIndexBy );
-    }
-    Selenium.prototype.doIndexBy= doIndexBy;
+    };
 
     // I don't use prefix 'get' or 'do' in the name of this function
     // because it's not intended to be run as Selenium getter/command.
-    function randomElement( elementSetXPath ) {
+    Selenium.prototype.randomElement= function randomElement( elementSetXPath ) {
         /** This clicks at a random radio button from within a set of radio buttons identified by locator.
          *  @param string elementSetXPath XPath expression to locate the element(s). Don't include leading 'xpath='.
          *  It can't be any other Selenium locator. You probably want to match them
@@ -291,23 +286,21 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
         }
         var elementIndex= Math.round( Math.random()*(elements.length-1) );
         return elements[elementIndex];
-    }
-    Selenium.prototype.randomElement= randomElement;
+    };
 
-    function doClickRandom( radiosXPath, store ) {
+    Selenium.prototype.doClickRandom= function doClickRandom( radiosXPath, store ) {
         var radio= this.randomElement( radiosXPath );
         this.browserbot.clickElement( radio );
 
         if( store ) {
             SeLiteMisc.setFields( storedVars, store, radio.value );
         }
-    }
-    Selenium.prototype.doClickRandom= doClickRandom;
+    };
 
     /**I don't use prefix 'do' or 'get' in the name of this function
        because it's not intended to be run as Selenium command/getter.
     */
-    function randomOption( selectLocator, params ) {
+    Selenium.prototype.randomOption= function randomOption( selectLocator, params ) {
         /** This returns a random option from within <select>...</select> identified by locator.
          *  It doesn't return any optgroup elements.
          *  @param string selectLocator Locator of the <select>...</select>
@@ -328,10 +321,9 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
         var optionIndex= firstIndex+ Math.round( Math.random()*randomRange );
         var option= options[optionIndex];
         return option;
-    }
-    Selenium.prototype.randomOption= randomOption;
+    };
 
-    function doSelectRandom( selectLocator, paramsOrStore ) {
+    Selenium.prototype.doSelectRandom= function doSelectRandom( selectLocator, paramsOrStore ) {
         var params= paramsOrStore || {};
         if( typeof params =='string' ) {
             params= {store: params};
@@ -345,8 +337,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
             //storedVars[params.store]= option.value;
             SeLiteMisc.setFields( storedVars, params.store, option.value );
         }
-    }
-    Selenium.prototype.doSelectRandom= doSelectRandom
+    };
 
     Selenium.prototype.randomFirstNames= [
         'Alice', 'Betty', 'Charlie', 'Dan', 'Erwin', 'Frank', 'Geraldine', 'Hugo', 'Ismael', 'Julie', 'Karl', 'Lucy', 'Marc',
@@ -374,7 +365,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
     /**I don't use prefix 'do' or 'get' in the name of this function
        because it's not intended to be run as Selenium command/getter.
     */
-    function randomText( locator, params, extraParams ) {
+    Selenium.prototype.randomText= function randomText( locator, params, extraParams ) {
         /** Return a random text, restricted by params, and fit for an input element identified by locator,
          *  It always returns at least 1 character.
          * @parameter string locator Locator of the text input
@@ -577,10 +568,9 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
             throw new Error( "Error in randomText(): type=" +type );
         }
         return result;
-    }
-    Selenium.prototype.randomText= randomText;
+    };
 
-    function doTypeRandom( locator, paramsOrStore ) {
+    Selenium.prototype.doTypeRandom= function doTypeRandom( locator, paramsOrStore ) {
         var params= paramsOrStore || {};
         if( typeof params =='string' ) {
             params= {store: params};
@@ -592,11 +582,10 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
         if( params.store ) {
             SeLiteMisc.setFields( storedVars, params.store, resultString );
         }
-    }
-    Selenium.prototype.doTypeRandom= doTypeRandom;
+    };
     
     // @TODO This doesn't work well
-    function doTypeRandomEmail( locator, params ) {
+    Selenium.prototype.doTypeRandomEmail= function doTypeRandomEmail( locator, params ) {
         params= params || {};
         var paramsToPass= { type: 'email' };
         if( typeof params==='string' ) {
@@ -628,21 +617,18 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
         if( params.store ) {
             SeLiteMisc.setFields( storedVars, params.store, resultString );
         }
-    }
-    Selenium.prototype.doTypeRandomEmail= doTypeRandomEmail;
+    };
 
     // @TODO what did I want to do here?
     // @TODO similar doClickMapped?
-    function doSelectMapped( locator, params ) {
-    }
-    Selenium.prototype.doSelectMapped= doSelectMapped;
+    Selenium.prototype.doSelectMapped= function doSelectMapped( locator, params ) {
+    };
 
-    function isSelectMapped( locator, params ) {
-    }
-    Selenium.prototype.isSelectMapped= isSelectMapped;
+    Selenium.prototype.isSelectMapped= function isSelectMapped( locator, params ) {
+    };
     
     // @TODO use the 2nd parameter - for an (optional) timeout in milliseconds
-    function doSelectTopFrameAnd( locatorOrLocators, unused ) {
+    Selenium.prototype.doSelectTopFrameAnd= function doSelectTopFrameAnd( locatorOrLocators, unused ) {
         if( typeof locatorOrLocators==='string' ) {
             locatorOrLocators= locatorOrLocators!==''
                 ? [locatorOrLocators]
@@ -667,8 +653,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
             },
             this.defaultTimeout
         );
-    }
-    Selenium.prototype.doSelectTopFrameAnd= doSelectTopFrameAnd;
+    };
 
 //--------------------------
 // Based on http://thom.org.uk/2006/03/12/disabling-javascript-from-selenium/
@@ -677,21 +662,18 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
     /**I don't use prefix 'do' or 'get' in the name of this function
        because it's not intended to be run as Selenium command/getter.
     */
-    function setJavascriptPref( bool ) {
+    Selenium.prototype.setJavascriptPref= function setJavascriptPref( bool ) {
        preferencesService.setBoolPref("javascript.enabled", bool);
-    }
-    Selenium.prototype.setJavascriptPref= setJavascriptPref;
+    };
     
     // Beware: this disables Javascript in whole Firefox (for all tabs). The setting
     // will stay after you close Selenium.
-    function doDisableJavascript() {
+    Selenium.prototype.doDisableJavascript= function doDisableJavascript() {
         this.setJavascriptPref(false);
-    }
-    Selenium.prototype.doDisableJavascript= doDisableJavascript;
+    };
 
-    function doEnableJavascript() {
+    Selenium.prototype.doEnableJavascript= function doEnableJavascript() {
         this.setJavascriptPref(true);
-    }
-    Selenium.prototype.doEnableJavascript= doEnableJavascript;
+    };
   }
 )();

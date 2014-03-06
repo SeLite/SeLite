@@ -446,7 +446,7 @@ SeLiteData.RecordSetFormula= function RecordSetFormula( params, prototype ) {
     // @TODO check that all own table columns' aliases are unique: Object.keys( SeLiteMisc.objectReverse( ownColumns() ) )
     // @TODO similar check for joined columns?
 };
-
+// @TODO Do I need to set the following SeLiteData.RecordSetFormula.prototype.constructor?
 SeLiteData.RecordSetFormula.prototype.constructor= SeLiteData.RecordSetFormula;
 SeLiteData.RecordSetFormula.ALL_FIELDS= ["ALL_FIELDS"]; // I compare this by identity (using === and !==). That allow user column alias prefix 'ALL_FIELDS', if (ever) need be.
 
