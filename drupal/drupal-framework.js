@@ -76,7 +76,7 @@ var Drupal= {};
         var settingsModule= SeLiteSettings.loadFromJavascript('extensions.selite.drupal');
         var webRootField= settingsModule.fields['webRoot'];
         
-        Drupal.webRoot= function() {
+        Drupal.webRoot= function webRoot() {
             return webRootField.getDownToFolder().entry;
         };
         
@@ -84,7 +84,7 @@ var Drupal= {};
          *  @param {string} userNameOrRoleWithPrefix Either a symbolic role name, starting with '&', or a username.
          *  @return {string} Username mapped to userNameOrRoleWithPrefix (after removeing '&' prefix) through extensions.selite.drupal settings. If userNameOrRoleWithPrefix doesn't start with '&', this returns it unchanged.
          * */
-        Drupal.roleToUser= function( userNameOrRoleWithPrefix ) {
+        Drupal.roleToUser= function roleToUser( userNameOrRoleWithPrefix ) {
             LOG.info( 'Drupal.roleToUser: userNameOrRoleWithPrefix: ' +userNameOrRoleWithPrefix );
             if( userNameOrRoleWithPrefix.startsWith('&') ) {
                 var role= userNameOrRoleWithPrefix.substring(1);
@@ -103,7 +103,7 @@ var Drupal= {};
          *  @param {Window} window It must be passed from your test case.
          *  @return {(number|null)} ID of the node, or null.
          * */
-        Drupal.currentPageNodeId= function(window) {
+        Drupal.currentPageNodeId= function currentPageNodeId(window) {
             var href= window.location.href;
             var match= href.match( /\/?q=node\/([0-9]+)/ );
             if( match ) {

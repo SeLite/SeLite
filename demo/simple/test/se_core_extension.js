@@ -7,15 +7,11 @@
  * instead of: function XXX(params...) { ... };
  * because the second form will have no global effect.
 */
-//cuckoo3=function() { return 'Selenium:' +typeof Selenium; }
-cuckoo6= function () { return 'doHello:' +Selenium.prototype.doHello; }; 
-cuckoo7= function () { return 'doHello:' +Selenium.prototype.doHello; };
 
-//alert( Selenium );
-Selenium.prototype.doHello= function(one, two) { alert( this); }//.LOG.warn('hello');};
-Selenium.prototype.getBufo= function(one, two) { return null;}; 
+Selenium.prototype.doHello= function doHello(one, two) { alert( this); }//.LOG.warn('hello');};
+Selenium.prototype.getBufo= function getBufo(one, two) { return null;}; 
 
-Selenium.prototype.doBye= function(one, two) { LOG.error('bye!'); alert( this); }//.LOG.warn('hello');};
+Selenium.prototype.doBye= function doBye(one, two) { LOG.error('bye!'); alert( this); }//.LOG.warn('hello');};
 
 var hello= 'hi';
 var bofo= 'hu'; 

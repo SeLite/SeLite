@@ -48,7 +48,7 @@ SeLiteExtensionSequencer.plugins= {};
  *  }
  *  @return void
 **/
-SeLiteExtensionSequencer.registerPlugin= function( prototype ) {
+SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
     console.log( 'SeLiteExtensionSequencer.registerPlugin() called with a plugin that has pluginId: ' +prototype.pluginId );
     var plugin= {
         pluginId: prototype.pluginId,
@@ -94,7 +94,7 @@ SeLiteExtensionSequencer.registerPlugin= function( prototype ) {
  *      }
  *  }
  * */
-SeLiteExtensionSequencer.sortedPlugins= function() {
+SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins() {
     // pluginUnprocessedRequisites contains plugins with their required dependencies.
     // I add in any optional plugin IDs, if they are installed
     //  - so they get loaded in correct order, before the plugins that use them.

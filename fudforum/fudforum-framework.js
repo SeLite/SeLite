@@ -77,7 +77,7 @@ var FUDforum= {};
         var settingsModule= SeLiteSettings.loadFromJavascript('extensions.selite.fudforum');
         var webRootField= settingsModule.fields['webRoot'];
         
-        FUDforum.webRoot= function() {
+        FUDforum.webRoot= function webRoot() {
             return webRootField.getDownToFolder().entry;
         };
         
@@ -85,7 +85,7 @@ var FUDforum= {};
          *  @param {string} userNameOrRoleWithPrefix Either a symbolic role name, starting with '&', or a username.
          *  @return {string} Username mapped to userNameOrRoleWithPrefix (after removeing '&' prefix) through extensions.selite.fudforum settings. If userNameOrRoleWithPrefix doesn't start with '&', this returns it unchanged.
          * */
-        FUDforum.roleToUser= function( userNameOrRoleWithPrefix ) {
+        FUDforum.roleToUser= function roleToUser( userNameOrRoleWithPrefix ) {
             LOG.info( 'FUDforum.roleToUser: userNameOrRoleWithPrefix: ' +userNameOrRoleWithPrefix );
             if( userNameOrRoleWithPrefix.startsWith('&') ) {
                 var role= userNameOrRoleWithPrefix.substring(1);
