@@ -1,5 +1,5 @@
 /* Copyright 2005 Shinya Kasatani
- * Copyright 2013 Peter Kehl
+ * Copyright 2013, 2014 Peter Kehl
  * Based on Selenium code of ide/main/src/content/testCase.js
  *
  * This is needed for SelBlocksGlobal to work until Selenium accepts https://code.google.com/p/selenium/issues/detail?id=5495
@@ -17,34 +17,23 @@
  * limitations under the License.
  */
 
-// Do not have: "use strict"; - otherwise I can't defined TestCaseDebugContext at Selenium scope
-
-/*var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
-try {
-    throw new Error('FYI');
-} catch(e) {
-    console.log( e.stack );
-}*/
-if( typeof TestCaseDebugContext==="undefined" ) {
-    // I do not define TestCaseDebugContext using
-    //       function TestCaseDebugContext(testCase) { ... }
-    // because it wouldn't be visible outside. Therefore I use
-    //       TestCaseDebugContext= function( testCase ) { ... };
-    // Do not use 'var' in the following, i.e. do not use
-    //       var TestCaseDebugContext= function( testCase ) { ... };
-    // otherwise it won't get set at Selenium scope.
-    TestCaseDebugContext= function TestCaseDebugContext( testCase ) {
-        //debugger;
+"use strict";
+// Anonymous function keeps global and origTestCasePrototype out of global scope
+( function(global) {
+// Se IDE loads this file twice, and with a different scope object! I need to create TestCaseDebugContext when this file is loaded for the first time. I couldn't use 'var TestCaseDebugContext=...', or global.TestCaseDebugContext= .... because it would disappear (due to the different scope object). Since I want "use strict"; I set it on TestCase, which exists outside the loading scope, and therefore it's preserved between the both loadings of this file.
+// See http://code.google.com/p/selenium/issues/detail?id=6697
+if( typeof TestCase.TestCaseDebugContext==="undefined" ) {
+    global.TestCaseDebugContext= function TestCaseDebugContext( testCase ) {
         this.testCase= testCase;
     };
 
-    TestCaseDebugContext.prototype.reset= function reset() {
+    global.TestCaseDebugContext.prototype.reset= function reset() {
         this.failed = false;
         this.started = false;
         this.debugIndex = -1;
     };
 
-    TestCaseDebugContext.prototype.nextCommand= function nextCommand() {
+    global.TestCaseDebugContext.prototype.nextCommand= function nextCommand() {
         if (!this.started) {
             this.started = true;
             this.debugIndex = this.testCase.startPoint
@@ -62,36 +51,40 @@ if( typeof TestCaseDebugContext==="undefined" ) {
         return null;
     };
 
-    TestCaseDebugContext.prototype.currentCommand= function currentCommand() {
+    global.TestCaseDebugContext.prototype.currentCommand= function currentCommand() {
         var command = this.testCase.commands[this.debugIndex];
         if (!command) {
             this.testCase.log.warn("currentCommand() not found: commands.length=" + this.testCase.commands.length + ", debugIndex=" + this.debugIndex);
         }
         return command;
     };
-    // Anonymous function keeps origTestCasePrototype out of global scope
-    ( function() {
-        //var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
-        var origTestCasePrototype;
-        if( origTestCasePrototype===undefined ) { // This check is needed because of http://code.google.com/p/selenium/issues/detail?id=6697
-            origTestCasePrototype= TestCase.prototype;
-            //console.log( 'TestCase Debug Context replacing TestCase with a head-intercept. typeof origTestCasePrototype: ' +typeof origTestCasePrototype );
+    //var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+    var origTestCasePrototype;
+    if( origTestCasePrototype===undefined ) { // This check is needed because of http://code.google.com/p/selenium/issues/detail?id=6697
+        origTestCasePrototype= TestCase.prototype;
+        //console.log( 'TestCase Debug Context replacing TestCase with a head-intercept. typeof origTestCasePrototype: ' +typeof origTestCasePrototype );
 
-            // Do not use function TestCase(tempTitle) { ... } here, because that won't make it visible outside of the anonymous function
-            // use TestCase=function(tempTitle) { ... }; instead
-            TestCase= function TestCase(tempTitle) {
-                if (!tempTitle) tempTitle = "Untitled";
-                this.log = new Log("TestCase");
-                this.tempTitle = tempTitle;
-                this.formatLocalMap = {};
-                this.commands = [];
-                this.recordModifiedInCommands();
-                this.baseURL = "";
+        // Do not use function TestCase(tempTitle) { ... } here, because that won't make it visible outside of the anonymous function
+        // use TestCase=function(tempTitle) { ... }; instead
+        TestCase= function TestCase(tempTitle) {
+            if (!tempTitle) tempTitle = "Untitled";
+            this.log = new Log("TestCase");
+            this.tempTitle = tempTitle;
+            this.formatLocalMap = {};
+            this.commands = [];
+            this.recordModifiedInCommands();
+            this.baseURL = "";
 
-                this.debugContext= new TestCaseDebugContext( this );
-            };
+            this.debugContext= new TestCase.TestCaseDebugContext( this );
+        };
 
-            TestCase.prototype= origTestCasePrototype;
-        }
-    } )();
+        TestCase.prototype= origTestCasePrototype;
+        TestCase.TestCaseDebugContext= global.TestCaseDebugContext;
+    }
 }
+else {
+    // This is so that SelBlocksGlobal can intercept TestCaseDebugContext.
+    // I set it here when Se IDE loads this file for the second time.
+    global.TestCaseDebugContext= TestCase.TestCaseDebugContext;
+}
+} )( this );
