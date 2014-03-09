@@ -21,7 +21,7 @@
         // Probably caused by http://code.google.com/p/selenium/issues/detail?id=6697
         // Therefore here I make sure to register this plugin and I load sequencer manifests of and register their plugins only once.
         if( !SeLiteExtensionSequencer.processedAlready ) {
-            var ide_api= new API();
+            var ide_api= new API(); // API comes from chrome://selenium-ide/content/api.js - referenced through ./extension-loader.xul
             // Register itself - so that it shows up in Selenium IDE > Options > Options > Plugins
             ide_api.addPlugin( 'extension-sequencer@selite.googlecode.com' );
 
