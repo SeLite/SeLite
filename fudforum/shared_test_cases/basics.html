@@ -24,36 +24,6 @@
 <!--@TODO remove { and }?-->
 <tr>
 	<td>if</td>
-	<td>LOG.warn( 'Location: ' +window.location.href )</td>
-	<td>This evaluates to chrome://selenium-ide/content/selenium-ide.xul</td>
-</tr>
-<tr>
-	<td>endIf</td>
-	<td></td>
-	<td>But when in getEval, it evaluates to correct URL.</td>
-</tr>
-<tr>
-	<td>if</td>
-	<td>LOG.warn( &quot;!window.location.href.startsWith( '${webRoot}' ): &quot; +typeof(!window.location.href.startsWith( '${webRoot}' ))+ ': ' +!window.location.href.startsWith( '${webRoot}' ) )</td>
-	<td></td>
-</tr>
-<tr>
-	<td>endIf</td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
-	<td>if</td>
-	<td>LOG.warn( 'forceReload: ' +$forceReload )</td>
-	<td></td>
-</tr>
-<tr>
-	<td>endIf</td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
-	<td>if</td>
 	<td>!window.location.href.startsWith( '${webRoot}' ) || $forceReload</td>
 	<td></td>
 </tr>
@@ -109,12 +79,14 @@
 	<td></td>
 </tr>
 <!----------------->
-<!--Log in via the small login form (below the list of forums). Parameter 'givenPassword' is optional; if not passed, then this uses password from Firefox login manager.-->
+<!--Log in via the small login form (below the list of forums).-->
+<!--Parameter 'loginOrAmpRole' is user login, or user role prefixed with & (then it's passed to FUDforum.roleToUser())-->
+<!--Parameter 'passwd' is optional; if not passed, then this uses password from Firefox login manager.-->
 <!--Optional parameter 'quick' - if true/1, then this uses the quick login form.-->
 <tr>
 	<td>function</td>
 	<td>logIn</td>
-	<td>userNameOrAmpersAndRole, givenPassword, quick</td>
+	<td>loginOrAmpRole, passwd, quick</td>
 </tr>
 <tr>
 	<td>call</td>
@@ -129,24 +101,20 @@
 </tr>
 <!---->
 <tr>
+	<td>storeEval</td>
+	<td>FUDforum.roleToUser( '${loginOrAmpRole}' )</td>
+	<td>login</td>
+</tr>
+<!---->
+<tr>
 	<td>if</td>
-	<td>$givenPassword!==undefined</td>
+	<td>$passwd===undefined</td>
 	<td></td>
 </tr>
 <tr>
 	<td>storeEval</td>
-	<td>'${givenPassword}'</td>
-	<td>password</td>
-</tr>
-<tr>
-	<td>else</td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
-	<td>storeEval</td>
-	<td>SeLiteMisc.loginManagerPassword( '${userName}' )</td>
-	<td>password</td>
+	<td>SeLiteMisc.loginManagerPassword( '${login}' )</td>
+	<td>passwd</td>
 </tr>
 <tr>
 	<td>endIf</td>
@@ -165,19 +133,14 @@
 	<td></td>
 </tr>
 <tr>
-	<td>storeEval</td>
-	<td>FUDforum.roleToUser( '${userNameOrAmpersAndRole}' )</td>
-	<td>userName</td>
-</tr>
-<tr>
 	<td>type</td>
 	<td>//form[ @id='quick_login_form'&nbsp;&nbsp;]//input[ @name='quick_login' ]</td>
-	<td>${userName}</td>
+	<td>${login}</td>
 </tr>
 <tr>
 	<td>type</td>
 	<td>//form[ @id='quick_login_form'&nbsp;&nbsp;]//input[ @name='quick_password' ]</td>
-	<td>${password}</td>
+	<td>${passwd}</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
@@ -219,12 +182,12 @@
 <tr>
 	<td>type</td>
 	<td>//form[ @id='login' ]//input[ @name='login' ]</td>
-	<td>${userName}</td>
+	<td>${login}</td>
 </tr>
 <tr>
 	<td>type</td>
 	<td>//form[ @id='login' ]//input[ @name='password' ]</td>
-	<td>${password}</td>
+	<td>${passwd}</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
@@ -261,6 +224,11 @@
 <tr>
 	<td>call</td>
 	<td>logOut</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForTimestampDistinctDownToMinutes</td>
+	<td>userRegistration</td>
 	<td></td>
 </tr>
 <tr>
@@ -312,7 +280,7 @@
 <tr>
 	<td>call</td>
 	<td>logInAsStoredUser</td>
-	<td>userName='${login}'</td>
+	<td>login='${login}'</td>
 </tr>
 <tr>
 	<td>endFunction</td>
@@ -325,17 +293,17 @@
 <tr>
 	<td>function</td>
 	<td>logInAsStoredUser</td>
-	<td>userName, quick</td>
+	<td>login, quick</td>
 </tr>
 <tr>
 	<td>readRecord</td>
-	<td>object{ formula: FUDforum.formulas.users, login: $userName }</td>
+	<td>object{ formula: FUDforum.formulas.users, login: $login }</td>
 	<td>user</td>
 </tr>
 <tr>
 	<td>call</td>
 	<td>logIn</td>
-	<td>userNameOrAmpersAndRole=$userName, givenPassword=$user.passwd, quick=$quick</td>
+	<td>loginOrAmpRole=$login, passwd=$user.passwd, quick=$quick</td>
 </tr>
 <tr>
 	<td>endFunction</td>
