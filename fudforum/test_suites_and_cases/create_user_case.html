@@ -43,11 +43,25 @@
 	<td></td>
 </tr>
 <tr>
-	<td>call</td>
-	<td>logInQuick</td>
-	<td>userNameOrAmpersAndRole='&amp;admin'</td>
+	<td>if</td>
+	<td>false</td>
+	<td></td>
 </tr>
-<!---->
+<tr>
+	<td>call</td>
+	<td>logIn</td>
+	<td>userNameOrAmpersAndRole='&amp;admin', quick=true</td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>logIn</td>
+	<td>userNameOrAmpersAndRole='&amp;admin', quick=false</td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
 <!------>
 </tbody></table>
 </body>
