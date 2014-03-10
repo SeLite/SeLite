@@ -115,7 +115,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
     };
     
     /** Internal function, used to compare a displayed human-readable timestamp to a numeric timestamp,
-     *  allowing for difference of maxTimeDifference (sec) and this.defaultTimeout (ms) and 1x display time unit (displayPrecisionInSeconds).
+     *  allowing for difference of maxTimeDifference (milllisec) and this.defaultTimeout (ms) and 1x display time unit (displayPrecisionInSeconds).
         I don't use prefix 'do' or 'get' in the name of this function
         because it's not intended to be run as Selenium command/getter.
      *  @param string locator Selenium locator of the element that contains the displayed human-readable (and parsable) time stamp
@@ -172,7 +172,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
      **/
     Selenium.prototype.noteTimestamp= function noteTimestamp( timestampName, timestampPrecision ) {
         timestampPrecision= Number(timestampPrecision);
-        var nextDistinctTimestamp= Date.now()+ maxTimeDifference*1000 +timestampPrecision+ Number(this.defaultTimeout);
+        var nextDistinctTimestamp= Date.now()+ maxTimeDifference +timestampPrecision+ Number(this.defaultTimeout);
         this.distinctTimestamps[timestampName]= {
             precision: timestampPrecision,
             nextDistinctTimestamp: nextDistinctTimestamp
@@ -223,12 +223,12 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
             throw new Error( error );
         }
         var timestampBecomesDistinct= this.distinctTimestamps[timestampName].nextDistinctTimestamp; // in milliseconds
-        var timeOutFromNow= timestampBecomesDistinct-Date.now()+1100; // in milliseconds, plus a buffer
+        var timeOutFromNow= timestampBecomesDistinct-Date.now()+1100; // in milliseconds, plus a buffer. @TODO Remove buffer.
         if( timeOutFromNow<=0 ) {
-            LOG.debug( 'waitForDistinctTimestampXXX: No need to wait. A distinct timestamp became available ' +(-1*timeOutFromNow/1000)+ ' sec. ago.' );
+            LOG.debug( 'waitForDistinctTimestampXXX: No need to wait. A distinct timestamp became available ' +(-1*timeOutFromNow)+ ' milliseconds ago.' );
             return;
         }
-        LOG.debug( 'waitForDistinctTimestampXXX: waiting for next ' +timeOutFromNow/1000+ ' sec.' );
+        LOG.debug( 'waitForDistinctTimestampXXX: waiting for next ' +timeOutFromNow+ ' milliseconds.' );
 
         var self= this;
         return Selenium.decorateFunctionWithTimeout(
