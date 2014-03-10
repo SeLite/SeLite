@@ -81,7 +81,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
        So it guarantees that timestamps with same label will have time distance between them at equal or greater than given precision.
     </comment>
 </function>
-<function name="waitTimestampDistinctDownToMinutes">
+<function name="waitForTimestampDistinctDownToMinutes">
     <param name="timestampName">Label/name, usually of a timestamp element or field, for which you want to get a distinct timestamp.</param>
     <param name="precision">Precision, in minutes; 1 by default.</param>
     <comment>Just like <code>waitForTimestampDistinctDownToSeconds</code>, but the guaranteed timestamp separation is 1 minute.
