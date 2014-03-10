@@ -190,9 +190,30 @@
 	<td></td>
 	<td></td>
 </tr>
+<!--Sometimes it gets to the login form, sometimes not-->
+<tr>
+	<td>storeElementPresent</td>
+	<td>//form[ @id='login' ]</td>
+	<td>loginFormPresent</td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>!$loginFormPresent</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>//a[ contains(@href, 'index.php?t=login') ]</td>
+	<td></td>
+</tr>
 <tr>
 	<td>clickAndWait</td>
 	<td>//a[ contains(@href, 'index.php?t=login') ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
 	<td></td>
 </tr>
 <tr>
@@ -217,7 +238,7 @@
 </tr>
 <!---->
 <tr>
-	<td>verifyElementPresent</td>
+	<td>assertElementPresent</td>
 	<td>//ul/li/a[ contains(@href, 'logout=1' ) ]</td>
 	<td>Verify that we are logged in</td>
 </tr>
@@ -289,26 +310,15 @@
 </tr>
 <!---->
 <tr>
-	<td>if</td>
-	<td>true</td>
-	<td></td>
-</tr>
-<tr>
 	<td>call</td>
 	<td>logInAsStoredUser</td>
 	<td>userName='${login}'</td>
-</tr>
-<tr>
-	<td>endIf</td>
-	<td></td>
-	<td></td>
 </tr>
 <tr>
 	<td>endFunction</td>
 	<td></td>
 	<td></td>
 </tr>
-<!------------------->
 <!----------------->
 <!--This requires the password to be stored in the test DB in plain text. Like for accounts created by script createUser.-->
 <!--Param 'quick' is optional; see function logIn-->
@@ -323,95 +333,9 @@
 	<td>user</td>
 </tr>
 <tr>
-	<td>if</td>
-	<td>false</td>
-	<td></td>
-</tr>
-<tr>
-	<td>call</td>
-	<td>logIn</td>
-	<td>userNameOrAmpersAndRole='${userName}', givenPassword='${user.pass}', quick=$quick</td>
-</tr>
-<tr>
-	<td>else</td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
 	<td>call</td>
 	<td>logIn</td>
 	<td>userNameOrAmpersAndRole=$userName, givenPassword=$user.passwd, quick=$quick</td>
-</tr>
-<tr>
-	<td>endIf</td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
-	<td>if</td>
-	<td>false</td>
-	<td></td>
-</tr>
-<!--if the user is logged in already, log him out:-->
-<tr>
-	<td>call</td>
-	<td>logOut</td>
-	<td></td>
-</tr>
-<!---->
-<!--Follow 'Login' link-->
-<!--make sure we're at login screen-->
-<tr>
-	<td>storeElementPresent</td>
-	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
-	<td>userNamePresent</td>
-</tr>
-<tr>
-	<td>if</td>
-	<td>$userNamePresent</td>
-	<td></td>
-</tr>
-<tr>
-	<td>storeEval</td>
-	<td>FUDforum.webRoot()</td>
-	<td>webRoot</td>
-</tr>
-<tr>
-	<td>open</td>
-	<td>${webRoot}</td>
-	<td></td>
-</tr>
-<tr>
-	<td>endIf</td>
-	<td></td>
-	<td></td>
-</tr>
-<!--Verify that we can log in-->
-<tr>
-	<td>type</td>
-	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
-	<td>${userName}</td>
-</tr>
-<tr>
-	<td>type</td>
-	<td>//form[ @id='user-login-form' ]//input[ @id='edit-pass' ]</td>
-	<td>string{ $user.passwd }</td>
-</tr>
-<tr>
-	<td>clickAndWait</td>
-	<td>//form[ @id='user-login-form' ]//input[ @id='edit-submit' ]</td>
-	<td></td>
-</tr>
-<!---->
-<tr>
-	<td>verifyElementPresent</td>
-	<td>//ul/li/a[ contains(@href, '/?q=user/logout') ]</td>
-	<td>Verify that we are logged in</td>
-</tr>
-<tr>
-	<td>endIf</td>
-	<td></td>
-	<td></td>
 </tr>
 <tr>
 	<td>endFunction</td>
