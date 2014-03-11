@@ -6,6 +6,9 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 mkdir xpi 1>/dev/null 2>&1
 rm -f xpi/*
 
+cd auto-check/src
+zip -r ../../xpi/auto-check.xpi *
+
 cd bootstrap/src
 zip -r ../../xpi/bootstrap.xpi *
 

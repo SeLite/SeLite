@@ -16,6 +16,13 @@ else
 fi
 EXTENSION_FOLDER=`echo $EXTENSION_FOLDER`/extensions
 
+if [ ! -e $EXTENSION_FOLDER/auto-check\@selite.googlecode.com.xpi ]
+then
+  cd auto-check/src
+  pwd > $EXTENSION_FOLDER/auto-check@selite.googlecode.com
+  cd ../..
+fi
+
 # If you haven't got any extensions in Firefox profile yet, there is no 'extensions' folder. So create it.
 if [ ! -e $EXTENSION_FOLDER ]
 then
