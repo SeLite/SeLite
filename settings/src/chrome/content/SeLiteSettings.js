@@ -331,7 +331,11 @@ SeLiteSettings.Field.prototype.registerFor= function registerFor( module ) {
         throw new Error( "SeLiteSettings.Field.registerFor(module) expects module to be an instance of SeLiteSettings.Module.");
     };
     if( this.module!==null ) {
-        throw new Error( "SeLiteSettings.Field.registerFor(module) expects 'this' SeLiteSettings.Field not to be registered yet, but field '" +this.name+ "' was registered already.");
+        // Following checks whether the field was added via SeLiteSettings.Module.prototype.addField(field).
+        // If so, then this is probably called from SeLiteSettings.loadFromJavascript( moduleName, moduleFileOrUrl, forceReload ) with forceLoad=true, so I allow it.
+        if( !(this.module.name==module.name && this.name in this.module.addedFields) ) {
+            throw new Error( "SeLiteSettings.Field.registerFor(module) expects 'this' SeLiteSettings.Field not to be registered yet, but field '" +this.name+ "' was registered already.");
+        }
     }
     this.module= module;
 };
@@ -919,6 +923,7 @@ SeLiteSettings.Module= function Module( name, fields, allowSets, defaultSetName,
     this.testDbKeeper===null || this.testDbKeeper instanceof SeLiteSettings.TestDbKeeper || SeLiteMisc.fail( 'SeLiteSettings.Module() must be called with testDbKeeper set to an instance of SeLiteSettings.TestDbKeeper, if used.' );
     
     this.prefsBranch= prefs.getBranch( this.name+'.' );
+    this.addedFields= {}; /** { string field name => Field object } for fields added via addField(field). */
     if( !dontRegister ) {
         this.register();
     }
@@ -958,19 +963,24 @@ function directChildList( prefsBranch, namePrefix ) {
     return result;
 }
 
-/** Add a field to an existing module.
+/** Add a field to an existing module 'on the fly'. All such added fields will be re-added when you call SeLiteSettings.loadFromJavascript( moduleName, moduleFileOrUrl, forceReload ) with forceReload=true.
  *  @param {SeLiteSettings.Field objects} field
+ *  @param {boolean} dontReRegister If true, then this doesn't re-register the module.
  *  @returns {void}
  * */
-SeLiteSettings.Module.prototype.addField= function addField( field ) {
+SeLiteSettings.Module.prototype.addField= function addField( field, dontReRegister ) {
     if( !(field instanceof SeLiteSettings.Field) ) {
-        throw new Error( 'SeLiteSettings.Module() expects fields to be an array of SeLiteSettings.Field instances, but item [' +i+ '] is not.');
+        throw new Error( 'SeLiteSettings.Module() expects fields to be an array of SeLiteSettings.Field instances, but it is not.');
     }
     if( field.name in this.fields ) {
         throw new Error( 'SeLiteSettings.Module() for module name "' +name+ '" has two (or more) fields with same name "' +field.name+ '".');
     }
     field.registerFor( this );
     this.fields[ field.name ]= field;
+    this.addedFields[ field.name ]= field;
+    if( !dontReRegister ) {
+        this.register();
+    }
 };
 
 /**@return array of strings names of sets as they are in the preferences DB, or [''] if the module
@@ -1666,7 +1676,7 @@ SeLiteSettings.fileNameToUrl= function fileNameToUrl( fileNameOrUrl ) {
 
 /** Load & register the module from its Javascript file, if stored in preferences.
  *  The file will be cached - any changes will have affect only once you reload Firefox.
- *  If called subsequently, it returns an already loaded instance.
+ *  If called subsequently, it returns an already loaded instance (unless forceReload is true).
  *  @param moduleNameFileUrl string Either
  *  - module name, that is name of the preference path/prefix up to the module (including the module name), excluding the trailing dot; or
  *  @param {string} [moduleFileOrUrl] Either
@@ -1677,14 +1687,16 @@ SeLiteSettings.fileNameToUrl= function fileNameToUrl( fileNameOrUrl ) {
  *  shouldn't pass moduleFileOrUrl.
  *  @param forceReload bool Whether reload the module and overwrite the already cached object,
  *  rather than return a cached definition, even if it has been loaded already. False by default (i.e. by default it returns
- *  the cached object, if present).
+ *  the cached object, if present). It re-adds any fields previously added by addField().
  *  @return SeLiteSettings.Module instance
  *  @throws an error if no such preference branch, or preferences don't contain javascript file, or the javascript file doesn't exist.
  * */
 SeLiteSettings.loadFromJavascript= function loadFromJavascript( moduleName, moduleFileOrUrl, forceReload ) {
    ensureFieldName( moduleName, 'SeLiteSettings.Module name', true );
+   var previouslyAddedFields= {};
    if( modules[moduleName] ) {
         if( forceReload ) {
+            previouslyAddedFields= modules[moduleName].addedFields;
             delete modules[moduleName];
         }
         else {
@@ -1724,7 +1736,14 @@ SeLiteSettings.loadFromJavascript= function loadFromJavascript( moduleName, modu
         throw e;
     }
     moduleName in modules || SeLiteMisc.fail( "Loaded definition of module " +moduleName+ " and it was found in preferences, but it didn't register itself properly. Fix its definition at " +moduleUrl+ " so that it registers itself." );
-    return modules[ moduleName ];
+    var module= modules[moduleName];
+    if( Object.keys(previouslyAddedFields).length>0 ) {
+        for( var fieldName in previouslyAddedFields ) {
+           module.addField( previouslyAddedFields[fieldName], true );
+        }
+        module.register();
+    }
+    return module;
 };
 
 SeLiteSettings.moduleNamesFromPreferences= function moduleNamesFromPreferences( namePrefix ) {
