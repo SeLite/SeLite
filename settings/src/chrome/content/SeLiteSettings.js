@@ -870,7 +870,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
  *  definition of this module. Optional; if present, it lets SeLiteSettings to load a definition automatically
  *  by clients that only know the module name but not location of the file.
  *  If not set and the module has been already registered, then it stays unchanged (in the preference).
- *  Required if you want to registera brand new module; not needed if re-registering (upgrading) an already registered module.
+ *  Required if you want to register a brand new module; not needed if re-registering (upgrading) an already registered module.
  *  @param {SeLiteMisc.TestDbKeeper} [testDbKeeper]
  *  @param {boolean} [dontRegister] Whether not to (re)register this module; by default it's false (i.e. do register).
  * */
@@ -916,7 +916,7 @@ SeLiteSettings.Module= function Module( name, fields, allowSets, defaultSetName,
         throw new Error( 'SeLiteSettings.Module() expects definitionJavascriptFile to be a string, if provided.');
     }
     this.testDbKeeper= testDbKeeper || null;
-    testDbKeeper===null || testDbKeeper instanceof SeLiteSettings.TestDbKeeper || SeLiteMisc.fail( 'SeLiteSettings.Module() must be called with testDbKeeper set to an instance of SeLiteSettings.TestDbKeeper, if used.' );
+    this.testDbKeeper===null || this.testDbKeeper instanceof SeLiteSettings.TestDbKeeper || SeLiteMisc.fail( 'SeLiteSettings.Module() must be called with testDbKeeper set to an instance of SeLiteSettings.TestDbKeeper, if used.' );
     
     this.prefsBranch= prefs.getBranch( this.name+'.' );
     if( !dontRegister ) {
@@ -957,6 +957,21 @@ function directChildList( prefsBranch, namePrefix ) {
     }
     return result;
 }
+
+/** Add a field to an existing module.
+ *  @param {SeLiteSettings.Field objects} field
+ *  @returns {void}
+ * */
+SeLiteSettings.Module.prototype.addField= function addField( field ) {
+    if( !(field instanceof SeLiteSettings.Field) ) {
+        throw new Error( 'SeLiteSettings.Module() expects fields to be an array of SeLiteSettings.Field instances, but item [' +i+ '] is not.');
+    }
+    if( field.name in this.fields ) {
+        throw new Error( 'SeLiteSettings.Module() for module name "' +name+ '" has two (or more) fields with same name "' +field.name+ '".');
+    }
+    field.registerFor( this );
+    this.fields[ field.name ]= field;
+};
 
 /**@return array of strings names of sets as they are in the preferences DB, or [''] if the module
  * doesn't allow sets
@@ -1657,7 +1672,7 @@ SeLiteSettings.fileNameToUrl= function fileNameToUrl( fileNameOrUrl ) {
  *  @param {string} [moduleFileOrUrl] Either
  *  - file path + name of the module definition file; or
  *  - URL (either chrome:, resource: or file:) to the module definition file
- *  Optional; even if it's specified, it's used only if the module has not been registered yet - and then it's required.
+ *  Optional; even if it's specified, it's used only if the module has not been registered yet (and then it's required).
  *  Standard client code should only pass it when installing a module. Clients that expect a module to be installed
  *  shouldn't pass moduleFileOrUrl.
  *  @param forceReload bool Whether reload the module and overwrite the already cached object,
