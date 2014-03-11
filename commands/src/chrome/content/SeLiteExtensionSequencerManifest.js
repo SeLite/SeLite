@@ -11,10 +11,6 @@ SeLiteExtensionSequencer.registerPlugin( {
         var settingsModule= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
         /** Max. time difference between the web app and the test. */
         var maxTimeDifference= new SeLiteSettings.Field.Int( 'maxTimeDifference', false, 5000, true );
-        var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
-        Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
-        console.error( 'Commands: settingsModule.fields: ' +SeLiteMisc.objectToString(settingsModule.fields, 3) );
         settingsModule.addField( maxTimeDifference );
-        console.error( 'Commands: settingsModule.fields - after adding maxTimeDifference: ' +SeLiteMisc.objectToString(settingsModule.fields, 3) );
     }
 } );

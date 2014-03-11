@@ -1617,7 +1617,7 @@ window.addEventListener( "load", function(e) {
         allowModules= true;
         var moduleNames= SeLiteSettings.moduleNamesFromPreferences( prefix );
         for( var i=0; i<moduleNames.length; i++ ) {
-            var module= SeLiteSettings.loadFromJavascript( moduleNames[i], undefined, true/** Force reload, so that user's changes has an effect without restarting Firefox. */ );
+            var module= SeLiteSettings.loadFromJavascript( moduleNames[i], undefined, true/** Force reload, so that user's changes take effect without restarting Firefox. */ );
             if( targetFolder===null || module.associatesWithFolders ) {
                 modules[ moduleNames[i] ]= module;
             }

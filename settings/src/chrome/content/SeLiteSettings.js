@@ -1769,7 +1769,7 @@ SeLiteSettings.moduleNamesFromPreferences= function moduleNamesFromPreferences( 
 };
 
 /** Associate a settings module to be used by GUI reload/snapshot buttons.
- *  Call this from your framework. Do not call it from your settings module definition, otherwise if you load other such definitions by accident (e.g. by opening chrome://selite-settings/content/tree.xul), then the last call to this function would apply.
+ *  Call this from your framework. Do not call it from your settings module definition, otherwise if you load other such definitions (e.g. through API or by opening chrome://selite-settings/content/tree.xul), then the last call to this function would apply.
  *  @param {SeLiteSettings.Module|string} moduleOrName Module, or its full name. The module definition must have fields
  *  - testDbField SeLiteSettings.Field.SQLite that points to test SQLite DB; required
  *  - appDbField SeLiteSettings.Field.SQLite that points to app SQLite DB; optional
