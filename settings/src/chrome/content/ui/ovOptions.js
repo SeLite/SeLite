@@ -1109,9 +1109,11 @@ function treeClickHandler( event ) {
             if( column.value.element!==treeColumnElements.selectedSet ) {
                 moduleSetFields[moduleName][selectedSetName]= module.getFieldsOfSet( selectedSetName );
                 
-                var fieldRow= clickedOptionKey===undefined
-                    ? fieldTreeRow(selectedSetName, field) // field other than SeLiteSettings.Field.FixedMap
+                var fieldRow= fieldTreeRow(selectedSetName, field);
+                /*var optionRow= clickedOptionKey===undefined
+                    ? fieldRow // field other than SeLiteSettings.Field.FixedMap
                     : treeRowsOrChildren[moduleName][selectedSetName][field.name][clickedOptionKey]; // for SeLiteSettings.Field.FixedMap
+                */
                 var valueCell= treeCell( fieldRow, RowLevel.FIELD );
                 valueCell.setAttribute( 'properties',
                     cellText==='Null' || cellText==='Undefine'
@@ -1125,7 +1127,7 @@ function treeClickHandler( event ) {
                             : 'undefined' );
                 }
                 else
-                if( column.value.element===treeColumnElements.checked ) { // This could be more narrowed down, but it doesn't matter
+                if( column.value.element===treeColumnElements.checked ) { // This clears the previous label 'undefined' or 'null' (if any)
                     valueCell.setAttribute( 'label', '' );
                 }
                 treeCell( fieldRow, RowLevel.NULL_OR_UNDEFINE).setAttribute( 'label',
