@@ -963,7 +963,7 @@ function directChildList( prefsBranch, namePrefix ) {
     return result;
 }
 
-/** Add a field to an existing module 'on the fly'. All such added fields will be re-added when you call SeLiteSettings.loadFromJavascript( moduleName, moduleFileOrUrl, forceReload ) with forceReload=true.
+/** Add a field to an existing module 'on the fly'. All such added fields will be re-added when you call SeLiteSettings.loadFromJavascript( moduleName, moduleFileOrUrl, forceReload ) with forceReload=true (but the source code/definition of those added fields won't be re-read).
  *  @param {SeLiteSettings.Field objects} field
  *  @param {boolean} dontReRegister If true, then this doesn't re-register the module.
  *  @returns {void}
@@ -1702,7 +1702,7 @@ SeLiteSettings.fileNameToUrl= function fileNameToUrl( fileNameOrUrl ) {
  *  shouldn't pass moduleFileOrUrl.
  *  @param forceReload bool Whether reload the module and overwrite the already cached object,
  *  rather than return a cached definition, even if it has been loaded already. False by default (i.e. by default it returns
- *  the cached object, if present). It re-adds any fields previously added by addField().
+ *  the cached object, if present). It re-adds any fields previously added by addField() - but it doesn't (and it can't) reload source of those added fields.
  *  @return SeLiteSettings.Module instance
  *  @throws an error if no such preference branch, or preferences don't contain javascript file, or the javascript file doesn't exist.
  * */

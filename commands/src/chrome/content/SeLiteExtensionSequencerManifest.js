@@ -1,3 +1,5 @@
+"use strict";
+
 SeLiteExtensionSequencer.registerPlugin( {
     pluginId: 'commands@selite.googlecode.com',
     coreUrl: 'chrome://selite-commands/content/extensions/commands.js',
@@ -10,7 +12,7 @@ SeLiteExtensionSequencer.registerPlugin( {
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
         var settingsModule= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
         /** Max. time difference between the web app and the test. */
-        var maxTimeDifference= new SeLiteSettings.Field.Int( 'maxTimeDifference', false, 5000, true );
+        var maxTimeDifference= new SeLiteSettings.Field.Int( 'maxTimeDifference', false, undefined, false );
         settingsModule.addField( maxTimeDifference );
     }
 } );
