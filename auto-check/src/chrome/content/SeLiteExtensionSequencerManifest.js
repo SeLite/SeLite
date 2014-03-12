@@ -1,3 +1,5 @@
+"use strict";
+
 SeLiteExtensionSequencer.registerPlugin( {
     pluginId: 'auto-check@selite.googlecode.com',
     coreUrl: 'chrome://selite-auto-check/content/extensions/auto-check.js',
@@ -8,8 +10,10 @@ SeLiteExtensionSequencer.registerPlugin( {
     callBack: function(api) {
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
         var settingsModule= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
-        /** Max. time difference between the web app and the test. */
-        //var maxTimeDifference= new SeLiteSettings.Field.Int( 'maxTimeDifference', false, 5000, true );
-        //settingsModule.addField( maxTimeDifference );
+        var autoCheckDetectionClass= new SeLiteSettings.Field.String( 'autoCheckDetectionClass', false, '', true );
+        var autoCheckAssert= new SeLiteSettings.Field.Bool( 'autoCheckAssert', false, true );
+        var autoCheckRequired= new SeLiteSettings.Field.String( 'autoCheckRequired', true, [], true );
+        var autoCheckRefused= new SeLiteSettings.Field.String( 'autoCheckRefused', true, [], true );
+        settingsModule.addFields( [autoCheckDetectionClass, autoCheckAssert, autoCheckRequired, autoCheckRefused] );
     }
 } );

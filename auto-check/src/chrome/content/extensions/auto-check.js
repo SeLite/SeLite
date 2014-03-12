@@ -18,6 +18,14 @@
 
 Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
 
+// The following if() check is needed because Se IDE loads extensions twice - http://code.google.com/p/selenium/issues/detail?id=6697
 if( Selenium.reloadScripts ) {
-    //Selenium.reloadScripts
+    // @TODO Use $$.fn.interceptAfter from SelBlocks/Global, if it becomes L/GPL
+    ( function() {
+        var originalReloadScripts= Selenium.reloadScripts;
+        Selenium.reloadScripts= function reloadScripts() {
+            originalReloadScripts();
+            
+        };
+    } )();
 }

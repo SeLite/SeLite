@@ -331,7 +331,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
         var option= this.randomOption( selectLocator, params );
 
         // This didn't work: this.browserbot.selectOption( select, option );
-        this.doSelect( selectLocator, 'value=' +option.value );
+        this.doSelect( selectLocator, /*optionLocator:*/'value=' +option.value );
 
         if( params && params.store ) {
             //storedVars[params.store]= option.value;

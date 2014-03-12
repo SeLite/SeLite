@@ -983,6 +983,21 @@ SeLiteSettings.Module.prototype.addField= function addField( field, dontReRegist
     }
 };
 
+/** Add a field to an existing module 'on the fly'. All such added fields will be re-added when you call SeLiteSettings.loadFromJavascript( moduleName, moduleFileOrUrl, forceReload ) with forceReload=true.
+ *  @param {SeLiteSettings.Field[]} fields
+ *  @param {boolean} dontReRegister If true, then this doesn't re-register the module.
+ *  @returns {void}
+ * */
+SeLiteSettings.Module.prototype.addFields= function addField( fields, dontReRegister ) {
+    Array.isArray(fields) || SeLiteMisc.fail( 'addFields() expects fields to be an array.' );
+    for( var i=0; i<fields.length; i++ ) { //@TODO change into for(.. of.. ) once NEtBeans supports it
+        this.addField( fields[i], true );
+    }
+    if( !dontReRegister ) {
+        this.register();
+    }
+};
+    
 /**@return array of strings names of sets as they are in the preferences DB, or [''] if the module
  * doesn't allow sets
  * */
