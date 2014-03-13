@@ -1454,7 +1454,7 @@ function updateSpecial( setName, field, addOrRemove, keyOrValue, fixedKey ) {
                 field.module.prefsBranch.setCharPref( setNameDot+field.name+ '.' +fixedKey, SeLiteSettings.NULL );
             }
             else {
-                if( field instanceof SeLiteSettings.Field.Choice && Object.keys(compound.entry).length>0 ) {
+                if( field instanceof SeLiteSettings.Field.Choice && compound.entry!==undefined && Object.keys(compound.entry).length>0 ) {
                     !field.multivalued && Object.keys(compound.entry).length===1 || SeLiteMisc.fail();
                     field.module.prefsBranch.clearUserPref( setNameDot+field.name+ '.' +Object.keys(compound.entry)[0] );
                 }
@@ -1472,7 +1472,7 @@ function updateSpecial( setName, field, addOrRemove, keyOrValue, fixedKey ) {
                 }
             }
             else {
-                !field.multivalued || Object.keys(compound.entry).length===0 || SeLiteMisc.fail("Multivalued field " +field.name+ " has one or more entries, therefore keyOrValue must not be undefined.");
+                !field.multivalued || compound.entry!==undefined && Object.keys(compound.entry).length===0 || SeLiteMisc.fail("Multivalued field " +field.name+ " has one or more entries, therefore keyOrValue must not be undefined.");
                 if( field.module.prefsBranch.prefHasUserValue(setNameDot+field.name) ) {
                     field.module.prefsBranch.clearUserPref(setNameDot+field.name);
                 }
@@ -1488,7 +1488,7 @@ function updateSpecial( setName, field, addOrRemove, keyOrValue, fixedKey ) {
         // Otherwise, if the field had NULL, then I don't clear that preference here, because that preference gets set outside of this function
     }
     } catch(e) {
-        console.log( 'updateSpecial() Module ' +field.module.name+ ', set ' +setName+ ', field: ' +field.name+ ' has compound ' +typeof compound );
+        console.log( 'updateSpecial() Module ' +field.module.name+ ', set ' +setName+ ', field: ' +field.name+ ' has compound: ' +typeof compound );
         SeLiteMisc.fail(e);
     }
 }
