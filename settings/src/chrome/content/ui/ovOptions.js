@@ -559,13 +559,14 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         subContainer( treeRowsOrChildren, module.name, setName, fieldName )[ key ]= treerow;
     }
     
-    // Cell for checkbox (if the field is boolean or a choice):
+    // Cell for checkbox (if the field is boolean) or radio-like select (if the field is a choice):
     treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
     if( targetFolder!==null
         || rowLevel!==RowLevel.FIELD && rowLevel!==RowLevel.OPTION
         || !(field instanceof SeLiteSettings.Field.Bool || field instanceof SeLiteSettings.Field.Choice)
-        || (typeof value==='string' || typeof value==='number') && !(field instanceof SeLiteSettings.Field.Choice)
+        || (typeof value==='string' || typeof value==='number')
+           && !(field instanceof SeLiteSettings.Field.Choice)
         || rowLevel===RowLevel.FIELD && field instanceof SeLiteSettings.Field.Choice
         || rowLevel===RowLevel.OPTION && optionIsSelected && !field.multivalued
     ) {
@@ -919,9 +920,8 @@ function treeClickHandler( event ) {
                     var clickedCell= treeCell( clickedTreeRow, RowLevel.CHECKBOX );
                     
                     if( !field.multivalued ) { // field is a single-valued choice. The field is only editable if it was unchecked
-                        // - so the user checked it now. Uncheck & remove the previously checked value.
-                        clickedCell.setAttribute( 'editable', 'false');
-                        for( var otherOptionKey in moduleRowsOrChildren[selectedSetName][field.name] ) { // de-select the previously selected value, make editable
+                        // - so the user checked it now. Uncheck & remove the previously checked value (if any).
+                        for( var otherOptionKey in moduleRowsOrChildren[selectedSetName][field.name] ) { // de-select the previously selected value, make it editable
                             
                             if( SeLiteSettings.reservedNames.indexOf(otherOptionKey)<0 && otherOptionKey!==clickedOptionKey ) {
                                 var otherOptionRow= moduleRowsOrChildren[selectedSetName][field.name][otherOptionKey];
@@ -934,6 +934,7 @@ function treeClickHandler( event ) {
                                 }
                             }
                         }
+                        clickedCell.setAttribute( 'editable', 'false');
                         field.addValue( selectedSetName, clickedOptionKey );
                     }
                     else {
@@ -1049,7 +1050,7 @@ function treeClickHandler( event ) {
                     window.open( '?module=' +escape(module.name)+ '&set=' +escape(cellText), '_blank');
                 }
             }
-            if( column.value.element===treeColumnElements.manifest ) {
+            if( column.value.element===treeColumnElements.manifest ) { // Manifest, or Null/Undefine
                 if( targetFolder!==null ) {
                     if( cellProperties!==SeLiteSettings.FIELD_DEFAULT ) {
                         if( cellProperties.startsWith(SeLiteSettings.ASSOCIATED_SET) ) {
@@ -1070,6 +1071,7 @@ function treeClickHandler( event ) {
                 else {
                     if( cellText==='Null' || cellText==='Undefine' ) {
                         if( clickedOptionKey!==undefined ) {
+                            // Our state flow is: value selected -> click 'Null' -> null -> click 'Undefine' -> undefined. So option(s) could be selected only when we click 'Null'; when we click 'Undefine', the field was already set to null (and no option(s) were selected). Therefore this if() branch is simpler than its else {} branch (which handles clicking at 'Null' and unsetting any selected option).
                             field instanceof SeLiteSettings.Field.FixedMap || SeLiteMisc.fail( "Buttons Null/Undefine should show up at this level only for fields that are instances of SeLiteSettings.Field.FixedMap. However, it showed up for " +field );
                             updateSpecial( selectedSetName, field, 0,
                                 cellText==='Null'
@@ -1092,10 +1094,13 @@ function treeClickHandler( event ) {
                             if( field instanceof SeLiteSettings.Field.Bool && compound.entry ) {
                                 treeCell( fieldTreeRow(selectedSetName, field), RowLevel.CHECKBOX ).setAttribute( 'value', 'false' );
                             }
+                            !field.multivalued || !(field instanceof SeLiteSettings.Field.Choice) || SeLiteMisc.fail('There should be no Null button for multivalued choices.' );
                             if( !field.multivalued && field instanceof SeLiteSettings.Field.Choice && compound.entry ) {
                                 var keys= Object.keys(compound.entry);
                                 keys.length===1 || SeLiteMisc.fail();
-                                treeCell( treeRowsOrChildren[moduleName][selectedSetName][field.name][ keys[0] ], RowLevel.CHECKBOX ).setAttribute( 'value', 'false' );
+                                var previousChoiceCell= treeCell( treeRowsOrChildren[moduleName][selectedSetName][field.name][ keys[0] ], RowLevel.CHECKBOX );
+                                previousChoiceCell.setAttribute( 'value', 'false' );
+                                previousChoiceCell.setAttribute( 'editable', 'true' );
                             }
                         }
                         modifiedPreferences= true;
