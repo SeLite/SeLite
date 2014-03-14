@@ -58,14 +58,9 @@ if( typeof TestCase.TestCaseDebugContext==="undefined" ) {
         }
         return command;
     };
-    //var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
     var origTestCasePrototype;
     if( origTestCasePrototype===undefined ) { // This check is needed because of http://code.google.com/p/selenium/issues/detail?id=6697
         origTestCasePrototype= TestCase.prototype;
-        //console.log( 'TestCase Debug Context replacing TestCase with a head-intercept. typeof origTestCasePrototype: ' +typeof origTestCasePrototype );
-
-        // Do not use function TestCase(tempTitle) { ... } here, because that won't make it visible outside of the anonymous function
-        // use TestCase=function(tempTitle) { ... }; instead
         TestCase= function TestCase(tempTitle) {
             if (!tempTitle) tempTitle = "Untitled";
             this.log = new Log("TestCase");
