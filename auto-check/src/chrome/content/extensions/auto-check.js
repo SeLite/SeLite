@@ -16,27 +16,15 @@
 */
 "use strict";
 
-Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
-
 // The following if() check is needed because Se IDE loads extensions twice - http://code.google.com/p/selenium/issues/detail?id=6697
 if( typeof HtmlRunnerTestLoop!=='undefined' ) {
-    var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
     // @TODO Use $$.fn.interceptAfter from SelBlocks/Global, if it becomes L/GPL
     ( function() {
-        var originalReloadScripts= Selenium.reloadScripts;
-        Selenium.reloadScripts= function reloadScripts() {
-            originalReloadScripts();
-            //@TOdO
-        };
-        Selenium.prototype.doAutoCheck= function() {
-            //LOG.warn( 'document: ' +typeof document );
-            LOG.warn( 'TestLoop: ' +typeof TestLoop );
-        };
-        
+        var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         console.warn( 'autocheck setting up an intercept of executeCurrentcommand');
         console.warn( 'HtmlRunnerTestLoop: ' +typeof HtmlRunnerTestLoop);
-        // HtmlRunnerTestLoop.prototype
-        var original_executeCurrentCommand= HtmlRunnerTestLoop.prototype._executeCurrentCommand;
+        // I have no idea why the following works when I intercept TestLoop.prototype._executeCurrentCommand() rather than HtmlRunnerTestLoop.prototype._executeCurrentCommand() in Se 2.5.0. Maybe Selenium IDE loads chrome/content/selenium-core/scripts/selenium-testrunner.js twice. Anyway, if this stops working, I may have to change it to intercept HtmlRunnerTestLoop.prototype._executeCurrentCommand() 
+        var original_executeCurrentCommand= TestLoop.prototype._executeCurrentCommand;
 
         TestLoop.prototype._executeCurrentCommand= function _executeCurrentCommand() {
             console.warn( 'calling original _executeCurrentCommand()');
@@ -46,7 +34,7 @@ if( typeof HtmlRunnerTestLoop!=='undefined' ) {
             // - _executeCurrentCommand() of TestLoop.prototype - defined in selenium-executionloop.js, then copied to HtmlRunnerTestLoop.prototype via objectExtend() in selenium-testrunner.js and selenium-testrunner-original.js
             // - AssertResult.prototype.setFailed and AssertHandler.prototype.execute in selenium-commandhandlers.js
             // verify:
-            // For getters (e.g. getEval), this.result is an instance of AccessorResult. won't be set here - it seems that this.result may not be an instance of AssertResult from selenium-commandhandlers.js. That's why the following checks this.result.failed.
+            // For getters (e.g. getEval), this.result is an instance of AccessorResult, which doesn't have field .passed (as of Selenium IDE 2.5.0). That's why the following checks !this.result.failed rather than this.result.passed.
             if( /*@TODO*/false && !this.result.failed ) { // Only trigger an assert failure, if there was no Selenese failure already
                 var result= new AssertResult();
                 // When debugging this, beware that running a single verification that fails (by double-clicking) doesn't log any message about the failure. It only highlights the command (in the editor matrix) in red/pink.
