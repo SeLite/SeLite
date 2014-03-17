@@ -92,16 +92,16 @@ var SeLiteAutoCheck= {};
         for( var i=0; i<errorElements.length; i++ ) { //@TODO for..of..
             var errorElement= errorElements[i];
             for( var key in this.ignored ) {
-                if( eval_xpath( this.ignored[key], document, errorElement ).length!==0 ) {
+                if( eval_xpath( this.ignored[key], document, {contextNode: errorElement} ).length!==0 ) {
                     continue errorElementLoop;
                     //return "Locator " +this.ignored[key]+ " matched some element(s).";
                     //table class="xdebug-error
                 }
                 if( !fromXdebug ) {
-                    // Following gets the file path for the error
-                    var otherElements= eval_xpath( "following-sibling::node()[1]", document, this.ignored[key] );
+                    // Following gets the file path for the error (if displayeD)
+                    var otherElements= eval_xpath( "./following-sibling::node()[1]", document, {contextNode: errorElement} );
                     if( otherElements.length===1 ) {
-                        if( eval_xpath( this.ignored[key], document, otherElements[0] ).length!==0 ) {
+                        if( eval_xpath( this.ignored[key], document, {contextNode: otherElements[0]} ).length!==0 ) {
                             continue errorElementLoop;
                         }                        
                     }
