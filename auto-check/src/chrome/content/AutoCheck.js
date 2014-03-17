@@ -68,9 +68,9 @@ var SeLiteAutoCheck= {};
     SeLiteAutoCheck.Detector.prototype.failedNotIgnored= function failedNotIgnored( document ) { return false; };
 
     /** Auto Check for PHP (optionally with XDebug).
-     * @param {string[]} required Array of locators.
-     * @param {string[]} refused Array of locators.
-     * @param {string[]} ignored Array of XPath expressions. They must be relative within Xdebug container (if used) - use '.' to refer to that container. They must not start with '//' or 'xpath='. (This doesn't allow location methods other than XPath. See implementation of Selenium IDE's eval_locator()).
+     * @param {object} required Object of locators.
+     * @param {object} refused Object of locators.
+     * @param {object} ignored Object of XPath expressions. They must be relative within Xdebug container (if used) - use '.' to refer to that container. They must not start with '//' or 'xpath='. (This doesn't allow location methods other than XPath. See implementation of Selenium IDE's eval_locator()). It must not include the header-like 'Notice', 'Warning', 'Error'.
      *  @param {boolean} assert See the same parameter of SeLiteAutoCheck.Detector().
     */
     SeLiteAutoCheck.DetectorPHP= function DetectorPHP( required, refused, ignored, assert ) {
@@ -80,11 +80,21 @@ var SeLiteAutoCheck= {};
     SeLiteAutoCheck.DetectorPHP.prototype.constructor= SeLiteAutoCheck.DetectorPHP;
 
     SeLiteAutoCheck.DetectorPHP.prototype.failedNotIgnored= function failedNotIgnored( document ) {
-        for( var key in this.ignored ) {
-            if( eval_locator( this.ignored[key], document ).length!==0 ) {
-                //return "Locator " +this.ignored[key]+ " matched some element(s).";
-                //table class="xdebug-error
+        var errorElements= eval_xpath( "//table[ contains(@class, 'xdebug-error') ]", document);
+        if( errorElements.length===0 ) {
+            errorElements= eval_xpath( "//b[ .='Notice' or .='Warning' or .='Error' ][ following-sibling::node()[1][starts-with(., ': ') and following-sibling::node()[2][contains(., 'on line')] ] ]/following-sibling::node()[ position()<3 ]", document );
+        }
+        errorElementLoop:
+        for( var i=0; i<errorElements.length; i++ ) { //@TODO for..of..
+            var errorElement= errorElements[i];
+            for( var key in this.ignored ) {
+                if( eval_xpath( this.ignored[key], document, errorElement ).length!==0 ) {
+                    continue errorElementLoop;
+                    //return "Locator " +this.ignored[key]+ " matched some element(s).";
+                    //table class="xdebug-error
+                }
             }
+            return ''+errorElement; //@TODO cumulate
         }
         return false;
     };

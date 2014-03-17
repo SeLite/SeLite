@@ -22,7 +22,7 @@ if( typeof HtmlRunnerTestLoop!=='undefined' ) {
     ( function(global) {
         Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
-        //var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+        var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         //console.warn( 'autocheck setting up an intercept of executeCurrentcommand');
         //console.warn( 'HtmlRunnerTestLoop: ' +typeof HtmlRunnerTestLoop);
         
@@ -56,7 +56,11 @@ if( typeof HtmlRunnerTestLoop!=='undefined' ) {
                     //console.warn( "detectorClass= fieldsDownToFolder['autoCheckDetector'].entry: " +detectorClassName );
                     var detectorClass= SeLiteMisc.cascadeField(global, detectorClassName, true);
                     detector= new detectorClass( fieldsDownToFolder['autoCheckRequired'].entry, fieldsDownToFolder['autoCheckRefused'].entry, fieldsDownToFolder['autoCheckIgnored'].entry, fieldsDownToFolder['autoCheckAssert'].entry );
-                    var message= detector.failedRequired( document ) || detector.failedRefused( document ) || detector.failedNotIgnored( document );
+                    //var doc= selenium.browserbot.getCurrentWindow().document;
+                    var doc= selenium.browserbot.getDocument();
+                    console.error( 'document: ' +doc );
+                    console.error( 'location: ' +selenium.browserbot.getCurrentWindow().location );
+                    var message= detector.failedRequired( doc ) || detector.failedRefused( doc ) || detector.failedNotIgnored( doc );
                     if( message ) {
                         if( detector.assert ) {
                             throw new SeleniumError('e.failureMessage');
