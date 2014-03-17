@@ -32,9 +32,9 @@ var SeLiteAutoCheck= {};
         this.refused= refused || {};
         this.ignored= ignored || {};
         this.assert= assert || false;
-        typeof this.required==='object' || SeLiteMisc.fail( 'parameter required must be an array, if provided' );
-        typeof this.refused==='object' || SeLiteMisc.fail( 'parameter refused must be an array, if provided' );
-        typeof this.ignored==='object' || SeLiteMisc.fail( 'parameter ignoredmust be an array, if provided' );
+        typeof this.required==='object' || SeLiteMisc.fail( 'parameter required must be an object, if provided' );
+        typeof this.refused==='object' || SeLiteMisc.fail( 'parameter refused must be an object, if provided' );
+        typeof this.ignored==='object' || SeLiteMisc.fail( 'parameter ignored must be an object, if provided' );
         typeof this.assert==='boolean' || SeLiteMisc.fail( 'parameter assert must be a boolean, if provided' );
     };
     /** Check the document for required part(s).
@@ -65,7 +65,7 @@ var SeLiteAutoCheck= {};
      *  @param {object} document
      *  @return {(boolean|string)} False on success (i.e. the document didn't fail); string message on failure.
      * */
-    SeLiteAutoCheck.Detector.prototype.failedNotIgnored= function failedNotIgnored( document ) { return false; }
+    SeLiteAutoCheck.Detector.prototype.failedNotIgnored= function failedNotIgnored( document ) { return false; };
 
     /** Auto Check for PHP (optionally with XDebug).
      * @param {string[]} required Array of locators.
