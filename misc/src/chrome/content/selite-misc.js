@@ -1000,10 +1000,35 @@ subIndexColumnOrFieldName ) {
     }
 };
 
+/** Access a direct field on the given record, or evaluate a function on the given record.
+ * @private */
 SeLiteMisc.getField= function getField( record, columnFieldNameOrFunction ) {
     return typeof columnFieldNameOrFunction==='function'
         ? columnFieldNameOrFunction(record)
         : record[columnFieldNameOrFunction];
+};
+
+/** It serves to access (potentially deeper) fields of objects. Used e.g. when dynamically accessing user-provided class (for its given name), which may be a sub(sub...)field of a namespace object (i.e. having dots in the name).
+ * @param {object} object
+ * @param {string} fieldNameDotEtc Field name, or multiple field names separated by dot.
+ * @param {boolean} [doNotThrow=false] If true then it throws any appropriate errors (e.g. when object is not an object, or fieldNameDotEtc contains dot(s) but some intermediate objects are not present).
+ * @return {*} (sub..)field of object. Return undefined on failure if doNotThrow equals to true.
+ * @throws Various, unless you set doNotThrow
+ * */
+SeLiteMisc.cascadeField= function( object, fieldNameDotEtc, doNotThrow ) {
+    while( true ) {
+        var indexOfDot= fieldNameDotEtc.indexOf('.');
+        if( (typeof object!=='object' || object===null) && doNotThrow ) {
+            return undefined;
+        }
+        if( indexOfDot>=0 ) {
+            object= object[ fieldNameDotEtc.substring(0, indexOfDot ) ];
+            fieldNameDotEtc= fieldNameDotEtc.substring( indexOfDot+1 );
+        }
+        else {
+            return object[fieldNameDotEtc];
+        }
+    }
 };
 
 /** Get all ASCII characters that match the given regex.

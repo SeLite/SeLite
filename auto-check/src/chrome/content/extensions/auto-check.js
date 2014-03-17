@@ -19,35 +19,58 @@
 // The following if() check is needed because Se IDE loads extensions twice - http://code.google.com/p/selenium/issues/detail?id=6697
 if( typeof HtmlRunnerTestLoop!=='undefined' ) {
     // @TODO Use $$.fn.interceptAfter from SelBlocks/Global, if it becomes L/GPL
-    ( function() {
+    ( function(global) {
+        Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
+        Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         console.warn( 'autocheck setting up an intercept of executeCurrentcommand');
         console.warn( 'HtmlRunnerTestLoop: ' +typeof HtmlRunnerTestLoop);
-        // I have no idea why the following works when I intercept TestLoop.prototype._executeCurrentCommand() rather than HtmlRunnerTestLoop.prototype._executeCurrentCommand() in Se 2.5.0. Maybe Selenium IDE loads chrome/content/selenium-core/scripts/selenium-testrunner.js twice. Anyway, if this stops working, I may have to change it to intercept HtmlRunnerTestLoop.prototype._executeCurrentCommand() 
+        
+        var settingsModule= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
+        
+        // This intercepts and depends on current implementation of
+        // - _executeCurrentCommand() of TestLoop.prototype - defined in selenium-executionloop.js, then copied to HtmlRunnerTestLoop.prototype via objectExtend() in selenium-testrunner.js and selenium-testrunner-original.js
+        // I have no idea why the following works when I intercept TestLoop.prototype._executeCurrentCommand() rather than HtmlRunnerTestLoop.prototype._executeCurrentCommand() in Se 2.5.0. Maybe Selenium IDE loads chrome://selenium-ide/content/selenium-core/scripts/selenium-testrunner.js twice. Anyway, if this stops working, I may have to change it to intercept HtmlRunnerTestLoop.prototype._executeCurrentCommand() 
         var original_executeCurrentCommand= TestLoop.prototype._executeCurrentCommand;
 
         TestLoop.prototype._executeCurrentCommand= function _executeCurrentCommand() {
             console.warn( 'calling original _executeCurrentCommand()');
             original_executeCurrentCommand.call( this );
             console.warn( 'custom _executeCurrentCommand():');
-            // This intercepts and depends on current implementation of
-            // - _executeCurrentCommand() of TestLoop.prototype - defined in selenium-executionloop.js, then copied to HtmlRunnerTestLoop.prototype via objectExtend() in selenium-testrunner.js and selenium-testrunner-original.js
             // - AssertResult.prototype.setFailed and AssertHandler.prototype.execute in selenium-commandhandlers.js
-            // verify:
             // For getters (e.g. getEval), this.result is an instance of AccessorResult, which doesn't have field .passed (as of Selenium IDE 2.5.0). That's why the following checks !this.result.failed rather than this.result.passed.
-            if( /*@TODO*/false && !this.result.failed ) { // Only trigger an assert failure, if there was no Selenese failure already
-                var result= new AssertResult();
-                // When debugging this, beware that running a single verification that fails (by double-clicking) doesn't log any message about the failure. It only highlights the command (in the editor matrix) in red/pink.
-                // Only when you run a test case/suite then any failed verifications log their messages in the log (in red).
-                result.setFailed('TODO');
-                this.result= result;
+            if( !this.result.failed ) { // Only perform the checks, if there was no Selenese failure already
+                var detector;
+                var fieldsDownToFolder= settingsModule.getFieldsDownToFolder();
+                if( fieldsDownToFolder['autoCheckDetector'].entry ) {
+                    var detectorClassName= Object.keys( fieldsDownToFolder['autoCheckDetector'].entry )[0];
+                }
+                else
+                if( fieldsDownToFolder['autoCheckDetectorCustom'].entry ) {
+                    //@TODO Load custom .js, if any
+                }
+                if( detectorClassName && !SeLiteMisc.cascadeField(global, detectorClassName, true) ) {
+                    throw new SeleniumError( 'SeLite AutoCheck is configured to use unknown class ' +detectorClassName );
+                }
+                if( detectorClassName ) {
+                    console.warn( "detectorClass= fieldsDownToFolder['autoCheckDetector'].entry: " +detectorClassName );
+                    var detectorClass= SeLiteMisc.cascadeField(global, detectorClassName, true);
+                    detector= new detectorClass( fieldsDownToFolder['autoCheckRequired'].entry, fieldsDownToFolder['autoCheckRefused'].entry, fieldsDownToFolder['autoCheckIgnored'].entry, fieldsDownToFolder['autoCheckAssert'].entry );
+                    return 'TODO';
+                    var required= detector.failedRequired( )
+                    throw new SeleniumError('e.failureMessage');
+                    var result= new AssertResult();
+                    
+                    result.setFailed('TODO'); // see AssertHandler.prototype.execute() in chrome://selenium-ide/content/selenium-core/scripts/selenium-commandhandlers.js
+                    this.result= result;
 
-                this.waitForCondition = this.result.terminationCondition;
+                    this.waitForCondition = this.result.terminationCondition;
+                }
+                console.warn( 'detector: ' +typeof detector);
+                console.warn( 'document ' +typeof document);
             }
             console.warn( 'end of custom _executeCurrentCommand');
-            // assert: @TODO find out whether I should clear this.result and this.waitForCondition. @TODO throw;
-            //throw new SeleniumError('e.failureMessage');
         /**/
         }
-    } )();
+    } )( this );
 }

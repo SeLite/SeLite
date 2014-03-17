@@ -11,7 +11,7 @@ SeLiteExtensionSequencer.registerPlugin( {
     callBack: function(api) {
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
         var settingsModule= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
-        var autoCheckDetector= new SeLiteSettings.Field.Choice.String('autoCheckDetector', false, undefined, {DectectorPHP:"SeLiteAutoCheck.DetectorPHP"} );
+        var autoCheckDetector= new SeLiteSettings.Field.Choice.String('autoCheckDetector', false, undefined, {"SeLiteAutoCheck.DetectorPHP":"SeLiteAutoCheck.DetectorPHP"} );
         var autoCheckDetectorCustom= new SeLiteSettings.Field.String( 'autoCheckDetectorCustom', false, undefined, false );
         var autoCheckDetectorCustomURL= new SeLiteSettings.Field.String( 'autoCheckDetectorCustomURL', false, undefined, false );
         var autoCheckAssert= new SeLiteSettings.Field.Bool( 'autoCheckAssert', false, false );

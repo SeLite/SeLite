@@ -21,19 +21,20 @@ var SeLiteAutoCheck= {};
     Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
 
     /** Parent class of all Auto Check detectors. For description of items of parameters required, refused and ignored check the actual implementation subclasses.
-     *  @param {string[]} required Array of entries matching any required contents. In default implementation an entry can be any Selenese locator.
-     *  @param {string[]) refused Array of entries matching any refused contents. In default implementation an entry can be any Selenese locator.
-     *  @param {string[]) ignored Array of entries matching any ignored notices/warnings/errors. In default implementation an entry can be any Selenese locator.
+     * When debugging failedXYZ() methods, beware that running a single verification that fails (by double-clicking) doesn't log any message about the failure. It only highlights the command (in the editor matrix) in red/pink. Only when you run a test case/suite then any failed verifications log their messages in the log (in red).
+     *  @param {object} required Object serving as an array of entries matching any required contents. In default implementation an entry can be any Selenese locator.
+     *  @param {object) refused Object serving as an array of entries matching any refused contents. In default implementation an entry can be any Selenese locator.
+     *  @param {object) ignored Object serving as an array of entries matching any ignored notices/warnings/errors. In default implementation an entry can be any Selenese locator.
      *  @param {boolean} assert Whether to run the checks as assertions; otherwise they are run as validation only. Optional, false by default.
      * */
     SeLiteAutoCheck.Detector= function Detector( required, refused, ignored, assert ) {
-        this.required= required || [];
-        this.refused= refused || [];
-        this.ignored= ignored || [];
+        this.required= required || {};
+        this.refused= refused || {};
+        this.ignored= ignored || {};
         this.assert= assert || false;
-        Array.isArray(this.required) || SeLiteMisc.fail( 'parameter required must be an array, if provided' );
-        Array.isArray(this.refused) || SeLiteMisc.fail( 'parameter refused must be an array, if provided' );
-        Array.isArray(this.ignored) || SeLiteMisc.fail( 'parameter ignoredmust be an array, if provided' );
+        typeof this.required==='object' || SeLiteMisc.fail( 'parameter required must be an array, if provided' );
+        typeof this.refused==='object' || SeLiteMisc.fail( 'parameter refused must be an array, if provided' );
+        typeof this.ignored==='object' || SeLiteMisc.fail( 'parameter ignoredmust be an array, if provided' );
         typeof this.assert==='boolean' || SeLiteMisc.fail( 'parameter assert must be a boolean, if provided' );
     };
     /** Check the document for required part(s).
@@ -41,9 +42,9 @@ var SeLiteAutoCheck= {};
      *  @return {(boolean|string)} False on success (i.e. the document didn't fail); string message on failure.
      * */
     SeLiteAutoCheck.Detector.prototype.failedRequired= function failedRequired( document ) {
-        for( var i=0; i<this.required.length; i++ ) {//@TODO for..of.. once NetBeans supports it
-            if( eval_locator( this.required[i], document ).length===0 ) {
-                return "Locator " +this.required[i]+ " didn't match any element.";
+        for( var key in this.required ) {
+            if( eval_locator( this.required[key], document ).length===0 ) {
+                return "Locator " +this.required[key]+ " didn't match any element.";
             }
         }
         return false;
@@ -53,9 +54,9 @@ var SeLiteAutoCheck= {};
      *  @return {(boolean|string)} False on success (i.e. the document didn't fail); string message on failure.
      * */
     SeLiteAutoCheck.Detector.prototype.failedRefused= function failedRefused( document ) {
-        for( var i=0; i<this.required.length; i++ ) {//@TODO for..of.. once NetBeans supports it
-            if( eval_locator( this.required[i], document ).length!==0 ) {
-                return "Locator " +this.required[i]+ " matched some element(s).";
+        for( var key in this.refused ) {
+            if( eval_locator( this.refused[key], document ).length!==0 ) {
+                return "Locator " +this.refused[key]+ " matched some element(s).";
             }
         }
         return false;
@@ -79,7 +80,12 @@ var SeLiteAutoCheck= {};
     SeLiteAutoCheck.DetectorPHP.prototype.constructor= SeLiteAutoCheck.DetectorPHP;
 
     SeLiteAutoCheck.DetectorPHP.prototype.failedNotIgnored= function failedNotIgnored( document ) {
-        //table class="xdebug-error
-        
+        for( var key in this.ignored ) {
+            if( eval_locator( this.ignored[key], document ).length!==0 ) {
+                //return "Locator " +this.ignored[key]+ " matched some element(s).";
+                //table class="xdebug-error
+            }
+        }
+        return false;
     };
 } ) ();
