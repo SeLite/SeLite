@@ -81,10 +81,14 @@ var SeLiteAutoCheck= {};
 
     SeLiteAutoCheck.DetectorPHP.prototype.failedNotIgnored= function failedNotIgnored( document ) {
         var errorElements= eval_xpath( "//table[ contains(@class, 'xdebug-error') ]", document);
-        if( errorElements.length===0 ) {
-            errorElements= eval_xpath( "//b[ .='Notice' or .='Warning' or .='Error' ][ following-sibling::node()[1][starts-with(., ': ') and following-sibling::node()[2][contains(., 'on line')] ] ]/following-sibling::node()[ position()<3 ]", document );
+        var fromXdebug= errorElements.length!==0;
+        if( !fromXdebug ) {
+            // Following matches one node per error - the description/message
+            errorElements= eval_xpath( "//b[ .='Notice' or .='Warning' or .='Error' ]/following-sibling::node()[1][ starts-with(., ': ') ]", document );
+            // I could match both the description and file path by one regex, but it may be less flexible:
+            // "//b[ .='Notice' or .='Warning' or .='Error' ][ following-sibling::node()[1][starts-with(., ': ') and following-sibling::node()[2][contains(., 'on line')] ] ]/following-sibling::node()[ 1 ]"
         }
-        errorElementLoop:
+        errorElementLoop: //@TODO do we get more entries for the same error?!
         for( var i=0; i<errorElements.length; i++ ) { //@TODO for..of..
             var errorElement= errorElements[i];
             for( var key in this.ignored ) {
@@ -93,8 +97,17 @@ var SeLiteAutoCheck= {};
                     //return "Locator " +this.ignored[key]+ " matched some element(s).";
                     //table class="xdebug-error
                 }
+                if( !fromXdebug ) {
+                    // Following gets the file path for the error
+                    var otherElements= eval_xpath( "following-sibling::node()[1]", document, this.ignored[key] );
+                    if( otherElements.length===1 ) {
+                        if( eval_xpath( this.ignored[key], document, otherElements[0] ).length!==0 ) {
+                            continue errorElementLoop;
+                        }                        
+                    }
+                }
             }
-            return ''+errorElement; //@TODO cumulate
+            return 'hoho';//+errorElement; //@TODO cumulate
         }
         return false;
     };

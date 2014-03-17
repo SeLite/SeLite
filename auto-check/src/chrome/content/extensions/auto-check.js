@@ -63,7 +63,7 @@ if( typeof HtmlRunnerTestLoop!=='undefined' ) {
                     var message= detector.failedRequired( doc ) || detector.failedRefused( doc ) || detector.failedNotIgnored( doc );
                     if( message ) {
                         if( detector.assert ) {
-                            throw new SeleniumError('e.failureMessage');
+                            throw new SeleniumError( message );
                         }
                         else {
                             var result= new AssertResult();
