@@ -41,7 +41,7 @@ if( typeof HtmlRunnerTestLoop!=='undefined' ) {
             // For getters (e.g. getEval), this.result is an instance of AccessorResult, which doesn't have field .passed (as of Selenium IDE 2.5.0). That's why the following checks !this.result.failed rather than this.result.passed.
             if( !this.result.failed ) { // Only perform the checks, if there was no Selenese failure already
                 var detector;
-                var fieldsDownToFolder= settingsModule.getFieldsDownToFolder();
+                var fieldsDownToFolder= settingsModule.getFieldsDownToFolder( /*folderPath:*/undefined, /*dontCache:*/true );
                 if( fieldsDownToFolder['autoCheckDetector'].entry ) {
                     var detectorClassName= Object.keys( fieldsDownToFolder['autoCheckDetector'].entry )[0];
                 }

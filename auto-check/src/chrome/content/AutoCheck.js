@@ -91,23 +91,27 @@ var SeLiteAutoCheck= {};
         errorElementLoop: //@TODO do we get more entries for the same error?!
         for( var i=0; i<errorElements.length; i++ ) { //@TODO for..of..
             var errorElement= errorElements[i];
+            var errorFileElements= undefined; // element containing the file path where the errors wa (if displayed and if !fromDebug)
+            // If fromXdebug, then I don't match the file location separately - it's already within errorElement
+            if( !fromXdebug ) {
+                //errorFileElements= eval_xpath( "./following-sibling::node()[1]", document, {contextNode: errorElement} );
+                errorFileElements= eval_xpath( "/following-sibling::b[1]", document, {contextNode: errorElement} );
+            }
             for( var key in this.ignored ) {
                 if( eval_xpath( this.ignored[key], document, {contextNode: errorElement} ).length!==0 ) {
                     continue errorElementLoop;
-                    //return "Locator " +this.ignored[key]+ " matched some element(s).";
-                    //table class="xdebug-error
                 }
-                if( !fromXdebug ) {
-                    // Following gets the file path for the error (if displayeD)
-                    var otherElements= eval_xpath( "./following-sibling::node()[1]", document, {contextNode: errorElement} );
-                    if( otherElements.length===1 ) {
-                        if( eval_xpath( this.ignored[key], document, {contextNode: otherElements[0]} ).length!==0 ) {
-                            continue errorElementLoop;
-                        }                        
-                    }
+                if( errorFileElements && errorFileElements.length!==0 ) {
+                    if( eval_xpath( this.ignored[key], document, {contextNode: errorFileElements[0]} ).length!==0 ) {
+                        continue errorElementLoop;
+                    }                        
                 }
             }
-            return 'hoho';//+errorElement; //@TODO cumulate
+            return 'There was a notice/warning/error that is not on the ignored list: ' +errorElement.wholeText+
+                (errorFileElements && errorFileElements.length!==0
+                    ? ' ' +errorFileElements[0].textContent
+                    : ''
+                );
         }
         return false;
     };
