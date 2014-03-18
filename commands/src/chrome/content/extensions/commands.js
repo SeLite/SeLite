@@ -195,7 +195,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
         this.waitForDistinctTimestamp( timestampName, precisionInSeconds*1000 );
     };
 
-    Selenium.prototype.doWaitTimestampDistinctDownToMinutes= function doWaitTimestampDistinctDownToMinutes( timestampName, precisionInMinutes ) {
+    Selenium.prototype.doWaitForTimestampDistinctDownToMinutes= function doWaitTimestampDistinctDownToMinutes( timestampName, precisionInMinutes ) {
         precisionInMinutes= precisionInMinutes || 1;
         this.waitForDistinctTimestamp( timestampName, precisionInMinutes*60000 );
     };

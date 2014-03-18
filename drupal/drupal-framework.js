@@ -13,7 +13,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 "use strict";
-
+throw new Error('Unfinished. Some settings were moved out to extensions.selite-settings.common. Adjust code here accordingly. ');
 // Following is a namespace-like object in the global scope.
 var Drupal= {};
 
@@ -111,8 +111,6 @@ var Drupal= {};
             }
             return null;
         };
-        
-        SeLiteSettings.setModuleForReloadButtons( settingsModule );
     // }
     // SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doDrupalUsers']= !loadedOddTimes;
 })();

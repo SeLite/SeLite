@@ -35,8 +35,8 @@ var FUDforum= {};
     // Once you open/save a test suite, storage object will get updated automatically and it will open an SQLite connection.
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         
-        // @TODO a shorthand method, where I just pass ''extensions.selite.fudforum'. Seame field naming convention is required by SeLiteSettings' ide-extension.js
-        var storage= SeLiteData.getStorageFromSettings( 'extensions.selite.fudforum.testDB', 'extensions.selite.fudforum.tablePrefix' );
+        // @TODO a shorthand method, where I just pass ''extensions.selite.fudforum'. Same field naming convention is required by SeLiteSettings' ide-extension.js
+        var storage= SeLiteData.getStorageFromSettings();
         var db= new SeLiteData.Db( storage );
         
         FUDforum.tables= {};
@@ -73,7 +73,7 @@ var FUDforum= {};
             columns: ['entity_type', 'bundle', 'deleted', 'entity_id', 'revision_id', 'language', 'delta', 'body_value', 'body_sumary', 'body_format'],
             primary: '@TODO group of columns'
         });*/
-        
+        // @TODO extensions.selite-settings.common
         var settingsModule= SeLiteSettings.loadFromJavascript('extensions.selite.fudforum');
         var webRootField= settingsModule.fields['webRoot'];
         
@@ -97,8 +97,6 @@ var FUDforum= {};
                 return userNameOrRoleWithPrefix;
             }
         };
-        
-        SeLiteSettings.setModuleForReloadButtons( settingsModule );
     // }
     // SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doFUDforumUsers']= !loadedOddTimes;
 })();

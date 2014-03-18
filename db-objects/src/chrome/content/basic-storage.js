@@ -595,6 +595,8 @@ Object.defineProperty( SeLiteData.Settable.prototype, 'set', {
 } );
 
 /** @private Subclass of SeLiteData.Storage, that is based on SeLiteSettings.Field pointing to an SQLite source, and an optional Field indicating table prefix.
+ *  @param {SeLiteSettings.Field.SQLite} dbField
+ *  @param {SeLiteSettings.Field.String} [tablePrefixField]
  * */
 function StorageFromSettings( dbField, tablePrefixField ) {
     console.warn( 'StorageFromSettings:\n' +SeLiteMisc.stack() );
@@ -603,7 +605,7 @@ function StorageFromSettings( dbField, tablePrefixField ) {
     !(dbField.name in StorageFromSettings.instances) || SeLiteMisc.fail('There already is an instance of StorageFromSettings for ' +dbField.name );
     this.dbField= dbField;
     this.tablePrefixField= tablePrefixField;
-    this.tablePrefixValue= undefined; // This will be a cached value of Field this.tablePrefixField for current test suite (once known)
+    this.tablePrefixValue= undefined; // This will be a cached configuration value for Field instance stored in this.tablePrefixField for current test suite (once known)
     
     StorageFromSettings.instances[ dbField.name ]= this;
     if( SeLiteSettings.getTestSuiteFolder() ) {
@@ -671,21 +673,27 @@ StorageFromSettings.prototype.tablePrefix= function tablePrefix() {
 /** Create a new instance of StorageFromSettings, based on the given field (or its name), or
  *  re-use an existing instance of StorageFromSettings based on that field.
  *  @param {string|SeLiteSettings.Field} appDbFieldOrFieldName Either string, or SeLiteSettings.Field.SQLite instance.
- *  If it is a string, it must be a full field name. See SeLiteSettings.getField().
+ *  If it is a string, it must be a full field name. See SeLiteSettings.getField(). Optional, it defaults to 'extensions.selite-settings.common.testDB'.
  *  @param {string|SeLiteSettings.Field} [tablePrefixFieldOrFieldName] Either string, or SeLiteSettings.Field.SQLite instance.
- *  If it is a string, it must be a full field name. See SeLiteSettings.getField().
+ *  If it is a string, it must be a full field name. See SeLiteSettings.getField(). Optional, it defaults to 'extensions.selite-settings.common.tablePrefix'. If you want to use an empty table prefix and to override any value of 'extensions.selite-settings.common.tablePrefix' field, pass an empty string '' or null.
  *  @param {boolean} [dontCreate=false] If true then this won't create a storage object,
  *  if it doesn't exist yet (then this returns null). False by default.
  *  @return StorageFromSettings instance
  */
 SeLiteData.getStorageFromSettings= function getStorageFromSettings( appDbFieldOrFieldName, tablePrefixFieldOrFieldName, dontCreate ) {
+    appDbFieldOrFieldName= appDbFieldOrFieldName!==undefined
+        ? appDbFieldOrFieldName
+        : 'extensions.selite-settings.common.testDB';
     var appDBfield= SeLiteSettings.getField(appDbFieldOrFieldName);
-    appDBfield instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail('Parameter appDbFieldOrFieldName must be an instance of SeLiteSettings.Field.SQLite, or a string, but it is ' +appDbFieldOrFieldName+ '; appDBfield: ' +appDBfield );
+    appDBfield instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail('Parameter appDbFieldOrFieldName must be an instance of SeLiteSettings.Field.SQLite, or a string, but it is (after processing) ' +appDbFieldOrFieldName+ '; appDBfield: ' +appDBfield );
     
-    var tablePrefixDBfield= tablePrefixFieldOrFieldName!==undefined
+    tablePrefixFieldOrFieldName= tablePrefixFieldOrFieldName!==undefined
+        ? tablePrefixFieldOrFieldName
+        : 'extensions.selite-settings.common.tablePrefix';
+    var tablePrefixDBfield= tablePrefixFieldOrFieldName
         ? SeLiteSettings.getField(tablePrefixFieldOrFieldName)
         : undefined;
-    tablePrefixFieldOrFieldName===undefined || tablePrefixDBfield instanceof SeLiteSettings.Field.String || SeLiteMisc.fail('Parameter tablePrefixDBfield must be an instance of SeLiteSettings.Field.String, or a string, but it is ' +tablePrefixFieldOrFieldName+ '; tablePrefixField: ' +tablePrefixDBfield );
+    tablePrefixFieldOrFieldName===undefined || tablePrefixDBfield instanceof SeLiteSettings.Field.String || SeLiteMisc.fail('Parameter tablePrefixDBfield must be an instance of SeLiteSettings.Field.String, or a string, but it is (after processing) ' +tablePrefixFieldOrFieldName+ '; tablePrefixField: ' +tablePrefixDBfield );
     
     dontCreate= dontCreate || false;
     SeLiteMisc.ensureType( dontCreate, 'boolean', 'Parameter dontCreate must be a boolean, if specified.' );
