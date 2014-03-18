@@ -108,7 +108,11 @@ var SeLiteAutoCheck= {};
                     }                        
                 }
             }
-            return 'There was a notice/warning/error that is not on the ignored list: ' +errorElement.wholeText+
+            return 'There was a notice/warning/error that is not on the ignored list: ' +
+                (errorElement.wholeText
+                    ? errorElement.wholeText
+                    : errorElement.textContent
+                )+
                 (errorFileElements && errorFileElements.length!==0
                     ? ' ' +errorFileElements[0].textContent
                     : ''
