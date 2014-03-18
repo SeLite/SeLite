@@ -91,7 +91,7 @@ var SeLiteAutoCheck= {};
         errorElementLoop:
         for( var i=0; i<errorElements.length; i++ ) { //@TODO for..of..
             var errorElement= errorElements[i];
-            var errorFileElements= undefined; // element containing the file path where the errorr was reported (if displayed and if !fromDebug)
+            var errorFileElements= undefined; // element containing the file path where the error was reported (if displayed and if !fromDebug)
             // If fromXdebug, then I don't match the file location separately - it's already within errorElement
             if( !fromXdebug ) {
                 //errorFileElements= eval_xpath( "./following-sibling::node()[1]", document, {contextNode: errorElement} );
