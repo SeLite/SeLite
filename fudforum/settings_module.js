@@ -1,5 +1,6 @@
 "use strict";
 
+// This is needed because Selenium IDE desn't allow base URL to contain path (http://code.google.com/p/selenium/issues/detail?id=3116).
 var webroot= new SeLiteSettings.Field.String('webRoot', /*multivalued:*/false, 'http://localhost/fudforum/', /*requireAndPopulate:*/true);
 //var maxNumberOfRuns= new SeLiteSettings.Field.Int('maxNumberOfRuns', false, 20);
 

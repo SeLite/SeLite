@@ -114,8 +114,17 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
             timestampDetails.precision, timestampDetails.validatePrecision, timestampDetails.timezone );
     };
     
+    /** This will be SeLiteSettings.Module instance for config module extensions.selite-settings.common. I can retrieve it here, but I can't access its field maxTimeDifference here, because that field is only added on-the-fly in callBack part of Command's SeLiteExtensionSequencerManifest.js, which is only after this file is loaded (as a Core extension) by ExtensionSequencer.
+     * */
+    var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
+    
+    /** Shorthand function to value of extensions.selite-settings.common field maxTimeDifference. Not in Selenese scope. */
+    function maxTimeDifference() {
+        return commonSettings.getField( 'maxTimeDifference' ).getDownToFolder().entry;
+    }
+    
     /** Internal function, used to compare a displayed human-readable timestamp to a numeric timestamp,
-     *  allowing for difference of maxTimeDifference (milllisec) and this.defaultTimeout (ms) and 1x display time unit (displayPrecisionInSeconds).
+     *  allowing for difference of maxTimeDifference() (milllisec) and this.defaultTimeout (ms) and 1x display time unit (displayPrecisionInSeconds).
         I don't use prefix 'do' or 'get' in the name of this function
         because it's not intended to be run as Selenium command/getter.
      *  @param string locator Selenium locator of the element that contains the displayed human-readable (and parsable) time stamp
@@ -136,7 +145,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
             ? element.value
             : element.textContent;
         var displayedTime= Date.parse( displayedTimeString );
-        var maxDifference= maxTimeDifference+ Number(this.defaultTimeout)+ displayPrecisionInMilliseconds;
+        var maxDifference= maxTimeDifference()+ Number(this.defaultTimeout)+ displayPrecisionInMilliseconds;
         LOG.debug( 'timestampInMilliseconds: ' +timestampInMilliseconds+ '; DisplayedTimeString: ' +displayedTimeString+ ' is timestamp '
             +displayedTime+ ' ms; Calculated max allowed difference: ' +maxDifference+ ' ms.' );
         // Following works because timezone shifts are multiplies of 30min.
@@ -172,7 +181,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
      **/
     Selenium.prototype.noteTimestamp= function noteTimestamp( timestampName, timestampPrecision ) {
         timestampPrecision= Number(timestampPrecision);
-        var nextDistinctTimestamp= Date.now()+ maxTimeDifference +timestampPrecision+ Number(this.defaultTimeout);
+        var nextDistinctTimestamp= Date.now()+ maxTimeDifference() +timestampPrecision+ Number(this.defaultTimeout);
         this.distinctTimestamps[timestampName]= {
             precision: timestampPrecision,
             nextDistinctTimestamp: nextDistinctTimestamp
