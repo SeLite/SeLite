@@ -728,6 +728,11 @@ SeLiteSettings.Field.FixedMap.prototype.addKey= function addKey( key, defaultVal
     if( !this.module.addedKeys[this.name] ) {
         this.module.addedKeys[this.name]= {};
     }
+    //@TODO validation - like in SeLiteSettings.Field.FixedMap()
+    this.keySet.push( key );
+    if( defaultValue!==undefined ) {
+        this.defaultKey[ key ]= defaultValue;
+    }
     this.module.addedKeys[this.name][key]= defaultValue;
     if( !dontReRegister ) {
         this.module.register();
@@ -1372,7 +1377,7 @@ function manifestsDownToFolder( folderPath, dontCache ) {
 
 /* @private String, path to a folder, where the current Selenium IDE test suite is. If Selenium IDE is not running,
  * or the test suite is a temporary one (not saved yet), then it's undefined.
- * @TODO This, namedTestSuiteFolderChangeHandlers, cachedManifests and potentially other 'global' variables allow confusing side effects, if this JS component is used by various apps. Should I pass Selenium object, and define any such variables on that object instead?
+ * @TODO This, namedTestSuiteFolderChangeHandlers, cachedManifests and potentially other 'global' variables allow confusing side effects, if this JS component is used by various apps. Should I pass Selenium object, and define any such variables on that object instead?But: some variables need to be shared. E.g. chrome://selite-settings/content/tree.xul?module=extensions.selite-settings.common needs to know about any keys added to 'roles' field by the current custom framework.
  */
 var testSuiteFolder= undefined;
 

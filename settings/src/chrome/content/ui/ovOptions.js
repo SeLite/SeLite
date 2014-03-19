@@ -783,7 +783,9 @@ function generateFields( setChildren, module, setName, setFields ) {
                 for( var i=0; i<field.keySet.length; i++ ) { //@TODO loop for( .. of ..) once NetBeans supports it
                     var key= field.keySet[i];
                     var pair= {};
-                    pair[key]= compound.entry[key];
+                    pair[key]= compound.entry!==undefined
+                        ? compound.entry[key]
+                        : undefined;
                     var optionItem= generateTreeItem(module, setName, field, pair,
                         RowLevel.OPTION,
                         /*optionIsSelected*/false,
