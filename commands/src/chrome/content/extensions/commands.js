@@ -243,7 +243,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
         return Selenium.decorateFunctionWithTimeout(
             function () {
                 // Somewhere here Firefox 23.0.1 Browser Console reports a false positive bug: 'anonymous function does not always return a value'. Ingore that.
-                if( Date.now()>timestampBecomesDistinct ) {
+                if( Date.now()>=timestampBecomesDistinct ) {
                     self.noteTimestamp( timestampName, precisionInMilliseconds );
                     return true;
                 }

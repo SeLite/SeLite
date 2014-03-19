@@ -101,6 +101,11 @@
 </tr>
 <!---->
 <tr>
+	<td>getEval</td>
+	<td>LOG.debug( 'logIn: loginOrAmpRole=${loginOrAmpRole}, passwd=${passwd}, quick=${quick}' )</td>
+	<td></td>
+</tr>
+<tr>
 	<td>storeEval</td>
 	<td>SeLiteSettings.roleToUser( '${loginOrAmpRole}' )</td>
 	<td>login</td>
@@ -250,7 +255,7 @@
 <tr>
 	<td>typeRandom</td>
 	<td>//input[ @name='reg_login' ]</td>
-	<td>object{maxLength:25, type:'word', store:'login'}</td>
+	<td>object{minLength:4, maxLength:25, type:'word', store:'login'}</td>
 </tr>
 <tr>
 	<td>typeRandom</td>
