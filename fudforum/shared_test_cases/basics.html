@@ -100,9 +100,10 @@
 	<td></td>
 </tr>
 <!---->
+<!--@TODO Document or fix: if I use ${nonExistingStoredVariable}, then that doesn't evaluate to undefined, but to string '${nonExistingStoredVariable}'-->
 <tr>
 	<td>getEval</td>
-	<td>LOG.debug( 'logIn: loginOrAmpRole=${loginOrAmpRole}, passwd=${passwd}, quick=${quick}' )</td>
+	<td>LOG.info( 'logIn: loginOrAmpRole=${loginOrAmpRole}, passwd=${passwd}, quick=${quick}' )</td>
 	<td></td>
 </tr>
 <tr>
@@ -124,6 +125,11 @@
 <tr>
 	<td>endIf</td>
 	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>LOG.info( 'logIn: login=${login}, passwd=${passwd}, quick=${quick}' )</td>
 	<td></td>
 </tr>
 <!---->
