@@ -8,4 +8,11 @@ SeLiteExtensionSequencer.registerPlugin( {
     },
     coreUrl: 'chrome://selite-db-objects/content/extensions/selite-db-objects-core.js',
     xmlUrl: 'chrome://selite-db-objects/content/reference.xml',
+    callBack: function(api) {
+        Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
+        var settingsModule= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
+        /** SeLiteData.getStorageFromSettings() depends on name tablePrefix. */
+        var tablePrefix= new SeLiteSettings.Field.String('tablePrefix', /*multivalued:*/false, '', /*requireAndPopulate:*/true);
+        settingsModule.addField( tablePrefix );
+    }
 } );

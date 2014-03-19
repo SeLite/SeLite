@@ -6,14 +6,11 @@
 var appDB= new SeLiteSettings.Field.SQLite('appDB');
 var testDB= new SeLiteSettings.Field.SQLite('testDB',  /*defaultKey*/undefined, /*requireAndPopulate*/undefined, /*customValidate*/undefined, /*saveFile*/true);
 var vanillaDB= new SeLiteSettings.Field.SQLite('vanillaDB', /*defaultKey*/undefined, /*requireAndPopulate*/undefined, /*customValidate*/undefined, /*saveFile*/true );
-/** SeLiteData.getStorageFromSettings() depends on name tablePrefix. */
-var tablePrefix= new SeLiteSettings.Field.String('tablePrefix', /*multivalued:*/false, '', /*requireAndPopulate:*/true);
 
-//@TODO Move to Command's manifest
-var maxTimeDifference= new SeLiteSettings.Field.Int('maxTimeDifference', /*multivalued:*/false, 0, /*requireAndPopulate:*/true);
+var roles= new SeLiteSettings.Field.FixedMap.String( 'roles', [], {}, /*requireAndPopulate*/true );
 
 var settingsModule= new SeLiteSettings.Module( 'extensions.selite-settings.common',
-    [appDB, testDB, vanillaDB, tablePrefix, maxTimeDifference],
+    [appDB, testDB, vanillaDB, roles],
     /*allowSets:*/true,
     /*defaultSetName:*/null,
     /*associatesWithFolders:*/true,

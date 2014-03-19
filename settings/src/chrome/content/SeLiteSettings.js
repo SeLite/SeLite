@@ -177,7 +177,7 @@ SeLiteSettings.getField= function getField( fullNameOrField ) {
     var moduleName= fullNameOrField.substring( 0, lastDotIndex );
     var fieldName= fullNameOrField.substring( lastDotIndex+1 );
     var module= SeLiteSettings.loadFromJavascript( moduleName );
-    fieldName in module.fields || SeLiteMisc.fail( 'SeLiteSettings.Module ' +moduleName+ " doesn't contain field " +field );
+    fieldName in module.fields || SeLiteMisc.fail( 'SeLiteSettings.Module ' +moduleName+ " doesn't contain field " +fieldName );
     return module.fields[fieldName];
 };
 
@@ -692,7 +692,7 @@ SeLiteSettings.Field.Choice.String.prototype.constructor= SeLiteSettings.Field.C
 
 /** This represents a freetype map with a fixed keyset. This is an abstract class, serving as a parent.
  *  @param {string} name
- *  @param {(string|number)[]} keySet We only allow strings, or numbers, because they're stored as strings (as a part of preference names). keySet specifically can't contain expression undefined, since updateSpecial() depends on that. Numbers get transformed to strings.
+ *  @param {(string|number)[]} keySet We only allow strings, or numbers, because they're stored as strings (as a part of preference names). keySet specifically can't contain Javascript expression undefined, since updateSpecial() depends on that. Numbers get transformed to strings.
  * */
 SeLiteSettings.Field.FixedMap= function FixedMap( name, keySet, defaultMappings, requireAndPopulate, customValidate ) {
     loadingPackageDefinition || this.constructor!==SeLiteSettings.Field.FixedMap
@@ -718,6 +718,41 @@ SeLiteSettings.Field.FixedMap= function FixedMap( name, keySet, defaultMappings,
 };
 SeLiteSettings.Field.FixedMap.prototype= new SeLiteSettings.Field.NonChoice('FixedMap.prototype');
 SeLiteSettings.Field.FixedMap.prototype.constructor= SeLiteSettings.Field.FixedMap;
+/** Add a key to an existing field 'on the fly'. All such added keys will be re-added when you call SeLiteSettings.loadFromJavascript( moduleName, moduleFileOrUrl, forceReload ) with forceReload=true (but the source code/definition of those added keys won't be re-read automatically). Do not call this from the file that defines this configuration module, otherwise this addKey() fails if the file is re-loaded.
+ *  @param {(string|number)} key
+ *  @param {(string|number|boolean)} [defaultValue]
+ *  @param {boolean} dontReRegister If true, then this doesn't re-register the module.
+ *  @returns {void}
+ * */
+SeLiteSettings.Field.FixedMap.prototype.addKey= function addKey( key, defaultValue, dontReRegister ) {
+    if( !this.module.addedKeys[this.name] ) {
+        this.module.addedKeys[this.name]= {};
+    }
+    this.module.addedKeys[this.name][key]= defaultValue;
+    if( !dontReRegister ) {
+        this.module.register();
+    }
+};
+/** Add keys to an existing field. See addKey().
+ *  @param {object|Array} keys Either object { string|number key => string|number|boolean|undefined defaultValue... }
+ *  or array [string key...]. If passing an array, there won't be any default values for those keys.
+ *  @param {boolean} dontReRegister If true, then this doesn't re-register the module.
+ * */
+SeLiteSettings.Field.FixedMap.prototype.addKeys= function addKeys( keys, dontReRegister ) {
+    if( Array.isArray(keys) ) {
+        for( var i=0; i<keys.length; i++ ) { //@TODO for(..of..)
+            this.addKey( keys[i], undefined, true );
+        }
+    }
+    else {
+        for( var key in keys ) {
+            this.addKey( key, keys[key], true );
+        }
+    }
+    if( !dontReRegister ) {
+        this.module.register();
+    }
+};
 
 SeLiteSettings.Field.FixedMap.String= function String( name, keySet, defaultMappings, requireAndPopulate, customValidate ) {
     SeLiteSettings.Field.FixedMap.call( this, name, keySet, defaultMappings, requireAndPopulate, customValidate );
@@ -924,9 +959,17 @@ SeLiteSettings.Module= function Module( name, fields, allowSets, defaultSetName,
     
     this.prefsBranch= prefs.getBranch( this.name+'.' );
     this.addedFields= {}; /** { string field name => Field object } for fields added via addField(field). */
+    this.addedKeys= {}; /** { string field name => object {key name => default value...}... } for SeLiteSettings.Field.FixedMap instances that have keys added via addKey(key, defaultValue). */
     if( !dontRegister ) {
         this.register();
     }
+};
+
+/** @param {string} name Name of the field (excluding the module name).
+ *  @return {SeLiteSettings.Field}
+ * */
+SeLiteSettings.Module.prototype.getField= function getField( name ) {
+    return this.fields[name];
 };
 
 SeLiteSettings.savePrefFile= function savePrefFile() {
@@ -963,7 +1006,7 @@ function directChildList( prefsBranch, namePrefix ) {
     return result;
 }
 
-/** Add a field to an existing module 'on the fly'. All such added fields will be re-added when you call SeLiteSettings.loadFromJavascript( moduleName, moduleFileOrUrl, forceReload ) with forceReload=true (but the source code/definition of those added fields won't be re-read).
+/** Add a field to an existing module 'on the fly'. All such added fields will be re-added when you call SeLiteSettings.loadFromJavascript( moduleName, moduleFileOrUrl, forceReload ) with forceReload=true (but the source code/definition of those added fields won't be re-read automatically).Do not call this from the file that defines this configuration module, otherwise this addField() fails if the file is re-loaded.
  *  @param {SeLiteSettings.Field objects} field
  *  @param {boolean} dontReRegister If true, then this doesn't re-register the module.
  *  @returns {void}
@@ -972,8 +1015,8 @@ SeLiteSettings.Module.prototype.addField= function addField( field, dontReRegist
     if( !(field instanceof SeLiteSettings.Field) ) {
         throw new Error( 'SeLiteSettings.Module() expects fields to be an array of SeLiteSettings.Field instances, but it is not.');
     }
-    if( field.name in this.fields ) {
-        throw new Error( 'SeLiteSettings.Module() for module name "' +name+ '" has two (or more) fields with same name "' +field.name+ '".');
+    if( field.name in this.fields || field.name in this.addedFields ) {
+        throw new Error( 'SeLiteSettings.Module() for module name "' +name+ '" already has a field with name "' +field.name+ '".');
     }
     field.registerFor( this );
     this.fields[ field.name ]= field;
@@ -983,12 +1026,12 @@ SeLiteSettings.Module.prototype.addField= function addField( field, dontReRegist
     }
 };
 
-/** Add a field to an existing module 'on the fly'. All such added fields will be re-added when you call SeLiteSettings.loadFromJavascript( moduleName, moduleFileOrUrl, forceReload ) with forceReload=true.
+/** Add fields to an existing module 'on the fly'. See addField().
  *  @param {SeLiteSettings.Field[]} fields
  *  @param {boolean} dontReRegister If true, then this doesn't re-register the module.
  *  @returns {void}
  * */
-SeLiteSettings.Module.prototype.addFields= function addField( fields, dontReRegister ) {
+SeLiteSettings.Module.prototype.addFields= function addFields( fields, dontReRegister ) {
     Array.isArray(fields) || SeLiteMisc.fail( 'addFields() expects fields to be an array.' );
     for( var i=0; i<fields.length; i++ ) { //@TODO change into for(.. of.. ) once NEtBeans supports it
         this.addField( fields[i], true );
@@ -1709,9 +1752,11 @@ SeLiteSettings.fileNameToUrl= function fileNameToUrl( fileNameOrUrl ) {
 SeLiteSettings.loadFromJavascript= function loadFromJavascript( moduleName, moduleFileOrUrl, forceReload ) {
    ensureFieldName( moduleName, 'SeLiteSettings.Module name', true );
    var previouslyAddedFields= {};
+   var previouslyAddedKeys= {};
    if( modules[moduleName] ) {
         if( forceReload ) {
             previouslyAddedFields= modules[moduleName].addedFields;
+            previouslyAddedKeys= modules[moduleName].addedKeys;
             delete modules[moduleName];
         }
         else {
@@ -1752,9 +1797,17 @@ SeLiteSettings.loadFromJavascript= function loadFromJavascript( moduleName, modu
     }
     moduleName in modules || SeLiteMisc.fail( "Loaded definition of module " +moduleName+ " and it was found in preferences, but it didn't register itself properly. Fix its definition at " +moduleUrl+ " so that it registers itself." );
     var module= modules[moduleName];
-    if( Object.keys(previouslyAddedFields).length>0 ) {
+    if( Object.keys(previouslyAddedFields).length>0 || Object.keys(previouslyAddedKeys).length>0 ) {
         for( var fieldName in previouslyAddedFields ) {
-           module.addField( previouslyAddedFields[fieldName], true );
+            module.addField( previouslyAddedFields[fieldName], true );
+        }
+        for( var fieldName in previouslyAddedKeys ) {
+            var field= module.fields[fieldName];
+            field instanceof SeLiteSettings.Field.FixedMap || SeLiteMisc.fail( 'There is no SeLiteSettings.Field.FixedMap with name ' +fieldName+ ' in module ' +this.name+ ', though it was previously added!' );
+            var keys= previouslyAddedKeys[fieldName];
+            for( var key in keys ) {
+                field.addKey( key, keys[key], true );
+            }
         }
         module.register();
     }

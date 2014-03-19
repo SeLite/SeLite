@@ -34,7 +34,10 @@ var FUDforum= {};
     // however SeLiteData.getStorageFromSettings() sets a handler via SeLiteSettings.addTestSuiteFolderChangeHandler().
     // Once you open/save a test suite, storage object will get updated automatically and it will open an SQLite connection.
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
-        
+
+        var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
+        commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor', 'contributor'] );
+
         // @TODO a shorthand method, where I just pass ''extensions.selite.fudforum'. Same field naming convention is required by SeLiteSettings' ide-extension.js
         var storage= SeLiteData.getStorageFromSettings();
         var db= new SeLiteData.Db( storage );
