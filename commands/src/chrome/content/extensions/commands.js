@@ -227,7 +227,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
         if( this.distinctTimestamps[timestampName].precision!==precisionInMilliseconds ) {
             var error= "You've called waitForDistinctTimestampXXX for timestampName='" +timestampName+
                 "', precisionInMilliseconds=" +precisionInMilliseconds+ "ms. But the previous timestamp for this timestampName was recorded with different precision: "+
-                this.distinctTimestamps[timestampName].precision+ 'ms.';
+                this.distinctTimestamps[timestampName].precision+ "ms. Please use the same precision for the same timestamp. If you've changed it, please restart Selenium IDE.";
             LOG.error( error );
             throw new Error( error );
         }

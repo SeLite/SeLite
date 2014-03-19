@@ -62,13 +62,13 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     </comment>
 </function>
 <function name="waitForTimestampDistinctDownToMilliseconds">
-    <param name="timestampName">Label/name, usually of a timestamp element or field, for which you want to get a distinct timestamp.</param>
+    <param name="timestampName">Label/name, usually reflecting an element or field, for which you want to get a distinct timestamp.</param>
     <param name="precision">Precision, in milliseconds; 1 by default.</param>
     <comment>Just like <code>waitForTimestampDistinctDownToSeconds</code>, but guaranteed timestamp separation is the given number of milliseconds.
     </comment>
 </function>
 <function name="waitForTimestampDistinctDownToSeconds">
-    <param name="timestampName">Label/name, usually of a timestamp element or field, for which you want to get a distinct timestamp.</param>
+    <param name="timestampName">Label/name, usually reflecting an element or field, for which you want to get a distinct timestamp.</param>
     <param name="precision">Precision, in seconds; 1 by default.</param>
     <comment>
        Use to record the moment when you inserted/updated such a field, and you want this timestamp to differ from
@@ -82,7 +82,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     </comment>
 </function>
 <function name="waitForTimestampDistinctDownToMinutes">
-    <param name="timestampName">Label/name, usually of a timestamp element or field, for which you want to get a distinct timestamp.</param>
+    <param name="timestampName">Label/name, usually reflecting an  element or field, for which you want to get a distinct timestamp.</param>
     <param name="precision">Precision, in minutes; 1 by default.</param>
     <comment>Just like <code>waitForTimestampDistinctDownToSeconds</code>, but the guaranteed timestamp separation is 1 minute.
       <br/><br/>
