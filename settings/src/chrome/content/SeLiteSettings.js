@@ -1372,6 +1372,7 @@ function manifestsDownToFolder( folderPath, dontCache ) {
 
 /* @private String, path to a folder, where the current Selenium IDE test suite is. If Selenium IDE is not running,
  * or the test suite is a temporary one (not saved yet), then it's undefined.
+ * @TODO This, namedTestSuiteFolderChangeHandlers, cachedManifests and potentially other 'global' variables allow confusing side effects, if this JS component is used by various apps. Should I pass Selenium object, and define any such variables on that object instead?
  */
 var testSuiteFolder= undefined;
 
@@ -1843,6 +1844,7 @@ SeLiteSettings.moduleNamesFromPreferences= function moduleNamesFromPreferences( 
  *  - appDbField SeLiteSettings.Field.SQLite that points to app SQLite DB; optional
  *  - vanillaDbField SeLiteSettings.Field.SQLite that points to vanilla (snapshot) SQLite DB; optional
  *  At least two of appDbField and vanillaDbField must exist.
+ *  @TODO Simplify and use SeLiteSettings.commonSettings?
  * */
 SeLiteSettings.setModuleForReloadButtons= function setModuleForReloadButtons( moduleOrName ) {
     SeLiteSettings.moduleForReloadButtons= SeLiteSettings.Module.forName( moduleOrName );
@@ -1861,6 +1863,25 @@ SeLiteSettings.setModuleForReloadButtons= function setModuleForReloadButtons( mo
     
     if( SeLiteSettings.moduleForReloadButtons.testDbKeeper ) {
         SeLiteSettings.moduleForReloadButtons.testDbKeeper.initialise( SeLiteData.getStorageFromSettings(testDbField, tablePrefixField) );
+    }
+};
+
+/** This will be the module instance for extensions.selite-settings.common, once its definition is loaded.
+ * @var {SeLiteSettings.Module}
+ * */
+SeLiteSettings.commonSettings= null;
+
+/** Convert a given symbolic role name (prefixed with '&') to username, or return a given username unchanged.
+ *  @param {string} userNameOrRoleWithPrefix Either a symbolic role name, starting with '&', or a username.
+ *  @return {string} Username mapped to userNameOrRoleWithPrefix (after removeing '&' prefix) through extensions.selite.common.roles field. If userNameOrRoleWithPrefix doesn't start with '&', this returns it unchanged.
+ * */
+SeLiteSettings.roleToUser= function roleToUser( userNameOrRoleWithPrefix ) {
+    if( userNameOrRoleWithPrefix.startsWith('&') ) {
+        var role= userNameOrRoleWithPrefix.substring(1);
+        return SeLiteSettings.commonSettings.getFieldsDownToFolder()[ 'roles' ].entry[ role ];
+    }
+    else {
+        return userNameOrRoleWithPrefix;
     }
 };
 

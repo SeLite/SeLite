@@ -83,23 +83,6 @@ var FUDforum= {};
         FUDforum.webRoot= function webRoot() {
             return webRootField.getDownToFolder().entry;
         };
-        
-        /** Convert a given symbolic role name (prefixed with '&') to username, or return a given username unchanged.
-         *  @param {string} userNameOrRoleWithPrefix Either a symbolic role name, starting with '&', or a username.
-         *  @return {string} Username mapped to userNameOrRoleWithPrefix (after removeing '&' prefix) through extensions.selite.fudforum settings. If userNameOrRoleWithPrefix doesn't start with '&', this returns it unchanged.
-         * */
-        FUDforum.roleToUser= function roleToUser( userNameOrRoleWithPrefix ) {
-            LOG.info( 'FUDforum.roleToUser: userNameOrRoleWithPrefix: ' +userNameOrRoleWithPrefix );
-            if( userNameOrRoleWithPrefix.startsWith('&') ) {
-                var role= userNameOrRoleWithPrefix.substring(1);
-                LOG.info( 'role: ' +role );
-                LOG.info( 'settingsModule.getFieldsDownToFolder()[ "roles" ].entry[ role ]: ' +settingsModule.getFieldsDownToFolder()[ 'roles' ].entry[ role ]);
-                return settingsModule.getFieldsDownToFolder()[ 'roles' ].entry[ role ];
-            }
-            else {
-                return userNameOrRoleWithPrefix;
-            }
-        };
     // }
     // SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doFUDforumUsers']= !loadedOddTimes;
 })();

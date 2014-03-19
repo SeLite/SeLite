@@ -7,7 +7,7 @@ SeLiteExtensionSequencer.registerPlugin({
     ideUrl: 'chrome://selite-settings/content/extensions/ide-extension.js',
     callBack: function(api) {
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
-        SeLiteSettings.loadFromJavascript(
+        SeLiteSettings.commonSettings= SeLiteSettings.loadFromJavascript(
             'extensions.selite-settings.common',
             'chrome://selite-settings/content/common_settings_module.js'
         );
