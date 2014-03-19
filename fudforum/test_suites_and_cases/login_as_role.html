@@ -4,32 +4,22 @@
 <head profile="http://selenium-ide.openqa.org/profiles/test-case">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <link rel="selenium.base" href="http://change-this-to-the-site-you-are-testing/" />
-<title>create_user_case</title>
+<title>login_as_role</title>
 </head>
 <body>
 <table cellpadding="1" cellspacing="1" border="1">
 <thead>
-<tr><td rowspan="1" colspan="3">create_user_case</td></tr>
+<tr><td rowspan="1" colspan="3">login_as_role</td></tr>
 </thead><tbody>
 <tr>
-	<td>getEval</td>
-	<td>1</td>
-	<td></td>
-</tr>
-<tr>
 	<td>if</td>
 	<td>true</td>
 	<td></td>
 </tr>
 <tr>
 	<td>call</td>
-	<td>ensureUnderWebRoot</td>
-	<td>forceReload=true</td>
-</tr>
-<tr>
-	<td>call</td>
-	<td>logOut</td>
-	<td></td>
+	<td>logIn</td>
+	<td>loginOrAmpRole='&amp;admin', quick=true</td>
 </tr>
 <tr>
 	<td>endIf</td>
@@ -44,16 +34,14 @@
 </tr>
 <tr>
 	<td>call</td>
-	<td>registerUser</td>
-	<td></td>
+	<td>logIn</td>
+	<td>loginOrAmpRole='&amp;admin', quick=false</td>
 </tr>
 <tr>
 	<td>endIf</td>
 	<td></td>
 	<td></td>
 </tr>
-<!---->
-<!------>
 </tbody></table>
 </body>
 </html>

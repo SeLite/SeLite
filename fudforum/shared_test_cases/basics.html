@@ -79,7 +79,7 @@
 	<td></td>
 </tr>
 <!----------------->
-<!--Log in via the small login form (below the list of forums).-->
+<!--Log - via a 'quick' small login form (below the list of forums), or via a dedicated login page-->
 <!--Parameter 'loginOrAmpRole' is user login, or user role prefixed with & (then it's passed to FUDforum.roleToUser())-->
 <!--Parameter 'passwd' is optional; if not passed, then this uses password from Firefox login manager.-->
 <!--Optional parameter 'quick' - if true/1, then this uses the quick login form.-->
@@ -244,12 +244,12 @@
 <tr>
 	<td>typeRandom</td>
 	<td>//input[ @name='reg_login' ]</td>
-	<td>object{maxLength:50, type:'word', store:'login'}</td>
+	<td>object{maxLength:25, type:'word', store:'login'}</td>
 </tr>
 <tr>
 	<td>typeRandom</td>
 	<td>//input[ @name='reg_plaintext_passwd' ]</td>
-	<td>object{maxLength:40, type:'password', store:'passwd'}</td>
+	<td>object{maxLength:25, type:'password', store:'passwd'}</td>
 </tr>
 <tr>
 	<td>type</td>
@@ -259,12 +259,12 @@
 <tr>
 	<td>typeRandom</td>
 	<td>//input[ @name='reg_email' ]</td>
-	<td>object{maxLength: 255, type:'email', store:'email'}</td>
+	<td>object{maxLength: 25, type:'email', store:'email'}</td>
 </tr>
 <tr>
 	<td>typeRandom</td>
 	<td>//input[ @name='reg_name' ]</td>
-	<td>object{maxLength: 255, type:'name', store:'name'}</td>
+	<td>object{maxLength: 25, type:'name', store:'name'}</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
