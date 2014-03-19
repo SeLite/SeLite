@@ -194,7 +194,7 @@ SeLiteSettings.getField= function getField( fullNameOrField ) {
  *  It is applied when creating or updating a configuration set (loading an existing configuration set which doesn't have a value for this field).
  *  If requireAndPopulate is false and SeLiteSettings.Module.associatesWithFolders==true, defaultKey is applied by getFieldsDownToFolder() and getDownToFolder() anyway.
  *  @param bool requireAndPopulate Whether to require a value (or SeLiteSettings.VALUE_PRESENT) to be stored for this field at all times
- *  (if the field has a default value).s
+ *  (if the field has a default value).
  *  If false, the field may not to be stored in the set at all (Javascript: undefined). False by default.
  *  If false, and the field has no value stored in a a set,
  *  the behaviour is different to empty/blank or null,  as 'not present' means the field inherits the value from
