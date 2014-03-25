@@ -1,9 +1,9 @@
 "use strict";
 
-Components.utils.import( "chrome://selite-db-objects/content/db.js" ); // this loads 'SeLiteData' object into Selenium Core scope, so that it can be used by Selenese
-Components.utils.import( "chrome://selite-db-objects/content/basic-storage.js" );
-Components.utils.import( "chrome://selite-db-objects/content/basic-objects.js" );
-Components.utils.import( "chrome://selite-db-objects/content/basic-functions.js" );
+Components.utils.import( "chrome://selite-db-objects/content/Db.js" ); // this loads 'SeLiteData' object into Selenium Core scope, so that it can be used by Selenese
+Components.utils.import( "chrome://selite-db-objects/content/DbStorage.js" );
+Components.utils.import( "chrome://selite-db-objects/content/DbObjects.js" );
+Components.utils.import( "chrome://selite-db-objects/content/DbFunctions.js" );
 
 Selenium.prototype.doReadRecord= function doReadRecord( info, storedVariableName ) {
     /** @type {SeLiteData.Table} */ var table;

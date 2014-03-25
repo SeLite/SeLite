@@ -1,10 +1,10 @@
 "use strict";
 /* This contains shortcut-like functions.
 /*/
-Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
-Components.utils.import('chrome://selite-db-objects/content/db.js');
-Components.utils.import('chrome://selite-db-objects/content/basic-storage.js');
-Components.utils.import('chrome://selite-db-objects/content/basic-objects.js');
+Components.utils.import( 'chrome://selite-misc/content/SeLiteMisc.js' );
+Components.utils.import('chrome://selite-db-objects/content/Db.js');
+Components.utils.import('chrome://selite-db-objects/content/DbStorage.js');
+Components.utils.import('chrome://selite-db-objects/content/DbObjects.js');
 
 SeLiteData.select= function select( recordOrSet ) {
     return SeLiteData.recordOrSetHolder(recordOrSet).select();

@@ -1,7 +1,7 @@
 SeLiteExtensionSequencer.registerPlugin( {
     pluginId: 'bootstrap@selite.googlecode.com',
     coreUrl: 'chrome://selite-bootstrap/content/extensions/se_bootstrap.js',
-    ideUrl: "chrome://selite-bootstrap/content/logic/SeBootstrap.js",
+    ideUrl: "chrome://selite-bootstrap/content/logic/se_bootstrap_ide.js",
     requisitePlugins: {
         'testcase-debug-context@selite.googlecode.com': 'SeLite TestCase Debug Context',
         'selblocks-global@selite.googlecode.com': 'SeLite SelBlocksGlobal'

@@ -24,7 +24,7 @@ var Drupal= {};
     // via Selenium IDE > Options > Options > 'Selenium Core extensions' instead, then
     // you need to uncomment the following statements, along with the enclosing part of if(..)
 
-    // Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
+    // Components.utils.import( 'chrome://selite-misc/content/SeLiteMisc.js' );
     // var loadedOddTimes= SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doDrupalUsers'] || false;
     // if( loadedOddTimes ) { // Ignore the first load, because Se IDE somehow discards that Selenium.prototype
 

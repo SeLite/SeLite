@@ -25,7 +25,7 @@ if( runningAsComponent ) {
     var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService); // -> instance of nsIPrefBranch
     Components.utils.import("resource://gre/modules/Services.jsm");
     Components.utils.import("resource://gre/modules/FileUtils.jsm");
-    Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
+    Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
     var nsIPrefBranch= Components.interfaces.nsIPrefBranch;
     var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
     var nsIIOService= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);    
@@ -83,8 +83,8 @@ SeLiteSettings.addClosingIdeHandler= function addClosingIdeHandler( handler ) {
 // -------- end of functionality requierd by SeLiteData
 
 try {
-    Components.utils.import('chrome://selite-db-objects/content/basic-objects.js');
-    Components.utils.import('chrome://selite-db-objects/content/db.js');
+    Components.utils.import('chrome://selite-db-objects/content/DbObjects.js');
+    Components.utils.import('chrome://selite-db-objects/content/Db.js');
 }
 catch( e ) {
     console.log( 'SeLiteSettings component is loaded, but there is no SeLiteData component. That is required by SeLiteSettings.TestDbKeeper.Columns. You can use the rest of SeLiteSettings.' );

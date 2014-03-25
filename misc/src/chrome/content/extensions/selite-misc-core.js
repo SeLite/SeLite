@@ -16,7 +16,7 @@
 */
 "use strict";
 
-Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
+Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
 
 // Anonymous function to prevent leaking into Selenium global namespace
 ( function() {
@@ -24,7 +24,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
 
 /*  This is here, rather than in selite-misc.js component, because it needs to access global variable 'selenium'.
  *  I've tried to have it in selite-misc.js and to load the component using
- *  Components.utils.import( "chrome://selite-misc/content/selite-misc.js", {selenium: selenium} );
+ *  Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js", {selenium: selenium} );
  *  above, but that failed, because variable selenium is not yet defined when selite-misc-core.js is processed.
  *  @TODO Document that in JavascriptAdvanced.wiki
  */

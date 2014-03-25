@@ -17,11 +17,11 @@
 
 "use strict";
 
-Components.utils.import( 'chrome://selite-misc/content/selite-misc.js' );
+Components.utils.import( 'chrome://selite-misc/content/SeLiteMisc.js' );
 Components.utils.import("chrome://selite-sqlite-connection-manager/content/SqliteConnectionManager.js");
 Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
 var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
-Components.utils.import( 'chrome://selite-db-objects/content/db.js' );
+Components.utils.import( 'chrome://selite-db-objects/content/Db.js' );
 
 /** This provides low-level data functions. It's a constructor of an object,
  *  but the code is procedural. The reason to have it as an object is not to

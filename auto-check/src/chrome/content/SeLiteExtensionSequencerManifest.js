@@ -2,8 +2,7 @@
 
 SeLiteExtensionSequencer.registerPlugin( {
     pluginId: 'auto-check@selite.googlecode.com',
-    coreUrl: ['chrome://selite-auto-check/content/extensions/auto-check.js',
-              'chrome://selite-auto-check/content/AutoCheck.js'],
+    coreUrl: ['chrome://selite-auto-check/content/extensions/auto-check.js'],
     requisitePlugins: {
         'misc@selite.googlecode.com': 'SeLite Miscellaneous',
         'bootstrap@selite.googlecode.com': 'SeLite Bootstrap',

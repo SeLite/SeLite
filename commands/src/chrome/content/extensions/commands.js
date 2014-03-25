@@ -16,7 +16,7 @@
 */
 "use strict";
 
-Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
+Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
 
 (
   function() {
