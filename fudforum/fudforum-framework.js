@@ -38,6 +38,15 @@ var FUDforum= {};
         var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
         commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor', 'contributor'] );
 
+    SeLiteSettings.setTestDbKeeper( 
+        new SeLiteSettings.TestDbKeeper.Columns( {
+            users: {
+                key: 'login', // This is the logical/matching column, rather then a primary key
+                columns: ['login', 'passwd']
+            }
+        })
+    );
+
         // @TODO a shorthand method, where I just pass ''extensions.selite.fudforum'. Same field naming convention is required by SeLiteSettings' ide-extension.js
         var storage= SeLiteData.getStorageFromSettings();
         var db= new SeLiteData.Db( storage );

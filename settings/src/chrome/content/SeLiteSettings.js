@@ -1045,7 +1045,17 @@ SeLiteSettings.Module.prototype.addFields= function addFields( fields, dontReReg
         this.register();
     }
 };
-    
+
+/** Set SeLiteSettings.moduleForReloadButtons.testDbKeeper and initialise it. You can call this only after you've called SeLiteSettings.setModuleForReloadButtons(this) successfully - normally it's done automatically for module 'extensions.selite-settings.common'.
+ *  @param {SeLiteSettings.TestDbKeeper} testDbKeeper
+ * */
+SeLiteSettings.setTestDbKeeper= function setTestDbKeeper( testDbKeeper ) {
+    SeLiteSettings.moduleForReloadButtons.testDbKeeper= testDbKeeper;
+    var testDbField= SeLiteSettings.moduleForReloadButtons.fields['testDB'];
+    var tablePrefixField= SeLiteSettings.moduleForReloadButtons.fields['tablePrefix'];
+    testDbKeeper.initialise( SeLiteData.getStorageFromSettings(testDbField, tablePrefixField) );
+};
+
 /**@return array of strings names of sets as they are in the preferences DB, or [''] if the module
  * doesn't allow sets
  * */
@@ -1866,7 +1876,7 @@ SeLiteSettings.setModuleForReloadButtons= function setModuleForReloadButtons( mo
     
     var tablePrefixField= SeLiteSettings.moduleForReloadButtons.fields['tablePrefix'];
     
-    if( SeLiteSettings.moduleForReloadButtons.testDbKeeper ) {
+    if( SeLiteSettings.moduleForReloadButtons.testDbKeeper ) { //@TODO Minor: remove handling of testDbKeeper here and in Module() constructor. It's not used from there. Users use SeLiteSettings.setTestDbKeeper() instead.
         SeLiteSettings.moduleForReloadButtons.testDbKeeper.initialise( SeLiteData.getStorageFromSettings(testDbField, tablePrefixField) );
     }
 };
