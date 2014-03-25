@@ -3,7 +3,7 @@
      xmlns:em="http://www.mozilla.org/2004/em-rdf#">
   <Description about="urn:mozilla:install-manifest">
     <em:id>sqlite-connection-manager@selite.googlecode.com</em:id>
-    <em:version>0.70</em:version>
+    <em:version>0.71</em:version>
     <em:type>2</em:type>
     <!-- Target Application this extension can install into,
          with minimum and maximum supported versions. -->

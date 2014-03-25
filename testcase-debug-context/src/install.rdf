@@ -4,7 +4,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>testcase-debug-context@selite.googlecode.com</em:id>
     <em:name>SeLite TestCase Debug Context</em:name>
-    <em:version>0.69</em:version>
+    <em:version>0.70</em:version>
     <em:creator>Peter Kehl</em:creator>
     <em:description>It's needed for SeLite SelBlocks Global and SeLite Bootstrap. It works in Selenium IDE.</em:description>
     <em:type>2</em:type> <!--Type extension-->
