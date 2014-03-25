@@ -9,7 +9,7 @@ rm -f xpi/*
 cd auto-check/src
 zip -r ../../xpi/auto-check.xpi *
 
-cd bootstrap/src
+cd ../../bootstrap/src
 zip -r ../../xpi/bootstrap.xpi *
 
 cd ../../commands/src
