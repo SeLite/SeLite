@@ -22,9 +22,6 @@ if( typeof HtmlRunnerTestLoop!=='undefined' ) {
     ( function(global) {
         Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
-        var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
-        //console.warn( 'autocheck setting up an intercept of executeCurrentcommand');
-        //console.warn( 'HtmlRunnerTestLoop: ' +typeof HtmlRunnerTestLoop);
         
         var settingsModule= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
         
@@ -34,9 +31,7 @@ if( typeof HtmlRunnerTestLoop!=='undefined' ) {
         var original_executeCurrentCommand= TestLoop.prototype._executeCurrentCommand;
 
         TestLoop.prototype._executeCurrentCommand= function _executeCurrentCommand() {
-            //console.warn( 'calling original _executeCurrentCommand()');
             original_executeCurrentCommand.call( this );
-            //console.warn( 'custom _executeCurrentCommand():');
             // - AssertResult.prototype.setFailed and AssertHandler.prototype.execute in selenium-commandhandlers.js
             // For getters (e.g. getEval), this.result is an instance of AccessorResult, which doesn't have field .passed (as of Selenium IDE 2.5.0). That's why the following checks !this.result.failed rather than this.result.passed.
             if( !this.result.failed ) { // Only perform the checks, if there was no Selenese failure already
@@ -53,13 +48,11 @@ if( typeof HtmlRunnerTestLoop!=='undefined' ) {
                     throw new SeleniumError( 'SeLite AutoCheck is configured to use unknown class ' +detectorClassName );
                 }
                 if( detectorClassName ) {
-                    //console.warn( "detectorClass= fieldsDownToFolder['autoCheckDetector'].entry: " +detectorClassName );
                     var detectorClass= SeLiteMisc.cascadeField(global, detectorClassName, true);
                     detector= new detectorClass( fieldsDownToFolder['autoCheckRequired'].entry, fieldsDownToFolder['autoCheckRefused'].entry, fieldsDownToFolder['autoCheckIgnored'].entry, fieldsDownToFolder['autoCheckAssert'].entry );
                     //var doc= selenium.browserbot.getCurrentWindow().document;
                     var doc= selenium.browserbot.getDocument();
-                    console.error( 'document: ' +doc );
-                    console.error( 'location: ' +selenium.browserbot.getCurrentWindow().location );
+                    LOG.debug( 'SeLiteSettings Auto Check validating: ' +selenium.browserbot.getCurrentWindow().location );
                     var message= detector.failedRequired( doc ) || detector.failedRefused( doc ) || detector.failedNotIgnored( doc );
                     if( message ) {
                         if( detector.assert ) {
@@ -74,7 +67,6 @@ if( typeof HtmlRunnerTestLoop!=='undefined' ) {
                     }
                 }
             }
-            //console.warn( 'end of custom _executeCurrentCommand');
         }
     } )( this );
 }
