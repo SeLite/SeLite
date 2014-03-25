@@ -181,7 +181,8 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
      **/
     Selenium.prototype.noteTimestamp= function noteTimestamp( timestampName, timestampPrecision ) {
         timestampPrecision= Number(timestampPrecision);
-        var nextDistinctTimestamp= Date.now()+ maxTimeDifference() +timestampPrecision+ Number(this.defaultTimeout);
+        var nextDistinctTimestamp= Date.now()+ maxTimeDifference() +timestampPrecision; //+ Number(this.defaultTimeout); //@TODO Do I need this.defaultTimeout there?
+        LOG.debug( 'noteTimestamp: timestampName=' +timestampName+ ', precision=' +timestampPrecision+ ', nextDistinctTimestamp=' +nextDistinctTimestamp);
         this.distinctTimestamps[timestampName]= {
             precision: timestampPrecision,
             nextDistinctTimestamp: nextDistinctTimestamp
@@ -196,19 +197,19 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
      * */
     Selenium.prototype.doWaitForTimestampDistinctDownToMilliseconds= function doWaitForTimestampDistinctDownToMilliseconds( timestampName, precisionInMilliseconds ) {
         precisionInMilliseconds= precisionInMilliseconds || 1;
-        this.waitForDistinctTimestamp( timestampName, precisionInMilliseconds );
+        return this.waitForDistinctTimestamp( timestampName, precisionInMilliseconds );
     };
 
     Selenium.prototype.doWaitForTimestampDistinctDownToSeconds= function doWaitForTimestampDistinctDownToSeconds( timestampName, precisionInSeconds ) {
         precisionInSeconds= precisionInSeconds || 1;
-        this.waitForDistinctTimestamp( timestampName, precisionInSeconds*1000 );
+        return this.waitForDistinctTimestamp( timestampName, precisionInSeconds*1000 );
     };
 
     Selenium.prototype.doWaitForTimestampDistinctDownToMinutes= function doWaitTimestampDistinctDownToMinutes( timestampName, precisionInMinutes ) {
         precisionInMinutes= precisionInMinutes || 1;
-        this.waitForDistinctTimestamp( timestampName, precisionInMinutes*60000 );
+        return this.waitForDistinctTimestamp( timestampName, precisionInMinutes*60000 );
     };
-
+    
     /**I don't use prefix 'do' in the name of this function
        because it's not intended to be run as Selenium command.
        @param string timestampName label/name, usually of a timestamp element or field, for which you want to get a distinct timestamp.
@@ -218,9 +219,7 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
      **/
     Selenium.prototype.waitForDistinctTimestamp= function waitForDistinctTimestamp( timestampName, precisionInMilliseconds ) {
         if( !(timestampName in this.distinctTimestamps) ) {
-            LOG.info( 'waitForDistinctTimestampXXX: No previous timestamp for timestamp name ' +timestampName );
-        }
-        if( !(timestampName in this.distinctTimestamps) ) {
+            LOG.debug( 'waitForDistinctTimestampXXX: No previous timestamp for timestamp name ' +timestampName );
             this.noteTimestamp( timestampName, precisionInMilliseconds );
             return;
         }
@@ -232,24 +231,30 @@ Components.utils.import( "chrome://selite-misc/content/selite-misc.js" );
             throw new Error( error );
         }
         var timestampBecomesDistinct= this.distinctTimestamps[timestampName].nextDistinctTimestamp; // in milliseconds
-        var timeOutFromNow= timestampBecomesDistinct-Date.now()+1100; // in milliseconds, plus a buffer. @TODO Remove buffer.
+        var timeOutFromNow= timestampBecomesDistinct-Date.now();
         if( timeOutFromNow<=0 ) {
-            LOG.debug( 'waitForDistinctTimestampXXX: No need to wait. A distinct timestamp became available ' +(-1*timeOutFromNow)+ ' milliseconds ago.' );
+            LOG.debug( 'waitForDistinctTimestampXXX for timestamp ' +timestampName+ ': No need to wait. A distinct timestamp became available ' +(-1*timeOutFromNow)+ ' milliseconds ago.' );
+            this.noteTimestamp( timestampName, precisionInMilliseconds );
             return;
         }
-        LOG.debug( 'waitForDistinctTimestampXXX: waiting for next ' +timeOutFromNow+ ' milliseconds.' );
-
+        LOG.debug( 'waitForDistinctTimestampXXX: waiting for next ' +timeOutFromNow+ ' milliseconds. Now: ' +Date.now()+ ', timestampBecomesDistinct: ' +timestampBecomesDistinct );
+        
         var self= this;
         return Selenium.decorateFunctionWithTimeout(
-            function () {
+            function check() {
                 // Somewhere here Firefox 23.0.1 Browser Console reports a false positive bug: 'anonymous function does not always return a value'. Ingore that.
                 if( Date.now()>=timestampBecomesDistinct ) {
+                    LOG.debug( 'waitForDistinctTimestampXXX for timestamp ' +timestampName+ ' reached the time correctly. It saves a new timestamp and returns true.');
                     self.noteTimestamp( timestampName, precisionInMilliseconds );
                     return true;
                 }
                 return false;
             },
-            timeOutFromNow
+            timeOutFromNow+500/* a buffer - otherwise Selenium reports a timeout */,
+            function callBack() {
+                LOG.error( 'waitForDistinctTimestampXXX for timestamp ' +timestampName+ ' timed out. This should not happen. It notes a new timestamp.');
+                self.noteTimestamp( timestampName, precisionInMilliseconds );
+            }
         );
     };
 
