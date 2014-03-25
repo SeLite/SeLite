@@ -76,13 +76,6 @@ var FUDforum= {};
             columns: ['entity_type', 'bundle', 'deleted', 'entity_id', 'revision_id', 'language', 'delta', 'body_value', 'body_sumary', 'body_format'],
             primary: '@TODO group of columns'
         });*/
-        // @TODO extensions.selite-settings.common
-        var settingsModule= SeLiteSettings.loadFromJavascript('extensions.selite.fudforum');
-        var webRootField= settingsModule.fields['webRoot'];
-        
-        FUDforum.webRoot= function webRoot() {
-            return webRootField.getDownToFolder().entry;
-        };
     // }
     // SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doFUDforumUsers']= !loadedOddTimes;
 })();

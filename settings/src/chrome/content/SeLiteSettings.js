@@ -1890,4 +1890,16 @@ SeLiteSettings.roleToUser= function roleToUser( userNameOrRoleWithPrefix ) {
     }
 };
 
+/** This is useful because Selenium IDE doesn't allow base URL to contain path (http://code.google.com/p/selenium/issues/detail?id=3116).
+ * */
+SeLiteSettings.webRoot= function webRoot() {
+    var entry= SeLiteSettings.commonSettings.fields['webRoot'].getDownToFolder().entry;
+    if( entry ) {
+        return entry.endsWith('/')
+            ? entry
+            : entry+'/';
+    }
+    return entry;
+};
+
 loadingPackageDefinition= false;

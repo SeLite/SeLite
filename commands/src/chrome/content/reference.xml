@@ -216,7 +216,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
             <li>object in form {
                 <dl>
                     <dt>from</dt>
-                    <dd>string locator of an element which has a name (as described above)in it; optional, you can use 'name' instead</dd>
+                    <dd>string locator of an element which has a name (as described above) in it; optional, you can use 'name' instead</dd>
                     <dt>name</dt>
                     <dd>string value of the name (as described above), optional; used only if 'from' is not present</dd>
                     <dt>store</dt>
@@ -231,7 +231,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
             </li>
         </ul>
     </param>
-    <comment>Type random email address, based on a name already typed in another element.</comment>
+    <comment>Type random email address, based on a name already typed in another element. If you don't want the email address to be based on any name, then use <i>typeRandom</i> with <i>type='email' instead.</i></comment>
 </function>
 <function name="selectMapped">
     <comment>TODO implement + comment</comment>
