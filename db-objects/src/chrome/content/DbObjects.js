@@ -20,7 +20,7 @@ Components.utils.import( 'chrome://selite-misc/content/SeLiteMisc.js' );
 Components.utils.import('chrome://selite-db-objects/content/DbStorage.js');
 Components.utils.import('chrome://selite-db-objects/content/Db.js');
 
-var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+//var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 
 /** @constructor
  *  @param {SeLiteData.Storage} storage Underlying lower-level storage object.
@@ -34,9 +34,6 @@ SeLiteData.Db= function Db( storage, tableNamePrefix ) {
 /** @return {string} Table prefix, or an empty string. It never returns undefined.
  * */
 SeLiteData.Db.prototype.tablePrefix= function tablePrefix() {
-    console.warn( 'this.storage:\n' +SeLiteMisc.objectToString(this.storage, 1, false));
-    console.warn( 'this.storage.prototype: \n' +SeLiteMisc.objectToString(this.storage.prototype, 3, true) );
-    console.warn( 'stack\n' +SeLiteMisc.stack( ));
     return this.tableNamePrefix!==undefined
         ? this.tableNamePrefix
         : this.storage.tablePrefix();
@@ -86,8 +83,6 @@ SeLiteData.Table.prototype.insert= function insert( record ) {
     }
     var query= 'INSERT INTO ' +this.nameWithPrefix()+ '('+ givenColumns.join(', ')+ ') '+
         'VALUES (:' +givenColumns.join(', :')+ ')';
-    console.log( query );
-    console.log( SeLiteMisc.objectToString(bindings, 2) );
     this.db.storage.execute( query, bindings );
 };
 
