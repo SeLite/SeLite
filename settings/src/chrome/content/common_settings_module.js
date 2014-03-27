@@ -9,7 +9,8 @@ var vanillaDB= new SeLiteSettings.Field.SQLite('vanillaDB', /*defaultKey*/undefi
 // This is needed because Selenium IDE desn't allow base URL to contain path (http://code.google.com/p/selenium/issues/detail?id=3116).
 var webRoot= new SeLiteSettings.Field.String('webRoot', /*multivalued:*/false, undefined, /*requireAndPopulate:*/false);
 
-/** @see SeLiteSettings.roleToUser().
+/** A map: role symbolic name => user name. Add the keys in your custom framework. Use SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' ).getField( 'roles' ).addKeys( [...] ); 
+ * Use SeLiteSettings.roleToUser() in your scripts to get the user for a given role.
  * */
 var roles= new SeLiteSettings.Field.FixedMap.String( 'roles', [], {}, /*requireAndPopulate*/false );
 

@@ -1903,7 +1903,7 @@ SeLiteSettings.roleToUser= function roleToUser( userNameOrRoleWithPrefix ) {
     }
 };
 
-/** This is useful because Selenium IDE doesn't allow base URL to contain path (http://code.google.com/p/selenium/issues/detail?id=3116).
+/** @return {string} Webroot URL of the application, ending with a slash '/'. This is useful because Selenium IDE doesn't allow base URL to contain path (http://code.google.com/p/selenium/issues/detail?id=3116).
  * */
 SeLiteSettings.webRoot= function webRoot() {
     var entry= SeLiteSettings.commonSettings.fields['webRoot'].getDownToFolder().entry;
