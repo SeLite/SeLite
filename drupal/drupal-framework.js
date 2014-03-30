@@ -13,7 +13,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 "use strict";
-throw new Error('Unfinished. Some settings were moved out to extensions.selite-settings.common. Adjust code here accordingly. ');
 // Following is a namespace-like object in the global scope.
 var Drupal= {};
 
@@ -35,7 +34,19 @@ var Drupal= {};
     // Once you open/save a test suite, storage object will get updated automatically and it will open an SQLite connection.
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         
-        var storage= SeLiteData.getStorageFromSettings('extensions.selite.drupal.testDB');
+        var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
+        commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor', 'contributor'] );
+        
+        SeLiteSettings.setTestDbKeeper( 
+            new SeLiteSettings.TestDbKeeper.Columns( {
+                users: {
+                    key: 'name',
+                    columns: ['name', 'pass']
+                }
+            })
+        );
+
+        var storage= SeLiteData.getStorageFromSettings();
         var db= new SeLiteData.Db( storage );
 
         Drupal.tables= {};
@@ -72,30 +83,6 @@ var Drupal= {};
             columns: ['entity_type', 'bundle', 'deleted', 'entity_id', 'revision_id', 'language', 'delta', 'body_value', 'body_sumary', 'body_format'],
             primary: '@TODO group of columns'
         });
-        
-        var settingsModule= SeLiteSettings.loadFromJavascript('extensions.selite.drupal');
-        var webRootField= settingsModule.fields['webRoot'];
-        
-        Drupal.webRoot= function webRoot() {
-            return webRootField.getDownToFolder().entry;
-        };
-        
-        /** Convert a given symbolic role name (prefixed with '&') to username, or return a given username unchanged.
-         *  @param {string} userNameOrRoleWithPrefix Either a symbolic role name, starting with '&', or a username.
-         *  @return {string} Username mapped to userNameOrRoleWithPrefix (after removeing '&' prefix) through extensions.selite.drupal settings. If userNameOrRoleWithPrefix doesn't start with '&', this returns it unchanged.
-         * */
-        Drupal.roleToUser= function roleToUser( userNameOrRoleWithPrefix ) {
-            LOG.info( 'Drupal.roleToUser: userNameOrRoleWithPrefix: ' +userNameOrRoleWithPrefix );
-            if( userNameOrRoleWithPrefix.startsWith('&') ) {
-                var role= userNameOrRoleWithPrefix.substring(1);
-                LOG.info( 'role: ' +role );
-                LOG.info( 'settingsModule.getFieldsDownToFolder()[ "roles" ].entry[ role ]: ' +settingsModule.getFieldsDownToFolder()[ 'roles' ].entry[ role ]);
-                return settingsModule.getFieldsDownToFolder()[ 'roles' ].entry[ role ];
-            }
-            else {
-                return userNameOrRoleWithPrefix;
-            }
-        };
         
         // Can't use: return selenium.browserbot.getCurrentWindow().location.href
         // - it's only available when implementing Selenese

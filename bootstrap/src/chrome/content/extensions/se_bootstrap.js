@@ -57,18 +57,8 @@
         const subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
                 .getService(Components.interfaces.mozIJSSubScriptLoader);
 
-        var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
-        debugger;
-        var bootstrappedCoreExtensions= new SeLiteSettings.Field.File( 'bootstrappedCoreExtensions', /*startInProfileFolder*/false, { 'Javascript': '*.js*', 'Any': null}, /*multivalued*/true, /*defaultKey*/[], /*requireAndPopulate*/false,
-            function customValidate( key ) {
-                bootstrappedListChanged= true;
-                return true;
-            }
-        );
-        debugger;
-        commonSettings.addField( bootstrappedCoreExtensions );
-
         var bootstrappedListChanged= false;
+        var bootstrappedCoreExtensions= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' ).getField( 'bootstrappedCoreExtensions' );
         var bootstrappedCoreExtensionsRecord;
         debugger;
         /*** This (re)loads and processes any updated custom .js file(s) - either if they were not loaded yet,

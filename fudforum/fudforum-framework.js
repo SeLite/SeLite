@@ -16,7 +16,7 @@
 
 // Following is a namespace-like object in the global scope.
 var FUDforum= {};
-FUDforum.cuckoo= true;
+
 (function() {
     // @TODO Doc
     // I suggest that you load this file via SeLite Bootstrap (Selenium IDE > Options > Options > SeLite Bootstrap > Selenium Core extension).
@@ -38,14 +38,14 @@ FUDforum.cuckoo= true;
         var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
         commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor', 'contributor'] );
 
-    SeLiteSettings.setTestDbKeeper( 
-        new SeLiteSettings.TestDbKeeper.Columns( {
-            users: {
-                key: 'login', // This is the logical/matching column, rather then a primary key
-                columns: ['login', 'passwd']
-            }
-        })
-    );
+        SeLiteSettings.setTestDbKeeper( 
+            new SeLiteSettings.TestDbKeeper.Columns( {
+                users: {
+                    key: 'login', // This is the logical/matching column, rather then a primary key
+                    columns: ['login', 'passwd']
+                }
+            })
+        );
 
         FUDforum.storage= SeLiteData.getStorageFromSettings();
         FUDforum.db= new SeLiteData.Db( FUDforum.storage );
