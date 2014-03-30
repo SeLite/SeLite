@@ -42,7 +42,7 @@
  *   then we need to reload more of them; or: cache the Javascript contents and just re-run it all
  */
 "use strict";
-
+throw new Error('not to be yused');
 // This file can't access 'Selenium' class. But ../extensions/se_bootstrap.js can access 'SeBootstrap' class.
 // Therefore here (in SeBootstrap class) I define method(s) that are called from ../extensions/se_bootstrap.js
 
@@ -63,7 +63,7 @@ function SeBootstrap(editor) {
         // 1. at start of Se IDE (invoked by SeBootstrap constructor)
         // 2. whenever you save Se IDE options, whether scriptFileName changed or not
         SeBootstrap.prototype.optionsChanged= function optionsChanged(options) {
-          this.scriptFileName = options.se_bootstrap_scriptFileName;
+          //this.scriptFileName = options.se_bootstrap_scriptFileName;
         };
     }
 )();

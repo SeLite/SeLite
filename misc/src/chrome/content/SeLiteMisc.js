@@ -379,8 +379,8 @@ SeLiteMisc.isEmptyObject= function isEmptyObject( obj ) {
 };
 
 /** Compare all fields of both given objects.
- *  @param firstContainer object (not a 'primitive' string)
- *  @param secondContainer object (not a 'primitive' string)
+ *  @param firstContainer object  (not a 'primitive' string) or array
+ *  @param secondContainer object (not a 'primitive' string) or array
  *  @param mixed strictOrMethodName Bool or a string. Boolean false by default.
  *  - if true, it compares with strict operator ===
  *  - if false, it compares using non-strict using ==
@@ -391,73 +391,99 @@ SeLiteMisc.isEmptyObject= function isEmptyObject( obj ) {
  *  @return boolean Whether both objects have same fields and their values
  * */
 SeLiteMisc.compareAllFields= function compareAllFields( firstContainer, secondContainer, strictOrMethodName, throwOnDifference ) {
+    SeLiteMisc.ensureType( firstContainer, 'object', 'SeLiteMisc.compareAllFields() requires firstContainer to be an object');
+    SeLiteMisc.ensureType( secondContainer, 'object', 'SeLiteMisc.compareAllFields() requires secondContainer to be an object');
+    if( Array.isArray(firstContainer) || Array.isArray(secondContainer) ) {
+        return SeLiteMisc.compareArrays( firstArray, secondArray, strictOrMethodName, throwOnDifference );
+    }
+    if( firstContainer===null || secondContainer===null ) {
+        return firstContainer===secondContainer;
+    }
     strictOrMethodName= strictOrMethodName || false;
     var strict= typeof strictOrMethodName=='boolean' && strictOrMethodName;
     var methodName= typeof strictOrMethodName=='string'
         ? strictOrMethodName
         : false;
     try {
-        SeLiteMisc.ensureType( firstContainer, 'object', 'SeLiteMisc.compareAllFields() requires firstContainer to be an object');
-        SeLiteMisc.ensureType( secondContainer, 'object', 'SeLiteMisc.compareAllFields() requires secondContainer to be an object');
-        SeLiteMisc.compareAllFieldsOneWay( firstContainer, secondContainer, strict, methodName );
-        SeLiteMisc.compareAllFieldsOneWay( secondContainer, firstContainer, strict, methodName );
+        SeLiteMisc.compareAllFieldsOneWay( firstContainer, secondContainer, false, strict, methodName );
+        SeLiteMisc.compareAllFieldsOneWay( secondContainer, firstContainer, false, strict, methodName );
     }
     catch( exception ) {
         if( throwOnDifference ) {
             throw exception;
         }
         return false; // This is not very efficient, but it makes the above code and SeLiteMisc.compareAllFieldsOneWay()
-        // more readable than having if(throOnDifference) check multipletimes above
+        // more readable than having if(throwOnDifference) check multiple times above
     }
     return true;
 };
 
 /** Compare whether all fields from firstContainer exist in secondContainer and are same. Throw an error if not.
  *  See SeLiteMisc.compareAllFields().
+ *  @param {(Array|object)} firstContainer
+ *  @param {(Array|object)} secondContainer
+ *  @param {boolean} [asArray=false]
+ *  @param {boolean} [strict=false]
+ *  @param {string} [methodName=undefined]
  *  @return void
+ *  @throws If the containers are different (see description); otherwise the containers are equal.
  * */
-SeLiteMisc.compareAllFieldsOneWay= function compareAllFieldsOneWay( firstContainer, secondContainer, strict, methodName ) {
-    for( var fieldName in firstContainer ) { // for() works if the container is null
-        if( !(fieldName in secondContainer) ) {
+SeLiteMisc.compareAllFieldsOneWay= function compareAllFieldsOneWay( firstContainer, secondContainer, asArray, strict, methodName ) {
+    if( asArray ) {
+        for( var i=0; i<firstContainer.length; i++ ) {
+            SeLiteMisc.compareFieldOneWay( i, firstContainer, secondContainer, asArray, strict, methodName );
+        }
+    }
+    else {
+        for( var fieldName in firstContainer ) { // No need to check for null - loop for() works if the container is null
+            SeLiteMisc.compareFieldOneWay( fieldName, firstContainer, secondContainer, asArray, strict, methodName );
+        }
+    }
+};
+
+/** @private
+ *  @param {(string|number)} fieldName Object field name (if firstContainer is a non-array object), or an integer index (if firstContainer is an array).
+ * */
+SeLiteMisc.compareFieldOneWay= function compareFieldOneWay( fieldName, firstContainer, secondContainer, asArray, strict, methodName ) {
+    if( !(fieldName in secondContainer) ) {
+        throw new Error();
+    }
+    var first= firstContainer[fieldName];
+    var second= secondContainer[fieldName];
+
+    if( strict || methodName ) {
+        if( (first===null)!=(second===null) ) {
             throw new Error();
         }
-        var first= firstContainer[fieldName];
-        var second= secondContainer[fieldName];
-
-        if( strict || methodName ) {
-            if( (first===null)!=(second===null) ) {
-                throw new Error();
-            }
+    }
+    if( methodName ) {
+        if( typeof first!='object' || typeof second!='object' ) { // typeof null=='object', so this is null-proof
+            throw new Error();
         }
-        if( methodName ) {
-            if( typeof first!='object' || typeof second!='object' ) { // typeof null=='object', so this is null-proof
-                throw new Error();
-            }
-            if( first!==null && !first[methodName].call(null, first, second) ) {
-                throw new Error();
-            }
+        if( first!==null && !first[methodName].call(null, first, second) ) {
+            throw new Error();
         }
-        else {
-            if( !strict && first!=second ||  strict && first!==second ) {
-                throw new Error();
-            }
+    }
+    else {
+        if( !strict && first!=second ||  strict && first!==second ) {
+            throw new Error();
         }
     }
 };
 
 SeLiteMisc.compareArrays= function compareArrays( firstArray, secondArray, strictOrMethodName, throwOnDifference ) {
+    Array.isArray(firstArray) || SeLiteMisc.fail( 'SeLiteMisc.compareArrays() requires firstArray to be an array.');
+    Array.isArray(secondArray) || SeLiteMisc.fail('object', 'SeLiteMisc.compareArrays() requires secondArray to be an array.');
     strictOrMethodName= strictOrMethodName || false;
     var strict= typeof strictOrMethodName=='boolean' && strictOrMethodName;
     var methodName= typeof strictOrMethodName=='string'
         ? strictOrMethodName
         : false;
     try {
-        Array.isArray(firstArray) || SeLiteMisc.fail( 'SeLiteMisc.compareArrays() requires firstArray to be an array.');
-        Array.isArray(secondArray) || SeLiteMisc.fail('object', 'SeLiteMisc.compareArrays() requires secondArray to be an array.');
-        if( firstArray.length===secondArray.length ) {
+        if( firstArray.length!==secondArray.length ) {
             throw new Error();
         }
-        SeLiteMisc.compareAllFieldsOneWay( firstArray, secondArray, strict, methodName );
+        SeLiteMisc.compareAllFieldsOneWay( firstArray, secondArray, true, strict, methodName );
     }
     catch( exception ) {
         if( throwOnDifference ) {
@@ -1313,8 +1339,8 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
     }
 };
 
-/** Object serving as an associative array. Used by Core extensions, that are specified in Selenium IDE menu
- *  (and they are not Firefox extensions on their own), to indicate whether an extension has been loaded once or twice
+/** Object serving as an associative array. Used by Core extensions, that are specified in Selenium IDE menu or that are loaded from an XPI file/proxy file
+ *  (but not via ExtensionSequencer), to indicate whether an extension has been loaded once or twice
  *  during the current run of Selenium IDE.
  *  {
  *      string core extension name: boolean true if the extension was loaded once (that is, before running any Selenese), or odd number of times;

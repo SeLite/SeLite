@@ -16,7 +16,7 @@
 
 // Following is a namespace-like object in the global scope.
 var FUDforum= {};
-
+FUDforum.cuckoo= true;
 (function() {
     // @TODO Doc
     // I suggest that you load this file via SeLite Bootstrap (Selenium IDE > Options > Options > SeLite Bootstrap > Selenium Core extension).
@@ -33,7 +33,7 @@ var FUDforum= {};
     // in order to resolve Settings field here. Test suite folder is not known when this is loaded,
     // however SeLiteData.getStorageFromSettings() sets a handler via SeLiteSettings.addTestSuiteFolderChangeHandler().
     // Once you open/save a test suite, storage object will get updated automatically and it will open an SQLite connection.
-        var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+        //var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 
         var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
         commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor', 'contributor'] );
@@ -47,13 +47,12 @@ var FUDforum= {};
         })
     );
 
-        // @TODO a shorthand method, where I just pass ''extensions.selite.fudforum'. Same field naming convention is required by SeLiteSettings' ide-extension.js
-        var storage= SeLiteData.getStorageFromSettings();
-        var db= new SeLiteData.Db( storage );
+        FUDforum.storage= SeLiteData.getStorageFromSettings();
+        FUDforum.db= new SeLiteData.Db( FUDforum.storage );
         
         FUDforum.tables= {};
         FUDforum.tables.users= new SeLiteData.Table( {
-           db:  db,
+           db:  FUDforum.db,
            name: 'users',
            columns: ['id', 'login', 'alias', 'passwd', 'salt', 'name', 'email',
                'location', 'interests', 'occupation', 'avatar', 'avatar_loc',
@@ -70,7 +69,7 @@ var FUDforum= {};
         });
         /*@TODO
         FUDforum.tables.node= new SeLiteData.Table( {
-           db:  db,
+           db:  FUDforum.db,
            name: 'node',
            columns: ['nid', 'vid', 'type', 'language', 'title', 'uid', 'status',
                'created', 'changed',
@@ -80,7 +79,7 @@ var FUDforum= {};
         });
         
         FUDforum.tables.field_data_body= new SeLiteData.Table( {
-            db: db,
+            db: FUDforum.db,
             name: 'field_data_body',
             columns: ['entity_type', 'bundle', 'deleted', 'entity_id', 'revision_id', 'language', 'delta', 'body_value', 'body_sumary', 'body_format'],
             primary: '@TODO group of columns'

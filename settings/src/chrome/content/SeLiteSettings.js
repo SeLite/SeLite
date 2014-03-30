@@ -50,7 +50,7 @@ var unnamedTestSuiteFolderChangeHandlers= [];
  *  The handler will only be called on any subsequent changes. That should be OK, since this is intended for Core extensions,
  *  which are loaded at Se IDE start (before user opens a test suite). Se IDE 2.4.0 starts with the last opened test suite,
  *  which is fine - by that time the handlers are in place.
- *  <br/>The order of calling handlers is not guarenteed.
+ *  <br/>The order of calling handlers is not guaranteed.
  *  @param handler Function, with 1 parameter, which will be a string folder (or undefined, if the suite is unsaved and temporary).
  *  @param handlerName String; Required if you call this from a Core extension,
     because those get re-loaded if you re-start Se IDE (without restarting Firefox).
@@ -588,7 +588,7 @@ SeLiteSettings.Field.Folder.prototype.constructor= SeLiteSettings.Field.Folder;
  * */
 SeLiteSettings.Field.SQLite= function SQLite( name, defaultKey, requireAndPopulate, customValidate, saveFile ) {
     // I match '*.sqlite*' rather than just '*.sqlite', because Drupal 7 adds DB prefix name to the end of the file name
-    SeLiteSettings.Field.File.call( this, name, true, { 'SQLite': '*.sqlite*', 'any': null}, false, defaultKey, requireAndPopulate, customValidate, saveFile );
+    SeLiteSettings.Field.File.call( this, name, true, { 'SQLite': '*.sqlite*', 'Any': null}, false, defaultKey, requireAndPopulate, customValidate, saveFile );
 };
 SeLiteSettings.Field.SQLite.prototype= new SeLiteSettings.Field.File('SQLite.prototype', false, {}, false, '' );
 SeLiteSettings.Field.SQLite.prototype.constructor= SeLiteSettings.Field.SQLite;
@@ -1023,8 +1023,13 @@ SeLiteSettings.Module.prototype.addField= function addField( field, dontReRegist
     if( !(field instanceof SeLiteSettings.Field) ) {
         throw new Error( 'SeLiteSettings.Module() expects fields to be an array of SeLiteSettings.Field instances, but it is not.');
     }
-    if( field.name in this.fields || field.name in this.addedFields ) {
-        throw new Error( 'SeLiteSettings.Module() for module name "' +name+ '" already has a field with name "' +field.name+ '".');
+    if( field.name in this.fields ) {
+        var fieldHasBeenAddedAlready= field.name in this.addedFields;
+        debugger;
+        if( fieldHasBeenAddedAlready && field.equals( this.fields[field.name] ) ) { // This happens if you restart Selenium IDE.
+            return;
+        }
+        throw new Error( 'SeLiteSettings.Module() for module name "' +this.name+ '" already has an ' +(fieldHasBeenAddedAlready ? 'added' : 'original')+ ' field with name "' +field.name+ '".');
     }
     field.registerFor( this );
     this.fields[ field.name ]= field;
@@ -1432,7 +1437,7 @@ SeLiteSettings.closingIde= function closingIde() {
  *  If undefined/null, then this uses the folder of test suite currently open in Selenium IDE. If there is none,
  *  it returns fields of the active set (or default values).
  *  @param bool dontCache If true, then this doesn't cache manifest files (it doesn't use any
- *  previous manifests stored in the cache and it doesn't store current manifests in the cache). For use by GUI.
+ *  previous manifests stored in the cache and it doesn't store current manifests in the cache). The actual preferences won't be cached no matter what dontCache. For use by GUI.
  *  @return Object with sorted keys, serving as an associative array. A bit similar to result of getFieldsOfset(),
  *  but with more information and more structure: {
  *      string field name => anonymous object {
@@ -1765,7 +1770,7 @@ SeLiteSettings.fileNameToUrl= function fileNameToUrl( fileNameOrUrl ) {
  *  @param forceReload bool Whether reload the module and overwrite the already cached object,
  *  rather than return a cached definition, even if it has been loaded already. False by default (i.e. by default it returns
  *  the cached object, if present). It re-adds any fields previously added by addField() - but it doesn't (and it can't) reload source of those added fields.
- *  @return SeLiteSettings.Module instance
+ *  @return {SeLiteSettings.Module} instance
  *  @throws an error if no such preference branch, or preferences don't contain javascript file, or the javascript file doesn't exist.
  * */
 SeLiteSettings.loadFromJavascript= function loadFromJavascript( moduleName, moduleFileOrUrl, forceReload ) {

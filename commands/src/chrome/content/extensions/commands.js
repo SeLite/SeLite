@@ -16,10 +16,10 @@
 */
 "use strict";
 
-Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
-
 (
   function() {
+    Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
+    
     // For all Selenium actions and locators defined here - i.e. functions with name doXXXX, isXXXXX, getXXXXX
     // see their user documentation at ../reference.xml
 
