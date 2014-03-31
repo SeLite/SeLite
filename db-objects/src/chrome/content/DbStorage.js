@@ -710,13 +710,13 @@ function testSuiteFolderChangeHandler() {
                                      // In Java that would upset an Iterator object; but in Firefox Javascript the loop continues to iterate well.
             instance.parameters.fileName= null;
         }
-        var newFileName= instance.field.getDownToFolder().entry;
+        var newFileName= instance.dbField.getDownToFolder().entry;
         if( newFileName ) {
             instance.parameters.fileName= newFileName;
             instance.open();
         }
         else {
-            console.log( 'SeLiteSettings: The current test suite has a folder, but field ' +instance.field+ ' is not defined for it.' );
+            console.log( 'SeLiteSettings: The current test suite has a folder, but field ' +instance.dbField+ ' is not defined for it.' );
         }
     }
 }

@@ -4,7 +4,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>misc@selite.googlecode.com</em:id>
     <em:name>SeLite Miscellaneous</em:name>
-    <em:version>0.71</em:version>
+    <em:version>0.72</em:version>
     <em:creator>Peter Kehl</em:creator>
     <em:homepageURL>https://code.google.com/p/selite/</em:homepageURL>
     <em:description>Miscellaneous Internal Components for various parts of SeLite group of extensions</em:description>
@@ -12,8 +12,8 @@
     <em:targetApplication>
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id> <!-- Firefox -->
-        <em:minVersion>17.*</em:minVersion>
-        <em:maxVersion>27.*</em:maxVersion>
+        <em:minVersion>27.0</em:minVersion>
+        <em:maxVersion>29.0</em:maxVersion>
       </Description>
     </em:targetApplication>
   </Description>

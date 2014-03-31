@@ -1414,15 +1414,27 @@ SeLiteSettings.setTestSuiteFolder= function setTestSuiteFolder( folder ) {
     //console.log( 'setTestSuiteFolder ' +folder );
     if( testSuiteFolder!==folder ) {
         testSuiteFolder= folder;
-        for( var i=0; i<unnamedTestSuiteFolderChangeHandlers.length; i++ ) { // @TODO change to for( .. of .. ) loop
-            unnamedTestSuiteFolderChangeHandlers[i].call( null, folder );
-        }
-        for( var i in namedTestSuiteFolderChangeHandlers ) { // @TODO for( .. of .. )
-            namedTestSuiteFolderChangeHandlers[i].call( null, folder );
-        }
+        SeLiteSettings.applyTestSuiteFolderChangeHandlers( folder );
     }
 };
 
+/** @note Internal. Used by ui/ovOptions.js
+ * */
+SeLiteSettings.changedDefaultSet= function changedDefaultSet() {
+    SeLiteSettings.applyTestSuiteFolderChangeHandlers( testSuiteFolder );
+};
+
+/** @note Internal
+ * */
+SeLiteSettings.applyTestSuiteFolderChangeHandlers= function applyTestSuiteFolderChangeHandlers( folder ) {
+    for( var i=0; i<unnamedTestSuiteFolderChangeHandlers.length; i++ ) { // @TODO change to for( .. of .. ) loop
+        unnamedTestSuiteFolderChangeHandlers[i].call( null, folder );
+    }
+    for( var i in namedTestSuiteFolderChangeHandlers ) { // @TODO for( .. of .. )
+        namedTestSuiteFolderChangeHandlers[i].call( null, folder );
+    }
+};
+    
 /** @private within SeLite family. Called when Se IDE is being closed down.
  * */
 SeLiteSettings.closingIde= function closingIde() {

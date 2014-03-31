@@ -907,6 +907,7 @@ function treeClickHandler( event ) {
                         cell.setAttribute( 'value', 'false' );
                     }
                 }
+                SeLiteSettings.changedDefaultSet();
             }
             if( column.value.element===treeColumnElements.checked && cellIsEditable ) {
                 var isSingleNonChoice= !(field.multivalued || field instanceof SeLiteSettings.Field.Choice);
