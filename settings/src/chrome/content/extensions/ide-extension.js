@@ -41,19 +41,13 @@
     if (typeof(XUL_NS) == "undefined")  {
         var XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
     }
-    var seLiteSettingsMenuItem= document.createElementNS( XUL_NS, 'menuitem' );
-    seLiteSettingsMenuItem.setAttribute( 'label', 'SeLiteSettings module(s)' );
-    seLiteSettingsMenuItem.setAttribute( 'oncommand', 'window.editor.showInBrowser("chrome://selite-settings/content/tree.xul", true/*in a new window*/)' );
-    seLiteSettingsMenuItem.setAttribute( 'accesskey', 'S' );
     var optionsPopup= document.getElementById('options-popup');
+    
+    var seLiteSettingsMenuItem= document.createElementNS( XUL_NS, 'menuitem' );
+    seLiteSettingsMenuItem.setAttribute( 'label', 'SeLite Settings for this test suite' );
+    seLiteSettingsMenuItem.setAttribute( 'oncommand', 'window.editor.showInBrowser("chrome://selite-settings/content/tree.xul" + (SeLiteSettings.testSuiteFolder ? "?folder="+escape(SeLiteSettings.testSuiteFolder) : ""), true/*in a new window*/)' );
     optionsPopup.appendChild(seLiteSettingsMenuItem);
     
-    seLiteSettingsMenuItem= document.createElementNS( XUL_NS, 'menuitem' );
-    seLiteSettingsMenuItem.setAttribute( 'label', 'SeLiteSettings per folder' );
-    seLiteSettingsMenuItem.setAttribute( 'oncommand', 'window.editor.showInBrowser("chrome://selite-settings/content/tree.xul?selectFolder", true/*in a new window*/)' );
-    optionsPopup= document.getElementById('options-popup');
-    optionsPopup.appendChild(seLiteSettingsMenuItem);
-
     /** Reload the database file(s). It copies the files.
      *  If called with no parameters, by default it copies appDB over testDB. Maximum one of the parameters can be true.
      *  @param reloadAppAndTest boolean, whether to reload both appDB and testDB from vanillaDB. Optional, false by default.

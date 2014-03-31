@@ -1317,7 +1317,7 @@ var cachedManifests= {};
  *  }
  * */
 function manifestsDownToFolder( folderPath, dontCache ) {
-    folderPath= folderPath || testSuiteFolder;
+    folderPath= folderPath || SeLiteSettings.testSuiteFolder;
     dontCache= dontCache || false;
     var folderNames= [];
     if( folderPath ) {
@@ -1397,7 +1397,7 @@ function manifestsDownToFolder( folderPath, dontCache ) {
  * or the test suite is a temporary one (not saved yet), then it's undefined.
  * @TODO This, namedTestSuiteFolderChangeHandlers, cachedManifests and potentially other 'global' variables allow confusing side effects, if this JS component is used by various apps. Should I pass Selenium object, and define any such variables on that object instead?But: some variables need to be shared. E.g. chrome://selite-settings/content/tree.xul?module=extensions.selite-settings.common needs to know about any keys added to 'roles' field by the current custom framework.
  */
-var testSuiteFolder= undefined;
+SeLiteSettings.testSuiteFolder= undefined;
 
 /** @private Object serving as an associative array of functions, that are called whenever the test suite folder changes.
  * */
@@ -1412,8 +1412,8 @@ SeLiteSettings.getTestSuiteFolder= function getTestSuiteFolder() { return testSu
  * */
 SeLiteSettings.setTestSuiteFolder= function setTestSuiteFolder( folder ) {
     //console.log( 'setTestSuiteFolder ' +folder );
-    if( testSuiteFolder!==folder ) {
-        testSuiteFolder= folder;
+    if( SeLiteSettings.testSuiteFolder!==folder ) {
+        SeLiteSettings.testSuiteFolder= folder;
         SeLiteSettings.applyTestSuiteFolderChangeHandlers( folder );
     }
 };
@@ -1421,7 +1421,7 @@ SeLiteSettings.setTestSuiteFolder= function setTestSuiteFolder( folder ) {
 /** @note Internal. Used by ui/ovOptions.js
  * */
 SeLiteSettings.changedDefaultSet= function changedDefaultSet() {
-    SeLiteSettings.applyTestSuiteFolderChangeHandlers( testSuiteFolder );
+    SeLiteSettings.applyTestSuiteFolderChangeHandlers( SeLiteSettings.testSuiteFolder );
 };
 
 /** @note Internal
@@ -1473,7 +1473,7 @@ SeLiteSettings.closingIde= function closingIde() {
  *  - default key (value) of the field
 * */
 SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToFolder( folderPath, dontCache ) {
-    folderPath= folderPath || testSuiteFolder;
+    folderPath= folderPath || SeLiteSettings.testSuiteFolder;
     this.associatesWithFolders || SeLiteMisc.fail( "SeLiteSettings.Module.getFieldsDownToFolder() requires module.associatesWithFolders to be true, but it was called for module " +this.name );
     dontCache= dontCache || false;
     
