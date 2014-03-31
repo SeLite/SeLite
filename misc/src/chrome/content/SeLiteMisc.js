@@ -465,7 +465,10 @@ SeLiteMisc.compareFieldOneWay= function compareFieldOneWay( fieldName, firstCont
         }
     }
     else {
-        if( !strict && first!=second ||  strict && first!==second ) {
+        if( strict
+            ? first!==second
+            : first!=second
+        ) {
             throw new Error();
         }
     }

@@ -1558,11 +1558,16 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
                     ? {}
                     : SeLiteMisc.sortedObject( field.compareValues );
                 var keys= field.getDefaultKey();
-                for( var i=0; i<keys.length; i++ ) { //@TODO use for.. of.. loop once NetBeans support it
-                    var key= keys[i];
-                    entry[ key ]= isChoice
-                        ? field.choicePairs[key]
-                        : key;
+                if( field.multivalued ) {
+                    for( var i=0; i<keys.length; i++ ) { //@TODO use for.. of.. loop once NetBeans support it
+                        var key= keys[i];
+                        entry[ key ]= isChoice
+                            ? field.choicePairs[key]
+                            : key;
+                    }
+                }
+                else {
+                    entry= keys; // This may be null or undefined
                 }
                 result[fieldName].entry= entry;
             }
