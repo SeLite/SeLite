@@ -181,7 +181,7 @@
      **/
     Selenium.prototype.noteTimestamp= function noteTimestamp( timestampName, timestampPrecision ) {
         timestampPrecision= Number(timestampPrecision);
-        var nextDistinctTimestamp= Date.now()+ maxTimeDifference() +timestampPrecision; //+ Number(this.defaultTimeout); //@TODO Do I need this.defaultTimeout there?
+        var nextDistinctTimestamp= Date.now()+ maxTimeDifference() +timestampPrecision;
         LOG.debug( 'noteTimestamp: timestampName=' +timestampName+ ', precision=' +timestampPrecision+ ', nextDistinctTimestamp=' +nextDistinctTimestamp);
         this.distinctTimestamps[timestampName]= {
             precision: timestampPrecision,

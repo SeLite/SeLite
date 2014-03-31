@@ -61,7 +61,6 @@ var FUDforum= {};
            ],
            primary: 'id' // However, for purpose of matching users I usually use 'login'
         });
-        
         FUDforum.formulas= {};
         FUDforum.formulas.users= new SeLiteData.RecordSetFormula( {
             table: FUDforum.tables.users,
