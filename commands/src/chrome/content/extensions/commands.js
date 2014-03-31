@@ -462,8 +462,8 @@
                         name+= baseOnName[i];
                     }
                 }
-                if( !name.length ) {
-                    name+= SeLiteMisc.randomChar( acceptableChars );
+                if( name.length===0 ) {
+                    name= SeLiteMisc.randomChar( acceptableChars );
                 }
             }
             else {
@@ -473,19 +473,19 @@
                 // If the part left of '@' were much longer, it's difficult to identify the email pattern by a human.
                 var name= SeLiteMisc.randomItem( this.randomFirstNames ).toLowerCase();
                 // If there's enough space, then for 50% of such cases, append a dot and a second name/part of it
-                // Leave at least 5 characters for domain
-                if( name.length<maxLength-6 && Math.random()>0.5 ) {
+                // Leave at least 9 characters for domain (that covers xy.com.au)
+                if( name.length<maxLength-8 && Math.random()>0.5 ) {
                     name+= '.' +SeLiteMisc.randomItem( this.randomSurnames ).toLowerCase();
                 }
             }
-            name= name.substr(0, maxLength-6 ); // In case we've overrun, leave at least 5 letters for full domain
+            name= name.substr(0, maxLength-8 ); // In case we've overrun, leave at least 8 letters for full domain
 
-            var topDomains= maxLength- name.length > 6
+            var topDomains= maxLength- name.length>8
                 ? this.randomTopDomains
                 : this.randomTopDomainsShort;
             var topDomain= SeLiteMisc.randomItem( topDomains );
 
-            var maxMidDomainLength= maxLength- name.length- topDomain.length- 2;
+            var maxMidDomainLength= Math.max( maxLength-name.length-topDomain.length-2, 2 );
             var midDomain= SeLiteMisc.randomItem( this.randomWords ).toLowerCase();
             if( maxMidDomainLength-midDomain.length >=2 ) {
                 // Let's append a dash followed by 1 or more random alpha letters, e.g. '-xpqr', to midDomain
