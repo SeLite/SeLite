@@ -1403,9 +1403,9 @@ SeLiteSettings.testSuiteFolder= undefined;
  * */
 var namedTestSuiteFolderChangeHandlers= {};
 
-/** @return string Full path of the current Se IDE test suite folder. Or undefined - see testSuiteFolder.
+/** @return string Full path of the current Se IDE test suite folder. Or undefined - see SeLiteSettings.testSuiteFolder.
  * */
-SeLiteSettings.getTestSuiteFolder= function getTestSuiteFolder() { return testSuiteFolder; };
+SeLiteSettings.getTestSuiteFolder= function getTestSuiteFolder() { return SeLiteSettings.testSuiteFolder; };
 
 /** @note Internal. Used by extensions/core-extension.js which stores the path of the test suite here.
  *  @param folder string or undefined
