@@ -363,6 +363,7 @@
     Selenium.prototype.randomThirdNameMaxLength= 8;
     Selenium.prototype.randomWords= ['amazing', 'cat', 'excellent', 'elephant', 'good', 'frog', 'hamster', 'horse', 'lion', 'mouse', 'happy',
         'healthy', 'pretty', 'superb', 'tomcat' ];
+    Selenium.prototype.htmlTags= [ '', 'b', 'i', 'u', 'strike', 'sub', 'sup'];
     // Don't enter a dot. Include at least one two-letter domain, so that it gets included in randomTopDomainsShort.
     Selenium.prototype.randomTopDomains= ['es', 'it', 'com', 'com.au', 'co.nz', 'co.uk'];
 
@@ -379,10 +380,9 @@
     /**I don't use prefix 'do' or 'get' in the name of this function
        because it's not intended to be run as Selenium command/getter.
     */
-    Selenium.prototype.randomText= function randomText( locator, params, extraParams ) {
+    Selenium.prototype.randomText= function randomText( params, extraParams, locator ) {
         /** Return a random text, restricted by params, and fit for an input element identified by locator,
          *  It always returns at least 1 character.
-         * @parameter string locator Locator of the text input
          * @parameter object, see second parameter paramsOrStore of funcion doTypeRandom(), except that
          * - here it has to be an object, it can't be a string
          * - 'store' field has no effect here
@@ -390,26 +390,27 @@
          * a given name (first/last/full). Then pass an object {
          *     baseOnName: string human-name; the email address part left of '@' will be based on this string
          * }
+         * @parameter {string} [locator] Locator of the text input. Used to get max. length of the generated input.
          * @return string as speficied in doTypeRandom()
          */
         params= params || {};
         var type= params.type || null;
         if( type && 
-            (typeof type!=='string' || ['email', 'name', 'word', 'number', 'text', 'password', 'ugly'].indexOf(type)<0)
+            (typeof type!=='string' || ['email', 'name', 'word', 'number', 'text', 'html', 'password', 'ugly'].indexOf(type)<0)
         ) {
             LOW.error( "randomText(): params.type='" +type+ "' is not recognised." );
             throw new Error();
         }
-        var element= this.page().findElement(locator);
+        var elementMaxLength= locator
+            ? parseInt( this.page().findElement(locator).getAttribute('maxlength') )
+            : undefined;
 
         var minLength= params.minLength || 1;
         minLength= Math.max( minLength, 1 );
         if( type==='email' ) {
             minLength= Math.max( minLength, 7 );
         }
-        var maxLength= params.maxLength ||
-            parseInt( element.getAttribute('maxlength') ) ||
-            255;
+        var maxLength= params.maxLength || elementMaxLength || 255;
         maxLength= Math.max( minLength, maxLength );
 
         var charRange= ''; // We'll use ASCII characters from within this range
@@ -422,7 +423,7 @@
         if( type==='name' || type==='word' ) {
             charRange+= 'a-z'; // Only used to fill-up after 'nice' first & last name
         }
-        if( type==='text' ) {
+        if( type==='text' || type==='html' ) {
             charRange+= ' a-z';
         }
         if( type==='password' ) {
@@ -500,7 +501,7 @@
             result= name+ '@'+ midDomain+ '.' +topDomain;
         }
         else
-        if( !type || ['word', 'text', 'password', 'ugly', 'number'].indexOf(type)>=0 ) {
+        if( !type || ['word', 'text', 'html', 'password', 'ugly', 'number'].indexOf(type)>=0 ) {
             if( type==='ugly' ) {
                 // If possible, try to type all ugly characters at least once. But don't type more than maxLength
                 minLength= Math.min( maxLength, Math.max(minLength,acceptableChars.length) );
@@ -510,14 +511,24 @@
             }
             var totalLength= minLength+ Math.round( Math.random()*(maxLength-minLength) );
 
-            if( type==='text' ) {
-                while( result.length<totalLength ) {
-                    if( result ) {
-                        result+= ' ';
+            if( type==='text' || type==='html' ) {
+                var entries= [];
+                var lengthOfEntries= 0;
+                while( lengthOfEntries<totalLength ) {
+                    var entry= this.randomWords[Math.round( Math.random()*(this.randomWords.length-1) )];
+                    if( type==='html' ) {
+                        var tag= Selenium.prototype.htmlTags[Math.round( Math.random()*(Selenium.prototype.htmlTags.length-1) )];
+                        if( tag ) {
+                            entry= '<' +tag+ '>' +entry+ '</' +tag+ '>';
+                        }
                     }
-                    result+= this.randomWords[Math.round( Math.random()*(this.randomWords.length-1) )];
+                    entries.push( entry );
+                    lengthOfEntries+= entry.length+1;
                 }
-                result= result.substr( 0, maxLength ); // In case we've overrun it (by appending the last random word etc.)
+                if( lengthOfEntries>totalLength ) {
+                    entries.pop();
+                }
+                result= entries.join(' ');
             }
             else if( type==='password' ) {
                 var capitals= SeLiteMisc.acceptableCharacters( new RegExp( '[A-Z]' ) );
@@ -589,7 +600,7 @@
         if( typeof params =='string' ) {
             params= {store: params};
         }
-        var resultString= this.randomText( locator, params );
+        var resultString= this.randomText( params, undefined, locator );
 
         LOG.debug('doTypeRandom() typing: ' +resultString );
         this.doType( locator, resultString );
@@ -624,7 +635,7 @@
         var extraParamsToPass= {
             baseOnName: name
         };
-        var resultString= this.randomText( locator, paramsToPass, extraParamsToPass );
+        var resultString= this.randomText( paramsToPass, extraParamsToPass, locator );
 
         LOG.debug('doTypeRandomEmail() typing: ' +resultString );
         this.doType( locator, resultString );
