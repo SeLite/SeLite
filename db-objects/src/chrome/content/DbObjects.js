@@ -215,7 +215,7 @@ RecordHolder.prototype.selectOne= function selectOne() { throw new Error( "@TODO
 /** This saves this.record into main table of the formula. As defined by RecordHolder() constructor,
  *  keys/field names in this.record are the column aliases. This re-maps them to the DB columns before inserting.
  *  @TODO set/modify this.originals.
- *  @return mixed value of the primary key
+ *  @return {(number|string)} value of the primary key for the new record, or undefined if the table doesn't use one column as a primary key (i.e. it uses a group of multiple columns as a primary key)
  **/
 RecordHolder.prototype.insert= function insert() {
     // Fields set in formula's onInsert{} override any fields with the same name in this.record
@@ -312,6 +312,7 @@ RecordHolder.prototype.put= function put() {
         }
     }
     else {
+        // @TODO Do we need this function at all?
         throw '@TODO Have a flag indicating whether the record exists in the DB already, or not.';
     }
 };

@@ -457,7 +457,7 @@ SeLiteData.Storage.prototype.updateRecordByPrimary= function updateRecordByPrima
  * @return void
  * @throws an error on failure
  */
-SeLiteData.Storage.prototype.deleteRecordByPrimary= function deleteRecordByPrimary( table, field, value ) {
+SeLiteData.Storage.prototype.removeRecordByPrimary= function removeRecordByPrimary( table, field, value ) {
     var query= "DELETE FROM " +table+ " WHERE " +field+ "=" +this.quote(value);
     var stmt= this.connection.createStatement( query );
     stmt.execute();
