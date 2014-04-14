@@ -14,7 +14,9 @@ POSSIBILITY OF SUCH DAMAGE.
 "use strict";
 
 // Following is a namespace-like object in the global scope.
-var Serendipity= {};
+var Serendipity= {
+    currentAuthorUsername: undefined
+};
 
 (function() {
     // @TODO Doc
@@ -32,10 +34,39 @@ var Serendipity= {};
     // in order to resolve Settings field here. Test suite folder is not known when this is loaded,
     // however SeLiteData.getStorageFromSettings() sets a handler via SeLiteSettings.addTestSuiteFolderChangeHandler().
     // Once you open/save a test suite, storage object will get updated automatically and it will open an SQLite connection.
-
-        var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
-        commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor', 'contributor'] );
-
+        if( false ) {//@TODO Remove if we don't have any custom settings
+            var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
+            commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor', 'contributor'] );
+            var useRichEditor= new SeLiteSettings.Field.Bool('useRichEditor', /*default:*/false, /*requireAndPopulate:*/false);
+            commonSettings.addField( useRichEditor );
+        }
+        /** This depends on Serendipity.currentAuthorUsername
+         * */
+        Serendipity.useRichEditor= function useRichEditor() {
+            //SELECT * FROM serendipity_config WHERE name='wysiwyg' AND (authorid=1 OR authorid=0) ORDER BY authorid DESC LIMIT 1
+        };
+        
+        Selenium.prototype.serenditeEditorBodyRich= function serenditeEditorBodyRich() {
+            return this.browserbot.getCurrentWindow().editorbody; // See http://xinha.raimundmeyer.de/JSdoc/Xinha/
+        };
+        Selenium.prototype.serenditeEditorExtendedRich= function serenditeEditorExtendedRich() {
+            return this.browserbot.getCurrentWindow().editorextended;
+        };
+        
+        Selenium.prototype.readSerenditeEditorBody= function readSerenditeEditorBody() {
+            return this.useRichEditor()
+                ? this.serenditeEditorBodyRich().getEditorContent()
+                : serendipity[body];
+        };
+        Selenium.prototype.saveSerenditeEditorBody= function saveSerenditeEditorBody(content) {
+            
+        };
+        Selenium.prototype.readSerenditeEditorExtended= function readSerenditeEditorExtended() {
+        };
+        Selenium.prototype.saveSerenditeEditorExtended= function saveSerenditeEditorExtended() {
+        //serendipity[extended]
+        };
+        
         SeLiteSettings.setTestDbKeeper( 
             new SeLiteSettings.TestDbKeeper.Columns( {
                 authors: {
@@ -62,6 +93,17 @@ var Serendipity= {};
         Serendipity.formulas.authors= new SeLiteData.RecordSetFormula( {
             table: Serendipity.tables.users,
             columns: new SeLiteData.Settable().set( Serendipity.tables.authors.name/* same as 'authors' */, SeLiteData.RecordSetFormula.ALL_FIELDS )
+        });
+        Serendipity.tables.config= new SeLiteData.Table( {
+           db:  Serendipity.db,
+           name: 'config',
+           columns: ['name', 'value', 'authorid'
+           ],
+           primary: 'TODO'
+        });
+        Serendipity.formulas.config= new SeLiteData.RecordSetFormula( {
+            table: Serendipity.tables.config,
+            columns: new SeLiteData.Settable().set( Serendipity.tables.config.name/* same as 'config' */, SeLiteData.RecordSetFormula.ALL_FIELDS )
         });
     // }
     // SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['Serendipity']= !loadedOddTimes;
