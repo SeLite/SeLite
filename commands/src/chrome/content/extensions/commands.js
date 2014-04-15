@@ -270,7 +270,7 @@
             if( columnOrDetails.store===undefined ) {
                 resultVariableName= columnOrDetails.store;
             }
-        }
+        }//@TODO
         storedVars[resultVariableName]= SeLiteMisc.collectByColumn( storedVars[sourceVariableName], indexBy, !subIndexBy, subIndexBy );
     };
 

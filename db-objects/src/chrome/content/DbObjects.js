@@ -203,6 +203,9 @@ RecordHolder.prototype.setOriginalAndWatchEntries= function setOriginalAndWatchE
     if( typeof this.recordSetHolder.formula.table.primary==='string' ) {
         this.record.watch( this.recordSetHolder.formula.table.primary, readOnlyPrimary );
     }
+    else {
+        SeLiteMisc.fail( '@TODO or re-consider');
+    }
     Object.seal( this.record );
 };
 
@@ -644,6 +647,7 @@ RecordSetHolder.prototype.storage= function storage() {
  * */
 RecordSetHolder.prototype.select= function select() {
     SeLiteMisc.objectDeleteFields( this.recordSet );
+    /** @type {SeLiteMisc.Formula} */
     var formula= this.formula;
 
     var columns= {};
@@ -804,10 +808,14 @@ RecordSetHolder.prototype.select= function select() {
     this.originals= {};
     for( var j=0; j<data.length; j++ ) {
         var holder= new RecordHolder( this, data[j] );
-        //@TODO if( typeof this.recordSetHolder.formula.table.primary==='string' )
-        this.holders[ holder.record[formula.table.primary] ]= holder;
-        unindexedRecords.push( holder.record );
-        this.originals[ holder.record[ formula.table.primary] ]= holder.original;
+        if( typeof this.recordSetHolder.formula.table.primary==='string' ) {
+            this.holders[ holder.record[formula.table.primary] ]= holder;
+            unindexedRecords.push( holder.record );
+            this.originals[ holder.record[ formula.table.primary] ]= holder.original;
+        }
+        else {
+            throw 'TODO';
+        }
     }
     SeLiteMisc.collectByColumn( unindexedRecords, formula.indexBy, formula.indexUnique, formula.subIndexBy, this.recordSet );
     if( formula.process ) {
@@ -822,10 +830,10 @@ RecordSetHolder.prototype.select= function select() {
 RecordSetHolder.prototype.selectOne= function selectOne() {
     this.select();
     var keys= Object.keys(this.recordSet);
-    if( keys.length!==1 ) {
+    if( keys.length!==1 ) {//@TODO multi-column indexes
         throw new Error( "Expecting one record, but there was: " +keys.length+ " of them." );
     }
-    return this.recordSet[ keys[0] ];
+    return this.recordSet[ keys[0] ]; //@TODO multi-column indexes
 };
 
 RecordSetHolder.prototype.insert= function insert() { throw new Error( "@TODO if need be" );
@@ -838,12 +846,16 @@ RecordSetHolder.prototype.update= function update() { throw new Error( "@TODO if
  *  remove the actual DB record.
  **/
 RecordSetHolder.prototype.removeRecordHolder= function removeRecordHolder( recordHolder ) {
-    //@TODO if( typeof this.recordSetHolder.formula.table.primary==='string' ) 
-    var primaryKeyValue= recordHolder.record[this.formula.table.primary];
-    delete this.holders[ primaryKeyValue ];
-    delete this.recordSet[ SeLiteMisc.indexesOfRecord(this.recordSet, recordHolder.record) ]; //@TODO This doesn't work if multi-indexed! Then we also need to delete 1st level index, if there are no subentries left.
-    delete this.originals[ primaryKeyValue ];
-    delete this.markedToRemove[ primaryKeyValue ];
+    if( typeof this.recordSetHolder.formula.table.primary==='string' ) {
+        var primaryKeyValue= recordHolder.record[this.formula.table.primary];
+        delete this.holders[ primaryKeyValue ];
+        delete this.recordSet[ SeLiteMisc.indexesOfRecord(this.recordSet, recordHolder.record) ]; //@TODO This doesn't work if multi-indexed! Then we also need to delete 1st level index, if there are no subentries left.
+        delete this.originals[ primaryKeyValue ];
+        delete this.markedToRemove[ primaryKeyValue ];
+    }
+    else {
+        throw 'TODO';
+    }
 };
 
 RecordSetHolder.prototype.put= function put() {

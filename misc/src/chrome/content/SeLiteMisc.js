@@ -918,79 +918,53 @@ SeLiteMisc.objectValueToField= function objectValueToField( obj, value, strict )
     return null;
 };
 
-/** This collects entries (objects or arrays i.e. rows) from an array of associative arrays (i.e. objects), by given field/column.
+/** This collects entries - (sub(sub...))objects - from an array of objects (serving as associative arrays), by given breadcrumb of field/column.
  *  It returns those entries indexed by value of that given column/field, which becomes a key in the result
  *  array/matrix. If indicated that the
  *  chosen column (field) values may not be unique, then it returns the entries (objects/row) within
  *  an extra enclosing array, one per each key value - even if there is just one object/row for any key value.
- *  @param array of objects or an object (serving as an associative array) of objects (or of arrays of objects);
+ *  @param {array} records of objects or an object (serving as an associative array) of objects (or of arrays of objects);
  *  it can be a result of SeLite DB Objects - select() or a previous result of SeLiteMisc.collectByColumn().
  *  Therefore any actual values must not be arrays themselves, because then you and
  *  existing consumers of result from this function couldn't tell them from the subindexed arrays.
- *  @param mixed columnOrFieldName String name of the index key or object field, that we'll index by;
- *  or a function that returns value of such a field/key. The function accepts 1 argument which is the object to be indexed.
- *  @param bool columnValuesUnique whether the given column (field) is guaranteed to have unique values
- *  @param mixed subIndexColumnOrFieldName String, if passed, then the records will be sub-indexed by value of this column/field.
- *  It only makes sense (and is used) if columnValuesUnique==false. If used then its values should be guaranteed to be unique
- *  within the rows for any possible value of the main index; otherwise only the last record (for given sub-index value) will be kept here.
- *  Or a function that returns value of such a field/key. The function accepts 1 argument which is the object to be sub-indexed.
- *  @param object result The result object, see description of @return; optional - if not present, then a new anonymous object is used.
+ *  @param {(array|string)} fieldNames String name of the index key or object field, or function to retrieve a field off an object, that we'll index by; or an array of them. If it's a function  or an array containing function(s) then such function accepts one argument which is the object to be sub-indexed.
+ *  @param {boolean} valuesUnique whether the compound index (based on given fieldNames) is guaranteed to have unique values. Otherwise only the last record (for any compound index - breadcrumb of index/field values) will be kept here.
+ *  @param {Object} result The result object, see description of the return value; optional - if not present, then a new anonymous object is used.
  *  Don't use same object as records.
  *  @return An object serving as an associative array of various structure and depth, depending on the parameters.
  *  In the following, 'entry' means an original entry from records.
- *  If columnValuesUnique==true:
+ *  If valuesUnique==true:
  *  object {
- *     index value => entry
+ *     compound index value => entry
  *     ...
  *  }
- *  If columnValuesUnique==false and subIndexColumnOrFieldName==null:
+ *  If v has one entry and valuesUnique==false:
  *  object {
- *     index value => array( entry... )
- *     ...
- *  }
- *  If columnValuesUnique==false and subIndexColumnOrFieldName!=null
- *  object {
- *     index value => object {
- *        subindex value => entry
- *        ...
- *     }
+ *     compound index value => Array( entry... )
  *     ...
  *  }
  *  The result can't be an array, because Javascript arrays must have consecutive
  *  non-negative integer index range. General data doesn't fit that.
+ *  Users must not depend on compound index value, since its calculation may change in future. Users can get the compound index value from SeLiteMisc.compoundIndexValue().
  */
-SeLiteMisc.collectByColumn= function collectByColumn( records, columnOrFieldName, columnValuesUnique,
-subIndexColumnOrFieldName, result ) {
+SeLiteMisc.collectByColumn= function collectByColumn( records, fieldNames, valuesUnique, result ) {
     result= result || {};
-    if( Array.isArray(records) ) { // The records were not a result of previous call to this method.
-        
+    result!==records || SeLiteMisc.fail( 'SeLiteMisc.collectByColumn() requires parameter result not to be the same object as records, if provided.' );
+    if( Array.isArray(records) ) { // records is an array, so it's not a result of previous call to this method.
         for( var i=0; i<records.length; i++ ) {
-            var record= records[i];
-            SeLiteMisc.collectByColumnRecord( record, result, columnOrFieldName, columnValuesUnique,
-                subIndexColumnOrFieldName );
+            SeLiteMisc.collectByColumnRecord( records[i], result, fieldNames, valuesUnique );
         }
     }
     else {
         for( var existingIndex in records ) {
             var recordOrGroup= records[existingIndex];
-            
-            if( Array.isArray(recordOrGroup) ) { // records was previously indexed by non-unique column and without sub-index
+            if( Array.isArray(recordOrGroup) ) { // records was previously indexed with valuesUnique=false
                 for( var j=0; j<recordOrGroup.length; j++ ) {
-                    SeLiteMisc.collectByColumnRecord( recordOrGroup[j], result, columnOrFieldName, columnValuesUnique,
-                    subIndexColumnOrFieldName );
+                    SeLiteMisc.collectByColumnRecord( recordOrGroup[j], result, fieldNames, valuesUnique );
                 }
             }
             else {
-                if( Array.isArray(recordOrGroup) ) { // Records were previously indexed by non-unique columnd and using sub-index
-                    for( var existingSubIndex in recordOrGroup ) {
-                        SeLiteMisc.collectByColumnRecord( recordOrGroup[existingSubIndex], result, columnOrFieldName, columnValuesUnique,
-                            subIndexColumnOrFieldName );
-                    }
-                }
-                else {
-                    SeLiteMisc.collectByColumnRecord( recordOrGroup, result, columnOrFieldName, columnValuesUnique,
-                        subIndexColumnOrFieldName );
-                }
+                SeLiteMisc.collectByColumnRecord( recordOrGroup, result, fieldNames, valuesUnique );
             }
         }
     }
@@ -999,33 +973,38 @@ subIndexColumnOrFieldName, result ) {
 
 /** This groups sub-indexed records. I can't use an anonymous object, because then I couldn't
  *  distinguish it from user record objects, when running SeLiteMisc.collectByColumn() on the previous result of SeLiteMisc.collectByColumn().
+ *  @TODO remove
  **/
 SeLiteMisc.RecordGroup= function RecordGroup() {};
 
+/** Generate a compound index valu, as used by SeLiteMisc.collectByColumn().
+ *  @param {object} record
+ *  @param {array} fieldNames Array of strings - field names within given record.
+ *  @return {*} Value of compound index, as used for keys of result of SeLiteMisc.collectByColumn(). Implementation-specific.
+ * */
+SeLiteMisc.compoundIndexValue= function compoundIndexValue( record, fieldNames ) {
+    var result= ''; // Concatenation of index values, with null characters ('\0') doubled, with '\0\ appended after value of each index
+    for( var i=0; i<fieldNames.length; i++ ) { //@TODO for(.. of.. ) once NetBeans likes it
+        result+= ( '' + SeLiteMisc.getField(record, fieldNames[i]) ).replace( '\0', '\0\0' )+ '\0';
+    }
+    return result;
+}
+
 /** Internal only. Worker function called by SeLiteMisc.collectByColumn().
+ *  @param {array} fieldNames This is like the same named parameter of SeLiteMisc.collectByColumn(), but here it must be an array. It can't be a string neither a function.
+ *  @param {object} result Object (serving as an associative array) for results of indexing at the level of this function.
  **/
-SeLiteMisc.collectByColumnRecord= function collectByColumnRecord( record, result, columnOrFieldName, columnValuesUnique,
-subIndexColumnOrFieldName ) {
-    var columnvalue= SeLiteMisc.getField( record, columnOrFieldName );
-    if( columnValuesUnique ) {
-        result[columnvalue]= record;
+SeLiteMisc.collectByColumnRecord= function collectByColumnRecord( record, result, fieldNames, valuesUnique,
+fieldNameIndex ) {
+    var compoundIndexValue= SeLiteMisc.compoundIndexValue( record, fieldNames );
+    if( valuesUnique ) {
+        result[compoundIndexValue]= record;
     }
     else {
-        if( result[columnvalue]===undefined ) {
-            result[columnvalue]= subIndexColumnOrFieldName
-                ? new SeLiteMisc.RecordGroup()
-                : [];
+        if( result[compoundIndexValue]===undefined ) {
+            result[compoundIndexValue]= [];
         }
-        if( subIndexColumnOrFieldName ) {
-            var subindexvalue= SeLiteMisc.getField(record, subIndexColumnOrFieldName);
-            if( subindexvalue===undefined ) {
-                subindexvalue= null;
-            }
-            result[columnvalue][subindexvalue]= record;
-        }
-        else {
-            result[columnvalue].push( record );
-        }
+        result[compoundIndexValue].push( record );
     }
 };
 
@@ -1262,11 +1241,12 @@ var NTH_RECORD= 'NTH_RECORD', NUMBER_OF_RECORDS='NUMBER_OF_RECORDS', INDEXES_OF_
  *  @return mixed
  *  -- if action==NTH_RECORD then it returns a record at that position
  *  -- if action==NUMBER_OF_RECORDS, then it returns a total number of records
- *  -- if action==INDEXES_OF_RECORD, then it returns an array with indexes of the give nrecord, if found. Precisely:
+ *  -- if action==INDEXES_OF_RECORD, then it returns an array with indexes of the given record, if found. Precisely:
  *  --- [index, subindex] if the record is found and subindexed
  *  --- [index] if the record is found and indexed, but not subindexed
  *  --- [] if the record is not found
  *  @throws Error on failure, or if action=NTH_RECORD and positionOrRecord is equal to or higher than number of records
+ *  @TODO check after I've refactored collectByColumn()
  **/
 function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
     SeLiteMisc.ensureType( recordSet, 'object', 'recordSet must be an object');

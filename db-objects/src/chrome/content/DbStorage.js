@@ -436,20 +436,24 @@ SeLiteData.Storage.prototype.updateRecords= function updateRecords( params ) {
  */
 SeLiteData.Storage.prototype.updateRecordByPrimary= function updateRecordByPrimary( params ) {
     var primaryKey= params.primary || 'id';
-    typeof primaryKey==='string' || SeLiteMisc.fail('@TODO');
-    var copiedParams= SeLiteMisc.objectClone( params, ['table', 'entries', 'fieldsToProtect', 'debugQuery'], ['table', 'entries'] );
-    copiedParams.entries= SeLiteMisc.objectClone( copiedParams.entries );
-    var primaryKeyColumns= typeof primaryKey==='string'
-        ? [primaryKey]
-        : primaryKey;
-    copiedParams.matching= {};
-    for( var i=0; i<primaryKeyColumns.length; i++ ) { //@TODO for(..of..) once NetBeans like it
-        var column= primaryKeyColumns[i];
-        copiedParams.entries[column]!==undefined || SeLiteMisc.fail( "updateRecordByPrimary(): params.entries." +column+ " is not set." );
-        copiedParams.matching[column]= copiedParams.entries[column];
-        delete copiedParams.entries[column];
+    if( typeof primaryKey==='string' ) {
+        var copiedParams= SeLiteMisc.objectClone( params, ['table', 'entries', 'fieldsToProtect', 'debugQuery'], ['table', 'entries'] );
+        copiedParams.entries= SeLiteMisc.objectClone( copiedParams.entries );
+        var primaryKeyColumns= typeof primaryKey==='string'
+            ? [primaryKey]
+            : primaryKey;
+        copiedParams.matching= {};
+        for( var i=0; i<primaryKeyColumns.length; i++ ) { //@TODO for(..of..) once NetBeans like it
+            var column= primaryKeyColumns[i];
+            copiedParams.entries[column]!==undefined || SeLiteMisc.fail( "updateRecordByPrimary(): params.entries." +column+ " is not set." );
+            copiedParams.matching[column]= copiedParams.entries[column];
+            delete copiedParams.entries[column];
+        }
+        this.updateRecords( copiedParams );
     }
-    this.updateRecords( copiedParams );
+    else {
+        throw 'TODO';
+    }
 };
 
 /** Delete a record in the DB, matching it by the given field and its value.

@@ -56,7 +56,7 @@ var Serendipity= {
         Selenium.prototype.readSerenditeEditorBody= function readSerenditeEditorBody() {
             return this.useRichEditor()
                 ? this.serenditeEditorBodyRich().getEditorContent()
-                : serendipity[body];
+                : serendipity[body]; // @TODO
         };
         Selenium.prototype.saveSerenditeEditorBody= function saveSerenditeEditorBody(content) {
             
