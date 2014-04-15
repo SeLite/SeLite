@@ -383,9 +383,8 @@ RecordHolder.prototype.remove= function remove() {
  *      parameterNames
  *      sort
  *      sortDirection
- *      indexBy
+ *      indexBy - either a field name (string), or an array of them. If it's a single field name, it will be converted into an array (containing that single field name).
  *      indexUnique
- *      subIndexBy
  *      process
  *      debugQuery
  *      debugResult
@@ -406,7 +405,7 @@ SeLiteData.RecordSetFormula= function RecordSetFormula( params, prototype ) {
     SeLiteMisc.PrototypedObject.call( this, prototype );
     params= params ? params : {};
     SeLiteMisc.objectClone( params, ['table', 'alias', 'columns', 'joins', 'fetchCondition', 'fetchMatching', 'parameterNames', 'sort',
-            'sortDirection', 'indexBy', 'indexUnique', 'subIndexBy', 'process', 'debugQuery', 'debugResult', 'generateInsertKey',
+            'sortDirection', 'indexBy', 'indexUnique', 'process', 'debugQuery', 'debugResult', 'generateInsertKey',
             'onInsert', 'onUpdate' ],
         null, this );
 
@@ -415,21 +414,13 @@ SeLiteData.RecordSetFormula= function RecordSetFormula( params, prototype ) {
     }
 
     // The following doesn't apply to indexing of RecordSetHolder.originals.
-    if( this.table && this.table.primary ) {
-        if( typeof this.table.primary==='string' ) {
-            if( this.indexBy===undefined ) {
-                this.indexBy= this.table.primary;
-            }
-            if( this.indexUnique===undefined ) {
-                this.indexUnique= this.indexBy==this.table.primary;
-            }
-        }
-        else {
-            throw '@TODO';
-        }
+    if( this.indexBy===undefined && this.table && this.table.primary ) {
+        this.indexBy= this.table.primary;
+        this.indexUnique===undefined || this.indexUnique || SeLiteMisc.fail( 'Formula for table ' +this.table.name+ " doesn't specify indexBy field, therefore it should not specify indexUnique as false.");
+        this.indexUnique= true;
     }
-    if( this.indexUnique && this.subIndexBy ) {
-        throw new Error( "Can't use both indexUnique and subIndexBy. indexUnique may be implied if indexing by this.table.primary (as is by default)." );
+    else if( !Array.isArray(this.indexBy) ) {
+        this.indexBy= [this.indexBy];
     }
     // @TODO check that all own table columns' aliases are unique: Object.keys( SeLiteMisc.objectReverse( ownColumns() ) )
     // @TODO similar check for joined columns?
@@ -456,7 +447,6 @@ SeLiteData.RecordSetFormula.prototype.fetchMatching= {};
 SeLiteData.RecordSetFormula.prototype.parameterNames= [];
 SeLiteData.RecordSetFormula.prototype.sort= null;
 SeLiteData.RecordSetFormula.prototype.sortDirection= 'ASC';
-SeLiteData.RecordSetFormula.prototype.subIndexBy= null;
 
 /** A function which will be called after fetching and indexing the records. Its two parameters will be
  *  records (RecordSet) and RecordSetHolder's bind parameters (if any). It should return RecordSet instance (either the same one, or a new one).
@@ -576,7 +566,7 @@ SeLiteData.RecordSetFormula.prototype.selectOne= function selectOne( parametersO
     return new RecordSetHolder(this, parametersOrCondition ).selectOne();
 };
 
-/** SeLiteData.RecordSet serves as an associative array, containing SeLiteData.Record object(s), indexed by SeLiteMisc.collectByColumn(formula.indexBy, formula.indexUnique, formula.subIndexBy)
+/** SeLiteData.RecordSet serves as an associative array, containing SeLiteData.Record object(s), indexed by SeLiteMisc.collectByColumn(records, [formula.indexBy] or formula.indexBy, formula.indexUnique)
  *  for the formula of recordSetHolder. It is iterable, but it doesn't guarantee the order of entries.
  *  It also keeps a non-iterable reference to recordSetHolder.
  *  @param object recordSetHolder of class RecordSetHolder
@@ -817,7 +807,7 @@ RecordSetHolder.prototype.select= function select() {
             throw 'TODO';
         }
     }
-    SeLiteMisc.collectByColumn( unindexedRecords, formula.indexBy, formula.indexUnique, formula.subIndexBy, this.recordSet );
+    SeLiteMisc.collectByColumn( unindexedRecords, formula.indexBy, formula.indexUnique, this.recordSet );
     if( formula.process ) {
         this.recordSet= formula.process( this.recordSet, parametersForProcessHandler );
     }

@@ -971,12 +971,6 @@ SeLiteMisc.collectByColumn= function collectByColumn( records, fieldNames, value
     return result;
 };
 
-/** This groups sub-indexed records. I can't use an anonymous object, because then I couldn't
- *  distinguish it from user record objects, when running SeLiteMisc.collectByColumn() on the previous result of SeLiteMisc.collectByColumn().
- *  @TODO remove
- **/
-SeLiteMisc.RecordGroup= function RecordGroup() {};
-
 /** Generate a compound index valu, as used by SeLiteMisc.collectByColumn().
  *  @param {object} record
  *  @param {array} fieldNames Array of strings - field names within given record.
@@ -1286,18 +1280,6 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
                 return entry[ position-currPosition ];
             }
             currPosition+= entry.length;
-        }
-        else
-        if( entry instanceof SeLiteMisc.RecordGroup ) {
-            for( var subindex in entry ) {
-                if( indexesOfRecord && entry[subindex]==record ) {
-                    return [index, subindex];
-                }
-                if( nthRecord && currPosition==position ) {
-                    return entry[subindex];
-                }
-                currPosition++;
-            }
         }
         else {
             if( indexesOfRecord && entry===positionOrRecord ) {

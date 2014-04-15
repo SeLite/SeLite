@@ -260,18 +260,16 @@
 
     Selenium.prototype.doIndexBy= function doIndexBy( columnOrDetails, sourceVariableName ) {
         var indexBy= columnOrDetails;
-        var subIndexBy= null;
         var resultVariableName= sourceVariableName;
+        var valuesUnique;
         if( typeof columnOrDetails==='object' ) {
             indexBy= columnOrDetails.indexBy;
-            if( columnOrDetails.subIndexBy===undefined ) {
-                subIndexBy= columnOrDetails.subIndexBy;
-            }
+            valuesUnique= columnOrDetails.valuesUnique;
             if( columnOrDetails.store===undefined ) {
                 resultVariableName= columnOrDetails.store;
             }
-        }//@TODO
-        storedVars[resultVariableName]= SeLiteMisc.collectByColumn( storedVars[sourceVariableName], indexBy, !subIndexBy, subIndexBy );
+        }
+        storedVars[resultVariableName]= SeLiteMisc.collectByColumn( storedVars[sourceVariableName], [indexBy], valuesUnique );
     };
 
     // I don't use prefix 'get' or 'do' in the name of this function

@@ -426,7 +426,7 @@ SeLiteData.Storage.prototype.updateRecords= function updateRecords( params ) {
  *       { field: value,
  *         field: value...
  *       }. The values will be quoted.
- *   entries must contain '<primary>' field; that will be matched in the DB (and indeed, it won't be updated).
+ *   entries must contain '<primary>' field(s), which will be matched in the DB (but, indeed, the primary field(s) won't be updated).
  *   fieldsToProtect: optional, array of strings, which are names of fields whose
  *       values won't be quoted. Use for SQL expressions or for values that were already securely quoted
  *   debugQuery: optional, use true if you'd like it to show the query in a popup
@@ -435,25 +435,20 @@ SeLiteData.Storage.prototype.updateRecords= function updateRecords( params ) {
  * @throws an error on failure
  */
 SeLiteData.Storage.prototype.updateRecordByPrimary= function updateRecordByPrimary( params ) {
-    var primaryKey= params.primary || 'id';
-    if( typeof primaryKey==='string' ) {
-        var copiedParams= SeLiteMisc.objectClone( params, ['table', 'entries', 'fieldsToProtect', 'debugQuery'], ['table', 'entries'] );
-        copiedParams.entries= SeLiteMisc.objectClone( copiedParams.entries );
-        var primaryKeyColumns= typeof primaryKey==='string'
-            ? [primaryKey]
-            : primaryKey;
-        copiedParams.matching= {};
-        for( var i=0; i<primaryKeyColumns.length; i++ ) { //@TODO for(..of..) once NetBeans like it
-            var column= primaryKeyColumns[i];
-            copiedParams.entries[column]!==undefined || SeLiteMisc.fail( "updateRecordByPrimary(): params.entries." +column+ " is not set." );
-            copiedParams.matching[column]= copiedParams.entries[column];
-            delete copiedParams.entries[column];
-        }
-        this.updateRecords( copiedParams );
+    var copiedParams= SeLiteMisc.objectClone( params, ['table', 'entries', 'fieldsToProtect', 'debugQuery'], ['table', 'entries'] );
+    copiedParams.entries= SeLiteMisc.objectClone( copiedParams.entries );
+    var primaryKey= params.primary || ['id'];
+    var primaryKeyColumns= typeof primaryKey==='string'
+        ? [primaryKey]
+        : primaryKey;
+    copiedParams.matching= {};
+    for( var i=0; i<primaryKeyColumns.length; i++ ) { //@TODO for(..of..) once NetBeans like it
+        var column= primaryKeyColumns[i];
+        copiedParams.entries[column]!==undefined || SeLiteMisc.fail( "updateRecordByPrimary(): params.entries." +column+ " is not set." );
+        copiedParams.matching[column]= copiedParams.entries[column];
+        delete copiedParams.entries[column];
     }
-    else {
-        throw 'TODO';
-    }
+    this.updateRecords( copiedParams );
 };
 
 /** Delete a record in the DB, matching it by the given field and its value.

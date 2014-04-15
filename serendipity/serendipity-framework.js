@@ -19,6 +19,8 @@ var Serendipity= {
 };
 
 (function() {
+    var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+    console.warn('Serendipity fm start');
     // @TODO Doc
     // I suggest that you load this file via SeLite Bootstrap (Selenium IDE > Options > Options > SeLite Bootstrap > Selenium Core extension).
     // If you don't, but you load this file as a Core extension file
@@ -34,9 +36,9 @@ var Serendipity= {
     // in order to resolve Settings field here. Test suite folder is not known when this is loaded,
     // however SeLiteData.getStorageFromSettings() sets a handler via SeLiteSettings.addTestSuiteFolderChangeHandler().
     // Once you open/save a test suite, storage object will get updated automatically and it will open an SQLite connection.
+        var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
+        commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor', 'contributor'] );
         if( false ) {//@TODO Remove if we don't have any custom settings
-            var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
-            commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor', 'contributor'] );
             var useRichEditor= new SeLiteSettings.Field.Bool('useRichEditor', /*default:*/false, /*requireAndPopulate:*/false);
             commonSettings.addField( useRichEditor );
         }
@@ -46,24 +48,24 @@ var Serendipity= {
             //SELECT * FROM serendipity_config WHERE name='wysiwyg' AND (authorid=1 OR authorid=0) ORDER BY authorid DESC LIMIT 1
         };
         
-        Selenium.prototype.serenditeEditorBodyRich= function serenditeEditorBodyRich() {
+        Selenium.prototype.serendipityEditorBodyRich= function serendipityEditorBodyRich() {
             return this.browserbot.getCurrentWindow().editorbody; // See http://xinha.raimundmeyer.de/JSdoc/Xinha/
         };
-        Selenium.prototype.serenditeEditorExtendedRich= function serenditeEditorExtendedRich() {
+        Selenium.prototype.serendipityEditorExtendedRich= function serendipityEditorExtendedRich() {
             return this.browserbot.getCurrentWindow().editorextended;
         };
         
-        Selenium.prototype.readSerenditeEditorBody= function readSerenditeEditorBody() {
+        Selenium.prototype.readSerendipityEditorBody= function readSerendipityEditorBody() {
             return this.useRichEditor()
-                ? this.serenditeEditorBodyRich().getEditorContent()
+                ? this.serendipityEditorBodyRich().getEditorContent()
                 : serendipity[body]; // @TODO
         };
-        Selenium.prototype.saveSerenditeEditorBody= function saveSerenditeEditorBody(content) {
+        Selenium.prototype.saveSerendipityEditorBody= function saveSerendipityEditorBody(content) {
             
         };
-        Selenium.prototype.readSerenditeEditorExtended= function readSerenditeEditorExtended() {
+        Selenium.prototype.readSerendipityEditorExtended= function readSerendipityEditorExtended() {
         };
-        Selenium.prototype.saveSerenditeEditorExtended= function saveSerenditeEditorExtended() {
+        Selenium.prototype.saveSerendipityEditorExtended= function saveSerendipityEditorExtended() {
         //serendipity[extended]
         };
         
@@ -97,9 +99,8 @@ var Serendipity= {
         Serendipity.tables.config= new SeLiteData.Table( {
            db:  Serendipity.db,
            name: 'config',
-           columns: ['name', 'value', 'authorid'
-           ],
-           primary: 'TODO'
+           columns: ['name', 'value', 'authorid'],
+           primary: ['name', 'value', 'authorid']
         });
         Serendipity.formulas.config= new SeLiteData.RecordSetFormula( {
             table: Serendipity.tables.config,
@@ -107,4 +108,5 @@ var Serendipity= {
         });
     // }
     // SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['Serendipity']= !loadedOddTimes;
+    console.warn('Serendipity fm end');
 })();

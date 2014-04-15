@@ -97,15 +97,11 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
             <li>object
                 {<dl>
                     <dt>indexBy</dt>
-                    <dd>string, name of the field to index by; required.
-                            Values of this field must be unique within the source,
-                            unless you also use <code>subIndexBy</code>.
+                    <dd>string, name of the field to index by; required. Values of this field should be unique within the source, unless you also use <code>valuesUnique: false</code>. See <code>valuesUnique</code>.
                     </dd>
-                    <dt>subIndexBy</dt>
-                    <dd>string, name of the field to sub-index by; optional.
-                            Used to index within groups or objects that have same <code>indexBy</code> value.
-                            Values of this field must be unique within each group.
-                        </dd>
+                    <dt>valuesUnique</dt>
+                    <dd>boolean, optional, defaults to false. It indicates whether the values of the index field (determined by <code>indexBy</code>) are unique. If <code>valuesUnique</code> is false and the value of the index field are not  unique, then the result will contain less records than the source (only the last iterated record for any index value will be present in the result). If <code>valuesUnique</code> is false, then the result will contain arrays, one array per each index value, and each array will contain record(s) for its respective index value.
+                    </dd>
                     <dt>store</dt>
                     <dd>string, name of the result stored variable; optional</dd>
                 </dl>
