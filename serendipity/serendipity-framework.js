@@ -38,14 +38,19 @@ var Serendipity= {
     // Once you open/save a test suite, storage object will get updated automatically and it will open an SQLite connection.
         var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
         commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor', 'contributor'] );
-        if( false ) {//@TODO Remove if we don't have any custom settings
-            var useRichEditor= new SeLiteSettings.Field.Bool('useRichEditor', /*default:*/false, /*requireAndPopulate:*/false);
-            commonSettings.addField( useRichEditor );
-        }
+        
+        /** This sets the user, used by Selenium.prototype.readSerendipityEditorBody() and the related functions to determine whether to use a rich editor or not.
+         * @param {string} givenUser User's username (not the role name).
+         * */
+        Serendipity.selectUsername= function selectUsername( givenUsername ) {
+            Serendipity.selectedUsername= givenUsername;
+        };
         /** This depends on Serendipity.currentAuthorUsername
          * */
         Serendipity.useRichEditor= function useRichEditor() {
-            //SELECT * FROM serendipity_config WHERE name='wysiwyg' AND (authorid=1 OR authorid=0) ORDER BY authorid DESC LIMIT 1
+            Serendipity.selectedUser || SeLiteMisc.fail( 'Call Serendipity.selectUsername() first.' );
+            var query= 'SELECT name, value, authorid FROM ' +Serendipity.storage.tablePrefixValue+ "config WHERE name='wysiwyg' AND (authorid=0 OR authorid=(SELECT id FROM " +Serendipity.storage.tablePrefixValue+ "authors WHERE username=:selectedUsername) ORDER BY authorid DESC LIMIT 1";
+            return Serendipity.storage.execute( query, {selectedUsername: Serendipity.selectedUsername} );
         };
         
         Selenium.prototype.serendipityEditorBodyRich= function serendipityEditorBodyRich() {
@@ -58,15 +63,28 @@ var Serendipity= {
         Selenium.prototype.readSerendipityEditorBody= function readSerendipityEditorBody() {
             return this.useRichEditor()
                 ? this.serendipityEditorBodyRich().getEditorContent()
-                : serendipity[body]; // @TODO
+                : this.page().findElement( 'serendipity[body]' ).value;
         };
         Selenium.prototype.saveSerendipityEditorBody= function saveSerendipityEditorBody(content) {
-            
+            if( this.useRichEditor() ) {
+                this.serendipityEditorBodyRich().setEditorContent( content );
+            }
+            else {
+                this.page().findElement( 'serendipity[body]' ).value= content;
+            }
         };
         Selenium.prototype.readSerendipityEditorExtended= function readSerendipityEditorExtended() {
+            return this.useRichEditor()
+                ? this.serendipityEditorExtendedRich().getEditorContent()
+                : this.page().findElement( 'serendipity[extended]' ).value;
         };
         Selenium.prototype.saveSerendipityEditorExtended= function saveSerendipityEditorExtended() {
-        //serendipity[extended]
+            if( this.useRichEditor() ) {
+                this.serendipityEditorExtendedRich().setEditorContent( content );
+            }
+            else {
+                this.page().findElement( 'serendipity[extended]' ).value= content;
+            }
         };
         
         SeLiteSettings.setTestDbKeeper( 
@@ -77,11 +95,12 @@ var Serendipity= {
                 }
             })
         );
-
+        /** @type {SeLiteData.Storage}*/
         Serendipity.storage= SeLiteData.getStorageFromSettings();
         Serendipity.db= new SeLiteData.Db( Serendipity.storage );
         
         Serendipity.tables= {};
+        /** @type {SeLiteData.Table} */
         Serendipity.tables.authors= new SeLiteData.Table( {
            db:  Serendipity.db,
            name: 'authors',
@@ -92,16 +111,19 @@ var Serendipity= {
            primary: 'authorid' // However, for purpose of matching users I usually use 'login'
         });
         Serendipity.formulas= {};
+        /** @type {SeLiteData.RecordSetFormula} */
         Serendipity.formulas.authors= new SeLiteData.RecordSetFormula( {
             table: Serendipity.tables.users,
             columns: new SeLiteData.Settable().set( Serendipity.tables.authors.name/* same as 'authors' */, SeLiteData.RecordSetFormula.ALL_FIELDS )
         });
+        /** @type {SeLiteData.Table} */
         Serendipity.tables.config= new SeLiteData.Table( {
            db:  Serendipity.db,
            name: 'config',
            columns: ['name', 'value', 'authorid'],
            primary: ['name', 'value', 'authorid']
         });
+        /** @type {SeLiteData.RecordSetFormula} */
         Serendipity.formulas.config= new SeLiteData.RecordSetFormula( {
             table: Serendipity.tables.config,
             columns: new SeLiteData.Settable().set( Serendipity.tables.config.name/* same as 'config' */, SeLiteData.RecordSetFormula.ALL_FIELDS )

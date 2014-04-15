@@ -213,7 +213,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
             <li>object in form {
                 <dl>
                     <dt>from</dt>
-                    <dd>string locator of an element which has a name (as described above) in it; optional, you can use 'name' instead</dd>
+                    <dd>string locator of an element which has a name (as described above) in it; optional, you can use parameter field 'name' instead</dd>
                     <dt>name</dt>
                     <dd>string value of the name (as described above), optional; used only if 'from' is not present</dd>
                     <dt>store</dt>

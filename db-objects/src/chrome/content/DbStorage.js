@@ -152,7 +152,7 @@ SeLiteData.Storage.prototype.sqlAnd= function sqlAnd( first, second, etc ) {
  *  (see https://developer.mozilla.org/en/docs/Storage > Binding Parameters.
  *  @param array fields Optional; array of strings SQL fields (columns) to collect; must match case-sensitively columns
  *  coming from the query. If not present,
- *  then this function will try to collect the column names, providing
+ *  then this function will try to collect the column names from the given query, providing
  *  - all required column names are listed, there's no *
  *  - none of the column names is string 'FROM' (case insensitive)
  *  - there are no sub-selects between SELECT...FROM

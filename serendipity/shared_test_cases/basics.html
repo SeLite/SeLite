@@ -58,6 +58,7 @@
 	<td>ensureUnderWebRoot</td>
 	<td></td>
 </tr>
+<!--TODO This check fails if we are under webroot - no Logout link there-->
 <tr>
 	<td>storeElementPresent</td>
 	<td>//ul/li/a[ contains(@href, 'serendipity[adminModule]=logout' ) ]</td>
@@ -113,6 +114,11 @@
 	<td>storeEval</td>
 	<td>SeLiteSettings.roleToUser( '${loginOrAmpRole}' )</td>
 	<td>login</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>Serendipity.selectUsername( storedVars.login )</td>
+	<td></td>
 </tr>
 <!---->
 <tr>
@@ -217,12 +223,12 @@
 <!--See functions at http://xinha.raimundmeyer.de/JSdoc/Xinha/-->
 <tr>
 	<td>getEval</td>
-	<td>this.browserbot.getCurrentWindow().editorbody.setEditorContent( selenium.randomText({type: 'html'}) )</td>
+	<td>this.saveSerendipityEditorBody( selenium.randomText({type: 'html'}) )</td>
 	<td></td>
 </tr>
 <tr>
 	<td>getEval</td>
-	<td>this.browserbot.getCurrentWindow().editorextended.setEditorContent( selenium.randomText({type: 'html'}) )</td>
+	<td>this.saveSerendipityEditorExtended( selenium.randomText({type: 'html'}) )</td>
 	<td></td>
 </tr>
 <tr>
