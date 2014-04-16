@@ -56,9 +56,14 @@
 <tr>
 	<td>call</td>
 	<td>ensureUnderWebRoot</td>
-	<td></td>
+	<td>forceReload=true</td>
 </tr>
 <!--TODO This check fails if we are under webroot - no Logout link there-->
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ contains(@href, '/index.php?/admin' ) ]</td>
+	<td></td>
+</tr>
 <tr>
 	<td>storeElementPresent</td>
 	<td>//ul/li/a[ contains(@href, 'serendipity[adminModule]=logout' ) ]</td>
@@ -91,11 +96,6 @@
 	<td>function</td>
 	<td>logIn</td>
 	<td>loginOrAmpRole, passwd</td>
-</tr>
-<tr>
-	<td>call</td>
-	<td>ensureUnderWebRoot</td>
-	<td>forceReload=true</td>
 </tr>
 <!--if the user is logged in already, log him out:-->
 <tr>
@@ -148,16 +148,6 @@
 	<td>10</td>
 </tr>
 <!---->
-<tr>
-	<td>assertElementPresent</td>
-	<td>//a[ contains(@href, '/index.php?/admin') ]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>clickAndWait</td>
-	<td>//a[ contains(@href, '/index.php?/admin') ]</td>
-	<td></td>
-</tr>
 <tr>
 	<td>assertElementPresent</td>
 	<td>//input[ @name='serendipity[user]' ]</td>
@@ -244,7 +234,7 @@
 </tr>
 <tr>
 	<td>call</td>
-	<td>ensureUnderWebroot</td>
+	<td>ensureUnderWebRoot</td>
 	<td></td>
 </tr>
 <tr>

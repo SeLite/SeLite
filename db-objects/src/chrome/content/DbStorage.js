@@ -199,7 +199,7 @@ SeLiteData.Storage.prototype.select= function select( query, fields, bindings ) 
 /** It selects 1 row from the DB. If there are no such rows, or more than one, then it throws an error.
  *  @param string query full SQL query
  *  @param array fields Optional (unless you use SELECT * etc.); see the same parameter of select().
- *  @return Associative array (i.e. object) for the row.
+ *  @return Object (serving as an associative array) for the row.
  *  @throws error on failure
  **/
 SeLiteData.Storage.prototype.selectOne= function selectOne( query, fields, bindings ) {

@@ -1025,7 +1025,6 @@ SeLiteSettings.Module.prototype.addField= function addField( field, dontReRegist
     }
     if( field.name in this.fields ) {
         var fieldHasBeenAddedAlready= field.name in this.addedFields;
-        debugger;
         if( fieldHasBeenAddedAlready && field.equals( this.fields[field.name] ) ) { // This happens if you restart Selenium IDE.
             return;
         }

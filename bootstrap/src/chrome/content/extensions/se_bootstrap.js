@@ -53,12 +53,11 @@
         var bootstrappedListChanged= false;
         var bootstrappedCoreExtensions= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' ).getField( 'bootstrappedCoreExtensions' );
         var bootstrappedCoreExtensionsRecord;
-        debugger;
         /*** This (re)loads and processes any updated custom .js file(s) - either if they were not loaded yet,
          *   or if they were modified since then. It also reloads them if their timestamp changed, but the contents didn't
          *   - no harm in that.
          */
-        Selenium.reloadScripts= function reloadScripts() {debugger;
+        Selenium.reloadScripts= function reloadScripts() {
             editor.seleniumAPI.Selenium= Selenium;
             editor.seleniumAPI.LOG= LOG;
 
@@ -99,7 +98,7 @@
                         +error+ '. Following stack excludes the location(s) in that loaded file:\n' +error.stack;
                     LOG.error( msg );
                 }
-            }debugger;
+            }
         };
 
         SeLiteSettings.addTestSuiteFolderChangeHandler( function handler() {
@@ -107,5 +106,4 @@
         });
     }
     SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doFUDforumUsers']= !loadedOddTimes;
-    debugger;
 })(this);

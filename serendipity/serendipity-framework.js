@@ -48,9 +48,10 @@ var Serendipity= {
         /** This depends on Serendipity.currentAuthorUsername
          * */
         Serendipity.useRichEditor= function useRichEditor() {
-            Serendipity.selectedUser || SeLiteMisc.fail( 'Call Serendipity.selectUsername() first.' );
-            var query= 'SELECT name, value, authorid FROM ' +Serendipity.storage.tablePrefixValue+ "config WHERE name='wysiwyg' AND (authorid=0 OR authorid=(SELECT id FROM " +Serendipity.storage.tablePrefixValue+ "authors WHERE username=:selectedUsername) ORDER BY authorid DESC LIMIT 1";
-            return Serendipity.storage.execute( query, {selectedUsername: Serendipity.selectedUsername} );
+            Serendipity.selectedUsername || SeLiteMisc.fail( 'Call Serendipity.selectUsername() first.' );
+            var query= 'SELECT name, value, authorid FROM ' +Serendipity.storage.tablePrefixValue+ "config WHERE name='wysiwyg' AND (authorid=0 OR authorid=(SELECT authorid FROM " +Serendipity.storage.tablePrefixValue+ "authors WHERE username=:selectedUsername)) ORDER BY authorid DESC LIMIT 1";
+            console.log( 'useRichEditor: ' +query ); //@TODO extract result:
+            return Serendipity.storage.selectOne( query, undefined, {selectedUsername: Serendipity.selectedUsername} ).value==='1';
         };
         
         Selenium.prototype.serendipityEditorBodyRich= function serendipityEditorBodyRich() {
@@ -61,12 +62,12 @@ var Serendipity= {
         };
         
         Selenium.prototype.readSerendipityEditorBody= function readSerendipityEditorBody() {
-            return this.useRichEditor()
+            return Serendipity.useRichEditor()
                 ? this.serendipityEditorBodyRich().getEditorContent()
                 : this.page().findElement( 'serendipity[body]' ).value;
         };
         Selenium.prototype.saveSerendipityEditorBody= function saveSerendipityEditorBody(content) {
-            if( this.useRichEditor() ) {
+            if( Serendipity.useRichEditor() ) {
                 this.serendipityEditorBodyRich().setEditorContent( content );
             }
             else {
@@ -74,12 +75,12 @@ var Serendipity= {
             }
         };
         Selenium.prototype.readSerendipityEditorExtended= function readSerendipityEditorExtended() {
-            return this.useRichEditor()
+            return Serendipity.useRichEditor()
                 ? this.serendipityEditorExtendedRich().getEditorContent()
                 : this.page().findElement( 'serendipity[extended]' ).value;
         };
         Selenium.prototype.saveSerendipityEditorExtended= function saveSerendipityEditorExtended() {
-            if( this.useRichEditor() ) {
+            if( Serendipity.useRichEditor() ) {
                 this.serendipityEditorExtendedRich().setEditorContent( content );
             }
             else {
