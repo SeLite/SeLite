@@ -210,7 +210,11 @@
 	<td>fillInEntry</td>
 	<td></td>
 </tr>
-<!--See functions at http://xinha.raimundmeyer.de/JSdoc/Xinha/-->
+<tr>
+	<td>getEval</td>
+	<td>alert( this.constructor.name)</td>
+	<td></td>
+</tr>
 <tr>
 	<td>getEval</td>
 	<td>this.saveSerendipityEditorBody( selenium.randomText({type: 'html'}) )</td>
@@ -220,6 +224,11 @@
 	<td>getEval</td>
 	<td>this.saveSerendipityEditorExtended( selenium.randomText({type: 'html'}) )</td>
 	<td></td>
+</tr>
+<tr>
+	<td>insertRecord</td>
+	<td>object{ title:'TODO', timestamp:0/*TODO*/, body:'TODO', extended:'TODO', author:Serendipity.selectedUsername, authorid:Serendipity.selectedAuthor().authorid, isdraft:false, allow_comments:true, last_modified:0/*TODO*/, moderate_comments:false}</td>
+	<td>eval{ Serendipity.tables.entries }</td>
 </tr>
 <tr>
 	<td>endFunction</td>

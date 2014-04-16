@@ -45,6 +45,9 @@ var Serendipity= {
         Serendipity.selectUsername= function selectUsername( givenUsername ) {
             Serendipity.selectedUsername= givenUsername;
         };
+        Serendipity.selectedAuthor= function selectedAuthor() {
+            return Serendipity.formulas.authorsByUsername.selectOne( {username: Serendipity.selectedUsername} );
+        };
         /** This depends on Serendipity.currentAuthorUsername
          * */
         Serendipity.useRichEditor= function useRichEditor() {
@@ -101,6 +104,8 @@ var Serendipity= {
         Serendipity.db= new SeLiteData.Db( Serendipity.storage );
         
         Serendipity.tables= {};
+        Serendipity.formulas= {};
+        
         /** @type {SeLiteData.Table} */
         Serendipity.tables.authors= new SeLiteData.Table( {
            db:  Serendipity.db,
@@ -111,12 +116,13 @@ var Serendipity= {
            ],
            primary: 'authorid' // However, for purpose of matching users I usually use 'login'
         });
-        Serendipity.formulas= {};
         /** @type {SeLiteData.RecordSetFormula} */
-        Serendipity.formulas.authors= new SeLiteData.RecordSetFormula( {
-            table: Serendipity.tables.users,
-            columns: new SeLiteData.Settable().set( Serendipity.tables.authors.name/* same as 'authors' */, SeLiteData.RecordSetFormula.ALL_FIELDS )
+        Serendipity.formulas.authorsByUsername= new SeLiteData.RecordSetFormula( {
+            table: Serendipity.tables.authors,
+            columns: new SeLiteData.Settable().set( Serendipity.tables.authors.name/* same as 'authors' */, SeLiteData.RecordSetFormula.ALL_FIELDS ),
+            parameterNames: ['username']
         });
+        
         /** @type {SeLiteData.Table} */
         Serendipity.tables.config= new SeLiteData.Table( {
            db:  Serendipity.db,
@@ -128,6 +134,25 @@ var Serendipity= {
         Serendipity.formulas.config= new SeLiteData.RecordSetFormula( {
             table: Serendipity.tables.config,
             columns: new SeLiteData.Settable().set( Serendipity.tables.config.name/* same as 'config' */, SeLiteData.RecordSetFormula.ALL_FIELDS )
+        });
+        
+        /** @type {SeLiteData.Table} */
+        Serendipity.tables.entries= new SeLiteData.Table( {
+            db: Serendipity.db,
+            name: 'entries',
+            columns: ['id', 'title',
+                'timestamp', // number of seconds since Unix epoch, as returned by PHP function time()
+                'body', 'comments', 'trackbacks', 'extended', 'exflag',
+                'author', // authors.username
+                'authorid', // authors.authorid
+                'isdraft', 'allow_comments', 'last_modified', 'moderate_comments'
+            ],
+            primary: 'id'
+        });
+        /** @type {SeLiteData.RecordSetFormula} */
+        Serendipity.formulas.entries= new SeLiteData.RecordSetFormula( {
+            table: Serendipity.tables.entries,
+            columns: new SeLiteData.Settable().set( Serendipity.tables.entries.name/* same as 'entries' */, SeLiteData.RecordSetFormula.ALL_FIELDS )
         });
     // }
     // SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['Serendipity']= !loadedOddTimes;

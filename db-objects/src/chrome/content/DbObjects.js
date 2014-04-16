@@ -798,7 +798,7 @@ RecordSetHolder.prototype.select= function select() {
     this.originals= {};
     for( var j=0; j<data.length; j++ ) {
         var holder= new RecordHolder( this, data[j] );
-        if( typeof this.recordSetHolder.formula.table.primary==='string' ) {
+        if( typeof this.formula.table.primary==='string' ) {
             this.holders[ holder.record[formula.table.primary] ]= holder;
             unindexedRecords.push( holder.record );
             this.originals[ holder.record[ formula.table.primary] ]= holder.original;
@@ -836,7 +836,7 @@ RecordSetHolder.prototype.update= function update() { throw new Error( "@TODO if
  *  remove the actual DB record.
  **/
 RecordSetHolder.prototype.removeRecordHolder= function removeRecordHolder( recordHolder ) {
-    if( typeof this.recordSetHolder.formula.table.primary==='string' ) {
+    if( typeof this.formula.table.primary==='string' ) {
         var primaryKeyValue= recordHolder.record[this.formula.table.primary];
         delete this.holders[ primaryKeyValue ];
         delete this.recordSet[ SeLiteMisc.indexesOfRecord(this.recordSet, recordHolder.record) ]; //@TODO This doesn't work if multi-indexed! Then we also need to delete 1st level index, if there are no subentries left.
