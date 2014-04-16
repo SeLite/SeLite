@@ -49,9 +49,9 @@ var Serendipity= {
          * */
         Serendipity.useRichEditor= function useRichEditor() {
             Serendipity.selectedUsername || SeLiteMisc.fail( 'Call Serendipity.selectUsername() first.' );
-            var query= 'SELECT name, value, authorid FROM ' +Serendipity.storage.tablePrefixValue+ "config WHERE name='wysiwyg' AND (authorid=0 OR authorid=(SELECT authorid FROM " +Serendipity.storage.tablePrefixValue+ "authors WHERE username=:selectedUsername)) ORDER BY authorid DESC LIMIT 1";
+            var query= 'SELECT value FROM ' +Serendipity.storage.tablePrefixValue+ "config WHERE name='wysiwyg' AND (authorid=0 OR authorid=(SELECT authorid FROM " +Serendipity.storage.tablePrefixValue+ "authors WHERE username=:selectedUsername)) ORDER BY authorid DESC LIMIT 1";
             console.log( 'useRichEditor: ' +query ); //@TODO extract result:
-            return Serendipity.storage.selectOne( query, undefined, {selectedUsername: Serendipity.selectedUsername} ).value==='1';
+            return Serendipity.storage.selectOne( query, undefined, {selectedUsername: Serendipity.selectedUsername} ).value==='true';
         };
         
         Selenium.prototype.serendipityEditorBodyRich= function serendipityEditorBodyRich() {
@@ -79,7 +79,7 @@ var Serendipity= {
                 ? this.serendipityEditorExtendedRich().getEditorContent()
                 : this.page().findElement( 'serendipity[extended]' ).value;
         };
-        Selenium.prototype.saveSerendipityEditorExtended= function saveSerendipityEditorExtended() {
+        Selenium.prototype.saveSerendipityEditorExtended= function saveSerendipityEditorExtended( content ) {
             if( Serendipity.useRichEditor() ) {
                 this.serendipityEditorExtendedRich().setEditorContent( content );
             }
