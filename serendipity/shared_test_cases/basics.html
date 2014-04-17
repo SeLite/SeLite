@@ -245,10 +245,10 @@
 	<td>2000</td>
 	<td>Without this I sometimes got an error from wysiwyg editor at line 2585 of /htmlarea/XinhaCore.js:2585</td>
 </tr>
-<!--wysiwyg editor Xinha transforms <b> to <strong> and <i> to <em>. Here I list the allowed tags which don't get transformed - so they will be the same in test & app.-->
+<!--wysiwyg editor Xinha transforms <b> to <strong>, <i> to <em> and <strike> to <del>. Here I list the allowed tags which don't get transformed - so they will be the same in test & app.-->
 <tr>
 	<td>storeEval</td>
-	<td>eval{ ['strong', 'em', 'u', 'strike', 'sub', 'sup'] }</td>
+	<td>eval{ ['strong', 'em', 'u', 'del', 'sub', 'sup'] }</td>
 	<td>htmlTags</td>
 </tr>
 <tr>
@@ -350,7 +350,8 @@
 	<td>//h4/a[ .=${xpathExprTitle} ]</td>
 	<td></td>
 </tr>
-<!--Before I verify body/extended: generate <strong> and <em> instead of <b>, <i>-->
+<!--@TODO verify //div[ contains(@class, 'serendipity_entry_body') ] & serendipity_entry_extended-->
+<!---- TODO have a JS function that generates XPath expression(s) that verify each HTML tag...-->
 <tr>
 	<td>endFunction</td>
 	<td></td>

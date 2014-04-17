@@ -179,7 +179,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
                         </dl>
                         If type is not set, then the default characters used are: alphanumerics, space, underscore, dash -
                     </dd>
-                    <dt>htmlTags</dt><dd>Array of HTML tag names to use if for type is 'html'. Optional.</dd>
+                    <dt>htmlTags</dt><dd>Array of HTML tag names to use if type is 'html'. Optional. It's useful with applications/WYSIWYG editors that transform HTML (e.g. Xinha editor transforms &lt;b&gt; to &lt;strong&gt;, &lt;i&gt; to &lt;em&gt; and &lt;strike&gt; to &lt;del&gt;).</dd>
                     <dt>decimal</dt>
                     <dd>boolean, optional. If true, then generate a decimal number. Any minLength/maxLength
                        (or HTML maxlength property of the input)
