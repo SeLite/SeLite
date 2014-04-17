@@ -377,20 +377,16 @@
 
     /**I don't use prefix 'do' or 'get' in the name of this function
        because it's not intended to be run as Selenium command/getter.
-    */
+       Return a random text, restricted by params, and fit for an input element identified by locator. It always returns at least 1 character.
+     * @parameter {object} params object, see second parameter paramsOrStore of funcion doTypeRandom(), except that here it has to be an object, it can't be a string.
+     * @parameter {object} extraParams Currently only used with type 'email', to generate an email address based on
+     * a given name (first/last/full). Then pass an object {
+     *     baseOnName: string human-name; the email address part left of '@' will be based on this string
+     * }
+     * @parameter {string} [locator] Locator of the text input. Used to get max. length of the generated input.
+     * @return string as speficied in doTypeRandom()
+     */
     Selenium.prototype.randomText= function randomText( params, extraParams, locator ) {
-        /** Return a random text, restricted by params, and fit for an input element identified by locator,
-         *  It always returns at least 1 character.
-         * @parameter object, see second parameter paramsOrStore of funcion doTypeRandom(), except that
-         * - here it has to be an object, it can't be a string
-         * - 'store' field has no effect here
-         * @parameter extraParams Currently only used with type 'email', to generate an email address based on
-         * a given name (first/last/full). Then pass an object {
-         *     baseOnName: string human-name; the email address part left of '@' will be based on this string
-         * }
-         * @parameter {string} [locator] Locator of the text input. Used to get max. length of the generated input.
-         * @return string as speficied in doTypeRandom()
-         */
         params= params || {};
         var type= params.type || null;
         if( type && 
@@ -590,6 +586,9 @@
         else {
             throw new Error( "Error in randomText(): type=" +type );
         }
+        if( params.store ) {
+            SeLiteMisc.setFields( storedVars, params.store, result );
+        }
         return result;
     };
 
@@ -628,7 +627,7 @@
             else {
                 throw new Error( "You must pass the name to use for the email address, or pass an object with 'from' field which is a locator." );
             }
-            SeLiteMisc.objectClone( params, ['minLength', 'maxLength'], [], paramsToPass );
+            SeLiteMisc.objectClone( params, ['minLength', 'maxLength', 'store'], [], paramsToPass );
         }
         var extraParamsToPass= {
             baseOnName: name
@@ -637,9 +636,6 @@
 
         LOG.debug('doTypeRandomEmail() typing: ' +resultString );
         this.doType( locator, resultString );
-        if( params.store ) {
-            SeLiteMisc.setFields( storedVars, params.store, resultString );
-        }
     };
 
     // @TODO what did I want to do here?
