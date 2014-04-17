@@ -1111,7 +1111,9 @@ SeLiteMisc.random= function random( threshold ) {
     return Math.random()<=threshold;
 };
 
-/**
+/** Escape a given string (possibly containing ' and/or ") to use in XPath expressions.
+ *  @param {string} string
+ *  @return {string} String literal for XPath expressions, with enclosing ' or ". If both ' and " are present in given <code>string</code>, then this returns a string that containa a call to concat(), with the parts of the given string enclosed with either ' or ".
  **/
 SeLiteMisc.xpath_escape_quote= function xpath_escape_quote( string ) {
     if( string.indexOf("'")>=0 ) {
@@ -1125,7 +1127,7 @@ SeLiteMisc.xpath_escape_quote= function xpath_escape_quote( string ) {
     // The string contains both a quote and an apostrophe. So I'll split in parts and will generate an expression containing concat()
     var parts= string.split( /(['"])/ );
     var resultParts= []; // This will contain a multiply of 3 items, each group being:
-                        // quote char (' or "), substring (not containing the quote char), same quote char
+                        // quote char - one of' or "; substring (not containing the quote char); same quote char
     for( var i=0; i<parts.length; i++ ) {
         var part= parts[i];
         var resultIndex= resultParts.length-3;

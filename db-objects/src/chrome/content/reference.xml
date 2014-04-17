@@ -26,7 +26,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     </comment>
 </function>
 <function name="insertRecord">
-    <param name="recordObject">Anonymous object with the fields to store, or SeLiteData.Record instance.</param>
+    <param name="recordObject">Anonymous object with the fields to store, or SeLiteData.Record instance. If the table uses an auto-generated primary key (stored in one column), then after this command inserts the record it loads the value of the primary key and saves it in <code>recordObject</code>.</param>
     <param name="table">SeLiteData.Table instance</param>
     <comment>Insert the given object as a new record in the given table.
     </comment>

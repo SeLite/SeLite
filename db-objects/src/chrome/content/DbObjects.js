@@ -48,6 +48,7 @@ SeLiteData.Db.prototype.tablePrefix= function tablePrefix() {
  *      primary: string primary key name, or array of string key names; optional - 'id' by default
  */
 SeLiteData.Table= function Table( prototype ) {
+    /** @type {SeLiteData.Db} */
     this.db= prototype.db;
     var prefix= prototype.noNamePrefix
         ? ''
@@ -246,7 +247,7 @@ RecordHolder.prototype.insert= function insert() {
     });
     var primaryKeyValue;
     if( typeof this.recordSetHolder.formula.table.primary==='string' ) {
-        primaryKeyValue= this.recordSetHolder.storage().lastInsertId( this.recordSetHolder.formula.table.nameWithPrefix(), this.recordSetHolder.formula.table.primary );
+        primaryKeyValue= this.recordSetHolder.storage().lastInsertRow( this.recordSetHolder.formula.table.nameWithPrefix(), [this.recordSetHolder.formula.table.primary] )[ this.recordSetHolder.formula.table.primary ];
         // This requires that the primary key is never aliased. @TODO use column alias, if present?
         this.record[ this.recordSetHolder.formula.table.primary ]= primaryKeyValue;
     }

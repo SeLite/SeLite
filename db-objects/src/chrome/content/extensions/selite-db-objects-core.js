@@ -52,4 +52,7 @@ Selenium.prototype.doReadRecord= function doReadRecord( info, storedVariableName
 Selenium.prototype.doInsertRecord= function doInsertRecord( recordObject, table) {
     var record= new SeLiteData.Record(recordObject);
     table.insert(record);
+    if( typeof table.primary==='string' ) {
+        recordObject[ table.primary ]= table.db.storage.lastInsertedRow( table.nameWithPrefix(), [table.primary] )[ table.primary ];
+    }
 };

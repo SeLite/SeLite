@@ -168,6 +168,7 @@ SeLiteData.Storage.prototype.select= function select( query, fields, bindings ) 
         fields= this.fieldNames( this.fieldParts( query ) );
     }
     this.connection || SeLiteMisc.fail( 'SeLiteData.Storage.connection is not set. SQLite file name: ' +this.parameters.fileName );
+    //console.log( 'SeLite: ' +query );
     var stmt= this.connection.createStatement( query );
     for( var field in bindings ) {
         try {
@@ -496,21 +497,21 @@ SeLiteData.Storage.prototype.insertRecord= function insertRecord( params ) {
     stmt.execute();
 };
 
-/** This returns value of 'id' (or given column) of the last inserted/updated record.
+/** This returns the last successfully inserted record.
  *  It only works when called right after the relevant INSERT statement, i.e. there must
  *  be no other INSERT statements before calling this, even if those INSERT statements would
  *  insert into a different table.
  *  It requires the DB table not to have any column called "rowid", "oid" or "_rowid_".
  *  See http://sqlite.org/lang_corefunc.html and http://sqlite.org/lang_createtable.html#rowid
  *  @param {string} tableName Table name (including any prefix); it must be the table that was used with the last INSERT/UPDATE.
- *  @param string column Name of the column; optional - 'id' by default
- *  @return value of 'id' (or requested) column
+ *  @param {(array)} columns Names of the columns to retrieve; optional - ['id'] by default
+ *  @return {object} Record object with given column(s).
 */
-SeLiteData.Storage.prototype.lastInsertId= function lastInsertId( tableName, column ) {
-    column= column || 'id';
-    var query= "SELECT " +column+ " FROM " +tableName+ " WHERE rowid=last_insert_rowid()";
-    var record= this.selectOne( query, [column] );
-    return record[column];
+SeLiteData.Storage.prototype.lastInsertedRow= function lastInsertedRow( tableName, columns ) {
+    columns= columns || ['id'];
+    var query= "SELECT " +columns.join(',')+ " FROM " +tableName+ " WHERE rowid=last_insert_rowid()";
+    var record= this.selectOne( query, columns );
+    return record;
 };
 
 /** This adds enclosing apostrophes and doubles any apostrophes in the given value, if it's a string.
