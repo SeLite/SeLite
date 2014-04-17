@@ -1912,7 +1912,7 @@ SeLiteSettings.commonSettings= null;
 
 /** Convert a given symbolic role name (prefixed with '&') to username, or return a given username unchanged.
  *  @param {string} userNameOrRoleWithPrefix Either a symbolic role name, starting with '&', or a username.
- *  @return {string} Username mapped to userNameOrRoleWithPrefix (after removeing '&' prefix) through extensions.selite.common.roles field. If userNameOrRoleWithPrefix doesn't start with '&', this returns it unchanged.
+ *  @return {string} Username mapped to userNameOrRoleWithPrefix (after removing '&' prefix) through extensions.selite.common.roles field. If userNameOrRoleWithPrefix doesn't start with '&', this returns it unchanged.
  * */
 SeLiteSettings.roleToUser= function roleToUser( userNameOrRoleWithPrefix ) {
     if( userNameOrRoleWithPrefix.startsWith('&') ) {

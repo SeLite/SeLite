@@ -141,7 +141,6 @@
 	<td>LOG.info( 'logIn: login=${login}, passwd=${passwd}, quick=${quick}' )</td>
 	<td></td>
 </tr>
-<!---->
 <tr>
 	<td>waitForTimestampDistinctDownToSeconds</td>
 	<td>logIn</td>
@@ -204,6 +203,32 @@
 	<td></td>
 </tr>
 <!----------------->
+<tr>
+	<td>function</td>
+	<td>createNewEntry</td>
+	<td></td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>ensureUnderWebRoot</td>
+	<td>forceReload=true</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ contains(@href, '/index.php?/admin') ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ @href='serendipity_admin.php?serendipity[adminModule]=entries&amp;serendipity[adminAction]=new' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!----------------------->
 <!--Fill in an entry with random data. The current page must show the entry form. Parameter 'save' indicates whether to save, or just to preview-->
 <tr>
 	<td>function</td>
@@ -230,9 +255,10 @@
 	<td>this.saveSerendipityEditorExtended( selenium.randomText({type: 'html', store:'extended'}) )</td>
 	<td></td>
 </tr>
+<!--Serendipity (when running with SQLite) uses string literals 'true', 'false' for boolean values instead of 0, 1-->
 <tr>
 	<td>storeEval</td>
-	<td>object{ title:$title, timestamp:Math.round( Date.now()/1000), body:$body, extended:$extended, author:Serendipity.selectedUsername, authorid:Serendipity.selectedAuthor().authorid, isdraft:false, allow_comments:true, last_modified:Math.round( Date.now()/1000), moderate_comments:false}</td>
+	<td>object{ title:$title, timestamp:Math.round( Date.now()/1000), body:$body, extended:$extended, exflag:1, author:Serendipity.selectedUsername, authorid:Serendipity.selectedAuthor().authorid, isdraft:'false', allow_comments:'true', last_modified:Math.round( Date.now()/1000), moderate_comments:'false'}</td>
 	<td>entry</td>
 </tr>
 <!---->
@@ -294,19 +320,31 @@
 <!---------------------->
 <tr>
 	<td>function</td>
-	<td>createNewEntry</td>
+	<td>validateEntry</td>
+	<td>entry</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>SeLiteMisc.xpath_escape_quote(storedVars.entry.title)</td>
+	<td>xpathExprTitle</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>LOG.warn( 'xpathExprTitle: ' +storedVars.xpathExprTitle )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>call</td>
-	<td>ensureUnderWebRoot</td>
+	<td>verifyElementPresent</td>
+	<td>//title[ contains( ., ${xpathExprTitle} ) ]</td>
 	<td></td>
 </tr>
+<!--Can't compare <h1> because it gets shortened (and it gets ... appended to it)-->
 <tr>
-	<td>clickAndWait</td>
-	<td>//a[ @href='serendipity_admin.php?serendipity[adminModule]=entries&amp;serendipity[adminAction]=new' ]</td>
+	<td>verifyElementPresent</td>
+	<td>//h4/a[ .=${xpathExprTitle} ]</td>
 	<td></td>
 </tr>
+<!--Before I verify body/extended: generate <strong> and <em> instead of <b>, <i>-->
 <tr>
 	<td>endFunction</td>
 	<td></td>
