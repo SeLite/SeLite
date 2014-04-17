@@ -204,31 +204,87 @@
 	<td></td>
 </tr>
 <!----------------->
-<!--Fill in an entry with random data. The current page must show the entry form.-->
+<!--Fill in an entry with random data. The current page must show the entry form. Parameter 'save' indicates whether to save, or just to preview-->
 <tr>
 	<td>function</td>
 	<td>fillInEntry</td>
+	<td>save</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>id=entryTitle</td>
+	<td>object{store: 'title'}</td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>2000</td>
+	<td>Without this I sometimes got an error from wysiwyg editor at line 2585 of /htmlarea/XinhaCore.js:2585</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>this.saveSerendipityEditorBody( selenium.randomText({type: 'html', store:'body'}) )</td>
 	<td></td>
 </tr>
 <tr>
 	<td>getEval</td>
-	<td>alert( this.constructor.name)</td>
+	<td>this.saveSerendipityEditorExtended( selenium.randomText({type: 'html', store:'extended'}) )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>getEval</td>
-	<td>this.saveSerendipityEditorBody( selenium.randomText({type: 'html'}) )</td>
+	<td>storeEval</td>
+	<td>object{ title:$title, timestamp:Math.round( Date.now()/1000), body:$body, extended:$extended, author:Serendipity.selectedUsername, authorid:Serendipity.selectedAuthor().authorid, isdraft:false, allow_comments:true, last_modified:Math.round( Date.now()/1000), moderate_comments:false}</td>
+	<td>entry</td>
+</tr>
+<!---->
+<tr>
+	<td>if</td>
+	<td>$save</td>
 	<td></td>
 </tr>
 <tr>
-	<td>getEval</td>
-	<td>this.saveSerendipityEditorExtended( selenium.randomText({type: 'html'}) )</td>
+	<td>clickAndWait</td>
+	<td>//input[ @type='submit' and @accesskey=&quot;s&quot; ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectFrame</td>
+	<td>id=serendipity_iframe</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementPresent</td>
+	<td>css=div.serendipityAdminMsgSuccess</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectFrame</td>
+	<td>relative=top</td>
 	<td></td>
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>object{ title:'TODO', timestamp:0/*TODO*/, body:'TODO', extended:'TODO', author:Serendipity.selectedUsername, authorid:Serendipity.selectedAuthor().authorid, isdraft:false, allow_comments:true, last_modified:0/*TODO*/, moderate_comments:false}</td>
+	<td>eval{ $entry }</td>
 	<td>eval{ Serendipity.tables.entries }</td>
+</tr>
+<tr>
+	<td>else</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//input[ @type='submit' and @accesskey=&quot;p&quot; ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>return</td>
+	<td>$entry</td>
+	<td></td>
 </tr>
 <tr>
 	<td>endFunction</td>
