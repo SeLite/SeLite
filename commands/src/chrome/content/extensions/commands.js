@@ -361,6 +361,7 @@
     Selenium.prototype.randomThirdNameMaxLength= 8;
     Selenium.prototype.randomWords= ['amazing', 'cat', 'excellent', 'elephant', 'good', 'frog', 'hamster', 'horse', 'lion', 'mouse', 'happy',
         'healthy', 'pretty', 'superb', 'tomcat' ];
+    // htmlTags must contan an empty string
     Selenium.prototype.htmlTags= [ '', 'b', 'i', 'u', 'strike', 'sub', 'sup'];
     // Don't enter a dot. Include at least one two-letter domain, so that it gets included in randomTopDomainsShort.
     Selenium.prototype.randomTopDomains= ['es', 'it', 'com', 'com.au', 'co.nz', 'co.uk'];
@@ -378,7 +379,7 @@
     /**I don't use prefix 'do' or 'get' in the name of this function
        because it's not intended to be run as Selenium command/getter.
        Return a random text, restricted by params, and fit for an input element identified by locator. It always returns at least 1 character.
-     * @parameter {object} params object, see second parameter paramsOrStore of funcion doTypeRandom(), except that here it has to be an object, it can't be a string.
+     * @parameter {object} params object, see second parameter paramsOrStore of function doTypeRandom() in ../reference.xml - except that here it has to be an object, it can't be a string.
      * @parameter {object} extraParams Currently only used with type 'email', to generate an email address based on
      * a given name (first/last/full). Then pass an object {
      *     baseOnName: string human-name; the email address part left of '@' will be based on this string
@@ -511,7 +512,14 @@
                 while( lengthOfEntries<totalLength ) {
                     var entry= this.randomWords[Math.round( Math.random()*(this.randomWords.length-1) )];
                     if( type==='html' ) {
-                        var tag= Selenium.prototype.htmlTags[Math.round( Math.random()*(Selenium.prototype.htmlTags.length-1) )];
+                        var htmlTags= Selenium.prototype.htmlTags;
+                        if( params.htmlTags ) {
+                            htmlTags= params.htmlTags;
+                            if( htmlTags.indexOf('')<0 ) {
+                                htmlTags.push( '' ); // to generate plain text with no tag
+                            }
+                        }
+                        var tag= htmlTags[Math.round( Math.random()*(htmlTags.length-1) )];
                         if( tag ) {
                             entry= '<' +tag+ '>' +entry+ '</' +tag+ '>';
                         }

@@ -245,14 +245,20 @@
 	<td>2000</td>
 	<td>Without this I sometimes got an error from wysiwyg editor at line 2585 of /htmlarea/XinhaCore.js:2585</td>
 </tr>
+<!--wysiwyg editor Xinha transforms <b> to <strong> and <i> to <em>. Here I list the allowed tags which don't get transformed - so they will be the same in test & app.-->
+<tr>
+	<td>storeEval</td>
+	<td>eval{ ['strong', 'em', 'u', 'strike', 'sub', 'sup'] }</td>
+	<td>htmlTags</td>
+</tr>
 <tr>
 	<td>getEval</td>
-	<td>this.saveSerendipityEditorBody( selenium.randomText({type: 'html', store:'body'}) )</td>
+	<td>this.saveSerendipityEditorBody( selenium.randomText({type: 'html', store:'body', htmlTags:storedVars.htmlTags}) )</td>
 	<td></td>
 </tr>
 <tr>
 	<td>getEval</td>
-	<td>this.saveSerendipityEditorExtended( selenium.randomText({type: 'html', store:'extended'}) )</td>
+	<td>this.saveSerendipityEditorExtended( selenium.randomText({type: 'html', store:'extended', htmlTags:storedVars.htmlTags}) )</td>
 	<td></td>
 </tr>
 <!--Serendipity (when running with SQLite) uses string literals 'true', 'false' for boolean values instead of 0, 1-->
