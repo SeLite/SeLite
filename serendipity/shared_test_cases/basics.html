@@ -214,7 +214,7 @@
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>//a[ contains(@href, '/index.php?/admin') ]</td>
+	<td>//a[ contains(@href, 'string{Serendipity.config('indexFile')}?/admin') ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -260,7 +260,6 @@
 	<td>this.saveSerendipityEditorExtended( selenium.randomText({type: 'html', store:'extended', htmlTags:storedVars.htmlTags}) )</td>
 	<td></td>
 </tr>
-<!--Serendipity (when running with SQLite) uses string literals 'true', 'false' for boolean values instead of 0, 1-->
 <tr>
 	<td>storeEval</td>
 	<td>object{ title:$title, timestamp:Math.round( Date.now()/1000), body:$body, extended:$extended, exflag:1, author:Serendipity.selectedUsername, authorid:Serendipity.selectedAuthor().authorid, isdraft:'false', allow_comments:'true', last_modified:Math.round( Date.now()/1000), moderate_comments:'false'}</td>
@@ -272,6 +271,7 @@
 	<td>$save</td>
 	<td></td>
 </tr>
+<!--TODO xxxx-->
 <tr>
 	<td>clickAndWait</td>
 	<td>//input[ @type='submit' and @accesskey=&quot;s&quot; ]</td>

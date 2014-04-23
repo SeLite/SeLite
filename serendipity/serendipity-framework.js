@@ -20,7 +20,7 @@ var Serendipity= {
 
 (function() {
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
-    console.warn('Serendipity fm start');
+    console.warn('Serendipity framework loading');
     // @TODO Doc
     // I suggest that you load this file via SeLite Bootstrap (Selenium IDE > Options > Options > SeLite Bootstrap > Selenium Core extension).
     // If you don't, but you load this file as a Core extension file
@@ -117,27 +117,27 @@ var Serendipity= {
         Selenium.prototype.readSerendipityEditorBody= function readSerendipityEditorBody() {
             return Serendipity.useRichEditor()
                 ? this.serendipityEditorBodyRich().getEditorContent()
-                : this.page().findElement( 'serendipity[body]' ).value;
+                : this.page().findElement( 'name=serendipity[body]' ).value;
         };
         Selenium.prototype.saveSerendipityEditorBody= function saveSerendipityEditorBody(content) {
             if( Serendipity.useRichEditor() ) {
                 this.serendipityEditorBodyRich().setEditorContent( content );
             }
             else {
-                this.page().findElement( 'serendipity[body]' ).value= content;
+                this.page().findElement( 'name=serendipity[body]' ).value= content;
             }
         };
         Selenium.prototype.readSerendipityEditorExtended= function readSerendipityEditorExtended() {
             return Serendipity.useRichEditor()
                 ? this.serendipityEditorExtendedRich().getEditorContent()
-                : this.page().findElement( 'serendipity[extended]' ).value;
+                : this.page().findElement( 'name=serendipity[extended]' ).value;
         };
         Selenium.prototype.saveSerendipityEditorExtended= function saveSerendipityEditorExtended( content ) {
             if( Serendipity.useRichEditor() ) {
                 this.serendipityEditorExtendedRich().setEditorContent( content );
             }
             else {
-                this.page().findElement( 'serendipity[extended]' ).value= content;
+                this.page().findElement( 'name=serendipity[extended]' ).value= content;
             }
         };
         
@@ -206,5 +206,5 @@ var Serendipity= {
         });
     // }
     // SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['Serendipity']= !loadedOddTimes;
-    console.warn('Serendipity fm end');
+    console.warn('Serendipity framework loaded');
 })();
