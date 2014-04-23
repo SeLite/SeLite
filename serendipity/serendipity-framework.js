@@ -58,6 +58,7 @@ var Serendipity= {
          * @param {string} name Name of the config field 
          * @param {boolean} [useSelectedUsername] If true and the user has the field configured (overriden), then this returns the value for that user. If true then this function depends on Serendipity.selectedUsername being set.
          * @return {string} Cell of 'value' column from serendipity_config, or undefined if there is no such record
+         * @TODO if Serendipity team can confirm that there can only be settings that are global or only per-user, but no mixed setting (that could be specified either globally or per user), then simplify this.
          * */
         Serendipity.config= function config( name, useSelectedUsername ) {
             !useSelectedUsername || Serendipity.selectedUsername || SeLiteMisc.fail( 'Call Serendipity.selectUsername() first.' );

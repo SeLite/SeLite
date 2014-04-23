@@ -58,15 +58,14 @@
 	<td>ensureUnderWebRoot</td>
 	<td>forceReload=true</td>
 </tr>
-<!--TODO This check fails if we are under webroot - no Logout link there-->
 <tr>
 	<td>clickAndWait</td>
-	<td>//a[ contains(@href, '/index.php?/admin' ) ]</td>
+	<td>//a[ contains(@href, 'string{Serendipity.config('indexFile')}?/admin' ) ]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>storeElementPresent</td>
-	<td>//ul/li/a[ contains(@href, 'serendipity[adminModule]=logout' ) ]</td>
+	<td>//a[ contains(@href, 'serendipity[adminModule]=logout' ) ]</td>
 	<td>userLoggedIn</td>
 </tr>
 <tr>
@@ -76,7 +75,7 @@
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>//ul/li/a[ contains(@href, 'serendipity[adminModule]=logout' ) ]</td>
+	<td>//a[ contains(@href, 'serendipity[adminModule]=logout' ) ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -171,7 +170,7 @@
 <!---->
 <tr>
 	<td>assertElementPresent</td>
-	<td>//ul/li/a[ contains(@href, 'serendipity[adminModule]=logout' ) ]</td>
+	<td>//a[ contains(@href, 'serendipity[adminModule]=logout' ) ]</td>
 	<td>Verify that we are logged in</td>
 </tr>
 <tr>
