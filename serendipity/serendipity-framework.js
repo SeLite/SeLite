@@ -15,7 +15,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 // Following is a namespace-like object in the global scope.
 var Serendipity= {
-    currentAuthorUsername: undefined
+    selectedUsername: undefined
 };
 
 (function() {
@@ -48,14 +48,35 @@ var Serendipity= {
         Serendipity.selectedAuthor= function selectedAuthor() {
             return Serendipity.formulas.authorsByUsername.selectOne( {username: Serendipity.selectedUsername} );
         };
-        /** This depends on Serendipity.selectedUsername
+        /** @return {boolean} Whether the selected user uses a WYSIWYG editor.
          * */
         Serendipity.useRichEditor= function useRichEditor() {
-            Serendipity.selectedUsername || SeLiteMisc.fail( 'Call Serendipity.selectUsername() first.' );
-            var query= 'SELECT value FROM ' +Serendipity.storage.tablePrefixValue+ "config WHERE name='wysiwyg' AND (authorid=0 OR authorid=(SELECT authorid FROM " +Serendipity.storage.tablePrefixValue+ "authors WHERE username=:selectedUsername)) ORDER BY authorid DESC LIMIT 1";
-            console.log( 'useRichEditor: ' +query ); //@TODO extract result:
-            var records= Serendipity.storage.select( query, {selectedUsername: Serendipity.selectedUsername} );
-            return records.length>0 && records[0].value==='true';
+            return Serendipity.config('wysiwyg', true)==='true';
+        };
+        
+        /**This retrieves a user-specific or global value of a given config field.
+         * @param {string} name Name of the config field 
+         * @param {boolean} [useSelectedUsername] If true and the user has the field configured (overriden), then this returns the value for that user. If true then this function depends on Serendipity.selectedUsername being set.
+         * @return {string} Cell of 'value' column from serendipity_config, or undefined if there is no such record
+         * */
+        Serendipity.config= function config( name, useSelectedUsername ) {
+            !useSelectedUsername || Serendipity.selectedUsername || SeLiteMisc.fail( 'Call Serendipity.selectUsername() first.' );
+            var query= 'SELECT value FROM ' +Serendipity.storage.tablePrefixValue+ "config WHERE name=:name AND ";
+            query+= useSelectedUsername
+                ? "(authorid=0 OR authorid=(SELECT authorid FROM " +Serendipity.storage.tablePrefixValue+ "authors WHERE username=:selectedUsername)) "
+                : "authorid=0";
+            var bindings= {
+                name: name
+            };
+            if( useSelectedUsername ) {
+                query+= " ORDER BY authorid DESC LIMIT 1";
+                bindings.selectedUsername= Serendipity.selectedUsername;
+            }
+            console.log( 'Serendipity.config(): ' +query );
+            var records= Serendipity.storage.select( query, bindings );
+            return records.length>0
+                ? records[0].value
+                : undefined;
         };
         
         Selenium.prototype.serendipityEditorBodyRich= function serendipityEditorBodyRich() {
