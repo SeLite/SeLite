@@ -48,13 +48,14 @@ var Serendipity= {
         Serendipity.selectedAuthor= function selectedAuthor() {
             return Serendipity.formulas.authorsByUsername.selectOne( {username: Serendipity.selectedUsername} );
         };
-        /** This depends on Serendipity.currentAuthorUsername
+        /** This depends on Serendipity.selectedUsername
          * */
         Serendipity.useRichEditor= function useRichEditor() {
             Serendipity.selectedUsername || SeLiteMisc.fail( 'Call Serendipity.selectUsername() first.' );
             var query= 'SELECT value FROM ' +Serendipity.storage.tablePrefixValue+ "config WHERE name='wysiwyg' AND (authorid=0 OR authorid=(SELECT authorid FROM " +Serendipity.storage.tablePrefixValue+ "authors WHERE username=:selectedUsername)) ORDER BY authorid DESC LIMIT 1";
             console.log( 'useRichEditor: ' +query ); //@TODO extract result:
-            return Serendipity.storage.selectOne( query, undefined, {selectedUsername: Serendipity.selectedUsername} ).value==='true';
+            var records= Serendipity.storage.select( query, {selectedUsername: Serendipity.selectedUsername} );
+            return records.length>0 && records[0].value==='true';
         };
         
         Selenium.prototype.serendipityEditorBodyRich= function serendipityEditorBodyRich() {

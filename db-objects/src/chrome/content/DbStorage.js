@@ -150,19 +150,18 @@ SeLiteData.Storage.prototype.sqlAnd= function sqlAnd( first, second, etc ) {
 
 /** @param string query SQL query. It can contain placeholders in format :placeholderName
  *  (see https://developer.mozilla.org/en/docs/Storage > Binding Parameters.
+ *  @param object bindings Optional; Object (serving as associative array) of parameters to bind,
+ *  i.e. bindings to replace placeholders in the query. When using the named parameter(s) in the query, prefix them it with a colon - e.g. access parameter xyz as :xyz. See https://developer.mozilla.org/en/Storage#Binding_One_Set_of_Parameters.
  *  @param array fields Optional; array of strings SQL fields (columns) to collect; must match case-sensitively columns
  *  coming from the query. If not present,
  *  then this function will try to collect the column names from the given query, providing
  *  - all required column names are listed, there's no *
  *  - none of the column names is string 'FROM' (case insensitive)
  *  - there are no sub-selects between SELECT...FROM
- *  @param object bindings Optional; Object (serving as associative array) of parameters to bind,
- *  i.e. bindings to replace placeholders in the query.
- *  See https://developer.mozilla.org/en/Storage#Binding_One_Set_of_Parameters
  *  @return array of objects, one per DB row, each having DB column names as fields; empty array if no matching rows
  *  @throws error on failure
  **/
-SeLiteData.Storage.prototype.select= function select( query, fields, bindings ) {
+SeLiteData.Storage.prototype.select= function select( query, bindings, fields ) {
     bindings= bindings || {};
     if( !fields ) {
         fields= this.fieldNames( this.fieldParts( query ) );
@@ -198,13 +197,14 @@ SeLiteData.Storage.prototype.select= function select( query, fields, bindings ) 
 };
 
 /** It selects 1 row from the DB. If there are no such rows, or more than one, then it throws an error.
- *  @param string query full SQL query
- *  @param array fields Optional (unless you use SELECT * etc.); see the same parameter of select().
+ *  @param {string} query Full SQL query
+ *  @param {object} bindings Object serving as an associative array, with bindings for named parameters; optional. see the same parameter of select(). When using the named parameter(s) in the query, prefix them it with a colon - e.g. access parameter xyz as :xyz. See https://developer.mozilla.org/en/Storage#Binding_One_Set_of_Parameters.
+ *  @param array fields Optional (unless you use SELECT * etc.); optional - see the same parameter of select().
  *  @return Object (serving as an associative array) for the row.
  *  @throws error on failure
  **/
-SeLiteData.Storage.prototype.selectOne= function selectOne( query, fields, bindings ) {
-    var rows= this.select( query, fields, bindings );
+SeLiteData.Storage.prototype.selectOne= function selectOne( query, bindings, fields ) {
+    var rows= this.select( query, bindings, fields );
     if( rows.length!=1 ) {
         throw "Query \"" +query+"\" was supposed to return one result, but it returned " +rows.length+ " of them.";
     }
@@ -358,7 +358,7 @@ SeLiteData.Storage.prototype.getRecords= function getRecords( params ) {
         console.log( query );
     }
 
-    var result= this.select( query, columnsList, params.parameters );
+    var result= this.select( query, params.parameters, columnsList );
     if( params.debugResult!==undefined && params.debugResult ) {
         console.log( SeLiteMisc.rowsToString(result) );
     }
@@ -510,7 +510,7 @@ SeLiteData.Storage.prototype.insertRecord= function insertRecord( params ) {
 SeLiteData.Storage.prototype.lastInsertedRow= function lastInsertedRow( tableName, columns ) {
     columns= columns || ['id'];
     var query= "SELECT " +columns.join(',')+ " FROM " +tableName+ " WHERE rowid=last_insert_rowid()";
-    var record= this.selectOne( query, columns );
+    var record= this.selectOne( query, {}, columns );
     return record;
 };
 

@@ -840,7 +840,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.load= function load() {
         try { // The table may not exist in this.testStorage (yet). If it doesn't, then we just skip it.
             // I must pass 2nd parameter (fields), otherwise it tries to collect them from the query and
             // it fails since the query uses star *
-            this.testStorage.select( 'SELECT count(*) AS num FROM ' +formula.table.nameWithPrefix(), ['num'] );
+            this.testStorage.select( 'SELECT count(*) AS num FROM ' +formula.table.nameWithPrefix(), {}, ['num'] );
         }
         catch( e ) {
             console.log( 'SeLiteSettings.TestDbKeeper.Columns failed to select from test table ' +tableName+ ':\n' +e+ '\n' +e.stack );
@@ -859,7 +859,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
         var formula= this.formulas[tableName];
         var tableNameWithPrefix= formula.table.nameWithPrefix();
         try { // The table may not exist in this.testStorage (anymore). If it doesn't, then we just skip it.
-            this.testStorage.select( 'SELECT count(*) AS num FROM ' +tableNameWithPrefix, ['num'] );
+            this.testStorage.select( 'SELECT count(*) AS num FROM ' +tableNameWithPrefix, {}, ['num'] );
         }
         catch( e ) {
             console.log( 'SeLiteSettings.TestDbKeeper.Columns failed to select from test table ' +tableNameWithPrefix+ ':\n' +e+ '\n' +e.stack );
