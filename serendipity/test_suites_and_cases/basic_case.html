@@ -49,8 +49,23 @@
 </tr>
 <!---->
 <tr>
+	<td>if</td>
+	<td>false</td>
+	<td></td>
+</tr>
+<tr>
 	<td>open</td>
 	<td>eval{ SeLiteSettings.webRoot()+ 'index.php?/archives/' +storedVars._result.id+ '-' +escape(storedVars._result.title)+ '.html' }</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>open</td>
+	<td>eval{ Serendipity.permalink('Structure', storedVars._result)+ 'index.php?/archives/' +storedVars._result.id+ '-' +escape(storedVars._result.title)+ '.html' }</td>
 	<td></td>
 </tr>
 <tr>

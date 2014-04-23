@@ -54,7 +54,7 @@ var Serendipity= {
             return Serendipity.config('wysiwyg', true)==='true';
         };
         
-        /**This retrieves a user-specific or global value of a given config field.
+        /**This retrieves a user-specific or global value of a given config field. It doesn't cache any values - it wasn't reported to be a significant bottleneck, and it will most likely never be one.
          * @param {string} name Name of the config field 
          * @param {boolean} [useSelectedUsername] If true and the user has the field configured (overriden), then this returns the value for that user. If true then this function depends on Serendipity.selectedUsername being set.
          * @return {string} Cell of 'value' column from serendipity_config, or undefined if there is no such record
@@ -76,6 +76,33 @@ var Serendipity= {
             var records= Serendipity.storage.select( query, bindings );
             return records.length>0
                 ? records[0].value
+                : undefined;
+        };
+        
+        /** @param {string} name Name of the config field (i.e. matching column serendipity_config.name).
+         *  @return {string} URL to the given path, based on SeLite Settings' webRoot field and serendipity_config.value for name='indexFile' and for the passed name. Return undefined if there's no config value for indexFile or given name.
+         * */
+        Serendipity.path= function path( name ) {
+            var indexFile= Serendipity.config('indexFile');
+            var value= Serendipity.config(name);
+            return indexFile!==undefined && value!==undefined
+                ? SeLiteSettings.webRoot()+ indexFile+value
+                : undefined;
+        };
+
+        /** @param {string} linkType Postfix after 'permalink', which (together with prefix 'permalink') matches serendipity_config.name for the intended type of permalink.
+         * @param {object} record DB record from a relevant table, which contains any fields surrounded by a par of '%' in serendipity_config.value for the given type of permalink.
+         *  @return {string} Generated permalink URL for the given record and permalink type. Return undefined if there's no config value for indexFile or no config value matchin given linkType.
+         * */
+        Serendipity.permalink= function permalink( linkType, record ) {
+            var indexFile= Serendipity.config('indexFile');
+            var value= Serendipity.config( 'permalink'+linkType );
+            var fieldMatcher= /%([a-z0-9_]+)%/g;
+            value= value.replace( fieldMatcher, function replacer(match, field) {
+                return '' +record[field];
+            });
+            return indexFile!==undefined && value!==undefined
+                ? SeLiteSettings.webRoot()+indexFile+'/'+value
                 : undefined;
         };
         
