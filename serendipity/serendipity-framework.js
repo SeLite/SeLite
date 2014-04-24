@@ -82,6 +82,7 @@ var Serendipity= {
         
         /** @param {string} name Name of the config field (i.e. matching column serendipity_config.name).
          *  @return {string} URL to the given path, based on SeLite Settings' webRoot field and serendipity_config.value for name='indexFile' and for the passed name. Return undefined if there's no config value for indexFile or given name.
+         *  @TODO this may not be needed
          * */
         Serendipity.path= function path( name ) {
             var indexFile= Serendipity.config('indexFile');
@@ -90,20 +91,38 @@ var Serendipity= {
                 ? SeLiteSettings.webRoot()+ indexFile+value
                 : undefined;
         };
-
+        
+        /** @param {boolean} [full=false] Whether it should return a full link (based on serendipity_config for name='defaultBaseURL). Otherwise it returns an absolute link (based on serendipity_config for name='serendipityHTTPPath'.
+         * @return {string} Base URL for the installation
+         * */
+        Serendipity.webRoot= function webRoot( full) {
+            return Serendipity.config( full
+                ? 'defaultBaseURL'
+                : 'serendipityHTTPPath' );
+        };
+        
+        /** Get a URL of the index file.
+         *  @param {boolean} [full=false] Whether it should return a full link (based on serendipity_config for name='defaultBaseURL). Otherwise it returns an absolute link (based on serendipity_config for name='serendipityHTTPPath'.
+         * @return {string} Base URL of the index file for the installation
+         * */
+        Serendipity.webRootIndex= function webRoot( full) {
+            return Serendipity.webRoot( full )+Serendipity.config( 'indexFile' );
+        };
+        
         /** @param {string} linkType Postfix after 'permalink', which (together with prefix 'permalink') matches serendipity_config.name for the intended type of permalink.
          * @param {object} record DB record from a relevant table, which contains any fields surrounded by a par of '%' in serendipity_config.value for the given type of permalink.
          *  @return {string} Generated permalink URL for the given record and permalink type. Return undefined if there's no config value for indexFile or no config value matchin given linkType. The link is escaped through escape().
          * */
-        Serendipity.permalink= function permalink( linkType, record ) {
+        Serendipity.permalink= function permalink( linkType, record, full ) {
             var indexFile= Serendipity.config('indexFile');
+            
             var value= Serendipity.config( 'permalink'+linkType );
             var fieldMatcher= /%([a-z0-9_]+)%/g;
             value= value.replace( fieldMatcher, function replacer(match, field) {
                 return '' +record[field];
             });
             return indexFile!==undefined && value!==undefined
-                ? SeLiteSettings.webRoot()+indexFile+'/'+escape(value)
+                ? Serendipity.webRootIndex(full)+'/'+escape(value)
                 : undefined;
         };
         

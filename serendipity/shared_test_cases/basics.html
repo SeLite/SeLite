@@ -18,7 +18,7 @@
 </tr>
 <tr>
 	<td>storeEval</td>
-	<td>SeLiteSettings.webRoot()</td>
+	<td>Serendipity.webRoot(true)</td>
 	<td>webRoot</td>
 </tr>
 <!--@TODO remove { and }?-->
@@ -291,6 +291,11 @@
 	<td>insertRecord</td>
 	<td>eval{ $entry }</td>
 	<td>eval{ Serendipity.tables.entries }</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>LOG.warn( 'entry: ' +SeLiteMisc.objectToString(storedVars.entry, 3) )</td>
+	<td></td>
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
