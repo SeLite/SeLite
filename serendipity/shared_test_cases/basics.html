@@ -274,7 +274,7 @@
 <!--TODO xxxx-->
 <tr>
 	<td>clickAndWait</td>
-	<td>//input[ @type='submit' and @accesskey=&quot;s&quot; ]</td>
+	<td>//*[ contains(@onclick, &quot;checkSave&quot;) ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -284,12 +284,7 @@
 </tr>
 <tr>
 	<td>waitForElementPresent</td>
-	<td>css=div.serendipityAdminMsgSuccess</td>
-	<td></td>
-</tr>
-<tr>
-	<td>selectFrame</td>
-	<td>relative=top</td>
+	<td>/html/body</td>
 	<td></td>
 </tr>
 <tr>
@@ -298,13 +293,23 @@
 	<td>eval{ Serendipity.tables.entries }</td>
 </tr>
 <tr>
+	<td>verifyElementPresent</td>
+	<td>//a[ contains(@href, 'string{Serendipity.permalink('Structure', storedVars.entry)}') ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectFrame</td>
+	<td>relative=top</td>
+	<td></td>
+</tr>
+<tr>
 	<td>else</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>//input[ @type='submit' and @accesskey=&quot;p&quot; ]</td>
+	<td>//*[ contains(@onclick, &quot;serendipity[preview]&quot;) ]</td>
 	<td></td>
 </tr>
 <tr>
