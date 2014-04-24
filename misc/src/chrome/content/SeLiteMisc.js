@@ -1111,9 +1111,9 @@ SeLiteMisc.random= function random( threshold ) {
     return Math.random()<=threshold;
 };
 
-/** Escape a given string (possibly containing ' and/or ") to use in XPath expressions.
+/** Escape a given string (possibly containing ' and/or ") to use in XPath expressions (e.g. used for element locators).
  *  @param {string} string
- *  @return {string} String literal for XPath expressions, with enclosing ' or ". If both ' and " are present in given <code>string</code>, then this returns a string that containa a call to concat(), with the parts of the given string enclosed with either ' or ".
+ *  @return {string} String literal for XPath expressions, with enclosing ' or ". If both ' and " are present in given <code>string</code>, then this returns a string that contains a call to concat(), with the parts of the given string enclosed with either ' or ".
  **/
 SeLiteMisc.xpath_escape_quote= function xpath_escape_quote( string ) {
     if( string.indexOf("'")>=0 ) {
@@ -1151,7 +1151,7 @@ SeLiteMisc.xpath_escape_quote= function xpath_escape_quote( string ) {
 
 SeLiteMisc.unescape_xml= function unescape_xml( param ) {
     return param!==null
-        ? (typeof param=='string' ? param : ''+param)
+        ? (typeof param==='string' ? param : ''+param)
          .replace( /&amp;/g, '&' )
          .replace( /&lt;/g, "<")
          .replace( /&gt;/g, ">")
