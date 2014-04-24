@@ -284,7 +284,7 @@
 </tr>
 <tr>
 	<td>waitForElementPresent</td>
-	<td>/html/body</td>
+	<td>xpath=/html/body</td>
 	<td></td>
 </tr>
 <tr>
@@ -294,7 +294,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//a[ contains(@href, 'string{Serendipity.permalink('Structure', storedVars.entry)}') ]</td>
+	<td>//a[ contains(@href, xpath{Serendipity.permalink('Structure', storedVars.entry)}) ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -335,7 +335,7 @@
 </tr>
 <tr>
 	<td>storeEval</td>
-	<td>SeLiteMisc.xpath_escape_quote(storedVars.entry.title)</td>
+	<td>xpath{storedVars.entry.title}</td>
 	<td>xpathExprTitle</td>
 </tr>
 <tr>
@@ -345,13 +345,13 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//title[ contains( ., ${xpathExprTitle} ) ]</td>
+	<td>//title[ contains( ., xpath{storedVars.entry.title} ) ]</td>
 	<td></td>
 </tr>
 <!--Can't compare <h1> because it gets shortened (and it gets ... appended to it)-->
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//h4/a[ .=${xpathExprTitle} ]</td>
+	<td>//h4/a[ .=xpath{storedVars.entry.title} ]</td>
 	<td></td>
 </tr>
 <!--@TODO verify //div[ contains(@class, 'serendipity_entry_body') ] & serendipity_entry_extended-->
