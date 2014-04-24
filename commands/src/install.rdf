@@ -4,7 +4,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>commands@selite.googlecode.com</em:id>
     <em:name>SeLite Commands</em:name>
-    <em:version>0.78</em:version>
+    <em:version>0.79</em:version>
     <em:creator>Peter Kehl</em:creator>
     <em:homepageURL>https://code.google.com/p/selite/</em:homepageURL>
     <em:description>SeLite Test Script Commands - Selenium IDE Core extension</em:description>
