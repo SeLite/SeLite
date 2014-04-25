@@ -38,6 +38,7 @@ var Serendipity= {
     // Once you open/save a test suite, storage object will get updated automatically and it will open an SQLite connection.
         var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
         commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor', 'contributor'] );
+        commonSettings.removeField( 'webRoot');
         
         /** This sets the user, used by Selenium.prototype.readSerendipityEditorBody() and the related functions to determine whether to use a rich editor or not.
          * @param {string} givenUser User's username (not the role name).
