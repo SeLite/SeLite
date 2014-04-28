@@ -92,7 +92,7 @@ var Serendipity= {
                 : undefined;
         };
         
-        /** @param {boolean} [full=false] Whether it should return a full link (based on serendipity_config for name='defaultBaseURL). Otherwise it returns an absolute link (based on serendipity_config for name='serendipityHTTPPath'.
+        /** @param {boolean} [full=false] Whether it should return a full link (based on serendipity_config for name='defaultBaseURL'). Otherwise it returns an absolute link (based on serendipity_config for name='serendipityHTTPPath'.
          * @return {string} Base URL for the installation
          * */
         Serendipity.webRoot= function webRoot( full) {
@@ -109,22 +109,73 @@ var Serendipity= {
             return Serendipity.webRoot( full )+Serendipity.config( 'indexFile' );
         };
         
-        /** @param {string} linkType Postfix after 'permalink', which (together with prefix 'permalink') matches serendipity_config.name for the intended type of permalink.
+        /** Generate a permalink for a given record. Similar to serendipity_makePermalink in Serendipity source, but simplified: it doesn't support day/month/year for entry and 'parentname' for category.
+         *  @param {string} linkType Postfix after 'permalink', which (together with prefix 'permalink') matches serendipity_config.name for the intended type of permalink.
          * @param {object} record DB record from a relevant table, which contains any fields surrounded by a par of '%' in serendipity_config.value for the given type of permalink.
-         * "param {boolean} [full=false]
+         * "param {boolean} [full=false] Whether it should return a full link (based on serendipity_config for name='defaultBaseURL'). Otherwise it returns an absolute link (based on serendipity_config for name='serendipityHTTPPath'.
          *  @return {string} Generated permalink URL for the given record and permalink type. Return undefined if there's no config value for indexFile or no config value matchin given linkType. The link is escaped through escape().
          * */
         Serendipity.permalink= function permalink( linkType, record, full ) {
             var value= Serendipity.config( 'permalink'+linkType );
+            var recordTablePerLinkType= {
+                Structure: 'entry',
+                AuthorStructure: 'authors',
+                CategoryStructure: 'category'
+            };
+            var recordTable= recordTablePerLinkType[linkType];
             var fieldMatcher= /%([a-z0-9_]+)%/g;
-            value= value.replace( fieldMatcher, function replacer(match, field) {
-                return '' +record[field];
-            });
+            value= value.replace( fieldMatcher,
+                function replacer(match, field) {
+                    var value;
+                    switch( field ) {
+                        case 'id':
+                            var idColumnPerTable= {
+                                entry:'id',
+                                authors:'authorid',
+                                category: 'categoryid'
+                            };
+                            value= (''+record[ idColumnPerTable[recordTable] ]);
+                            break;
+                        case 'lowertitle':
+                            value= ('' +record[field]).toLowerCase();
+                            break;
+                        case 'name':
+                            recordTable==='category' || SeLiteMisc.fail("Permalink field 'name' is only available for links for records from 'category' table, but it was passed for link from table " +recordTable );
+                            value= ('' +record.category_name);
+                            break;
+                        case 'description':
+                            recordTable==='category' || SeLiteMisc.fail("Permalink field 'description' is only available for records from 'category' table, but it was passed for link from table " +recordTable );
+                            value= ('' +record.category_description);
+                            break;
+                        default:
+                            value= '' +record[field];
+                    }
+                } );
             return value!==undefined
-                ? Serendipity.webRootIndex(full)+'?/'+escape(value)
+                ? Serendipity.webRootIndex(full)+'?/'+value
                 : undefined;
         };
         
+        var PAT_FILENAME= /0-9a-z\.\_!;,\+\-\%'/gi; // characters to accept as a result of makeFileName(). See PAT_FILENAME in 
+        var consecutiveHyphen= /-{2,}/g;
+        var hyphenToTrim= /(^-+)|(-+$)/g;
+        /** Treat a given filename, like serendipity_makeFilename() in Serendipity source. a bit simplified - it doesn't use i1
+         * @param {string} filename Given filename
+         * @param {boolean} [stripDots=false] See the same parameter of serendipity_makeFilename().
+         * @return {string} Treated filename.
+         */
+        Serendipity.makeFileName= function makeFileName( filename, stripDots ) {
+            filename= filename.replace( ' ', '-' ).replace( '%', '%25' );
+            filename= filename.replace( PAT_FILENAME, '' );
+            if( stripDots ) {
+                filename= filename.replace( '.', '' );
+            }
+            filename= filename.replace( '.', '' );
+            filename= filename.replace( consecutiveHyphen, '-' );
+            filename= filename.replace( hyphenToTrim, '' );
+            return filename;
+        };
+
         Selenium.prototype.serendipityEditorBodyRich= function serendipityEditorBodyRich() {
             return this.browserbot.getCurrentWindow().editorbody; // See http://xinha.raimundmeyer.de/JSdoc/Xinha/
         };
