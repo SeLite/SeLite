@@ -966,8 +966,12 @@ SeLiteSettings.Module= function Module( name, fields, allowSets, defaultSetName,
     this.testDbKeeper===null || this.testDbKeeper instanceof SeLiteSettings.TestDbKeeper || SeLiteMisc.fail( 'SeLiteSettings.Module() must be called with testDbKeeper set to an instance of SeLiteSettings.TestDbKeeper, if used.' );
     
     this.prefsBranch= prefs.getBranch( this.name+'.' );
-    this.addedFields= {}; /** { string field name => Field object } for fields added via addField(field). */
-    this.addedKeys= {}; /** { string field name => object {key name => default value...}... } for SeLiteSettings.Field.FixedMap instances that have keys added via addKey(key, defaultValue). */
+    /** @type {object} {string field name => Field object } for fields added via addField(field). */
+    this.addedFields= {};
+    /** @type {object} { string field name => object {key name => default value...}... } for SeLiteSettings.Field.FixedMap instances that have keys added via addKey(key, defaultValue) or addKeys(keys, dontReRegister). */
+    this.addedKeys= {};
+    /** @type {object} {string field name => Field object } for fields removed via removeField(fieldOrName). */
+    this.removedFields= {};
     if( !dontRegister ) {
         this.register();
     }
@@ -1014,25 +1018,48 @@ function directChildList( prefsBranch, namePrefix ) {
     return result;
 }
 
-/** Add a field to an existing module 'on the fly'. All such added fields will be re-added when you call SeLiteSettings.loadFromJavascript( moduleName, moduleFileOrUrl, forceReload ) with forceReload=true (but the source code/definition of those added fields won't be re-read automatically).Do not call this from the file that defines this configuration module, otherwise this addField() fails if the file is re-loaded.
- *  @param {SeLiteSettings.Field objects} field
+/** Add a field to an existing module 'on the fly'. All such added fields will be re-added when you call SeLiteSettings.loadFromJavascript( moduleName, moduleFileOrUrl, forceReload ) with forceReload=true (but the source code/definition of those added fields won't be re-read automatically). Do not call this from the file that defines this configuration module, otherwise this addField() fails if the file is re-loaded.
+ *  @param {SeLiteSettings.Field} field
  *  @param {boolean} dontReRegister If true, then this doesn't re-register the module.
  *  @returns {void}
  * */
 SeLiteSettings.Module.prototype.addField= function addField( field, dontReRegister ) {
-    if( !(field instanceof SeLiteSettings.Field) ) {
-        throw new Error( 'SeLiteSettings.Module() expects fields to be an array of SeLiteSettings.Field instances, but it is not.');
-    }
+    field instanceof SeLiteSettings.Field || SeLiteMisc.fail( 'addField() for SeLiteSettings.Module expects field to be an instance of SeLiteSettings.Field instances, but it is not.');
     if( field.name in this.fields ) {
         var fieldHasBeenAddedAlready= field.name in this.addedFields;
         if( fieldHasBeenAddedAlready && field.equals( this.fields[field.name] ) ) { // This happens if you restart Selenium IDE.
             return;
         }
-        throw new Error( 'SeLiteSettings.Module() for module name "' +this.name+ '" already has an ' +(fieldHasBeenAddedAlready ? 'added' : 'original')+ ' field with name "' +field.name+ '".');
+        throw new Error( 'SeLiteSettings.Module instance with name "' +this.name+ '" already has an ' +(fieldHasBeenAddedAlready ? 'added' : 'original')+ ' field with name "' +field.name+ '".');
     }
     field.registerFor( this );
     this.fields[ field.name ]= field;
     this.addedFields[ field.name ]= field;
+    if( !dontReRegister ) {
+        this.register();
+    }
+};
+
+/** Remove the given field from an existing module 'on the fly'. All such added fields will be re-added when you call SeLiteSettings.loadFromJavascript( moduleName, moduleFileOrUrl, forceReload ) with forceReload=true (but the source code/definition of those added fields won't be re-read automatically). Do not call this from the file that defines this configuration module, otherwise this removeField() fails if the file is re-loaded.
+ * @param {(SeLiteSettings.Field|string)} fieldOrName Field or its (short) name.
+ *  @param {boolean} dontReRegister If true, then this doesn't re-register the module.
+ * @returns {void} 
+ */
+SeLiteSettings.Module.prototype.removeField= function removeField( fieldOrName, dontReRegister ) {
+    var field, name;
+    if( typeof fieldOrName==='string' ) {
+        field= this.fields[fieldOrName];
+        name= fieldOrName;
+    }
+    else {
+        field= fieldOrName;
+        field instanceof SeLiteSettings.Field || SeLiteMisc.fail( 'removeField() for SeLiteSettings.Module expects field to be an instance of SeLiteSettings.Field instances, but it is not.');
+        name= field.name;
+    }
+    name in this.fields || SeLiteMisc.fail( 'SeLiteSettings.Module instance with name ' +this.name+ " hasn't got a field with name " +name );
+    field.equals( this.fields[name] ) || SeLiteMisc.fail( 'SeLiteSettings.Module instance with name ' +this.name+ " has a field with name " +name+ " but it doesn't equal to the given field." );
+    delete this.fields[name];
+    this.removedFields[name]= field;
     if( !dontReRegister ) {
         this.register();
     }
@@ -1793,10 +1820,12 @@ SeLiteSettings.loadFromJavascript= function loadFromJavascript( moduleName, modu
    ensureFieldName( moduleName, 'SeLiteSettings.Module name', true );
    var previouslyAddedFields= {};
    var previouslyAddedKeys= {};
+   var previouslyRemovedFields= {};
    if( modules[moduleName] ) {
         if( forceReload ) {
             previouslyAddedFields= modules[moduleName].addedFields;
             previouslyAddedKeys= modules[moduleName].addedKeys;
+            previouslyRemovedFields= modules[moduleName].removedFields;
             delete modules[moduleName];
         }
         else {
@@ -1837,7 +1866,7 @@ SeLiteSettings.loadFromJavascript= function loadFromJavascript( moduleName, modu
     }
     moduleName in modules || SeLiteMisc.fail( "Loaded definition of module " +moduleName+ " and it was found in preferences, but it didn't register itself properly. Fix its definition at " +moduleUrl+ " so that it registers itself." );
     var module= modules[moduleName];
-    if( Object.keys(previouslyAddedFields).length>0 || Object.keys(previouslyAddedKeys).length>0 ) {
+    if( Object.keys(previouslyAddedFields).length>0 || Object.keys(previouslyAddedKeys).length>0 || Object.keys(previouslyRemovedFields).length>0 ) {
         for( var fieldName in previouslyAddedFields ) {
             module.addField( previouslyAddedFields[fieldName], true );
         }
@@ -1848,6 +1877,9 @@ SeLiteSettings.loadFromJavascript= function loadFromJavascript( moduleName, modu
             for( var key in keys ) {
                 field.addKey( key, keys[key], true );
             }
+        }
+        for( var fieldName in previouslyRemovedFields ) {
+            module.removeField( fieldName, true );
         }
         module.register();
     }
