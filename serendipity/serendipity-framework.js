@@ -127,7 +127,7 @@ var Serendipity= {
             var fieldMatcher= /%([a-z0-9_]+)%/g;
             value= value.replace( fieldMatcher,
                 function replacer(match, field) {
-                    var value;
+                    var replacement;
                     switch( field ) {
                         case 'id':
                             var idColumnPerTable= {
@@ -135,22 +135,23 @@ var Serendipity= {
                                 authors:'authorid',
                                 category: 'categoryid'
                             };
-                            value= (''+record[ idColumnPerTable[recordTable] ]);
+                            replacement= ''+record[ idColumnPerTable[recordTable] ];
                             break;
                         case 'lowertitle':
-                            value= ('' +record[field]).toLowerCase();
+                            replacement= ( '' +record[field] ).toLowerCase();
                             break;
                         case 'name':
                             recordTable==='category' || SeLiteMisc.fail("Permalink field 'name' is only available for links for records from 'category' table, but it was passed for link from table " +recordTable );
-                            value= ('' +record.category_name);
+                            replacement= '' +record.category_name;
                             break;
                         case 'description':
                             recordTable==='category' || SeLiteMisc.fail("Permalink field 'description' is only available for records from 'category' table, but it was passed for link from table " +recordTable );
-                            value= ('' +record.category_description);
+                            replacement= '' +record.category_description;
                             break;
                         default:
-                            value= '' +record[field];
+                            replacement= '' +record[field];
                     }
+                    return Serendipity.makeFileName(replacement);
                 } );
             return value!==undefined
                 ? Serendipity.webRootIndex(full)+'?/'+value
