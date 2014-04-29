@@ -113,7 +113,7 @@ var Serendipity= {
         /** Generate a permalink for a given record. Similar to serendipity_makePermalink in Serendipity source, but simplified: it doesn't support day/month/year for entry and 'parentname' for category.
          *  @param {string} linkType Postfix after 'permalink', which (together with prefix 'permalink') matches serendipity_config.name for the intended type of permalink.
          * @param {object} record DB record from a relevant table, which contains any fields surrounded by a par of '%' in serendipity_config.value for the given type of permalink.
-         * "param {boolean} [full=false] Whether it should return a full link (based on serendipity_config for name='defaultBaseURL'). Otherwise it returns an absolute link (based on serendipity_config for name='serendipityHTTPPath'.
+         * @param {boolean} [full=false] Whether it should return a full link (based on serendipity_config for name='defaultBaseURL'). Otherwise it returns an absolute link (based on serendipity_config for name='serendipityHTTPPath'.
          *  @return {string} Generated permalink URL for the given record and permalink type. Return undefined if there's no config value for indexFile or no config value matchin given linkType. The link is escaped through escape().
          * */
         Serendipity.permalink= function permalink( linkType, record, full ) {
@@ -138,7 +138,7 @@ var Serendipity= {
                             replacement= ''+record[ idColumnPerTable[recordTable] ];
                             break;
                         case 'lowertitle':
-                            replacement= ( '' +record[field] ).toLowerCase();
+                            replacement= ( '' +record.title ).toLowerCase();
                             break;
                         case 'name':
                             recordTable==='category' || SeLiteMisc.fail("Permalink field 'name' is only available for links for records from 'category' table, but it was passed for link from table " +recordTable );
@@ -151,7 +151,7 @@ var Serendipity= {
                         default:
                             replacement= '' +record[field];
                     }
-                    return Serendipity.makeFileName(replacement);
+                    return Serendipity.makeFileName( replacement, recordTable!=='entry' );
                 } );
             return value!==undefined
                 ? Serendipity.webRootIndex(full)+'?/'+value
