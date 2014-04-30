@@ -1048,7 +1048,7 @@ SeLiteSettings.Module.prototype.addField= function addField( field, dontReRegist
 SeLiteSettings.Module.prototype.removeField= function removeField( fieldOrName, dontReRegister ) {
     var field, name;
     if( typeof fieldOrName==='string' ) {
-        field= this.fields[fieldOrName];
+        field= this.fields[fieldOrName]; // This may be undefined, if the field was removed already
         name= fieldOrName;
     }
     else {
@@ -1056,7 +1056,12 @@ SeLiteSettings.Module.prototype.removeField= function removeField( fieldOrName, 
         field instanceof SeLiteSettings.Field || SeLiteMisc.fail( 'removeField() for SeLiteSettings.Module expects field to be an instance of SeLiteSettings.Field instances, but it is not.');
         name= field.name;
     }
-    name in this.fields || SeLiteMisc.fail( 'SeLiteSettings.Module instance with name ' +this.name+ " hasn't got a field with name " +name );
+    if( !(name in this.fields) ) {
+        if( name in this.removedFields ) {
+            return;
+        }
+        SeLiteMisc.fail( 'SeLiteSettings.Module instance with name ' +this.name+ " hasn't got a field with name " +name );
+    }
     field.equals( this.fields[name] ) || SeLiteMisc.fail( 'SeLiteSettings.Module instance with name ' +this.name+ " has a field with name " +name+ " but it doesn't equal to the given field." );
     delete this.fields[name];
     this.removedFields[name]= field;
