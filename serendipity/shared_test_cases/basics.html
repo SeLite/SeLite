@@ -358,8 +358,22 @@
 	<td>//h4/a[ .=xpath{storedVars.entry.title} ]</td>
 	<td></td>
 </tr>
-<!--@TODO verify //div[ contains(@class, 'serendipity_entry_body') ] & serendipity_entry_extended-->
-<!---- TODO have a JS function that generates XPath expression(s) that verify each HTML tag...-->
+<!---->
+<tr>
+	<td>getEval</td>
+	<td>storedVars.bodyHTML= this.browserbot.getCurrentWindow().document.getElementsByTagName('body')[0].innerHTML</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>storedVars.bodyHTML.indexOf( storedVars.entry.body )&gt;0</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>storedVars.bodyHTML.indexOf( storedVars.entry.extended )&gt;0</td>
+	<td>true</td>
+</tr>
 <!--Verify the link to the author-->
 <tr>
 	<td>verifyElementPresent</td>
