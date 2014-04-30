@@ -47,10 +47,13 @@ var Serendipity= {
             Serendipity.selectedUsername= givenUsername;
         };
         Serendipity.selectedAuthor= function selectedAuthor() {
-            return Serendipity.formulas.authorsByUsername.selectOne( {username: Serendipity.selectedUsername} );
+            return Serendipity.formulas.authors.selectOne( {username: Serendipity.selectedUsername} );
         };
         Serendipity.authorById= function authorById( authorid ) {
-            return Serendipity.formulas.authorsById.selectOne( {authorid: authorid} );
+            return Serendipity.formulas.authors.selectOne( {authorid: authorid} );
+        };
+        Serendipity.entryById= function entryById( id ) {
+            return Serendipity.formulas.entries.selectOne( {id: id} );
         };
         /** @return {boolean} Whether the selected user uses a WYSIWYG editor.
          * */
@@ -241,16 +244,9 @@ var Serendipity= {
            primary: 'authorid' // However, for purpose of matching users I usually use 'login'
         });
         /** @type {SeLiteData.RecordSetFormula} */
-        Serendipity.formulas.authorsByUsername= new SeLiteData.RecordSetFormula( {
+        Serendipity.formulas.authors= new SeLiteData.RecordSetFormula( {
             table: Serendipity.tables.authors,
-            columns: new SeLiteData.Settable().set( Serendipity.tables.authors.name/* same as 'authors' */, SeLiteData.RecordSetFormula.ALL_FIELDS ),
-            parameterNames: ['username']
-        });
-        /** @type {SeLiteData.RecordSetFormula} */
-        Serendipity.formulas.authorsById= new SeLiteData.RecordSetFormula( {
-            table: Serendipity.tables.authors,
-            columns: new SeLiteData.Settable().set( Serendipity.tables.authors.name/* same as 'authors' */, SeLiteData.RecordSetFormula.ALL_FIELDS ),
-            parameterNames: ['authorid']
+            columns: new SeLiteData.Settable().set( Serendipity.tables.authors.name/* same as 'authors' */, SeLiteData.RecordSetFormula.ALL_FIELDS )
         });
         
         /** @type {SeLiteData.Table} */
