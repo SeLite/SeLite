@@ -165,6 +165,9 @@ var Serendipity= {
         };
         
         var PAT_FILENAME= /0-9a-z\.\_!;,\+\-\%'/gi; // characters to accept as a result of makeFileName(). See PAT_FILENAME in 
+        var space= / /g;
+        var percent= /%/g;
+        var dot= /\./g;
         var consecutiveHyphen= /-{2,}/g;
         var hyphenToTrim= /(^-+)|(-+$)/g;
         /** Treat a given filename, like serendipity_makeFilename() in Serendipity source. a bit simplified - it doesn't use i1
@@ -173,12 +176,11 @@ var Serendipity= {
          * @return {string} Treated filename.
          */
         Serendipity.makeFileName= function makeFileName( filename, stripDots ) {
-            filename= filename.replace( ' ', '-' ).replace( '%', '%25' );
+            filename= filename.replace( space, '-' ).replace( percent, '%25' );
             filename= filename.replace( PAT_FILENAME, '' );
             if( stripDots ) {
-                filename= filename.replace( '.', '' );
+                filename= filename.replace( dot, '' );
             }
-            filename= filename.replace( '.', '' );
             filename= filename.replace( consecutiveHyphen, '-' );
             filename= filename.replace( hyphenToTrim, '' );
             return filename;
