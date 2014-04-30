@@ -49,6 +49,9 @@ var Serendipity= {
         Serendipity.selectedAuthor= function selectedAuthor() {
             return Serendipity.formulas.authorsByUsername.selectOne( {username: Serendipity.selectedUsername} );
         };
+        Serendipity.authorById= function authorById( authorid ) {
+            return Serendipity.formulas.authorsById.selectOne( {authorid: authorid} );
+        };
         /** @return {boolean} Whether the selected user uses a WYSIWYG editor.
          * */
         Serendipity.useRichEditor= function useRichEditor() {
@@ -114,7 +117,7 @@ var Serendipity= {
          *  @param {string} linkType Postfix after 'permalink', which (together with prefix 'permalink') matches serendipity_config.name for the intended type of permalink.
          * @param {object} record DB record from a relevant table, which contains any fields surrounded by a par of '%' in serendipity_config.value for the given type of permalink.
          * @param {boolean} [full=false] Whether it should return a full link (based on serendipity_config for name='defaultBaseURL'). Otherwise it returns an absolute link (based on serendipity_config for name='serendipityHTTPPath'.
-         *  @return {string} Generated permalink URL for the given record and permalink type. Return undefined if there's no config value for indexFile or no config value matchin given linkType. The link is escaped through escape().
+         *  @return {string} Generated permalink URL for the given record and permalink type. Return undefined if there's no config value for indexFile or no config value matching given linkType.
          * */
         Serendipity.permalink= function permalink( linkType, record, full ) {
             var value= Serendipity.config( 'permalink'+linkType );
@@ -242,6 +245,12 @@ var Serendipity= {
             table: Serendipity.tables.authors,
             columns: new SeLiteData.Settable().set( Serendipity.tables.authors.name/* same as 'authors' */, SeLiteData.RecordSetFormula.ALL_FIELDS ),
             parameterNames: ['username']
+        });
+        /** @type {SeLiteData.RecordSetFormula} */
+        Serendipity.formulas.authorsById= new SeLiteData.RecordSetFormula( {
+            table: Serendipity.tables.authors,
+            columns: new SeLiteData.Settable().set( Serendipity.tables.authors.name/* same as 'authors' */, SeLiteData.RecordSetFormula.ALL_FIELDS ),
+            parameterNames: ['authorid']
         });
         
         /** @type {SeLiteData.Table} */

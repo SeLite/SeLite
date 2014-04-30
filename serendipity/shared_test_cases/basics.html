@@ -353,7 +353,6 @@
 	<td>//title[ contains( ., xpath{storedVars.entry.title} ) ]</td>
 	<td></td>
 </tr>
-<!--Can't compare <h1> because it gets shortened (and it gets ... appended to it)-->
 <tr>
 	<td>verifyElementPresent</td>
 	<td>//h4/a[ .=xpath{storedVars.entry.title} ]</td>
@@ -361,6 +360,12 @@
 </tr>
 <!--@TODO verify //div[ contains(@class, 'serendipity_entry_body') ] & serendipity_entry_extended-->
 <!---- TODO have a JS function that generates XPath expression(s) that verify each HTML tag...-->
+<!--Verify the link to the author-->
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//a[ @href=xpath{ Serendipity.permalink('AuthorStructure', Serendipity.authorById(storedVars.entry.authorid), true) } ]</td>
+	<td></td>
+</tr>
 <tr>
 	<td>endFunction</td>
 	<td></td>
