@@ -18,19 +18,30 @@
 </tr>
 <!---->
 <tr>
-	<td>if</td>
-	<td>true</td>
-	<td></td>
-</tr>
-<tr>
 	<td>call</td>
 	<td>logIn</td>
 	<td>loginOrAmpRole='&amp;admin'</td>
 </tr>
 <tr>
 	<td>call</td>
+	<td>singleRun</td>
+	<td>wysiwyg=true</td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>singleRun</td>
+	<td>wysiwyg=false</td>
+</tr>
+<!---->
+<tr>
+	<td>function</td>
+	<td>singleRun</td>
+	<td>wysiwyg</td>
+</tr>
+<tr>
+	<td>call</td>
 	<td>changeWysiwyg</td>
-	<td>newValue=true</td>
+	<td>newValue=$wysiwyg</td>
 </tr>
 <tr>
 	<td>call</td>
@@ -48,7 +59,7 @@
 	<td>entry=storedVars._result</td>
 </tr>
 <tr>
-	<td>endIf</td>
+	<td>endFunction</td>
 	<td></td>
 	<td></td>
 </tr>

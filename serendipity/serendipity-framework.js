@@ -118,7 +118,7 @@ var Serendipity= {
             var indexFile= Serendipity.config('indexFile');
             var value= Serendipity.config(name);
             return indexFile!==undefined && value!==undefined
-                ? SeLiteSettings.webRoot()+ indexFile+value
+                ? Serendipity.webRoot()+ indexFile+value
                 : undefined;
         };
         
