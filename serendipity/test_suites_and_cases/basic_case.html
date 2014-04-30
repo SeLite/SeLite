@@ -16,6 +16,7 @@
 	<td>true</td>
 	<td>This is for debugging only, so that the framework gets loaded</td>
 </tr>
+<!---->
 <tr>
 	<td>if</td>
 	<td>true</td>
@@ -26,11 +27,10 @@
 	<td>logIn</td>
 	<td>loginOrAmpRole='&amp;admin'</td>
 </tr>
-<!---->
 <tr>
-	<td>if</td>
-	<td>true</td>
-	<td></td>
+	<td>call</td>
+	<td>changeWysiwyg</td>
+	<td>newValue=true</td>
 </tr>
 <tr>
 	<td>call</td>
@@ -43,25 +43,9 @@
 	<td>save=true</td>
 </tr>
 <tr>
-	<td>getEval</td>
-	<td>LOG.info( SeLiteMisc.objectToString(storedVars._result, 3) )</td>
-	<td></td>
-</tr>
-<!---->
-<tr>
-	<td>open</td>
-	<td>eval{ Serendipity.permalink('Structure', storedVars._result, true) }</td>
-	<td></td>
-</tr>
-<tr>
 	<td>call</td>
 	<td>validateEntry</td>
 	<td>entry=storedVars._result</td>
-</tr>
-<tr>
-	<td>endIf</td>
-	<td></td>
-	<td></td>
 </tr>
 <tr>
 	<td>endIf</td>

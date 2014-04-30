@@ -202,6 +202,7 @@
 	<td></td>
 </tr>
 <!----------------->
+<!--Create a new entry but don't fill anything-->
 <tr>
 	<td>function</td>
 	<td>createNewEntry</td>
@@ -378,6 +379,63 @@
 <tr>
 	<td>verifyElementPresent</td>
 	<td>//a[ @href=xpath{ Serendipity.permalink('AuthorStructure', Serendipity.authorById(storedVars.entry.authorid), true) } ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!---------------------------->
+<tr>
+	<td>function</td>
+	<td>changeWysiwyg</td>
+	<td>newValue</td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>ensureUnderWebRoot</td>
+	<td>forceReload=true</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ contains(@href, 'string{Serendipity.config('indexFile')}?/admin') ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ contains(@href, 'serendipity_admin.php?serendipity[adminModule]=personal') ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>Serendipity.useRichEditor()</td>
+	<td>currentValue</td>
+</tr>
+<!--Can't use verifyAttribute if the attribute is not present. Therefore I use xpath-->
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//input[ @id='radio_cfg_wysiwyg_yes' and string{storedVars.currentValue ? '' : 'not'}(@checked) ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//input[ @id='radio_cfg_wysiwyg_no' and string{storedVars.currentValue ? 'not' : ''}(@checked) ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>check</td>
+	<td>//input[ @id='radio_cfg_wysiwyg_string{storedVars.newValue ? 'yes' : 'no'}' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//input[ @type='submit' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>Serendipity.updateConfig( 'wysiwyg', ''+storedVars.newValue, true )</td>
 	<td></td>
 </tr>
 <tr>

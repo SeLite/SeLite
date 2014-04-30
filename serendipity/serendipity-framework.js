@@ -72,7 +72,7 @@ var Serendipity= {
             !useSelectedUsername || Serendipity.selectedUsername || SeLiteMisc.fail( 'Call Serendipity.selectUsername() first.' );
             var query= 'SELECT value FROM ' +Serendipity.storage.tablePrefixValue+ "config WHERE name=:name AND ";
             query+= useSelectedUsername
-                ? "(authorid=0 OR authorid=(SELECT authorid FROM " +Serendipity.storage.tablePrefixValue+ "authors WHERE username=:selectedUsername)) "
+                ? "(authorid=0 OR authorid=(SELECT authorid FROM " +Serendipity.tables.authors.nameWithPrefix()+ " WHERE username=:selectedUsername)) "
                 : "authorid=0";
             var bindings= {
                 name: name
@@ -86,6 +86,28 @@ var Serendipity= {
             return records.length>0
                 ? records[0].value
                 : undefined;
+        };
+        /** @TODO Implement via DbObjects & insert if the entry doesn't exist yet. Currently it only updates an existing entry in config table - it fails otherwise.
+         * @param {string} name Name of the config field
+         * @param {string} value Value to store
+         * @param {boolean} [forUser=false] Whether it's for the currently selected user; otherwise it's a global configuration.
+         *   */
+        Serendipity.updateConfig= function updateConfig( name, value, forUser ) {
+            !forUser || Serendipity.selectedUsername || SeLiteMisc.fail( 'Call Serendipity.selectUsername() first.' );
+            var query= 'UPDATE ' +Serendipity.tables.config.nameWithPrefix()+ ' SET value=:value WHERE name=:name '+
+                (forUser
+                    ? 'AND authorid=(SELECT authorid FROM ' +Serendipity.tables.authors.nameWithPrefix()+ ' WHERE username=:selectedUsername)'
+                    : 'AND authorid=0'
+                );
+            LOG.info( 'updateConfig: ' +query );
+            var bindings= {
+                name: name,
+                value: value
+            };
+            if( forUser ) {
+                bindings.selectedUsername= Serendipity.selectedUsername;
+            }
+            Serendipity.storage.execute( query, bindings );
         };
         
         /** @param {string} name Name of the config field (i.e. matching column serendipity_config.name).
