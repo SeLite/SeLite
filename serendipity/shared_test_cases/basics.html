@@ -122,7 +122,7 @@
 <!---->
 <tr>
 	<td>if</td>
-	<td>$passwd===undefined</td>
+	<td>${passwd}===undefined</td>
 	<td></td>
 </tr>
 <tr>
@@ -272,7 +272,6 @@
 	<td>$save</td>
 	<td></td>
 </tr>
-<!--TODO xxxx-->
 <tr>
 	<td>clickAndWait</td>
 	<td>//*[ contains(@onclick, &quot;checkSave&quot;) ]</td>
@@ -497,6 +496,96 @@
 	<td>clickAndWait</td>
 	<td>//input[ @type='submit' ]</td>
 	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!------------------>
+<tr>
+	<td>function</td>
+	<td>createUser</td>
+	<td></td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>ensureUnderWebRoot</td>
+	<td>forceReload=true</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ contains(@href, 'string{Serendipity.config('indexFile')}?/admin') ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ contains(@href, 'serendipity_admin.php?serendipity[adminModule]=users') ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//input[ @type='submit' and @name='NEW' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!---------------------------------->
+<!--Update a user. -->
+<!--@param currentPassword is optional - needed only if the user exists already-->
+<!--@param access is required. 1 for standard editor, 2 for chief editor, 3 for administrator-->
+<tr>
+	<td>function</td>
+	<td>fillInUser</td>
+	<td>currentPassword, access</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>${access}&lt;3 ? ${access}-1 : 255</td>
+	<td>userlevel</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>//input[ @name='username' ]</td>
+	<td>object{store: 'username'}</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>//input[ @name='password' ]</td>
+	<td>object{type: 'password', store: 'username'}</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>//input[ @name='check_password' ]</td>
+	<td>eval{ storedVars.currentPassword!==undefined ? storedVars.currentPassword : '' }</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>//input[ @name='realname' ]</td>
+	<td>object{store: 'realname'}</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>//select[ @name='userlevel' ]</td>
+	<td>value=${userlevel}</td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>//select[ @name='groups[]' ]</td>
+	<td>value=${access}</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>//input[ @name='email' ]</td>
+	<td>object{type:'email', store:'email' }</td>
+</tr>
+<tr>
+	<td>selectRandom</td>
+	<td>//select[ @name='lang' ]</td>
+	<td>object{store:'lang'}</td>
 </tr>
 <tr>
 	<td>endFunction</td>
