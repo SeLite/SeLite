@@ -448,6 +448,58 @@
 	<td></td>
 	<td></td>
 </tr>
+<!------------------->
+<!--Change a freetype global config field. Validate the current value first.-->
+<tr>
+	<td>function</td>
+	<td>changeGlobalConfig</td>
+	<td>fieldName, newValue</td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>ensureUnderWebRoot</td>
+	<td>forceReload=true</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ contains(@href, 'string{Serendipity.config('indexFile')}?/admin') ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ contains(@href, 'serendipity_admin.php?serendipity[adminModule]=configuration') ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>//a[ contains(@onclick, 'showConfigAll') ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>eval{ &quot;//input[ @name='&quot; +$fieldName+ &quot;' and @value=&quot; +SeLiteMisc.xpath_escape_quote(Serendipity.config($fieldName))+ &quot;]&quot; }</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>//input[ @name='string{$fieldName}' ]</td>
+	<td>${newValue}</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>Serendipity.updateConfig( storedVars.fieldName, storedVars.newValue )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//input[ @type='submit' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
 </tbody></table>
 </body>
 </html>
