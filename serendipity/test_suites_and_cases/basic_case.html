@@ -18,6 +18,11 @@
 </tr>
 <!---->
 <tr>
+	<td>if</td>
+	<td>true</td>
+	<td></td>
+</tr>
+<tr>
 	<td>call</td>
 	<td>logIn</td>
 	<td>loginOrAmpRole='&amp;admin'</td>
@@ -44,14 +49,35 @@
 </tr>
 <!---->
 <tr>
+	<td>else</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>changeUserConfig</td>
+	<td>fieldName='wysiwyg', newValue=true</td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>changeUserConfig</td>
+	<td>fieldName='wysiwyg', newValue=false</td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<!---->
+<tr>
 	<td>function</td>
 	<td>singleRun</td>
 	<td>wysiwyg</td>
 </tr>
 <tr>
 	<td>call</td>
-	<td>changeWysiwyg</td>
-	<td>newValue=$wysiwyg</td>
+	<td>changeUserConfig</td>
+	<td>fieldName='wysiwyg', newValue=$wysiwyg</td>
 </tr>
 <tr>
 	<td>call</td>

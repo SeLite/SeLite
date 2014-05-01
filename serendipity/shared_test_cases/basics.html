@@ -392,10 +392,13 @@
 	<td></td>
 </tr>
 <!---------------------------->
+<!--Change a config field for the user. Validate current value first. For testing /serendipity_admin.php?serendipity[adminModule]=personal.-->
+<!--Currently it only works for fields stored in 'config' table (not in 'authors' table) - and out of those Yes/No radio button fields only-->
+<!--@TODO Once it can update 'authors' table: param fieldType - one of: checkbox, textbox-->
 <tr>
 	<td>function</td>
-	<td>changeWysiwyg</td>
-	<td>newValue</td>
+	<td>changeUserConfig</td>
+	<td>fieldName, newValue</td>
 </tr>
 <tr>
 	<td>call</td>
@@ -414,23 +417,23 @@
 </tr>
 <tr>
 	<td>storeEval</td>
-	<td>Serendipity.useRichEditor()</td>
+	<td>Serendipity.config('${fieldName}', true)</td>
 	<td>currentValue</td>
 </tr>
-<!--Can't use verifyAttribute if the attribute is not present. Therefore I use xpath-->
+<!--Can't use verifyAttribute if the attribute ('checked') is not present. Therefore I use xpath-->
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//input[ @id='radio_cfg_wysiwyg_yes' and string{storedVars.currentValue ? '' : 'not'}(@checked) ]</td>
+	<td>eval{&quot;//input[ @type='radio' and @name='&quot; +$fieldName+ &quot;' and @value='true' and &quot; +(''+$currentValue==='true' ? '' : 'not')+ &quot;(@checked) ]&quot; }</td>
 	<td></td>
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//input[ @id='radio_cfg_wysiwyg_no' and string{storedVars.currentValue ? 'not' : ''}(@checked) ]</td>
+	<td>eval{&quot;//input[ @type='radio' and @name='&quot; +$fieldName+ &quot;' and @value='false' and &quot; +(''+$currentValue==='true' ? 'not' : '')+ &quot;(@checked) ]&quot; }</td>
 	<td></td>
 </tr>
 <tr>
 	<td>check</td>
-	<td>//input[ @id='radio_cfg_wysiwyg_string{storedVars.newValue ? 'yes' : 'no'}' ]</td>
+	<td>eval{&quot;//input[ @type='radio' and @name='&quot; +$fieldName+ &quot;' and @value='&quot; +$newValue+ &quot;' ]&quot; }</td>
 	<td></td>
 </tr>
 <tr>
@@ -440,7 +443,7 @@
 </tr>
 <tr>
 	<td>getEval</td>
-	<td>Serendipity.updateConfig( 'wysiwyg', ''+storedVars.newValue, true )</td>
+	<td>Serendipity.updateConfig( '${fieldName}', ''+storedVars.newValue, true )</td>
 	<td></td>
 </tr>
 <tr>
