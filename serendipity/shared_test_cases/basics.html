@@ -550,7 +550,7 @@
 <tr>
 	<td>typeRandom</td>
 	<td>//input[ @name='username' ]</td>
-	<td>object{store: 'username'}</td>
+	<td>username</td>
 </tr>
 <tr>
 	<td>typeRandom</td>
@@ -565,7 +565,7 @@
 <tr>
 	<td>typeRandom</td>
 	<td>//input[ @name='realname' ]</td>
-	<td>object{store: 'realname'}</td>
+	<td>realname</td>
 </tr>
 <tr>
 	<td>select</td>
@@ -585,7 +585,32 @@
 <tr>
 	<td>selectRandom</td>
 	<td>//select[ @name='lang' ]</td>
-	<td>object{store:'lang'}</td>
+	<td>lang</td>
+</tr>
+<tr>
+	<td>clickRandom</td>
+	<td>//input[ @name='wysiwyg' ]</td>
+	<td>wysiwyg</td>
+</tr>
+<tr>
+	<td>clickRandom</td>
+	<td>//input[ @name='moderateCommentsDefault' ]</td>
+	<td>moderateCommentsDefault</td>
+</tr>
+<tr>
+	<td>clickRandom</td>
+	<td>//input[ @name='allowCommentsDefault' ]</td>
+	<td>allowCommentsDefault</td>
+</tr>
+<tr>
+	<td>clickRandom</td>
+	<td>//input[ @name='showMediaToolbar' ]</td>
+	<td>showMediaToolbar</td>
+</tr>
+<tr>
+	<td>insertRecord</td>
+	<td>object{realname: storedVars.realName}</td>
+	<td>eval{Serendipity.tables.authors}</td>
 </tr>
 <tr>
 	<td>endFunction</td>

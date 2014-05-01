@@ -166,7 +166,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
                         <dl>
                             <dt>'email'</dt><dd>when generating an email address</dd>
                             <dt>'name'</dt><dd>when generating a human name (and some random letters A-Za-z)</dd>
-                            <dt>'word'</dt><dd>word (random letter a-z)</dd>
+                            <dt>'word'</dt><dd>word (random letters a-z)</dd>
                             <dt>'number'</dt><dd>generates a non-negative number; see more options below</dd>
                             <dt>'text'</dt><dd>generates random word(s) (and random letter-based text)</dd>
                             <dt>'html'</dt><dd>like 'text', but it adds some simple HTML tags around some of the words. 'maxlength' applies to the length of the result HTML (including the tags).</dd>
@@ -179,7 +179,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
                         </dl>
                         If type is not set, then the default characters used are: alphanumerics, space, underscore, dash -
                     </dd>
-                    <dt>htmlTags</dt><dd>Array of HTML tag names to use if type is 'html'. Optional. It's useful with applications/WYSIWYG editors that transform HTML (e.g. Xinha editor transforms &lt;b&gt; to &lt;strong&gt;, &lt;i&gt; to &lt;em&gt; and &lt;strike&gt; to &lt;del&gt;).</dd>
+                    <dt>htmlTags</dt><dd>Array of HTML tag names to use if type is 'html'. Optional. It's useful with applications/WYSIWYG editors that transform HTML (e.g. Xinha editor transforms &amp;lt;b&amp;gt; to &amp;lt;strong&amp;gt;, &amp;lt;i&amp;gt; to &amp;lt;em&amp;gt; and &amp;lt;strike&amp;gt; to &amp;lt;del&amp;gt;).</dd>
                     <dt>decimal</dt>
                     <dd>boolean, optional. If true, then generate a decimal number. Any minLength/maxLength
                        (or HTML maxlength property of the input)
