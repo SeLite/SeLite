@@ -60,7 +60,7 @@
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>//a[ contains(@href, 'string{Serendipity.config('indexFile')}?/admin' ) ]</td>
+	<td>//a[ contains(@href, '`Serendipity.config('indexFile')`?/admin' ) ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -120,9 +120,10 @@
 	<td></td>
 </tr>
 <!---->
+<!--TODO if ${passwd}===undefined doesn't work, because Selenium.prototype.replaceVariables() tries to replace the variable as a string-->
 <tr>
 	<td>if</td>
-	<td>${passwd}===undefined</td>
+	<td>storedVars.passwd===undefined</td>
 	<td></td>
 </tr>
 <tr>
@@ -188,7 +189,7 @@
 </tr>
 <tr>
 	<td>readRecord</td>
-	<td>object{ formula: FUDforum.formulas.users, login: $login }</td>
+	<td>`{ formula: FUDforum.formulas.users, login: $login }`</td>
 	<td>user</td>
 </tr>
 <tr>
@@ -215,7 +216,7 @@
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>//a[ contains(@href, 'string{Serendipity.config('indexFile')}?/admin') ]</td>
+	<td>//a[ contains(@href, '`Serendipity.config('indexFile')`?/admin') ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -238,7 +239,7 @@
 <tr>
 	<td>typeRandom</td>
 	<td>id=entryTitle</td>
-	<td>object{store: 'title'}</td>
+	<td>`{store: 'title'}`</td>
 </tr>
 <tr>
 	<td>pause</td>
@@ -248,7 +249,7 @@
 <!--wysiwyg editor Xinha transforms <b> to <strong>, <i> to <em> and <strike> to <del>. Here I list the allowed tags which don't get transformed - so they will be the same in test & app.-->
 <tr>
 	<td>storeEval</td>
-	<td>eval{ ['strong', 'em', 'u', 'del', 'sub', 'sup'] }</td>
+	<td>`['strong', 'em', 'u', 'del', 'sub', 'sup']`</td>
 	<td>htmlTags</td>
 </tr>
 <tr>
@@ -263,7 +264,7 @@
 </tr>
 <tr>
 	<td>storeEval</td>
-	<td>object{ title:$title, timestamp:Math.round( Date.now()/1000), body:$body, extended:$extended, exflag:1, author:Serendipity.selectedUsername, authorid:Serendipity.selectedAuthor().authorid, isdraft:'false', allow_comments:'true', last_modified:Math.round( Date.now()/1000), moderate_comments:'false'}</td>
+	<td>`{ title:$title, timestamp:Math.round( Date.now()/1000), body:$body, extended:$extended, exflag:1, author:Serendipity.selectedUsername, authorid:Serendipity.selectedAuthor().authorid, isdraft:'false', allow_comments:'true', last_modified:Math.round( Date.now()/1000), moderate_comments:'false'}`</td>
 	<td>entry</td>
 </tr>
 <!---->
@@ -289,8 +290,8 @@
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>eval{ $entry }</td>
-	<td>eval{ Serendipity.tables.entries }</td>
+	<td>`$entry`</td>
+	<td>`Serendipity.tables.entries`</td>
 </tr>
 <tr>
 	<td>getEval</td>
@@ -299,7 +300,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//a[ contains(@href, xpath{Serendipity.permalink('Structure', storedVars.entry)}) ]</td>
+	<td>//a[ contains(@href, #`Serendipity.permalink('Structure', storedVars.entry)`) ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -340,12 +341,12 @@
 </tr>
 <tr>
 	<td>open</td>
-	<td>eval{Serendipity.permalink('Structure', storedVars.entry, true)}</td>
+	<td>`Serendipity.permalink('Structure', storedVars.entry, true)`</td>
 	<td></td>
 </tr>
 <tr>
 	<td>storeEval</td>
-	<td>xpath{storedVars.entry.title}</td>
+	<td>#`storedVars.entry.title`</td>
 	<td>xpathExprTitle</td>
 </tr>
 <tr>
@@ -355,12 +356,12 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//title[ contains( ., xpath{storedVars.entry.title} ) ]</td>
+	<td>//title[ contains( ., #`storedVars.entry.title` ) ]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//h4/a[ .=xpath{storedVars.entry.title} ]</td>
+	<td>//h4/a[ .=#`storedVars.entry.title` ]</td>
 	<td></td>
 </tr>
 <!---->
@@ -382,7 +383,7 @@
 <!--Verify the link to the author-->
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//a[ @href=xpath{ Serendipity.permalink('AuthorStructure', Serendipity.authorById(storedVars.entry.authorid), true) } ]</td>
+	<td>//a[ @href=#` Serendipity.permalink('AuthorStructure', Serendipity.authorById(storedVars.entry.authorid), true) ` ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -406,7 +407,7 @@
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>//a[ contains(@href, 'string{Serendipity.config('indexFile')}?/admin') ]</td>
+	<td>//a[ contains(@href, '`Serendipity.config('indexFile')`?/admin') ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -422,17 +423,17 @@
 <!--Can't use verifyAttribute if the attribute ('checked') is not present. Therefore I use xpath-->
 <tr>
 	<td>verifyElementPresent</td>
-	<td>eval{&quot;//input[ @type='radio' and @name='&quot; +$fieldName+ &quot;' and @value='true' and &quot; +(''+$currentValue==='true' ? '' : 'not')+ &quot;(@checked) ]&quot; }</td>
+	<td>//input[ @type='radio' and @name='`$fieldName`' and @value='true' and `''+$currentValue==='true' ? '' : 'not')`(@checked) ]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>eval{&quot;//input[ @type='radio' and @name='&quot; +$fieldName+ &quot;' and @value='false' and &quot; +(''+$currentValue==='true' ? 'not' : '')+ &quot;(@checked) ]&quot; }</td>
+	<td>input[ @type='radio' and @name='`$fieldName`' and @value='false' and `''+$currentValue==='true' ? 'not' : '')`(@checked) ]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>check</td>
-	<td>eval{&quot;//input[ @type='radio' and @name='&quot; +$fieldName+ &quot;' and @value='&quot; +$newValue+ &quot;' ]&quot; }</td>
+	<td>//input[ @type='radio' and @name='`$fieldName`' and @value='`$newValue`' ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -464,7 +465,7 @@
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>//a[ contains(@href, 'string{Serendipity.config('indexFile')}?/admin') ]</td>
+	<td>//a[ contains(@href, '`Serendipity.config('indexFile')`?/admin') ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -479,12 +480,12 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>eval{ &quot;//input[ @name='&quot; +$fieldName+ &quot;' and @value=&quot; +SeLiteMisc.xpath_escape_quote(Serendipity.config($fieldName))+ &quot;]&quot; }</td>
+	<td>//input[ @name='`$fieldName`' and @value='#`Serendipity.config($fieldName)`' ]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>type</td>
-	<td>//input[ @name='string{$fieldName}' ]</td>
+	<td>//input[ @name='`$fieldName`' ]</td>
 	<td>${newValue}</td>
 </tr>
 <tr>
@@ -515,7 +516,7 @@
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>//a[ contains(@href, 'string{Serendipity.config('indexFile')}?/admin') ]</td>
+	<td>//a[ contains(@href, '`Serendipity.config('indexFile')`?/admin') ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -555,12 +556,12 @@
 <tr>
 	<td>typeRandom</td>
 	<td>//input[ @name='password' ]</td>
-	<td>object{type: 'password', store: 'username'}</td>
+	<td>`{type: 'password', store: 'username'}`</td>
 </tr>
 <tr>
 	<td>type</td>
 	<td>//input[ @name='check_password' ]</td>
-	<td>eval{ storedVars.currentPassword!==undefined ? storedVars.currentPassword : '' }</td>
+	<td>`storedVars.currentPassword!==undefined ? storedVars.currentPassword : '' `</td>
 </tr>
 <tr>
 	<td>typeRandom</td>
@@ -580,7 +581,7 @@
 <tr>
 	<td>typeRandom</td>
 	<td>//input[ @name='email' ]</td>
-	<td>object{type:'email', store:'email' }</td>
+	<td>`{type:'email', store:'email' }`</td>
 </tr>
 <tr>
 	<td>selectRandom</td>
@@ -609,8 +610,8 @@
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>object{realname: storedVars.realName}</td>
-	<td>eval{Serendipity.tables.authors}</td>
+	<td>`{ realname: $realname }`</td>
+	<td>`Serendipity.tables.authors`</td>
 </tr>
 <tr>
 	<td>endFunction</td>
