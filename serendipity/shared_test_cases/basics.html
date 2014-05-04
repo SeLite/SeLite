@@ -423,12 +423,12 @@
 <!--Can't use verifyAttribute if the attribute ('checked') is not present. Therefore I use xpath-->
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//input[ @type='radio' and @name='`$fieldName`' and @value='true' and `''+$currentValue==='true' ? '' : 'not')`(@checked) ]</td>
+	<td>//input[ @type='radio' and @name='`$fieldName`' and @value='true' and `''+$currentValue==='true' ? '' : 'not'`(@checked) ]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>input[ @type='radio' and @name='`$fieldName`' and @value='false' and `''+$currentValue==='true' ? 'not' : '')`(@checked) ]</td>
+	<td>//input[ @type='radio' and @name='`$fieldName`' and @value='false' and `''+$currentValue==='true' ? 'not' : ''`(@checked) ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -480,7 +480,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//input[ @name='`$fieldName`' and @value='#`Serendipity.config($fieldName)`' ]</td>
+	<td>//input[ @name='`$fieldName`' and @value=#`Serendipity.config($fieldName)` ]</td>
 	<td></td>
 </tr>
 <tr>
