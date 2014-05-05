@@ -53,6 +53,6 @@ Selenium.prototype.doInsertRecord= function doInsertRecord( recordObject, table)
     var record= new SeLiteData.Record(recordObject);
     table.insert(record);
     if( typeof table.primary==='string' ) {
-        recordObject[ table.primary ]= table.db.storage.lastInsertedRow( table.nameWithPrefix(), [table.primary] )[ table.primary ];
+        recordObject[ table.primary ]= storedVars.insertedRecordKey= table.db.storage.lastInsertedRow( table.nameWithPrefix(), [table.primary] )[ table.primary ];
     }
 };

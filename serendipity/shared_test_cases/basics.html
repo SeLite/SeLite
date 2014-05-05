@@ -556,7 +556,7 @@
 <tr>
 	<td>typeRandom</td>
 	<td>//input[ @name='password' ]</td>
-	<td>`{type: 'password', store: 'username'}`</td>
+	<td>`{type: 'password', store: 'password'}`</td>
 </tr>
 <tr>
 	<td>type</td>
@@ -610,8 +610,13 @@
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>`{ realname: $realname }`</td>
+	<td>`{ realname: $realname, username:$username, password:$password, email:$email, userlevel:$userlevel, right_publish:1 }`</td>
 	<td>`Serendipity.tables.authors`</td>
+</tr>
+<tr>
+	<td>insertRecord</td>
+	<td>`{name:'mail_comments', value:'true', authorid:$insertedRecordKey}`</td>
+	<td>`Serendipity.tables.config`</td>
 </tr>
 <tr>
 	<td>endFunction</td>
