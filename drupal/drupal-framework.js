@@ -81,7 +81,7 @@ var Drupal= {};
             db: db,
             name: 'field_data_body',
             columns: ['entity_type', 'bundle', 'deleted', 'entity_id', 'revision_id', 'language', 'delta', 'body_value', 'body_sumary', 'body_format'],
-            primary: '@TODO group of columns'
+            primary: ['entity_type', 'entity_id', 'deleted', 'delta', 'language']
         });
         
         // Can't use: return selenium.browserbot.getCurrentWindow().location.href

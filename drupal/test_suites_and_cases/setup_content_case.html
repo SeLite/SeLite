@@ -79,9 +79,15 @@
 	<td></td>
 	<td></td>
 </tr>
+<!--clickAndWait didn't work in the following. So that's why this works with English installation only.-->
 <tr>
-	<td>clickAndWait</td>
+	<td>click</td>
 	<td>//a[ contains(@href, '/?q=admin/config' ) ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementPresent</td>
+	<td>//iframe[contains(@title, 'Configuration dialog')]</td>
 	<td></td>
 </tr>
 <tr>

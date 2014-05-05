@@ -21,7 +21,6 @@
 	<td>SeLiteSettings.webRoot</td>
 	<td>drupalWebRoot</td>
 </tr>
-<!--@TODO remove { and }?-->
 <tr>
 	<td>if</td>
 	<td>!window.location.href.startsWith( '`SeLiteSettings.webRoot()`' )</td>
@@ -117,7 +116,6 @@
 	<td></td>
 	<td></td>
 </tr>
-<!--TODO DOC: don't have string{} around the whole following expression-->
 <tr>
 	<td>storeEval</td>
 	<td>SeLiteSettings.roleToUser( '${userNameOrAmpersandRole}' )</td>
@@ -291,7 +289,6 @@
 	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
 	<td>userLoggedIn</td>
 </tr>
-<!--TODO tet whether the following if skips logout when we're already logged ni. Or should it use string{ ... } instead?-->
 <tr>
 	<td>if</td>
 	<td>$userLoggedIn</td>
