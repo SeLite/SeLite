@@ -22,9 +22,15 @@
 	<td>logIn</td>
 	<td>userNameOrAmpersandRole='&amp;admin'</td>
 </tr>
+<!--clickAndWait doesn't work in the following. Therefore this test depends on English installation-->
 <tr>
-	<td>clickAndWait</td>
+	<td>click</td>
 	<td>//div[ @id='toolbar' ]//a[ contains(@href, '/?q=node/add') ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementPresent</td>
+	<td>//iframe[ @title='Add content dialog' ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -46,12 +52,12 @@
 <tr>
 	<td>typeRandom</td>
 	<td>id=edit-title</td>
-	<td>object{ type:'text', store:'title' }</td>
+	<td>`{ type:'text', store:'title'}`</td>
 </tr>
 <tr>
 	<td>typeRandom</td>
 	<td>id=edit-body-und-0-value</td>
-	<td>object{ type:'text', store:'body'}</td>
+	<td>`{ type:'text', store:'body'}`</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
@@ -67,14 +73,14 @@
 <!--TODO uid<- Id of the user; timestamps created, changed-->
 <tr>
 	<td>insertRecord</td>
-	<td>object{ nid:$newPageNodeId, vid:$newPageNodeId, type:'page', language:'und', title:$title, status:1, comment:1}</td>
-	<td>eval{Drupal.tables.node}</td>
+	<td>`{ nid:$newPageNodeId, vid:$newPageNodeId, type:'page', language:'und', title:$title, status:1, comment:1}`</td>
+	<td>`Drupal.tables.node`</td>
 </tr>
 <!--@TODO check revision_id - it may not always equal to entity_id-->
 <tr>
 	<td>insertRecord</td>
-	<td>object{entity_type:'node', bundle:'page', deleted:0, entity_id:$newPageNodeId, revision_id:$newPageNodeId, language:'und', delta:0, body_value:$body, body_format:'filtered_html'}</td>
-	<td>eval{Drupal.tables.field_data_body}</td>
+	<td>`{entity_type:'node', bundle:'page', deleted:0, entity_id:$newPageNodeId, revision_id:$newPageNodeId, language:'und', delta:0, body_value:$body, body_format:'filtered_html'}`</td>
+	<td>`Drupal.tables.field_data_body`</td>
 </tr>
 </tbody></table>
 </body>
