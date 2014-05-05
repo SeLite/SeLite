@@ -593,6 +593,18 @@
 	<td>//input[ @name='wysiwyg' ]</td>
 	<td>wysiwyg</td>
 </tr>
+<!--For now I leave advanced JS usage=on (config name 'eyecandy')-->
+<tr>
+	<td>clickRandom</td>
+	<td>//input[ @name='mail_comments' ]</td>
+	<td>mail_comments</td>
+</tr>
+<tr>
+	<td>clickRandom</td>
+	<td>//input[ @name='mail_trackbacks' ]</td>
+	<td>mail_trackbacks</td>
+</tr>
+<!--For now the user is always enabled (config name no_create) and can publish (config name right_publish)-->
 <tr>
 	<td>clickRandom</td>
 	<td>//input[ @name='moderateCommentsDefault' ]</td>
@@ -614,9 +626,70 @@
 	<td>`Serendipity.tables.authors`</td>
 </tr>
 <tr>
+	<td>store</td>
+	<td>`$insertedRecordKey`</td>
+	<td>authorid</td>
+</tr>
+<tr>
 	<td>insertRecord</td>
-	<td>`{name:'mail_comments', value:'true', authorid:$insertedRecordKey}`</td>
+	<td>`{groupid:$access, authorid:$authorid}`</td>
+	<td>`Serendipity.tables.authorgroups`</td>
+</tr>
+<tr>
+	<td>insertRecord</td>
+	<td>`{name:'lang', value:$lang, authorid:$authorid}`</td>
 	<td>`Serendipity.tables.config`</td>
+</tr>
+<tr>
+	<td>insertRecord</td>
+	<td>`{name:'wysiwyg', value:$wysiwyg, authorid:$authorid}`</td>
+	<td>`Serendipity.tables.config`</td>
+</tr>
+<!--Use string constants 'true', 'false', not Javascript boolean constants true, false. See SQLiteSpecifics in wiki-->
+<tr>
+	<td>insertRecord</td>
+	<td>`{name:'eyecandy', value:'true', authorid:$authorid}`</td>
+	<td>`Serendipity.tables.config`</td>
+</tr>
+<tr>
+	<td>insertRecord</td>
+	<td>`{name:'mail_comments', value:$mail_comments, authorid:$authorid}`</td>
+	<td>`Serendipity.tables.config`</td>
+</tr>
+<tr>
+	<td>insertRecord</td>
+	<td>`{name:'mail_trackbacks', value:$mail_trackbacks, authorid:$authorid}`</td>
+	<td>`Serendipity.tables.config`</td>
+</tr>
+<tr>
+	<td>insertRecord</td>
+	<td>`{name:'no_create', value:'false', authorid:$authorid}`</td>
+	<td>`Serendipity.tables.config`</td>
+</tr>
+<tr>
+	<td>insertRecord</td>
+	<td>`{name:'right_publish', value:'true', authorid:$authorid}`</td>
+	<td>`Serendipity.tables.config`</td>
+</tr>
+<tr>
+	<td>insertRecord</td>
+	<td>`{name:'moderateCommentsDefault', value:$moderateCommentsDefault, authorid:$authorid}`</td>
+	<td>`Serendipity.tables.config`</td>
+</tr>
+<tr>
+	<td>insertRecord</td>
+	<td>`{name:'allowCommentsDefault', value:$allowCommentsDefault, authorid:$authorid}`</td>
+	<td>`Serendipity.tables.config`</td>
+</tr>
+<tr>
+	<td>insertRecord</td>
+	<td>`{name:'showMediaToolbar', value:$showMediaToolbar, authorid:$authorid}`</td>
+	<td>`Serendipity.tables.config`</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//input[ @type='submit' ]</td>
+	<td></td>
 </tr>
 <tr>
 	<td>endFunction</td>

@@ -300,6 +300,13 @@ var Serendipity= {
             ],
             primary: 'id'
         });
+        Serendipity.tables.authorgroups= new SeLiteData.Table( {
+           db:  Serendipity.db,
+           name: 'authorgroups',
+           columns: ['groupid', 'authorid'],
+           primary: ['groupid', 'authorid']
+        });
+
         /** @type {SeLiteData.RecordSetFormula} */
         Serendipity.formulas.entries= new SeLiteData.RecordSetFormula( {
             table: Serendipity.tables.entries,
