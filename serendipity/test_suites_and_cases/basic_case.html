@@ -19,7 +19,7 @@
 <!---->
 <tr>
 	<td>if</td>
-	<td>true</td>
+	<td>false</td>
 	<td></td>
 </tr>
 <tr>
@@ -55,20 +55,35 @@
 </tr>
 <tr>
 	<td>call</td>
-	<td>changeUserConfig</td>
-	<td>fieldName='wysiwyg', newValue=true</td>
+	<td>logIn</td>
+	<td>loginOrAmpRole='&amp;admin'</td>
 </tr>
 <tr>
 	<td>call</td>
-	<td>changeUserConfig</td>
-	<td>fieldName='wysiwyg', newValue=false</td>
+	<td>openNewUserPage</td>
+	<td></td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>fillInUser</td>
+	<td>access=3</td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>logInAsStoredUser</td>
+	<td>login=$_result</td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>singleRun</td>
+	<td>wysiwyg=true</td>
 </tr>
 <tr>
 	<td>endIf</td>
 	<td></td>
 	<td></td>
 </tr>
-<!---->
+<!---------------->
 <tr>
 	<td>function</td>
 	<td>singleRun</td>
