@@ -25,13 +25,9 @@
         /** @var Object serving as an associative array [string file path] => int lastModifiedTime
          **/
         Selenium.scriptLoadTimestamps= {};
-                    // @TODO remove fileUtilsScope and the other
-        var fileUtilsScope= {};
-        Components.utils.import("resource://gre/modules/FileUtils.jsm", fileUtilsScope );
-        var FileUtils= fileUtilsScope.FileUtils; //@TODO maybe make it private in this file?
-        var servicesScope= {};
-        Components.utils.import("resource://gre/modules/Services.jsm", servicesScope );
-        var Services= servicesScope.Services;
+        ;
+        var FileUtils= Components.utils.import("resource://gre/modules/FileUtils.jsm", {} ).FileUtils;
+        var Services= Components.utils.import("resource://gre/modules/Services.jsm", {} ).Services;
         Components.utils.import( 'chrome://selite-settings/content/SeLiteSettings.js' );
 
         /** There are two sets of events when we want to call reloadScripts(), which are handled separately:
