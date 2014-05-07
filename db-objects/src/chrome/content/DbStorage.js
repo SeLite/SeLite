@@ -727,17 +727,4 @@ function ideCloseHandler() {
 }
 SeLiteSettings.addClosingIdeHandler( ideCloseHandler );
 
-/** @TODO DOC We use synchronous DB API. That's because
- *  - with asynchronous API we'd have to wait for the query to finish before moving to next Selenium test step
- *  -- that would get complicated if the current steps involves multiple DB queries/operations. It would involve
- *  a chain of handler functions.
- *  - the API itself is a bit easier to use
- *  -- no need for callback handler functions
- *  -- when using executeStep() with SELECT, the rows are objects with fields named after DB columns
- *  When using asynchronous API with SELECT
- *  - the rows don't contain object fields named after DB columns,
- *  so you must use methods to access the fields - see https://developer.mozilla.org/en/mozIStorageStatement#executeAsync()
- *  and https://developer.mozilla.org/en/mozIStorageRow
- *  - handleResult() callback may be called several times per same statement!
- */
 var EXPORTED_SYMBOLS= [];
