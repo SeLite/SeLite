@@ -155,7 +155,7 @@
      *  it doesn't auto-suggest '...AndWait' alternatives, which we don't want and which would confuse user. If the function name
      *  was any doXyz that doesn't start with 'doWaitFor', Selenium IDE would auto-suggest '..AndWait' alternative, which don't make sense.
      *  Some functions are not implemented as Selenium.prototype.getXyz, because getXyz() only receives the first Selenese parameter (target)
-     *  and not the second parameter. That's undertandable, since getXyz auto-generates storeXyz, which uses the second parameter (value) as a namce of a stored variable. However, getXyz (and storeXyz) don't allow the first parameter to be a composite. E.g. if you use EnhancedSyntax to pass object or array literal `{field:value, field:value... }` or `[item, item...]` as the parameter, those don't get passed well. Allowing that would mean a tremendous workaround, or modifying Selenium IDE - each out of scope for now. @TODO Investigate that
+     *  and not the second parameter. That's understandable, since getXyz auto-generates storeXyz, which uses the second parameter (value) as a namce of a stored variable. However, getXyz (and storeXyz) don't allow the first parameter to be a composite. E.g. if you use EnhancedSyntax to pass object or array literal `{field:value, field:value... }` or `[item, item...]` as the parameter, those don't get passed well. Allowing that would mean a tremendous workaround, or modifying Selenium IDE - each out of scope for now. @TODO Investigate that
      * */
     Selenium.prototype.doWaitForTimestampDistinctDownToMilliseconds= function doWaitForTimestampDistinctDownToMilliseconds( timestampName, precisionInMilliseconds ) {
         precisionInMilliseconds= precisionInMilliseconds || 1;
