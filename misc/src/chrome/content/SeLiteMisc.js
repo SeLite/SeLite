@@ -112,27 +112,18 @@ SeLiteMisc.ensureType= function ensureType( item, typeStringOrStrings, message )
 var globalClasses= ['Array', 'Boolean', 'Date', 'Function', 'Iterator', 'Number', 'RegExp', 'String', 'Proxy', 'Error'];
 
 /** Detect whether the given object is an instance of one of the given class(es).
- *  @param object Object
- *  @param classes Class (that is, a constructor function), or an array of them.
- *  @param className string, optional, name of the expected class(es), so we can print them (because parameter classes doesn't carry information about the name);
- *  even if clazz is an array, clazzName must be one string (if present),
- *  @param message string, extra message, optional
- *  @TODO here and ensureInstance() - remove 'classNames; use classNameOf()
+ *  @param {object} object Object
+ *  @param {function|array} classes Class (that is, a constructor function), or an array of them.
+ *  @param {string} message Extra message to include on failure, optional
  */
-SeLiteMisc.isInstance= function isInstance( object, classes, className, message ) {
-    typeof object==='object'
-    || SeLiteMisc.fail( 'Expecting an '
-        +(className
-            ? 'instance of ' +className
-            : 'object'
-        )+ ', but ' +typeof object+ ' was given. ' +message
-       );
+SeLiteMisc.isInstance= function isInstance( object, classes, message ) {
     if( typeof classes==='function' ) {
         classes= [classes];
     }
     else {
         SeLiteMisc.ensure( Array.isArray(classes), "Parameter clases must be a constructor method, or an array of them." );
     }
+    typeof object==='object' || SeLiteMisc.fail( 'Expecting an object, but ' +typeof object+ ' was given. ' +message );
     for( var i=0; i<classes.length; i++ ) {//@TODO use loop for of() once NetBeans supports it
         var clazz= classes[i];
         SeLiteMisc.ensureType( clazz, 'function' );
@@ -165,19 +156,29 @@ SeLiteMisc.classNameOf= function classNameOf( objectOrConstructor ) {
 /** Validate that a parameter is an object and of a given class (or of one of given classes).
  *  @param object Object
  *  @param classes Class (that is, a constructor function), or an array of them.
- *  @param className string, optional, name of the expected class(es), so we can print them (because parameter classes doesn't carry information about the name);
- *  even if clazz is an array, clazzName must be one string (if present),
  *  @param message string, extra message, optional
  *  @see SeLiteMisc.isInstance()
  * */
-SeLiteMisc.ensureInstance= function ensureInstance( object, classes, className, message ) {
-    SeLiteMisc.isInstance(object, classes, className, message)
-    || SeLiteMisc.fail( 'Expecting an instance of '
-        +(className
-            ? className
-            : 'specific class(es)'
-        )+ ", but was given " +SeLiteMisc.classNameOf(object)+ '. '+message
-       );
+SeLiteMisc.ensureInstance= function ensureInstance( object, classes, message ) {
+    if( typeof classes==='function' ) {
+        classes= [classes];
+    }
+    if( !SeLiteMisc.isInstance(object, classes, message) ) {
+        var classNames= [];
+        classes.forEach( function(className) {
+            classNames.push( SeLiteMisc.classNameOf(className) );
+        } );
+        SeLiteMisc.fail( 'Expecting an instance of '
+            +(classNames.length===1
+                ? classNames[0]
+                : ' one of [' +classNames.join(',')+ ']'
+            )+ ', but ' 
+            +(object!==null
+                ? 'an instance of ' +object.constructor.name+ ' was given. '
+                : 'null'
+            )+message
+        );
+    }
 };
 
 /** @param mixed Container - object or array
