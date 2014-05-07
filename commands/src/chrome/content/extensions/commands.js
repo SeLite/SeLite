@@ -490,7 +490,10 @@
                     lengthOfEntries+= entry.length+1;
                 }
                 if( lengthOfEntries>totalLength ) {
-                    entries.pop(); // @TODO This makes the function return an empty string sometimes
+                    entries.pop();
+                    if( entries.length===0 ) {
+                        entries.push( SeLiteMisc.randomString(acceptableChars, totalLength) );
+                    }
                 }
                 result= entries.join(' ');
             }
