@@ -36,14 +36,6 @@
         if( !target || !value ) {
             LOG.info( 'typeRobust skipped, since target or value was empty/0/false.' );
         }
-        else
-        if( isRobustNull(target) ) {//@TODO This depends on selite-misc-ide. Move to SelBlocks Global.
-            LOG.info( 'typeRobust skipped, since target was null.' );
-        }
-        else
-        if( isRobustNull(value) ) {
-            LOG.info( 'typeRobust skipped, since value was null.' );
-        }
         else {
             this.doType( target, value );
         }
@@ -53,14 +45,6 @@
         if( !selectLocator || !optionLocator ) {
             LOG.info( 'selectRobust skipped, since selectLocator or optionLocator was empty/0/false.' );
         }
-        else
-        if( isRobustNull(selectLocator) ) {
-            LOG.info( 'selectRobust skipped, since selectLocator was null.' );
-        }
-        else
-        if( isRobustNull(optionLocator) ) {
-            LOG.info( 'selectRobust skipped, since optionLocator was null.' );
-        }
         else {
             this.doSelect( selectLocator, optionLocator );
         }
@@ -69,10 +53,6 @@
     Selenium.prototype.doClickRobust= function doClickRobust( locator, valueUnused) {
         if( locator==='' ) {
             LOG.info( 'clickRobust skipped, since locator was an empty string.' );
-        }
-        else
-        if( isRobustNull(locator) ) {
-            LOG.info( 'clickRobust skipped, since locator was null.' );
         }
         else {
             this.doClick( locator, valueUnused );
