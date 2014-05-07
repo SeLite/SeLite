@@ -19,7 +19,7 @@
  * */
 (function(global) { // Anonymous function separates local variables from Selenium Core scope
     Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
-    var loadedOddTimes= SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doFUDforumUsers'] || false;
+    var loadedOddTimes= SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['SeLiteBootstrap'] || false;
     if( loadedOddTimes ) { // Ignore the first load, because Se IDE somehow discards that Selenium.prototype
         
         /** @var Object serving as an associative array [string file path] => int lastModifiedTime
@@ -101,5 +101,5 @@
             bootstrappedListChanged= true;
         });
     }
-    SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doFUDforumUsers']= !loadedOddTimes;
+    SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['SeLiteBootstrap']= !loadedOddTimes;
 })(this);
