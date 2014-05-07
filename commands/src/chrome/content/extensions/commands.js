@@ -490,9 +490,10 @@
                     lengthOfEntries+= entry.length+1;
                 }
                 if( lengthOfEntries>totalLength ) {
+                    lengthOfEntries-= entries[entries.length-1].length;
                     entries.pop();
-                    if( entries.length===0 ) {
-                        entries.push( SeLiteMisc.randomString(acceptableChars, totalLength) );
+                    if( lengthOfEntries<minLength ) {
+                        entries.push( SeLiteMisc.randomString(acceptableChars, minLength-lengthOfEntries) );
                     }
                 }
                 result= entries.join(' ');
