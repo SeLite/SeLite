@@ -11,6 +11,7 @@
 <thead>
 <tr><td rowspan="1" colspan="3">case_shared_db_via_backdoor_hides_error</td></tr>
 </thead><tbody>
+<!--Beware that this was adjusted for `..` and #`..` as per  EnhancedSyntax.wiki, but this wasn't re-run-->
 <tr>
 	<td>storeEval</td>
 	<td>3</td>
@@ -125,7 +126,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>string{ &quot;xpath=( //table[@id='charities']//tr )[&quot; +$xpathRowIndex+ &quot;] /td[@class='name' and text()=&quot; +SeLiteMisc.xpath_escape_quote( SeLiteMisc.unescape_xml(storedVars.name) )+ &quot;]&quot; }</td>
+	<td>xpath=( //table[@id='charities']//tr )[ `$xpathRowIndex` ]/td[@class='name' and text()= #`SeLiteMisc.unescape_xml(storedVars.name)` ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -156,7 +157,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>string{&quot;//table[@id='charities' and count(.//tr)=&quot;+($items.length%$MAX_DISPLAYED_ITEMS+1)+&quot; ]&quot; }</td>
+	<td>//table[@id='charities' and count(.//tr)= `$items.length%$MAX_DISPLAYED_ITEMS+1` ]</td>
 	<td></td>
 </tr>
 <!---->

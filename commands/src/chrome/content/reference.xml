@@ -244,7 +244,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     <param name="locatorOrLocators">Either
         <ul>
             <li>string - a locator, or</li>
-            <li>array of locators, passed as array{ 'locator1', 'locator2'... } where each locator is an escaped Javascript string. You can use string expressions, not just string literals.</li>
+            <li>array of locators, passed as `[ 'locator1', 'locator2'... ]` where each locator is an escaped Javascript string. You can use string expressions, not just string literals.</li>
         </ul>
         It's optional. If nothing is passed, then the command just selects the top frame.
     </param>
