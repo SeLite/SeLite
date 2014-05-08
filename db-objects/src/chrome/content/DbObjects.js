@@ -185,6 +185,21 @@ SeLiteData.recordHolder= function recordHolder( record ) {
     return record[SeLiteData.Record.RECORD_TO_HOLDER_FIELD];
 };
 
+/** Generate a string used for indexing, based on the value of primary key column(s).
+ *  @return {string}
+ * */
+RecordHolder.prototype.primaryKeyCompound= function primaryKeyCompound() {
+    var primary= this.recordSetHolder.formula.table.primary;
+    if( typeof primary==='string' ) {
+        return this.record[primary]
+    }
+    var object= {};
+    for( var i=0; i<primary.length; i++ ) {//@TODO for(..of..) once NetBeans likes it
+        object[ primary[i] ]= this.record[ primary[i] ];
+    }
+    return JSON.stringify(object);
+};
+
 RecordHolder.prototype.setOriginalAndWatchEntries= function setOriginalAndWatchEntries() {
     this.original= {};
 
@@ -833,16 +848,11 @@ RecordSetHolder.prototype.update= function update() { throw new Error( "@TODO if
  *  remove the actual DB record.
  **/
 RecordSetHolder.prototype.removeRecordHolder= function removeRecordHolder( recordHolder ) {
-    if( typeof this.formula.table.primary==='string' ) {
-        var primaryKeyValue= recordHolder.record[this.formula.table.primary];
-        delete this.holders[ primaryKeyValue ];
-        delete this.recordSet[ SeLiteMisc.indexOfRecord(this.recordSet, recordHolder.record) ];
-        delete this.originals[ primaryKeyValue ];
-        delete this.markedToRemove[ primaryKeyValue ];
-    }
-    else {
-        throw 'TODO';
-    }
+    var primaryKeyCompound= recordHolder.primaryKeyCompound();
+    delete this.holders[ primaryKeyCompound ];
+    delete this.recordSet[ SeLiteMisc.indexOfRecord(this.recordSet, recordHolder.record) ];
+    delete this.originals[ primaryKeyCompound ];
+    delete this.markedToRemove[ primaryKeyCompound ];
 };
 
 RecordSetHolder.prototype.put= function put() {
