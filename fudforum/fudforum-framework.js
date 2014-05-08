@@ -14,26 +14,17 @@
 */
 "use strict";
 
-// Following is a namespace-like object in the global scope.
-var FUDforum= {};
+// If you extend this framework from another file, see https://code.google.com/p/selite/wiki/TestFramework#Extending_a_test_framework
+/** @type{object} A namespace-like object in the global scope.*/
+var FUDforum;
+if( FUDforum===undefined ) {
+    FUDforum= {
+        /** @type {SeLiteData.Db}*/
+        db: new SeLiteData.Db( SeLiteData.getStorageFromSettings() )
+    };
+}
 
 (function() {
-    // @TODO Doc
-    // I suggest that you load this file via SeLite Bootstrap (Selenium IDE > Options > Options > SeLite Bootstrap > Selenium Core extension).
-    // If you don't, but you load this file as a Core extension file
-    // via Selenium IDE > Options > Options > 'Selenium Core extensions' instead, then
-    // you need to uncomment the following statements, along with the enclosing part of if(..)
-
-    // Components.utils.import( 'chrome://selite-misc/content/SeLiteMisc.js' );
-    // var loadedOddTimes= SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doFUDforumUsers'] || false;
-    // if( loadedOddTimes ) { // Ignore the first load, because Se IDE somehow discards that Selenium.prototype
-
-    // Do not pre-load any data here. SeLiteData.getStorageFromSettings() doesn't connect to SQLite,
-    // until you open/save a test suite. That's because it needs to know the test suite folder
-    // in order to resolve Settings field here. Test suite folder is not known when this is loaded,
-    // however SeLiteData.getStorageFromSettings() sets a handler via SeLiteSettings.addTestSuiteFolderChangeHandler().
-    // Once you open/save a test suite, storage object will get updated automatically and it will open an SQLite connection.
-
         var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
         commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor', 'contributor'] );
 
@@ -46,9 +37,6 @@ var FUDforum= {};
             })
         );
 
-        FUDforum.storage= SeLiteData.getStorageFromSettings();
-        FUDforum.db= new SeLiteData.Db( FUDforum.storage );
-        
         FUDforum.tables= {};
         FUDforum.tables.users= new SeLiteData.Table( {
            db:  FUDforum.db,
@@ -82,6 +70,4 @@ var FUDforum= {};
             columns: ['entity_type', 'bundle', 'deleted', 'entity_id', 'revision_id', 'language', 'delta', 'body_value', 'body_sumary', 'body_format'],
             primary: '@TODO group of columns'
         });*/
-    // }
-    // SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doFUDforumUsers']= !loadedOddTimes;
 })();

@@ -13,15 +13,21 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 "use strict";
 
-// Following is a namespace-like object in the global scope.
-var Serendipity= {
-    selectedUsername: undefined
-};
-
+// If you extend this framework from another file, see https://code.google.com/p/selite/wiki/TestFramework#Extending_a_test_framework#Extending_a_test_framework
+/** @type{object} A namespace-like object in the global scope.*/
+var Serendipity;
+if( Serendipity===undefined ) {
+    Serendipity= {
+        /** @type {string}*/
+        selectedUsername: undefined,
+        /** @type {SeLiteData.Db}*/
+        db: new SeLiteData.Db( SeLiteData.getStorageFromSettings() )
+    };
+}
 (function() {
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
     console.warn('Serendipity framework loading');
-    // @TODO Doc
+    // @TODO Doc -> Bootstrap? Or 
     // I suggest that you load this file via SeLite Bootstrap (Selenium IDE > Options > Options > SeLite Bootstrap > Selenium Core extension).
     // If you don't, but you load this file as a Core extension file
     // via Selenium IDE > Options > Options > 'Selenium Core extensions' instead, then
@@ -30,12 +36,9 @@ var Serendipity= {
     // Components.utils.import( 'chrome://selite-misc/content/SeLiteMisc.js' );
     // var loadedOddTimes= SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['Serendipity'] || false;
     // if( loadedOddTimes ) { // Ignore the first load, because Se IDE somehow discards that Selenium.prototype
-
-    // Do not pre-load any data here. SeLiteData.getStorageFromSettings() doesn't connect to SQLite,
-    // until you open/save a test suite. That's because it needs to know the test suite folder
-    // in order to resolve Settings field here. Test suite folder is not known when this is loaded,
-    // however SeLiteData.getStorageFromSettings() sets a handler via SeLiteSettings.addTestSuiteFolderChangeHandler().
-    // Once you open/save a test suite, storage object will get updated automatically and it will open an SQLite connection.
+    // ....
+    // }
+    // SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doFUDforumUsers']= !loadedOddTimes;
         /** @type {SeLiteSettings.Module} */
         var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
         commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor', 'contributor'] );
@@ -70,7 +73,7 @@ var Serendipity= {
          * */
         Serendipity.config= function config( name, useSelectedUsername ) {
             !useSelectedUsername || Serendipity.selectedUsername || SeLiteMisc.fail( 'Call Serendipity.selectUsername() first.' );
-            var query= 'SELECT value FROM ' +Serendipity.storage.tablePrefixValue+ "config WHERE name=:name AND ";
+            var query= 'SELECT value FROM ' +Serendipity.db.storage.tablePrefixValue+ "config WHERE name=:name AND ";
             query+= useSelectedUsername
                 ? "(authorid=0 OR authorid=(SELECT authorid FROM " +Serendipity.tables.authors.nameWithPrefix()+ " WHERE username=:selectedUsername)) "
                 : "authorid=0";
@@ -82,7 +85,7 @@ var Serendipity= {
                 bindings.selectedUsername= Serendipity.selectedUsername;
             }
             console.log( 'Serendipity.config(): ' +query );
-            var records= Serendipity.storage.select( query, bindings );
+            var records= Serendipity.db.storage.select( query, bindings );
             return records.length>0
                 ? records[0].value
                 : undefined;
@@ -107,7 +110,7 @@ var Serendipity= {
             if( forUser ) {
                 bindings.selectedUsername= Serendipity.selectedUsername;
             }
-            Serendipity.storage.execute( query, bindings );
+            Serendipity.db.storage.execute( query, bindings );
         };
         
         /** @param {string} name Name of the config field (i.e. matching column serendipity_config.name).
@@ -251,9 +254,6 @@ var Serendipity= {
                 }
             })
         );
-        /** @type {SeLiteData.Storage}*/
-        Serendipity.storage= SeLiteData.getStorageFromSettings();
-        Serendipity.db= new SeLiteData.Db( Serendipity.storage );
         
         Serendipity.tables= {};
         Serendipity.formulas= {};
