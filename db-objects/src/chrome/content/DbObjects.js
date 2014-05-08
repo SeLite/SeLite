@@ -836,7 +836,7 @@ RecordSetHolder.prototype.removeRecordHolder= function removeRecordHolder( recor
     if( typeof this.formula.table.primary==='string' ) {
         var primaryKeyValue= recordHolder.record[this.formula.table.primary];
         delete this.holders[ primaryKeyValue ];
-        delete this.recordSet[ SeLiteMisc.indexesOfRecord(this.recordSet, recordHolder.record) ]; //@TODO This doesn't work if multi-indexed! Then we also need to delete 1st level index, if there are no subentries left.
+        delete this.recordSet[ SeLiteMisc.indexOfRecord(this.recordSet, recordHolder.record) ];
         delete this.originals[ primaryKeyValue ];
         delete this.markedToRemove[ primaryKeyValue ];
     }

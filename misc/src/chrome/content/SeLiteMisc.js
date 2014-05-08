@@ -1218,19 +1218,19 @@ SeLiteMisc.numberOfRecords= function numberOfRecords( recordSet ) {
  *  @param record object, record to search for.
  *  @return int 0-based index of that record if found,-1 otherwise.
  */
-SeLiteMisc.indexesOfRecord= function indexesOfRecord( recordSet, record ) {
-    return nthRecordOrLengthOrIndexesOf( recordSet, INDEXES_OF_RECORD, record );
+SeLiteMisc.indexOfRecord= function indexOfRecord( recordSet, record ) {
+    return nthRecordOrLengthOrIndexesOf( recordSet, INDEX_OF_RECORD, record );
 };
 
 /** Acceptable values of parameter action for nthRecordOrLengthOrIndexesOf()
  * */
-var NTH_RECORD= 'NTH_RECORD', NUMBER_OF_RECORDS='NUMBER_OF_RECORDS', INDEXES_OF_RECORD= 'INDEXES_OF_RECORD';
+var NTH_RECORD= 'NTH_RECORD', NUMBER_OF_RECORDS='NUMBER_OF_RECORDS', INDEX_OF_RECORD= 'INDEX_OF_RECORD';
 
-/** @private Implementation of SeLiteMisc.nthRecord() and SeLiteMisc.numberOfRecords() and SeLiteMisc.indexesOfRecord(). Multi-purpose function
+/** @private Implementation of SeLiteMisc.nthRecord() and SeLiteMisc.numberOfRecords() and SeLiteMisc.indexOfRecord(). Multi-purpose function
  *  that iterates over indexed (and optionally sub-indexed) records.
  *  @param mixed recordSet just like the same parameter in SeLiteMisc.nthRecord() and SeLiteMisc.numberOfRecords()
  *  @param string action Determines the purpose and behavious of calling this function. action must be one of:
- *  NTH_RECORD, NUMBER_OF_RECORDS, INDEXES_OF_RECORD.
+ *  NTH_RECORD, NUMBER_OF_RECORDS, INDEX_OF_RECORD.
  *  @param mixed positionOrRecord Either
  *  -- number, 0-based position across the indexed or indexed and subindexed tree, as iterated by Javascript
  *  (which doesn't guarantee same order on every invocation); or
@@ -1238,7 +1238,7 @@ var NTH_RECORD= 'NTH_RECORD', NUMBER_OF_RECORDS='NUMBER_OF_RECORDS', INDEXES_OF_
  *  @return mixed
  *  -- if action==NTH_RECORD then it returns a record at that position
  *  -- if action==NUMBER_OF_RECORDS, then it returns a total number of records
- *  -- if action==INDEXES_OF_RECORD, then it returns an array with indexes of the given record, if found. Precisely:
+ *  -- if action==INDEX_OF_RECORD, then it returns an array with indexes of the given record, if found. Precisely:
  *  --- [index, subindex] if the record is found and subindexed
  *  --- [index] if the record is found and indexed, but not subindexed
  *  --- [] if the record is not found
@@ -1247,17 +1247,17 @@ var NTH_RECORD= 'NTH_RECORD', NUMBER_OF_RECORDS='NUMBER_OF_RECORDS', INDEXES_OF_
 function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
     SeLiteMisc.ensureType( recordSet, 'object', 'recordSet must be an object');
     SeLiteMisc.ensureType( positionOrRecord, ['number', 'object', 'undefined'], 'positionOrRecord must be a number, or an object or undefined.');
-    SeLiteMisc.ensureOneOf( action, [NTH_RECORD, NUMBER_OF_RECORDS, INDEXES_OF_RECORD], 'nthRecordOrLengthOrIndexesOf() called with wrong parameter action' );
+    SeLiteMisc.ensureOneOf( action, [NTH_RECORD, NUMBER_OF_RECORDS, INDEX_OF_RECORD], 'nthRecordOrLengthOrIndexesOf() called with wrong parameter action' );
     
     // Following three booleans reflect what we're doing.
     var nthRecord= action===NTH_RECORD;
-    var indexesOfRecord= action===INDEXES_OF_RECORD;
+    var indexOfRecord= action===INDEX_OF_RECORD;
     var numberOfRecords= action===NUMBER_OF_RECORDS;
     
     var position= nthRecord
         ? positionOrRecord
         : undefined;
-    var record= indexesOfRecord  
+    var record= indexOfRecord  
         ? positionOrRecord
         : undefined;
     
@@ -1271,7 +1271,7 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
     for( var index in recordSet ) {
         var entry= recordSet[index];
         if( Array.isArray(entry) ) {
-            if( indexesOfRecord ) {
+            if( indexOfRecord ) {
                 var foundSubPosition= recordSet.indexOf( record );
                 if( foundSubPosition>=0 ) {
                     return [index, foundSubPosition];
@@ -1284,7 +1284,7 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
             currPosition+= entry.length;
         }
         else {
-            if( indexesOfRecord && entry===positionOrRecord ) {
+            if( indexOfRecord && entry===positionOrRecord ) {
                 return [index];
             }
             if( nthRecord && currPosition===positionOrRecord ) {
@@ -1293,7 +1293,7 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
             currPosition++;
         }
     }
-    if( indexesOfRecord ) {
+    if( indexOfRecord ) {
         return [];
     }
     else
