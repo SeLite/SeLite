@@ -121,6 +121,8 @@ function readOnlyJoined( field ) {
  *  this.record object links to a new SeLiteData.Record instance.
  **/
 function RecordHolder( recordSetHolderOrFormula, plainRecord ) {
+    /** @type {RecordSetHolder}*/
+    this.recordSetHolder= null;
  /*  I would like to use use Firefox JS Proxies https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
  *  -- try javascript:"use strict"; function MyProxy( target ) { Proxy.constructor.call(this, target, this ); } MyProxy.prototype.save= function() {}; var o=new MyProxy(); o.save()
  *  -- No need to set MyProxy.prototype.constructor to Proxy.constructor*/
@@ -134,6 +136,7 @@ function RecordHolder( recordSetHolderOrFormula, plainRecord ) {
     else if( recordSetHolderOrFormula!==null ) {
         throw new Error("RecordHolder() expects the first parameter to be an instance of RecordSetHolder or SeLiteData.RecordSetFormula." );
     }
+    /** @type{SeLiteData.Record}*/
     this.record= new SeLiteData.Record( plainRecord, this );
     if( recordSetHolderOrFormula instanceof SeLiteData.RecordSetFormula && Object.keys(this.record).length>0 ) {
         this.setOriginalAndWatchEntries();
@@ -200,14 +203,13 @@ RecordHolder.prototype.setOriginalAndWatchEntries= function setOriginalAndWatchE
             this.record.watch( field, readOnlyJoined );
         }
     }
-    // Don't allow change of primary key. That's because RecordSetHolder.originals are indexed by primary key.
-    if( typeof this.recordSetHolder.formula.table.primary==='string' ) {
-        this.record.watch( this.recordSetHolder.formula.table.primary, readOnlyPrimary );
+    // Don't allow change of primary key column(s). That's because RecordSetHolder.originals are indexed by primary key.
+    var primaryKeyColumns= typeof this.recordSetHolder.formula.table.primary==='string'
+        ? [this.recordSetHolder.formula.table.primary]
+        : this.recordSetHolder.formula.table.primary;
+    for( var i=0; i<primaryKeyColumns.length; i++ ) {//@TODO for(..of..) once NetBeans likes it
+        this.record.watch( primaryKeyColumns[i], readOnlyPrimary );
     }
-    else {
-        SeLiteMisc.fail( '@TODO or re-consider');
-    }
-    Object.seal( this.record );
 };
 
 RecordHolder.prototype.select= function select() { throw new Error( "@TODO. In the meantimes, use RecordSetHolder.select() or SeLiteData.RecordSetFormula.select()."); };
@@ -292,7 +294,7 @@ RecordHolder.prototype.update= function update() {
     this.setOriginalAndWatchEntries();
 };
 
-/** @return {(number?)} null on update; id of the new record on insert; -1 on remove (RecordSetHolder depends on -1)
+/** @return {(number?)} null on update; id of the new record on insert; -1 on remove (RecordSetHolder depends on it being -1)
  **/
 RecordHolder.prototype.put= function put() {
     if( Object.isFrozen(this.record) ) {
@@ -333,13 +335,7 @@ RecordHolder.prototype.markToRemove= function markToRemove() {
 };
 
 RecordHolder.prototype.remove= function remove() {
-    if( typeof this.recordSetHolder.formula.table.primary==='string' ) {//@TODO Storage.removeRecordByPrimary
-        this.recordSetHolder.storage().removeRecordByPrimary( this.recordSetHolder.formula.table.nameWithPrefix(), this.recordSetHolder.formulate.table.primary,
-            this.record[ this.recordSetHolder.formula.table.primary] );
-    }
-    else {
-        throw '@TODO';
-    }
+    this.recordSetHolder.storage().removeRecordByPrimary( this.recordSetHolder.formula.table.nameWithPrefix(), this.recordSetHolder.formulate.table.primary, this.record );
 };
 
 /** @constructor Constructor of formula objects.

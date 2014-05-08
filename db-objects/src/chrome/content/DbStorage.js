@@ -422,7 +422,7 @@ SeLiteData.Storage.prototype.updateRecords= function updateRecords( params ) {
 /** Update a in the DB, matching it by 'id' field (i.e. params.entries.id).
  * @param object params Object in form {
  *   table: string table name,
- *   primary: string primary key name, or an array of string column names (for a multi-column primary key); optional - 'id' by default,
+ *   primary: string primary key name, or an array of string column names (for a multi-column primary key),
  *   entries: object (serving as an associative array) with the columns to update in the given table. In form
  *       { field: value,
  *         field: value...
@@ -438,7 +438,7 @@ SeLiteData.Storage.prototype.updateRecords= function updateRecords( params ) {
 SeLiteData.Storage.prototype.updateRecordByPrimary= function updateRecordByPrimary( params ) {
     var copiedParams= SeLiteMisc.objectClone( params, ['table', 'entries', 'fieldsToProtect', 'debugQuery'], ['table', 'entries'] );
     copiedParams.entries= SeLiteMisc.objectClone( copiedParams.entries );
-    var primaryKey= params.primary || ['id'];
+    var primaryKey= params.primary;
     var primaryKeyColumns= typeof primaryKey==='string'
         ? [primaryKey]
         : primaryKey;
@@ -454,11 +454,21 @@ SeLiteData.Storage.prototype.updateRecordByPrimary= function updateRecordByPrima
 
 /** Delete a record in the DB, matching it by the given field and its value.
  *  The value will be quoted and it must not be null.
+ * @param {string} tableName
+ * @param {string|array} primaryKey
+ * @param {object} record
  * @return void
  * @throws an error on failure
  */
-SeLiteData.Storage.prototype.removeRecordByPrimary= function removeRecordByPrimary( table, field, value ) {
-    var query= "DELETE FROM " +table+ " WHERE " +field+ "=" +this.quote(value);
+SeLiteData.Storage.prototype.removeRecordByPrimary= function removeRecordByPrimary( tableName, primaryKey, record ) {
+    if( typeof primaryKey==='string' ) {
+        primaryKey= [primaryKey];
+    }
+    var conditionParts= [];
+    for( var i=0; i<primaryKey.length; i++ ) {//@TODO for(..of..) once NetBeans likes it
+        conditionParts.push( primaryKey[i]+ '=' +this.quoteValues( record[primaryKey[i]] ) );
+    }
+    var query= "DELETE FROM " +tableName+ " WHERE " +conditionParts.join( 'AND' );
     var stmt= this.connection.createStatement( query );
     stmt.execute();
 };

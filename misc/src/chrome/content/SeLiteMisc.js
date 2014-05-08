@@ -1243,7 +1243,6 @@ var NTH_RECORD= 'NTH_RECORD', NUMBER_OF_RECORDS='NUMBER_OF_RECORDS', INDEXES_OF_
  *  --- [index] if the record is found and indexed, but not subindexed
  *  --- [] if the record is not found
  *  @throws Error on failure, or if action=NTH_RECORD and positionOrRecord is equal to or higher than number of records
- *  @TODO check after I've refactored collectByColumn()
  **/
 function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
     SeLiteMisc.ensureType( recordSet, 'object', 'recordSet must be an object');
