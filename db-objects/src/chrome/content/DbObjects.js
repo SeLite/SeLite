@@ -162,18 +162,8 @@ SeLiteData.Record= function Record( data, recordHolder ) {
 */
 SeLiteData.Record.RECORD_TO_HOLDER_FIELD= 'RECORD_TO_HOLDER_FIELD';
 
-// @TODO Document: this won't work if a table column is 'toString'
-SeLiteData.Record.prototype.toString= function toString() { //@TODO Move to SeLiteMisc; then assign here
-    var result= '';
-    for( var field in this ) {
-        if( typeof this[field]!=='function' ) {
-            if( result ) {
-                result+= '\n';
-            }
-            result+= field+ ': ' +this[field];
-        }
-    }
-    return result;
+SeLiteData.Record.prototype.toString= function toString() {
+    return SeLiteMisc.objectToString( this );
 };
 
 /** @private Not a part of public API.
@@ -278,7 +268,7 @@ RecordHolder.prototype.insert= function insert() {
 RecordHolder.prototype.ownEntries= function ownEntries() {
     var allAliasesToSource= this.recordSetHolder.formula.allAliasesToSource();
     for( var field in this.record ) {
-        if( !(field in allAliasesToSource) ) {//@TODO Why did I want this when inserting/updating data?:
+        if( !(field in allAliasesToSource) ) {
             throw new Error( "Trying to insert/update a record in table '" +this.recordSetHolder.formula.table.nameWithPrefix()+
                 "' with field '" +field+ "' which is not a listed alias in this formula." );
         }

@@ -268,6 +268,7 @@ higherObjects, includeNonEnumerable ) {
     if( typeof object!=='object' || object===null ) {
         return ''+object;
     }
+    recursionDepth= recursionDepth || 0;
     leafClassNames= leafClassNames || [];
     higherObjects= higherObjects || [];
     higherObjects.push(object);
