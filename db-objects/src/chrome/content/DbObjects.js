@@ -231,8 +231,7 @@ RecordHolder.prototype.select= function select() { throw new Error( "@TODO. In t
 
 RecordHolder.prototype.selectOne= function selectOne() { throw new Error( "@TODO. In the meantime, use RecordSetHolder.selectOne() or SeLiteData.RecordSetFormula.selectOne()."); };
 
-// @TODO RecordHolder.insert() which is linked to an existing RecordSetHolder, and it adds itself to that recordSetHolder.
-//       But then the recordSetHolder may not match its formula anymore - have a flag/handler for that.
+// @TODO Consider: RecordHolder.insert() which is linked to an existing RecordSetHolder, and it adds itself to that recordSetHolder. - But then the recordSetHolder may not match its formula anymore - have a flag/handler for that?
 /** This saves this.record into main table of the formula. As defined by RecordHolder() constructor,
  *  keys/field names in this.record are the column aliases. This re-maps them to the DB columns before inserting.
  *  @TODO set/modify this.originals.
@@ -274,11 +273,13 @@ RecordHolder.prototype.insert= function insert() {
     return primaryKeyValue;
 };
 
+/** This generates a transformation of this.record, with any column alias names transformed to the original columns (as defined for the table). It serves when updating/inserting this.record that was previously loaded from the DB (potentially with column aliases).
+ * */
 RecordHolder.prototype.ownEntries= function ownEntries() {
     var allAliasesToSource= this.recordSetHolder.formula.allAliasesToSource();
     for( var field in this.record ) {
-        if( !(field in allAliasesToSource) ) {
-            throw new Error( "Trying to insert/update a record to table '" +this.recordSetHolder.formula.table.nameWithPrefix()+
+        if( !(field in allAliasesToSource) ) {//@TODO Why did I want this when inserting/updating data?:
+            throw new Error( "Trying to insert/update a record in table '" +this.recordSetHolder.formula.table.nameWithPrefix()+
                 "' with field '" +field+ "' which is not a listed alias in this formula." );
         }
     }
@@ -693,12 +694,17 @@ RecordSetHolder.prototype.select= function select() {
             : formula.fetchMatching[field];
         matching[field]= matchingValue;
     }
-    var usingParameterCondition= typeof this.parametersOrCondition==='string';
-    if( !usingParameterCondition ) {
-        for( var paramName in usingParameterCondition ) {//@TODO This is wrong
+    var usingCondition= typeof this.parametersOrCondition==='string';
+    if( !usingCondition ) {
+        var allAliasesToSource= formula.allAliasesToSource();
+        for( var paramName in this.parametersOrCondition ) {
             if( formula.parameterNames.indexOf(paramName)<0 ) {
-                throw new Error( "Unexpected query parameter with name '" +paramName+ "' and value: " +usingParameterCondition[paramName] );
+                continue;
             }
+            if( paramName in allAliasesToSource ) {
+                continue;
+            }
+            throw new Error( "Unexpected query parameter with name '" +paramName+ "' and value: " +this.parametersOrCondition[paramName] );
         }
     }
     var joins= [];
@@ -707,13 +713,13 @@ RecordSetHolder.prototype.select= function select() {
         joinClone.table= join.table.nameWithPrefix();
         joins.push( joinClone );
     } );
-    var condition= usingParameterCondition
+    var condition= usingCondition
         ? this.parametersOrCondition
         : null;
-    var parameters= !usingParameterCondition
+    var parameters= !usingCondition
         ? SeLiteMisc.objectClone(this.parametersOrCondition)
         : {};
-    var parametersForProcessHandler= !usingParameterCondition
+    var parametersForProcessHandler= !usingCondition
         ? this.parametersOrCondition
         : {};
     var unnamedParamFilters= []; // Filter conditions based on entries from parameters that match a table/join column/alias.
