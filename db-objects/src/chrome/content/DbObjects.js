@@ -663,13 +663,13 @@ RecordSetHolder.prototype.select= function select() {
         }
         else {
             var join;
-            for( var i=0; i<formula.joins.length; i++ ) {//@TODO if I need to do something similar again, extend SeLiteMisc.objectValueToField() to accept a callback function
-                join= formula.joins[i];
-                if( join.table.name==tableName ) {
+            for( var i=0; i<formula.joins.length; i++ ) {//@TODO for(..of..) once NetBeans likes it
+                if( formula.joins[i].table.name===tableName ) {
+                    join= formula.joins[i];
                     break;
                 }
             }
-            if( i==formula.joins.length ) {
+            if( join===undefined ) {
                 throw new Error( "Formula defined columns for table '" +tableName+ "' but it's not the main table neither a join table." );
             }
             tableAlias= join.alias;
