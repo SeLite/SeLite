@@ -972,7 +972,8 @@ SeLiteMisc.collectByColumn= function collectByColumn( records, fieldNames, value
     return result;
 };
 
-/** Generate a compound index valu, as used by SeLiteMisc.collectByColumn().
+/** Generate a compound index value, as used by SeLiteMisc.collectByColumn().
+ * @TODO Consider JSON.stringify()
  *  @param {object} record
  *  @param {array} fieldNames Array of strings - field names within given record.
  *  @return {*} Value of compound index, as used for keys of result of SeLiteMisc.collectByColumn(). Implementation-specific.

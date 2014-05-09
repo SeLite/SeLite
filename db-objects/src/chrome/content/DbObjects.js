@@ -259,11 +259,14 @@ RecordHolder.prototype.insert= function insert() {
         entries: entries,
         fieldsToProtect: typeof this.recordSetHolder.formula.table.primary==='string'
             ? [this.recordSetHolder.formula.table.primary]
-            : [],
+            : [], // We allow change of multi-column primary key columns, otherwise it would be impractical to update them
         debugQuery: this.recordSetHolder.formula.debugQuery
     });
     var primaryKeyValue;
-    if( typeof this.recordSetHolder.formula.table.primary==='string' ) {
+    if( typeof this.recordSetHolder.formula.table.primary==='string'
+        && !this.recordSetHolder.formula.generateInsertKey()
+        && entries[this.recordSetHolder.formula.table.primary]===undefined
+    ) {
         primaryKeyValue= this.recordSetHolder.storage().lastInsertRow( this.recordSetHolder.formula.table.nameWithPrefix(), [this.recordSetHolder.formula.table.primary] )[ this.recordSetHolder.formula.table.primary ];
         // This requires that the primary key is never aliased. @TODO use column alias, if present?
         this.record[ this.recordSetHolder.formula.table.primary ]= primaryKeyValue;
@@ -340,12 +343,7 @@ RecordHolder.prototype.put= function put() {
 
 RecordHolder.prototype.markToRemove= function markToRemove() {
     this.markedToRemove= true;
-    if( typeof this.recordSetHolder.formula.table.primary==='string' ) {
-        this.recordSetHolder.markedToRemove[ this.record[this.recordSetHolder.formula.table.primary] ]= this;
-    }
-    else {
-        throw '@TODO';
-    }
+    this.recordSetHolder.markedToRemove[ primaryKeyCompound() ]= this;
     Object.freeze( this.record );
 };
 
@@ -395,7 +393,7 @@ RecordHolder.prototype.remove= function remove() {
  *      parameterNames
  *      sort
  *      sortDirection
- *      indexBy - either a field name (string), or an array of them. If it's a single field name, it will be converted into an array (containing that single field name).
+ *      indexBy - either a field name (string), or an array of them. If it's a single field name, it will be converted into an array (containing that single field name). Optional; if not set and the table has a single-column primary key then it's set to that key; otherwise there's no indexing.
  *      indexUnique
  *      process
  *      debugQuery
@@ -426,12 +424,12 @@ SeLiteData.RecordSetFormula= function RecordSetFormula( params, prototype ) {
     }
 
     // The following doesn't apply to indexing of RecordSetHolder.originals.
-    if( this.indexBy===undefined && this.table && this.table.primary ) {
+    if( this.indexBy===undefined && this.table && this.table.primary && this.table.primary==='string' ) {
         this.indexBy= this.table.primary;
         this.indexUnique===undefined || this.indexUnique || SeLiteMisc.fail( 'Formula for table ' +this.table.name+ " doesn't specify indexBy field, therefore it should not specify indexUnique as false.");
         this.indexUnique= true;
     }
-    else if( !Array.isArray(this.indexBy) ) {
+    if( this.indexBy && !Array.isArray(this.indexBy) ) {
         this.indexBy= [this.indexBy];
     }
     // @TODO check that all own table columns' aliases are unique: Object.keys( SeLiteMisc.objectReverse( ownColumns() ) )
@@ -697,7 +695,7 @@ RecordSetHolder.prototype.select= function select() {
     }
     var usingParameterCondition= typeof this.parametersOrCondition==='string';
     if( !usingParameterCondition ) {
-        for( var paramName in usingParameterCondition ) {
+        for( var paramName in usingParameterCondition ) {//@TODO This is wrong
             if( formula.parameterNames.indexOf(paramName)<0 ) {
                 throw new Error( "Unexpected query parameter with name '" +paramName+ "' and value: " +usingParameterCondition[paramName] );
             }
@@ -810,16 +808,16 @@ RecordSetHolder.prototype.select= function select() {
     this.originals= {};
     for( var j=0; j<data.length; j++ ) {
         var holder= new RecordHolder( this, data[j] );
-        if( typeof this.formula.table.primary==='string' ) {
-            this.holders[ holder.record[formula.table.primary] ]= holder;
-            unindexedRecords.push( holder.record );
-            this.originals[ holder.record[ formula.table.primary] ]= holder.original;
-        }
-        else {
-            throw 'TODO';
-        }
+        this.holders[ holder.primaryKeyCompound() ]= holder;
+        unindexedRecords.push( holder.record );
+        this.originals[ holder.primaryKeyCompound() ]= holder.original;
     }
-    SeLiteMisc.collectByColumn( unindexedRecords, formula.indexBy, formula.indexUnique, this.recordSet );
+    if( formula.indexBy ) {
+        SeLiteMisc.collectByColumn( unindexedRecords, formula.indexBy, formula.indexUnique, this.recordSet );
+    }
+    else {
+        this.recordSet= unindexedRecords;
+    }
     if( formula.process ) {
         this.recordSet= formula.process( this.recordSet, parametersForProcessHandler );
     }
