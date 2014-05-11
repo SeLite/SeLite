@@ -312,7 +312,7 @@ SQLiteConnectionInfo.prototype.close= function close( synchronous ) {
 /** Locate SQLiteConnectionInfo instance, if any. 'Private function'.
  *  @param mixed fileNameOrConnectionOrParameters Either instance of SQLiteConnectionParameters, or a full path+filename of an SQLite file
  *  @param string callerFunctionName Used to make the error messages nicer.
- *  @return SQLiteConnectionInfo instance, if matched; null if not matched but no error
+ *  @return {SQLiteConnectionInfo} instance, if matched; null if not matched but no error
  *  @throw Error if fileNameOrConnectionOrParameters is of incorrect type
  *  */
 function locateConnectionInfo( fileNameOrConnectionOrParameters, callerFunctionName ) {
