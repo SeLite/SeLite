@@ -74,7 +74,7 @@ SQLiteConnectionParameters.prototype= {
    *  @return SQLite connection object
    *  @throw whatever bad happens
    **/
-  connect: function() {
+  connect: function connect() {
       var info= locateConnectionInfo( this, 'connect' );
       if( info ) {
           return info.connection;
@@ -99,7 +99,7 @@ SQLiteConnectionParameters.prototype= {
    *  @throw if fileNameOrConnection doesn't match any open connection object
    *  neither its parameters neither any of their filenames, or on underlying failure
    **/
-  close: function( synchronous, callback ) {
+  close: function close( synchronous, callback ) {
       var info= locateConnectionInfo( this, 'close' );
       if( info ) {
           info.close( synchronous, callback );
@@ -109,7 +109,7 @@ SQLiteConnectionParameters.prototype= {
       }
   },
 
-  beingClosedDown: function() {
+  beingClosedDown: function beingClosedDown() {
       var info= locateConnectionInfo( this, 'beingClosedDown' );
       return info && info.beingClosedDown;
   },
@@ -143,17 +143,17 @@ function preloadCacheTable( connection, tableNames, tableIndex, errorHandler ) {
     }
     var statement= connection.createAsyncStatement( 'SELECT * FROM ' +tableNames[tableIndex] );
     statement.executeAsync( {
-        handleResult: function(aResultSet) {
+        handleResult: function handleResult(aResultSet) {
             // This gets called only if there was data returned from DB
             // This may be called several times per same statement!
             while( aResultSet.getNextRow() );
         },
-        handleError: function(aError) {
+        handleError: function handleError(aError) {
             if( errorHandler ) {
                 errorHandler( "Couldn't pre-load cache for table " +tableNames[tableIndex]+ ': ' +aError );
             }
         },
-        handleCompletion: function(aReason) {
+        handleCompletion: function handleCompletion(aReason) {
             // Chain - preload the rest of the tables, recursively. This gets called whether there was any data returned or not
             preloadCacheTable( connection, tableNames, tableIndex+1, errorHandler );
         }
@@ -287,7 +287,7 @@ SQLiteConnectionInfo.prototype.close= function close( synchronous, callback ) {
     }
     var info= this;
     var completionHandler= {
-        complete: function() {
+        complete: function complete() {
             // remove itself from SQLiteConnectionInfo.connectionInfos
             for( var i=0; i<SQLiteConnectionInfo.connectionInfos.length; i++ ) {
                 if( SQLiteConnectionInfo.connectionInfos[i]===info ) {

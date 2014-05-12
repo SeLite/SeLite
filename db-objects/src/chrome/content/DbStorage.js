@@ -723,7 +723,7 @@ function testSuiteFolderChangeHandler() {
             if( instance.parameters.fileName===newFileName ) {
                 continue;
             }
-            instance.close( true, function() {
+            instance.close( true, function callback() {
                 instance.parameters.fileName= null;
                 if( newFileName ) {
                     instance.parameters.fileName= newFileName;
