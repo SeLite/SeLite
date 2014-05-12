@@ -1598,7 +1598,12 @@ window.addEventListener( "load", function(e) {
         var moduleName= null;
         if( match ) {
             moduleName= unescape( match[1] );
-            modules[ moduleName ]= SeLiteSettings.loadFromJavascript( moduleName, undefined, true/** Force reload, so that user's changes has an effect without restarting Firefox. */ );
+            try {
+                modules[ moduleName ]= SeLiteSettings.loadFromJavascript( moduleName, undefined, true/** Force reload, so that user's changes has an effect without restarting Firefox. */ );
+            }
+            catch(e) {
+                alert( "Couldn't load JS definnition of the requested module." );
+            }
             SeLiteMisc.ensure( !targetFolder || modules[moduleName].associatesWithFolders, "You're using URL with folder=" +targetFolder+
                 " and module=" +moduleName+ ", however that module doesn't allow to be associated with folders." );
         }
@@ -1626,11 +1631,22 @@ window.addEventListener( "load", function(e) {
     if( SeLiteMisc.isEmptyObject(modules) ) {
         allowModules= true;
         var moduleNames= SeLiteSettings.moduleNamesFromPreferences( prefix );
+        var brokenModuleNames= [];
         for( var i=0; i<moduleNames.length; i++ ) {
-            var module= SeLiteSettings.loadFromJavascript( moduleNames[i], undefined, true/** Force reload, so that user's changes take effect without restarting Firefox. */ );
+            var module;
+            try {
+                module= SeLiteSettings.loadFromJavascript( moduleNames[i], undefined, true/** Force reload, so that user's changes take effect without restarting Firefox. */ );
+            }
+            catch(e) {
+                brokenModuleNames.push( moduleNames[i] );
+            }
+
             if( targetFolder===null || module.associatesWithFolders ) {
                 modules[ moduleNames[i] ]= module;
             }
+        }
+        if( brokenModuleNames.length>0 ) {
+            alert( "Couldn't load JS definnition of configuration module(s) " +brokenModuleNames.join(', ')+ '.' );
         }
     }
     var tree= document.createElementNS( XUL_NS, 'tree' );
