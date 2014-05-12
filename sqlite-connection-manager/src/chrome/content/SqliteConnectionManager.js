@@ -94,14 +94,15 @@ SQLiteConnectionParameters.prototype= {
    *  If you've executed any asynchronous statements, then it must be false.
    *  See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/mozIStorageConnection#close%28%29.
    *  Note that when true, I regularly got NS_ERROR_STORAGE_BUSY: Component returned failure code: 0x80630001 (NS_ERROR_STORAGE_BUSY) [mozIStorageConnection.close], even though I have only used synchronous statements! So, it's safer to pass synchronous=true.
+   *  @param {function} [callback] Function to call after closed (regardless whether synchronous or asynchronous close)
    *  @return void
    *  @throw if fileNameOrConnection doesn't match any open connection object
    *  neither its parameters neither any of their filenames, or on underlying failure
    **/
-  close: function( synchronous ) {
+  close: function( synchronous, callback ) {
       var info= locateConnectionInfo( this, 'close' );
       if( info ) {
-          info.close( synchronous );
+          info.close( synchronous, callback );
       }
       else {
           throw new Error( "SQLiteConnectionParameters.close() couldn't find an open connection to " +this.fileName );
@@ -276,10 +277,11 @@ SQLiteConnectionInfo.prototype.open= function open() {
  * until the asynchronous close completes; then it removes this SQLiteConnectionInfo
  * instance from list of instances.
  * @param bool synchronous Whether to close it down synchronously; otherwise it's closed down asynchronously (default).
+ *  @param {function} [callback] Function to call after closed (regardless whether synchronous or asynchronous close)
  * @return void
  * @throw on error (or if beingClosedDown was set already)
  * */
-SQLiteConnectionInfo.prototype.close= function close( synchronous ) {
+SQLiteConnectionInfo.prototype.close= function close( synchronous, callback ) {
     if( this.beingClosedDown ) {
         throw new Error( 'SQLiteConnectionInfo.close(): the connection is already being closed down.' );
     }
@@ -296,6 +298,9 @@ SQLiteConnectionInfo.prototype.close= function close( synchronous ) {
             this.connection= null;
             if( !synchronous ) {
                 console.log( "SQLiteConnectionInfo.close() successfully closed asynchronously." );
+            }
+            if( callback ) {
+                callback();
             }
         }
     };

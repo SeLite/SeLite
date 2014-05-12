@@ -28,6 +28,7 @@ var console= Components.utils.import("resource://gre/modules/devtools/Console.js
  *  have name clashes with functions in other files. See SeLite DB Objects for OOP layer on top of this.
  **/
 SeLiteData.Storage= function Storage() {
+    /** @type{SQLiteConnectionParameters} */
     this.parameters= new SQLiteConnectionParameters();
     this.parameters.errorHandler= console.error;
     this.connection= null; // This will be the actual connection - result of Services.storage.openDatabase(file)
@@ -51,11 +52,12 @@ SeLiteData.Storage.prototype.open= function open() {
 };
 
 /** Close the connection.
- *  @param synchronous boolean Whether to close it ; optional.
+ *  @param {boolean} synchronous Whether to close it ; optional.
+ *  @param {function} [callback] Function to call after closed (regardless whether synchronous or asynchronous close)
  *  @TODO check: If you have used any asynchronous (?!) statements, pass true. See same comment in SQLiteConnectionInfo.close()
  * */
-SeLiteData.Storage.prototype.close= function close( synchronous ) {
-    this.parameters.close( synchronous );
+SeLiteData.Storage.prototype.close= function close( synchronous, callback ) {
+    this.parameters.close( synchronous, callback );
     this.connection= null;
 };
 
@@ -713,19 +715,23 @@ function testSuiteFolderChangeHandler() {
     Object.keys(StorageFromSettings.instances).length===0 || SeLiteSettings.getTestSuiteFolder()
     || console.log( 'SeLiteSettings: there are ' +Object.keys(StorageFromSettings.instances).length+ ' instance(s) of StorageFromSettings, yet the current test suite has no folder yet.' );
     for( var fieldName in StorageFromSettings.instances ) {
+        /** @type{StorageFromSettings} */
         var instance= StorageFromSettings.instances[fieldName];
         instance instanceof StorageFromSettings || fail();
-        if( instance.connection ) {
-            instance.close( false ); // This deletes StorageFromSettings.instances[fieldName].
-                                     // In Java that would upset an Iterator object; but in Firefox Javascript the loop continues to iterate well.
-            instance.parameters.fileName= null;
-        }
         var newFileName= instance.dbField.getDownToFolder().entry;
-        if( newFileName ) {
-            instance.parameters.fileName= newFileName;
-            instance.open();
+        if( instance.connection ) {
+            if( instance.parameters.fileName===newFileName ) {
+                continue;
+            }
+            instance.close( true, function() {
+                instance.parameters.fileName= null;
+                if( newFileName ) {
+                    instance.parameters.fileName= newFileName;
+                    instance.open();
+                }
+            });
         }
-        else {
+        if( !newFileName ) {
             console.log( 'SeLiteSettings: The current test suite has a folder, but field ' +instance.dbField+ ' is not defined for it.' );
         }
     }
