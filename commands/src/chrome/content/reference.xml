@@ -52,12 +52,12 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
             <dt>validatePrecision</dt>
             <dd>Whether to validate the precision; optional. If true, this command performs a partial validation that the smallest displayed unit is not smaller than given <code>precision</code>. This validation can't eliminate 100% of such statements, since it depends on the data being displayed. If the timestamp displays down to seconds and the precision is 1 minute, but the displayed value happens to be a whole minute, this won't report the inconsistency.<br/>E.g. the timestamp parsed from <code>locator</code> element is <i>Jan 1, 2014 15:00:01 UTC</i>. If <code>precision</code> is more than a thousand (i.e. more than a second), the validation would fail - since the displayed timestamp precision is in seconds. However, if the actual displayed timestamp is in multiplies of <code>precision</code>, then the validation can't be determined. E.g. timestamp <i>Jan 1, 2014 15:00:00 UTC</i> would conform to <code>precision</code> of 60,000 (i.e. a minute). That's because validation is based on the actual displayed value, not on its format.<!-- @TODO Consider checking the format - but then Selenium.prototype.isTimestampDownToPrecision() couldn't jusr use Date.parse(). It would also have to check the format. -->
             </dd>
-            <dt>timezone</dt>
-            <dd>To be defined once Firefox 27 comes out.</dd>
+            <!--<dt>timezone</dt>
+            <dd>To be defined once Firefox supports time zone names</dd>-->
         </dl>
         }
     </param>
-    <comment>Parse the given element as a timestamp (at the given timezone, if any - to be supported with Firefox 27)
+    <comment>Parse the given element as a timestamp <!--(at the given timezone, if any)-->
         and compare to the given timestamp, down to given precision.
     </comment>
 </function>

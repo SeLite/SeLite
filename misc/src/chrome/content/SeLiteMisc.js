@@ -231,7 +231,7 @@ SeLiteMisc.itemGeneric= function itemGeneric( containerAndFields, nullReplacemen
                 }
                 field= field.valueOf();
             }
-            if( field<0 || field>item.length || field!=Math.round(field) ) {
+            if( field<0 || field>item.length || field!==Math.round(field) ) {
                 return nullReplacement;
             }
             item= item[field];
