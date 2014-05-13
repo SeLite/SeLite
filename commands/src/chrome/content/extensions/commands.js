@@ -93,7 +93,7 @@
      *  @param number timestampInMilliseconds Expected timestamp, number of milliseconds since Epoch
      *  @param number displayPrecisionInMilliseconds Smallest displayed time unit, in milliseconds
      *  @param bool validatePrecision
-     *  @TODO Use parameter timezone. Allow both short and long names? Make it daylightsaving-friendly - don't cache the time shift.
+     *  @TODO Use parameter timezone. Allow both short and long names? Make it daylightsaving-friendly, so that the test can run when daylightsaving changes - don't cache the time shift.
      *  This doesn't use timezone support in Date.parse(), because that only understands GMT, Z and US time zone abbreviations
      *  - see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse and try 
      *  Date.parse( "Fri, 11 Oct 2013 05:55:00 AEST" ) - it evaluates to NaN.
