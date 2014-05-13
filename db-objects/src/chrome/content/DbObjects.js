@@ -167,8 +167,8 @@ SeLiteData.Record.prototype.toString= function toString() {
 };
 
 /** @private Not a part of public API.
- *  @param SeLiteData.Record instance
- *  @return RecordHolder for that instance.
+ *  @param {SeLiteData.Record} instance
+ *  @return {RecordHolder} for that instance.
  **/
 SeLiteData.recordHolder= function recordHolder( record ) {
     SeLiteMisc.ensureInstance( record, SeLiteData.Record );
