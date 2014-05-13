@@ -22,15 +22,6 @@ SeLiteData.update= function update( recordOrSet ) {
     SeLiteData.recordOrSetHolder(recordOrSet).update();
 };
 
-SeLiteData.markToRemove= function markToRemove( record ) {
-    SeLiteData.recordHolder(record).markToRemove();
-};
-
-//@TODO RecordSetHolder.put() - should it be instead of replace()?
-SeLiteData.put= function put( recordOrSet ) {
-    SeLiteData.recordOrSetHolder(recordOrSet).put();
-};
-
 SeLiteData.remove= function remove( recordOrSet ) {
     SeLiteData.recordOrSetHolder(recordOrSet).remove();
 };

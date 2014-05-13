@@ -285,6 +285,9 @@ RecordHolder.prototype.ownEntries= function ownEntries() {
     return entries;
 };
 
+/** Update the underlying record.
+ *  @returns {void}
+ *  */
 RecordHolder.prototype.update= function update() {
      // Fields set in formula's onUpdate{} override any fields with the same name in this.record
     for( var field in this.recordSetHolder.formula.onUpdate ) {
@@ -301,41 +304,6 @@ RecordHolder.prototype.update= function update() {
         debugQuery: this.recordSetHolder.formula.debugQuery
     });
     this.setOriginalAndWatchEntries();
-};
-
-/** @return {(number?)} null on update; id of the new record on insert; -1 on remove (RecordSetHolder depends on it being -1)
- **/
-RecordHolder.prototype.put= function put() {
-    if( Object.isFrozen(this.record) ) {
-        throw "The record was frozen!";
-    }
-    if( this.markedToRemove ) {
-        this.remove();
-        return -1;
-    }
-    else
-    // Insert or update the record, depending on whether its primary key is set (it can be set to 0)
-    // @return primary key value, but only when it run an insert
-    if( typeof this.recordSetHolder.formula.table.primary==='string' ) {
-        if( this.record[this.recordSetHolder.formula.table.primary]!==undefined ) {
-            // @TODO compare to this.original
-            this.update();
-            return null;
-        }
-        else {
-            return this.insert();
-        }
-    }
-    else {
-        // @TODO Do we need this function at all?
-        throw '@TODO Have a flag indicating whether the record exists in the DB already, or not.';
-    }
-};
-
-RecordHolder.prototype.markToRemove= function markToRemove() {
-    this.markedToRemove= true;
-    this.recordSetHolder.markedToRemove[ primaryKeyCompound() ]= this;
-    Object.freeze( this.record );
 };
 
 RecordHolder.prototype.remove= function remove() {
@@ -626,7 +594,6 @@ function RecordSetHolder( formula, parametersOrCondition ) {
     this.holders= {}; // Object serving as an associative array { primary key value: RecordHolder instance }
     this.recordSet= new SeLiteData.RecordSet( this );
     this.originals= {}; // This will be set to object { primary-key-value: original object... }
-    this.markedToRemove= {}; // It keeps RecordHolder instances scheduled to be removed; structure like this.holders
 }
 
 RecordSetHolder.prototype.storage= function storage() {
@@ -825,16 +792,20 @@ RecordSetHolder.prototype.select= function select() {
 RecordSetHolder.prototype.selectOne= function selectOne() {
     this.select();
     var keys= Object.keys(this.recordSet);
-    if( keys.length!==1 ) {//@TODO multi-column indexes
+    if( keys.length!==1 ) {
         throw new Error( "Expecting one record, but there was: " +keys.length+ " of them." );
     }
-    return this.recordSet[ keys[0] ]; //@TODO multi-column indexes
+    return this.recordSet[ keys[0] ];
 };
 
 RecordSetHolder.prototype.insert= function insert() { throw new Error( "@TODO if need be" );
 }
 
-RecordSetHolder.prototype.update= function update() { throw new Error( "@TODO if need be" );
+RecordSetHolder.prototype.update= function update() {
+        for( var i=0; i<this.holders.length; i++ ) {
+        /** @type{RecordHolder} */var recordHolder= this.holders[i];
+        recordHolder.update();
+    }
 };
 
 /** This removes the record holder and its record from this set holder and its set. It doesn't
@@ -845,18 +816,6 @@ RecordSetHolder.prototype.removeRecordHolder= function removeRecordHolder( recor
     delete this.holders[ primaryKeyCompound ];
     delete this.recordSet[ SeLiteMisc.indexOfRecord(this.recordSet, recordHolder.record) ];
     delete this.originals[ primaryKeyCompound ];
-    delete this.markedToRemove[ primaryKeyCompound ];
-};
-
-RecordSetHolder.prototype.put= function put() {
-    for( var i=0; i<this.holders.length; i++ ) {
-        var recordHolder= this.holders[i];
-        var recordResult= recordHolder.put();
-        if( recordResult==-1 ) {
-            this.removeRecordHolder( recordHolder );
-            i--; // Because this.holders[] etc. was updated
-        }
-    }
 };
 
 RecordSetHolder.prototype.remove= function remove() { throw "TODO";
