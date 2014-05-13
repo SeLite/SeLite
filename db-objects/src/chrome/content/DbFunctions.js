@@ -15,7 +15,7 @@ SeLiteData.selectOne= function selectOne( recordOrSet ) {
 };
 
 SeLiteData.insert= function insert( recordOrSet ) {
-    return SeLteData.recordOrSetHolder(recordOrSet).insert();
+    return SeLiteData.recordOrSetHolder(recordOrSet).insert();
 }
 
 SeLiteData.update= function update( recordOrSet ) {

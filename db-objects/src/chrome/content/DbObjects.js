@@ -102,7 +102,18 @@ function readOnlyJoined( field ) {
     throw new Error( "Field '" +field+ "' is from a joined record, therefore it can't be changed." );
 }
 
-/** Constructor of an object which represents a holder of one DB record.
+/** @constructor Abstract class, parent of RecordHolder and RecordSetHolder.
+ * */
+function RecordOrSetHolder() {}
+RecordOrSetHolder.prototype= {
+    select: function select() { throw new Error('Abstract'); },
+    selectOne: function selectOne() { throw new Error('Abstract'); },
+    insert: function insert() { throw new Error('Abstract'); },
+    update: function update() { throw new Error('Abstract'); },
+    remove: function remove() { throw new Error('Abstract'); }
+};
+
+/** @constructor An object which represents a holder of one DB record.
  *  It allows us to have methods to manipulate the record, without a name conflict
  *  between names of those methods and fields of the record itself.
  *  <br/>Keys (field names) in this.record and this.original (if set) are the aliased
@@ -121,6 +132,7 @@ function readOnlyJoined( field ) {
  *  this.record object links to a new SeLiteData.Record instance.
  **/
 function RecordHolder( recordSetHolderOrFormula, plainRecord ) {
+    RecordOrSetHolder.call( this );
     /** @type {RecordSetHolder}*/
     this.recordSetHolder= null;
  /*  I would like to use use Firefox JS Proxies https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
@@ -142,6 +154,8 @@ function RecordHolder( recordSetHolderOrFormula, plainRecord ) {
         this.setOriginalAndWatchEntries();
     }
 }
+RecordHolder.prototype= new RecordOrSetHolder();
+RecordHolder.prototype.constructor= RecordHolder;
 
 /*** Constructor used for object that represents a record in a DB.
  *   @param {[?(Object|boolean)]} Object with the record's data, or null/false/undefined.
@@ -549,7 +563,7 @@ SeLiteData.RecordSet.RECORDSET_TO_HOLDER_FIELD= 'RECORDSET_TO_HOLDER_FIELD';
 
 /** @private
  *  @param SeLiteData.RecordSet instance
- *  @return RecordSetHolder for that instance.
+ *  @return {RecordSetHolder} for that instance.
  **/
 function recordSetHolder( recordSet ) {
     SeLiteMisc.ensureInstance(recordSet, SeLiteData.RecordSet);
@@ -557,6 +571,7 @@ function recordSetHolder( recordSet ) {
 };
 
 /** @private
+ *  @return {RecordOrSetHolder}
  * */
 SeLiteData.recordOrSetHolder= function recordOrSetHolder( recordOrSet ) {
     if( recordOrSet instanceof SeLiteData.Record ) {
@@ -571,7 +586,7 @@ SeLiteData.recordOrSetHolder= function recordOrSetHolder( recordOrSet ) {
     }
 };
 
-/** Constructor of RecordSetHolder object.
+/** @constructor It keeps a set of RecordHolders objects.
  *  @private
  *  @param {SeLiteData.RecordSetFormula} formula Instance of SeLiteData.RecordSetFormula.
  *  @param {Object|Array} [parametersOrCondition] Parameters or SQL condition.
@@ -588,6 +603,7 @@ SeLiteData.recordOrSetHolder= function recordOrSetHolder( recordOrSet ) {
  *   with an error - then use aliases.
  **/
 function RecordSetHolder( formula, parametersOrCondition ) {
+    RecordOrSetHolder.call( this );
     formula instanceof SeLiteData.RecordSetFormula || SeLiteMisc.fail();
     this.formula= formula;
     this.parametersOrCondition= parametersOrCondition || {};
@@ -595,6 +611,8 @@ function RecordSetHolder( formula, parametersOrCondition ) {
     this.recordSet= new SeLiteData.RecordSet( this );
     this.originals= {}; // This will be set to object { primary-key-value: original object... }
 }
+RecordSetHolder.prototype= new RecordOrSetHolder();
+RecordSetHolder.prototype.constructor= RecordSetHolder;
 
 RecordSetHolder.prototype.storage= function storage() {
     return this.formula.table.db.storage;
