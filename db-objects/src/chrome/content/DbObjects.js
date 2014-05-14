@@ -25,10 +25,12 @@ Components.utils.import('chrome://selite-db-objects/content/Db.js');
 /** @constructor
  *  @param {SeLiteData.Storage} storage Underlying lower-level storage object.
  *  @param {string} [tableNamePrefix] optional prefix, which will be applied to all tables (except for tables that have noNamePrefix=true when constructed). If not set, then storage.tableNamePrefix is used (if any).
+ *  @param {boolean} [generateInsertKey=false] Whether all tables with single-column primary key should have the key values generated (based on the maximum existing key) on insert.
  **/
-SeLiteData.Db= function Db( storage, tableNamePrefix ) {
+SeLiteData.Db= function Db( storage, tableNamePrefix, generateInsertKey ) {
     this.storage= storage;
     this.tableNamePrefix= tableNamePrefix;
+    this.generateInsertKey= generateInsertKey || false;
 };
 
 /** @return {string} Table prefix, or an empty string. It never returns undefined.
@@ -45,7 +47,8 @@ SeLiteData.Db.prototype.tablePrefix= function tablePrefix() {
  *      noNamePrefix: boolean, optional; if true, then it cancels effect of prototype.db.tableNamePrefix (if set),
  *      name: string table name,
  *      columns: array of string column names,
- *      primary: string primary key name, or array of string key names; optional - 'id' by default
+ *      primary: string primary key name, or array of string key names; optional - 'id' by default,
+ *      generateInsertKey: boolean, like parameter generateInsertKey of SeLiteData.Db()
  */
 SeLiteData.Table= function Table( prototype ) {
     /** @type {SeLiteData.Db} */
@@ -59,6 +62,7 @@ SeLiteData.Table= function Table( prototype ) {
     this.columns= prototype.columns;
     this.primary= prototype.primary || 'id';
     typeof this.primary==='string' || Array.isArray(this.primary) || SeLiteMisc.fail( 'prototype.primary must be a string or an array.' );
+    this.generateInsertKey= prototype.generateInsertKey || false;
 };
 
 SeLiteData.Table.prototype.nameWithPrefix= function nameWithPrefix() {
@@ -69,6 +73,9 @@ SeLiteData.Table.prototype.nameWithPrefix= function nameWithPrefix() {
 
 /** Insert the given record to the DB.
  *  @param {SeLiteData.Record} record
+ *  @TODO
+ *  - save primary key, if auto-generated: table.db.storage.lastInsertedRow( table.nameWithPrefix(), [table.primary] )[ table.primary ];
+ *  - if record is linked to a RecordHolder, update .originals
  * */
 SeLiteData.Table.prototype.insert= function insert( record ) {
     // I don't use asynchronous API, because I don't know how to use it with classic program control flow. Therefore I need to list all columns.
@@ -250,8 +257,11 @@ RecordHolder.prototype.insert= function insert() {
         this.record[ field ]= value;
     }
     var entries= this.ownEntries();
-    if( this.recordSetHolder.formula.generateInsertKey ) {// @TODO (low priority): || this.recordSetHolder.formula.table.generateInsertKey || this.recordSetHolder.formula.table.db.generateInsertKey
-        typeof this.recordSetHolder.formula.table.primary==='string' || SeLiteMisc.fail( "The formula has generateInsertKey set, but table " +this.recordSetHolder.formula.table +" uses multi-column key: " +this.recordSetHolder.formula.table.primary );
+    var generateInsertKey= this.recordSetHolder.formula.generateInsertKey || this.recordSetHolder.formula.table.generateInsertKey || this.recordSetHolder.formula.table.db.generateInsertKey;
+    if( generateInsertKey && entries[this.recordSetHolder.formula.table.primary]===undefined/* If the client provided a value for the primary key, don't generate it.*/ ) {
+        //<editor-fold defaultstate="collapsed" desc="Ensure the table has single-value primary key.">
+        typeof this.recordSetHolder.formula.table.primary==='string' || SeLiteMisc.fail( "The formula or table has generateInsertKey set, but table " +this.recordSetHolder.formula.table +" uses multi-column primary key: " +this.recordSetHolder.formula.table.primary );
+        //</editor-fold>
         entries= SeLiteMisc.objectsMerge( new SeLiteData.Settable().set(
             this.recordSetHolder.formula.table.primary,
             new SeLiteData.SqlExpression( "(SELECT MAX(" +this.recordSetHolder.formula.table.primary+ ") FROM " +this.recordSetHolder.formula.table.nameWithPrefix()+ ")+1")
@@ -267,8 +277,8 @@ RecordHolder.prototype.insert= function insert() {
     });
     var primaryKeyValue;
     if( typeof this.recordSetHolder.formula.table.primary==='string'
-        && !this.recordSetHolder.formula.generateInsertKey()
         && entries[this.recordSetHolder.formula.table.primary]===undefined
+        && !generateInsertKey
     ) {
         primaryKeyValue= this.recordSetHolder.storage().lastInsertRow( this.recordSetHolder.formula.table.nameWithPrefix(), [this.recordSetHolder.formula.table.primary] )[ this.recordSetHolder.formula.table.primary ];
         // This requires that the primary key is never aliased. @TODO use column alias, if present?
@@ -371,9 +381,9 @@ RecordHolder.prototype.remove= function remove() {
  *      process
  *      debugQuery
  *      debugResult
- *      generateInsertKey
- *      onInsert
- *      onUpdate
+ *      generateInsertKey: boolean, like parameter generateInsertKey of SeLiteData.Db()
+ *      onInsert: value to fill in on insert, or function to call to get such a value
+ *      onUpdate: value to fill in on update, or function to call to get such a value
  *  }
  *  @param object prototype Instance of SeLiteData.RecordSetFormula which serves as the prototype for the new object. Optional.
  *  Any fields not set in params will be inherited from prototype (if present), as they are at the time of calling this constructor.
@@ -437,7 +447,7 @@ SeLiteData.RecordSetFormula.prototype.process= null;
 SeLiteData.RecordSetFormula.prototype.debugQuery= false;
 SeLiteData.RecordSetFormula.prototype.debugResult= false;
 
-SeLiteData.RecordSetFormula.prototype.generateInsertKey= true; // @TODO make this default value null, and use something stored in connection/DB object
+SeLiteData.RecordSetFormula.prototype.generateInsertKey= false;
 SeLiteData.RecordSetFormula.prototype.onInsert= {}; // aliasedFieldName: string value or function; used on insert; it overrides any existing value for that field
 SeLiteData.RecordSetFormula.prototype.onUpdate= {}; // aliasedFieldName: string value or function; used on update; it overrides any existing value for that field
 
