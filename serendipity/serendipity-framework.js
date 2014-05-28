@@ -27,18 +27,6 @@ if( Serendipity===undefined ) {
 (function() {
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
     console.warn('Serendipity framework loading');
-    // @TODO Doc -> Bootstrap? Or 
-    // I suggest that you load this file via SeLite Bootstrap (Selenium IDE > Options > Options > SeLite Bootstrap > Selenium Core extension).
-    // If you don't, but you load this file as a Core extension file
-    // via Selenium IDE > Options > Options > 'Selenium Core extensions' instead, then
-    // you need to uncomment the following statements, along with the enclosing part of if(..)
-
-    // Components.utils.import( 'chrome://selite-misc/content/SeLiteMisc.js' );
-    // var loadedOddTimes= SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['Serendipity'] || false;
-    // if( loadedOddTimes ) { // Ignore the first load, because Se IDE somehow discards that Selenium.prototype
-    // ....
-    // }
-    // SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['doFUDforumUsers']= !loadedOddTimes;
         /** @type {SeLiteSettings.Module} */
         var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
         commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor', 'contributor'] );
@@ -312,7 +300,5 @@ if( Serendipity===undefined ) {
             table: Serendipity.tables.entries,
             columns: new SeLiteData.Settable().set( Serendipity.tables.entries.name/* same as 'entries' */, SeLiteData.RecordSetFormula.ALL_FIELDS )
         });
-    // }
-    // SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['Serendipity']= !loadedOddTimes;
     console.warn('Serendipity framework loaded');
 })();

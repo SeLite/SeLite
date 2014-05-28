@@ -96,9 +96,10 @@
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
 	<td>userNamePresent</td>
 </tr>
+<!--TODO Investigate whether I need the following if..endIf block. -->
 <tr>
 	<td>if</td>
-	<td>$userNamePresent</td>
+	<td>!$userNamePresent</td>
 	<td></td>
 </tr>
 <tr>
