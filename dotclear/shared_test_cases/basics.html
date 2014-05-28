@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://change-this-to-the-site-you-are-testing/" />
+<title>basics</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">basics</td></tr>
+</thead><tbody>
+<!--@param forceReload optional-->
+<!--@param path optional. If specified, it must be an absolute URL path relative to webroot. It can start with '/' or without it (then it's added).-->
+<tr>
+	<td>function</td>
+	<td>ensureUnderWebRoot</td>
+	<td>path, forceReload</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>storedVars.path ? (storedVars.path.startsWith('/') ? storedVars.path.substring(1) : storedVars.path) : ''</td>
+	<td>path</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>SeLiteSettings.webRoot()+storedVars.path</td>
+	<td>path</td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>!window.location.href.startsWith( '`storedVars.path`' ) || storedVars.forceReload</td>
+	<td></td>
+</tr>
+<tr>
+	<td>open</td>
+	<td>${path}</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!---------------------->
+<tr>
+	<td>function</td>
+	<td>logOut</td>
+	<td></td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>ensureUnderWebRoot</td>
+	<td>forceReload=true, path='admin'</td>
+</tr>
+<tr>
+	<td>storeElementPresent</td>
+	<td>//a[ contains(@href, 'index.php?logout=1' ) ]</td>
+	<td>userLoggedIn</td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>$userLoggedIn</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ contains(@href, 'index.php?logout=1' ) ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!----------------->
+<tr>
+	<td>function</td>
+	<td>logIn</td>
+	<td>userNameOrAmpersandRole</td>
+</tr>
+<!--if the user is logged in already, log him out:-->
+<tr>
+	<td>call</td>
+	<td>logOut</td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>SeLiteSettings.roleToUser( '${userNameOrAmpersandRole}' )</td>
+	<td>userName</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=user_id</td>
+	<td>${userName}</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>SeLiteMisc.loginManagerPassword( '${userName}' )</td>
+	<td>password</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=user_pwd</td>
+	<td>${password}</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//form[ @id='login-screen' ]//input[ @type='submit' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//a[ contains(@href, 'index.php?logout=1' ) ]</td>
+	<td>Verify that we are logged in</td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!----------------->
+<tr>
+	<td>function</td>
+	<td>createUser</td>
+	<td></td>
+</tr>
+<!--For some reason clickAndWait sometimes failed for id=toolbar-link-admin-people-->
+<!--Sometimes //li[ contains(@class, 'path-admin-people') ]/a didn't work either-->
+<tr>
+	<td>click</td>
+	<td>id=toolbar-link-admin-people</td>
+	<td></td>
+</tr>
+<!--Because of the following, the test only works for standard English installation.-->
+<tr>
+	<td>waitForElementPresent</td>
+	<td>//iframe[contains(@title, 'People dialog')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectTopFrameAnd</td>
+	<td>//iframe[contains(@title, 'People dialog')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>false</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectTopFrameAnd</td>
+	<td>//iframe[contains(@title, 'People dialog')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//div[ @id='content' ]//ul/li/a[ contains(@href, '/?q=admin/people/create') ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>selectTopFrameAnd</td>
+	<td>//iframe[contains(@title, 'People dialog')]</td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>typeRandom</td>
+	<td>id=edit-name</td>
+	<td>`{maxLength:60, type:'word', store:'newUserName'}`</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>id=edit-mail</td>
+	<td>`{maxLength: 254, type:'email', store:'newUserEmail'}`</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>id=edit-pass-pass1</td>
+	<td>`{type:'password', store:'newUserPassword'}`</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=edit-pass-pass2</td>
+	<td>`$newUserPassword`</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>id=edit-submit</td>
+	<td></td>
+</tr>
+<tr>
+	<td>insertRecord</td>
+	<td>`{name: $newUserName, mail: $newUserEmail, pass: $newUserPassword}`</td>
+	<td>`Dotclear.tables.user`</td>
+</tr>
+<!--Login and verify-->
+<tr>
+	<td>call</td>
+	<td>logInAsStoredUser</td>
+	<td>userName=$newUserName</td>
+</tr>
+<!--If you'd like the following XPaths to be simpler, vote for https://code.google.com/p/selite/wiki/ThirdPartyIssues > Support XPath 2.0-->
+<!--Click at 'My account'.-->
+<tr>
+	<td>clickAndWait</td>
+	<td>//ul/li/a[ contains(@href, '/?q=user') and substring-after(@href, '/?q=user')='' ]</td>
+	<td></td>
+</tr>
+<!--TODO CHECK THIS COMMENT: Check the username. (Xpath must use contains(), if Dotclear adds extra whitespace.)-->
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//div[ @id='content' ]//h1[ @id='page-title' and contains(., '${newUserName}') ]</td>
+	<td></td>
+</tr>
+<!--Click at 'Edit' tab-->
+<tr>
+	<td>clickAndWait</td>
+	<td>//div[ @class='tabs' ]/ul/li/a[ contains(@href, '?q=user/') and translate( substring-after(@href, '?q=user/'), '0123456789', '')='/edit' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//input[ @id='edit-mail' and @value='${newUserEmail}' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!----------------->
+<!--This requires the password to be stored in the test DB in plain text. Like for accounts created by script createUser.-->
+<tr>
+	<td>function</td>
+	<td>logInAsStoredUser</td>
+	<td>userName</td>
+</tr>
+<tr>
+	<td>selectTopFrameAnd</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>readRecord</td>
+	<td>`{ formula: Dotclear.formulas.user, name: $userName }`</td>
+	<td>user</td>
+</tr>
+<!--if the user is logged in already, log him out:-->
+<tr>
+	<td>storeElementPresent</td>
+	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
+	<td>userLoggedIn</td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>$userLoggedIn</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//li[ contains(@class, 'logout') ]/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<!--make sure we're at login screen-->
+<tr>
+	<td>storeElementPresent</td>
+	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
+	<td>userNamePresent</td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>$userNamePresent</td>
+	<td></td>
+</tr>
+<tr>
+	<td>open</td>
+	<td>`SeLiteSettings.webRoot()`</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<!--Verify that we can log in-->
+<tr>
+	<td>type</td>
+	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
+	<td>${userName}</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>//form[ @id='user-login-form' ]//input[ @id='edit-pass' ]</td>
+	<td>`$user.pass`</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//form[ @id='user-login-form' ]//input[ @id='edit-submit' ]</td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//ul/li/a[ contains(@href, '/?q=user/logout') ]</td>
+	<td>Verify that we are logged in</td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!----------------->
+</tbody></table>
+</body>
+</html>

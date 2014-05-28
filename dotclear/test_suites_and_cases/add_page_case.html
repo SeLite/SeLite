@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://change-this-to-the-site-you-are-testing/" />
+<title>add_page_case</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">add_page_case</td></tr>
+</thead><tbody>
+<tr>
+	<td>call</td>
+	<td>logIn</td>
+	<td>userNameOrAmpersandRole='&amp;admin'</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ @href=&quot;post.php&quot; ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>id=post_title</td>
+	<td>`{ type:'text', store:'title'}`</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>id=post_content</td>
+	<td>`{ type:'text', store:'content'}`</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//form[ @id=&quot;entry-form&quot;&nbsp;&nbsp;]//input[ @type='submit' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>exitTest</td>
+	<td></td>
+	<td></td>
+</tr>
+<!--TODO:-->
+<tr>
+	<td>insertRecord</td>
+	<td>`{ nid:$newPageNodeId, vid:$newPageNodeId, type:'page', language:'und', title:$title, status:1, comment:1}`</td>
+	<td>`Dotclear.tables.post`</td>
+</tr>
+<tr>
+	<td>insertRecord</td>
+	<td>`{entity_type:'node', bundle:'page', deleted:0, entity_id:$newPageNodeId, revision_id:$newPageNodeId, language:'und', delta:0, body_value:$body, body_format:'filtered_html'}`</td>
+	<td>`Dotclear.tables.post`</td>
+</tr>
+</tbody></table>
+</body>
+</html>
