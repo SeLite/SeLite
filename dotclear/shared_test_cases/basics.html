@@ -19,23 +19,13 @@
 	<td>path, forceReload</td>
 </tr>
 <tr>
-	<td>storeEval</td>
-	<td>storedVars.path ? (storedVars.path.startsWith('/') ? storedVars.path.substring(1) : storedVars.path) : ''</td>
-	<td>path</td>
-</tr>
-<tr>
-	<td>storeEval</td>
-	<td>SeLiteSettings.webRoot()+storedVars.path</td>
-	<td>path</td>
-</tr>
-<tr>
 	<td>if</td>
-	<td>!window.location.href.startsWith( '`storedVars.path`' ) || storedVars.forceReload</td>
+	<td>!window.location.href.startsWith( '`SeLiteSettings.webURL(storedVars.path)`' ) || storedVars.forceReload</td>
 	<td></td>
 </tr>
 <tr>
 	<td>open</td>
-	<td>${path}</td>
+	<td>`SeLiteSettings.webURL(storedVars.path)`</td>
 	<td></td>
 </tr>
 <tr>
@@ -125,6 +115,11 @@
 	<td>verifyElementPresent</td>
 	<td>//a[ contains(@href, 'index.php?logout=1' ) ]</td>
 	<td>Verify that we are logged in</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>Dotclear.selectUsername( storedVars.userName )</td>
+	<td></td>
 </tr>
 <tr>
 	<td>endFunction</td>

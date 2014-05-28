@@ -1973,4 +1973,15 @@ SeLiteSettings.webRoot= function webRoot() {
     return entry;
 };
 
+/** @return {string} URL of the application, based on SeLiteSettings.webRoot() and given path.
+ * @param {string} [path] Absolute path relative to webroot. It can start with '/' or without it. Optional - if not present, then this just returns webroot.
+ * */
+SeLiteSettings.webURL= function webURL( path ) {
+    path= path || '';
+    if( path.startsWith('/') ) {
+        path= path.substring(1);
+    }
+    return SeLiteSettings.webRoot()+path;
+};
+
 loadingPackageDefinition= false;
