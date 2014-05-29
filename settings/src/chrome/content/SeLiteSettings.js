@@ -791,6 +791,10 @@ SeLiteSettings.TestDbKeeper.prototype.store= function store() {};
  *  string table name (excluding the prefix): object {
        key: string column name that serves as a matching key; values of this key must be unique across all records
        columns: array of string column(s) to preserve; columns[] must include the matching key
+       defaults: optional, object containing default values used when copying records that exist in the source (app/vanilla) DB but didn't exist in the test DB. {
+           columnNameX: defaultValueX...
+       }
+       Any column name present in 'defaults' must be also present in 'columns'.
  *  }
  * */
 SeLiteSettings.TestDbKeeper.Columns= function Columns( description ) {
@@ -868,32 +872,33 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
         try { // The (old test) table may be out of date (incompatible with the new test table) - then log it and skip it
             var reloadedData= this.formulas[ tableName ].select();
             var tableDetails= this.description[tableName];
-            for( var keyValue in this.data[tableName] ) {
-                if( keyValue in reloadedData ) {
+            for( var keyValue in reloadedData ) {
+                if( keyValue in this.data[tableName] || tableDetails.defaults && Object.keys(tableDetails.defaults).length>0 ) {
                     var query= "UPDATE " +tableNameWithPrefix+ " SET ";
-                    var updatePart= '';
+                    var updateParts= [];
                     var bindings= {};
-                    for( var i=0; i<tableDetails.columns.length; i++ ) {// @TODO for(..of..)
-                        var column= tableDetails.columns[i];
-                        if( column!==tableDetails.key ) {
-                            var oldValue= this.data[ tableName ][ keyValue ][ column ];
-                            if( updatePart ) {
-                                updatePart+= ', ';
+                    if( keyValue in this.data[tableName] ) {
+                        for( var i=0; i<tableDetails.columns.length; i++ ) {// @TODO for(..of..)
+                            var column= tableDetails.columns[i];
+                            if( column!==tableDetails.key ) {
+                                var oldValue= this.data[ tableName ][ keyValue ][ column ];
+                                updateParts.push( column+ '=:' +column );
+                                bindings[ column ]= oldValue;
                             }
-                            updatePart+= column+'=' +(typeof oldValue==='string'
-                                ? ":"+column+""
-                                : ':' +column
-                                );
-                            bindings[ column ]= oldValue;
                         }
                     }
-                    query+= updatePart+ ' WHERE ' +tableDetails.key+ '=' +(typeof keyValue==='string'
-                            ? ":"+tableDetails.key+""
-                            : ':'+tableDetails.key
-                            );
+                    else {
+                        for( var column in tableDetails.defaults ) {
+                            tableDetails.columns.indexOf(column)>=0 || SeLiteMisc.fail( 'Column "' +column+ '" is in "defaults", but it is not in "columns".' );
+                            column!==tableDetails.key || SeLiteMisc.fail( '"defaults" cannot contain the table key ' +column);
+                            updateParts.push( column+ '=:' +column );
+                            bindings[ column ]= tableDetails.defaults[column];
+                        }
+                    }
+                   query+= updateParts.join(', ')+ ' WHERE ' +tableDetails.key+ '=:' +tableDetails.key;
                     bindings[ tableDetails.key ]= keyValue;
-                    console.log( query );
-                    console.log( SeLiteMisc.objectToString(bindings, 2) );
+                    console.debug( query );
+                    console.debug( SeLiteMisc.objectToString(bindings, 2) );
                     this.testStorage.execute( query, bindings );
                 }
             }

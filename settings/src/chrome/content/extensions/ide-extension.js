@@ -102,9 +102,7 @@
         reload( sourceDB, testDB );
         !appStorage || appStorage.open();
         !testStorage || testStorage.open();
-        if( testStorage && appStorage && SeLiteSettings.moduleForReloadButtons.testDbKeeper ) {
-            SeLiteSettings.moduleForReloadButtons.testDbKeeper.store();
-        }
+        !SeLiteSettings.moduleForReloadButtons.testDbKeeper || SeLiteSettings.moduleForReloadButtons.testDbKeeper.store();
         !appStorage || appStorage.close(); // The web application shouldn't use SQLiteConnectionManager, so let's close the connection here.
     };
     
