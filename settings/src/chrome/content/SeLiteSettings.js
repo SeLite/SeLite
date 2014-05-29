@@ -765,7 +765,7 @@ SeLiteSettings.Field.FixedMap.String= function String( name, keySet, defaultMapp
 SeLiteSettings.Field.FixedMap.String.prototype= new SeLiteSettings.Field.FixedMap('FixedMapString.prototype', [], {});
 SeLiteSettings.Field.FixedMap.String.prototype.constructor= SeLiteSettings.Field.FixedMap.String;
 
-/** It loads to memory and then inserts/updates what should be preserved in the test DB when it gets reloaded.
+/** @constructor It loads to memory and then inserts/updates what should be preserved in the test DB when it gets reloaded.
  * It keeps the data in memory in any way (e.g. in an instance field) - there should be just one instance of it at any time.
  * However, load() should clear that memory, to remove any data from previous calls.
  *  */
@@ -775,6 +775,7 @@ SeLiteSettings.TestDbKeeper= function TestDbKeeper() {};
  *  @param {SeLiteData.Storage} testStorage
  * */
 SeLiteSettings.TestDbKeeper.prototype.initialise= function initialise( testStorage ) {
+    /** @var {SeLiteData.Storage} */
     this.testStorage= testStorage;
 };
 /** Load any relevant test data from testStorage to memory. It must be robust - there may not be any test DB yet, or with an out of date schema.
@@ -784,7 +785,9 @@ SeLiteSettings.TestDbKeeper.prototype.load= function load() {};
  * */
 SeLiteSettings.TestDbKeeper.prototype.store= function store() {};
 
-/** Simple implementation of SeLiteSettings.TestDbKeeper. It loads all data (the given columns)
+/** @constructor
+ *  @augments  SeLiteSettings.TestDbKeeper
+ * Simple implementation of SeLiteSettings.TestDbKeeper. It loads all data (the given columns)
  *  from test DB. Then after test DB is reloaded from vanilla or app DB, it updates all given columns
  *  on matching records. It doesn't re-create any missing records - if a record existing in test DB before the reload but it doesn't exist in the reloaded data, it won't get re-created.
  *  @param {object} description Object serving as an associative array {

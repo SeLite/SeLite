@@ -96,8 +96,8 @@ if( Dotclear===undefined ) {
     SeLiteSettings.setTestDbKeeper( 
         new SeLiteSettings.TestDbKeeper.Columns( {
             user: {
-                key: 'user_name',
-                columns: ['user_name', 'user_pwd', 'user_options'],
+                key: 'user_id',
+                columns: ['user_id', 'user_pwd', 'user_options'],
                 defaults: {
                     user_options: JSON.stringify({})
                 }
@@ -116,7 +116,7 @@ if( Dotclear===undefined ) {
            'user_options', // In app DB it's a result of PHP serialize(). In test DB it's a result of JSON.stringify().
            'user_lang', 'user_tz', 'user_post_status', 'user_creadt', 'user_upddt'
        ],
-       primary: 'user_id' // However, for purpose of matching users I usually use user_name
+       primary: 'user_id'
     });
 
     Dotclear.formulas= {};
