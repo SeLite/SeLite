@@ -138,7 +138,7 @@ SQLiteConnectionInfo.connectionInfos= [];
 function preloadCacheTable( connection, tableNames, tableIndex, errorHandler ) {
     tableIndex= tableIndex || 0;
     if( tableIndex==tableNames.length ) {
-        connection.asyncClose();
+        connection.asyncClose(); //@TODO why?
         return;
     }
     var statement= connection.createAsyncStatement( 'SELECT * FROM ' +tableNames[tableIndex] );
@@ -191,20 +191,10 @@ SQLiteConnectionInfo.prototype.open= function open() {
         file= FileUtils.getFile( "ProfD", [this.parameters.fileName] );
     }
     catch( error ) {
-        try {
-            file= new FileUtils.File( this.parameters.fileName );
-        }
-        catch( anotherError ) {
-            return;
-        }
+        file= new FileUtils.File( this.parameters.fileName );
     }
     var connection;
-    try {
-        connection= Services.storage.openDatabase( file );
-    }
-    catch( error ) {
-        return;
-    }
+    connection= Services.storage.openDatabase( file );
     // There's no need neither a way to 'close' file. See https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsIFile
     if( !connection.connectionReady ) {
         throw "Created the connection, but it wasn't ready.";

@@ -880,6 +880,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
                     var query= "UPDATE " +tableNameWithPrefix+ " SET ";
                     var updateParts= [];
                     var bindings= {};
+                    var originals= {}; // Original values that I'm replacing. For logging only.
                     if( keyValue in this.data[tableName] ) {
                         for( var i=0; i<tableDetails.columns.length; i++ ) {// @TODO for(..of..)
                             var column= tableDetails.columns[i];
@@ -887,8 +888,10 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
                                 var oldValue= this.data[ tableName ][ keyValue ][ column ];
                                 updateParts.push( column+ '=:' +column );
                                 bindings[ column ]= oldValue;
+                                originals[ column ]= reloadedData[ keyValue ][ column ];
                             }
                         }
+                        console.debug( 'Updating ' +tableName+ ', record with ' +tableDetails.key+ '=' +keyValue+'. Replacing ' +SeLiteMisc.objectToString(originals, 2)+ ' with preserved test values ' +SeLiteMisc.objectToString(bindings, 2) );
                     }
                     else {
                         for( var column in tableDetails.defaults ) {
@@ -896,12 +899,12 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
                             column!==tableDetails.key || SeLiteMisc.fail( '"defaults" cannot contain the table key ' +column);
                             updateParts.push( column+ '=:' +column );
                             bindings[ column ]= tableDetails.defaults[column];
+                            originals[ column ]= reloadedData[ keyValue ][ column ];
                         }
+                        console.debug( 'Updating ' +tableName+ ', record with ' +tableDetails.key+ '=' +keyValue+'. Replacing ' +SeLiteMisc.objectToString(originals, 2)+ ' with default test values ' +SeLiteMisc.objectToString(bindings, 2) );
                     }
-                   query+= updateParts.join(', ')+ ' WHERE ' +tableDetails.key+ '=:' +tableDetails.key;
+                    query+= updateParts.join(', ')+ ' WHERE ' +tableDetails.key+ '=:' +tableDetails.key;
                     bindings[ tableDetails.key ]= keyValue;
-                    console.debug( query );
-                    console.debug( SeLiteMisc.objectToString(bindings, 2) );
                     this.testStorage.execute( query, bindings );
                 }
             }

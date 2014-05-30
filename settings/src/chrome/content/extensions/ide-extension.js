@@ -120,7 +120,8 @@
         var toFile= new FileUtils.File(toFileName);
         toFile.parent.exists() || SeLiteMisc.fail( 'Target folder ' +toFile.parent.path+ ' does not exist' );
         console.log( 'Copying ' +fromFileName+ ' to ' +toFileName );
-        fromFile.copyTo( toFile.parent, toFile.leafName );
+        // This copies the file even if the target file exists already - contrary to https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIFile#copyToFollowingLinks%28%29
+        fromFile.copyToFollowingLinks( toFile.parent, toFile.leafName );
     }
     
     /** Reload testDB and appDB from vanillaDB: vanilla -&gt; green  -&gt; blue.

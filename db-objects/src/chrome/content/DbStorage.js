@@ -683,7 +683,7 @@ StorageFromSettings.prototype.tablePrefix= function tablePrefix() {
  *  If it is a string, it must be a full field name. See SeLiteSettings.getField(). Optional, it defaults to 'extensions.selite-settings.common.tablePrefix'. If you want to use an empty table prefix and to override any value of 'extensions.selite-settings.common.tablePrefix' field, pass an empty string '' or null.
  *  @param {boolean} [dontCreate=false] If true then this won't create a storage object,
  *  if it doesn't exist yet (then this returns null). False by default.
- *  @return StorageFromSettings instance
+ *  @return {StorageFromSettings}
  */
 SeLiteData.getStorageFromSettings= function getStorageFromSettings( appDbFieldOrFieldName, tablePrefixFieldOrFieldName, dontCreate ) {
     appDbFieldOrFieldName= appDbFieldOrFieldName!==undefined
