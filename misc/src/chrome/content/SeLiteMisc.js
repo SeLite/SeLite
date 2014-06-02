@@ -950,6 +950,10 @@ SeLiteMisc.objectValueToField= function objectValueToField( obj, value, strict )
  *  Users must not depend on compound index value, since its calculation may change in future. Users can get the compound index value from SeLiteMisc.compoundIndexValue().
  */
 SeLiteMisc.collectByColumn= function collectByColumn( records, fieldNames, valuesUnique, result ) {
+    typeof fieldNames==='object' || typeof fieldNames==='string' || SeLiteMisc.fail();
+    fieldNames= Array.isArray(fieldNames)
+        ? fieldNames
+        : [fieldNames];
     result= result || {};
     result!==records || SeLiteMisc.fail( 'SeLiteMisc.collectByColumn() requires parameter result not to be the same object as records, if provided.' );
     if( Array.isArray(records) ) { // records is an array, so it's not a result of previous call to this method.
@@ -973,14 +977,16 @@ SeLiteMisc.collectByColumn= function collectByColumn( records, fieldNames, value
     return result;
 };
 
-/** Generate a compound index value, as used by SeLiteMisc.collectByColumn().
- * @TODO Consider JSON.stringify()
+/** Generate a compound index value, which represents values of all fieldNames of record, as used by SeLiteMisc.collectByColumn(). If fieldNames contains one field name/function, then the result is a value of that field. Otherwise the result is implementation-specific - don't depend on its actual value.
  *  @param {object} record
  *  @param {array} fieldNames Array of strings - field names within given record.
- *  @return {*} Value of compound index, as used for keys of result of SeLiteMisc.collectByColumn(). Implementation-specific.
+ *  @return {(string|number)} Value of compound index, as used for keys of result of SeLiteMisc.collectByColumn(). Implementation-specific.
  * */
 SeLiteMisc.compoundIndexValue= function compoundIndexValue( record, fieldNames ) {
-    var result= ''; // Concatenation of index values, with null characters ('\0') doubled, with '\0\ appended after value of each index
+    if( fieldNames.length===1 ) {
+        return SeLiteMisc.getField(record, fieldNames[0]);
+    }
+    var result= ''; // Concatenation of index values, separated with null character ('\0'). In case there are any null characters in any field names, those are doubled - so that the result can be transformed back to the group of index values. An alternative way would be to use JSON.stringify().
     for( var i=0; i<fieldNames.length; i++ ) { //@TODO for(.. of.. ) once NetBeans likes it
         result+= ( '' + SeLiteMisc.getField(record, fieldNames[i]) ).replace( '\0', '\0\0' )+ '\0';
     }
