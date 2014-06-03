@@ -647,7 +647,7 @@ StorageFromSettings.prototype.connection= function connection() {
 };
 
 StorageFromSettings.prototype.open= function open() {
-    if( SeLiteSettings.getTestSuiteFolder() ) {
+    if( SeLiteSettings.getTestSuiteFolder() ) {//@TODO here and below: should it just use folder-based configuration, and not default-based configuration?
         var newFileName= this.dbField.getDownToFolder().entry;
         if( newFileName ) {
             this.parameters.fileName= newFileName;
