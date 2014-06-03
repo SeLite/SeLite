@@ -31,8 +31,11 @@ SeLiteData.Storage= function Storage() {
     /** @type{SQLiteConnectionParameters} */
     this.parameters= new SQLiteConnectionParameters();
     this.parameters.errorHandler= console.error;
-    this.connection= null; // This will be the actual connection - result of Services.storage.openDatabase(file)
+    this.con= null; // This will be the actual connection - result of Services.storage.openDatabase(file)
 };
+
+/** @return SQLite connection or null */
+SeLiteData.Storage.prototype.connection= function connection() { return this.con; };
 
 /** @return {string} Table prefix, or an empty string. It never returns undefined.
  *  SeLiteData.Storage doesn't actively use tablePrefix.
@@ -44,12 +47,12 @@ SeLiteData.Storage= function Storage() {
 SeLiteData.Storage.prototype.tablePrefix= function tablePrefix() { return ''; };
 
 /** Open a new SQLite connection, as specified in parameters. Set it as the connection for this object.
- * Note: if you use this.connection.clone(), it won't inherit PRAGMA locking_mode
+ * Note: if you use this.connection().clone(), it won't inherit PRAGMA locking_mode
  * @return the new connection
  */
 SeLiteData.Storage.prototype.open= function open() {
-    !this.connection || SeLiteMisc.fail( "Already connected to " +this.parameters.fileName );
-    this.connection= this.parameters.connect();
+    !this.con || SeLiteMisc.fail( "Already connected to " +this.parameters.fileName );
+    this.con= this.parameters.connect();
 };
 
 /** Close the connection.
@@ -59,7 +62,7 @@ SeLiteData.Storage.prototype.open= function open() {
  * */
 SeLiteData.Storage.prototype.close= function close( synchronous, callback ) {
     this.parameters.close( synchronous, callback );
-    this.connection= null;
+    this.con= null;
 };
 
 /** This gets the list of result column names (e.g. names after the last space, if present; otherwise after the last dot, if present)
@@ -169,9 +172,9 @@ SeLiteData.Storage.prototype.select= function select( query, bindings, fields ) 
     if( !fields ) {
         fields= this.fieldNames( this.fieldParts( query ) );
     }
-    this.connection || SeLiteMisc.fail( 'SeLiteData.Storage.connection is not set. SQLite file name: ' +this.parameters.fileName );
+    this.con || SeLiteMisc.fail( 'SeLiteData.Storage.connection() is not set. SQLite file name: ' +this.parameters.fileName );
     //console.log( 'SeLite: ' +query );
-    var stmt= this.connection.createStatement( query );
+    var stmt= this.con.createStatement( query );
     for( var field in bindings ) {
         try {
             stmt.params[field]= bindings[field];
@@ -221,10 +224,10 @@ SeLiteData.Storage.prototype.selectOne= function selectOne( query, bindings, fie
  **/
 SeLiteData.Storage.prototype.execute= function execute( query, bindings ) {
     if( bindings==null ) {
-        this.connection.executeSimpleSQL( query );
+        this.con.executeSimpleSQL( query );
     }
     else {
-        var stmt= this.connection.createStatement( query );
+        var stmt= this.con.createStatement( query );
         for( var field in bindings ) {
             stmt.params[field]= bindings[field];
         }
@@ -419,7 +422,7 @@ SeLiteData.Storage.prototype.updateRecords= function updateRecords( params ) {
     if( params.debugQuery!==undefined && params.debugQuery ) {
         console.log( query );
     }
-    var stmt= this.connection.createStatement( query );
+    var stmt= this.con.createStatement( query );
     stmt.execute();
     stmt.finalize();
 };
@@ -474,7 +477,7 @@ SeLiteData.Storage.prototype.removeRecordByPrimary= function removeRecordByPrima
         conditionParts.push( primaryKey[i]+ '=' +this.quoteValues( record[primaryKey[i]] ) );
     }
     var query= "DELETE FROM " +tableName+ " WHERE " +conditionParts.join( 'AND' );
-    var stmt= this.connection.createStatement( query );
+    var stmt= this.con.createStatement( query );
     stmt.execute();
     stmt.finalize();
 };
@@ -509,7 +512,7 @@ SeLiteData.Storage.prototype.insertRecord= function insertRecord( params ) {
     if( params.debugQuery!==undefined && params.debugQuery ) {
         console.log( query );
     }
-    var stmt= this.connection.createStatement( query );
+    var stmt= this.con.createStatement( query );
     stmt.execute();
     stmt.finalize();
 };
@@ -622,20 +625,7 @@ function StorageFromSettings( dbField, tablePrefixField ) {
     this.tablePrefixValue= undefined; // This will be a cached configuration value for Field instance stored in this.tablePrefixField for current test suite (once known)
     
     StorageFromSettings.instances[ dbField.name ]= this;
-    if( SeLiteSettings.getTestSuiteFolder() ) {
-        var newFileName= dbField.getDownToFolder().entry;
-        if( newFileName ) {
-            this.parameters.fileName= newFileName;
-            this.open();
-        }
-    }
-    else {
-        var fields= dbField.module.getFieldsOfSet();
-        if( fields[dbField.name] && fields[dbField.name].entry ) {
-            this.parameters.fileName= fields[dbField.name].entry;
-            this.open();
-        }
-    }
+    // I don't call this.open() here, because the test suite folder may not be known yet - and it can override any default configuration set
 }
 
 StorageFromSettings.prototype= new SeLiteData.Storage();
@@ -647,7 +637,28 @@ StorageFromSettings.prototype.constructor= StorageFromSettings;
  * */
 StorageFromSettings.instances= {};
 
+/** Create connection on demand, if it wasn't created already. See Storage.prototype.connection(). */
+StorageFromSettings.prototype.connection= function connection() {
+    if( !this.con ) {
+        try { this.open(); }
+        catch( e ) { console.debug( "Couldn't open SQLite DB " +this.parameters.fileName ); }
+    }
+    return this.con;
+};
+
 StorageFromSettings.prototype.open= function open() {
+    if( SeLiteSettings.getTestSuiteFolder() ) {
+        var newFileName= this.dbField.getDownToFolder().entry;
+        if( newFileName ) {
+            this.parameters.fileName= newFileName;
+        }
+    }
+    else {
+        var fields= this.dbField.module.getFieldsOfSet();
+        if( fields[this.dbField.name] && fields[this.dbField.name].entry ) {
+            this.parameters.fileName= fields[this.dbField.name].entry;
+        }
+    }
     SeLiteData.Storage.prototype.open.call( this );
     if( this.tablePrefixField ) {
         if( SeLiteSettings.getTestSuiteFolder() ) {
@@ -725,7 +736,7 @@ function testSuiteFolderChangeHandler() {
         var instance= StorageFromSettings.instances[fieldName];
         instance instanceof StorageFromSettings || fail();
         var newFileName= instance.dbField.getDownToFolder().entry;
-        if( instance.connection ) {
+        if( instance.con ) {
             if( instance.parameters.fileName===newFileName ) {
                 continue;
             }

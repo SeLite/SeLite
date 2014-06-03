@@ -72,14 +72,14 @@
         var appStorage;
         if( reloadAppAndTest ) {
             appStorage= SeLiteData.getStorageFromSettings( appDbField, undefined, true/*dontCreate*/ );
-            // appStorage.connection may be null, if the app DB file doesn't exist yet
-            !appStorage || !appStorage.connection || appStorage.close( true );
+            // appStorage.connection() may be null, if the app DB file doesn't exist yet
+            !appStorage || !appStorage.connection() || appStorage.close( true );
         }
         var testStorage= SeLiteData.getStorageFromSettings( testDbField, tablePrefixField, true/*dontCreate*/ );
         // Load test data to be preserved into memory. See e.g. SeLiteSettings.TestDbKeeper.Columns.prototype.load()
         !testStorage || !SeLiteSettings.moduleForReloadButtons.testDbKeeper || SeLiteSettings.moduleForReloadButtons.testDbKeeper.load();
-        // testStorage.connection may be null, if the test DB file doesn't exist yet
-        !testStorage || !testStorage.connection || testStorage.close(true); // When I called testStorage.close() without parameter true, things failed later on unless there was a time break (e.g. when debugging)
+        // testStorage.connection() may be null, if the test DB file doesn't exist yet
+        !testStorage || !testStorage.connection() || testStorage.close(true); // When I called testStorage.close() without parameter true, things failed later on unless there was a time break (e.g. when debugging)
         
         !(reloadAppAndTest && reloadVanillaAndTest) || SeLiteMisc.fail( "Maximum one parameter can be true." );
         

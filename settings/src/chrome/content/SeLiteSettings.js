@@ -840,7 +840,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.initialise= function initialise( t
     }
 };
 SeLiteSettings.TestDbKeeper.Columns.prototype.load= function load() {
-    if( !this.testStorage.connection ) {
+    if( !this.testStorage.connection() ) {
         console.log( 'Test DB not present or not connected ' );
         return;
     }
