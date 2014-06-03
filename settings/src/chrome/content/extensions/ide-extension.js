@@ -38,7 +38,7 @@
     SidebarEditor.prototype.confirmClose= Editor.prototype.confirmClose;
     //console.log( 'Editor.prototype.confirmClose intercept set up' );
 
-    if (typeof(XUL_NS) == "undefined")  {
+    if( typeof XUL_NS=== "undefined" )  {
         var XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
     }
     var optionsPopup= document.getElementById('options-popup');
@@ -55,6 +55,10 @@
      *  @return void
      * */
     global.editor.reload_databases= function reload_databases( reloadAppAndTest, reloadVanillaAndTest ) {
+        if( !SeLiteSettings.getTestSuiteFolder() ) {
+            alert("Please open or save a test suite, so that SeLite can collect configuration for it." );
+            return;
+        }
         SeLiteSettings.moduleForReloadButtons || SeLiteMisc.fail( 'This requires your Core extension to call SeLiteSettings.setModuleForReloadButtons().' );
         var fields= SeLiteSettings.moduleForReloadButtons.getFieldsDownToFolder();
 
@@ -64,10 +68,16 @@
         var tablePrefixField= SeLiteSettings.moduleForReloadButtons.fields['tablePrefix'];
         
         var appDB= fields['appDB'].entry;
-        appDB || SeLiteMisc.fail( 'There is no value for SeLiteSettings field ' +appDbField );
         var testDB= fields['testDB'].entry;
-        testDB || SeLiteMisc.fail( 'There is no value for SeLiteSettings field ' +testDbField );
+        if( !appDB || !testDB ) {
+            alert( 'Please configure appDB and testDB as per https://code.google.com/p/selite/wiki/InstallFramework' );
+            return;
+        }
         var vanillaDB= fields['vanillaDB'].entry;
+        if( !vanillaDB ) {
+            alert( 'Please configure appDB and testDB as per https://code.google.com/p/selite/wiki/InstallFramework' );
+            return;
+        }
         
         var appStorage;
         if( reloadAppAndTest ) {
@@ -81,7 +91,7 @@
         // testStorage.connection() may be null, if the test DB file doesn't exist yet
         !testStorage || !testStorage.connection() || testStorage.close(true); // When I called testStorage.close() without parameter true, things failed later on unless there was a time break (e.g. when debugging)
         
-        !(reloadAppAndTest && reloadVanillaAndTest) || SeLiteMisc.fail( "Maximum one parameter can be true." );
+        !(reloadAppAndTest && reloadVanillaAndTest) || SeLiteMisc.fail( "Maximum one parameter can be true for reload_databases()." );
         
         // Reloading sequence is one of:
         // appDB =>             testDB
@@ -91,8 +101,7 @@
             ? vanillaDB
             : appDB;
         if( reloadAppAndTest || reloadVanillaAndTest ) {
-            // next two lines only perform validation
-            vanillaDB || SeLiteMisc.fail( 'There is no value for SeLiteSettings field ' +vanillaDbField );
+            // next line only performs validation
             !SeLiteData.getStorageFromSettings( vanillaDbField, undefined, true/*dontCreate*/ )
                 || SeLiteMisc.fail( 'vanillaDB should not be accessed by tests, yet there is SeLiteSettings.StorageFromSettings instance that uses it - ' +vanillaDbField );
             reload( sourceDB, reloadAppAndTest
@@ -112,7 +121,7 @@
      * */
     global.editor.reload_test= function reload_test() {
         global.editor.reload_databases();
-    }
+    };
     
     /** @private
     When reloading, the target file doesn't need to exist, but its immediate parent directories must exist
