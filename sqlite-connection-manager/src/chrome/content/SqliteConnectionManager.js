@@ -160,7 +160,7 @@ function preloadCacheTable( connection, tableNames, tableIndex, errorHandler ) {
     } );
 }
 
-function preloadCache( connection, errorHandler ) {
+function preloadCache( connection, errorHandler ) {return;
     try {
         connection= connection.clone( true );
         var stmt= connection.createStatement( "SELECT name FROM SQLITE_MASTER where type='table'" );
@@ -171,7 +171,7 @@ function preloadCache( connection, errorHandler ) {
             }
         }
         finally {
-            stmt.reset();
+            stmt.finalize();
         }
     }
     catch( error ) {
@@ -193,6 +193,9 @@ SQLiteConnectionInfo.prototype.open= function open() {
     catch( error ) {
         file= new FileUtils.File( this.parameters.fileName );
     }
+    if( !file.exists() ) {
+        throw 'DB file ' +this.parameters.fileName+ " doesn't exist.";
+    }
     var connection;
     connection= Services.storage.openDatabase( file );
     // There's no need neither a way to 'close' file. See https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsIFile
@@ -212,7 +215,7 @@ SQLiteConnectionInfo.prototype.open= function open() {
             }
             // typeof stmt.row.page_count is 'number' - very good
             var dbSize= stmt.row.page_count; // in DB pages
-            stmt.reset();
+            stmt.finalize();
             cacheSize= Math.round( dbSize*this.parameters.cacheRatio );
         }
         else { // get the default page size
@@ -228,7 +231,7 @@ SQLiteConnectionInfo.prototype.open= function open() {
                 cacheSize= stmt.row.cache_size;
             }
             finally {
-                stmt.reset();
+                stmt.finalize();
             }
         }
 
@@ -241,7 +244,7 @@ SQLiteConnectionInfo.prototype.open= function open() {
                 var pageSize= stmt.row.page_size; // in bytes
             }
             finally {
-                stmt.reset();
+                stmt.finalize();
             }
 
             // Let's get min & max values in DB pages

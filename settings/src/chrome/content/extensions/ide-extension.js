@@ -73,9 +73,10 @@
         if( reloadAppAndTest ) {
             appStorage= SeLiteData.getStorageFromSettings( appDbField, undefined, true/*dontCreate*/ );
             // appStorage.connection may be null, if the app DB file doesn't exist yet
-            !appStorage || !appStorage.connection || appStorage.close();
+            !appStorage || !appStorage.connection || appStorage.close( true );
         }
         var testStorage= SeLiteData.getStorageFromSettings( testDbField, tablePrefixField, true/*dontCreate*/ );
+        // Load test data to be preserved into memory. See e.g. SeLiteSettings.TestDbKeeper.Columns.prototype.load()
         !testStorage || !SeLiteSettings.moduleForReloadButtons.testDbKeeper || SeLiteSettings.moduleForReloadButtons.testDbKeeper.load();
         // testStorage.connection may be null, if the test DB file doesn't exist yet
         !testStorage || !testStorage.connection || testStorage.close(true); // When I called testStorage.close() without parameter true, things failed later on unless there was a time break (e.g. when debugging)
@@ -102,8 +103,9 @@
         reload( sourceDB, testDB );
         !appStorage || appStorage.open();
         !testStorage || testStorage.open();
+        !testStorage || !SeLiteSettings.moduleForReloadButtons.testDbKeeper || SeLiteSettings.moduleForReloadButtons.testDbKeeper.testStorage===testStorage || SeLiteMisc.fail();
         !testStorage || !SeLiteSettings.moduleForReloadButtons.testDbKeeper || SeLiteSettings.moduleForReloadButtons.testDbKeeper.store();
-        !appStorage || appStorage.close(); // The web application shouldn't use SQLiteConnectionManager, so let's close the connection here.
+        !appStorage || appStorage.close( true ); // The web application shouldn't use SQLiteConnectionManager, so let's close the connection here.
     };
     
     /** Shorthand to make caller's intention clear.

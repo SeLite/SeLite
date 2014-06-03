@@ -48,6 +48,7 @@ SeLiteData.Storage.prototype.tablePrefix= function tablePrefix() { return ''; };
  * @return the new connection
  */
 SeLiteData.Storage.prototype.open= function open() {
+    !this.connection || SeLiteMisc.fail( "Already connected to " +this.parameters.fileName );
     this.connection= this.parameters.connect();
 };
 
@@ -193,7 +194,7 @@ SeLiteData.Storage.prototype.select= function select( query, bindings, fields ) 
         }
     }
     finally {
-        stmt.reset();
+        stmt.finalize();
     }
     return result;
 };
@@ -228,6 +229,7 @@ SeLiteData.Storage.prototype.execute= function execute( query, bindings ) {
             stmt.params[field]= bindings[field];
         }
         stmt.execute();
+        stmt.finalize();
     }
 };
 
@@ -419,6 +421,7 @@ SeLiteData.Storage.prototype.updateRecords= function updateRecords( params ) {
     }
     var stmt= this.connection.createStatement( query );
     stmt.execute();
+    stmt.finalize();
 };
 
 /** Update a in the DB, matching it by 'id' field (i.e. params.entries.id).
@@ -473,6 +476,7 @@ SeLiteData.Storage.prototype.removeRecordByPrimary= function removeRecordByPrima
     var query= "DELETE FROM " +tableName+ " WHERE " +conditionParts.join( 'AND' );
     var stmt= this.connection.createStatement( query );
     stmt.execute();
+    stmt.finalize();
 };
 
 /**Insert the  record into the DB.
@@ -507,6 +511,7 @@ SeLiteData.Storage.prototype.insertRecord= function insertRecord( params ) {
     }
     var stmt= this.connection.createStatement( query );
     stmt.execute();
+    stmt.finalize();
 };
 
 /** This returns the last successfully inserted record.
@@ -603,7 +608,8 @@ Object.defineProperty( SeLiteData.Settable.prototype, 'set', {
         }
 } );
 
-/** @private Subclass of SeLiteData.Storage, that is based on SeLiteSettings.Field pointing to an SQLite source, and an optional Field indicating table prefix.
+/** @constructor Subclass of SeLiteData.Storage, that is based on SeLiteSettings.Field pointing to an SQLite source, and an optional Field indicating table prefix.
+ * @private
  *  @param {SeLiteSettings.Field.SQLite} dbField
  *  @param {SeLiteSettings.Field.String} [tablePrefixField]
  * */

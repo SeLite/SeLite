@@ -777,6 +777,7 @@ SeLiteSettings.TestDbKeeper= function TestDbKeeper() {};
 SeLiteSettings.TestDbKeeper.prototype.initialise= function initialise( testStorage ) {
     /** @var {SeLiteData.Storage} */
     this.testStorage= testStorage;
+    this.db= new SeLiteData.Db( this.testStorage );
 };
 /** Load any relevant test data from testStorage to memory. It must be robust - there may not be any test DB yet, or with an out of date schema.
  * */
@@ -820,7 +821,6 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.constructor= SeLiteSettings.TestDb
  */
 SeLiteSettings.TestDbKeeper.Columns.prototype.initialise= function initialise( testStorage ) {
     SeLiteSettings.TestDbKeeper.prototype.initialise.call( this, testStorage );
-    this.db= new SeLiteData.Db( this.testStorage );
     //this.tables= {}; // string tableName => SeLiteData.Table
     this.formulas= {}; // string tableName => SeLiteData.RecordSetFormula
     for( var tableName in this.description ) {
@@ -831,32 +831,35 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.initialise= function initialise( t
             columns: tableDetails.columns,
         });
         //this.tables[ tableName ]= table;
-        var formula= new SeLiteData.RecordSetFormula( {
+        this.formulas[ tableName ]= new SeLiteData.RecordSetFormula( {
             table: table,
             columns: new SeLiteData.Settable().set( tableName, tableDetails.columns ),
             indexBy: tableDetails.key,
             indexUnique: true
         });
-        this.formulas[ tableName ]= formula;
     }
 };
 SeLiteSettings.TestDbKeeper.Columns.prototype.load= function load() {
+    if( !this.testStorage.connection ) {
+        console.log( 'Test DB not present or not connected ' );
+        return;
+    }
     for( var tableName in this.formulas ) {
         var formula= this.formulas[tableName];
         this.data[tableName]= {}; // indexByValue => object record
-        try { // The table may not exist in this.testStorage (yet). If it doesn't, then we just skip it.
+        try { 
             // I must pass 2nd parameter (fields), otherwise it tries to collect them from the query and
-            // it fails since the query uses star *
+            // it fails since the query uses star *. @TODO use Mozilla tableExists()
             this.testStorage.select( 'SELECT count(*) AS num FROM ' +formula.table.nameWithPrefix(), {}, ['num'] );
         }
-        catch( e ) {
+        catch( e ) {// The table may not exist in this.testStorage (yet). If it doesn't, then we just skip it.
             console.log( 'SeLiteSettings.TestDbKeeper.Columns failed to select from test table ' +tableName+ ':\n' +e+ '\n' +e.stack );
             continue;
         }
-        try { // The table may be out of date - then log it and skip it
+        try { 
             this.data[ tableName ]= formula.select();
         }
-        catch( e ) {
+        catch( e ) {// The table may be out of date - then log it and skip it
             console.log( e ); //@TODO better logging
         }
     }
@@ -866,18 +869,17 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
         var formula= this.formulas[tableName];
         var tableNameWithPrefix= formula.table.nameWithPrefix();
         try { // The table may not exist in this.testStorage (anymore). If it doesn't, then we just skip it.
-            this.testStorage.select( 'SELECT count(*) AS num FROM ' +tableNameWithPrefix, {}, ['num'] );
+            this.testStorage.select( 'SELECT count(*) AS num FROM ' +tableNameWithPrefix, {}, ['num'] ); //@TODO Use Mozilla's tableExists()
         }
         catch( e ) {
             console.log( 'SeLiteSettings.TestDbKeeper.Columns failed to select from test table ' +tableNameWithPrefix+ ':\n' +e+ '\n' +e.stack );
             continue;
         }
-        try { // The (old test) table may be out of date (incompatible with the new test table) - then log it and skip it
+        try {
             var reloadedData= this.formulas[ tableName ].select();
             var tableDetails= this.description[tableName];
             for( var keyValue in reloadedData ) {
                 if( keyValue in this.data[tableName] || tableDetails.defaults && Object.keys(tableDetails.defaults).length>0 ) {
-                    var query= "UPDATE " +tableNameWithPrefix+ " SET ";
                     var updateParts= [];
                     var bindings= {};
                     var originals= {}; // Original values that I'm replacing. For logging only.
@@ -903,13 +905,14 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
                         }
                         console.debug( 'Updating ' +tableName+ ', record with ' +tableDetails.key+ '=' +keyValue+'. Replacing ' +SeLiteMisc.objectToString(originals, 2)+ ' with default test values ' +SeLiteMisc.objectToString(bindings, 2) );
                     }
-                    query+= updateParts.join(', ')+ ' WHERE ' +tableDetails.key+ '=:' +tableDetails.key;
+                    var query= "UPDATE " +tableNameWithPrefix+ " SET " +updateParts.join(', ')+ ' WHERE ' +tableDetails.key+ '=:' +tableDetails.key;
+                    console.debug( query );
                     bindings[ tableDetails.key ]= keyValue;
                     this.testStorage.execute( query, bindings );
                 }
             }
         }
-        catch( e ) {
+        catch( e ) {// The (old test) table may be out of date (incompatible with the new test table) - then log it and skip it
             console.log( ''+e+'\n'+e.stack ); //@TODO better logging
             throw e; //@TODO
         }

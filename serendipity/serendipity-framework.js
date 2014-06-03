@@ -21,9 +21,13 @@ if( Serendipity===undefined ) {
         /** @type {string}*/
         selectedUsername: undefined,
         /** @type {SeLiteData.Db}*/
+        // @TODO:
+        // 1. This throws an error, therefore Serendipity stays undefined
+        // 2. How to handle non-existing DB file?
         db: new SeLiteData.Db( SeLiteData.getStorageFromSettings() )
     };
 }
+
 (function() {
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
     console.warn('Serendipity framework loading');
@@ -31,9 +35,9 @@ if( Serendipity===undefined ) {
         var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
         commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor', 'contributor'] );
         commonSettings.removeField( 'webRoot');
-        
+        console.log( 'Serendipity:' +Serendipity);
         /** This sets the user, used by Selenium.prototype.readSerendipityEditorBody() and the related functions to determine whether to use a rich editor or not.
-         * @param {string} givenUser User's username (not the role name).
+         * @param {string} givenUsername User's username (not the role name).
          * */
         Serendipity.selectUsername= function selectUsername( givenUsername ) {
             Serendipity.selectedUsername= givenUsername;
@@ -254,7 +258,7 @@ if( Serendipity===undefined ) {
                'mail_comments', 'mail_trackbacks', 'email',
                'userlevel', 'right_publish', 'hashtype'
            ],
-           primary: 'authorid' // However, for purpose of matching users I usually use 'login'
+           primary: 'authorid' // However, for purpose of matching users I usually use 'username'
         });
         /** @type {SeLiteData.RecordSetFormula} */
         Serendipity.formulas.authors= new SeLiteData.RecordSetFormula( {

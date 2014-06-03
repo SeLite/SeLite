@@ -407,7 +407,7 @@ SeLiteData.RecordSetFormula= function RecordSetFormula( params, prototype ) {
     }
 
     // The following doesn't apply to indexing of RecordSetHolder.originals.
-    if( this.indexBy===undefined && this.table && this.table.primary && this.table.primary==='string' ) {
+    if( this.indexBy===undefined && this.table && this.table.primary && typeof this.table.primary==='string' ) {
         this.indexBy= this.table.primary;
         this.indexUnique===undefined || this.indexUnique || SeLiteMisc.fail( 'Formula for table ' +this.table.name+ " doesn't specify indexBy field, therefore it should not specify indexUnique as false.");
         this.indexUnique= true;

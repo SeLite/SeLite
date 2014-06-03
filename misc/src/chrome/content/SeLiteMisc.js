@@ -986,9 +986,10 @@ SeLiteMisc.compoundIndexValue= function compoundIndexValue( record, fieldNames )
     if( fieldNames.length===1 ) {
         return SeLiteMisc.getField(record, fieldNames[0]);
     }
-    var result= ''; // Concatenation of index values, separated with null character ('\0'). In case there are any null characters in any field names, those are doubled - so that the result can be transformed back to the group of index values. An alternative way would be to use JSON.stringify().
+    var result= ''; // Concatenation of index values, separated with '-'. In case there are any '-' in any index values, those are doubled - so that the result can be transformed back to the group of index values. An alternative way would be to use JSON.stringify().
+    // Side note: I've used null character '\0' instead of '-'. That caused debugging problems, since '\0' doesn't show up in strings on Firefox console or GUI.
     for( var i=0; i<fieldNames.length; i++ ) { //@TODO for(.. of.. ) once NetBeans likes it
-        result+= ( '' + SeLiteMisc.getField(record, fieldNames[i]) ).replace( '\0', '\0\0' )+ '\0';
+        result+= ( '' + SeLiteMisc.getField(record, fieldNames[i]) ).replace( '-', '--' )+ '-';
     }
     return result;
 }
