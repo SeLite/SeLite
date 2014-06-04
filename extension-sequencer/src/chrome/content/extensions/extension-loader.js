@@ -97,7 +97,7 @@
                     var plugin= SeLiteExtensionSequencer.plugins[pluginId];
                     var ide_api = new API();
                     try {
-                        // I register the plugin even if it has no url. That way it
+                        // I register the plugin even if it has no core/ide extension rl. That way it
                         // will be listed in Selenium IDE > Options > Options > Plugins.
                         console.log( 'SeLiteExtensionSequencer is adding plugin with ID ' +pluginId+ '. Its core extension files are ' +plugin.coreUrl+ '. Its IDE extension files are ' +plugin.ideUrl+ '.' );
                         ide_api.addPlugin(pluginId);

@@ -24,7 +24,7 @@
         
         /** @var Object serving as an associative array [string file path] => int lastModifiedTime
          **/
-        Selenium.scriptLoadTimestamps= {};
+        Selenium.bootstrapScriptLoadTimestamps= {};
         ;
         var FileUtils= Components.utils.import("resource://gre/modules/FileUtils.jsm", {} ).FileUtils;
         var Services= Components.utils.import("resource://gre/modules/Services.jsm", {} ).Services;
@@ -39,7 +39,7 @@
 
           Selenium.prototype.reset= function reset() {
           // @TODO Use interceptBefore() from SelBlocks - if SelBlocksGlobal stays as a part of SeLite
-                Selenium.reloadScripts();
+                Selenium.bootstrapReloadScripts();
                 origReset.call(this);
           };
 
@@ -53,7 +53,7 @@
          *   or if they were modified since then. It also reloads them if their timestamp changed, but the contents didn't
          *   - no harm in that.
          */
-        Selenium.reloadScripts= function reloadScripts() {
+        Selenium.bootstrapReloadScripts= function bootstrapReloadScripts() {
             editor.seleniumAPI.Selenium= Selenium;
             editor.seleniumAPI.LOG= LOG;
 
@@ -71,12 +71,12 @@
                     return;
                 }
 
-                if( filePath in Selenium.scriptLoadTimestamps && Selenium.scriptLoadTimestamps[filePath]===file.lastModifiedTime ) {
+                if( filePath in Selenium.bootstrapScriptLoadTimestamps && Selenium.bootstrapScriptLoadTimestamps[filePath]===file.lastModifiedTime ) {
                     return;
                 }
                 // Let's set the timestamp before loading & executing the file. This ensures that if something goes wrong in that file, it won't be re-run
                 // until it's updated (or until you reload Selenium IDE).
-                Selenium.scriptLoadTimestamps[filePath]= file.lastModifiedTime;
+                Selenium.bootstrapScriptLoadTimestamps[filePath]= file.lastModifiedTime;
 
                 var tmpFile= FileUtils.getFile( "TmpD", [file.leafName+'-'+Date.now()] ); //  The second parameter is just a suggested name. FileUtils ensures I get a unique file.
                 tmpFile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, FileUtils.PERMS_FILE); // This creates an empty file

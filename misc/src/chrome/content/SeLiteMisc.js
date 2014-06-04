@@ -1316,7 +1316,7 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
 };
 
 /** Object serving as an associative array. Used by Core extensions, that are specified in Selenium IDE menu or that are loaded from an XPI file/proxy file
- *  (but not via ExtensionSequencer), to indicate whether an extension has been loaded once or twice
+ *  or via ExtensionSequencer (but not via Bootstrap), to indicate whether an extension has been loaded once or twice
  *  during the current run of Selenium IDE.
  *  {
  *      string core extension name: boolean true if the extension was loaded once (that is, before running any Selenese), or odd number of times;
