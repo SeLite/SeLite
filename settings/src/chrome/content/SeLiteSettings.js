@@ -879,11 +879,11 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
             var reloadedData= this.formulas[ tableName ].select();
             var tableDetails= this.description[tableName];
             for( var keyValue in reloadedData ) {
-                if( keyValue in this.data[tableName] || tableDetails.defaults && Object.keys(tableDetails.defaults).length>0 ) {
+                if( this.data[tableName] && keyValue in this.data[tableName] || tableDetails.defaults && Object.keys(tableDetails.defaults).length>0 ) {
                     var updateParts= [];
                     var bindings= {};
                     var originals= {}; // Original values that I'm replacing. For logging only.
-                    if( keyValue in this.data[tableName] ) {
+                    if( this.data[tableName] && keyValue in this.data[tableName] ) {
                         for( var i=0; i<tableDetails.columns.length; i++ ) {// @TODO for(..of..)
                             var column= tableDetails.columns[i];
                             if( column!==tableDetails.key ) {
@@ -919,7 +919,8 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
     }
 };
 
-/** Create a Settings module.
+/** @constructor Create a Settings module.
+ *  In addition to the given parameters, a module can have field testDbKeeper. If present, it's not set from here, but through SeLiteSettings.setTestDbKeeper().
  *  @param name string Name prefix for preferences/fields for this module.
  *  As per Mozilla standard, it should be dot-separated and start with 'extensions.' See Firefox url about:config.
  *  @param fields Array of SeLiteSettings.Field objects, in the order how they will be displayed.
@@ -932,10 +933,9 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
  *  by clients that only know the module name but not location of the file.
  *  If not set and the module has been already registered, then it stays unchanged (in the preference).
  *  Required if you want to register a brand new module; not needed if re-registering (upgrading) an already registered module.
- *  @param {SeLiteMisc.TestDbKeeper} [testDbKeeper]
  *  @param {boolean} [dontRegister] Whether not to (re)register this module; by default it's false (i.e. do register).
  * */
-SeLiteSettings.Module= function Module( name, fields, allowSets, defaultSetName, associatesWithFolders, definitionJavascriptFile, testDbKeeper, dontRegister ) {
+SeLiteSettings.Module= function Module( name, fields, allowSets, defaultSetName, associatesWithFolders, definitionJavascriptFile, dontRegister ) {
     this.name= name;
     if( typeof this.name!='string' ) {
         throw new Error( 'SeLiteSettings.Module() expects a string name.');
@@ -976,8 +976,6 @@ SeLiteSettings.Module= function Module( name, fields, allowSets, defaultSetName,
     if( this.definitionJavascriptFile!==undefined && typeof this.definitionJavascriptFile!=='string') {
         throw new Error( 'SeLiteSettings.Module() expects definitionJavascriptFile to be a string, if provided.');
     }
-    this.testDbKeeper= testDbKeeper || null;
-    this.testDbKeeper===null || this.testDbKeeper instanceof SeLiteSettings.TestDbKeeper || SeLiteMisc.fail( 'SeLiteSettings.Module() must be called with testDbKeeper set to an instance of SeLiteSettings.TestDbKeeper, if used.' );
     
     this.prefsBranch= prefs.getBranch( this.name+'.' );
     /** @type {object} {string field name => Field object } for fields added via addField(field). */
@@ -1100,13 +1098,15 @@ SeLiteSettings.Module.prototype.addFields= function addFields( fields, dontReReg
 };
 
 /** Set SeLiteSettings.moduleForReloadButtons.testDbKeeper and initialise it. You can call this only after you've called SeLiteSettings.setModuleForReloadButtons(this) successfully - normally it's done automatically for module 'extensions.selite-settings.common'.
- *  @param {SeLiteSettings.TestDbKeeper} testDbKeeper
+ *  @param {(SeLiteSettings.TestDbKeeper|null)} testDbKeeper
  * */
 SeLiteSettings.setTestDbKeeper= function setTestDbKeeper( testDbKeeper ) {
     SeLiteSettings.moduleForReloadButtons.testDbKeeper= testDbKeeper;
-    var testDbField= SeLiteSettings.moduleForReloadButtons.fields['testDB'];
-    var tablePrefixField= SeLiteSettings.moduleForReloadButtons.fields['tablePrefix'];
-    testDbKeeper.initialise( SeLiteData.getStorageFromSettings(testDbField, tablePrefixField) );
+    if( testDbKeeper ) {
+        var testDbField= SeLiteSettings.moduleForReloadButtons.fields['testDB'];
+        var tablePrefixField= SeLiteSettings.moduleForReloadButtons.fields['tablePrefix'];
+        testDbKeeper.initialise( SeLiteData.getStorageFromSettings(testDbField, tablePrefixField) );
+    }
 };
 
 /**@return array of strings names of sets as they are in the preferences DB, or [''] if the module
@@ -1948,12 +1948,6 @@ SeLiteSettings.setModuleForReloadButtons= function setModuleForReloadButtons( mo
     !vanillaDbField || vanillaDbField instanceof SeLiteSettings.Field.SQLite || SeLiteMisc.fail();
     
     testDbField && (appDbField || vanillaDbField) || SeLiteMisc.fail( 'There must be Field.SQLite appDB, and at least one of appDB and vanillaDB in a settings module passed to SeLiteSettings.setModuleForReloadButtons().' );
-    
-    var tablePrefixField= SeLiteSettings.moduleForReloadButtons.fields['tablePrefix'];
-    
-    if( SeLiteSettings.moduleForReloadButtons.testDbKeeper ) { //@TODO Minor: remove handling of testDbKeeper here and in Module() constructor. It's not used from there. Users use SeLiteSettings.setTestDbKeeper() instead.
-        SeLiteSettings.moduleForReloadButtons.testDbKeeper.initialise( SeLiteData.getStorageFromSettings(testDbField, tablePrefixField) );
-    }
 };
 
 /** This will be the module instance for extensions.selite-settings.common, once its definition is loaded.
