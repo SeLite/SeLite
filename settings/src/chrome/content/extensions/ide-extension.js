@@ -56,7 +56,11 @@
      * */
     global.editor.reload_databases= function reload_databases( reloadAppAndTest, reloadVanillaAndTest ) {
         if( !SeLiteSettings.getTestSuiteFolder() ) {
-            alert("Please open or save a test suite, so that SeLite can collect configuration for it." );
+            alert("Please open or save a test suite first, so that SeLite can collect configuration for it. Then use the button again." );
+            return;
+        }
+        if( SeLiteSettings.moduleForReloadButtons.testDbKeeper===undefined ) {
+            alert( "Please run any single Selenese test command first. Then use the button again. If that doesn't help, ensure that you load a test framework which calls SeLiteSettings.setTestDbKeeper(...). See file:///home/pkehl/wiki/TestFramework.wiki#Creating_a_new_framework" );
             return;
         }
         SeLiteSettings.moduleForReloadButtons || SeLiteMisc.fail( 'This requires your Core extension to call SeLiteSettings.setModuleForReloadButtons().' );

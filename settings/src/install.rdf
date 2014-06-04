@@ -4,7 +4,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>settings@selite.googlecode.com</em:id>
     <em:name>SeLite Settings</em:name>
-    <em:version>0.37</em:version>
+    <em:version>0.38</em:version>
     <em:creator>Peter Kehl</em:creator>
     <em:description>Template/module-based user interface to Firefox preferences - mostly for Firefox addons.
     </em:description>

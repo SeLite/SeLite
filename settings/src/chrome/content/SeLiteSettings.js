@@ -1098,9 +1098,10 @@ SeLiteSettings.Module.prototype.addFields= function addFields( fields, dontReReg
 };
 
 /** Set SeLiteSettings.moduleForReloadButtons.testDbKeeper and initialise it. You can call this only after you've called SeLiteSettings.setModuleForReloadButtons(this) successfully - normally it's done automatically for module 'extensions.selite-settings.common'.
- *  @param {(SeLiteSettings.TestDbKeeper|null)} testDbKeeper
+ *  @param {(SeLiteSettings.TestDbKeeper|null)} testDbKeeper. Pass null if your framework doesn't use testDbKeeper.
  * */
 SeLiteSettings.setTestDbKeeper= function setTestDbKeeper( testDbKeeper ) {
+    SeLiteSettings.moduleForReloadButtons.testDbKeeper===undefined || SeLiteMisc.fail( "You've already set testDbKeeper, or you've already loaded another test framework. Please restart Firefox (not just Selenium IDE)." ); //@TODO Remove once Selenium people fix http://code.google.com/p/selenium/issues/detail?id=6697 Core extensions are loaded 2x
     SeLiteSettings.moduleForReloadButtons.testDbKeeper= testDbKeeper;
     if( testDbKeeper ) {
         var testDbField= SeLiteSettings.moduleForReloadButtons.fields['testDB'];
