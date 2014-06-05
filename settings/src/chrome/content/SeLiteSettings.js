@@ -1101,12 +1101,29 @@ SeLiteSettings.Module.prototype.addFields= function addFields( fields, dontReReg
  *  @param {(SeLiteSettings.TestDbKeeper|null)} testDbKeeper. Pass null if your framework doesn't use testDbKeeper.
  * */
 SeLiteSettings.setTestDbKeeper= function setTestDbKeeper( testDbKeeper ) {
-    SeLiteSettings.moduleForReloadButtons.testDbKeeper===undefined || SeLiteMisc.fail( "You've already set testDbKeeper, or you've already loaded another test framework. Please restart Firefox (not just Selenium IDE)." ); //@TODO Remove once Selenium people fix http://code.google.com/p/selenium/issues/detail?id=6697 Core extensions are loaded 2x
-    SeLiteSettings.moduleForReloadButtons.testDbKeeper= testDbKeeper;
-    if( testDbKeeper ) {
-        var testDbField= SeLiteSettings.moduleForReloadButtons.fields['testDB'];
-        var tablePrefixField= SeLiteSettings.moduleForReloadButtons.fields['tablePrefix'];
-        testDbKeeper.initialise( SeLiteData.getStorageFromSettings(testDbField, tablePrefixField) );
+    try { throw new Error(); } // This is to get the location of the test framework. If testDbKeeper was already set from the same framework, then I skip it. Otherwise I report a problem.
+    catch( e ) {
+        // e is a string, with the innermost stack information first. This is usually called
+        // when Selenium IDE runs a Selenese command from the test suite for the first time.
+        // It may be any Selenese - thus some of the stack levels can vary.
+        // I also accept this scenario: The user uses a test suite with a framework. Then she uses a test suite with no test framework. Then she uses a test suite with the exact same framework as the first one - however, Bootstrap copies the framework to a new file with timestamp in the name. So I extract the framework file name except for the timestamp. Limitation: if multiple frameworks have the same file leaf name, this can't distinguish between them. QA Note: you can only trigger the second load of the same framework, if you update timestamp of its file (e.g. by unix command 'touch').
+        // -> file:///var/tmp/dotclear-framework.js-1401941951280:102
+        var invoker= e.stack.match( /^[^>]+-> ([^\n]+)-[0-9]+:[0-9]+/ )[1];
+        console.error( e.stack );
+        console.error( 'Invoker: ' +invoker);
+        if( SeLiteSettings.moduleForReloadButtons.testDbKeeperInvoker!==undefined ) {
+            if( SeLiteSettings.moduleForReloadButtons.testDbKeeperInvoker===invoker ) {
+                return;
+            }
+            SeLiteMisc.fail( "You've already set testDbKeeper at " +SeLiteSettings.moduleForReloadButtons.testDbKeeperInvoker+ ", or you've already loaded another test framework. Please restart Firefox (not just Selenium IDE)." );
+        }
+        SeLiteSettings.moduleForReloadButtons.testDbKeeperInvoker= invoker;
+        SeLiteSettings.moduleForReloadButtons.testDbKeeper= testDbKeeper;
+        if( testDbKeeper ) {
+            var testDbField= SeLiteSettings.moduleForReloadButtons.fields['testDB'];
+            var tablePrefixField= SeLiteSettings.moduleForReloadButtons.fields['tablePrefix'];
+            testDbKeeper.initialise( SeLiteData.getStorageFromSettings(testDbField, tablePrefixField) );
+        }
     }
 };
 
