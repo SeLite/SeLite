@@ -172,9 +172,9 @@ SeLiteData.Storage.prototype.select= function select( query, bindings, fields ) 
     if( !fields ) {
         fields= this.fieldNames( this.fieldParts( query ) );
     }
-    this.con || SeLiteMisc.fail( 'SeLiteData.Storage.connection() is not set. SQLite file name: ' +this.parameters.fileName );
+    this.connection() || SeLiteMisc.fail( 'SeLiteData.Storage.connection() is not set. SQLite file name: ' +this.parameters.fileName );
     //console.log( 'SeLite: ' +query );
-    var stmt= this.con.createStatement( query );
+    var stmt= this.connection().createStatement( query );
     for( var field in bindings ) {
         try {
             stmt.params[field]= bindings[field];
@@ -224,10 +224,10 @@ SeLiteData.Storage.prototype.selectOne= function selectOne( query, bindings, fie
  **/
 SeLiteData.Storage.prototype.execute= function execute( query, bindings ) {
     if( bindings==null ) {
-        this.con.executeSimpleSQL( query );
+        this.connection().executeSimpleSQL( query );
     }
     else {
-        var stmt= this.con.createStatement( query );
+        var stmt= this.connection().createStatement( query );
         for( var field in bindings ) {
             stmt.params[field]= bindings[field];
         }
@@ -422,7 +422,7 @@ SeLiteData.Storage.prototype.updateRecords= function updateRecords( params ) {
     if( params.debugQuery!==undefined && params.debugQuery ) {
         console.log( query );
     }
-    var stmt= this.con.createStatement( query );
+    var stmt= this.connection().createStatement( query );
     stmt.execute();
     stmt.finalize();
 };
@@ -477,7 +477,7 @@ SeLiteData.Storage.prototype.removeRecordByPrimary= function removeRecordByPrima
         conditionParts.push( primaryKey[i]+ '=' +this.quoteValues( record[primaryKey[i]] ) );
     }
     var query= "DELETE FROM " +tableName+ " WHERE " +conditionParts.join( 'AND' );
-    var stmt= this.con.createStatement( query );
+    var stmt= this.connection().createStatement( query );
     stmt.execute();
     stmt.finalize();
 };
@@ -512,7 +512,7 @@ SeLiteData.Storage.prototype.insertRecord= function insertRecord( params ) {
     if( params.debugQuery!==undefined && params.debugQuery ) {
         console.log( query );
     }
-    var stmt= this.con.createStatement( query );
+    var stmt= this.connection().createStatement( query );
     stmt.execute();
     stmt.finalize();
 };
