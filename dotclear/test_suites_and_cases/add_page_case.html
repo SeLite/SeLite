@@ -16,16 +16,11 @@
 	<td>logIn</td>
 	<td>userIdOrAmpersandRole='&amp;admin'</td>
 </tr>
-<!--TODO Doc: This doesn't work: getEval | $var=... $otherVar-->
-<tr>
-	<td>getEval</td>
-	<td>$options= {enable_wysiwyg: false}</td>
-	<td></td>
-</tr>
+<!---->
 <tr>
 	<td>call</td>
 	<td>updateUserOptions</td>
-	<td>options=$options</td>
+	<td>options={enable_wysiwyg: false}</td>
 </tr>
 <!---->
 <!--Update zero, one or more given options of the user.-->
@@ -47,7 +42,7 @@
 </tr>
 <tr>
 	<td>pause</td>
-	<td>50</td>
+	<td>200</td>
 	<td>Wait for the tab to switch</td>
 </tr>
 <!---->
@@ -58,7 +53,7 @@
 </tr>
 <tr>
 	<td>for</td>
-	<td>$optionIndex=0; $optionIndex&lt;=$optionNames.length; $optionIndex++</td>
+	<td>$optionIndex=0; $optionIndex&lt;$optionNames.length; $optionIndex++</td>
 	<td>optionIndex</td>
 </tr>
 <tr>
@@ -70,6 +65,11 @@
 	<td>storeEval</td>
 	<td>storedVars.options[storedVars.optionName]</td>
 	<td>optionValue</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>LOG.error( 'optionIndex:' +storedVars.optionIndex+ ', optionName: ' +storedVars.optionName+ ', optionValue: ' +storedVars.optionValue+ ', typeof optionValue: ' +typeof storedVars.optionValue )</td>
+	<td></td>
 </tr>
 <tr>
 	<td>if</td>
@@ -121,14 +121,37 @@
 	<td></td>
 	<td></td>
 </tr>
+<!---->
 <tr>
-	<td>exitTest</td>
+	<td>clickAndWait</td>
+	<td>css=#opts-forms &gt; p.clear.vertical-separator &gt; input[type=&quot;submit&quot;]</td>
 	<td></td>
+</tr>
+<!--Following reported success (e.g. [04:50:48] Personal information has been successfully updated.), but it didn't update DB!-->
+<!--It didn't matter whether I un/check same id=user_wysiwyg using Se IDE or by mouse - the form didn't get submitted properly.-->
+<tr>
+	<td>if</td>
+	<td>false</td>
 	<td></td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
 	<td>//form[ @id='user-form' ]//input[ @type='submit' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>$e( &quot;//form[ @id='user-form' ]//input[ @type='submit' ]&quot; ).click()</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>Dotclear.updateUserOptions( storedVars.options )</td>
 	<td></td>
 </tr>
 <tr>

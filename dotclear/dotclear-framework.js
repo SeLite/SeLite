@@ -64,7 +64,7 @@ if( Dotclear===undefined ) {
      * */
     Dotclear.updateUserOptions= function updateUserOptions( options ) {
         Dotclear.selectedUserId || SeLiteMisc.fail( 'Call Dotclear.selectUserId() first.' );
-        var query= 'UPDATE ' +Dotclear.db.storage.tablePrefixValue+ "user SET user_options=%user_options WHERE user_id=:user_id";
+        var query= 'UPDATE ' +Dotclear.db.storage.tablePrefixValue+ "user SET user_options=:user_options WHERE user_id=:user_id";
         Dotclear.db.storage.execute( query, {
             user_id: Dotclear.selectedUserId,
             user_options: JSON.stringify(options)
