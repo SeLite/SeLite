@@ -1109,8 +1109,6 @@ SeLiteSettings.setTestDbKeeper= function setTestDbKeeper( testDbKeeper ) {
         // I also accept this scenario: The user uses a test suite with a framework. Then she uses a test suite with no test framework. Then she uses a test suite with the exact same framework as the first one - however, Bootstrap copies the framework to a new file with timestamp in the name. So I extract the framework file name except for the timestamp. Limitation: if multiple frameworks have the same file leaf name, this can't distinguish between them. QA Note: you can only trigger the second load of the same framework, if you update timestamp of its file (e.g. by unix command 'touch').
         // -> file:///var/tmp/dotclear-framework.js-1401941951280:102
         var invoker= e.stack.match( /^[^>]+-> ([^\n]+)-[0-9]+:[0-9]+/ )[1];
-        console.error( e.stack );
-        console.error( 'Invoker: ' +invoker);
         if( SeLiteSettings.moduleForReloadButtons.testDbKeeperInvoker!==undefined ) {
             if( SeLiteSettings.moduleForReloadButtons.testDbKeeperInvoker===invoker ) {
                 return;
