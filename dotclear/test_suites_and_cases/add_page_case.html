@@ -135,6 +135,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>getEval</td>
+	<td>alert( $e( &quot;//form[ @id='user-form' ]//input[ @type='submit' ]&quot; )===$e( 'css=#opts-forms &gt; p.clear.vertical-separator &gt; input[type=&quot;submit&quot;]' ) )</td>
+	<td>-&gt; false!!!</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>alert( $e( 'css=#opts-forms &gt; p.clear.vertical-separator &gt; input[type=&quot;submit&quot;]' )===$e( 'css=#opts-forms &gt; p.clear.vertical-separator &gt; input[type=&quot;submit&quot;]' ) )</td>
+	<td>-&gt; true</td>
+</tr>
+<tr>
 	<td>clickAndWait</td>
 	<td>//form[ @id='user-form' ]//input[ @type='submit' ]</td>
 	<td></td>
