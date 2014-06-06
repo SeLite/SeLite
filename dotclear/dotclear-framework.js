@@ -12,7 +12,7 @@ var Dotclear;
 if( Dotclear===undefined ) {
     Dotclear= {
         /** @type {string}*/
-        selectedUsername: undefined,
+        selectedUserId: undefined,
         /** @type {SeLiteData.Db}*/
         db: new SeLiteData.Db( SeLiteData.getStorageFromSettings() )
     };
@@ -25,16 +25,17 @@ if( Dotclear===undefined ) {
     commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor'] );
 
     /** This sets the user, used by Selenium.prototype.readDotclearEditorBody() and the related functions to determine whether to use a rich editor or not.
-     * @param {string} givenUser User's username (not the role name).
+     * @param {string} givenUser User's user_id (not the role name).
      * */
-    Dotclear.selectUsername= function selectUsername( givenUsername ) {
-        Dotclear.selectedUsername= givenUsername;
+    Dotclear.selectUserId= function selectUserId( givenUserId ) {
+        Dotclear.selectedUserId= givenUserId;
     };
     Dotclear.selectedUser= function selectedUser() {
-        return Dotclear.formulas.user.selectOne( {user_name: Dotclear.selectedUsername} );
+        Dotclear.selectedUserId || SeLiteMisc.fail( 'Call Dotclear.selectUserId() first.' );
+        return Dotclear.userById( Dotclear.selectedUserId );
     };
     Dotclear.userById= function userById( user_id ) {
-        return Dotclear.formulas.author.selectOne( {user_id: user_id} );
+        return Dotclear.formulas.user.selectOne( {user_id: user_id} );
     };
     Dotclear.postById= function postById( id ) {
         return Dotclear.formulas.post.selectOne( {post_id: id} );
@@ -45,41 +46,51 @@ if( Dotclear===undefined ) {
         return Dotclear.config('wysiwyg', true)==='true';
     };
 
-    /**This retrieves a user-specific or global value of a given config field. It doesn't cache any values - it wasn't reported to be a significant bottleneck, and it will most likely never be one.
-     * @param {string} name Name of the config field 
-     * @param {boolean} [useSelectedUsername] If true and the user has the field configured (overriden), then this returns the value for that user. If true then this function depends on Dotclear.selectedUsername being set.
-     * @return {string} Cell of 'value' column from serendipity_config, or undefined if there is no such record
-     * @TODO if Dotclear team can confirm that there can only be settings that are global or only per-user, but no mixed setting (that could be specified either globally or per user), then simplify this.
+    /**This retrieves user-specific options, stored in JSON notation (as opposed to PHP serialized form in Dotclear app DB).
+     * @return {object} Object parsed from user.user_options. Containing zero, one or more entries with option names as in user.user_options (which slightly differes to option names used in form on /admin/preferences.php#user-options):
+     * edit_size int
+     * enable_wysiwyg bool
+     * post_format string - either 'xhtml' or 'wiki'
+     * tag_list_format string - either 'more' (its label is 'Short') or 'all (label is 'Extended')
      * */
-    Dotclear.config= function config( name, useSelectedUsername ) {
-        !useSelectedUsername || Dotclear.selectedUsername || SeLiteMisc.fail( 'Call Dotclear.selectUsername() first.' );
-        var query= 'SELECT value FROM ' +Dotclear.db.storage.tablePrefixValue+ "config WHERE name=:name AND ";
-        query+= useSelectedUsername
-            ? "(authorid=0 OR authorid=(SELECT authorid FROM " +Dotclear.tables.authors.nameWithPrefix()+ " WHERE username=:selectedUsername)) "
-            : "authorid=0";
-        var bindings= {
-            name: name
-        };
-        if( useSelectedUsername ) {
-            query+= " ORDER BY authorid DESC LIMIT 1";
-            bindings.selectedUsername= Dotclear.selectedUsername;
-        }
-        console.log( 'Dotclear.config(): ' +query );
-        var records= Dotclear.db.storage.select( query, bindings );
-        return records.length>0
-            ? records[0].value
-            : undefined;
+    Dotclear.userOptions= function userOptions() {
+        Dotclear.selectedUserId || SeLiteMisc.fail( 'Call Dotclear.selectUserId() first.' );
+        var query= 'SELECT user_options FROM ' +Dotclear.db.storage.tablePrefixValue+ "user WHERE user_id=:user_id";
+        return JSON.parse( Dotclear.db.storage.selectOne( query, {user_id: Dotclear.selectedUserId} ).user_options );
     };
+    
+    /**This updates user-specific options, stored in JSON notation (as opposed to PHP serialized form in Dotclear app DB).
+     * @param {object} options Object to be in JSON notation in user.user_options. It replaces previous user.user_options - it doesn't add/merge the old and new object.
+     * */
+    Dotclear.updateUserOptions= function updateUserOptions( options ) {
+        Dotclear.selectedUserId || SeLiteMisc.fail( 'Call Dotclear.selectUserId() first.' );
+        var query= 'UPDATE ' +Dotclear.db.storage.tablePrefixValue+ "user SET user_options=%user_options WHERE user_id=:user_id";
+        Dotclear.db.storage.execute( query, {
+            user_id: Dotclear.selectedUserId,
+            user_options: JSON.stringify(options)
+        } );
+    };
+    
+    /** This updates the given option within existing user.user_options. If value is undefined, then it removes that option.
+     * @param {string} option Option name.
+     * @param {(string|number)} value Option value.
+     * */
+    Dotclear.updateUserOption= function updateUserOption( option, value ) {
+        var options= Dotclear.userOptions();
+        options[ option ]= value;
+        Dotclear.updateUserOptions( options );
+    };
+    
     /** @TODO Implement via DbObjects & insert if the entry doesn't exist yet. Currently it only updates an existing entry in config table - it fails otherwise.
      * @param {string} name Name of the config field
      * @param {string} value Value to store
      * @param {boolean} [forUser=false] Whether it's for the currently selected user; otherwise it's a global configuration.
      *   */
     Dotclear.updateConfig= function updateConfig( name, value, forUser ) {
-        !forUser || Dotclear.selectedUsername || SeLiteMisc.fail( 'Call Dotclear.selectUsername() first.' );
+        !forUser || Dotclear.selectedUserId || SeLiteMisc.fail( 'Call Dotclear.selectUserId() first.' );
         var query= 'UPDATE ' +Dotclear.tables.config.nameWithPrefix()+ ' SET value=:value WHERE name=:name '+
             (forUser
-                ? 'AND authorid=(SELECT authorid FROM ' +Dotclear.tables.authors.nameWithPrefix()+ ' WHERE username=:selectedUsername)'
+                ? 'AND authorid=(SELECT authorid FROM ' +Dotclear.tables.authors.nameWithPrefix()+ ' WHERE user_id=:selectedUserId)'
                 : 'AND authorid=0'
             );
         LOG.info( 'updateConfig: ' +query );
@@ -88,7 +99,7 @@ if( Dotclear===undefined ) {
             value: value
         };
         if( forUser ) {
-            bindings.selectedUsername= Dotclear.selectedUsername;
+            bindings.selectedUserId= Dotclear.selectedUserId;
         }
         Dotclear.db.storage.execute( query, bindings );
     };
@@ -142,6 +153,6 @@ if( Dotclear===undefined ) {
         table: Dotclear.tables.post,
         columns: new SeLiteData.Settable().set( Dotclear.tables.post.name/* same as 'post'*/, SeLiteData.RecordSetFormula.ALL_FIELDS )
     });
-    
+
     console.warn('Dotclear framework loaded');
 })();

@@ -14,8 +14,168 @@
 <tr>
 	<td>call</td>
 	<td>logIn</td>
-	<td>userNameOrAmpersandRole='&amp;admin'</td>
+	<td>userIdOrAmpersandRole='&amp;admin'</td>
 </tr>
+<!--TODO Doc: This doesn't work: getEval | $var=... $otherVar-->
+<tr>
+	<td>getEval</td>
+	<td>$options= {enable_wysiwyg: false}</td>
+	<td></td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>updateUserOptions</td>
+	<td>options=$options</td>
+</tr>
+<!---->
+<!--Update zero, one or more given options of the user.-->
+<!--@param options An object with any options to update. See Dotclear.userOptions() for option names. Any other  options will be unchanged.-->
+<tr>
+	<td>function</td>
+	<td>updateUserOptions</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//div[ @id='favorites-menu' ]//a[ @href='preferences.php' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>//a[ @href='#user-options' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>50</td>
+	<td>Wait for the tab to switch</td>
+</tr>
+<!---->
+<tr>
+	<td>getEval</td>
+	<td>storedVars.optionNames= Object.keys( storedVars.options )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>for</td>
+	<td>$optionIndex=0; $optionIndex&lt;=$optionNames.length; $optionIndex++</td>
+	<td>optionIndex</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>storedVars.optionNames[storedVars.optionIndex]</td>
+	<td>optionName</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>storedVars.options[storedVars.optionName]</td>
+	<td>optionValue</td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>$optionName==='post_format'</td>
+	<td></td>
+</tr>
+<tr>
+	<td>select</td>
+	<td>id=user_post_format</td>
+	<td>value=${optionValue}</td>
+</tr>
+<tr>
+	<td>elseIf</td>
+	<td>$optionName==='enable_wysiwyg'</td>
+	<td></td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>$optionValue</td>
+	<td></td>
+</tr>
+<tr>
+	<td>check</td>
+	<td>id=user_wysiwyg</td>
+	<td></td>
+</tr>
+<tr>
+	<td>else</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>uncheck</td>
+	<td>id=user_wysiwyg</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFor</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>exitTest</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//form[ @id='user-form' ]//input[ @type='submit' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>exitTest</td>
+	<td></td>
+	<td></td>
+</tr>
+<!-------->
+<tr>
+	<td>exitTest</td>
+	<td></td>
+	<td></td>
+</tr>
+<!--Following replaces HTML. TODO: ignore <br/> at the end-->
+<tr>
+	<td>getEval</td>
+	<td>var paragraph= window.document.getElementById('content-area');&nbsp;&nbsp;var element= paragraph.getElementsByTagName('iframe')[0].contentWindow.document.getElementsByTagName('body')[0]; element.innerHTML= 'Be &lt;strong&gt;bold&lt;/strong&gt;, &lt;em&gt;italic&lt;/em&gt; etc.hi mate';</td>
+	<td></td>
+</tr>
+<!--Following adds HTML.-->
+<tr>
+	<td>getEval</td>
+	<td>var paragraph= window.document.getElementById('content-area');&nbsp;&nbsp;var element= paragraph.getElementsByTagName('iframe')[0].contentWindow.document.getElementsByTagName('body')[0]; element.innerHTML+= 'Be &lt;strong&gt;bold&lt;/strong&gt;, &lt;em&gt;italic&lt;/em&gt; etc.hi mate';</td>
+	<td></td>
+</tr>
+<!-------->
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ @href='plugin.php?p=userPref' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ @href='users.php' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>exitTest</td>
+	<td></td>
+	<td></td>
+</tr>
+<!---->
 <tr>
 	<td>clickAndWait</td>
 	<td>//a[ @href=&quot;post.php&quot; ]</td>

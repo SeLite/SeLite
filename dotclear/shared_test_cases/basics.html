@@ -78,7 +78,7 @@
 <tr>
 	<td>function</td>
 	<td>logIn</td>
-	<td>userNameOrAmpersandRole</td>
+	<td>userIdOrAmpersandRole</td>
 </tr>
 <!--if the user is logged in already, log him out:-->
 <tr>
@@ -88,17 +88,17 @@
 </tr>
 <tr>
 	<td>storeEval</td>
-	<td>SeLiteSettings.roleToUser( '${userNameOrAmpersandRole}' )</td>
-	<td>userName</td>
+	<td>SeLiteSettings.roleToUser( '${userIdOrAmpersandRole}' )</td>
+	<td>userId</td>
 </tr>
 <tr>
 	<td>type</td>
 	<td>id=user_id</td>
-	<td>${userName}</td>
+	<td>${userId}</td>
 </tr>
 <tr>
 	<td>storeEval</td>
-	<td>SeLiteMisc.loginManagerPassword( '${userName}' )</td>
+	<td>SeLiteMisc.loginManagerPassword( '${userId}' )</td>
 	<td>password</td>
 </tr>
 <tr>
@@ -118,7 +118,7 @@
 </tr>
 <tr>
 	<td>getEval</td>
-	<td>Dotclear.selectUsername( storedVars.userName )</td>
+	<td>Dotclear.selectUserId( storedVars.userId )</td>
 	<td></td>
 </tr>
 <tr>
@@ -179,7 +179,7 @@
 <tr>
 	<td>typeRandom</td>
 	<td>id=edit-name</td>
-	<td>`{maxLength:60, type:'word', store:'newUserName'}`</td>
+	<td>`{maxLength:60, type:'word', store:'newUserId'}`</td>
 </tr>
 <tr>
 	<td>typeRandom</td>
@@ -203,14 +203,14 @@
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>`{name: $newUserName, mail: $newUserEmail, pass: $newUserPassword}`</td>
+	<td>`{name: $newUserId, mail: $newUserEmail, pass: $newUserPassword}`</td>
 	<td>`Dotclear.tables.user`</td>
 </tr>
 <!--Login and verify-->
 <tr>
 	<td>call</td>
 	<td>logInAsStoredUser</td>
-	<td>userName=$newUserName</td>
+	<td>UserId=$newUserId</td>
 </tr>
 <!--If you'd like the following XPaths to be simpler, vote for https://code.google.com/p/selite/wiki/ThirdPartyIssues > Support XPath 2.0-->
 <!--Click at 'My account'.-->
@@ -219,10 +219,10 @@
 	<td>//ul/li/a[ contains(@href, '/?q=user') and substring-after(@href, '/?q=user')='' ]</td>
 	<td></td>
 </tr>
-<!--TODO CHECK THIS COMMENT: Check the username. (Xpath must use contains(), if Dotclear adds extra whitespace.)-->
+<!--TODO CHECK THIS COMMENT: Check the userId. (Xpath must use contains(), if Dotclear adds extra whitespace.)-->
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//div[ @id='content' ]//h1[ @id='page-title' and contains(., '${newUserName}') ]</td>
+	<td>//div[ @id='content' ]//h1[ @id='page-title' and contains(., '${newUserId}') ]</td>
 	<td></td>
 </tr>
 <!--Click at 'Edit' tab-->
@@ -246,7 +246,7 @@
 <tr>
 	<td>function</td>
 	<td>logInAsStoredUser</td>
-	<td>userName</td>
+	<td>UserId</td>
 </tr>
 <tr>
 	<td>selectTopFrameAnd</td>
@@ -255,7 +255,7 @@
 </tr>
 <tr>
 	<td>readRecord</td>
-	<td>`{ formula: Dotclear.formulas.user, name: $userName }`</td>
+	<td>`{ formula: Dotclear.formulas.user, name: $userId }`</td>
 	<td>user</td>
 </tr>
 <!--if the user is logged in already, log him out:-->
@@ -283,11 +283,11 @@
 <tr>
 	<td>storeElementPresent</td>
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
-	<td>userNamePresent</td>
+	<td>userIdPresent</td>
 </tr>
 <tr>
 	<td>if</td>
-	<td>$userNamePresent</td>
+	<td>$userIdPresent</td>
 	<td></td>
 </tr>
 <tr>
@@ -304,7 +304,7 @@
 <tr>
 	<td>type</td>
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
-	<td>${userName}</td>
+	<td>${userId}</td>
 </tr>
 <tr>
 	<td>type</td>

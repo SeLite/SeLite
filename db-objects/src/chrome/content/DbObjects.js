@@ -28,7 +28,9 @@ Components.utils.import('chrome://selite-db-objects/content/Db.js');
  *  @param {boolean} [generateInsertKey=false] Whether all tables with single-column primary key should have the key values generated (based on the maximum existing key) on insert.
  **/
 SeLiteData.Db= function Db( storage, tableNamePrefix, generateInsertKey ) {
+    /** @type {SeLiteData.Storage} storage*/
     this.storage= storage;
+    /** @type {string} tableNamePrefix*/
     this.tableNamePrefix= tableNamePrefix;
     this.generateInsertKey= generateInsertKey || false;
 };
