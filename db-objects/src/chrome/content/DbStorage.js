@@ -622,7 +622,7 @@ function StorageFromSettings( dbField, tablePrefixField ) {
     !(dbField.name in StorageFromSettings.instances) || SeLiteMisc.fail('There already is an instance of StorageFromSettings for ' +dbField.name );
     this.dbField= dbField;
     this.tablePrefixField= tablePrefixField;
-    this.tablePrefixValue= undefined; // This will be a cached configuration value for Field instance stored in this.tablePrefixField for current test suite (once known)
+    this.tablePrefixValue= undefined; // This will be set to value of Field instance stored in this.tablePrefixField for current test suite (once known)
     
     StorageFromSettings.instances[ dbField.name ]= this;
     // I don't call this.open() here, because the test suite folder may not be known yet - and it can override any default configuration set
@@ -689,6 +689,7 @@ StorageFromSettings.prototype.close= function close( synchronous ) {
  *  @overrides SeLiteData.Storage.tablePrefix()
  * */
 StorageFromSettings.prototype.tablePrefix= function tablePrefix() {
+    this.connection(); // This opens the connection, if needed, and it sets this.tablePrefixValue
     return this.tablePrefixValue;
 };
 

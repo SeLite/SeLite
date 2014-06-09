@@ -65,7 +65,7 @@ if( Serendipity===undefined ) {
          * */
         Serendipity.config= function config( name, useSelectedUsername ) {
             !useSelectedUsername || Serendipity.selectedUsername || SeLiteMisc.fail( 'Call Serendipity.selectUsername() first.' );
-            var query= 'SELECT value FROM ' +Serendipity.db.storage.tablePrefixValue+ "config WHERE name=:name AND ";
+            var query= 'SELECT value FROM ' +Serendipity.db.storage.tablePrefix()+ "config WHERE name=:name AND ";
             query+= useSelectedUsername
                 ? "(authorid=0 OR authorid=(SELECT authorid FROM " +Serendipity.tables.authors.nameWithPrefix()+ " WHERE username=:selectedUsername)) "
                 : "authorid=0";
