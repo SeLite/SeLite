@@ -622,7 +622,7 @@ function StorageFromSettings( dbField, tablePrefixField ) {
     !(dbField.name in StorageFromSettings.instances) || SeLiteMisc.fail('There already is an instance of StorageFromSettings for ' +dbField.name );
     this.dbField= dbField;
     this.tablePrefixField= tablePrefixField;
-    this.tablePrefixValue= undefined; // This will be set to value of Field instance stored in this.tablePrefixField for current test suite (once known)
+    this.tablePrefixValue= undefined; // This will be set to value of Field instance stored in this.tablePrefixField for current test suite (once known). Tests must use .tablePrefix() instead of accessing .tablePrefixValue directly.
     
     StorageFromSettings.instances[ dbField.name ]= this;
     // I don't call this.open() here, because the test suite folder may not be known yet - and it can override any default configuration set
