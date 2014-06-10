@@ -1,1 +1,3 @@
 content selite-misc chrome/content/
+
+overlay chrome://selenium-ide/content/optionsDialog.xul chrome://selite-misc/content/optionsDialog.xul
