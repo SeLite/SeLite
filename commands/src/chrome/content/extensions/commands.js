@@ -341,7 +341,7 @@
     /**I don't use prefix 'do' or 'get' in the name of this function
        because it's not intended to be run as Selenium command/getter.
        Return a random text, restricted by params, and fit for an input element identified by locator. It always returns at least 1 character.
-     * @parameter {object} params object, see second parameter paramsOrStore of function doTypeRandom() in ../reference.xml - except that here it has to be an object, it can't be a string.
+     * @parameter {object} params object, see parameter paramsOrStore of function doTypeRandom() in ../reference.xml - except that here it has to be an object, it can't be a string.
      * @parameter {object} extraParams Currently only used with type 'email', to generate an email address based on
      * a given name (first/last/full). Then pass an object {
      *     baseOnName: string human-name; the email address part left of '@' will be based on this string
@@ -358,6 +358,7 @@
             LOW.error( "randomText(): params.type='" +type+ "' is not recognised." );
             throw new Error();
         }
+        !( params.characters && params.type ) || SeLiteMisc.fail("Can't use both parameter subfields 'characters' and 'type'.");
         var elementMaxLength= locator
             ? parseInt( this.page().findElement(locator).getAttribute('maxlength') )
             : undefined;
@@ -369,32 +370,46 @@
         }
         var maxLength= params.maxLength || elementMaxLength || 255;
         maxLength= Math.max( minLength, maxLength );
-
-        var charRange= ''; // We'll use ASCII characters from within this range
-        if( !type || type==='email' ) {
-            charRange+= 'a-zA-Z'; // Email characters @ and . will be added when generating an email address
+        
+        /** @type {string} */var charRange= ''; // We'll use ASCII characters from within this range
+        /** @type {RegExp} */var acceptableChars;
+        if( params.characters ) {
+            if( Array.isArray(params.characters) ) {
+                params.characters= params.characters.join('');
+            }
+            if( typeof params.characters==='string' ) {
+                !( params.characters.length>=2 && params.characters.startsWith('/') && params.characters.endsWith('/') ) || SeLiteMisc.fail( "It looks that parameter subfield 'characters' is a string representing a regular expression. Please pass a regular expression itself (i.e. not enclosed in apostrophes or quotation marks). Alternatively pass a string or an array of acceptable characters." );
+                params.characters= new RegExp( '[' +params.characters.replace('\\', '\\\\').replace('[','\\]') + ']' );
+            }
+            SeLiteMisc.ensureInstance( params.characters, RegExp, "Parameter subfield must be a string, an array or a regular expression (but not a string that is a regular expression)." );
+            acceptableChars= SeLiteMisc.acceptableCharacters( params.characters );
         }
-        if(  !type || type==='number' ) {
-            charRange+= '0-9';
+        else {
+            if( !type || type==='email' ) {
+                charRange+= 'a-zA-Z'; // Email characters @ and . will be added when generating an email address
+            }
+            if(  !type || type==='number' ) {
+                charRange+= '0-9';
+            }
+            if( type==='name' || type==='word' ) {
+                charRange+= 'a-z'; // Only used to fill-up after 'nice' first & last name
+            }
+            if( type==='text' || type==='html' ) {
+                charRange+= ' a-z';
+            }
+            if( type==='password' ) {
+                charRange+= 'a-z'; // There's more added below
+            }
+            if( !type ) {
+                charRange+= ' _-';
+            }
+            if( type==='ugly' ) {
+                charRange= "'\"./<>();";
+            }
+            acceptableChars= SeLiteMisc.acceptableCharacters( new RegExp( '['+charRange+']' ) );
         }
-        if( type==='name' || type==='word' ) {
-            charRange+= 'a-z'; // Only used to fill-up after 'nice' first & last name
-        }
-        if( type==='text' || type==='html' ) {
-            charRange+= ' a-z';
-        }
-        if( type==='password' ) {
-            charRange+= 'a-z'; // There's more added below
-        }
-        if( !type ) {
-            charRange+= ' _-';
-        }
-        if( type==='ugly' ) {
-            charRange= "'\"./<>();";
-        }
-        var acceptableChars= SeLiteMisc.acceptableCharacters( new RegExp( '['+charRange+']' ) );
+        
         var result= '';
-
         if( type==='name' ) {
             result= SeLiteMisc.randomItem( this.randomFirstNames )+ ' ' +SeLiteMisc.randomItem( this.randomSurnames );
 
@@ -458,7 +473,7 @@
             result= name+ '@'+ midDomain+ '.' +topDomain;
         }
         else
-        if( !type || ['word', 'text', 'html', 'password', 'ugly', 'number'].indexOf(type)>=0 ) {
+        if( !type || ['word', 'text', 'html', 'password', 'ugly', 'number'].indexOf(type)>=0 || params.characters ) {
             if( type==='ugly' ) {
                 // If possible, try to type all ugly characters at least once. But don't type more than maxLength
                 minLength= Math.min( maxLength, Math.max(minLength,acceptableChars.length) );

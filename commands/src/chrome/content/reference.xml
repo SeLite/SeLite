@@ -177,8 +177,10 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
                                 (Indeed, it will never overstep maxLength or input's 'maxlength' property, if maxLength isn't set.)
                             </dd>
                         </dl>
-                        If type is not set, then the default characters used are: alphanumerics, space, underscore, dash -
+                        If type is not set and if you don't use <code>characters</code>, then the default characters used are: alphanumerics, space, underscore, dash -
                     </dd>
+                    <dt>characters</dt>
+                    <dd>String or array containing acceptable characters, or a regular expression that matches any acceptable characters. You can't use both <code>type</code> and <code>characters</code> with the same action call.</dd>
                     <dt>htmlTags</dt><dd>Array of HTML tag names to use if type is 'html'. Optional. It's useful with applications/WYSIWYG editors that transform HTML (e.g. Xinha editor transforms &amp;lt;b&amp;gt; to &amp;lt;strong&amp;gt;, &amp;lt;i&amp;gt; to &amp;lt;em&amp;gt; and &amp;lt;strike&amp;gt; to &amp;lt;del&amp;gt;).</dd>
                     <dt>decimal</dt>
                     <dd>boolean, optional. If true, then generate a decimal number. Any minLength/maxLength
