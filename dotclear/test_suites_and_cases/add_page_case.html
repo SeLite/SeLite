@@ -17,162 +17,16 @@
 	<td>userIdOrAmpersandRole='&amp;admin'</td>
 </tr>
 <!---->
-<tr>
-	<td>call</td>
-	<td>updateUserOptions</td>
-	<td>options={enable_wysiwyg: false}</td>
-</tr>
 <!---->
-<!--Update zero, one or more given options of the user.-->
-<!--@param options An object with any options to update. See Dotclear.userOptions() for option names. Any other  options will be unchanged.-->
-<tr>
-	<td>function</td>
-	<td>updateUserOptions</td>
-	<td></td>
-</tr>
-<tr>
-	<td>clickAndWait</td>
-	<td>//div[ @id='favorites-menu' ]//a[ @href='preferences.php' ]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>//a[ @href='#user-options' ]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>pause</td>
-	<td>200</td>
-	<td>Wait for the tab to switch</td>
-</tr>
-<!---->
-<tr>
-	<td>getEval</td>
-	<td>storedVars.optionNames= Object.keys( storedVars.options )</td>
-	<td></td>
-</tr>
-<tr>
-	<td>for</td>
-	<td>$optionIndex=0; $optionIndex&lt;$optionNames.length; $optionIndex++</td>
-	<td>optionIndex</td>
-</tr>
-<tr>
-	<td>storeEval</td>
-	<td>storedVars.optionNames[storedVars.optionIndex]</td>
-	<td>optionName</td>
-</tr>
-<tr>
-	<td>storeEval</td>
-	<td>storedVars.options[storedVars.optionName]</td>
-	<td>optionValue</td>
-</tr>
-<tr>
-	<td>getEval</td>
-	<td>LOG.error( 'optionIndex:' +storedVars.optionIndex+ ', optionName: ' +storedVars.optionName+ ', optionValue: ' +storedVars.optionValue+ ', typeof optionValue: ' +typeof storedVars.optionValue )</td>
-	<td></td>
-</tr>
-<tr>
-	<td>if</td>
-	<td>$optionName==='post_format'</td>
-	<td></td>
-</tr>
-<tr>
-	<td>select</td>
-	<td>id=user_post_format</td>
-	<td>value=${optionValue}</td>
-</tr>
-<tr>
-	<td>elseIf</td>
-	<td>$optionName==='enable_wysiwyg'</td>
-	<td></td>
-</tr>
-<tr>
-	<td>if</td>
-	<td>$optionValue</td>
-	<td></td>
-</tr>
-<tr>
-	<td>check</td>
-	<td>id=user_wysiwyg</td>
-	<td></td>
-</tr>
-<tr>
-	<td>else</td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
-	<td>uncheck</td>
-	<td>id=user_wysiwyg</td>
-	<td></td>
-</tr>
-<tr>
-	<td>endIf</td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
-	<td>endIf</td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
-	<td>endFor</td>
-	<td></td>
-	<td></td>
-</tr>
-<!---->
-<tr>
-	<td>clickAndWait</td>
-	<td>css=#opts-forms &gt; p.clear.vertical-separator &gt; input[type=&quot;submit&quot;]</td>
-	<td></td>
-</tr>
-<!--Following reported success (e.g. [04:50:48] Personal information has been successfully updated.), but it didn't update DB!-->
-<!--It didn't matter whether I un/check same id=user_wysiwyg using Se IDE or by mouse - the form didn't get submitted properly.-->
-<tr>
-	<td>if</td>
-	<td>false</td>
-	<td></td>
-</tr>
-<tr>
-	<td>getEval</td>
-	<td>alert( $e( &quot;//form[ @id='user-form' ]//input[ @type='submit' ]&quot; )===$e( 'css=#opts-forms &gt; p.clear.vertical-separator &gt; input[type=&quot;submit&quot;]' ) )</td>
-	<td>-&gt; false!!!</td>
-</tr>
-<tr>
-	<td>getEval</td>
-	<td>alert( $e( 'css=#opts-forms &gt; p.clear.vertical-separator &gt; input[type=&quot;submit&quot;]' )===$e( 'css=#opts-forms &gt; p.clear.vertical-separator &gt; input[type=&quot;submit&quot;]' ) )</td>
-	<td>-&gt; true</td>
-</tr>
-<tr>
-	<td>clickAndWait</td>
-	<td>//form[ @id='user-form' ]//input[ @type='submit' ]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>getEval</td>
-	<td>$e( &quot;//form[ @id='user-form' ]//input[ @type='submit' ]&quot; ).click()</td>
-	<td></td>
-</tr>
-<tr>
-	<td>endIf</td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
-	<td>getEval</td>
-	<td>Dotclear.updateUserOptions( storedVars.options )</td>
-	<td></td>
-</tr>
-<tr>
-	<td>endFunction</td>
-	<td></td>
-	<td></td>
-</tr>
 <tr>
 	<td>exitTest</td>
 	<td></td>
 	<td></td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>updateUserOptions</td>
+	<td>options={enable_wysiwyg: false}</td>
 </tr>
 <!-------->
 <tr>
