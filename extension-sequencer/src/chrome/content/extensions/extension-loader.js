@@ -34,7 +34,9 @@
                 for( var i=0; i<addons.length; i++ ) { //@TODO for(.. of ..) once NetBeans supports it
                     var addon= addons[i];
                     addonsById[ addon.id ]= addon;
-                    if( addon.isActive && addon.hasResource( 'chrome/content/SeLiteExtensionSequencerManifest.js') ) {
+                    // On Windows some addon objects don't have function 'hasResource'
+                    if( addon.isActive && addon.hasResource && addon.hasResource( 'chrome/content/SeLiteExtensionSequencerManifest.js') ) {
+                        console.log( 'SeLiteExtensionSequencer is registering addon with ID ' +addon.id );
                         var fileUrl= addon.getResourceURI('chrome/content/SeLiteExtensionSequencerManifest.js').spec;
                         try {
                             subScriptLoader.loadSubScript(
@@ -45,13 +47,12 @@
                             );
                         }
                         catch( e ) {
-                            alert( e ); // @TODO concat the message with the below msg; show the manifest file url; disable such extension/s.
+                            console.error( e );
+                            console.error( e.stack );
                         }
                     }
                 }
-
                 var sortedPlugins= SeLiteExtensionSequencer.sortedPlugins();
-                //alert( sortedPlugins.sortedPluginIds);
                 if( Object.keys(sortedPlugins.missingDirectDependancies).length ) {
                     var dependancyPluginNames= {}; // { pluginId => pluginName } - for dependancies only
                     for( var dependantId in SeLiteExtensionSequencer.plugins ) {
@@ -89,7 +90,7 @@
                                 sortedPlugins.missingIndirectDependancies[pluginId].map(pluginIdToName).join(', ')+ '.\n';
                         }
                     }
-                    alert( msg );
+                    console.error( msg );
                 }
                 var failed= {}; // Object { string failed pluginId => exception }
                 for( var i=0; i<sortedPlugins.sortedPluginIds.length; i++ ) {
@@ -125,7 +126,7 @@
                     for( var pluginId in failed ) {
                         messageItems.push( pluginId+ ': ' + failed[pluginId] );
                     }
-                    alert( "SeLiteExtensionSequencer couldn't load plugin(s): " +messageItems+ "." );
+                    console.error( "SeLiteExtensionSequencer couldn't load plugin(s): " +messageItems+ "." );
                 }
             });
             SeLiteExtensionSequencer.processedAlready= true;
