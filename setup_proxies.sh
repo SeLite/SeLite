@@ -15,80 +15,93 @@ if [ "$(uname)" == "Darwin" ]; then
 else
    EXTENSION_FOLDER="$( echo "$HOME_FOLDER/.mozilla/firefox/"*.default )"
 fi
-EXTENSION_FOLDER=$EXTENSION_FOLDER/extensions
 
-# If you haven't got any extensions in Firefox profile yet, there is no 'extensions' folder. So create it.
-if [ ! -e "$EXTENSION_FOLDER" ]
+if [ -e "$EXTENSION_FOLDER" ]
 then
-  mkdir "$EXTENSION_FOLDER"
-fi
+    EXTENSION_FOLDER=$EXTENSION_FOLDER/extensions
 
-if [ ! -e "$EXTENSION_FOLDER"/auto-check\@selite.googlecode.com.xpi ]
-then
-  cd auto-check/src
-  pwd > "$EXTENSION_FOLDER"/auto-check@selite.googlecode.com
-  cd ../..
-fi
+    # If you haven't got any extensions in Firefox profile yet, there is no 'extensions' folder. So create it.
+    if [ ! -e "$EXTENSION_FOLDER" ]
+    then
+      mkdir "$EXTENSION_FOLDER"
+    fi
 
-if [ ! -e "$EXTENSION_FOLDER"/bootstrap\@selite.googlecode.com.xpi ]
-then
-  cd bootstrap/src
-  pwd > "$EXTENSION_FOLDER"/bootstrap@selite.googlecode.com
-  cd ../..
-fi
+    if [ ! -e "$EXTENSION_FOLDER"/auto-check\@selite.googlecode.com.xpi ]
+    then
+      cd auto-check/src
+      pwd > "$EXTENSION_FOLDER"/auto-check@selite.googlecode.com
+      cd ../..
+    fi
 
-if [ ! -e "$EXTENSION_FOLDER"/\extension-sequencer@selite.googlecode.com.xpi ]
-then
-  cd extension-sequencer/src
-  pwd > "$EXTENSION_FOLDER"/extension-sequencer@selite.googlecode.com
-  cd ../..
-fi
+    if [ ! -e "$EXTENSION_FOLDER"/bootstrap\@selite.googlecode.com.xpi ]
+    then
+      cd bootstrap/src
+      pwd > "$EXTENSION_FOLDER"/bootstrap@selite.googlecode.com
+      cd ../..
+    fi
 
-if [ ! -e "$EXTENSION_FOLDER"/settings\@selite.googlecode.com.xpi ]
-then
-  cd settings/src
-  pwd > "$EXTENSION_FOLDER"/settings@selite.googlecode.com
-  cd ../..
-fi
+    if [ ! -e "$EXTENSION_FOLDER"/\extension-sequencer@selite.googlecode.com.xpi ]
+    then
+      cd extension-sequencer/src
+      pwd > "$EXTENSION_FOLDER"/extension-sequencer@selite.googlecode.com
+      cd ../..
+    fi
 
-if [ ! -e "$EXTENSION_FOLDER"/sqlite-connection-manager\@selite.googlecode.com.xpi ]
-then
-  cd sqlite-connection-manager/src
-  pwd > "$EXTENSION_FOLDER"/sqlite-connection-manager@selite.googlecode.com
-  cd ../..
-fi
+    if [ ! -e "$EXTENSION_FOLDER"/settings\@selite.googlecode.com.xpi ]
+    then
+      cd settings/src
+      pwd > "$EXTENSION_FOLDER"/settings@selite.googlecode.com
+      cd ../..
+    fi
 
-if [ ! -e "$EXTENSION_FOLDER"/testcase-debug-context\@selite.googlecode.com.xpi ]
-then
-  cd testcase-debug-context/src
-  pwd > "$EXTENSION_FOLDER"/testcase-debug-context@selite.googlecode.com
-  cd ../..
-fi
+    if [ ! -e "$EXTENSION_FOLDER"/sqlite-connection-manager\@selite.googlecode.com.xpi ]
+    then
+      cd sqlite-connection-manager/src
+      pwd > "$EXTENSION_FOLDER"/sqlite-connection-manager@selite.googlecode.com
+      cd ../..
+    fi
 
-#if [ ! -e "$EXTENSION_FOLDER"/selblocks-global\@selite.googlecode.com.xpi ]
-#then
-#  cd selblocks-global/src
-#  pwd > "$EXTENSION_FOLDER"/selblocks-global@selite.googlecode.com
-#  cd ../..
-#fi
+    if [ ! -e "$EXTENSION_FOLDER"/testcase-debug-context\@selite.googlecode.com.xpi ]
+    then
+      cd testcase-debug-context/src
+      pwd > "$EXTENSION_FOLDER"/testcase-debug-context@selite.googlecode.com
+      cd ../..
+    fi
 
-if [ ! -e "$EXTENSION_FOLDER"/misc\@selite.googlecode.com.xpi ]
-then
-  cd misc/src
-  pwd > "$EXTENSION_FOLDER"/misc@selite.googlecode.com
-  cd ../..
-fi
+    #if [ ! -e "$EXTENSION_FOLDER"/selblocks-global\@selite.googlecode.com.xpi ]
+    #then
+    #  cd selblocks-global/src
+    #  pwd > "$EXTENSION_FOLDER"/selblocks-global@selite.googlecode.com
+    #  cd ../..
+    #fi
 
-if [ ! -e "$EXTENSION_FOLDER"/db-objects\@selite.googlecode.com.xpi ]
-then
-  cd db-objects/src
-  pwd > "$EXTENSION_FOLDER"/db-objects@selite.googlecode.com
-  cd ../..
-fi
+    if [ ! -e "$EXTENSION_FOLDER"/misc\@selite.googlecode.com.xpi ]
+    then
+      cd misc/src
+      pwd > "$EXTENSION_FOLDER"/misc@selite.googlecode.com
+      cd ../..
+    fi
 
-if [ ! -e "$EXTENSION_FOLDER"/commands\@selite.googlecode.com.xpi ]
-then
-  cd commands/src
-  pwd > "$EXTENSION_FOLDER"/commands@selite.googlecode.com
-  cd ../..
+    if [ ! -e "$EXTENSION_FOLDER"/db-objects\@selite.googlecode.com.xpi ]
+    then
+      cd db-objects/src
+      pwd > "$EXTENSION_FOLDER"/db-objects@selite.googlecode.com
+      cd ../..
+    fi
+
+    if [ ! -e "$EXTENSION_FOLDER"/commands\@selite.googlecode.com.xpi ]
+    then
+      cd commands/src
+      pwd > "$EXTENSION_FOLDER"/commands@selite.googlecode.com
+      cd ../..
+    fi
+
+    if [ ! -e "$EXTENSION_FOLDER"/exit-confirmation-checker\@selite.googlecode.com.xpi ]
+    then
+      cd exit-confirmation-checker/src
+      pwd > "$EXTENSION_FOLDER"/exit-confirmation-checker@selite.googlecode.com
+      cd ../..
+    fi
+else
+   echo Could not find a default Firefox profile
 fi

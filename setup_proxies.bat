@@ -68,6 +68,12 @@ if defined p (
       cd > %e%\commands@selite.googlecode.com
       cd ..\..
     )
+
+    if not exist %e%\exit-confirmation-checker@selite.googlecode.com.xpi (
+      cd exit-confirmation-checker\src
+      cd > %e%\exit-confirmation-checker@selite.googlecode.com
+      cd ..\..
+    )
 ) else (
    echo Could not find a default Firefox profile
 )

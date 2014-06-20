@@ -1,12 +1,6 @@
 <?xml-stylesheet href="chrome://global/skin" type="text/css"?>
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" id="SeLiteWebDriverPanelOverlay">
-<!--<dialog id="selenium-ide-options">
-    <tabbox id="optionsTabbox">
-        <tabpanels id="general">-->
             <tabpanel id="webDriverPanel">
                 <description class="tip">This doesn't work for SeLite.</description>
             </tabpanel>
-        <!--</tabpanels>
-    </tabbox>
-</dialog>-->
 </overlay>
