@@ -11,19 +11,28 @@
 <thead>
 <tr><td rowspan="1" colspan="3">add_page_case</td></tr>
 </thead><tbody>
-<!--test the confirm popup that shows up when I try to leave a form-->
 <tr>
-	<td>chooseOkOnNextConfirmationAndWait</td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>//a[ @href='users.php' ]</td>
+	<td>clickAndWait</td>
+	<td>css=li.first.mission-item &gt; a</td>
 	<td></td>
 </tr>
 <tr>
-	<td>assertConfirmation</td>
+	<td>getEval</td>
+	<td>alert( this.browserbot.selite )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.onbeforeunload= function() {}</td>
+	<td></td>
+</tr>
+<tr>
+	<td>open</td>
+	<td>about:config</td>
+	<td></td>
+</tr>
+<tr>
+	<td>exitTest</td>
 	<td></td>
 	<td></td>
 </tr>
@@ -88,12 +97,12 @@
 <tr>
 	<td>typeRandom</td>
 	<td>id=post_title</td>
-	<td>`{ type:'text', store:'title'}`</td>
+	<td>=`{ type:'text', store:'title'}`</td>
 </tr>
 <tr>
 	<td>typeRandom</td>
 	<td>id=post_content</td>
-	<td>`{ type:'text', store:'content'}`</td>
+	<td>=`{ type:'text', store:'content'}`</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
@@ -108,13 +117,13 @@
 <!--TODO:-->
 <tr>
 	<td>insertRecord</td>
-	<td>`{ nid:$newPageNodeId, vid:$newPageNodeId, type:'page', language:'und', title:$title, status:1, comment:1}`</td>
-	<td>`Dotclear.tables.post`</td>
+	<td>=`{ nid:$newPageNodeId, vid:$newPageNodeId, type:'page', language:'und', title:$title, status:1, comment:1}`</td>
+	<td>=`Dotclear.tables.post`</td>
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>`{entity_type:'node', bundle:'page', deleted:0, entity_id:$newPageNodeId, revision_id:$newPageNodeId, language:'und', delta:0, body_value:$body, body_format:'filtered_html'}`</td>
-	<td>`Dotclear.tables.post`</td>
+	<td>=`{entity_type:'node', bundle:'page', deleted:0, entity_id:$newPageNodeId, revision_id:$newPageNodeId, language:'und', delta:0, body_value:$body, body_format:'filtered_html'}`</td>
+	<td>=`Dotclear.tables.post`</td>
 </tr>
 </tbody></table>
 </body>

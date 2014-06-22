@@ -270,7 +270,7 @@
 <tr>
 	<td>typeRandom</td>
 	<td>id=user_id</td>
-	<td>`{characters: /[a-z0-9]/i, minLength: 2}`</td>
+	<td>=`{characters: /[a-z0-9]/i, minLength: 2}`</td>
 </tr>
 <!--Because of the following, the test only works for standard English installation.-->
 <tr>
@@ -312,22 +312,22 @@
 <tr>
 	<td>typeRandom</td>
 	<td>id=edit-name</td>
-	<td>`{maxLength:60, type:'word', store:'newUserId'}`</td>
+	<td>=`{maxLength:60, type:'word', store:'newUserId'}`</td>
 </tr>
 <tr>
 	<td>typeRandom</td>
 	<td>id=edit-mail</td>
-	<td>`{maxLength: 254, type:'email', store:'newUserEmail'}`</td>
+	<td>=`{maxLength: 254, type:'email', store:'newUserEmail'}`</td>
 </tr>
 <tr>
 	<td>typeRandom</td>
 	<td>id=edit-pass-pass1</td>
-	<td>`{type:'password', store:'newUserPassword'}`</td>
+	<td>=`{type:'password', store:'newUserPassword'}`</td>
 </tr>
 <tr>
 	<td>type</td>
 	<td>id=edit-pass-pass2</td>
-	<td>`$newUserPassword`</td>
+	<td>=`$newUserPassword`</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
@@ -336,8 +336,8 @@
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>`{name: $newUserId, mail: $newUserEmail, pass: $newUserPassword}`</td>
-	<td>`Dotclear.tables.user`</td>
+	<td>=`{name: $newUserId, mail: $newUserEmail, pass: $newUserPassword}`</td>
+	<td>=`Dotclear.tables.user`</td>
 </tr>
 <!--Login and verify-->
 <tr>
@@ -388,7 +388,7 @@
 </tr>
 <tr>
 	<td>readRecord</td>
-	<td>`{ formula: Dotclear.formulas.user, name: $userId }`</td>
+	<td>=`{ formula: Dotclear.formulas.user, name: $userId }`</td>
 	<td>user</td>
 </tr>
 <!--if the user is logged in already, log him out:-->

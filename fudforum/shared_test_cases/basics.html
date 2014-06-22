@@ -261,12 +261,12 @@
 <tr>
 	<td>typeRandom</td>
 	<td>//input[ @name='reg_login' ]</td>
-	<td>`{minLength:4, maxLength:25, type:'word', store:'login'}`</td>
+	<td>=`{minLength:4, maxLength:25, type:'word', store:'login'}`</td>
 </tr>
 <tr>
 	<td>typeRandom</td>
 	<td>//input[ @name='reg_plaintext_passwd' ]</td>
-	<td>`{maxLength:25, type:'password', store:'passwd'}`</td>
+	<td>=`{maxLength:25, type:'password', store:'passwd'}`</td>
 </tr>
 <tr>
 	<td>type</td>
@@ -276,12 +276,12 @@
 <tr>
 	<td>typeRandom</td>
 	<td>//input[ @name='reg_email' ]</td>
-	<td>`{maxLength: 25, type:'email', store:'email'}`</td>
+	<td>=`{maxLength: 25, type:'email', store:'email'}`</td>
 </tr>
 <tr>
 	<td>typeRandom</td>
 	<td>//input[ @name='reg_name' ]</td>
-	<td>`{maxLength: 25, type:'name', store:'name'}`</td>
+	<td>=`{maxLength: 25, type:'name', store:'name'}`</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
@@ -290,8 +290,8 @@
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>`{login: $login, alias:$login, passwd:$passwd, email:$email, name:$name}`</td>
-	<td>`FUDforum.tables.users`</td>
+	<td>=`{login: $login, alias:$login, passwd:$passwd, email:$email, name:$name}`</td>
+	<td>=`FUDforum.tables.users`</td>
 </tr>
 <!---->
 <tr>
@@ -314,7 +314,7 @@
 </tr>
 <tr>
 	<td>readRecord</td>
-	<td>`{ formula: FUDforum.formulas.users, login: $login }`</td>
+	<td>=`{ formula: FUDforum.formulas.users, login: $login }`</td>
 	<td>user</td>
 </tr>
 <tr>

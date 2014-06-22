@@ -188,7 +188,7 @@
 </tr>
 <tr>
 	<td>readRecord</td>
-	<td>`{ formula: Serendipity.formulas.authors, username: $login }`</td>
+	<td>=`{ formula: Serendipity.formulas.authors, username: $login }`</td>
 	<td>user</td>
 </tr>
 <tr>
@@ -238,7 +238,7 @@
 <tr>
 	<td>typeRandom</td>
 	<td>id=entryTitle</td>
-	<td>`{store: 'title'}`</td>
+	<td>=`{store: 'title'}`</td>
 </tr>
 <tr>
 	<td>pause</td>
@@ -248,7 +248,7 @@
 <!--wysiwyg editor Xinha transforms <b> to <strong>, <i> to <em> and <strike> to <del>. Here I list the allowed tags which don't get transformed - so they will be the same in test & app.-->
 <tr>
 	<td>storeEval</td>
-	<td>`['strong', 'em', 'u', 'del', 'sub', 'sup']`</td>
+	<td>['strong', 'em', 'u', 'del', 'sub', 'sup']</td>
 	<td>htmlTags</td>
 </tr>
 <tr>
@@ -263,7 +263,7 @@
 </tr>
 <tr>
 	<td>storeEval</td>
-	<td>`{ title:$title, timestamp:Math.round( Date.now()/1000), body:$body, extended:$extended, exflag:1, author:Serendipity.selectedUsername, authorid:Serendipity.selectedAuthor().authorid, isdraft:'false', allow_comments:'true', last_modified:Math.round( Date.now()/1000), moderate_comments:'false'}`</td>
+	<td>=`{ title:$title, timestamp:Math.round( Date.now()/1000), body:$body, extended:$extended, exflag:1, author:Serendipity.selectedUsername, authorid:Serendipity.selectedAuthor().authorid, isdraft:'false', allow_comments:'true', last_modified:Math.round( Date.now()/1000), moderate_comments:'false'}`</td>
 	<td>entry</td>
 </tr>
 <!---->
@@ -289,8 +289,8 @@
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>`$entry`</td>
-	<td>`Serendipity.tables.entries`</td>
+	<td>=`$entry`</td>
+	<td>=`Serendipity.tables.entries`</td>
 </tr>
 <tr>
 	<td>getEval</td>
@@ -344,7 +344,7 @@
 	<td></td>
 </tr>
 <tr>
-	<td>storeEval</td>
+	<td>store</td>
 	<td>#`storedVars.entry.title`</td>
 	<td>xpathExprTitle</td>
 </tr>
@@ -556,7 +556,7 @@
 <tr>
 	<td>typeRandom</td>
 	<td>//input[ @name='password' ]</td>
-	<td>`{type: 'password', store: 'password'}`</td>
+	<td>=`{type: 'password', store: 'password'}`</td>
 </tr>
 <tr>
 	<td>type</td>
@@ -581,7 +581,7 @@
 <tr>
 	<td>typeRandom</td>
 	<td>//input[ @name='email' ]</td>
-	<td>`{type:'email', store:'email' }`</td>
+	<td>=`{type:'email', store:'email' }`</td>
 </tr>
 <tr>
 	<td>selectRandom</td>
@@ -622,69 +622,69 @@
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>`{ realname: $realname, username:$username, password:$password, email:$email, userlevel:$userlevel, right_publish:1 }`</td>
-	<td>`Serendipity.tables.authors`</td>
+	<td>=`{ realname: $realname, username:$username, password:$password, email:$email, userlevel:$userlevel, right_publish:1 }`</td>
+	<td>=`Serendipity.tables.authors`</td>
 </tr>
 <tr>
 	<td>store</td>
-	<td>`$insertedRecordKey`</td>
+	<td>=`$insertedRecordKey`</td>
 	<td>authorid</td>
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>`{groupid:$access, authorid:$authorid}`</td>
-	<td>`Serendipity.tables.authorgroups`</td>
+	<td>=`{groupid:$access, authorid:$authorid}`</td>
+	<td>=`Serendipity.tables.authorgroups`</td>
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>`{name:'lang', value:$lang, authorid:$authorid}`</td>
-	<td>`Serendipity.tables.config`</td>
+	<td>=`{name:'lang', value:$lang, authorid:$authorid}`</td>
+	<td>=`Serendipity.tables.config`</td>
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>`{name:'wysiwyg', value:$wysiwyg, authorid:$authorid}`</td>
-	<td>`Serendipity.tables.config`</td>
+	<td>=`{name:'wysiwyg', value:$wysiwyg, authorid:$authorid}`</td>
+	<td>=`Serendipity.tables.config`</td>
 </tr>
 <!--Use string constants 'true', 'false', not Javascript boolean constants true, false. See SQLiteSpecifics in wiki-->
 <tr>
 	<td>insertRecord</td>
-	<td>`{name:'eyecandy', value:'true', authorid:$authorid}`</td>
-	<td>`Serendipity.tables.config`</td>
+	<td>=`{name:'eyecandy', value:'true', authorid:$authorid}`</td>
+	<td>=`Serendipity.tables.config`</td>
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>`{name:'mail_comments', value:$mail_comments, authorid:$authorid}`</td>
-	<td>`Serendipity.tables.config`</td>
+	<td>=`{name:'mail_comments', value:$mail_comments, authorid:$authorid}`</td>
+	<td>=`Serendipity.tables.config`</td>
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>`{name:'mail_trackbacks', value:$mail_trackbacks, authorid:$authorid}`</td>
-	<td>`Serendipity.tables.config`</td>
+	<td>=`{name:'mail_trackbacks', value:$mail_trackbacks, authorid:$authorid}`</td>
+	<td>=`Serendipity.tables.config`</td>
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>`{name:'no_create', value:'false', authorid:$authorid}`</td>
-	<td>`Serendipity.tables.config`</td>
+	<td>=`{name:'no_create', value:'false', authorid:$authorid}`</td>
+	<td>=`Serendipity.tables.config`</td>
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>`{name:'right_publish', value:'true', authorid:$authorid}`</td>
-	<td>`Serendipity.tables.config`</td>
+	<td>=`{name:'right_publish', value:'true', authorid:$authorid}`</td>
+	<td>=`Serendipity.tables.config`</td>
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>`{name:'moderateCommentsDefault', value:$moderateCommentsDefault, authorid:$authorid}`</td>
-	<td>`Serendipity.tables.config`</td>
+	<td>=`{name:'moderateCommentsDefault', value:$moderateCommentsDefault, authorid:$authorid}`</td>
+	<td>=`Serendipity.tables.config`</td>
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>`{name:'allowCommentsDefault', value:$allowCommentsDefault, authorid:$authorid}`</td>
-	<td>`Serendipity.tables.config`</td>
+	<td>=`{name:'allowCommentsDefault', value:$allowCommentsDefault, authorid:$authorid}`</td>
+	<td>=`Serendipity.tables.config`</td>
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>`{name:'showMediaToolbar', value:$showMediaToolbar, authorid:$authorid}`</td>
-	<td>`Serendipity.tables.config`</td>
+	<td>=`{name:'showMediaToolbar', value:$showMediaToolbar, authorid:$authorid}`</td>
+	<td>=`Serendipity.tables.config`</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
