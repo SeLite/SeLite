@@ -18,6 +18,18 @@ var console= Components.utils.import("resource://gre/modules/devtools/Console.js
 
 function SeLiteExtensionSequencer() {}
 
+/** Object serving as an associative array. Used by Core extensions, that are specified in Selenium IDE menu or that are loaded from an XPI file/proxy file
+ *  or via ExtensionSequencer (but not via Bootstrap), to indicate whether an extension has been loaded once or twice
+ *  during the current run of Selenium IDE.
+ *  {
+ *      string core extension name: boolean true if the extension was loaded once (that is, before running any Selenese), or odd number of times;
+ *          false (or not present) if the extension was not loaded yet, or it was loaded 2x or an even number of times
+ *  }
+ *  Passive - It's up to the Core extension to use this appropriately.
+ *  This exists because of issue http://code.google.com/p/selenium/issues/detail?id=6697 "Core extensions are loaded 2x".
+*/
+SeLiteExtensionSequencer.coreExtensionsLoadedOddTimes= {};
+
 /** Object serving as an associative array {
  *     string pluginId => object just like parameter prototype of SeLiteExtensionSequencer.registerPlugin()
  *  }

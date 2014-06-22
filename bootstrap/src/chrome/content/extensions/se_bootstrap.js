@@ -18,8 +18,8 @@
 /** @param {object} global Global object, as per https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects. Its value is value of operator 'this'. I need it, so that I can call loadSubScript() with charset set to 'UTF-8'.
  * */
 (function(global) { // Anonymous function separates local variables from Selenium Core scope
-    Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
-    var loadedOddTimes= SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['SeLiteBootstrap'] || false;
+    Components.utils.import( "chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js" );
+    var loadedOddTimes= SeLiteExtensionSequencer.coreExtensionsLoadedOddTimes['SeLiteBootstrap'] || false;
     if( loadedOddTimes ) { // Ignore the first load, because Se IDE somehow discards that Selenium.prototype
         
         /** @var Object serving as an associative array [string file path] => int lastModifiedTime
@@ -101,5 +101,5 @@
             bootstrappedListChanged= true;
         });
     }
-    SeLiteMisc.nonXpiCoreExtensionsLoadedOddTimes['SeLiteBootstrap']= !loadedOddTimes;
+    SeLiteExtensionSequencer.coreExtensionsLoadedOddTimes['SeLiteBootstrap']= !loadedOddTimes;
 })(this);
