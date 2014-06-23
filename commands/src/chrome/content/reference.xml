@@ -55,7 +55,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
             <!--<dt>timezone</dt>
             <dd>To be defined once Firefox supports time zone names</dd>-->
         </dl>
-        }
+        }. You can pass it via =`...` notation as per https://code.google.com/p/selite/wiki/EnhancedSyntax.
     </param>
     <comment>Parse the given element as a timestamp <!--(at the given timezone, if any)-->
         and compare to the given timestamp, down to given precision.
@@ -105,7 +105,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
                     <dt>store</dt>
                     <dd>string, name of the result stored variable; optional</dd>
                 </dl>
-                }
+                }. You can pass it via =`...` notation as per https://code.google.com/p/selite/wiki/EnhancedSyntax.
             </li>
         </ul>
     </param>
@@ -127,20 +127,20 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     <comment>This clicks at a random radio button from within a set of radio buttons identified by locator.</comment>
 </function>   
 <function name="selectRandom">
-    <param name="selectLocator">Locator of <code>&lt;select&gt;...&lt;/select&gt;</code> to select an option for.</param>
+    <param name="selectLocator">Locator of <code>&amp;lt;select&amp;gt;...&amp;lt;/select&amp;gt;</code> to select an option for.</param>
     <param name="paramsOrStore">optional, either
         <ul>
             <li>a string which is the name of the stored variable to put the selected value in (more below), or</li>
-            <li>an object in form { <ul>
-                <li>excludeFirst: true - Whether to exclude the first option, optional</li>
-                <li>excludeLast: true - Whether to exclude the last option, optional</li>
-                <li>store: string  - name of the stored variable to store the selected value, it may include field(s) '.field.subfield..'
-                    but the field(s) must be constant strings</li>
-                </ul>
+            <li>an object in form {
+                <ul>
+                    <li>excludeFirst: true - Whether to exclude the first option, optional</li>
+                    <li>excludeLast: true - Whether to exclude the last option, optional</li>
+                    <li>store: string  - name of the stored variable to store the selected value, it may include field(s) '.field.subfield..' but the field(s) must be constant strings</li>
+                </ul>}. You can pass it via =`...` notation as per https://code.google.com/p/selite/wiki/EnhancedSyntax.
             </li>
         </ul>
     </param>
-    <comment>This selects a random option from within <code>&lt;select&gt;...&lt;/select&gt;</code> identified by locator.
+    <comment>This selects a random option from within <code>&amp;lt;select&amp;gt;...&amp;lt;/select&amp;gt;</code> identified by locator.
           It doesn't select any optgroup elements.
     </comment>
 </function>
@@ -204,6 +204,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
                         but the field(s) must be constant strings
                     </dd>
                 </dl>
+                }. You can pass it via =`...` notation as per https://code.google.com/p/selite/wiki/EnhancedSyntax.
             </li>
         </ul>
     </param>
@@ -227,7 +228,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
                     <dt>maxLength</dt>
                     <dd>int as described for typeRandom action (i.e. doTypeRandom function), optional</dd>
                 </dl>
-               }
+               }. You can pass it via =`...` notation as per https://code.google.com/p/selite/wiki/EnhancedSyntax.
             </li>
         </ul>
     </param>
@@ -251,7 +252,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
         It's optional. If nothing is passed, then the command just selects the top frame.
     </param>
     <comment>
-        Select the top frame. Then it waits for any specified frames to become present. However, it doesn't wait for the top frame. For that you should use 'andWait' postifx for the last command that loaded the current page. So you shouldn't need to use <b>selectTopFrameAndAndWait</b> at all.
+        It selects the top frame. Then it waits for any specified frames to become present. However, it doesn't wait for the top frame. For that you should use 'andWait' postifx for the last command that loaded the current page. Don't use <b>selectTopFrameAndAndWait</b>.
     </comment>
 </function>
 </apidoc>
