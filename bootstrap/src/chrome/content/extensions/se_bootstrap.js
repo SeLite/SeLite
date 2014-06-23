@@ -19,8 +19,8 @@
  * */
 (function(global) { // Anonymous function separates local variables from Selenium Core scope
     Components.utils.import( "chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js" );
-    var loadedOddTimes= SeLiteExtensionSequencer.coreExtensionsLoadedOddTimes['SeLiteBootstrap'] || false;
-    if( loadedOddTimes ) { // Ignore the first load, because Se IDE somehow discards that Selenium.prototype
+    var loadedTimes= SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteBootstrap'] || 0;
+    if( loadedTimes===1 ) { // Ignore the first load, because Se IDE somehow discards that Selenium.prototype. So set up the overrides on 2nd load.
         
         /** @var Object serving as an associative array [string file path] => int lastModifiedTime
          **/
@@ -43,7 +43,7 @@
                 origReset.call(this);
           };
 
-        const subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
+        var /*@TODO const*/ subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
                 .getService(Components.interfaces.mozIJSSubScriptLoader);
 
         var bootstrappedListChanged= false;
@@ -101,5 +101,8 @@
             bootstrappedListChanged= true;
         });
     }
-    SeLiteExtensionSequencer.coreExtensionsLoadedOddTimes['SeLiteBootstrap']= !loadedOddTimes;
+    if( loadedTimes>=2 ) {
+        throw new Error('SeLiteBootstrap already loaded ' +loadedTimes );
+    }
+    SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteBootstrap']= loadedTimes+1;
 })(this);

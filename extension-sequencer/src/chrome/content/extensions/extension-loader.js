@@ -17,12 +17,20 @@
         Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
         Components.utils.import("resource://gre/modules/AddonManager.jsm");
         
-        // Selenium IDE loads this file once per each window open (Firefox 26.0, Selenium IDE 2.5.0).
-        // Probably caused by http://code.google.com/p/selenium/issues/detail?id=6697
-        // Therefore here I make sure to register this plugin and I load sequencer manifests of and register their plugins only once.
+        // Selenium IDE loads this file twice. Maybe related to
+        // http://code.google.com/p/selenium/issues/detail?id=6697
+        // Therefore here I make sure to register this plugin itself and I load sequencer manifests of target plugins and register them with Selenium only once.
+
+        var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         if( !SeLiteExtensionSequencer.processedAlready ) {
+            //@TODO Move the following
+            
+            // I must reset SeLiteExtensionSequencer.coreExtensionsLoadedTimes. I can't expect that extensions will have an even number of loads - because if the user closes Selenium IDE before running any Selenese, the extensions don't get loaded for the 2nd time during that run of Selenium IDE, and the odd-even sequence would not apply.
+            SeLiteExtensionSequencer.coreExtensionsLoadedTimes= {};
+            
             var ide_api= new API(); // API comes from chrome://selenium-ide/content/api.js - referenced through ./extension-loader.xul
             // Register itself - so that it shows up in Selenium IDE > Options > Options > Plugins
+            ide_api.addPluginProvidedUserExtension( 'chrome://selite-extension-sequencer/content/extensions/core.js' );
             ide_api.addPlugin( 'extension-sequencer@selite.googlecode.com' );
 
             // For some reasons I couldn't use console here (Firefox 26.0, Selenium IDE 2.5.0). Using it generated a log: can't start debugging: a debuggee script is on the stack webconsole.js:68

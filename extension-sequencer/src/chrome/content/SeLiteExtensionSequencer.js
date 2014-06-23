@@ -18,17 +18,15 @@ var console= Components.utils.import("resource://gre/modules/devtools/Console.js
 
 function SeLiteExtensionSequencer() {}
 
-/** Object serving as an associative array. Used by Core extensions, that are specified in Selenium IDE menu or that are loaded from an XPI file/proxy file
- *  or via ExtensionSequencer (but not via Bootstrap), to indicate whether an extension has been loaded once or twice
- *  during the current run of Selenium IDE.
+/** Object serving as an associative array. Used by Core extensions, that are loaded via ExtensionSequencer (but not via Bootstrap where this doesn't apply), to indicate the number of times an extension has been loaded during the current run of Selenium IDE.
  *  {
- *      string core extension name: boolean true if the extension was loaded once (that is, before running any Selenese), or odd number of times;
- *          false (or not present) if the extension was not loaded yet, or it was loaded 2x or an even number of times
+ *      string core extension name: number of times the extension was loaded, or undefined if not loaded yet. It's 1 before running any Selenese and 2 when running the first Selenese. It should not be more than 2.
  *  }
  *  Passive - It's up to the Core extension to use this appropriately.
  *  This exists because of issue http://code.google.com/p/selenium/issues/detail?id=6697 "Core extensions are loaded 2x".
+ *  This gets re-set by extensions/core.js, otherwise it would stay between reloads of Selenium IDE.
 */
-SeLiteExtensionSequencer.coreExtensionsLoadedOddTimes= {};
+SeLiteExtensionSequencer.coreExtensionsLoadedTimes= {};
 
 /** Object serving as an associative array {
  *     string pluginId => object just like parameter prototype of SeLiteExtensionSequencer.registerPlugin()
@@ -53,10 +51,7 @@ SeLiteExtensionSequencer.plugins= {};
  *        Those are plugins that have to be loaded before given pluginId. All
  *        those plugins must be installed in Firefox and they must also call
  *        SeLiteExtensionSequencer.registerPlugin() - otherwise pluginId won't get loaded.
-        optionalRequisitePlugins: Object (optional) { string pluginId: string pluginName },
-          of pluginIds that are optional dependencies
-        callBack: function, optional, will be called after the plugin is registered,
-            and it will be passed one parameter that is Selenium IDE API object.
+        optionalRequisitePlugins: Object (optional) { string pluginId: string pluginName } of pluginIds that are optional dependencies.
  *  }
  *  @return void
 **/
