@@ -23,6 +23,9 @@
     if( loadedTimes===1 ) { // Setup the overrides on the first load, not on the second
         Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+        Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
+        var settingsModule= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
+        
         // Override BrowserBot defined in Selenium IDE's chrome://selenium-ide/content/selenium-core/scripts/selenium-browserbot.js
         var oldBrowserBot= BrowserBot;
         BrowserBot= function BrowserBot(topLevelApplicationWindow) {
@@ -60,8 +63,18 @@
                 var window= selenium.browserbot.getCurrentWindow(true);
                 var originalOnBeforeUnload= window.onbeforeunload;
                 window.onbeforeunload= function onbeforeunload() {
-                    selenium.seLiteAppAskedToConfirm= originalOnBeforeUnload.call(this)!==undefined;
+                    var fieldsDownToFolder= settingsModule.getFieldsDownToFolder( /*folderPath:*/undefined, /*dontCache:*/true );
+                    var exitConfirmationCheckerMode= fieldsDownToFolder['exitConfirmationCheckerMode'].entry;
+                    if( exitConfirmationCheckerMode==='ignored') {
+                        return;
+                    }
+                    var originalResult= originalOnBeforeUnload.call(this);
+                    if( exitConfirmationCheckerMode==='inactive' ) {
+                        return originalResult;
+                    }
+                    selenium.seLiteAppAskedToConfirm= originalResult!==undefined;
                     // I can't throw an error here - Firefox ignores it. So I handle it in _executeCurrentCommand() below.
+                    // I don't return anything: that suppresses the confirmation popup.
                 };
                 selenium.overrideOnBeforeUnload= false;
             }
@@ -120,43 +133,72 @@
         /** Get a numeric index of the lement for the given locator. See inputToIndex(element).
          * @param {string} locator
          * @return {number} index
+         * @TODO eliminate if not used
          * */
         var inputLocatorToIndex= function inputLocatorToIndex( locator ) {
-            return inputToIndex( this.browserbot.findElement(locator), locator );
+            return inputToIndex( selenium.browserbot.findElement(locator), locator );
         };
         
         /** 
          * Based on Selenium.prototype.doSelect in chrome://selenium-ide/content/selenium-core/scripts/selenium-api.js.
          * */
         var inputLocatorToValue= function inputLocatorToValue( locator, optionLocator ) {
-            var element = this.browserbot.findElement(locator);
+            var element = selenium.browserbot.findElement(locator);
             if( optionLocator!==undefined ) {
                 if (!("options" in element)) {
                     throw new SeleniumError("Specified element is not a Select (has no options)");
                 }
-                locator = this.optionLocatorFactory.fromLocatorString(optionLocator);
+                locator = selenium.optionLocatorFactory.fromLocatorString(optionLocator);
                 element= locator.findOption(element);
             }
             return element.value; //@TODO check
-        }
-        
-        var oldDoType= Selenium.prototype.doType;
-        Selenium.prototype.doType= function doType( locator, text ) {
-            var input= this.browserbot.findElement(locator);
-            var inputIndex= inputToIndex(input, locator); // @TODO This fails when running a single command
-            if( selenium.seLiteInputs && !selenium.seLiteOriginalInputValues[inputIndex] ) {
-                selenium.seLiteOriginalInputValues[inputIndex]= input.value;
+        };
+        //@TODO <select><option>. Maybe: accept a function for elementValueField
+        var inputBeforeChange= function inputBeforeChange( locator, elementValueField ) {
+            if( selenium.seLiteInputs===undefined ) {// selenium.seLiteInputs is not set when running a single Selenese commad (rather than a whole test case)
+                return;
             }
-            oldDoType.call( this, locator, text );
-            if( selenium.seLiteInputs ) {
-                if( selenium.seLiteOriginalInputValues[inputIndex]!==text ) {
-                    selenium.seLiteModifiedInputValues[inputIndex]= text;
+            elementValueField= elementValueField || 'value';
+            var input= selenium.browserbot.findElement(locator);
+            var inputIndex= inputToIndex(input, locator);
+            if( selenium.seLiteOriginalInputValues[inputIndex]===undefined ) {
+                selenium.seLiteOriginalInputValues[inputIndex]= input[elementValueField];
+            }
+        };
+
+        var inputAfterChange= function inputAfterChange( locator, elementValueField ) {
+            if( selenium.seLiteInputs===undefined ) {
+                return;
+            }
+            elementValueField= elementValueField || 'value';
+            var fieldsDownToFolder= settingsModule.getFieldsDownToFolder( /*folderPath:*/undefined, /*dontCache:*/true );
+            var exitConfirmationCheckerMode= fieldsDownToFolder['exitConfirmationCheckerMode'].entry;
+            
+            var input= selenium.browserbot.findElement(locator);
+            var inputIndex= inputToIndex(input, locator);
+            var value= input[elementValueField];
+            if( exitConfirmationCheckerMode==='basic' ) {
+                selenium.seLiteModifiedInputValues[inputIndex]= value;
+            }
+            else
+            if( exitConfirmationCheckerMode==='skipRevertChanges' ) {
+                if( selenium.seLiteOriginalInputValues[inputIndex]!==value ) {
+                    selenium.seLiteModifiedInputValues[inputIndex]= value;
                 }
                 else {
                     delete selenium.seLiteModifiedInputValues[inputIndex];
                 }
             }
         };
+
+        
+        var oldDoType= Selenium.prototype.doType;
+        Selenium.prototype.doType= function doType( locator, text ) {
+            inputBeforeChange( locator );
+            oldDoType.call( this, locator, text );
+            inputAfterChange( locator );
+        };
+        
         var oldDoSelect= Selenium.prototype.doSelect;
         Selenium.prototype.doSelect= function doSelect( selectLocator, optionLocator ) {
             console.error( '1st ' +selectLocator+ ', extra ' +selectLocator.seLiteExtra );
