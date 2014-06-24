@@ -44,7 +44,7 @@ if( typeof TestCase.TestCaseDebugContext==="undefined" ) {
         }
         for (; this.debugIndex < this.testCase.commands.length; this.debugIndex++) {
             var command = this.testCase.commands[this.debugIndex];
-            if (command.type == 'command') {
+            if (command.type==='command') {
                 return command;
             }
         }
