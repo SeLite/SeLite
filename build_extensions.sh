@@ -35,3 +35,6 @@ zip -r ../../xpi/testcase-debug-context.xpi *
 
 cd ../../settings/src
 zip -r ../../xpi/settings.xpi *
+
+cd ../../exit-confirmation-checker/src
+zip -r ../../xpi/exit-confirmation-checker.xpi *
