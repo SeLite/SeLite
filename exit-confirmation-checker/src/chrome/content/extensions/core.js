@@ -85,30 +85,33 @@
         TestLoop.prototype._executeCurrentCommand= function _executeCurrentCommand() {
             original_executeCurrentCommand.call( this );
             if( !this.result.failed ) { // See also comments in auto-check.js
-                var modifiedInputValues= selenium.seLiteModifiedInputValues || {};
-                var hadModifiedInputs= Object.keys( modifiedInputValues ).length>0;
-                if( selenium.seLiteAppAskedToConfirm!==undefined && selenium.seLiteAppAskedToConfirm!==hadModifiedInputs ) {
-                    var message= "Web application's window.onbeforeunload() "
-                            +(selenium.seLiteAppAskedToConfirm ? 'asked' : "didn't ask")+ ' to confirm closing of the window/tab, but there ' 
-                            +(hadModifiedInputs ? 'were some' : "weren't any")+ ' modified inputs';
-                    if( hadModifiedInputs ) {
-                        message+= ':';
-                        for( var index in modifiedInputValues ) {
-                            message+= '\n' +selenium.seLiteInputLocators[index];
+                if( selenium.seLiteModifiedInputValues!==undefined && selenium.seLiteAppAskedToConfirm!==undefined ) {
+                    var hadModifiedInputs= Object.keys( selenium.seLiteModifiedInputValues ).length>0;
+                    var appAskedToConfirm= selenium.seLiteAppAskedToConfirm;
+                    selenium.seLiteAppAskedToConfirm= undefined; // Clear it no matter whether the following if(..) condition is true or not
+
+                    if( appAskedToConfirm!==hadModifiedInputs ) {
+                        var message= "Web application's window.onbeforeunload() "
+                                +(appAskedToConfirm ? 'asked' : "didn't ask")+ ' to confirm closing of the window/tab, but there ' 
+                                +(hadModifiedInputs ? 'were some' : "weren't any")+ ' modified inputs';
+                        if( hadModifiedInputs ) {
+                            message+= ':';
+                            for( var index in selenium.seLiteModifiedInputValues ) {
+                                message+= '\n' +selenium.seLiteInputLocators[index];
+                            }
                         }
-                    }
-                    else {
-                        message+= '.';
-                    }
-                    selenium.seLiteAppAskedToConfirm= undefined;
-                    if( false ) {//@TODO config field - whether to assert
-                        throw new SeleniumError( message );
-                    }
-                    else {
-                        var result= new AssertResult();
-                        result.setFailed( message ); // see AssertHandler.prototype.execute() in chrome://selenium-ide/content/selenium-core/scripts/selenium-commandhandlers.js
-                        this.result= result;
-                        this.waitForCondition = this.result.terminationCondition;
+                        else {
+                            message+= '.';
+                        }
+                        if( false ) {//@TODO config field - whether to assert
+                            throw new SeleniumError( message );
+                        }
+                        else {
+                            var result= new AssertResult();
+                            result.setFailed( message ); // see AssertHandler.prototype.execute() in chrome://selenium-ide/content/selenium-core/scripts/selenium-commandhandlers.js
+                            this.result= result;
+                            this.waitForCondition = this.result.terminationCondition;
+                        }
                     }
                 }
             }
@@ -177,11 +180,12 @@
             var input= selenium.browserbot.findElement(locator);
             var inputIndex= inputToIndex(input, locator);
             var value= input[elementValueField];
-            if( exitConfirmationCheckerMode==='basic' ) {
+            console.error( 'value: ' +value );
+            if( exitConfirmationCheckerMode && exitConfirmationCheckerMode.basic ) {
                 selenium.seLiteModifiedInputValues[inputIndex]= value;
             }
             else
-            if( exitConfirmationCheckerMode==='skipRevertChanges' ) {
+            if( exitConfirmationCheckerMode && exitConfirmationCheckerMode.skipRevertChanges ) {
                 if( selenium.seLiteOriginalInputValues[inputIndex]!==value ) {
                     selenium.seLiteModifiedInputValues[inputIndex]= value;
                 }
