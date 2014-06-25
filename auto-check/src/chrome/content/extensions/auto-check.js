@@ -34,7 +34,7 @@ if( typeof HtmlRunnerTestLoop!=='undefined' ) {
             original_executeCurrentCommand.call( this );
             // - AssertResult.prototype.setFailed and AssertHandler.prototype.execute in selenium-commandhandlers.js
             // For getters (e.g. getEval), this.result is an instance of AccessorResult, which doesn't have field .passed (as of Selenium IDE 2.5.0). That's why the following checks !this.result.failed rather than this.result.passed.
-            if( !this.result.failed ) { // Only perform the checks, if there was no Selenese failure already
+            if( !this.result.failed ) { // Only perform the checks, if there was no Selenese failure already. Otherwise if the following raised an error, it would hide the previous error.
                 var fieldsDownToFolder= settingsModule.getFieldsDownToFolder( /*folderPath:*/undefined, /*dontCache:*/true );
                 var detectorClassName;
                 if( fieldsDownToFolder['autoCheckDetector'].entry ) {
