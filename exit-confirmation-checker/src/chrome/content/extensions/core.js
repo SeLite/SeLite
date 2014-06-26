@@ -21,7 +21,6 @@
     Components.utils.import( "chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js" );
     var loadedTimes= SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteExitConfirmationChecker'] || 0;
     if( loadedTimes===1 ) { // Setup the overrides on the first load, not on the second
-        Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
         var settingsModule= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
@@ -38,7 +37,6 @@
               // This gets registered as a handler & called only for any page that is a direct result of Selenese actions but not a result of a redirect.
               oldRecordPageLoad.call( this, elementOrWindow );
               console.debug( "SeLite Exit Confirmation Checker's override of BrowserBot.recordPageLoad() called." );
-              console.error( 'selenium ' +typeof selenium );
               // When I've overriden self.getCurrentWindow(true).onbeforeunload here, it had no effect. It must be too early here. The same for self.getCurrentWindow(true).onload. So here I set a flag, and I consume it in nextCommand() below
               selenium.overrideOnBeforeUnload= true;
           };
@@ -180,7 +178,7 @@
             var input= selenium.browserbot.findElement(locator);
             var inputIndex= inputToIndex(input, locator);
             var value= input[elementValueField];
-            console.error( 'value: ' +value );
+            //console.error( 'value: ' +value );
             if( exitConfirmationCheckerMode && exitConfirmationCheckerMode.basic ) {
                 selenium.seLiteModifiedInputValues[inputIndex]= value;
             }
@@ -205,8 +203,8 @@
         
         var oldDoSelect= Selenium.prototype.doSelect;
         Selenium.prototype.doSelect= function doSelect( selectLocator, optionLocator ) {
-            console.error( '1st ' +selectLocator+ ', extra ' +selectLocator.seLiteExtra );
-            console.error( '2st ' +optionLocator+ ', extra ' +optionLocator.seLiteExtra );
+            //console.error( '1st ' +selectLocator+ ', extra ' +selectLocator.seLiteExtra );
+            //console.error( '2st ' +optionLocator+ ', extra ' +optionLocator.seLiteExtra );
             oldDoSelect.call( this, selectLocator, optionLocator );
         };
     }

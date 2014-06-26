@@ -2,7 +2,11 @@ SeLiteExtensionSequencer.registerPlugin( {
     pluginId: 'exit-confirmation-checker@selite.googlecode.com',
     coreUrl: 'chrome://selite-exit-confirmation-checker/content/extensions/core.js',
     requisitePlugins: {
-        'testcase-debug-context@selite.googlecode.com': 'SeLite TestCase Debug Context'
+        'testcase-debug-context@selite.googlecode.com': 'SeLite TestCase Debug Context',
+        'selblocks-global@selite.googlecode.com': 'SeLite SelBlocksGlobal'
+    },
+    optionalRequisitePlugins: {
+        'commands@selite.googlecode.com': 'SeLite Commands'
     },
     callBack: function(api) {
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
