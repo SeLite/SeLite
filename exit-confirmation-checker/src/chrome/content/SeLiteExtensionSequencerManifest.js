@@ -18,8 +18,9 @@ SeLiteExtensionSequencer.registerPlugin( {
                     basic:"Basic (confirmation popups not shown, confirmation validated, confirmation expected for reverted changes)",
                     skipRevertedChanges:"Advanced (confirmation popups not shown, confirmation validated, confirmation not expected for reverted changes)"
                 }
-        );        
-        settingsModule.addFields( [exitConfirmationCheckerMode] );
+        );
+        var exitConfirmationCheckerAssert= new SeLiteSettings.Field.Bool( 'exitConfirmationCheckerAssert', false, false );
+        settingsModule.addFields( [exitConfirmationCheckerMode, exitConfirmationCheckerAssert] );
     }
     
 } );

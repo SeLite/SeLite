@@ -42,7 +42,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
               oldRecordPageLoad.call( this, elementOrWindow );
               console.debug( "SeLite Exit Confirmation Checker's override of BrowserBot.recordPageLoad() called." );
               // When I've overriden self.getCurrentWindow(true).onbeforeunload here, it had no effect. It must be too early here. The same when I've overriden self.getCurrentWindow(true).onload here which overrode .onbeforeunload. So here I set a flag, and I consume it in nextCommand() below
-              selenium.overrideOnBeforeUnload= true;
+              SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload= true;
           };
         };
         BrowserBot.prototype= oldBrowserBot.prototype;
@@ -51,26 +51,18 @@ if( SeLiteExitConfirmationChecker===undefined ) {
             BrowserBot[classField]= oldBrowserBot[classField];
         }
 
-        var originalNextCommand= TestCaseDebugContext.prototype.nextCommand;
-        TestCaseDebugContext.prototype.nextCommand= function nextCommand() {
-            var result= originalNextCommand.call( this );
-            console.debug( 'SeLite Exit ConfirmationChecker tail override of TestCaseDebugContext.prototype.nextCommand().' );
-            if( selenium.overrideOnBeforeUnload ) {
-                SeLiteExitConfirmationChecker.overrideOnBeforeUnload();
-                selenium.overrideOnBeforeUnload= false;
-            }
-            return result;
-        };
-        
         SeLiteExitConfirmationChecker.overrideOnBeforeUnload= function overrideOnBeforeUnload() {
-            // Following variables won't be set when you run a single Selenese command (rather than the whole test case). @TODO check whether I can use ExitChecker when running single selenese steps. If so, then consider seting these variables in SeLiteExitConfirmationChecker.
-            /** @var object {number index of the input in selenium.inputs => (string|boolean) original value } */selenium.seLiteOriginalInputValues= {}; // It could be an array. But selenium.seLiteModifiedInputValues can't be an array and therefore both are objects serving as associative arrays.
-            /** @var object {number index of the input in selenium.inputs => (string|boolean) modified value } */selenium.seLiteModifiedInputValues= {};
-            /** @var Array of inputs. Used to assign a numeric ID to identify each modified input (that ID is an index in this array). I can't use Selenium locators to identify the modified inputs, because the same input can be referred to and modified through multiple locators. */selenium.seLiteInputs= [];
-            /** @var Array of strings, each being the first used locator for the respective input. Used only for reporting the inputs to the user. */selenium.seLiteInputLocators= [];
+            /** @var object {number index of the input in SeLiteExitConfirmationChecker.inputs => (string|boolean) original value } */SeLiteExitConfirmationChecker.originalInputValues= {}; // It could be an array. But SeLiteExitConfirmationChecker.modifiedInputValues can't be an array and therefore both are objects serving as associative arrays.
+            /** @var object {number index of the input in SeLiteExitConfirmationChecker.inputs => (string|boolean) modified value } */SeLiteExitConfirmationChecker.modifiedInputValues= {};
+            /** @var Array of inputs. Used to assign a numeric ID to identify each modified input (that ID is an index in this array). I can't use Selenium locators to identify the modified inputs, because the same input can be referred to and modified through multiple locators. */SeLiteExitConfirmationChecker.inputs= [];
+            /** @var Array of strings, each being the first used locator for the respective input. Used only for reporting the inputs to the user. */SeLiteExitConfirmationChecker.inputLocators= [];
 
             var window= selenium.browserbot.getCurrentWindow(true);
             var originalOnBeforeUnload= window.onbeforeunload;
+            if( originalOnBeforeUnload && originalOnBeforeUnload.overridenBySeLite ) {
+                console.warn( 'SeLite ExitConfirmationChecker already overrode current window.onbeforeunload(). Have you called SeLiteExitConfirmationChecker.overrideOnBeforeUnload() where it is not needed?' );
+                return;
+            }
             window.onbeforeunload= function onbeforeunload() {
                 console.debug('SeLite ExitConfirmationChecker: window.onbeforeunload start');
                 var fieldsDownToFolder= settingsModule.getFieldsDownToFolder( /*folderPath:*/undefined, /*dontCache:*/true );
@@ -93,21 +85,34 @@ if( SeLiteExitConfirmationChecker===undefined ) {
                     return originalResult;
                 }
                 console.debug( 'SeLite ExitConfirmationChecker: window.onbeforeunload finishing, not returning anything');
-                selenium.seLiteAppAskedToConfirm= originalResult!==undefined;
-                // I can't throw an error here - Firefox ignores it. So I set selenium.seLiteAppAskedToConfirm and I handle it in _executeCurrentCommand() below.
+                SeLiteExitConfirmationChecker.appAskedToConfirm= originalResult!==undefined;
+                // I can't throw an error here - Firefox ignores it. So I set SeLiteExitConfirmationChecker.appAskedToConfirm and I handle it in _executeCurrentCommand() below.
                 // I don't return anything: that suppresses the confirmation popup.
             };
+            window.onbeforeunload.overridenBySeLite= true;
+        };
+        
+        var originalNextCommand= TestCaseDebugContext.prototype.nextCommand;
+        TestCaseDebugContext.prototype.nextCommand= function nextCommand() {
+            var result= originalNextCommand.call( this );
+            console.debug( 'SeLite Exit ConfirmationChecker tail override of TestCaseDebugContext.prototype.nextCommand().' );
+            // I've tried to apply the following at the end of my tail override of TestLoop.prototype._executeCurrentCommand, but that didn't work well.
+            if( SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload ) {
+                SeLiteExitConfirmationChecker.overrideOnBeforeUnload();
+                SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload= false;
+            }
+            return result;
         };
         
         var original_executeCurrentCommand= TestLoop.prototype._executeCurrentCommand;
         TestLoop.prototype._executeCurrentCommand= function _executeCurrentCommand() {
-            console.debug( 'SeLite ExitConfirmationChecke: override of TestLoop.prototype._executeCurrentCommand()' );
+            console.debug( 'SeLite ExitConfirmationChecker: override of TestLoop.prototype._executeCurrentCommand()' );
             original_executeCurrentCommand.call( this );
             if( !this.result.failed ) { // See also comments in auto-check.js
-                if( selenium.seLiteModifiedInputValues!==undefined && selenium.seLiteAppAskedToConfirm!==undefined ) {
-                    var hadModifiedInputs= Object.keys( selenium.seLiteModifiedInputValues ).length>0;
-                    var appAskedToConfirm= selenium.seLiteAppAskedToConfirm;
-                    selenium.seLiteAppAskedToConfirm= undefined; // Clear it no matter whether the following if(..) condition is true or not
+                if( SeLiteExitConfirmationChecker.modifiedInputValues!==undefined && SeLiteExitConfirmationChecker.appAskedToConfirm!==undefined ) {
+                    var hadModifiedInputs= Object.keys( SeLiteExitConfirmationChecker.modifiedInputValues ).length>0;
+                    var appAskedToConfirm= SeLiteExitConfirmationChecker.appAskedToConfirm;
+                    SeLiteExitConfirmationChecker.appAskedToConfirm= undefined; // Clear it no matter whether the following if(..) condition is true or not
 
                     if( appAskedToConfirm!==hadModifiedInputs ) {
                         var message= "Web application's window.onbeforeunload() "
@@ -115,14 +120,15 @@ if( SeLiteExitConfirmationChecker===undefined ) {
                                 +(hadModifiedInputs ? 'were some' : "weren't any")+ ' modified inputs';
                         if( hadModifiedInputs ) {
                             message+= ':';
-                            for( var index in selenium.seLiteModifiedInputValues ) {
-                                message+= '\n' +selenium.seLiteInputLocators[index];
+                            for( var index in SeLiteExitConfirmationChecker.modifiedInputValues ) {
+                                message+= '\n' +SeLiteExitConfirmationChecker.inputLocators[index];
                             }
                         }
                         else {
                             message+= '.';
                         }
-                        if( false ) {//@TODO config field - whether to assert
+                        var fieldsDownToFolder= settingsModule.getFieldsDownToFolder( /*folderPath:*/undefined, /*dontCache:*/true );
+                        if( fieldsDownToFolder['exitConfirmationCheckerAssert'] && fieldsDownToFolder['exitConfirmationCheckerAssert'].entry ) {
                             throw new SeleniumError( message );
                         }
                         else {
@@ -136,21 +142,21 @@ if( SeLiteExitConfirmationChecker===undefined ) {
             }
         };
         
-        /** Get a numeric index of the given element in selenium.seLiteInputs[]. If the element is already in selenium.seLiteInputs, returns its index. Otherwise put it there and return its (new) index.
+        /** Get a numeric index of the given element in SeLiteExitConfirmationChecker.inputs[]. If the element is already in SeLiteExitConfirmationChecker.inputs, returns its index. Otherwise put it there and return its (new) index.
          * @param {object} element
          * @param {string} locator
-         * @return {number} index, or -1 if selenium.seLiteInputs is not set (which is when running a single Selenese command rather than a whole test suite)
+         * @return {number} index, or -1 if SeLiteExitConfirmationChecker.inputs is not set (which is when running a single Selenese command rather than a whole test suite)
          * */
         var inputToIndex= function inputToIndex( element, locator ) {
-            if( selenium.seLiteInputs===undefined ) {
+            if( SeLiteExitConfirmationChecker.inputs===undefined ) {
                 return -1;
             }
-            var index= selenium.seLiteInputs.indexOf(element);
+            var index= SeLiteExitConfirmationChecker.inputs.indexOf(element);
             if( index>=0 ) {
                 return index;
             }
-            selenium.seLiteInputLocators.push( locator );
-            return selenium.seLiteInputs.push( element ) -1;
+            SeLiteExitConfirmationChecker.inputLocators.push( locator );
+            return SeLiteExitConfirmationChecker.inputs.push( element ) -1;
         };
         
         /** 
@@ -183,18 +189,18 @@ if( SeLiteExitConfirmationChecker===undefined ) {
         
         //@TODO <select><option>. Maybe: accept a function for elementValueField
         SeLiteExitConfirmationChecker.inputBeforeChange= function inputBeforeChange( locator, elementValueField ) {
-            if( selenium.seLiteInputs===undefined ) {// selenium.seLiteInputs is not set when running a single Selenese commad (rather than a whole test case)
+            if( SeLiteExitConfirmationChecker.inputs===undefined ) {// SeLiteExitConfirmationChecker.inputs is not set when running a single Selenese commad (rather than a whole test case)
                 return;
             }
             var input= selenium.browserbot.findElement(locator);
             var inputIndex= inputToIndex(input, locator);
-            if( selenium.seLiteOriginalInputValues[inputIndex]===undefined ) {
-                selenium.seLiteOriginalInputValues[inputIndex]= elementValue( input, elementValueField );
+            if( SeLiteExitConfirmationChecker.originalInputValues[inputIndex]===undefined ) {
+                SeLiteExitConfirmationChecker.originalInputValues[inputIndex]= elementValue( input, elementValueField );
             }
         };
 
         SeLiteExitConfirmationChecker.inputAfterChange= function inputAfterChange( locator, elementValueField ) {
-            if( selenium.seLiteInputs===undefined ) {
+            if( SeLiteExitConfirmationChecker.inputs===undefined ) {
                 return;
             }
             var fieldsDownToFolder= settingsModule.getFieldsDownToFolder( /*folderPath:*/undefined, /*dontCache:*/true );
@@ -204,15 +210,15 @@ if( SeLiteExitConfirmationChecker===undefined ) {
             var inputIndex= inputToIndex(input, locator);
             var value= elementValue( input, elementValueField );
             if( exitConfirmationCheckerMode.basic ) {
-                selenium.seLiteModifiedInputValues[inputIndex]= value;
+                SeLiteExitConfirmationChecker.modifiedInputValues[inputIndex]= value;
             }
             else
             if( exitConfirmationCheckerMode.skipRevertedChanges ) {
-                if( selenium.seLiteOriginalInputValues[inputIndex]!==value ) {
-                    selenium.seLiteModifiedInputValues[inputIndex]= value;
+                if( SeLiteExitConfirmationChecker.originalInputValues[inputIndex]!==value ) {
+                    SeLiteExitConfirmationChecker.modifiedInputValues[inputIndex]= value;
                 }
                 else {
-                    delete selenium.seLiteModifiedInputValues[inputIndex];
+                    delete SeLiteExitConfirmationChecker.modifiedInputValues[inputIndex];
                 }
             }
         };
