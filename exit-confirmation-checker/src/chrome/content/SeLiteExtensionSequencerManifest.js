@@ -3,7 +3,7 @@ SeLiteExtensionSequencer.registerPlugin( {
     coreUrl: 'chrome://selite-exit-confirmation-checker/content/extensions/core.js',
     requisitePlugins: {
         'testcase-debug-context@selite.googlecode.com': 'SeLite TestCase Debug Context',
-        'selblocks-global@selite.googlecode.com': 'SeLite SelBlocksGlobal'
+        'settings@selite.googlecode.com': 'SeLite Settings'
     },
     optionalRequisitePlugins: {
         'commands@selite.googlecode.com': 'SeLite Commands'
@@ -14,8 +14,9 @@ SeLiteExtensionSequencer.registerPlugin( {
         var exitConfirmationCheckerMode= new SeLiteSettings.Field.Choice.String(
                 'exitConfirmationCheckerMode', false, "inactive",
                 {   inactive:"Inactive (confirmation popups shown if present, no validation)",
-                    ignored:"Ignored (confirmation popups not shown, no validation)", basic:"Basic (confirmation popups not shown, confirmation validated, confirmation expected for reverted changes)",
-                    skipRevertChanges:"Advanced (confirmation popups not shown, confirmation validated, confirmation not expected for reverted changes)"
+                    ignored:"Ignored (confirmation popups not shown, no validation)",
+                    basic:"Basic (confirmation popups not shown, confirmation validated, confirmation expected for reverted changes)",
+                    skipRevertedChanges:"Advanced (confirmation popups not shown, confirmation validated, confirmation not expected for reverted changes)"
                 }
         );        
         settingsModule.addFields( [exitConfirmationCheckerMode] );

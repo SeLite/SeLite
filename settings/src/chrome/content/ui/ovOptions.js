@@ -1602,7 +1602,7 @@ window.addEventListener( "load", function(e) {
                 modules[ moduleName ]= SeLiteSettings.loadFromJavascript( moduleName, undefined, true/** Force reload, so that user's changes has an effect without restarting Firefox. */ );
             }
             catch(e) {
-                alert( "Couldn't load JS definnition of the requested module." );
+                alert( "Couldn't load JS definnition of the requested module: " +e+ ':\n' +e.stack );
             }
             SeLiteMisc.ensure( !targetFolder || modules[moduleName].associatesWithFolders, "You're using URL with folder=" +targetFolder+
                 " and module=" +moduleName+ ", however that module doesn't allow to be associated with folders." );
@@ -1631,22 +1631,26 @@ window.addEventListener( "load", function(e) {
     if( SeLiteMisc.isEmptyObject(modules) ) {
         allowModules= true;
         var moduleNames= SeLiteSettings.moduleNamesFromPreferences( prefix );
-        var brokenModuleNames= [];
+        var exceptionDetails= {};
         for( var i=0; i<moduleNames.length; i++ ) {
             var module;
             try {
                 module= SeLiteSettings.loadFromJavascript( moduleNames[i], undefined, true/** Force reload, so that user's changes take effect without restarting Firefox. */ );
             }
             catch(e) {
-                brokenModuleNames.push( moduleNames[i] );
+                exceptionDetails[ moduleNames[i] ]= ''+ e+ ':\n' +e.stack;
             }
 
             if( targetFolder===null || module.associatesWithFolders ) {
                 modules[ moduleNames[i] ]= module;
             }
         }
-        if( brokenModuleNames.length>0 ) {
-            alert( "Couldn't load JS definnition of configuration module(s) " +brokenModuleNames.join(', ')+ '.' );
+        if( Object.keys(exceptionDetails).length>0 ) {
+            var msg= "Couldn't load JS definnition of configuration module(s):\n";
+            for( var moduleName in exceptionDetails ) {
+                msg+= moduleName+ ': ' +exceptionDetails[moduleName]+ '\n\n';
+            }
+            alert( msg );
         }
     }
     var tree= document.createElementNS( XUL_NS, 'tree' );

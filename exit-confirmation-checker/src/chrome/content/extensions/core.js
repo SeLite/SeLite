@@ -16,11 +16,15 @@
 */
 "use strict";
 
+/** @var {object} Namespace-like holder. */var SeLiteExitConfirmationChecker;
+if( SeLiteExitConfirmationChecker===undefined ) {
+    SeLiteExitConfirmationChecker= {};
+}
 // Anonymous function to prevent leaking into Selenium global namespace
 ( function() {
     Components.utils.import( "chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js" );
     var loadedTimes= SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteExitConfirmationChecker'] || 0;
-    if( loadedTimes===1 ) { // Setup the overrides on the first load, not on the second
+    if( loadedTimes===1 ) { // Setup the overrides on the second load
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
         var settingsModule= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
@@ -31,7 +35,7 @@
           console.debug( 'BrowserBot() called as overriden by SeLite Exit Confirmation Checker.' );
           oldBrowserBot.call( this, topLevelApplicationWindow );
           
-          //var self= this; // If you need to set fields on the current object, for some reason you can't set them on 'this', but you have to use 'self' instead. See chrome://selenium-ide/content/selenium-core/scripts/selenium-browserbot.js -> definition of function recordPageLoad.
+          //var self= this; // @TODO Doc: If you need to set fields on the current object, for some reason you can't set them on 'this', but you have to use 'self' instead. See chrome://selenium-ide/content/selenium-core/scripts/selenium-browserbot.js -> definition of function recordPageLoad.
           var oldRecordPageLoad= this.recordPageLoad;
           this.recordPageLoad = function recordPageLoad(elementOrWindow) {
               // This gets registered as a handler & called only for any page that is a direct result of Selenese actions but not a result of a redirect.
@@ -55,23 +59,35 @@
                 // Following variables won't be set when you run a single Selenese command (rather than the whole test case).
                 /** @var object {number index of the input in selenium.inputs => (string|boolean) original value } */selenium.seLiteOriginalInputValues= {}; // It could be an array. But selenium.seLiteModifiedInputValues can't be an array and therefore both are objects serving as associative arrays.
                 /** @var object {number index of the input in selenium.inputs => (string|boolean) modified value } */selenium.seLiteModifiedInputValues= {};
-                /** @var Array of inputs */selenium.seLiteInputs= [];
-                /** @var Array of strings, each being the first used locator for the respective input. Used when reporting the inputs to the user. */selenium.seLiteInputLocators= [];
+                /** @var Array of inputs. Used to assign a numeric ID to identify each modified input (that ID is an index in this array). I can't use Selenium locators to identify the modified inputs, because the same input can be referred to and modified through multiple locators. */selenium.seLiteInputs= [];
+                /** @var Array of strings, each being the first used locator for the respective input. Used only for reporting the inputs to the user. */selenium.seLiteInputLocators= [];
                 
                 var window= selenium.browserbot.getCurrentWindow(true);
                 var originalOnBeforeUnload= window.onbeforeunload;
                 window.onbeforeunload= function onbeforeunload() {
+                    console.debug('SeLite ExitConfirmationChecker: window.onbeforeunload start');
                     var fieldsDownToFolder= settingsModule.getFieldsDownToFolder( /*folderPath:*/undefined, /*dontCache:*/true );
+                    if( !fieldsDownToFolder['exitConfirmationCheckerMode'] ) {
+                        console.error( "SeLite ExitConfirmationChecker: no fieldsDownToFolder['exitConfirmationCheckerMode']");
+                        return;
+                    }
                     var exitConfirmationCheckerMode= fieldsDownToFolder['exitConfirmationCheckerMode'].entry;
-                    if( exitConfirmationCheckerMode==='ignored') {
+                    if( exitConfirmationCheckerMode.ignored ) {
+                        console.debug( 'SeLite ExitConfirmationChecker: window.onbeforeunload ignored');
+                        return;
+                    }
+                    if( !originalOnBeforeUnload ) {
+                        console.debug( 'SeLite ExitConfirmationChecker: No previous window.onbeforeunload' );
                         return;
                     }
                     var originalResult= originalOnBeforeUnload.call(this);
-                    if( exitConfirmationCheckerMode==='inactive' ) {
+                    if( exitConfirmationCheckerMode.inactive ) {
+                        console.debug( 'SeLite ExitConfirmationChecker: window.onbeforeunload inactive - returning originalResult: ' +originalResult );
                         return originalResult;
                     }
+                    console.debug( 'SeLite ExitConfirmationChecker: window.onbeforeunload finishing, not returning anything');
                     selenium.seLiteAppAskedToConfirm= originalResult!==undefined;
-                    // I can't throw an error here - Firefox ignores it. So I handle it in _executeCurrentCommand() below.
+                    // I can't throw an error here - Firefox ignores it. So I set selenium.seLiteAppAskedToConfirm and I handle it in _executeCurrentCommand() below.
                     // I don't return anything: that suppresses the confirmation popup.
                 };
                 selenium.overrideOnBeforeUnload= false;
@@ -131,14 +147,6 @@
             selenium.seLiteInputLocators.push( locator );
             return selenium.seLiteInputs.push( element ) -1;
         };
-        /** Get a numeric index of the lement for the given locator. See inputToIndex(element).
-         * @param {string} locator
-         * @return {number} index
-         * @TODO eliminate if not used
-         * */
-        var inputLocatorToIndex= function inputLocatorToIndex( locator ) {
-            return inputToIndex( selenium.browserbot.findElement(locator), locator );
-        };
         
         /** 
          * Based on Selenium.prototype.doSelect in chrome://selenium-ide/content/selenium-core/scripts/selenium-api.js.
@@ -154,36 +162,48 @@
             }
             return element.value; //@TODO check
         };
+        
+        /** @private Helper function to retrieve a value (or an array of values) from an element.
+         *  @param {object} input
+         *  @param {(string|function|undefined)} [elementValueField='value'] Name of the attribute that keeps the value. If a function, then this will call it with the input as the parameter.
+         *  @return {*} value (or an array of values)
+         * */
+        var elementValue= function elementValue( input, elementValueField ) {
+            elementValueField= elementValueField || 'value';
+            if( typeof elementValueField==='function' ) {
+                return elementValueField( input );
+            }
+            return input[elementValueField];
+        };
+        
         //@TODO <select><option>. Maybe: accept a function for elementValueField
-        var inputBeforeChange= function inputBeforeChange( locator, elementValueField ) {
+        SeLiteExitConfirmationChecker.inputBeforeChange= function inputBeforeChange( locator, elementValueField ) {
             if( selenium.seLiteInputs===undefined ) {// selenium.seLiteInputs is not set when running a single Selenese commad (rather than a whole test case)
                 return;
             }
-            elementValueField= elementValueField || 'value';
             var input= selenium.browserbot.findElement(locator);
             var inputIndex= inputToIndex(input, locator);
             if( selenium.seLiteOriginalInputValues[inputIndex]===undefined ) {
-                selenium.seLiteOriginalInputValues[inputIndex]= input[elementValueField];
+                selenium.seLiteOriginalInputValues[inputIndex]= elementValue( input, elementValueField );
             }
         };
 
-        var inputAfterChange= function inputAfterChange( locator, elementValueField ) {
+        SeLiteExitConfirmationChecker.inputAfterChange= function inputAfterChange( locator, elementValueField ) {
             if( selenium.seLiteInputs===undefined ) {
                 return;
             }
-            elementValueField= elementValueField || 'value';
             var fieldsDownToFolder= settingsModule.getFieldsDownToFolder( /*folderPath:*/undefined, /*dontCache:*/true );
             var exitConfirmationCheckerMode= fieldsDownToFolder['exitConfirmationCheckerMode'].entry;
             
             var input= selenium.browserbot.findElement(locator);
             var inputIndex= inputToIndex(input, locator);
-            var value= input[elementValueField];
+            var value= elementValue( input, elementValueField );
             //console.error( 'value: ' +value );
-            if( exitConfirmationCheckerMode && exitConfirmationCheckerMode.basic ) {
+            if( exitConfirmationCheckerMode.basic ) {
                 selenium.seLiteModifiedInputValues[inputIndex]= value;
             }
             else
-            if( exitConfirmationCheckerMode && exitConfirmationCheckerMode.skipRevertChanges ) {
+            if( exitConfirmationCheckerMode.skipRevertedChanges ) {
                 if( selenium.seLiteOriginalInputValues[inputIndex]!==value ) {
                     selenium.seLiteModifiedInputValues[inputIndex]= value;
                 }
@@ -192,21 +212,41 @@
                 }
             }
         };
-
+        
+        /** When storing selected option(s) of a select input, I can't just store selectInput.selectedOptions. This returns same (but modified) HTMLCollection object after (de)selecting any options. So I need to make a copy of the list of the options. I also JSON-encode them, so I can compare the results easily (since I can't use == to compare arrays item by item).
+         * @param {object} selectInput
+         * @returns {string} JSON-encoded array of values of selected options
+         */
+        SeLiteExitConfirmationChecker.selectedOptions= function selectedOptions( selectInput ) {
+            var result= [];
+            for( var i=0; i<selectInput.selectedOptions.length; i++ ) {
+                result.push( selectInput.selectedOptions[i].value );
+            }
+            return JSON.stringify( result );
+        };
         
         var oldDoType= Selenium.prototype.doType;
         Selenium.prototype.doType= function doType( locator, text ) {
-            inputBeforeChange( locator );
+            SeLiteExitConfirmationChecker.inputBeforeChange( locator );
             oldDoType.call( this, locator, text );
-            inputAfterChange( locator );
+            SeLiteExitConfirmationChecker.inputAfterChange( locator );
         };
         
         var oldDoSelect= Selenium.prototype.doSelect;
         Selenium.prototype.doSelect= function doSelect( selectLocator, optionLocator ) {
-            //console.error( '1st ' +selectLocator+ ', extra ' +selectLocator.seLiteExtra );
-            //console.error( '2st ' +optionLocator+ ', extra ' +optionLocator.seLiteExtra );
             oldDoSelect.call( this, selectLocator, optionLocator );
         };
+        
+        if( Selenium.prototype.doTypeRandom ) { // SeLite Commands is present. So I override it here.
+            var oldDoTypeRandom= Selenium.prototype.doTypeRandom;
+            Selenium.prototype.doTypeRandom= function doTypeRandom( locator, paramsOrStore ) {
+                SeLiteExitConfirmationChecker.inputBeforeChange( locator );
+                oldDoTypeRandom.call( this, locator, paramsOrStore );
+                SeLiteExitConfirmationChecker.inputAfterChange( locator );
+            };
+        }
+        
+        // addSelection, removeSelection, removeAllSelections
     }
     SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteExitConfirmationChecker']= loadedTimes+1;
 } )();

@@ -20,7 +20,7 @@ function SeLiteExtensionSequencer() {}
 
 /** Object serving as an associative array. Used by Core extensions, that are loaded via ExtensionSequencer (but not via Bootstrap where this doesn't apply), to indicate the number of times an extension has been loaded during the current run of Selenium IDE.
  *  {
- *      string core extension name: number of times the extension was loaded, or undefined if not loaded yet. It's 1 before running any Selenese and 2 when running the first Selenese. It should not be more than 2.
+ *      string core extension name: number of times the extension was loaded, or undefined if not loaded yet. It's 1 before running any Selenese (i.e. after the first load of the custom core extension) and 2 when running the first Selenese (i.e. after the second load of the custom core extension). It should not be more than 2.
  *  }
  *  Passive - It's up to the Core extension to use this appropriately.
  *  This exists because of issue http://code.google.com/p/selenium/issues/detail?id=6697 "Core extensions are loaded 2x".

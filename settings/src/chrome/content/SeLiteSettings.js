@@ -288,6 +288,19 @@ SeLiteSettings.Field.prototype.getDefaultKey= function getDefaultKey() {
     return this.defaultKey;
 };
 
+/** Set (or override) a default key (or keys) for this field. Used e.g. by test frameworks to set the default key appropriate to the tested web app.
+ *  @param {string|number|array} Key (or keys) to make default for this field.
+ *  @param {boolean} dontReRegister If true, then this doesn't re-register the module.
+ *  @returns {void}
+ * */
+SeLiteSettings.Field.prototype.setDefaultKey= function setDefaultKey( key, dontReRegister ) {
+    this.module.defaultKeys[this.name]= key;
+    this.defaultKey= key;
+    if( !dontReRegister ) {
+        this.module.register();
+    }
+};
+
 SeLiteSettings.Field.prototype.toString= function toString() {
     return this.constructor.name+ '[module: ' +(this.module ? this.module.name : 'unknown')+ ', name: ' +this.name+ ']';
 };
@@ -984,6 +997,9 @@ SeLiteSettings.Module= function Module( name, fields, allowSets, defaultSetName,
     this.addedKeys= {};
     /** @type {object} {string field name => Field object } for fields removed via removeField(fieldOrName). */
     this.removedFields= {};
+    /** @type {object} { string field name => string default value } for SeLiteSettings.Field instances that have default values set (overriden) via setDefaultKey(key).
+     * */
+    this.defaultKeys= {};
     if( !dontRegister ) {
         this.register();
     }
@@ -1630,17 +1646,19 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
                 var entry= isChoice
                     ? {}
                     : SeLiteMisc.sortedObject( field.compareValues );
-                var keys= field.getDefaultKey();
+                var keyOrKeys= field.getDefaultKey();
                 if( field.multivalued ) {
-                    for( var i=0; i<keys.length; i++ ) { //@TODO use for.. of.. loop once NetBeans support it
-                        var key= keys[i];
+                    for( var i=0; i<keyOrKeys.length; i++ ) { //@TODO use for.. of.. loop once NetBeans support it
+                        var key= keyOrKeys[i];
                         entry[ key ]= isChoice
                             ? field.choicePairs[key]
                             : key;
                     }
                 }
                 else {
-                    entry= keys; // This may be null or undefined
+                    entry= isChoice
+                        ? field.choicePairs[keyOrKeys]
+                        : keyOrKeys; // This may be null or undefined
                 }
                 result[fieldName].entry= entry;
             }
@@ -1856,11 +1874,13 @@ SeLiteSettings.loadFromJavascript= function loadFromJavascript( moduleName, modu
    var previouslyAddedFields= {};
    var previouslyAddedKeys= {};
    var previouslyRemovedFields= {};
+   var previousDefaultKeys= {};
    if( modules[moduleName] ) {
         if( forceReload ) {
             previouslyAddedFields= modules[moduleName].addedFields;
             previouslyAddedKeys= modules[moduleName].addedKeys;
             previouslyRemovedFields= modules[moduleName].removedFields;
+            previousDefaultKeys= modules[moduleName].defaultKeys;
             delete modules[moduleName];
         }
         else {
@@ -1901,7 +1921,7 @@ SeLiteSettings.loadFromJavascript= function loadFromJavascript( moduleName, modu
     }
     moduleName in modules || SeLiteMisc.fail( "Loaded definition of module " +moduleName+ " and it was found in preferences, but it didn't register itself properly. Fix its definition at " +moduleUrl+ " so that it registers itself." );
     var module= modules[moduleName];
-    if( Object.keys(previouslyAddedFields).length>0 || Object.keys(previouslyAddedKeys).length>0 || Object.keys(previouslyRemovedFields).length>0 ) {
+    if( Object.keys(previouslyAddedFields).length>0 || Object.keys(previouslyAddedKeys).length>0 || Object.keys(previouslyRemovedFields).length>0 || Object.keys(previousDefaultKeys).length>0 ) {
         for( var fieldName in previouslyAddedFields ) {
             module.addField( previouslyAddedFields[fieldName], true );
         }
@@ -1915,6 +1935,9 @@ SeLiteSettings.loadFromJavascript= function loadFromJavascript( moduleName, modu
         }
         for( var fieldName in previouslyRemovedFields ) {
             module.removeField( fieldName, true );
+        }
+        for( var fieldName in previousDefaultKeys ) {
+            module.fields[fieldName].setDefaultKey( previousDefaultKeys[fieldName] );
         }
         module.register();
     }
