@@ -54,7 +54,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
         SeLiteExitConfirmationChecker.overrideOnBeforeUnload= function overrideOnBeforeUnload() {
             /** @var object {number index of the input in SeLiteExitConfirmationChecker.inputs => (string|boolean) original value } */SeLiteExitConfirmationChecker.originalInputValues= {}; // It could be an array. But SeLiteExitConfirmationChecker.modifiedInputValues can't be an array and therefore both are objects serving as associative arrays.
             /** @var object {number index of the input in SeLiteExitConfirmationChecker.inputs => (string|boolean) modified value } */SeLiteExitConfirmationChecker.modifiedInputValues= {};
-            /** @var Array of inputs. Used to assign a numeric ID to identify each modified input (that ID is an index in this array). I can't use Selenium locators to identify the modified inputs, because the same input can be referred to and modified through multiple locators. */SeLiteExitConfirmationChecker.inputs= [];
+            /** @var Array of inputs. Used to assign a numeric ID to identify each modified input (that ID is an index in this array). I can't use Selenium locators to identify the modified inputs, because the same input can be referred to (and modified through) multiple locators. */SeLiteExitConfirmationChecker.inputs= [];
             /** @var Array of strings, each being the first used locator for the respective input. Used only for reporting the inputs to the user. */SeLiteExitConfirmationChecker.inputLocators= [];
 
             var window= selenium.browserbot.getCurrentWindow(true);
@@ -63,6 +63,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
                 console.warn( 'SeLite ExitConfirmationChecker already overrode current window.onbeforeunload(). Have you called SeLiteExitConfirmationChecker.overrideOnBeforeUnload() where it is not needed?' );
                 return;
             }
+            SeLiteExitConfirmationChecker.window= window;
             window.onbeforeunload= function onbeforeunload() {
                 console.debug('SeLite ExitConfirmationChecker: window.onbeforeunload start');
                 var fieldsDownToFolder= settingsModule.getFieldsDownToFolder( /*folderPath:*/undefined, /*dontCache:*/true );
@@ -96,7 +97,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
         TestCaseDebugContext.prototype.nextCommand= function nextCommand() {
             var result= originalNextCommand.call( this );
             console.debug( 'SeLite Exit ConfirmationChecker tail override of TestCaseDebugContext.prototype.nextCommand().' );
-            // I've tried to apply the following at the end of my tail override of TestLoop.prototype._executeCurrentCommand, but that didn't work well.
+            // I've tried to apply the following *only* at the end of my tail override of TestLoop.prototype._executeCurrentCommand, but that didn't work well.
             if( SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload ) {
                 SeLiteExitConfirmationChecker.overrideOnBeforeUnload();
                 SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload= false;
@@ -140,38 +141,26 @@ if( SeLiteExitConfirmationChecker===undefined ) {
                     }
                 }
             }
+            // Following is in addition to the same in my override of TestCaseDebugContext.prototype.nextCommand. This is here for Selenium commands run as single steps (rather than running a whole test suite/test case).
+            if( SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload ) {
+                SeLiteExitConfirmationChecker.overrideOnBeforeUnload();
+                SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload= false;
+            }
         };
         
-        /** Get a numeric index of the given element in SeLiteExitConfirmationChecker.inputs[]. If the element is already in SeLiteExitConfirmationChecker.inputs, returns its index. Otherwise put it there and return its (new) index.
+        /** Get a numeric index of the given element in SeLiteExitConfirmationChecker.inputs[]. If the element is already in SeLiteExitConfirmationChecker.inputs, returns its index. Otherwise put it there and return its (new) index. Only use it when current window.onbeforeunload was overriden by ExitConfirmationChecker.
+         * @private
          * @param {object} element
          * @param {string} locator
-         * @return {number} index, or -1 if SeLiteExitConfirmationChecker.inputs is not set (which is when running a single Selenese command rather than a whole test suite)
+         * @return {number} index (an existing one or new).
          * */
         var inputToIndex= function inputToIndex( element, locator ) {
-            if( SeLiteExitConfirmationChecker.inputs===undefined ) {
-                return -1;
-            }
             var index= SeLiteExitConfirmationChecker.inputs.indexOf(element);
             if( index>=0 ) {
                 return index;
             }
             SeLiteExitConfirmationChecker.inputLocators.push( locator );
             return SeLiteExitConfirmationChecker.inputs.push( element ) -1;
-        };
-        
-        /** 
-         * Based on Selenium.prototype.doSelect in chrome://selenium-ide/content/selenium-core/scripts/selenium-api.js.
-         * */
-        var inputLocatorToValue= function inputLocatorToValue( locator, optionLocator ) {
-            var element = selenium.browserbot.findElement(locator);
-            if( optionLocator!==undefined ) {
-                if (!("options" in element)) {
-                    throw new SeleniumError("Specified element is not a Select (has no options)");
-                }
-                locator = selenium.optionLocatorFactory.fromLocatorString(optionLocator);
-                element= locator.findOption(element);
-            }
-            return element.value; //@TODO check
         };
         
         /** @private Helper function to retrieve a value (or an array of values) from an element.
@@ -187,9 +176,19 @@ if( SeLiteExitConfirmationChecker===undefined ) {
             return input[elementValueField];
         };
         
-        //@TODO <select><option>. Maybe: accept a function for elementValueField
-        SeLiteExitConfirmationChecker.inputBeforeChange= function inputBeforeChange( locator, elementValueField ) {
-            if( SeLiteExitConfirmationChecker.inputs===undefined ) {// SeLiteExitConfirmationChecker.inputs is not set when running a single Selenese commad (rather than a whole test case)
+        /** Call this after a Selenese command modified an input that should trigger window.onbeforeunload. Users should call this only for custom inputs (or custom Selenese commands). See also SeLiteExitConfirmationChecker.inputAfterChange().
+         * @param {type} locator
+         * @param {type} elementValueField
+         * @returns {undefined}
+         */
+        SeLiteExitConfirmationChecker.inputBeforeChange= function inputBeforeChange( locator, elementValueField, ignoreIfNotOverriden ) {
+            // @TODO Consider: if( !selenium.browserbot.getCurrentWindow(true).overridenBySeLite )
+            if( SeLiteExitConfirmationChecker.window!==selenium.browserbot.getCurrentWindow(true) ) {
+                SeLiteExitConfirmationChecker.window= undefined; // To assist garbage collector
+                if( !ignoreIfNotOverriden ) {
+                    throw Error( "SeLite ExitConfirmationChecker didn't override current window.onbeforeunload, yet you've called SeLiteExitConfirmationChecker.inputBeforeChange() without ignoreIfNotOverriden=true." );
+                }
+                console.debug( "SeLite ExitConfirmationChecker didn't override current window.onbeforeunload(), therefore SeLiteExitConfirmationChecker.inputBeforeChange() can't validate behaviour of window.onbeforeunload()." );
                 return;
             }
             var input= selenium.browserbot.findElement(locator);
@@ -198,9 +197,16 @@ if( SeLiteExitConfirmationChecker===undefined ) {
                 SeLiteExitConfirmationChecker.originalInputValues[inputIndex]= elementValue( input, elementValueField );
             }
         };
-
-        SeLiteExitConfirmationChecker.inputAfterChange= function inputAfterChange( locator, elementValueField ) {
-            if( SeLiteExitConfirmationChecker.inputs===undefined ) {
+        
+        /** Call this after a Selenese command modified an input that should trigger window.onbeforeunload. See SeLiteExitConfirmationChecker.inputBeforeChange().
+         * */
+        SeLiteExitConfirmationChecker.inputAfterChange= function inputAfterChange( locator, elementValueField, ignoreIfNotOverriden ) {
+            if( SeLiteExitConfirmationChecker.window!==selenium.browserbot.getCurrentWindow(true) ) {
+                SeLiteExitConfirmationChecker.window= undefined; // To assist garbage collector
+                if( !ignoreIfNotOverriden ) {
+                    throw Error( "SeLite ExitConfirmationChecker didn't override current window.onbeforeunload, yet you've called SeLiteExitConfirmationChecker.inputAfterChange() without ignoreIfNotOverriden=true." );
+                }
+                console.debug( "SeLite ExitConfirmationChecker didn't override current window.onbeforeunload(), therefore SeLiteExitConfirmationChecker.inputBeforeChange() can't validate behaviour of window.onbeforeunload()." );
                 return;
             }
             var fieldsDownToFolder= settingsModule.getFieldsDownToFolder( /*folderPath:*/undefined, /*dontCache:*/true );
@@ -223,7 +229,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
             }
         };
         
-        /** When storing selected option(s) of a select input, I can't just store selectInput.selectedOptions. This returns same (but modified) HTMLCollection object after (de)selecting any options. So I need to make a copy of the list of the options. I also JSON-encode them, so I can compare the results easily (since I can't use == to compare arrays item by item).
+        /** This stores value(s) of selected option(s) of a &lt;select&gt; input (and it handles inputs that allow multi selection). When storing selected option(s) of a select input, I can't just store selectInput.selectedOptions. This returns same (but modified) HTMLCollection object after (de)selecting any options. So I need to make a copy of the list of the options. I also JSON-encode them, so I can compare the results easily (since I can't use == to compare arrays item by item).
          * @param {object} selectInput
          * @returns {string} JSON-encoded array of values of selected options
          */
@@ -237,26 +243,27 @@ if( SeLiteExitConfirmationChecker===undefined ) {
         
         var oldDoType= Selenium.prototype.doType;
         Selenium.prototype.doType= function doType( locator, text ) {
-            SeLiteExitConfirmationChecker.inputBeforeChange( locator );
+            SeLiteExitConfirmationChecker.inputBeforeChange( locator, undefined, true );
             oldDoType.call( this, locator, text );
-            SeLiteExitConfirmationChecker.inputAfterChange( locator );
-        };
-        
-        var oldDoSelect= Selenium.prototype.doSelect;
-        Selenium.prototype.doSelect= function doSelect( selectLocator, optionLocator ) {
-            oldDoSelect.call( this, selectLocator, optionLocator );
+            SeLiteExitConfirmationChecker.inputAfterChange( locator, undefined, true );
         };
         
         if( Selenium.prototype.doTypeRandom ) { // SeLite Commands is present. So I override it here.
             var oldDoTypeRandom= Selenium.prototype.doTypeRandom;
             Selenium.prototype.doTypeRandom= function doTypeRandom( locator, paramsOrStore ) {
-                SeLiteExitConfirmationChecker.inputBeforeChange( locator );
+                SeLiteExitConfirmationChecker.inputBeforeChange( locator, undefined, true );
                 oldDoTypeRandom.call( this, locator, paramsOrStore );
-                SeLiteExitConfirmationChecker.inputAfterChange( locator );
+                SeLiteExitConfirmationChecker.inputAfterChange( locator, undefined, true );
             };
         }
         
-        // addSelection, removeSelection, removeAllSelections
+        var oldDoSelect= Selenium.prototype.doSelect;
+        Selenium.prototype.doSelect= function doSelect( selectLocator, optionLocator ) {
+            //@TODO
+            oldDoSelect.call( this, selectLocator, optionLocator );
+        };
+        
+        // TODO addSelection, removeSelection, removeAllSelections
     }
     SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteExitConfirmationChecker']= loadedTimes+1;
 } )();
