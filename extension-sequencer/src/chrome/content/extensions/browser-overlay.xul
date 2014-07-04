@@ -16,7 +16,9 @@
                 }
             }
             if( !seleniumIdeFound ) {
-                 alert('Selenium IDE is not found or it is not enabled. SeLite Extension Sequencer is present, but it cannot load any Selenium extensions without Selenium IDE.');
+                Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
+                SeLiteExtensionSequencer.popup( "Firefox add-on SeLite Extension Sequencer is missing Selenium IDE",
+                'Selenium IDE is not installed or it is not enabled. SeLite Extension Sequencer is present, but it cannot load any Selenium extensions without Selenium IDE.' );
             }
         }
     );

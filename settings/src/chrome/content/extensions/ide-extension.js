@@ -1,4 +1,4 @@
-/*  Copyright 2013 Peter Kehl
+/*  Copyright 2013, 2014 Peter Kehl
     This file is part of SeLite Settings.
     
     This program is free software: you can redistribute it and/or modify

@@ -23,6 +23,12 @@ if( Dotclear===undefined ) {
     /** @type {SeLiteSettings.Module} */
     var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
     commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor'] );
+    // @TODO re-apply modified default value when I reload Selenium IDE
+    // If you use ExitConfirmationChecker add-on, then set its default value to TODO: Basic or Advanced
+    if( commonSettings.getField('exitConfirmationCheckerMode') ) {
+        //commonSettings.getField('exitConfirmationCheckerMode').setDefaultKey( 'skipRevertedChanges' );
+    }
+    
 
     /** This sets the user, used by Selenium.prototype.readDotclearEditorBody() and the related functions to determine whether to use a rich editor or not.
      * @param {string} givenUser User's user_id (not the role name).

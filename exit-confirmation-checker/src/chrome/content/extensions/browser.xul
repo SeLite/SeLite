@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 
-<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+<overlay id="se_sqlite_connection_manager_extension_loader_overlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
          xmlns:html="http://www.w3.org/1999/xhtml">
     <html:script type="application/javascript">
         //<![CDATA[
@@ -13,7 +14,7 @@
         catch(e) {
             // I can't use alert() here in Firefox 30. So I follow https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Alerts_and_Notifications and I show a non-modal popup. Since the alert may show outside of Firefox, I make the title clarify that it's about a Firefox add-on.
             var title= "Disabling an add-on for Firefox and Selenium IDE";
-            var msg= 'Add-on SeLite Auto Check requires SeLite Extension Sequencer, which is not installed or not enabled. Therefore SeLite Auto Check will be disabled next time you start Firefox. Please, install SeLite Extension Sequencer first. Then apply Firefox menu > Tools > Add-ons > Extensions > SeLite Auto Check > Enable.';
+            var msg= 'Add-on SeLite Exit Confirmation Checker requires SeLite Extension Sequencer, which is not installed or not enabled. Therefore SeLite Exit Confirmation Checker will be disabled next time you start Firefox. Please, install SeLite Extension Sequencer first. Then apply Firefox menu > Tools > Add-ons > Extensions > SeLite Exit Confirmation Checker > Enable.';
             try {
                 Components.classes['@mozilla.org/alerts-service;1'].
                     getService(Components.interfaces.nsIAlertsService).
@@ -26,7 +27,7 @@
                 win.arguments = [null, title, msg, false, ''];
             }
             Components.utils.import("resource://gre/modules/AddonManager.jsm");
-            AddonManager.getAddonByID( 'auto-check@selite.googlecode.com', function(addon) {
+            AddonManager.getAddonByID( 'exit-confirmation-checker@selite.googlecode.com', function(addon) {
                 addon.userDisabled= true;
             } );
         }

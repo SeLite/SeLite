@@ -12,83 +12,40 @@
 <tr><td rowspan="1" colspan="3">add_page_case</td></tr>
 </thead><tbody>
 <tr>
-	<td>clickAndWait</td>
-	<td>css=li.first.mission-item &gt; a</td>
-	<td></td>
-</tr>
-<tr>
 	<td>getEval</td>
-	<td>alert( this.browserbot.selite )</td>
+	<td>true</td>
 	<td></td>
 </tr>
+<!---->
 <tr>
-	<td>getEval</td>
-	<td>window.onbeforeunload= function() {}</td>
+	<td>if</td>
+	<td>false</td>
 	<td></td>
 </tr>
-<tr>
-	<td>open</td>
-	<td>about:config</td>
-	<td></td>
-</tr>
-<tr>
-	<td>exitTest</td>
-	<td></td>
-	<td></td>
-</tr>
-<!----------------->
 <tr>
 	<td>call</td>
 	<td>logIn</td>
 	<td>userIdOrAmpersandRole='&amp;admin'</td>
-</tr>
-<!---->
-<!---->
-<tr>
-	<td>exitTest</td>
-	<td></td>
-	<td></td>
 </tr>
 <tr>
 	<td>call</td>
 	<td>updateUserOptions</td>
 	<td>options={enable_wysiwyg: false}</td>
 </tr>
-<!-------->
 <tr>
-	<td>exitTest</td>
-	<td></td>
-	<td></td>
-</tr>
-<!--Following replaces HTML. TODO: ignore <br/> at the end-->
-<tr>
-	<td>getEval</td>
-	<td>var paragraph= window.document.getElementById('content-area');&nbsp;&nbsp;var element= paragraph.getElementsByTagName('iframe')[0].contentWindow.document.getElementsByTagName('body')[0]; element.innerHTML= 'Be &lt;strong&gt;bold&lt;/strong&gt;, &lt;em&gt;italic&lt;/em&gt; etc.hi mate';</td>
-	<td></td>
-</tr>
-<!--Following adds HTML.-->
-<tr>
-	<td>getEval</td>
-	<td>var paragraph= window.document.getElementById('content-area');&nbsp;&nbsp;var element= paragraph.getElementsByTagName('iframe')[0].contentWindow.document.getElementsByTagName('body')[0]; element.innerHTML+= 'Be &lt;strong&gt;bold&lt;/strong&gt;, &lt;em&gt;italic&lt;/em&gt; etc.hi mate';</td>
-	<td></td>
-</tr>
-<!-------->
-<tr>
-	<td>clickAndWait</td>
-	<td>//a[ @href='plugin.php?p=userPref' ]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>clickAndWait</td>
-	<td>//a[ @href='users.php' ]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>exitTest</td>
+	<td>endIf</td>
 	<td></td>
 	<td></td>
 </tr>
 <!---->
+<!-------->
+<!-------->
+<!---->
+<tr>
+	<td>call</td>
+	<td>ensureUnderWebRoot</td>
+	<td>forceReload=true, path='admin'</td>
+</tr>
 <tr>
 	<td>clickAndWait</td>
 	<td>//a[ @href=&quot;post.php&quot; ]</td>
@@ -104,6 +61,23 @@
 	<td>id=post_content</td>
 	<td>=`{ type:'text', store:'content'}`</td>
 </tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ @href=&quot;post.php&quot; ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>exitTest</td>
+	<td></td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>call</td>
+	<td>ensureUnderWebRoot</td>
+	<td>forceReload=true</td>
+</tr>
+<!---->
 <tr>
 	<td>clickAndWait</td>
 	<td>//form[ @id=&quot;entry-form&quot;&nbsp;&nbsp;]//input[ @type='submit' ]</td>
@@ -124,6 +98,24 @@
 	<td>insertRecord</td>
 	<td>=`{entity_type:'node', bundle:'page', deleted:0, entity_id:$newPageNodeId, revision_id:$newPageNodeId, language:'und', delta:0, body_value:$body, body_format:'filtered_html'}`</td>
 	<td>=`Dotclear.tables.post`</td>
+</tr>
+<!---->
+<tr>
+	<td>exitTest</td>
+	<td></td>
+	<td></td>
+</tr>
+<!--Following replaces HTML. TODO: ignore <br/> at the end-->
+<tr>
+	<td>getEval</td>
+	<td>var paragraph= window.document.getElementById('content-area');&nbsp;&nbsp;var element= paragraph.getElementsByTagName('iframe')[0].contentWindow.document.getElementsByTagName('body')[0]; element.innerHTML= 'Be &lt;strong&gt;bold&lt;/strong&gt;, &lt;em&gt;italic&lt;/em&gt; etc.hi mate';</td>
+	<td></td>
+</tr>
+<!--Following adds HTML.-->
+<tr>
+	<td>getEval</td>
+	<td>var paragraph= window.document.getElementById('content-area');&nbsp;&nbsp;var element= paragraph.getElementsByTagName('iframe')[0].contentWindow.document.getElementsByTagName('body')[0]; element.innerHTML+= 'Be &lt;strong&gt;bold&lt;/strong&gt;, &lt;em&gt;italic&lt;/em&gt; etc.hi mate';</td>
+	<td></td>
 </tr>
 </tbody></table>
 </body>

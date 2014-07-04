@@ -1,5 +1,5 @@
 /*  Copyright 2013 Peter Kehl
-    See ../../license.html
+    See ../web/index.html
 */
 //"not using strict";
 /* Do not have "use strict"; if you want to set any new global variables/functions that you want to be visible from Selenese.

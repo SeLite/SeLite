@@ -2,16 +2,16 @@
     This file is part of SeLite Settings.
     
     This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 "use strict";
@@ -80,15 +80,28 @@ SeLiteSettings.addClosingIdeHandler= function addClosingIdeHandler( handler ) {
     SeLiteMisc.ensureType( handler, 'function', 'handler must be a function' );
     closingIdeHandlers.push( handler );
 };
-// -------- end of functionality requierd by SeLiteData
+// -------- end of functionality required by SeLiteData
 
 try {
     Components.utils.import('chrome://selite-db-objects/content/DbObjects.js');
     Components.utils.import('chrome://selite-db-objects/content/Db.js');
 }
 catch( e ) {
-    console.log( 'SeLiteSettings component is loaded, but there is no SeLiteData component. That is required by SeLiteSettings.TestDbKeeper.Columns. You can use the rest of SeLiteSettings.' );
-    throw e;
+// I can't use alert() here in Firefox 30. So I follow https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Alerts_and_Notifications and I show a non-modal popup. Since the alert may show outside of Firefox, I make the title clarify that it's about a Firefox add-on.
+    var title= "Firefox and Selenium IDE add-on SeLite Settings in restricted mode";
+    var msg= "SeLiteSettings Javascript component is loaded. However, since you didn't install (or didn't enable) SeLite DB Objects, you can't use SeLiteSettings.TestDbKeeper.Columns. You can use the rest of SeLiteSettings.";
+    console.warn( msg );
+    try {
+        Components.classes['@mozilla.org/alerts-service;1'].
+            getService(Components.interfaces.nsIAlertsService).
+            showAlertNotification(null, title, msg, false, '', null);
+    } catch(e) {
+        var win = Components.classes['@mozilla.org/embedcomp/window-watcher;1'].
+            getService(Components.interfaces.nsIWindowWatcher).
+            openWindow(null, 'chrome://global/content/alerts/alert.xul',
+              '_blank', 'chrome,titlebar=no,popup=yes', null);
+        win.arguments = [null, title, msg, false, ''];
+    }
 }
 
 var modules= SeLiteMisc.sortedObject(true); // @private Object serving as an associative array { string module.name => SeLiteSettings.Module instance }

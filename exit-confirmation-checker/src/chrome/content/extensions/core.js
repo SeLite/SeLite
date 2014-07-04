@@ -1,18 +1,18 @@
 /*  Copyright 2014 Peter Kehl
     This file is part of SeLite Exit Confirmation Checker.
 
-    SeLite Exit Confirmation Checker is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    SeLite Exit Confirmation Checker is distributed in the hope that it will be useful,
+    This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with SeLite Exit Confirmation Checker.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU Lesser General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 "use strict";
 
@@ -52,6 +52,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
         }
 
         SeLiteExitConfirmationChecker.overrideOnBeforeUnload= function overrideOnBeforeUnload() {
+            console.error( "SeLiteExitConfirmationChecker.overrideOnBeforeUnload()" );
             /** @var object {number index of the input in SeLiteExitConfirmationChecker.inputs => (string|boolean) original value } */SeLiteExitConfirmationChecker.originalInputValues= {}; // It could be an array. But SeLiteExitConfirmationChecker.modifiedInputValues can't be an array and therefore both are objects serving as associative arrays.
             /** @var object {number index of the input in SeLiteExitConfirmationChecker.inputs => (string|boolean) modified value } */SeLiteExitConfirmationChecker.modifiedInputValues= {};
             /** @var Array of inputs. Used to assign a numeric ID to identify each modified input (that ID is an index in this array). I can't use Selenium locators to identify the modified inputs, because the same input can be referred to (and modified through) multiple locators. */SeLiteExitConfirmationChecker.inputs= [];
@@ -65,6 +66,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
             }
             SeLiteExitConfirmationChecker.window= window;
             window.onbeforeunload= function onbeforeunload() {
+                console.error( 'onbeforeunload');
                 console.debug('SeLite ExitConfirmationChecker: window.onbeforeunload start');
                 var fieldsDownToFolder= settingsModule.getFieldsDownToFolder( /*folderPath:*/undefined, /*dontCache:*/true );
                 if( !fieldsDownToFolder['exitConfirmationCheckerMode'] ) {
@@ -95,7 +97,9 @@ if( SeLiteExitConfirmationChecker===undefined ) {
         
         var originalNextCommand= TestCaseDebugContext.prototype.nextCommand;
         TestCaseDebugContext.prototype.nextCommand= function nextCommand() {
+            console.error( 'nextCommand');
             var result= originalNextCommand.call( this );
+            return result; //@TODO
             console.debug( 'SeLite Exit ConfirmationChecker tail override of TestCaseDebugContext.prototype.nextCommand().' );
             // I've tried to apply the following *only* at the end of my tail override of TestLoop.prototype._executeCurrentCommand, but that didn't work well.
             if( SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload ) {
@@ -107,9 +111,34 @@ if( SeLiteExitConfirmationChecker===undefined ) {
         
         var original_executeCurrentCommand= TestLoop.prototype._executeCurrentCommand;
         TestLoop.prototype._executeCurrentCommand= function _executeCurrentCommand() {
+            original_executeCurrentCommand.call( this ); return;
+            console.error('_executeCurrentCommand');
+                            var result= new AssertResult();
+                            try {
+                                throw new Error('bad');
+                            }
+                            catch( e ) {
+                                result.setFailed( 'ho' ); // see AssertHandler.prototype.execute() in chrome://selenium-ide/content/selenium-core/scripts/selenium-commandhandlers.js
+                            }
+                            this.result= result;
+                            this.waitForCondition = this.result.terminationCondition;
+                            // @TODO investigate: something is missing
+                            return;
             console.debug( 'SeLite ExitConfirmationChecker: override of TestLoop.prototype._executeCurrentCommand()' );
-            original_executeCurrentCommand.call( this );
-            if( !this.result.failed ) { // See also comments in auto-check.js
+            if( false && SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload ) {
+                SeLiteExitConfirmationChecker.overrideOnBeforeUnload();
+                SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload= false;
+            }
+            // Following is in addition to the same in my override of TestCaseDebugContext.prototype.nextCommand. This is here for Selenium commands run as single steps (rather than running a whole test suite/test case).
+            // NEEDED
+            /*if( SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload ) {
+                SeLiteExitConfirmationChecker.overrideOnBeforeUnload();
+                SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload= false;
+            }/**/
+            //original_executeCurrentCommand.call( this );
+            // Ak vykonam nasledovne pred original_executeCurrentCommand.call( this );, tak
+            // original_executeCurrentCommand.call( this ); prepise this.result!!!!
+            if( /**/true ||/**/ !this.result.failed ) { // See also comments in auto-check.js
                 if( SeLiteExitConfirmationChecker.modifiedInputValues!==undefined && SeLiteExitConfirmationChecker.appAskedToConfirm!==undefined ) {
                     var hadModifiedInputs= Object.keys( SeLiteExitConfirmationChecker.modifiedInputValues ).length>0;
                     var appAskedToConfirm= SeLiteExitConfirmationChecker.appAskedToConfirm;
@@ -133,16 +162,24 @@ if( SeLiteExitConfirmationChecker===undefined ) {
                             throw new SeleniumError( message );
                         }
                         else {
+                            // This doesn't help: original_executeCurrentCommand.call( this );
                             var result= new AssertResult();
-                            result.setFailed( message ); // see AssertHandler.prototype.execute() in chrome://selenium-ide/content/selenium-core/scripts/selenium-commandhandlers.js
+                            result.setFailed( 'ho'/*message*/ ); // see AssertHandler.prototype.execute() in chrome://selenium-ide/content/selenium-core/scripts/selenium-commandhandlers.js
                             this.result= result;
                             this.waitForCondition = this.result.terminationCondition;
+                            // @TODO investigate: something is missing
+                            return;
                         }
                     }
                 }
             }
-            // Following is in addition to the same in my override of TestCaseDebugContext.prototype.nextCommand. This is here for Selenium commands run as single steps (rather than running a whole test suite/test case).
-            if( SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload ) {
+            if( true && SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload ) {
+                SeLiteExitConfirmationChecker.overrideOnBeforeUnload();
+                SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload= false;
+            }
+            original_executeCurrentCommand.call( this );
+            // Following is in addition to the same in my override of TestCaseDebugContext.prototype.nextCommand. This is here for Selenium commands run as single steps (rather than running a whole test suite/test case). TODO: remove?
+            if( true && SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload ) {
                 SeLiteExitConfirmationChecker.overrideOnBeforeUnload();
                 SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload= false;
             }

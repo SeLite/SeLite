@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Peter Kehl
+ * Copyright 2013, 2014 Peter Kehl
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -189,5 +189,24 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins() {
         sortedPluginIds: sortedPluginIds
     };
 };
-        
+
+/** @private
+ *  Shortcut method to generate a non-modal popup. I need this  since I can't use alert() here in Firefox 30. So I follow https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Alerts_and_Notifications.
+ *  @param {string} title Since the alert may show outside of Firefox, make the title clarify that it's about a Firefox add-on.
+ *  @param {string} message Message
+ * */
+SeLiteExtensionSequencer.popup= function popup( title, message ) {
+    try {
+        Components.classes['@mozilla.org/alerts-service;1'].
+            getService(Components.interfaces.nsIAlertsService).
+            showAlertNotification(null, title, message, false, '', null);
+    } catch(e) {
+        var win = Components.classes['@mozilla.org/embedcomp/window-watcher;1'].
+            getService(Components.interfaces.nsIWindowWatcher).
+            openWindow(null, 'chrome://global/content/alerts/alert.xul',
+              '_blank', 'chrome,titlebar=no,popup=yes', null);
+        win.arguments = [null, title, message, false, ''];
+    }
+};
+    
 var EXPORTED_SYMBOLS= ['SeLiteExtensionSequencer'];

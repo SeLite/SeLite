@@ -1,1 +1,2 @@
 content selite-exit-confirmation-checker chrome/content/
+overlay chrome://browser/content/browser.xul chrome://selite-exit-confirmation-checker/content/extensions/browser.xul

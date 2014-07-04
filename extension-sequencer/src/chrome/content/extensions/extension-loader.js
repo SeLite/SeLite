@@ -39,6 +39,7 @@
                 var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
                 var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
                 var addonsById= {}; // Object { string addOnId => Addon object }.
+                var messageCopiedToConsole= '(This is also copied to Firefox > Tools > Web Developer > Browser Toolbox.)';
                 for( var i=0; i<addons.length; i++ ) { //@TODO for(.. of ..) once NetBeans supports it
                     var addon= addons[i];
                     addonsById[ addon.id ]= addon;
@@ -55,8 +56,10 @@
                             );
                         }
                         catch( e ) {
-                            console.error( e );
-                            console.error( e.stack );
+                            var msg= 'Add-on ' +addon.name+ ' has an error in its SeLiteExtensionSequencerManifest.js: ' +e+ '\n'+ e.stack;
+                            console.error( msg );
+                            SeLiteExtensionSequencer.popup( 'Disabling an add-on for Firefox and Selenium IDE', messageCopiedToConsole+ ' ' +msg );
+                            addon.userDisabled= true;
                         }
                     }
                 }
@@ -78,7 +81,8 @@
 
                     var msg= "Following Selenium IDE plugin(s) are missing their dependancy plugin(s). Therefore "+
                         "they will be disabled next time you start Firefox. Please, install any missing "+
-                        "dependancies. Then apply Firefox menu > Tools > Add-ons > Extensions > XXX > Enable.\n\n"+
+                        "dependancies. Then apply Firefox menu > Tools > Add-ons > Extensions > XXX > Enable.\n"+
+                        "If it's an SeLite add-on, see https://code.google.com/p/selite/wiki/AddOnsDependencies\n\n"+
                         "Plugin(s) missing at least one direct dependency:\n";
                     for( var pluginId in sortedPlugins.missingDirectDependancies ) {
                         addonsById[pluginId].userDisabled= true;
@@ -99,6 +103,7 @@
                         }
                     }
                     console.error( msg );
+                    SeLiteExtensionSequencer.popup( 'Disabling add-on(s) for Firefox and Selenium IDE', messageCopiedToConsole+ ' ' +msg );
                 }
                 var failed= {}; // Object { string failed pluginId => exception }
                 for( var i=0; i<sortedPlugins.sortedPluginIds.length; i++ ) {
@@ -126,15 +131,19 @@
                         }
                     }
                     catch(e) {
+                        // I'll report the error, but I don't disable the plugin.
                         failed[pluginId]= e;
                     }
                 }
                 if( Object.keys(failed).length ) {
-                    var messageItems= [];
+                    var details= [];
                     for( var pluginId in failed ) {
-                        messageItems.push( pluginId+ ': ' + failed[pluginId] );
+                        var e= failed[pluginId];
+                        details.push( 'Plugin with ID ' +pluginId+ ': ' +e+ '\n' +e.stack );
                     }
-                    console.error( "SeLiteExtensionSequencer couldn't load plugin(s): " +messageItems+ "." );
+                    var msg= "SeLiteExtensionSequencer couldn't load plugin(s) due to their error(s):\n" +details.join('\n\n' );
+                    console.error( msg );
+                    SeLiteExtensionSequencer.popup( "Error(s) in add-on(s) for Firefox and Selenium IDE", messageCopiedToConsole+ ' ' +msg );
                 }
             });
             SeLiteExtensionSequencer.processedAlready= true;
