@@ -8,7 +8,7 @@ SeLiteExtensionSequencer.registerPlugin( {
         'bootstrap@selite.googlecode.com': 'SeLite Bootstrap',
         'settings@selite.googlecode.com': 'SeLite Settings'
     },
-    callBack: function(api) {
+    preActivate: function(api) {
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
         var settingsModule= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
         var autoCheckDetector= new SeLiteSettings.Field.Choice.String('autoCheckDetector', false, undefined, {"SeLiteAutoCheck.DetectorPHP":"SeLiteAutoCheck.DetectorPHP"} );

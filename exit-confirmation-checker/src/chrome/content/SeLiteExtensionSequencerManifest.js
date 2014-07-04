@@ -8,7 +8,7 @@ SeLiteExtensionSequencer.registerPlugin( {
     optionalRequisitePlugins: {
         'commands@selite.googlecode.com': 'SeLite Commands'
     },
-    callBack: function(api) {
+    preActivate: function(api) {
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
         var settingsModule= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
         var exitConfirmationCheckerMode= new SeLiteSettings.Field.Choice.String(

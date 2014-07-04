@@ -8,7 +8,7 @@ SeLiteExtensionSequencer.registerPlugin({
     requisitePlugins: {
         'misc@selite.googlecode.com': 'SeLite Miscellaneous'
     },
-    callBack: function(api) {
+    preActivate: function(api) {
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
         SeLiteSettings.commonSettings= SeLiteSettings.loadFromJavascript(
             'extensions.selite-settings.common',

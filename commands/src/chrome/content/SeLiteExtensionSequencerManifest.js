@@ -8,7 +8,7 @@ SeLiteExtensionSequencer.registerPlugin( {
         'misc@selite.googlecode.com': 'SeLite Miscellaneous',
         'settings@selite.googlecode.com': 'SeLite Settings'
     },
-    callBack: function(api) {
+    preActivate: function(api) {
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
         var settingsModule= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
         /** Max. time difference between the web app and the test. */

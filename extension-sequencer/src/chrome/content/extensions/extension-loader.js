@@ -126,8 +126,8 @@
                                 ide_api.addPluginProvidedUserExtension( plugin.coreUrl[j] );
                             }
                         }
-                        if( plugin.callBack ) {
-                            plugin.callBack.call( null, ide_api );
+                        if( plugin.preActivate ) {
+                            plugin.preActivate.call( null, ide_api );
                         }
                     }
                     catch(e) {

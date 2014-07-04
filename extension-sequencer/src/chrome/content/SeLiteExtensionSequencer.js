@@ -64,7 +64,7 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
         ideUrl: prototype.ideUrl || [],
         requisitePlugins: prototype.requisitePlugins || {},
         optionalRequisitePlugins: prototype.optionalRequisitePlugins || {},
-        callBack: prototype.callBack || false
+        preActivate: prototype.preActivate || false
     };
     if( !Array.isArray(plugin.coreUrl) ) {
         plugin.coreUrl= [plugin.coreUrl];
