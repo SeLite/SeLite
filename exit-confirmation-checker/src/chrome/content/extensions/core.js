@@ -96,7 +96,6 @@ if( SeLiteExitConfirmationChecker===undefined ) {
         
         var original_executeCurrentCommand= TestLoop.prototype._executeCurrentCommand;
         TestLoop.prototype._executeCurrentCommand= function _executeCurrentCommand() {
-            //original_executeCurrentCommand.call( this );
             console.debug('SeLite ExitConfirmationChecker: _executeCurrentCommand');
             
             if( SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload ) {
@@ -128,19 +127,15 @@ if( SeLiteExitConfirmationChecker===undefined ) {
                             throw new SeleniumError( message );
                         }
                         else {
-                            // This doesn't help: original_executeCurrentCommand.call( this );
+                            // see AssertHandler.prototype.execute() in chrome://selenium-ide/content/selenium-core/scripts/selenium-commandhandlers.js
                             var result= new AssertResult();
-                            result.setFailed( message ); // see AssertHandler.prototype.execute() in chrome://selenium-ide/content/selenium-core/scripts/selenium-commandhandlers.js
+                            result.setFailed( "(Ignore this log line. It's due to https://code.google.com/p/selite/wiki/ThirdPartyIssues > verify* should show the diff)" );
                             this.result= result;
                             this.waitForCondition = this.result.terminationCondition;
-                            return;
+                            LOG.error( message );
                         }
                     }
                 }
-            }
-            if( SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload ) {
-                SeLiteExitConfirmationChecker.overrideOnBeforeUnload();
-                SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload= false;
             }
         };
         
