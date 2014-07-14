@@ -1,5 +1,5 @@
 #!/bin/bash
-#change dir to where this script is run from:
+#change dir to where this script is located:
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
 # Based on https://developer.mozilla.org/en/Setting_up_extension_development_environment and http://kb.mozillazine.org/Profile_folder_-_Firefox

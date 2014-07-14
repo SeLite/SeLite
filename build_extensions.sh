@@ -1,5 +1,5 @@
 #!/bin/bash
-#change dir to where this script is run from:
+#change dir to where this script is located:
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
 # Create folder "xpi", if it doesn't exist already

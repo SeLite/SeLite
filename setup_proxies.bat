@@ -1,4 +1,5 @@
 @echo off
+REM Before invoking this script, run 'cd <folder where this script is>'
 for /f "tokens=*" %%a in ('dir  %APPDATA%\Mozilla\Firefox\Profiles\*.default /b') do set p=%APPDATA%\Mozilla\Firefox\Profiles\%%a
 if defined p (
     set e="%p%\extensions"
