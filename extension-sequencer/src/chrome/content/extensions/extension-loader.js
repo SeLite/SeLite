@@ -56,10 +56,13 @@
                             );
                         }
                         catch( e ) {
-                            var msg= 'Add-on ' +addon.name+ ' has an error in its SeLiteExtensionSequencerManifest.js: ' +e+ '\n'+ e.stack;
+                            var msg= 'Add-on ' +addon.name+ ' has an error in its SeLiteExtensionSequencerManifest.js. Please report this issue ';
+                            msg+= addon.id.indexOf('selite.googlecode.com')>0
+                                ? 'at https://code.google.com/p/selite/wiki/ReportingIssues'
+                                : 'to its author (but not to SeLite project).';
+                            msg+= e+ '\n'+ e.stack;
                             console.error( msg );
-                            SeLiteExtensionSequencer.popup( 'Disabling an add-on for Firefox and Selenium IDE', messageCopiedToConsole+ ' ' +msg );
-                            addon.userDisabled= true;
+                            SeLiteExtensionSequencer.popup( 'Error in add-on for Firefox and Selenium IDE', messageCopiedToConsole+ ' ' +msg );
                         }
                     }
                 }
@@ -79,17 +82,14 @@
                         return dependancyPluginNames[pluginId];
                     };
 
-                    var msg= "Following Selenium IDE plugin(s) are missing their dependancy plugin(s). Therefore "+
-                        "they will be disabled next time you start Firefox. Please, install any missing "+
-                        "dependancies. Then apply Firefox menu > Tools > Add-ons > Extensions > XXX > Enable.\n"+
+                    var msg= "Following Selenium IDE plugin(s) are missing their dependancy plugin(s). Please, install (or enable) any missing dependancies. "+
                         "If it's an SeLite add-on, see https://code.google.com/p/selite/wiki/AddOnsDependencies\n\n"+
                         "Plugin(s) missing at least one direct dependency:\n";
                     for( var pluginId in sortedPlugins.missingDirectDependancies ) {
-                        addonsById[pluginId].userDisabled= true;
                         msg+= '\n' +addonsById[pluginId].name+ ' depends on missing plugin(s): ' +
                             sortedPlugins.missingDirectDependancies[pluginId].direct.map(pluginIdToName).join(', ')+ '.';
                         if( sortedPlugins.missingDirectDependancies[pluginId].indirect.length ) {
-                            msg+= ' It also depends on disabled plugin(s): ' +
+                            msg+= ' It also indirectly depends on other missing dependancies through plugin(s): ' +
                             sortedPlugins.missingDirectDependancies[pluginId].indirect.map(pluginIdToName).join(', ')+ '.';
                         }
                         msg+= '\n';
@@ -97,13 +97,12 @@
                     if( Object.keys(sortedPlugins.missingIndirectDependancies).length ) {
                         msg+= "\nPlugin(s) missing indirect dependencies only:\n";
                         for( var pluginId in sortedPlugins.missingIndirectDependancies ) {
-                            addonsById[pluginId].userDisabled= true;
-                            msg+= '\n' +addonsById[pluginId].name+ ' depends on disabled plugin(s): ' +
+                            msg+= '\n' +addonsById[pluginId].name+ ' indirectly depends on missing plugin(s): ' +
                                 sortedPlugins.missingIndirectDependancies[pluginId].map(pluginIdToName).join(', ')+ '.\n';
                         }
                     }
                     console.error( msg );
-                    SeLiteExtensionSequencer.popup( 'Disabling add-on(s) for Firefox and Selenium IDE', messageCopiedToConsole+ ' ' +msg );
+                    SeLiteExtensionSequencer.popup( 'Missing dependancies for add-on(s) for Firefox and Selenium IDE', messageCopiedToConsole+ ' ' +msg );
                 }
                 var failed= {}; // Object { string failed pluginId => exception }
                 for( var i=0; i<sortedPlugins.sortedPluginIds.length; i++ ) {
@@ -111,7 +110,7 @@
                     var plugin= SeLiteExtensionSequencer.plugins[pluginId];
                     var ide_api = new API();
                     try {
-                        // I register the plugin even if it has no core/ide extension rl. That way it
+                        // I register the plugin even if it has no core/ide extension url. That way it
                         // will be listed in Selenium IDE > Options > Options > Plugins.
                         console.log( 'SeLiteExtensionSequencer is adding plugin with ID ' +pluginId+ '. Its core extension files are ' +plugin.coreUrl+ '. Its IDE extension files are ' +plugin.ideUrl+ '.' );
                         ide_api.addPlugin(pluginId);
@@ -131,7 +130,6 @@
                         }
                     }
                     catch(e) {
-                        // I'll report the error, but I don't disable the plugin.
                         failed[pluginId]= e;
                     }
                 }

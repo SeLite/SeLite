@@ -13,22 +13,18 @@
         catch(e) {
             // I can't use alert() here in Firefox 30. So I follow https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Alerts_and_Notifications and I show a non-modal popup. Since the alert may show outside of Firefox, I make the title clarify that it's about a Firefox add-on.
             var title= "Disabling an add-on for Firefox and Selenium IDE";
-            var msg= 'Add-on SeLite Auto Check requires SeLite Extension Sequencer, which is not installed or not enabled. Therefore SeLite Auto Check will be disabled next time you start Firefox. Please, install SeLite Extension Sequencer first. Then apply Firefox menu > Tools > Add-ons > Extensions > SeLite Auto Check > Enable.';
+            var msg= 'Add-on SeLite Auto Check requires SeLite Extension Sequencer, which is missing (or is not enabled). Please, install (or enable) it. See https://code.google.com/p/selite/wiki/AddOns';
             try {
                 Components.classes['@mozilla.org/alerts-service;1'].
                     getService(Components.interfaces.nsIAlertsService).
                     showAlertNotification(null, title, msg, false, '', null);
-            } catch(e) {
+            } catch(e2) {
                 var win = Components.classes['@mozilla.org/embedcomp/window-watcher;1'].
                     getService(Components.interfaces.nsIWindowWatcher).
                     openWindow(null, 'chrome://global/content/alerts/alert.xul',
                       '_blank', 'chrome,titlebar=no,popup=yes', null);
                 win.arguments = [null, title, msg, false, ''];
             }
-            Components.utils.import("resource://gre/modules/AddonManager.jsm");
-            AddonManager.getAddonByID( 'auto-check@selite.googlecode.com', function(addon) {
-                addon.userDisabled= true;
-            } );
         }
         //]]>
     </html:script>

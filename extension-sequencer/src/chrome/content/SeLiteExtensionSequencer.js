@@ -145,13 +145,13 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins() {
     // Object { ID of plugin broken because of at least one missing direct dependancy
     //     => Object {
     //       direct: [pluginID of missing direct dependancy, ...]
-    //       indirect: [pluginId of disabled direct dependancy, ...]
+    //       indirect: [pluginId of missing direct dependancy, ...]
     //     }
     //   ...
     // }
     var missingDirectDependancies= {}
     // Object { ID of plugin broken only because of missing indirect dependancies
-    //     => [pluginID of disabled direct dependancy...]
+    //     => [pluginID of missing direct dependancy...]
     //   
     // }
     var missingIndirectDependancies= {};

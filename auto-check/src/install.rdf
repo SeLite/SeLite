@@ -4,7 +4,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>auto-check@selite.googlecode.com</em:id>
     <em:name>SeLite Auto Check</em:name>
-    <em:version>0.06</em:version>
+    <em:version>0.07</em:version>
     <em:creator>Peter Kehl</em:creator>
     <em:homepageURL>https://code.google.com/p/selite/</em:homepageURL>
     <em:description>SeLite Auto Check - Selenium IDE Core extension</em:description>
