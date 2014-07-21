@@ -1,4 +1,5 @@
 content selite-auto-check chrome/content/
 
 # custom extension(s)
+
 overlay chrome://browser/content/browser.xul chrome://selite-auto-check/content/extensions/browser.xul

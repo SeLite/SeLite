@@ -1,31 +1,54 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 
-<overlay id="selite_commands_extension_loader_overlay"
-         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
          xmlns:html="http://www.w3.org/1999/xhtml">
     <html:script type="application/javascript">
         //<![CDATA[
         "use strict";
-        try {
-            // Test presence of Extension Sequencer
-            Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
-        }
-        catch(e) {
-            // I can't use alert() here in Firefox 30. So I follow https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Alerts_and_Notifications and I show a non-modal popup. Since the alert may show outside of Firefox, I make the title clarify that it's about a Firefox add-on.
-            var title= "Missing dependencies for an add-on for Firefox and Selenium IDE";
-            var msg= 'Add-on SeLite Commands requires SeLite Extension Sequencer, which is missing (or is not enabled). Please, install (or enable) it. See https://code.google.com/p/selite/wiki/AddOns';
+        var thisAddOnID= 'commands@selite.googlecode.com';
+        
+        /** 1. I can't use alert() here (since there is no window object). So I follow https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Alerts_and_Notifications and I show a non-modal popup.
+        */
+        function showAlert( msg, title ) {
+            // Following works on Windows and Linux
             try {
                 Components.classes['@mozilla.org/alerts-service;1'].
                     getService(Components.interfaces.nsIAlertsService).
                     showAlertNotification(null, title, msg, false, '', null);
-            } catch(e2) {
+            } catch(e) {
                 var win = Components.classes['@mozilla.org/embedcomp/window-watcher;1'].
                     getService(Components.interfaces.nsIWindowWatcher).
                     openWindow(null, 'chrome://global/content/alerts/alert.xul',
                       '_blank', 'chrome,titlebar=no,popup=yes', null);
                 win.arguments = [null, title, msg, false, ''];
             }
+        }
+        
+        try {
+            // Test presence of Extension Sequencer
+            Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
+        }
+        catch(e) {
+            Components.utils.import("resource://gre/modules/AddonManager.jsm");
+            AddonManager.getAllAddons(
+            function( addons ) {
+                // I sort the add-ons alphabetically by ID. I can show only one alert at any moment, so I do that in
+                // the first SeLite add-on (when sorted by ID in the alphabetical order). See https://bugzilla.mozilla.org/show_bug.cgi?id=1039869
+                var seliteAddOnIDs= [];
+                for( var i=0; i<addons.length; i++ ) { //@TODO for(.. of..)
+                    if( addons[i].isActive && addons[i].id.indexOf('@selite.googlecode.com')>0 ) {
+                        seliteAddOnIDs.push( addons[i].id );
+                    }
+                }
+                seliteAddOnIDs.sort();
+                if( seliteAddOnIDs[0]===thisAddOnID ) {
+                    // Since the alert may show for a short moment and outside of Firefox, I make the title clarify that it's about a Firefox add-on.
+                    var title= "Firefox and Selenium IDE add-on is missing a dependency";
+                    var msg= 'SeLite requires SeLite Extension Sequencer, which is missing (or is disabled). Please, install (or enable) it. See https://code.google.com/p/selite/wiki/AddOns';
+                    showAlert( msg, title );
+                }
+            } );
         }
         //]]>
     </html:script>
