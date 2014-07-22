@@ -36,10 +36,10 @@
             // For some reasons I couldn't use console here (Firefox 26.0, Selenium IDE 2.5.0). Using it generated a log: can't start debugging: a debuggee script is on the stack webconsole.js:68
             AddonManager.getAllAddons(
             function( addons ) {
+                var problems= []; // Chunks of message. This will add new lines after each chunk.
                 var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
                 var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
                 var addonsById= {}; // Object { string addOnId => Addon object }.
-                var messageCopiedToConsole= '(This is also copied to Firefox > Tools > Web Developer > Browser Toolbox.)';
                 for( var i=0; i<addons.length; i++ ) { //@TODO for(.. of ..) once NetBeans supports it
                     var addon= addons[i];
                     addonsById[ addon.id ]= addon;
@@ -56,13 +56,14 @@
                             );
                         }
                         catch( e ) {
-                            var msg= 'Add-on ' +addon.name+ ' has an error in its SeLiteExtensionSequencerManifest.js. Please report this issue ';
-                            msg+= addon.id.indexOf('selite.googlecode.com')>0
-                                ? 'at https://code.google.com/p/selite/wiki/ReportingIssues'
-                                : 'to its author (but not to SeLite project).';
-                            msg+= e+ '\n'+ e.stack;
-                            console.error( msg );
-                            SeLiteExtensionSequencer.popup( 'Error in add-on for Firefox and Selenium IDE', messageCopiedToConsole+ ' ' +msg );
+                            problems.push( 'Add-on ' +addon.name+ ' has an error in its SeLiteExtensionSequencerManifest.js. Please report this issue '+
+                                (addon.id.indexOf('selite.googlecode.com')>0
+                                 ? 'at https://code.google.com/p/selite/wiki/ReportingIssues'
+                                 : 'to its author (but not to SeLite project).'
+                                )
+                            );
+                            problems.push( ''+e );
+                            problems.push( e.stack );
                         }
                     }
                 }
@@ -82,27 +83,23 @@
                         return dependancyPluginNames[pluginId];
                     };
 
-                    var msg= "Following Selenium IDE plugin(s) are missing their dependancy plugin(s). Please, install (or enable) any missing dependancies. "+
-                        "If it's an SeLite add-on, see https://code.google.com/p/selite/wiki/AddOnsDependencies\n\n"+
-                        "Plugin(s) missing at least one direct dependency:\n";
+                    problems.push( "Following Selenium IDE plugin(s) are missing their dependancy plugin(s). Please, install (or enable) any missing dependancies. If it's an SeLite add-on, see https://code.google.com/p/selite/wiki/AddOnsDependencies" );
+                    problems.push( "Plugin(s) missing at least one direct dependency:" );
                     for( var pluginId in sortedPlugins.missingDirectDependancies ) {
-                        msg+= '\n' +addonsById[pluginId].name+ ' depends on missing plugin(s): ' +
-                            sortedPlugins.missingDirectDependancies[pluginId].direct.map(pluginIdToName).join(', ')+ '.';
+                        problems.push( addonsById[pluginId].name+ ' depends on missing plugin(s): ' +
+                            sortedPlugins.missingDirectDependancies[pluginId].direct.map(pluginIdToName).join(', ')+ '.' );
                         if( sortedPlugins.missingDirectDependancies[pluginId].indirect.length ) {
-                            msg+= ' It also indirectly depends on other missing dependancies through plugin(s): ' +
-                            sortedPlugins.missingDirectDependancies[pluginId].indirect.map(pluginIdToName).join(', ')+ '.';
+                            problems.push( 'It also indirectly depends on other missing dependancies through plugin(s): ' +
+                                sortedPlugins.missingDirectDependancies[pluginId].indirect.map(pluginIdToName).join(', ')+ '.' );
                         }
-                        msg+= '\n';
                     }
                     if( Object.keys(sortedPlugins.missingIndirectDependancies).length ) {
-                        msg+= "\nPlugin(s) missing indirect dependencies only:\n";
+                        problems.push( "\nPlugin(s) missing indirect dependencies only:" );
                         for( var pluginId in sortedPlugins.missingIndirectDependancies ) {
-                            msg+= '\n' +addonsById[pluginId].name+ ' indirectly depends on missing plugin(s): ' +
-                                sortedPlugins.missingIndirectDependancies[pluginId].map(pluginIdToName).join(', ')+ '.\n';
+                            problems.push( addonsById[pluginId].name+ ' indirectly depends on missing plugin(s): ' +
+                                sortedPlugins.missingIndirectDependancies[pluginId].map(pluginIdToName).join(', ') );
                         }
                     }
-                    console.error( msg );
-                    SeLiteExtensionSequencer.popup( 'Missing dependancies for add-on(s) for Firefox and Selenium IDE', messageCopiedToConsole+ ' ' +msg );
                 }
                 var failed= {}; // Object { string failed pluginId => exception }
                 for( var i=0; i<sortedPlugins.sortedPluginIds.length; i++ ) {
@@ -134,14 +131,14 @@
                     }
                 }
                 if( Object.keys(failed).length ) {
-                    var details= [];
                     for( var pluginId in failed ) {
                         var e= failed[pluginId];
-                        details.push( 'Plugin with ID ' +pluginId+ ': ' +e+ '\n' +e.stack );
+                        problems.push( 'Plugin with ID ' +pluginId+ ': ' +e+ '\n' +e.stack );
                     }
-                    var msg= "SeLiteExtensionSequencer couldn't load plugin(s) due to their error(s):\n" +details.join('\n\n' );
-                    console.error( msg );
-                    SeLiteExtensionSequencer.popup( "Error(s) in add-on(s) for Firefox and Selenium IDE", messageCopiedToConsole+ ' ' +msg );
+                }
+                if( problems.length>0 ) {
+                    SeLiteExtensionSequencer.popup( "Problem(s) with add-on(s) for Firefox and Selenium IDE", '(This is also copied to Firefox > Tools > Web Developer > Browser Toolbox.)\n\n' +problems.join('\n') );
+                    console.error( problems.join('\n') );
                 }
             });
             SeLiteExtensionSequencer.processedAlready= true;
