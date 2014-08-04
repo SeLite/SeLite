@@ -41,7 +41,7 @@ if( !runningAsComponent ) {
     catch(e) {
         // Load this file itself as a JS code module, so that it shares Flag object across windows:
         var sharedScope= {};
-        //Components.utils.import( thisAddOnChrome+ "/content/extensions/browser.js", sharedScope );
+        Components.utils.import( thisAddOnChrome+ "/content/extensions/browser.js", sharedScope );
         if( true || !sharedScope.Flag.alertShown ) {
             AddonManager.getAllAddons(
                 function( addons ) {
@@ -55,7 +55,7 @@ if( !runningAsComponent ) {
                     seliteAddOnIDs.sort();
                     if( seliteAddOnIDs[0]===thisAddOnID ) {
                         showAlert();
-                        //sharedScope.Flag.alertShown= true;
+                        sharedScope.Flag.alertShown= true;
                     }
                 }
             );
