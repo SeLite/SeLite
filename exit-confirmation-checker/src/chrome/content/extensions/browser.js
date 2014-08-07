@@ -1,6 +1,6 @@
 "use strict";
-var thisAddOnID= 'auto-check@selite.googlecode.com';
-var thisAddOnChrome= 'chrome://selite-auto-check';
+var thisAddOnID= 'exit-confirmation-checker@selite.googlecode.com';
+var thisAddOnChrome= 'chrome://selite-exit-confirmation-checker';
 
 /** Following code should be the same across all SeLite extensions that need Extension Sequencer. */
 // I access this file in two ways: from browser.xul, and also as a JS code module via Components.utils.import(), importing itself when invoked from browser.xul. runningAsComponent tells me how this file is being accessed.
@@ -56,6 +56,7 @@ if( !runningAsComponent ) {
                         }
                     }
                     seliteAddOnIDs.sort();
+                    console.error( thisAddOnID+ ': sorted addons' +seliteAddOnIDs);
                     if( seliteAddOnIDs[0]===thisAddOnID ) {
                         showAlert();
                         sharedScope.Flag.alertShown= true;

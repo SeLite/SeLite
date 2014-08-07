@@ -1,6 +1,6 @@
 "use strict";
-var thisAddOnID= 'auto-check@selite.googlecode.com';
-var thisAddOnChrome= 'chrome://selite-auto-check';
+var thisAddOnID= 'testcase-debug-context@selite.googlecode.com';
+var thisAddOnChrome= 'chrome://selite-testcase-debug-context';
 
 /** Following code should be the same across all SeLite extensions that need Extension Sequencer. */
 // I access this file in two ways: from browser.xul, and also as a JS code module via Components.utils.import(), importing itself when invoked from browser.xul. runningAsComponent tells me how this file is being accessed.
