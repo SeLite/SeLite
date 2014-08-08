@@ -137,7 +137,7 @@
                     }
                 }
                 if( problems.length>0 ) {
-                    SeLiteExtensionSequencer.popup( "Problem(s) with add-on(s) for Firefox and Selenium IDE", '(This is also copied to Firefox > Tools > Web Developer > Browser Toolbox.)\n\n' +problems.join('\n') );
+                    SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", '(This is also copied to Firefox > Tools > Web Developer > Browser Toolbox.)\n\n' +problems.join('\n') );
                     console.error( problems.join('\n') );
                 }
             });

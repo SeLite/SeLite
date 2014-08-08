@@ -196,8 +196,8 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins() {
  *  @param {string} title Since the alert may show outside of Firefox, make the title clarify that it's about a Firefox add-on.
  *  @param {string} message Message
  * */
-SeLiteExtensionSequencer.popup= function popup( title, message ) {
-    try {
+SeLiteExtensionSequencer.popup= function popup( window, title, message ) {
+    /*try {
         Components.classes['@mozilla.org/alerts-service;1'].
             getService(Components.interfaces.nsIAlertsService).
             showAlertNotification(null, title, message, false, '', null);
@@ -207,7 +207,36 @@ SeLiteExtensionSequencer.popup= function popup( title, message ) {
             openWindow(null, 'chrome://global/content/alerts/alert.xul',
               '_blank', 'chrome,titlebar=no,popup=yes', null);
         win.arguments = [null, title, message, false, ''];
-    }
+    }/**/
+            /* I can't use window.alert(..) here. gBrowser is defined here, however gBrowser.addTab(..) failed when I called it from right here. Therefore I delay it and then I can use either window.alert() or gBrowser.
+            I tried to follow https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Alerts_and_Notifications and https://bugzilla.mozilla.org/show_bug.cgi?id=324570 and I've tried to show a non-modal popup. However, none of those methods works on Windows for multiple popups at the same time: then neither popup shows up. I've tried to use different titles for the popups. I've also tried http://notifications.spec.whatwg.org/#tags-example with different tags for the popups. None of that works.
+            It can happen that another XPI also wants to show up a popup. Therefore I use gBrowser.selectedTab = gBrowser.addTab( url ).
+            */
+            window.setTimeout( function() {
+                /*
+                try {
+                    Components.classes['@mozilla.org/alerts-service;1'].
+                        getService(Components.interfaces.nsIAlertsService).
+                        showAlertNotification(null, title, msg, false, '', null);
+                } catch(e) {
+                    var win = Components.classes['@mozilla.org/embedcomp/window-watcher;1'].
+                        getService(Components.interfaces.nsIWindowWatcher).
+                        openWindow(null, 'chrome://global/content/alerts/alert.xul',
+                          '_blank', 'chrome,titlebar=no,popup=yes', null);
+                    win.arguments = [null, title, msg, false, ''];
+                }*/
+
+                var newTab= window.gBrowser.selectedTab = window.gBrowser.addTab( 'chrome://selite-extension-sequencer/content/extensions/alert.html' );
+                // I need to push the content in the document for the tab that I'll create. This is based on https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Tabbed_browser##Manipulating_content_of_a_new_tab
+                var newTabBrowser = window.gBrowser.getBrowserForTab( newTab );
+                newTabBrowser.addEventListener(
+                    "load",
+                    function () {
+                        newTabBrowser.contentDocument.body.innerHTML= message;
+                    },
+                    true
+                );
+            }, 3000 );
 };
     
 var EXPORTED_SYMBOLS= ['SeLiteExtensionSequencer'];
