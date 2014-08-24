@@ -238,5 +238,9 @@ SeLiteExtensionSequencer.popup= function popup( window, title, message ) {
                 );
             }, 3000 );
 };
-    
-var EXPORTED_SYMBOLS= ['SeLiteExtensionSequencer'];
+
+var Flag= {
+    alertShown: false // Whether I've already an error alert from extension-loader.js (if any; potentially shown in another window). It helps me to ensure that I don't show the same message again if the user opens a new window.
+};
+
+var EXPORTED_SYMBOLS= ['SeLiteExtensionSequencer', 'Flag'];
