@@ -192,7 +192,7 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins() {
 
 /** @private
  *  Shortcut method to generate a non-modal popup. I need this  since I can't use alert() here in Firefox 30. So I follow https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Alerts_and_Notifications.
- *  Call it max. once at any time - see https://bugzilla.mozilla.org/show_bug.cgi?id=1039869.
+ *  Call it max. once at any time - see https://bugzilla.mozilla.org/show_bug.cgi?id=324570.
  *  @param {string} title Since the alert may show outside of Firefox, make the title clarify that it's about a Firefox add-on.
  *  @param {string} message Message
  * */
