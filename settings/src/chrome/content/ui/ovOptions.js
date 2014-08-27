@@ -51,13 +51,21 @@ function chooseFileOrFolder( field, tree, row, column, isFolder, currentTargetFo
     var filePicker = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
     filePicker.init(
         window,
-        "Select a " +(isFolder ? "folder" : "file")+ (field ? " for " +field.name : ""),
+        "Select a "
+        +( isFolder
+                ? "folder"
+                : "file"
+        )
+        +( field
+                ? " for " +field.name
+                : ""
+        ),
         isFolder
-        ? nsIFilePicker.modeGetFolder
-        : (saveFile
-            ? nsIFilePicker.modeSave
-            : nsIFilePicker.modeOpen
-          )
+            ? nsIFilePicker.modeGetFolder
+            : (saveFile
+                ? nsIFilePicker.modeSave
+                : nsIFilePicker.modeOpen
+            )
     );
     if( field ) {
         for( var filterName in field.filters ) {
