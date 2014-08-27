@@ -13,10 +13,10 @@ SeLiteExtensionSequencer.registerPlugin( {
         var settingsModule= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
         var exitConfirmationCheckerMode= new SeLiteSettings.Field.Choice.String(
                 'exitConfirmationCheckerMode', false, "inactive",
-                {   inactive:"Inactive (confirmation popups shown if present, no validation)",
-                    ignored:"Ignored (confirmation popups not shown, no validation)",
-                    basic:"Basic (confirmation popups not shown, confirmation validated, confirmation expected for reverted changes)",
-                    skipRevertedChanges:"Advanced (confirmation popups not shown, confirmation validated, confirmation not expected for reverted changes)"
+                {   inactive:"Inactive (no validation, show any confirmation popups)",
+                    ignored:"Ignore (no validation, don't show any confirmation popups)",
+                    includeRevertedChanges:"Report with reverted changes (validate confirmation, expect confirmation for reverted changes, don't show any confirmation popups)",
+                    skipRevertedChanges:"Report without reverted changes (validate confirmation, expect no confirmation for reverted changes, don't show any confirmation popups)"
                 }
         );
         var exitConfirmationCheckerAssert= new SeLiteSettings.Field.Bool( 'exitConfirmationCheckerAssert', false, false );
