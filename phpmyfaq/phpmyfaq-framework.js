@@ -1,16 +1,15 @@
 /*
  *   Copyright 2014 Peter Kehl
-# Licensed under the GPL version 2.0 license.
-# See LICENSE file or
-# http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-*/
+* This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can
+ * obtain one at http://mozilla.org/MPL/2.0/.*/
 "use strict";
 
 // If you extend this framework from another file, see https://code.google.com/p/selite/wiki/TestFramework#Extending_a_test_framework
 /** @type{object} A namespace-like object in the global scope.*/
-var Dotclear;
-if( Dotclear===undefined ) {
-    Dotclear= {
+var phpMyFAQ;
+if( phpMyFAQ===undefined ) {
+    phpMyFAQ= {
         /** @type {string}*/
         selectedUserId: undefined,
         /** @type {SeLiteData.Db}*/
@@ -19,13 +18,12 @@ if( Dotclear===undefined ) {
 }
 (function() {
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
-    console.warn('Dotclear framework loading');
+    console.warn('phpMyFAQ framework loading');
     /** @type {SeLiteSettings.Module} */
     var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
     commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor'] );
-    // @TODO?!! re-apply modified default value of exitConfirmationCheckerMode when I reload Selenium IDE
+    // @TODO re-apply modified default value when I reload Selenium IDE
     // If you use ExitConfirmationChecker add-on, then set its default value to TODO: Basic or Advanced
-    // Check whether exitConfirmationChecker is present. If so, set its default mode
     if( commonSettings.getField('exitConfirmationCheckerMode') ) {
         //commonSettings.getField('exitConfirmationCheckerMode').setDefaultKey( 'skipRevertedChanges' );
     }

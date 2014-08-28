@@ -20,11 +20,7 @@ Components.utils.import("resource://gre/modules/AddonManager.jsm");
 // Selenium IDE loads this file twice. Maybe related to
 // http://code.google.com/p/selenium/issues/detail?id=6697
 // Therefore here I make sure to register this plugin itself and I load sequencer manifests of target plugins and register them with Selenium only once.
-
-var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 if( !SeLiteExtensionSequencer.processedAlready ) {
-    //@TODO Move the following
-
     // I must reset SeLiteExtensionSequencer.coreExtensionsLoadedTimes. I can't expect that extensions will have an even number of loads - because if the user closes Selenium IDE before running any Selenese, the extensions don't get loaded for the 2nd time during that run of Selenium IDE, and the odd-even sequence would not apply.
     SeLiteExtensionSequencer.coreExtensionsLoadedTimes= {};
 
@@ -33,13 +29,13 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
     ide_api.addPluginProvidedUserExtension( 'chrome://selite-extension-sequencer/content/extensions/core.js' );
     ide_api.addPlugin( 'extension-sequencer@selite.googlecode.com' );
 
-    // For some reasons I couldn't use console here (Firefox 26.0, Selenium IDE 2.5.0). Using it generated a log: can't start debugging: a debuggee script is on the stack webconsole.js:68
+    // For some reasons I couldn't use console here (Firefox 26.0, Selenium IDE 2.5.0). Using it generated a log: can't start debugging: a debuggee script is on the stack webconsole.js:68. I can use console in the handler function passed to AddonManager.getAllAddons():
     AddonManager.getAllAddons(
     function( addons ) {
         var problems= []; // Chunks of message. This will add new lines after each chunk.
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
-        var addonsById= {}; // Object { string addOnId => Addon object }.
+        var addonsById= {}; // Object { string addOnId => Addon object }. This includes all add-ons, not just ones with SeLiteExtensionSequencerManifest.js. I need those other add-ons later when calling SeLiteExtensionSequencer.sortedPlugins( addonsById ), which checks for non-sequenced dependencies.
         for( var i=0; i<addons.length; i++ ) { //@TODO for(.. of ..) once NetBeans supports it
             var addon= addons[i];
             addonsById[ addon.id ]= addon;
@@ -67,7 +63,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                 }
             }
         }
-        var sortedPlugins= SeLiteExtensionSequencer.sortedPlugins();
+        var sortedPlugins= SeLiteExtensionSequencer.sortedPlugins( addonsById );
         if( Object.keys(sortedPlugins.missingDirectDependancies).length ) {
             var dependancyPluginNames= {}; // { pluginId => pluginName } - for dependancies only
             for( var dependantId in SeLiteExtensionSequencer.plugins ) {
@@ -103,6 +99,18 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                 }
             }
         }
+        if( problems.length>0 ) {
+            SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
+        }
+        
+        // Almost ready to register the addons. However, if there are any non-sequenced dependancies that were not registered with Selenium API yet, then tail-override API.prototype.addXXX() and invoke the following only once all non-sequenced dependancies are loaded. If that doesn't happen within a short time limit, that may mean that non-sequenced dependancy didn't register itself with Selenium IDE API, or its initialisation failed; then show a warning message.
+        if( Object.keys(sortedPlugins.missingNonSequencedDependencies).length ) {
+            // See Selenium IDE's chrome/content/api.js > function API(), which sets: this.preferences = SeleniumIDE.Preferences; See also API.prototype._save()
+            var plugins= JSON.parse(SeleniumIDE.Preferences.getString('pluginsData', '[]'));
+            window.setTimeout( function() {
+                    SeLiteExtensionSequencer.popup( window, "TODO" );
+                }, 3000 );
+        }
         var failed= {}; // Object { string failed pluginId => exception }
         for( var i=0; i<sortedPlugins.sortedPluginIds.length; i++ ) {
             var pluginId= sortedPlugins.sortedPluginIds[i];
@@ -132,6 +140,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                 failed[pluginId]= e;
             }
         }
+        problems= [];
         if( Object.keys(failed).length ) {
             for( var pluginId in failed ) {
                 var e= failed[pluginId];
@@ -158,10 +167,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
             }
         }
         if( problems.length>0 ) {
-            if( !Flag.alertShown ) {
-                SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
-                Flag.alertShown= true;
-            }
+            SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
         }
     });
     SeLiteExtensionSequencer.processedAlready= true;

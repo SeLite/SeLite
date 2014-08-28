@@ -52,6 +52,8 @@ SeLiteExtensionSequencer.plugins= {};
  *        those plugins must be installed in Firefox and they must also call
  *        SeLiteExtensionSequencer.registerPlugin() - otherwise pluginId won't get loaded.
         optionalRequisitePlugins: Object (optional) { string pluginId: string pluginName } of pluginIds that are optional dependencies.
+        nonSequencedRequisitePlugins: Object (optional) { string pluginId: string pluginName },
+ *        of plugins that are required dependencies and that don't use SeLiteExtensionSequencer to register themselves.
  *  }
  *  @return void
 **/
@@ -64,6 +66,7 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
         ideUrl: prototype.ideUrl || [],
         requisitePlugins: prototype.requisitePlugins || {},
         optionalRequisitePlugins: prototype.optionalRequisitePlugins || {},
+        nonSequencedRequisitePlugins: prototype.nonSequencedRequisitePlugins || {},
         preActivate: prototype.preActivate || false
     };
     if( !Array.isArray(plugin.coreUrl) ) {
@@ -78,7 +81,7 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
     if( plugin.pluginId in SeLiteExtensionSequencer.plugins ) {
         throw new Error("Plugin " +plugin.pluginId+ " was already registered with SeLite Extension Sequencer.");
     }
-    var mergedPluginIds= Object.keys(plugin.requisitePlugins).concat( Object.keys(plugin.optionalRequisitePlugins) );
+    var mergedPluginIds= Object.keys(plugin.requisitePlugins).concat( Object.keys(plugin.optionalRequisitePlugins) ).concat( Object.keys(plugin.nonSequencedRequisitePlugins) );
     for( var i=0; i<mergedPluginIds.length; i++ ) {
         if( mergedPluginIds.indexOf(mergedPluginIds[i])!=i ) {
             // This doesn't need to show human-friendly plugin names, because it should be caught by developer
@@ -93,15 +96,20 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
  *  that they can be safely loaded. It removes any plugins that miss any of their
  *  required dependencies, and any plugins that require (directly or indirectly)
  *  any of those removed plugins. It reports those removed plugins in the result.
+ *  @param object addonsById Object { string addOnId => Addon object }. This includes all add-ons, not just ones with SeLiteExtensionSequencerManifest.js. I need those other add-ons when checking for non-sequenced dependencies.
  *  @return Object {
- *      sortedPluginIds: [pluginId... in the order they can be loaded],
- *      removedPluginIds: {
+ *      sortedPluginIds: [pluginId... ] in the order they can be loaded,
+ *      missingIndirectDependancies: {
  *          string pluginId: [string missing direct dependency plugin id, ...],
+ *          ...
+ *      },
+ *      missingIndirectDependancies: {
+ *          string pluginId: [string missing indirect dependency plugin id, ...],
  *          ...
  *      }
  *  }
  * */
-SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins() {
+SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
     // pluginUnprocessedRequisites contains plugins with their required dependencies.
     // I add in any optional plugin IDs, if they are installed
     //  - so they get loaded in correct order, before the plugins that use them.
@@ -117,48 +125,38 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins() {
         }
     }
     
-    var unprocessedIds= Object.keys(SeLiteExtensionSequencer.plugins);
+    var missingNonSequencedDependencies= {};
+    // @TODO
+    
     var sortedPluginIds= []; // [pluginId...] sorted, starting with ones with no dependencies, to the dependant ones
-
+    
     // I believe this has computational cost O(N^2), which is fine with me.
-    for( var i=0; i<unprocessedIds.length; i++ ) {
-        var pluginId=unprocessedIds[i];
-        if( !pluginUnprocessedRequisites[pluginId].length ) {
-            sortedPluginIds.push( pluginId );
-            delete pluginUnprocessedRequisites[pluginId];
-            unprocessedIds.splice(i, 1); // remove pluginId  from unprocessedIds[]
+    outer: while( true ) {
+        for( var pluginId in pluginUnprocessedRequisites ) {
+            if( !pluginUnprocessedRequisites[pluginId].length ) {
+                sortedPluginIds.push( pluginId );
+                delete pluginUnprocessedRequisites[pluginId];
 
-            // Remove pluginId from dependencies of the rest of unprocessed plugins
-            // - from pluginUnprocessedRequisites[xxx][]
-            for( var dependantId in pluginUnprocessedRequisites ) {
-                var requisites= pluginUnprocessedRequisites[dependantId];
-                var index= requisites.indexOf(pluginId);
-                if( index>=0 ) {
-                    requisites.splice( index, 1 );
+                // Remove pluginId from dependencies of the rest of unprocessed plugins
+                // - from pluginUnprocessedRequisites[xxx][]
+                for( var dependantId in pluginUnprocessedRequisites ) {
+                    var requisites= pluginUnprocessedRequisites[dependantId];
+                    var index= requisites.indexOf(pluginId);
+                    if( index>=0 ) {
+                        requisites.splice( index, 1 );
+                    }
                 }
-            }
 
-            i= -1; // restart the loop
-            continue;
+                continue outer; // iterate over previously iterated plugins, since now their dependancies may have been checked
+            }
         }
+        break;
     }
-    // Object { ID of plugin broken because of at least one missing direct dependancy
-    //     => Object {
-    //       direct: [pluginID of missing direct dependancy, ...]
-    //       indirect: [pluginId of missing direct dependancy, ...]
-    //     }
-    //   ...
-    // }
     var missingDirectDependancies= {}
-    // Object { ID of plugin broken only because of missing indirect dependancies
-    //     => [pluginID of missing direct dependancy...]
-    //   
-    // }
     var missingIndirectDependancies= {};
     
-    if( unprocessedIds.length ) {
-        for( var i=0; i< unprocessedIds.length; i++ ) { // @TODO for..of.. once NetBeans support it
-            var pluginId= unprocessedIds[i];
+    if( Object.keys(pluginUnprocessedRequisites).length ) {
+        for( var pluginId in pluginUnprocessedRequisites ) {
             //var isMissingDirectDependenciesOnly= true;
             var direct= [], indirect= [];
             //for( var requisiteId of pluginUnprocessedRequisites[pluginId] ) { @TODO instead of the following
@@ -186,6 +184,7 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins() {
     return {
         missingDirectDependancies: missingDirectDependancies,
         missingIndirectDependancies: missingIndirectDependancies,
+        missingNonSequencedDependencies: missingNonSequencedDependencies,
         sortedPluginIds: sortedPluginIds
     };
 };
@@ -239,8 +238,7 @@ SeLiteExtensionSequencer.popup= function popup( window, title, message ) {
             }, 3000 );
 };
 
-var Flag= {
-    alertShown: false // Whether I've already an error alert from extension-loader.js (if any; potentially shown in another window). It helps me to ensure that I don't show the same message again if the user opens a new window.
-};
+// Whether I've processed extension(s) already
+SeLiteExtensionSequencer.processedAlready= false;
 
-var EXPORTED_SYMBOLS= ['SeLiteExtensionSequencer', 'Flag'];
+var EXPORTED_SYMBOLS= ['SeLiteExtensionSequencer'];
