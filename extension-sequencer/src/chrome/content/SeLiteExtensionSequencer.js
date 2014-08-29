@@ -99,21 +99,26 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
  *  @param object addonsById Object { string addOnId => Addon object }. This includes all add-ons, not just ones with SeLiteExtensionSequencerManifest.js. I need those other add-ons when checking for non-sequenced dependencies.
  *  @return Object {
  *      sortedPluginIds: [pluginId... ] in the order they can be loaded,
- *      missingIndirectDependancies: {
+ *      missingDirectDependancies: {
  *          string pluginId: [string missing direct dependency plugin id, ...],
  *          ...
- *      },
+ *      } where direct dependencies can be sequenced or non-sequenced,
  *      missingIndirectDependancies: {
  *          string pluginId: [string missing indirect dependency plugin id, ...],
  *          ...
- *      }
+ *      } where indirect dependencies can be sequenced or non-sequenced,
+ *      nonSequencedDependencies: [pluginId...] of any non-sequenced dependancies
+ *          that are present (i.e. that are in addonsById).
  *  }
  * */
 SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
     // pluginUnprocessedRequisites contains plugins with their required dependencies.
     // I add in any optional plugin IDs, if they are installed
     //  - so they get loaded in correct order, before the plugins that use them.
-    var pluginUnprocessedRequisites= {}; // { dependant plugin id => [requisite plugin id...], ... }
+    var pluginUnprocessedRequisites= {}; // { dependant plugin id => [sequenced requisite plugin id...], ... }
+    // Object { dependant plugin id => true } containing plugins that are missing any non-sequenced dependencies
+    var missingNonSequencedDependencies= {};
+    var nonSequencedDependencies= [];
     for( var dependantId in SeLiteExtensionSequencer.plugins ) {
         var plugin= SeLiteExtensionSequencer.plugins[dependantId];
         pluginUnprocessedRequisites[dependantId]=
@@ -123,17 +128,27 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
                 pluginUnprocessedRequisites[dependantId].push( optionalPluginId );
             }
         }
+        for( var nonSequencedPluginId in plugin.nonSequencedRequisitePlugins ) {
+            if( nonSequencedPluginId in addonsById ) {
+                if( nonSequencedDependencies.indexOf(nonSequencedPluginId)<0 ) {
+                    nonSequencedDependencies.push( nonSequencedPluginId );
+                }
+            }
+            else {
+                missingNonSequencedDependencies[dependantId]= true;
+            }
+        }
     }
-    
-    var missingNonSequencedDependencies= {};
-    // @TODO
     
     var sortedPluginIds= []; // [pluginId...] sorted, starting with ones with no dependencies, to the dependant ones
     
     // I believe this has computational cost O(N^2), which is fine with me.
     outer: while( true ) {
         for( var pluginId in pluginUnprocessedRequisites ) {
-            if( !pluginUnprocessedRequisites[pluginId].length ) {
+            if( missingNonSequencedDependencies[pluginId] ) {
+                continue;
+            }
+            if( !pluginUnprocessedRequisites[pluginId].length ) { // The plugin's dependencies were all removed in previous runs of the following inner loop. Now clear this plugin as OK and remove it as a dependancy for other plugins that depend on it.
                 sortedPluginIds.push( pluginId );
                 delete pluginUnprocessedRequisites[pluginId];
 
@@ -184,7 +199,7 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
     return {
         missingDirectDependancies: missingDirectDependancies,
         missingIndirectDependancies: missingIndirectDependancies,
-        missingNonSequencedDependencies: missingNonSequencedDependencies,
+        nonSequencedDependencies: nonSequencedDependencies,
         sortedPluginIds: sortedPluginIds
     };
 };
@@ -240,5 +255,8 @@ SeLiteExtensionSequencer.popup= function popup( window, title, message ) {
 
 // Whether I've processed extension(s) already
 SeLiteExtensionSequencer.processedAlready= false;
+
+// Whether all expected non-sequenced dependencies were loaded already.
+SeLiteExtensionSequencer.nonSequencedDependenciesLoaded= false;
 
 var EXPORTED_SYMBOLS= ['SeLiteExtensionSequencer'];
