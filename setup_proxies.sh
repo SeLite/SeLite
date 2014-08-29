@@ -102,6 +102,13 @@ then
       pwd > "$EXTENSION_FOLDER"/exit-confirmation-checker@selite.googlecode.com
       cd ../..
     fi
+
+    if [ ! -e "$EXTENSION_FOLDER"/run-all-favorites\@selite.googlecode.com ]
+    then
+      cd run-all-favorites/src
+      pwd > "$EXTENSION_FOLDER"/run-all-favorites@selite.googlecode.com
+      cd ../..
+    fi
 else
    echo Could not find a default Firefox profile
 fi

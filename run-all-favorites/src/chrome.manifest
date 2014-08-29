@@ -1,0 +1,3 @@
+content selite-run-all-favorites  chrome/content/
+
+overlay chrome://browser/content/browser.xul chrome://selite-run-all-favorites/content/extensions/browser.xul
