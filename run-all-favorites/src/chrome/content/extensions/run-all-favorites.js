@@ -108,13 +108,19 @@ if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
     };
     
     // Update any old-style absolute paths. I don't intercept Favorites.prototype.load(), because that was already run from favorites' content/logic/Favorites.js when it created an instance.
+    var updatedSomePaths= false;
     for( var i=0; i<global.editor.favorites.favorites.length; i++ ) {
         var favorite= global.editor.favorites.favorites[i];
         if( /^([a-zA-Z]:\\|\/)/.test(favorite.path) ) {
             favorite.path= getRelativePathToHome(favorite.path);
+            updatedSomePaths= true;
+        }
+        if( updatedSomePaths ) {
+            global.editor.favorites.save( global.editor.favorites.prefBranch );
         }
     }
     
+    // This is also called from Favorites.prototype.load(), but that is only invoked from Favorites() constructor, which is before Run All Favorites is active. So 'path' variable in the following addFavorite() is guaranteed to be absolute.
     Favorites.prototype.addFavorite = function addFavorite( suiteFilePath, suitename ) {
         this.favorites.push( {name: suitename, path: getRelativePathToHome(suiteFilePath) } );
     };
