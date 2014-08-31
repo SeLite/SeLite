@@ -146,7 +146,7 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
     outer: while( true ) {
         for( var pluginId in pluginUnprocessedRequisites ) {
             if( missingNonSequencedDependencies[pluginId] ) {
-                continue;
+                continue; // I won't load this plugin; therefore no need to do further processing for it.
             }
             if( !pluginUnprocessedRequisites[pluginId].length ) { // The plugin's dependencies were all removed in previous runs of the following inner loop. Now clear this plugin as OK and remove it as a dependancy for other plugins that depend on it.
                 sortedPluginIds.push( pluginId );

@@ -164,7 +164,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                 SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
             }
         };
-        // Almost ready to register the addons. However, if there are any non-sequenced dependancies that were not registered with Selenium API yet, then tail-override API.prototype.addXXX() and invoke the following only once all non-sequenced dependancies are loaded. If that doesn't happen within a short time limit, that may mean that non-sequenced dependancy didn't register itself with Selenium IDE API, or its initialisation failed; then show a warning message.
+        // Almost ready to register the addons. However, if there are any non-sequenced dependancies that were not registered with Selenium API yet, then tail-override API.prototype.addXXX() and make it invoke registerAddOns() only once all non-sequenced dependancies are loaded. If that doesn't happen within a short time limit, that may mean that non-sequenced dependancy didn't register itself with Selenium IDE API, or its initialisation failed; then show a warning message.
         var expectedNonSequencedDependencies= []; // This will be an array of pluginIds of non-sequenced dependencies that were not loaded yet
         if( sortedPlugins.nonSequencedDependencies.length ) {
             // See Selenium IDE's chrome/content/api.js > function API(), which sets: this.preferences = SeleniumIDE.Preferences; See also API.prototype._save()
