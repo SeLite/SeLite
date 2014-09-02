@@ -124,13 +124,49 @@ if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
     Favorites.prototype.addFavorite = function addFavorite( suiteFilePath, suitename ) {
         this.favorites.push( {name: suitename, path: getRelativePathToHome(suiteFilePath) } );
     };
+    
+    // Mostly copied from original Favorites
+    Favorites.prototype.populateMenuPopup= function populateMenuPopup(menu) {
+        XulUtils.clearChildren(menu);
+        XulUtils.appendMenuItem(menu, {
+          label: "Run all",
+          id: "menu-favorite-run"
+        });
+        if (menu.id == "menu_popup_favorite") {
+          var menu_label = (this.isCurSuiteFavorite() ? "Remove" : "Add" ) + " favorite";
+          XulUtils.appendMenuItem(menu, {
+            label: (this.isCurSuiteFavorite() ? "Remove" : "Add" ) + " favorite",
+            id: "menu-favorite-button"
+          });
+        }
+        menu.appendChild(document.createElement("menuseparator"));
+        if (this.favorites.length > 0) {
+          for (var i = 0; i < this.favorites.length; i++) {
+            XulUtils.appendMenuItem(menu, {
+              label: this.favorites[i].name,
+              value: this.favorites[i].path
+            });
+          }
+          menu.appendChild(document.createElement("menuseparator"));
+        }
+        XulUtils.appendMenuItem(menu, {
+          label: "Clear all",
+          id: "menu-favorite-clear"
+        });
+    };
         
     var runAllFavorites= function runAllFavorites() {
         var testSuitePlayDone= function testSuitePlayDone() {
-            //@TODO
             editor.app.removeObserver(testSuitePlayDone);
+            if( moreTestSuites ) {
+                editor.app.addObserver( {testSuitePlayDone: testSuitePlayDone} );
+                editor.loadRecentSuite( evt.target.value );
+                editor.playTestSuite();
+            }
         };
         editor.app.addObserver( {testSuitePlayDone: testSuitePlayDone} );
+        editor.loadRecentSuite( evt.target.value );
+        editor.playTestSuite();
     };
 }
 } )( this );
