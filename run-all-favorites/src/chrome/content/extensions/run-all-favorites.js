@@ -24,6 +24,11 @@
 if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
     Favorites.interceptedBySeLiteRunAllFavorites= true;
     
+    var SBDialogs = {}; // copied from original Favories
+    SBDialogs.alert = function(message, title) {
+        Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService).alert(null, title, message);
+    };
+    
     /** Get path parts (all parent folders and the leaf) of the given file/folder.
         @param nsIFile file File or folder
         @return array Array of strings, all folder parts of the path to file, starting with the root/volume, ending with the leaf
@@ -120,12 +125,7 @@ if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
         }
     }
     
-    // This is also called from Favorites.prototype.load(), but that is only invoked from Favorites() constructor, which is before Run All Favorites is active. So 'path' variable in the following addFavorite() is guaranteed to be absolute.
-    Favorites.prototype.addFavorite = function addFavorite( suiteFilePath, suitename ) {
-        this.favorites.push( {name: suitename, path: getRelativePathToHome(suiteFilePath) } );
-    };
-    
-    // Mostly copied from original Favorites
+    // Mostly copied from original Favorites. Adding 'Run All'. Always showing the first menu separator.
     Favorites.prototype.populateMenuPopup= function populateMenuPopup(menu) {
         XulUtils.clearChildren(menu);
         XulUtils.appendMenuItem(menu, {
@@ -154,7 +154,35 @@ if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
           id: "menu-favorite-clear"
         });
     };
-        
+    
+    // Copied from original Favorites + transforming absolute file path to relative
+    Favorites.prototype.isFavorite = function isFavorite(suite) {
+      var suiteRelativePath= getRelativePathToHome(suite);
+      for( var i=0; i<this.favorites.length; i++ ) {
+        if( this.favorites[i].path===suiteRelativePath ) {
+          return true;
+        }
+      }
+      return false;
+    };
+    
+    // Copied from original Favorites + transforming absolute file path to relative
+    Favorites.prototype.toggleSuiteFavorite = function toggleSuiteFavorite() {
+      var curSuite = this.editor.app.getTestSuite();
+      if (curSuite.file) {
+        var suiteRelativePath= getRelativePathToHome( curSuite.file.path );
+        if( !this.removeFavorite(suiteRelativePath) ) {
+          var suiteName = curSuite.file.leafName;
+          suiteName = suiteName.replace(/\.[^.]+$/, "");
+          this.addFavorite( suiteRelativePath, suiteName );
+        }
+        this.save(this.prefBranch);
+      } else {
+        //Suite must be saved first
+        SBDialogs.alert("Please save the suite first.", "SeLite Run All Favorites");
+      }
+    };
+  
     var runAllFavorites= function runAllFavorites() {
         var testSuitePlayDone= function testSuitePlayDone() {
             editor.app.removeObserver(testSuitePlayDone);
