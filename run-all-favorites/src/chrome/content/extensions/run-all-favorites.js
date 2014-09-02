@@ -107,6 +107,9 @@ if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
        return file;
     };
     
+    /** @param string path Relative path, e.g. result of relativePath()
+        @return nsIFile
+    */
     var applyRelativePathToHome= function applyRelativePathToHome( path ) {
         var homeFolder= Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("Home", Components.interfaces.nsIFile);
         return applyRelativePath( homeFolder, path );
@@ -183,6 +186,29 @@ if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
       }
     };
   
+    // Mostly copied from original Favorites + transforming test suite file path from relative to absolute + handling 'Run All' menu item
+    Favorites.prototype.menuClicked = function menuClicked(evt) {
+      if( evt.target.id ) {
+        if( evt.target.id=="favorite-button" || evt.target.id=="menu-favorite-button" ) {
+          this.toggleSuiteFavorite();
+        }
+        else if( evt.target.id == "menu-favorite-clear" ) {
+          this.clearFavorites();
+          this.save(this.prefBranch);
+        }
+      }
+      else {
+        try {
+          this.editor.loadRecentSuite( applyRelativePathToHome(evt.target.value).path );
+          if (evt.ctrlKey) {
+            this.editor.playTestSuite();
+          }
+        } catch(err) {
+          SBDialogs.alert("Error: Could not load test suite.", "Favorites (Selenium IDE)");
+        }
+      }
+    };
+
     var runAllFavorites= function runAllFavorites() {
         var testSuitePlayDone= function testSuitePlayDone() {
             editor.app.removeObserver(testSuitePlayDone);
