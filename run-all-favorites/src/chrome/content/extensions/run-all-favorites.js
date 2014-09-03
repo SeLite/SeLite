@@ -128,34 +128,36 @@ if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
         }
     }
     
-    // Mostly copied from original Favorites. Adding 'Run All'. Always showing the first menu separator.
+    // Mostly copied from original Favorites with these changes:
+    // -adding 'Run all'
+    // -showing 'Run all', 'Clear all' only when there is one or more favorite test suites.
+    // - showing 'Remove favorite'/'Add favorite' even when accessed from the toolbar. Otherwise, if there was nothing in the menu, clicking at the dropdown from the toolbar seemed confusing.
     Favorites.prototype.populateMenuPopup= function populateMenuPopup(menu) {
         XulUtils.clearChildren(menu);
+        if( this.favorites.length > 0 ) {
+            XulUtils.appendMenuItem(menu, {
+              label: "Run all",
+              id: "menu-favorite-run"
+            });
+        }
         XulUtils.appendMenuItem(menu, {
-          label: "Run all",
-          id: "menu-favorite-run"
-        });
-        if (menu.id == "menu_popup_favorite") {
-          var menu_label = (this.isCurSuiteFavorite() ? "Remove" : "Add" ) + " favorite";
-          XulUtils.appendMenuItem(menu, {
             label: (this.isCurSuiteFavorite() ? "Remove" : "Add" ) + " favorite",
             id: "menu-favorite-button"
-          });
-        }
-        menu.appendChild(document.createElement("menuseparator"));
-        if (this.favorites.length > 0) {
-          for (var i = 0; i < this.favorites.length; i++) {
-            XulUtils.appendMenuItem(menu, {
-              label: this.favorites[i].name,
-              value: this.favorites[i].path
-            });
-          }
-          menu.appendChild(document.createElement("menuseparator"));
-        }
-        XulUtils.appendMenuItem(menu, {
-          label: "Clear all",
-          id: "menu-favorite-clear"
         });
+        if( this.favorites.length > 0 ) {
+            menu.appendChild(document.createElement("menuseparator"));
+              for (var i = 0; i < this.favorites.length; i++) {
+                XulUtils.appendMenuItem(menu, {
+                  label: this.favorites[i].name,
+                  value: this.favorites[i].path
+                });
+              }
+              menu.appendChild(document.createElement("menuseparator"));
+            XulUtils.appendMenuItem(menu, {
+              label: "Clear all",
+              id: "menu-favorite-clear"
+            });
+        }
     };
     
     // Copied from original Favorites + transforming absolute file path to relative
@@ -189,12 +191,17 @@ if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
     // Mostly copied from original Favorites + transforming test suite file path from relative to absolute + handling 'Run All' menu item
     Favorites.prototype.menuClicked = function menuClicked(evt) {
       if( evt.target.id ) {
-        if( evt.target.id=="favorite-button" || evt.target.id=="menu-favorite-button" ) {
+        if( evt.target.id==="favorite-button" || evt.target.id==="menu-favorite-button" ) {
           this.toggleSuiteFavorite();
         }
-        else if( evt.target.id == "menu-favorite-clear" ) {
+        else
+        if( evt.target.id==="menu-favorite-clear" ) {
           this.clearFavorites();
           this.save(this.prefBranch);
+        }
+        else
+        if( evt.target.id==="menu-favorite-run" ) {
+            
         }
       }
       else {
@@ -209,16 +216,16 @@ if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
       }
     };
 
-    var runAllFavorites= function runAllFavorites() {
-        var testSuitePlayDone= function testSuitePlayDone() {
+    Favorites.prototype.runAllFavorites= function runAllFavorites() {
+        var testSuitePlayDoneHandler= function testSuitePlayDoneHandler() {
             editor.app.removeObserver(testSuitePlayDone);
             if( moreTestSuites ) {
-                editor.app.addObserver( {testSuitePlayDone: testSuitePlayDone} );
+                editor.app.addObserver( {testSuitePlayDone: testSuitePlayDoneHandler} );
                 editor.loadRecentSuite( evt.target.value );
                 editor.playTestSuite();
             }
         };
-        editor.app.addObserver( {testSuitePlayDone: testSuitePlayDone} );
+        editor.app.addObserver( {testSuitePlayDone: testSuitePlayDoneHandler} );
         editor.loadRecentSuite( evt.target.value );
         editor.playTestSuite();
     };
