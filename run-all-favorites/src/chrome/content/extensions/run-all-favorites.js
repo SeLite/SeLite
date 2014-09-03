@@ -137,7 +137,7 @@ if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
         if( this.favorites.length > 0 ) {
             XulUtils.appendMenuItem(menu, {
               label: "Run all",
-              id: "menu-favorite-run"
+              id: "menu-favorite-run-all"
             });
         }
         XulUtils.appendMenuItem(menu, {
@@ -152,7 +152,7 @@ if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
                   value: this.favorites[i].path
                 });
               }
-              menu.appendChild(document.createElement("menuseparator"));
+            menu.appendChild(document.createElement("menuseparator"));
             XulUtils.appendMenuItem(menu, {
               label: "Clear all",
               id: "menu-favorite-clear"
@@ -200,8 +200,8 @@ if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
           this.save(this.prefBranch);
         }
         else
-        if( evt.target.id==="menu-favorite-run" ) {
-            
+        if( evt.target.id==="menu-favorite-run-all" ) {
+            this.runAllFavorites();
         }
       }
       else {
@@ -215,19 +215,28 @@ if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
         }
       }
     };
-
+    
+    // This assumes that this.favorites.length>0. Therefore I only have 'Run all' in the menu if there is at least one favorite.
     Favorites.prototype.runAllFavorites= function runAllFavorites() {
+        var testSuiteIndex= 0;
+        var loadAndPlayTestSuite;
+        var self= this;
+        
         var testSuitePlayDoneHandler= function testSuitePlayDoneHandler() {
-            editor.app.removeObserver(testSuitePlayDone);
-            if( moreTestSuites ) {
-                editor.app.addObserver( {testSuitePlayDone: testSuitePlayDoneHandler} );
-                editor.loadRecentSuite( evt.target.value );
-                editor.playTestSuite();
+            self.editor.app.removeObserver(testSuitePlayDoneHandler);
+            if( testSuiteIndex<self.favorites.length ) {
+                loadAndPlayTestSuite();
+                testSuiteIndex++;
             }
         };
-        editor.app.addObserver( {testSuitePlayDone: testSuitePlayDoneHandler} );
-        editor.loadRecentSuite( evt.target.value );
-        editor.playTestSuite();
+        
+        // This assumes that testSuiteIndex<self.favorites.length
+        var loadAndPlayTestSuite= function loadAndPlayTestSuite() {
+            self.editor.app.addObserver( {testSuitePlayDone: testSuitePlayDoneHandler} );
+            self.editor.loadRecentSuite( applyRelativePathToHome(self.favorites[testSuiteIndex].path).path );
+            self.editor.playTestSuite();
+        };
+        loadAndPlayTestSuite();
     };
 }
 } )( this );
