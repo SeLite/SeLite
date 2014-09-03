@@ -219,23 +219,25 @@ if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
     // This assumes that this.favorites.length>0. Therefore I only have 'Run all' in the menu if there is at least one favorite.
     Favorites.prototype.runAllFavorites= function runAllFavorites() {
         var testSuiteIndex= 0;
-        var loadAndPlayTestSuite;
         var self= this;
-        
-        var testSuitePlayDoneHandler= function testSuitePlayDoneHandler() {
-            self.editor.app.removeObserver(testSuitePlayDoneHandler);
-            if( testSuiteIndex<self.favorites.length ) {
-                loadAndPlayTestSuite();
-                testSuiteIndex++;
-            }
-        };
-        
+
         // This assumes that testSuiteIndex<self.favorites.length
         var loadAndPlayTestSuite= function loadAndPlayTestSuite() {
-            self.editor.app.addObserver( {testSuitePlayDone: testSuitePlayDoneHandler} );
             self.editor.loadRecentSuite( applyRelativePathToHome(self.favorites[testSuiteIndex].path).path );
             self.editor.playTestSuite();
         };
+        
+        var testSuitePlayDoneHandler= function testSuitePlayDoneHandler() {
+            testSuiteIndex++;
+            if( testSuiteIndex<self.favorites.length ) {
+                loadAndPlayTestSuite();
+            }
+            else {
+                self.editor.app.removeObserver(testSuitePlayDoneHandler);
+            }
+        };
+        
+        self.editor.app.addObserver( {testSuitePlayDone: testSuitePlayDoneHandler} );
         loadAndPlayTestSuite();
     };
 }
