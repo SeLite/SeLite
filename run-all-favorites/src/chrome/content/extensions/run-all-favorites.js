@@ -215,12 +215,14 @@
             }
           }
         };
-
+        
+        var oldTestSuiteProgressUpdate;
+        var testSuitePlayDoneHandler;
         // This assumes that this.favorites.length>0. Therefore I only have 'Run all' in the menu if there is at least one favorite.
         Favorites.prototype.runAllFavorites= function runAllFavorites() {
             var self= this;
             
-            var oldUpdate= TestSuiteProgress.prototype.update;
+            oldTestSuiteProgressUpdate= TestSuiteProgress.prototype.update;
             var testSuiteFromLastUpdate;
             var sumRuns, sumTotal;
             var lastTestCaseRuns, lastTestCaseTotal;
@@ -240,7 +242,7 @@
                 }
                 lastTestCaseRuns= givenRuns;
                 lastTestCaseTotal= givenTotal;
-                oldUpdate.call( this, sumRuns+givenRuns, sumTotal+givenTotal, failure );
+                oldTestSuiteProgressUpdate.call( this, sumRuns+givenRuns, sumTotal+givenTotal, failure );
             };
             
             /** This assumes that testSuiteIndex<self.favorites.length
@@ -252,14 +254,14 @@
             };
 
             var testSuiteIndex= 0;
-            var testSuitePlayDoneHandler= function testSuitePlayDoneHandler() {
+            testSuitePlayDoneHandler= function testSuitePlayDoneHandler() {
                 testSuiteIndex++;
                 if( testSuiteIndex<self.favorites.length ) {
                     loadAndPlayTestSuite.call( undefined, true );
                 }
                 else {
-                    self.editor.app.removeObserver(testSuitePlayDoneHandler);
-                    TestSuiteProgress.prototype.update= oldUpdate;
+                    self.editor.app.removeObserver( testSuitePlayDoneHandler );
+                    TestSuiteProgress.prototype.update= oldTestSuiteProgressUpdates;
                     testSuiteFromLastUpdate= undefined;
                 }
             };
@@ -267,33 +269,65 @@
             self.editor.app.addObserver( {testSuitePlayDone: testSuitePlayDoneHandler} );
             loadAndPlayTestSuite.call();
         };
+        
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
-        var oldDoContinue= Debugger.prototype.doContinue;
-        Debugger.prototype.doContinue= function doContinue(step) {
-            //console.error( 'RunAllFavorites: doContinue');
-            oldDoContinue.call( this, step );
-        };
         
         var oldPause= Debugger.prototype.pause;
         Debugger.prototype.pause= function pause() {
-            //console.error( 'RunAllFavorites: pause');
+            if( testSuitePlayDoneHandler ) {
+                console.error( 'removing testSuitePlayDoneHandler');
+                // I must do this before I invoke oldPause.call( this ), which would otherwise trigger testSuitePlayDoneHandler()
+                this.editor.app.removeObserver( testSuitePlayDoneHandler );
+            }
             oldPause.call( this );
+        };
+        
+        var oldDoContinue= Debugger.prototype.doContinue;
+        Debugger.prototype.doContinue= function doContinue(step) {
+            if( testSuitePlayDoneHandler ) {
+                console.error( 'setting up testSuitePlayDoneHandler');
+                this.editor.app.addObserver( {testSuitePlayDone: testSuitePlayDoneHandler} );
+            }
+            oldDoContinue.call( this, step );
         };
         
         var oldDoCommand= Editor.controller.doCommand;
         Editor.controller.doCommand= function doCommand(cmd) {
             //console.error( 'Editor.controller.doCommand ' +cmd );
+            switch( cmd ) {
+                // If you've paused 'Run all' and then you trigger any of the following GUI commands, that disables 'resume' button for the paused 'Run all'
+                case "cmd_add":
+                case "cmd_new":
+                case "cmd_open":
+                case "cmd_new_suite":
+                case "cmd_open_suite":
+                case "cmd_selenium_testcase_clear":
+                case "cmd_selenium_play":
+                case "cmd_selenium_play_suite":
+                case "cmd_selenium_step":
+                case "cmd_selenium_rollup":
+                case "cmd_selenium_reload":
+                    if( testSuitePlayDoneHandler && editor.selDebugger.state===Debugger.PAUSED ) {
+                        console.error( 'cleaning testSuitePlayDoneHandler and resetting debugger state' );
+                        testSuitePlayDoneHandler= undefined;
+                        TestSuiteProgress.prototype.update= oldTestSuiteProgressUpdate;
+                        editor.selDebugger.setState( Debugger.STOPPED );
+                    }
+                    break;
+                default:
+                    ;
+            }
             oldDoCommand.call( this, cmd );
-        }
+        };
         
         var oldPlayTestSuite= Editor.prototype.playTestSuite;
         /** @overrides of Editor.prototype.playTestSuite from Selenium's chrome/content/editor.js.
         This adds optional parameter dontReset, which indicates not to reset success/failure numbers.
         */
         Editor.prototype.playTestSuite= function playTestSuite( startIndex, dontReset ) {
-            console.error( 'overriden playTestSuite: dontReset ' +dontReset );
+            //console.error( 'overriden playTestSuite: dontReset ' +dontReset );
             if( dontReset ) {
-                console.error( 'TestSuiteProgress2 ' +typeof TestSuiteProgress);
+                //console.error( 'TestSuiteProgress2 ' +typeof TestSuiteProgress);
                 var oldReset= TestSuiteProgress.prototype.reset;
                 // Temporary override of TestSuiteProgress.prototype -> reset() from Selenium's chrome/content/testSuiteProgress.js
                 TestSuiteProgress.prototype.reset= function reset() {};
