@@ -128,6 +128,7 @@
             }
         }
 
+        var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         // Mostly copied from original Favorites with these changes:
         // -adding 'Run all'
         // -showing 'Run all', 'Clear all' only when there is one or more favorite test suites.
@@ -217,7 +218,7 @@
         };
         
         var oldTestSuiteProgressUpdate;
-        var testSuitePlayDoneHandler;
+        var testSuitePlayDoneObserver;
         // This assumes that this.favorites.length>0. Therefore I only have 'Run all' in the menu if there is at least one favorite.
         Favorites.prototype.runAllFavorites= function runAllFavorites() {
             var self= this;
@@ -254,39 +255,41 @@
             };
 
             var testSuiteIndex= 0;
-            testSuitePlayDoneHandler= function testSuitePlayDoneHandler() {
-                testSuiteIndex++;
-                if( testSuiteIndex<self.favorites.length ) {
-                    loadAndPlayTestSuite.call( undefined, true );
-                }
-                else {
-                    self.editor.app.removeObserver( testSuitePlayDoneHandler );
-                    TestSuiteProgress.prototype.update= oldTestSuiteProgressUpdates;
-                    testSuiteFromLastUpdate= undefined;
+            testSuitePlayDoneObserver= {
+                testSuitePlayDone: function testSuitePlayDoneHandler() {
+                    console.error( 'testSuitePlayDoneHandler');
+                    testSuiteIndex++;
+                    if( testSuiteIndex<self.favorites.length ) {
+                        loadAndPlayTestSuite.call( undefined, true );
+                    }
+                    else {
+                        self.editor.app.removeObserver( testSuitePlayDoneObserver );
+                        testSuitePlayDoneObserver= undefined;
+                        TestSuiteProgress.prototype.update= oldTestSuiteProgressUpdate;
+                        testSuiteFromLastUpdate= undefined;
+                    }
                 }
             };
 
-            self.editor.app.addObserver( {testSuitePlayDone: testSuitePlayDoneHandler} );
+            self.editor.app.addObserver( testSuitePlayDoneObserver );
             loadAndPlayTestSuite.call();
         };
         
-        var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
-        
         var oldPause= Debugger.prototype.pause;
         Debugger.prototype.pause= function pause() {
-            if( testSuitePlayDoneHandler ) {
-                console.error( 'removing testSuitePlayDoneHandler');
+            if( testSuitePlayDoneObserver ) {
+                console.error( 'removing testSuitePlayDoneObserver');
                 // I must do this before I invoke oldPause.call( this ), which would otherwise trigger testSuitePlayDoneHandler()
-                this.editor.app.removeObserver( testSuitePlayDoneHandler );
+                this.editor.app.removeObserver( testSuitePlayDoneObserver );
             }
             oldPause.call( this );
         };
         
         var oldDoContinue= Debugger.prototype.doContinue;
         Debugger.prototype.doContinue= function doContinue(step) {
-            if( testSuitePlayDoneHandler ) {
-                console.error( 'setting up testSuitePlayDoneHandler');
-                this.editor.app.addObserver( {testSuitePlayDone: testSuitePlayDoneHandler} );
+            if( testSuitePlayDoneObserver ) {
+                console.error( 'setting up testSuitePlayDoneObserver');
+                this.editor.app.addObserver( testSuitePlayDoneObserver );
             }
             oldDoContinue.call( this, step );
         };
@@ -307,9 +310,9 @@
                 case "cmd_selenium_step":
                 case "cmd_selenium_rollup":
                 case "cmd_selenium_reload":
-                    if( testSuitePlayDoneHandler && editor.selDebugger.state===Debugger.PAUSED ) {
-                        console.error( 'cleaning testSuitePlayDoneHandler and resetting debugger state' );
-                        testSuitePlayDoneHandler= undefined;
+                    if( testSuitePlayDoneObserver && editor.selDebugger.state===Debugger.PAUSED ) {
+                        console.error( 'cleaning testSuitePlayDoneObserver and resetting debugger state' );
+                        testSuitePlayDoneObserver= undefined;
                         TestSuiteProgress.prototype.update= oldTestSuiteProgressUpdate;
                         editor.selDebugger.setState( Debugger.STOPPED );
                     }
