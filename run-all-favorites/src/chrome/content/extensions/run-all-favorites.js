@@ -218,9 +218,31 @@
 
         // This assumes that this.favorites.length>0. Therefore I only have 'Run all' in the menu if there is at least one favorite.
         Favorites.prototype.runAllFavorites= function runAllFavorites() {
-            var testSuiteIndex= 0;
             var self= this;
-
+            
+            var oldUpdate= TestSuiteProgress.prototype.update;
+            var testSuiteFromLastUpdate;
+            var sumRuns, sumTotal;
+            var lastTestCaseRuns, lastTestCaseTotal;
+            /** @overrides TestSuiteProgress.prototype.update() so that it cumulates the runs & failures. It doesn't adjust the progress indicator (that would mean getting a number of test cases in all favorite test suites first).
+             * This is in addition to overriding TestSuiteProgress.prototype.reset() below. */
+            TestSuiteProgress.prototype.update= function update( givenRuns, givenTotal, failure ) {
+                if( testSuiteFromLastUpdate===undefined ) {
+                    sumRuns= 0;
+                    sumTotal= 0;
+                    lastTestCaseRuns= 0;
+                    lastTestCaseTotal= 0;
+                }
+                if( self.editor.app.getTestSuite()!==testSuiteFromLastUpdate ) {
+                    sumRuns+= lastTestCaseRuns;
+                    sumTotal+= lastTestCaseTotal;
+                    testSuiteFromLastUpdate= self.editor.app.getTestSuite();
+                }
+                lastTestCaseRuns= givenRuns;
+                lastTestCaseTotal= givenTotal;
+                oldUpdate.call( this, sumRuns+givenRuns, sumTotal+givenTotal, failure );
+            };
+            
             /** This assumes that testSuiteIndex<self.favorites.length
              * @param [bool] dontReset Whether to reset success/failure numbers; optional.
             */
@@ -229,42 +251,45 @@
                 self.editor.playTestSuite( undefined, dontReset );
             };
 
+            var testSuiteIndex= 0;
             var testSuitePlayDoneHandler= function testSuitePlayDoneHandler() {
                 testSuiteIndex++;
                 if( testSuiteIndex<self.favorites.length ) {
-                    loadAndPlayTestSuite( true );
+                    loadAndPlayTestSuite.call( undefined, true );
                 }
                 else {
                     self.editor.app.removeObserver(testSuitePlayDoneHandler);
+                    TestSuiteProgress.prototype.update= oldUpdate;
+                    testSuiteFromLastUpdate= undefined;
                 }
             };
 
             self.editor.app.addObserver( {testSuitePlayDone: testSuitePlayDoneHandler} );
-            loadAndPlayTestSuite();
+            loadAndPlayTestSuite.call();
         };
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         var oldDoContinue= Debugger.prototype.doContinue;
         Debugger.prototype.doContinue= function doContinue(step) {
-            console.error( 'RunAllFavorites: doContinue');
+            //console.error( 'RunAllFavorites: doContinue');
             oldDoContinue.call( this, step );
         };
         
         var oldPause= Debugger.prototype.pause;
         Debugger.prototype.pause= function pause() {
-            console.error( 'RunAllFavorites: pause');
+            //console.error( 'RunAllFavorites: pause');
             oldPause.call( this );
         };
         
         var oldDoCommand= Editor.controller.doCommand;
         Editor.controller.doCommand= function doCommand(cmd) {
-            console.error( 'Editor.controller.doCommand ' +cmd );
+            //console.error( 'Editor.controller.doCommand ' +cmd );
             oldDoCommand.call( this, cmd );
         }
         
         var oldPlayTestSuite= Editor.prototype.playTestSuite;
-        // Override of Editor.prototype.playTestSuite from Selenium's chrome/content/editor.js.
-        // This adds optional parameter dontReset, which indicates not to reset success/failure numbers.
-        console.error( 'TestSuiteProgress ' +typeof TestSuiteProgress);
+        /** @overrides of Editor.prototype.playTestSuite from Selenium's chrome/content/editor.js.
+        This adds optional parameter dontReset, which indicates not to reset success/failure numbers.
+        */
         Editor.prototype.playTestSuite= function playTestSuite( startIndex, dontReset ) {
             console.error( 'overriden playTestSuite: dontReset ' +dontReset );
             if( dontReset ) {
