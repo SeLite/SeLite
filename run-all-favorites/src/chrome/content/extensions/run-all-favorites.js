@@ -257,7 +257,7 @@
             var testSuiteIndex= 0;
             testSuitePlayDoneObserver= {
                 testSuitePlayDone: function testSuitePlayDoneHandler() {
-                    console.error( 'testSuitePlayDoneHandler');
+                    console.debug( 'SeLite Run All Favorites: processing testSuitePlayDoneHandler');
                     testSuiteIndex++;
                     if( testSuiteIndex<self.favorites.length ) {
                         loadAndPlayTestSuite.call( undefined, true );
@@ -276,9 +276,16 @@
         };
         
         var oldPause= Debugger.prototype.pause;
+        /** A minor issue: 
+         *  1. click 'Run all' favorites
+         *  2. hit 'Pause' button while executing the last command of a last test case of any test suite other than the the last on the list of favorites
+         *  3. that test suite will finish and you won't be able to 'Resume' running the rest of favorite test suites.
+         * This is caused by debugger's pause() sets debugger's pauseTimeLimit <- checked by debugger's runner.shouldAbortCurrentCommand() <- ??
+         * which gets too complicated to work around.
+         * */
         Debugger.prototype.pause= function pause() {
             if( testSuitePlayDoneObserver ) {
-                console.error( 'removing testSuitePlayDoneObserver');
+                console.debug( 'SeLite Run All Favorites: removing testSuitePlayDoneObserver');
                 // I must do this before I invoke oldPause.call( this ), which would otherwise trigger testSuitePlayDoneHandler()
                 this.editor.app.removeObserver( testSuitePlayDoneObserver );
             }
@@ -288,7 +295,7 @@
         var oldDoContinue= Debugger.prototype.doContinue;
         Debugger.prototype.doContinue= function doContinue(step) {
             if( testSuitePlayDoneObserver ) {
-                console.error( 'setting up testSuitePlayDoneObserver');
+                console.debug( 'SeLite Run All Favorites: setting up testSuitePlayDoneObserver');
                 this.editor.app.addObserver( testSuitePlayDoneObserver );
             }
             oldDoContinue.call( this, step );
@@ -296,7 +303,7 @@
         
         var oldDoCommand= Editor.controller.doCommand;
         Editor.controller.doCommand= function doCommand(cmd) {
-            //console.error( 'Editor.controller.doCommand ' +cmd );
+            console.debug( 'SeLite Run All Favorites: Editor.controller.doCommand ' +cmd );
             switch( cmd ) {
                 // If you've paused 'Run all' and then you trigger any of the following GUI commands, that disables 'resume' button for the paused 'Run all'
                 case "cmd_add":
@@ -311,10 +318,11 @@
                 case "cmd_selenium_rollup":
                 case "cmd_selenium_reload":
                     if( testSuitePlayDoneObserver && editor.selDebugger.state===Debugger.PAUSED ) {
-                        console.error( 'cleaning testSuitePlayDoneObserver and resetting debugger state' );
+                        console.debug( 'SeLite Run All Favorites: cleaning testSuitePlayDoneObserver and resetting debugger state' );
                         testSuitePlayDoneObserver= undefined;
                         TestSuiteProgress.prototype.update= oldTestSuiteProgressUpdate;
                         editor.selDebugger.setState( Debugger.STOPPED );
+                        console.debug( 'SeLite Run All Favorites: cleaned testSuitePlayDoneObserver and reset debugger state' );
                     }
                     break;
                 default:
@@ -328,9 +336,8 @@
         This adds optional parameter dontReset, which indicates not to reset success/failure numbers.
         */
         Editor.prototype.playTestSuite= function playTestSuite( startIndex, dontReset ) {
-            //console.error( 'overriden playTestSuite: dontReset ' +dontReset );
+            console.debug( 'SeLite Run All Favorites: overriden playTestSuite(): dontReset ' +dontReset );
             if( dontReset ) {
-                //console.error( 'TestSuiteProgress2 ' +typeof TestSuiteProgress);
                 var oldReset= TestSuiteProgress.prototype.reset;
                 // Temporary override of TestSuiteProgress.prototype -> reset() from Selenium's chrome/content/testSuiteProgress.js
                 TestSuiteProgress.prototype.reset= function reset() {};

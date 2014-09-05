@@ -38,3 +38,6 @@ zip -r ../../xpi/settings.xpi *
 
 cd ../../exit-confirmation-checker/src
 zip -r ../../xpi/exit-confirmation-checker.xpi *
+
+cd ../../run-all-favorites/src
+zip -r ../../xpi/run-all-favorites.xpi *
