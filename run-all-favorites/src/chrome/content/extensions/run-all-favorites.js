@@ -1,22 +1,9 @@
-/* Copyright 2005 Shinya Kasatani
+/* Copyright 2011, 2012 Samit Badle
  * Copyright 2014 Peter Kehl
- * Based on Selenium code of ide/main/src/content/testCase.js
- *
- * This is needed for SelBlocksGlobal to work until Selenium accepts https://code.google.com/p/selenium/issues/detail?id=5495
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 1.1. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/1.1/.
  */
-
 "use strict";
 // Anonymous function keeps 'global' and local variables out of global scope
 ( function(global) {
@@ -45,7 +32,10 @@
            return parts;
         };
 
-        /**
+        /** Get a relative path for the given file, relative to the given folder.
+         *  @param {nsIFile} file
+         *  @param {nsIFile} folderRelativeTo
+         *  @return {string} File path for the given file, relative to path of folderRelativeTo.
         */
         var getRelativePath= function getRelativePath( file, folderRelativeTo ) {
           var filePathParts= pathParts(file), folderPathParts= pathParts(folderRelativeTo);
@@ -77,6 +67,10 @@
           return result;
         };
 
+        /** When testing on Windows: Windows > Run: cmd > run: echo %USERPROFILE%
+         * @param {string} filePath Absolute file path.
+         * @returns {string} File path relative to user's home.
+         */
         var getRelativePathToHome= function getRelativePathToHome( filePath ) {
             var homeFolder= Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("Home", Components.interfaces.nsIFile);
             var file = Components.classes['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsILocalFile);
