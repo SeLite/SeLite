@@ -54,7 +54,7 @@ SeLiteMisc.stack= function stack() {
 };
 
 /** This asserts the condition to be true (compared non-strictly). If false, it fails with an error (containg the given message, if any).
- *  It's not called assert(), so that wouldn't conflict with assert() defined by Selenium IDE.
+ *  It's not called assert(), so that it doesn't conflict with assert() defined by Selenium IDE.
  *  @param bool condition If false, then this fails.
  *  @param string message Optional; see SeLiteMisc.fail(). Note that if you pass a non-constant expression
  *   - e.g. concatenation of strings, a call to a function etc.,

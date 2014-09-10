@@ -54,7 +54,7 @@ if( Dotclear===undefined ) {
     };
 
     /**This retrieves user-specific options, stored in JSON notation (as opposed to PHP serialized form in Dotclear app DB).
-     * @return {object} Object parsed from user.user_options. Containing zero, one or more entries with option names as in user.user_options (which slightly differes to option names used in form on /admin/preferences.php#user-options):
+     * @return {object} Object parsed from user.user_options. Containing zero, one or more entries with option names as in user.user_options (which slightly differs to option names used in form on /admin/preferences.php#user-options):
      * edit_size int
      * enable_wysiwyg bool
      * post_format string - either 'xhtml' or 'wiki'

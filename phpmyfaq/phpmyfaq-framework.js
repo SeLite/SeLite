@@ -28,6 +28,7 @@ if( phpMyFAQ===undefined ) {
         //commonSettings.getField('exitConfirmationCheckerMode').setDefaultKey( 'skipRevertedChanges' );
     }
     
+    
 
     /** This sets the user, used by Selenium.prototype.readDotclearEditorBody() and the related functions to determine whether to use a rich editor or not.
      * @param {string} givenUser User's user_id (not the role name).
@@ -52,7 +53,7 @@ if( phpMyFAQ===undefined ) {
     };
 
     /**This retrieves user-specific options, stored in JSON notation (as opposed to PHP serialized form in Dotclear app DB).
-     * @return {object} Object parsed from user.user_options. Containing zero, one or more entries with option names as in user.user_options (which slightly differes to option names used in form on /admin/preferences.php#user-options):
+     * @return {object} Object parsed from user.user_options. Containing zero, one or more entries with option names as in user.user_options (which slightly differs to option names used in form on /admin/preferences.php#user-options):
      * edit_size int
      * enable_wysiwyg bool
      * post_format string - either 'xhtml' or 'wiki'
