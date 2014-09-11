@@ -117,31 +117,27 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     </comment>
 </function>   
 <function name="clickRandom">
-    <param name="radiosXPath">XPath expression to locate the radio button(s). Don't include leading 'xpath='.
-        It can't be any other Selenium locator. You probably want to match them
-        using XPath 'contains' function, e.g. //input[ @type='radio' and contains(@id, 'feedback-') ].
+    <param name="radiosXPath">XPath expression to locate the radio buttons (it can't be any other Selenium locator). Don't include leading 'xpath='. You probably want to use XPath 'contains' function, e.g. <code>//input[ @type='radio' and contains(@id, 'feedback-') ]</code>.
     </param>
-    <param name="store">Optional; name of the stored variable to store the selected value, it may include
-        field(s) e.g. '.field.subfield..' but the field(s) must be constant strings
+    <param name="store">Optional; name of the stored variable to store the selected value, it may include field or sub(sub...)field e.g. <code>variableName.fieldName, variableName.fieldName.subfieldName</code>...
     </param>
-    <comment>This clicks at a random radio button from within a set of radio buttons identified by locator.</comment>
+    <comment>This clicks at a random radio button from within a set of radio button(s) identified by locator.</comment>
 </function>   
 <function name="selectRandom">
     <param name="selectLocator">Locator of <code>&amp;lt;select&amp;gt;...&amp;lt;/select&amp;gt;</code> to select an option for.</param>
     <param name="paramsOrStore">optional, either
         <ul>
-            <li>a string which is the name of the stored variable to put the selected value in (more below), or</li>
+            <li>a string which is the name of the stored variable to put the selected value in (see <code>store</code> below), or</li>
             <li>an object in form {
                 <ul>
                     <li>excludeFirst: true - Whether to exclude the first option, optional</li>
                     <li>excludeLast: true - Whether to exclude the last option, optional</li>
-                    <li>store: string  - name of the stored variable to store the selected value, it may include field(s) '.field.subfield..' but the field(s) must be constant strings</li>
+                    <li>store: string  - name of the stored variable to store the selected value, it may include field or sub(sub...)field e.g. <code>variableName.fieldName, variableName.fieldName.subfieldName</code>...</li>
                 </ul>}. You can pass it via =`...` notation as per https://code.google.com/p/selite/wiki/EnhancedSyntax.
             </li>
         </ul>
     </param>
-    <comment>This selects a random option from within <code>&amp;lt;select&amp;gt;...&amp;lt;/select&amp;gt;</code> identified by locator.
-          It doesn't select any optgroup elements.
+    <comment>This selects a random option from within <code>&amp;lt;select&amp;gt;...&amp;lt;/select&amp;gt;</code> identified by the locator.
     </comment>
 </function>
 <function name="typeRandom">
@@ -150,7 +146,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     <param name="locator">Locator of the text input</param>
     <param name="paramsOrStore">optional, either
         <ul>
-            <li>string - name of the stored variable to save the value to (more below), or</li>
+            <li>string - name of the stored variable to save the value to (see <code>store</code> below), or</li>
             <li>an object in form {
                 <dl>
                     <dt>minLength</dt>
@@ -200,8 +196,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
                     <dd>number (int or float) minimum value (inclusive). Optional, but it may be only used if 'max' is set. See 'max'.
                     </dd>
                     <dt>store</dt>
-                    <dd>string name of the stored variable to store the selected value, it may include field(s) e.g. 'varX.field.subfield..'
-                        but the field(s) must be constant strings
+                    <dd>string name of the stored variable to store the selected value, it may include field or sub(sub...)field e.g. <code>variableName.fieldName, variableName.fieldName.subfieldName</code>...
                     </dd>
                 </dl>
                 }. You can pass it via =`...` notation as per https://code.google.com/p/selite/wiki/EnhancedSyntax.
@@ -221,8 +216,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
                     <dt>name</dt>
                     <dd>string value of the name (as described above), optional; used only if 'from' is not present</dd>
                     <dt>store</dt>
-                    <dd>name of the stored variable to save the value to, it may include field(s) e.g. 'varX.field.subfield..'
-                        but the field(s) must be constant strings; optional</dd>
+                    <dd>name of the stored variable to save the value to, it may include field or sub(sub...)field e.g. <code>variableName.fieldName, variableName.fieldName.subfieldName</code>...</dd>
                     <dt>minLength</dt>
                     <dd>int as described for typeRandom action (i.e. doTypeRandom function), optional</dd>
                     <dt>maxLength</dt>

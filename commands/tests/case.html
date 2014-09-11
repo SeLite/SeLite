@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://change-this-to-the-site-you-are-testing/" />
+<title>case</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">case</td></tr>
+</thead><tbody>
+<!--Following fails at the moment-->
+<tr>
+	<td>if</td>
+	<td>false</td>
+	<td></td>
+</tr>
+<tr>
+	<td>for</td>
+	<td>$i=0; $i&lt;30; $i++</td>
+	<td>i</td>
+</tr>
+<tr>
+	<td>selectRandom</td>
+	<td>id=animal</td>
+	<td>=`{&nbsp;&nbsp;excludeFirst:true, store:'animal' }`</td>
+</tr>
+<tr>
+	<td>selectRandom</td>
+	<td>id=animal</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFor</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>typeRandom</td>
+	<td>id=name</td>
+	<td></td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>id=name</td>
+	<td>=`{ type:'name' }`</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>id=name</td>
+	<td>=`{ type:'name', minLength: 5, maxLength: 15, store:'name' }`</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>LOG.warn( 'The randomly typed text was: ' +storedVars.name )</td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>typeRandom</td>
+	<td>id=name</td>
+	<td>=`{ type:'number', minLength: 3, maxLength: 15, decimal:true, store:'name' }`</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>LOG.warn( 'The randomly typed text was: ' +storedVars.name )</td>
+	<td></td>
+</tr>
+<!---->
+<!--Following can't honour minLength-->
+<tr>
+	<td>typeRandom</td>
+	<td>id=name</td>
+	<td>=`{ type:'number', min: 0, max: 10, minLength:5, maxLength:5, decimal:true, store:'name' }`</td>
+</tr>
+<!---->
+<tr>
+	<td>typeRandom</td>
+	<td>id=name</td>
+	<td>=`{ characters:'abcdefghijk', minLength: 8, maxLength: 15, store:'name' }`</td>
+</tr>
+<!---->
+<!--Generating an email independently of other steps:-->
+<tr>
+	<td>typeRandom</td>
+	<td>id=email</td>
+	<td>=`{ type:'email' }`</td>
+</tr>
+<!---->
+<!--Generating a name and an email address for it-->
+<tr>
+	<td>typeRandom</td>
+	<td>id=name</td>
+	<td>=`{ type:'name' }`</td>
+</tr>
+<tr>
+	<td>typeRandomEmail</td>
+	<td>id=email</td>
+	<td>=`{ from:'id=name' }`</td>
+</tr>
+
+</tbody></table>
+</body>
+</html>
