@@ -11,12 +11,13 @@
 <thead>
 <tr><td rowspan="1" colspan="3">case</td></tr>
 </thead><tbody>
-<!--Following fails at the moment-->
+<!--Following needs SeLite Settings.-->
 <tr>
-	<td>if</td>
-	<td>false</td>
+	<td>open</td>
+	<td>file://` SeLiteSettings.getTestSuiteFolder() `/form.html</td>
 	<td></td>
 </tr>
+<!---->
 <tr>
 	<td>for</td>
 	<td>$i=0; $i&lt;30; $i++</td>
@@ -34,11 +35,6 @@
 </tr>
 <tr>
 	<td>endFor</td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
-	<td>endIf</td>
 	<td></td>
 	<td></td>
 </tr>
@@ -106,7 +102,6 @@
 	<td>id=email</td>
 	<td>=`{ from:'id=name' }`</td>
 </tr>
-
 </tbody></table>
 </body>
 </html>

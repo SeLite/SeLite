@@ -271,27 +271,29 @@
         }
     };
 
-    /**I don't use prefix 'do' or 'get' in the name of this function
-       because it's not intended to be run as Selenium command/getter.
-    */
+    /** This returns a random option from within <select>...</select> identified by locator.
+        I don't use prefix 'do' or 'get' in the name of this function because it's not intended to be run as Selenium command/getter.
+     *  @param string selectLocator Locator of the <select>...</select>. It has to be an XPath-based locator, without 'xpath=' at the front.
+     *  @param mixed params optional, an object in form {
+     *     excludeFirst: true, // Whether to exclude the first option
+     *     excludeLast: true, // Whether to exclude the last option
+     *  }
+     *  @return DOM Element of a random <option>...</option> from within the select
+     */
     Selenium.prototype.randomOption= function randomOption( selectLocator, params ) {
-        /** This returns a random option from within <select>...</select> identified by locator.
-         *  It doesn't return any optgroup elements.
-         *  @param string selectLocator Locator of the <select>...</select>
-         *  @param mixed params optional, an object in form {
-         *     excludeFirst: true, // Whether to exclude the first option
-         *     excludeLast: true, // Whether to exclude the last option
-         *  }
-         *  @return DOM Element of a random <option>...</option> from within the select
-         */
         params= params || {};
         var select= this.page().findElement(selectLocator);
         var options= select.getElementsByTagName('option');
 
         var excludeFirst= params && params.excludeFirst;
         var excludeLast= params && params.excludeLast;
-        var firstIndex= (excludeFirst ? 1 : 0);
-        var randomRange= options.length-1 - firstIndex - (excludeLast ? 1 : 0);
+        var firstIndex= excludeFirst
+            ? 1
+            : 0;
+        var randomRange= options.length-1 -firstIndex -(
+            excludeLast
+            ? 1
+            : 0 );
         var optionIndex= firstIndex+ Math.round( Math.random()*randomRange );
         var option= options[optionIndex];
         return option;
