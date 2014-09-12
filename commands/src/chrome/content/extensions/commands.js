@@ -271,7 +271,7 @@
         }
     };
 
-    /** This returns a random option from within <select>...</select> identified by locator.
+    /** This returns a random option from within <select>...</select> identified by a given locator.
         I don't use prefix 'do' or 'get' in the name of this function because it's not intended to be run as Selenium command/getter.
      *  @param string selectLocator Locator of the <select>...</select>. It has to be an XPath-based locator, without 'xpath=' at the front.
      *  @param mixed params optional, an object in form {
