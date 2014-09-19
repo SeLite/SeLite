@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <?xml-stylesheet type="text/xsl" href="https://selite.googlecode.com/git/selenese_reference_to_html.xsl"?>
-<!-- If you'd like to preview this reference.xml in Firefox, open it either from https://selite.googlecode.com/git/db-objects/src/chrome/content/reference.xml, or (once you install SeLite DB Objects) as chrome://selite-db-objects/content/reference.xml.
+<!-- If you'd like to preview this reference.xml in Firefox, open it either
+- online from https://selite.googlecode.com/git/db-objects/src/chrome/content/reference.xml, or
+- offline from your local checkout/unzipped folder at ../../../../selenese_reference.html?selite-db-objects/src/chrome/content/reference.xml
 
 Xml-stylesheet (whether remote or even local) didn't load up work when you open this in a browser locally via file://
 -->

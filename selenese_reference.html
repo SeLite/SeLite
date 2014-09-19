@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Selenese reference for an SeLite add-on</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script type="text/javascript">
+            // Based on see http://www.w3schools.com/xsl/xsl_client.asp. See that page for IE.
+            function loadXMLDoc(filename)
+            {
+              xhttp = new XMLHttpRequest();
+              xhttp.open("GET", filename, false);
+              xhttp.send("");
+              return xhttp.responseXML;
+            }
+
+            function displayResult()
+            {
+              var contentElement= document.getElementById("content");
+              if( window.location.href.search ) {
+                  xml = loadXMLDoc( (''+window.location.search).substring(1) );
+                  xsl = loadXMLDoc( "selenese_reference_to_html.xsl" );
+                  xsltProcessor = new XSLTProcessor();
+                  xsltProcessor.importStylesheet(xsl);
+                  resultDocument = xsltProcessor.transformToFragment(xml, document);
+                  contentElement.appendChild(resultDocument);
+              }
+              else {
+                  contentElement.innerHTML= 'Please invoke with ?path/to/file.xml';
+              }
+            }
+        </script>
+    </head>
+    <body onload="displayResult()">
+        <div id="content" />
+    </body>
+</html>
