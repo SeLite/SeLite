@@ -792,10 +792,10 @@ SeLiteMisc.compareNatural= function compareNatural( first ,second ) {
 SeLiteMisc.objectsMerge= function objectsMerge( obj, overriden ) {
     var result= {};
     var field= null;
-    if( obj!=null ) {
+    if( obj ) {
         SeLiteMisc.objectCopyFields( obj, result );
     }
-    if( overriden!=null ) {
+    if( overriden ) {
         for( field in overriden ) {
             if( !(field in result) ) {
                 result[field]= overriden[field];
