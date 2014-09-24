@@ -28,51 +28,51 @@ if( phpMyFAQ===undefined ) {
         //commonSettings.getField('exitConfirmationCheckerMode').setDefaultKey( 'skipRevertedChanges' );
     }/**/
 
-        FUDforum.tables= {};
-        FUDforum.tables.user= new SeLiteData.Table( {
-           db:  FUDforum.db,
+        phpMyFAQ.tables= {};
+        phpMyFAQ.tables.user= new SeLiteData.Table( {
+           db:  phpMyFAQ.db,
            name: 'user',
            columns: ['user_id', 'login', 'session_id', 'session_timestamp', 'ip', 'account_status', 'last_login', 'auth_source', 'member_since', 'remember_me', 'success'
            ],
            primary: 'user_id' // However, for purpose of matching users I usually use 'login'
         });
-        FUDforum.tables.userdata= new SeLiteData.Table( {
-           db:  FUDforum.db,
+        phpMyFAQ.tables.userdata= new SeLiteData.Table( {
+           db:  phpMyFAQ.db,
            name: 'userdata',
            columns: ['user_id', 'last_modified', 'display_name', 'email'
            ],
            primary: 'user_id'
         });
-        FUDforum.tables.userlogin= new SeLiteData.Table( {
-           db:  FUDforum.db,
+        phpMyFAQ.tables.userlogin= new SeLiteData.Table( {
+           db:  phpMyFAQ.db,
            name: 'userlogin',
            columns: ['login', 'pass'
            ],
            primary: 'login'
         });
-        FUDforum.tables.user_group= new SeLiteData.Table( {
-           db:  FUDforum.db,
+        phpMyFAQ.tables.user_group= new SeLiteData.Table( {
+           db:  phpMyFAQ.db,
            name: 'user_group',
            columns: ['user_id', 'group_id'],
            primary: ['user_id', 'group_id']//@TODO implement?
         });
-        FUDforum.tables.user_right= new SeLiteData.Table( {
-           db:  FUDforum.db,
+        phpMyFAQ.tables.user_right= new SeLiteData.Table( {
+           db:  phpMyFAQ.db,
            name: 'user_right',
            columns: ['user_id', 'right_id'],
            primary: ['user_id', 'right_id']
         });
-        FUDforum.tables.faqvisits= new SeLiteData.Table( {
-           db:  FUDforum.db,
+        phpMyFAQ.tables.faqvisits= new SeLiteData.Table( {
+           db:  phpMyFAQ.db,
            name: 'faqvisits',
            columns: ['id', 'lang', 'visits', 'last_visit'],
            primary: ['id', 'login']
         });
         
-        FUDforum.formulas= {};
-        FUDforum.formulas.user= new SeLiteData.RecordSetFormula( {
-            table: FUDforum.tables.user,
-            columns: new SeLiteData.Settable().set( FUDforum.tables.user.name/* same as 'user' */, SeLiteData.RecordSetFormula.ALL_FIELDS )
+        phpMyFAQ.formulas= {};
+        phpMyFAQ.formulas.user= new SeLiteData.RecordSetFormula( {
+            table: phpMyFAQ.tables.user,
+            columns: new SeLiteData.Settable().set( phpMyFAQ.tables.user.name/* same as 'user' */, SeLiteData.RecordSetFormula.ALL_FIELDS )
         });
         console.warn('phpMyFaq framework loaded');
 })();
