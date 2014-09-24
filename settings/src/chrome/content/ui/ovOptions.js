@@ -812,7 +812,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                 for( var key in pairsToList ) {////@TODO potential IterableArray
                     var pair= {};
                     pair[key]= pairsToList[key];
-                    !isChoice || compound.entry===undefined || typeof(compound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value ' +typeof compound.entry );
+                    isChoice || compound.entry===undefined || typeof(compound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value of type ' +typeof compound.entry+ ': ' +compound.entry );
                     var optionItem= generateTreeItem(module, setName, field, pair,
                         RowLevel.OPTION,
                         isChoice && typeof(compound.entry)==='object'
