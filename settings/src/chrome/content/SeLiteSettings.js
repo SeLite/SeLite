@@ -1592,9 +1592,9 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
                     
                     var field= this.fields[manifest.fieldName];
                     if( manifest.value.indexOf(SeLiteSettings.SELITE_THIS_MANIFEST_FOLDER)>=0 ) {
-                        // Relative paths must not contain two backslashes on Windows (e.g. C:\\ or \\host-name). However, the manifest's folder full path does contain \\ when run on Windows, and I don't want to modify that \\. Therefore:
                         // 1. replace / and \ in the value from manifest with the system's folder separator. I do that by splitting the value by a regex, and then using OS.Path.join().
                         // 2. replace SeLiteSettings.SELITE_THIS_MANIFEST_FOLDER with the full path to the manifest's folder
+                        // Since I split the relative path by / and \, the following doesn't affect us: OS.Path.join('\\\\', 'server', 'folder') returned value of JS expression '\\\\server\folder'. I don't want two backslashes \\ anywhere else than the root of the path, because it's deemed absolute and then OS.Path.join() ignores any previous parameters (as is documented at MDN): OS.Path.join('any', 'path', '\\\\', 'subfolder') and also OS.Path.join('any', 'path', '\\', '\\', 'subfolder') return value of JS expression '\\\\subfolder'.
                         var pathParts= manifest.value.split( /[/\\]/ );
                         manifest.value= OS.Path.join.apply( null, pathParts );
                         manifest.value= manifest.value.replace( SeLiteSettings.SELITE_THIS_MANIFEST_FOLDER, manifestFolder, 'g' );
