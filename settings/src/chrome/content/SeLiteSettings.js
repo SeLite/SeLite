@@ -132,6 +132,8 @@ SeLiteSettings.VALUE_PRESENT= 'SELITE_VALUE_PRESENT';
 /** It indicates that a single-valued field has value of null. Used in both preferences and values manifests.
  * */
 SeLiteSettings.NULL= 'SELITE_NULL';
+// Used as a part of Field values in 'values' manifest. It gets replaced with the full path to the manifest folder.
+SeLiteSettings.SELITE_THIS_MANIFEST_FOLDER= 'SELITE_THIS_MANIFEST_FOLDER';
 
 // Following are used to generate 'properties' in columns 'Set' and 'Manifest', when viewing fields per folder
 SeLiteSettings.ASSOCIATED_SET= 'SELITE_ASSOCIATED_SET';
@@ -1319,6 +1321,7 @@ SeLiteSettings.Module.forName= function forName( moduleNameOrModule ) {
 function readFile( fileName ) {
     try {
         var file= new FileUtils.File( fileName ); // Object of class nsIFile
+        //@TODO speed up: if file doesn't exist, return true, rather than fail and catch
         var fstream = Components.classes["@mozilla.org/network/file-input-stream;1"].
                   createInstance(Components.interfaces.nsIFileInputStream);
         var cstream = Components.classes["@mozilla.org/intl/converter-input-stream;1"].
@@ -1582,11 +1585,23 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
     // First, load values from values manifests.
     for( var manifestFolder in manifests.values ) {
         for( var i=0; i<manifests.values[manifestFolder].length; i++ ) {
+            
             var manifest= manifests.values[manifestFolder][i];
             if( manifest.moduleName==this.name ) {
                 if( manifest.fieldName in this.fields ) {
+                    
                     var field= this.fields[manifest.fieldName];
+                    if( manifest.value.indexOf(SeLiteSettings.SELITE_THIS_MANIFEST_FOLDER)>=0 ) {
+                        // Relative paths must not contain two backslashes on Windows (e.g. C:\\ or \\host-name). However, the manifest's folder full path does contain \\ when run on Windows, and I don't want to modify that \\. Therefore:
+                        // 1. replace / and \ in the value from manifest with the system's folder separator. I do that by splitting the value by a regex, and then using OS.Path.join().
+                        // 2. replace SeLiteSettings.SELITE_THIS_MANIFEST_FOLDER with the full path to the manifest's folder
+                        var pathParts= manifest.value.split( /[/\\]/ );
+                        manifest.value= OS.Path.join.apply( null, pathParts );
+                        manifest.value= manifest.value.replace( SeLiteSettings.SELITE_THIS_MANIFEST_FOLDER, manifestFolder, 'g' );
+                        manifest.value= OS.Path.normalize( manifest.value );
+                    }
                     if( field.multivalued || field instanceof SeLiteSettings.Field.Choice ) {
+                        
                         if( result[manifest.fieldName].folderPath!=manifestFolder ) {
                             // override any less local value(s) from a manifest from upper folders
                             result[ manifest.fieldName ].entry= !(field instanceof SeLiteSettings.Field.Choice)
@@ -1598,9 +1613,9 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
                                 field instanceof SeLiteSettings.Field.Choice && manifest.value in field.choicePairs
                                 ? field.choicePairs[ manifest.value ]
                                 : manifest.value;
-                            }
+                        }
                     }
-                    else {
+                    else { // single-valued, non-choice field:
                         result[ manifest.fieldName ].entry= manifest.value!==SeLiteSettings.NULL
                             ? manifest.value
                             : null;
