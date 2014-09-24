@@ -24,141 +24,55 @@ if( phpMyFAQ===undefined ) {
     commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor'] );
     // @TODO re-apply modified default value when I reload Selenium IDE
     // If you use ExitConfirmationChecker add-on, then set its default value to TODO: Basic or Advanced
-    if( commonSettings.getField('exitConfirmationCheckerMode') ) {
+    /*if( commonSettings.getField('exitConfirmationCheckerMode') ) {
         //commonSettings.getField('exitConfirmationCheckerMode').setDefaultKey( 'skipRevertedChanges' );
-    }
-    
-    
+    }/**/
 
-    /** This sets the user, used by Selenium.prototype.readDotclearEditorBody() and the related functions to determine whether to use a rich editor or not.
-     * @param {string} givenUser User's user_id (not the role name).
-     * */
-    Dotclear.selectUserId= function selectUserId( givenUserId ) {
-        Dotclear.selectedUserId= givenUserId;
-    };
-    Dotclear.selectedUser= function selectedUser() {
-        Dotclear.selectedUserId || SeLiteMisc.fail( 'Call Dotclear.selectUserId() first.' );
-        return Dotclear.userById( Dotclear.selectedUserId );
-    };
-    Dotclear.userById= function userById( user_id ) {
-        return Dotclear.formulas.user.selectOne( {user_id: user_id} );
-    };
-    Dotclear.postById= function postById( id ) {
-        return Dotclear.formulas.post.selectOne( {post_id: id} );
-    };
-    /** @return {boolean} Whether the selected user uses a WYSIWYG editor.
-     * */
-    Dotclear.useRichEditor= function useRichEditor() {
-        return Dotclear.config('wysiwyg', true)==='true';
-    };
-
-    /**This retrieves user-specific options, stored in JSON notation (as opposed to PHP serialized form in Dotclear app DB).
-     * @return {object} Object parsed from user.user_options. Containing zero, one or more entries with option names as in user.user_options (which slightly differs to option names used in form on /admin/preferences.php#user-options):
-     * edit_size int
-     * enable_wysiwyg bool
-     * post_format string - either 'xhtml' or 'wiki'
-     * tag_list_format string - either 'more' (its label is 'Short') or 'all (label is 'Extended')
-     * */
-    Dotclear.userOptions= function userOptions() {
-        Dotclear.selectedUserId || SeLiteMisc.fail( 'Call Dotclear.selectUserId() first.' );
-        var query= 'SELECT user_options FROM ' +Dotclear.db.storage.tablePrefix()+ "user WHERE user_id=:user_id";
-        return JSON.parse( Dotclear.db.storage.selectOne( query, {user_id: Dotclear.selectedUserId} ).user_options );
-    };
-    
-    /**This updates user-specific options, stored in JSON notation (as opposed to PHP serialized form in Dotclear app DB).
-     * @param {object} options Object to be in JSON notation in user.user_options. It replaces previous user.user_options - it doesn't add/merge the old and new object.
-     * */
-    Dotclear.updateUserOptions= function updateUserOptions( options ) {
-        Dotclear.selectedUserId || SeLiteMisc.fail( 'Call Dotclear.selectUserId() first.' );
-        var query= 'UPDATE ' +Dotclear.db.storage.tablePrefix()+ "user SET user_options=:user_options WHERE user_id=:user_id";
-        Dotclear.db.storage.execute( query, {
-            user_id: Dotclear.selectedUserId,
-            user_options: JSON.stringify(options)
-        } );
-    };
-    
-    /** This updates the given option within existing user.user_options. If value is undefined, then it removes that option.
-     * @param {string} option Option name.
-     * @param {(string|number)} value Option value.
-     * */
-    Dotclear.updateUserOption= function updateUserOption( option, value ) {
-        var options= Dotclear.userOptions();
-        options[ option ]= value;
-        Dotclear.updateUserOptions( options );
-    };
-    
-    /** @TODO Implement via DbObjects & insert if the entry doesn't exist yet. Currently it only updates an existing entry in config table - it fails otherwise.
-     * @param {string} name Name of the config field
-     * @param {string} value Value to store
-     * @param {boolean} [forUser=false] Whether it's for the currently selected user; otherwise it's a global configuration.
-     *   */
-    Dotclear.updateConfig= function updateConfig( name, value, forUser ) {
-        !forUser || Dotclear.selectedUserId || SeLiteMisc.fail( 'Call Dotclear.selectUserId() first.' );
-        var query= 'UPDATE ' +Dotclear.tables.config.nameWithPrefix()+ ' SET value=:value WHERE name=:name '+
-            (forUser
-                ? 'AND authorid=(SELECT authorid FROM ' +Dotclear.tables.authors.nameWithPrefix()+ ' WHERE user_id=:selectedUserId)'
-                : 'AND authorid=0'
-            );
-        LOG.info( 'updateConfig: ' +query );
-        var bindings= {
-            name: name,
-            value: value
-        };
-        if( forUser ) {
-            bindings.selectedUserId= Dotclear.selectedUserId;
-        }
-        Dotclear.db.storage.execute( query, bindings );
-    };
-
-    SeLiteSettings.setTestDbKeeper( 
-        new SeLiteSettings.TestDbKeeper.Columns( {
-            user: {
-                key: 'user_id',
-                columns: ['user_id', 'user_pwd', 'user_options'],
-                defaults: {
-                    user_options: JSON.stringify({})
-                }
-            }
-        })
-    );
-
-    Dotclear.tables= {};
-
-    Dotclear.tables.user= new SeLiteData.Table( {
-       db:  Dotclear.db,
-       name: 'user',
-       columns: ['user_id', 'user_super', 'user_status', 'user_pwd', 'user_change_pwd', 'user_recover_key',
-           'user_name', 'user_firstname', 'user_displayname', 'user_email',
-           'user_url', 'user_desc', 'user_default_blog',
-           'user_options', // In app DB it's a result of PHP serialize(). In test DB it's a result of JSON.stringify().
-           'user_lang', 'user_tz', 'user_post_status', 'user_creadt', 'user_upddt'
-       ],
-       primary: 'user_id'
-    });
-
-    Dotclear.formulas= {};
-    Dotclear.formulas.user= new SeLiteData.RecordSetFormula( {
-        table: Dotclear.tables.user,
-        columns: new SeLiteData.Settable().set( Dotclear.tables.user.name/* same as 'user'*/, SeLiteData.RecordSetFormula.ALL_FIELDS )
-    });
-    
-    Dotclear.tables.post= new SeLiteData.Table( {
-        db: Dotclear.db,
-        name: 'post',
-        columns: ['post_id', 'blog_id', 'user_id', 'cat_id', 'post_dt',
-            'post_tz', 'post_creadt', 'post_upddt',
-            'post_password', 'post_type', 'post_format',
-            'post_url', 'post_lang', 'post_title', 'post_excerpt', 'post_excerpt_xhtml',
-            'post_content', 'post_content_xhtml', 'post_notes',
-            'post_meta', 'post_words', 'post_status', 'post_selected',
-            'post_position', 'post_open_comment', 'post_open_tb',
-            'nb_comment', 'nb_trackback'],
-        primary: 'post_id'
-    });
-    Dotclear.formulas.post= new SeLiteData.RecordSetFormula( {
-        table: Dotclear.tables.post,
-        columns: new SeLiteData.Settable().set( Dotclear.tables.post.name/* same as 'post'*/, SeLiteData.RecordSetFormula.ALL_FIELDS )
-    });
-
-    console.warn('Dotclear framework loaded');
+        FUDforum.tables= {};
+        FUDforum.tables.user= new SeLiteData.Table( {
+           db:  FUDforum.db,
+           name: 'user',
+           columns: ['user_id', 'login', 'session_id', 'session_timestamp', 'ip', 'account_status', 'last_login', 'auth_source', 'member_since', 'remember_me', 'success'
+           ],
+           primary: 'user_id' // However, for purpose of matching users I usually use 'login'
+        });
+        FUDforum.tables.userdata= new SeLiteData.Table( {
+           db:  FUDforum.db,
+           name: 'userdata',
+           columns: ['user_id', 'last_modified', 'display_name', 'email'
+           ],
+           primary: 'user_id'
+        });
+        FUDforum.tables.userlogin= new SeLiteData.Table( {
+           db:  FUDforum.db,
+           name: 'userlogin',
+           columns: ['login', 'pass'
+           ],
+           primary: 'login'
+        });
+        FUDforum.tables.user_group= new SeLiteData.Table( {
+           db:  FUDforum.db,
+           name: 'user_group',
+           columns: ['user_id', 'group_id'],
+           primary: ['user_id', 'group_id']//@TODO implement?
+        });
+        FUDforum.tables.user_right= new SeLiteData.Table( {
+           db:  FUDforum.db,
+           name: 'user_right',
+           columns: ['user_id', 'right_id'],
+           primary: ['user_id', 'right_id']
+        });
+        FUDforum.tables.faqvisits= new SeLiteData.Table( {
+           db:  FUDforum.db,
+           name: 'faqvisits',
+           columns: ['id', 'lang', 'visits', 'last_visit'],
+           primary: ['id', 'login']
+        });
+        
+        FUDforum.formulas= {};
+        FUDforum.formulas.user= new SeLiteData.RecordSetFormula( {
+            table: FUDforum.tables.user,
+            columns: new SeLiteData.Settable().set( FUDforum.tables.user.name/* same as 'user' */, SeLiteData.RecordSetFormula.ALL_FIELDS )
+        });
+        console.warn('phpMyFaq framework loaded');
 })();
