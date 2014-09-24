@@ -259,4 +259,8 @@ SeLiteExtensionSequencer.processedAlready= false;
 // Whether all expected non-sequenced dependencies were loaded already.
 SeLiteExtensionSequencer.nonSequencedDependenciesLoaded= false;
 
-var EXPORTED_SYMBOLS= ['SeLiteExtensionSequencer'];
+var Flag= {
+    alertShown: false // Whether I've already shown the alert (potentially in another window). It helps me to ensure that I don't show the same message again if the user opens a new window.
+};
+
+var EXPORTED_SYMBOLS= ['SeLiteExtensionSequencer', 'Flag'];
