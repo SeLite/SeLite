@@ -96,6 +96,19 @@ SeLiteData.Table.prototype.insert= function insert( record ) {
     this.db.storage.execute( query, bindings );
 };
 
+/** Create on-the-fly a new SeLiteData.RecordSetFormula instance. Do not store/cache it anyhwere.
+ * @param {object} [params] See parameter params of SeLiteData.RecordSetFormula(). This is on top of (or it overrides) 'table' and 'columns'.
+ * @param {object} [prototype] See parameter prototype of SeLiteData.RecordSetFormula().
+ * @return {SeLiteData.RecordSetFormula}
+ * */
+SeLiteData.Table.prototype.formula= function formula( params, prototype ) {
+    var mergedParams= SeLiteMisc.objectsMerge( params, {
+        table: this,
+        columns: new SeLiteData.Settable().set( this.name, SeLiteData.RecordSetFormula.ALL_FIELDS )
+    } );
+    return new SeLiteData.RecordSetFormula( mergedParams, prototype );
+};
+            
 /** @private Not used directly outside of this file */
 function readOnlyPrimary( field ) {
     throw new Error( "This field '" +field+ "' is a primary key and therefore read-only." );
@@ -783,7 +796,10 @@ RecordSetHolder.prototype.select= function select() {
     var conditions= unnamedParamFilters; // @TODO use .slice() protective copy, once we factor the above into constructor
     conditions.splice( 0, formula.fetchCondition, condition );
     var data= this.storage().getRecords( {
-        table: formula.table.nameWithPrefix()+ (formula.alias ? ' ' +formula.alias : ''),
+        table: formula.table.nameWithPrefix()+
+            (formula.alias
+            ? ' ' +formula.alias
+            : ''),
         joins: joins,
         columns: columns,
         matching: matching,
