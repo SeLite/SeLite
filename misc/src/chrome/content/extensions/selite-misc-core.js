@@ -93,7 +93,7 @@ SeLiteMisc.loginManagerPassword= function loginManagerPassword( username, hostna
     console.log( 'SeLiteMisc.loginManagerPassword(): hostname is ' +hostname );
     var logins = loginManagerInstance.findLogins(
         {}, hostname,
-        '', // null doesn't work here. See https://developer.mozilla.org/En/Using_nsILoginManager - it says to use blank for web form auth.
+        '', // null doesn't work here. See https://developer.mozilla.org/En/Using_nsILoginManager: it says to use blank for web form auth.
         null
     );
     
