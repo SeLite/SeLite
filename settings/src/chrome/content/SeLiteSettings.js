@@ -601,7 +601,7 @@ SeLiteSettings.Field.SQLite= function SQLite( name, defaultKey, allowNull, custo
     // I match '*.sqlite*' rather than just '*.sqlite', because Drupal 7 adds DB prefix name to the end of the file name
     SeLiteSettings.Field.File.call( this, name, { 'SQLite': '*.sqlite*', 'Any': null}, false, defaultKey, allowNull, customValidate, saveFile );
 };
-SeLiteSettings.Field.SQLite.prototype= new SeLiteSettings.Field.File('SQLite.prototype', false, {}, false, '' );
+SeLiteSettings.Field.SQLite.prototype= new SeLiteSettings.Field.File('SQLite.prototype', {}, false, '' );
 SeLiteSettings.Field.SQLite.prototype.constructor= SeLiteSettings.Field.SQLite;
 
 /** @param defaultKey It's actually a key, not the visible integer/string value.
