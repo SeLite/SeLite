@@ -413,10 +413,10 @@ function valueCompound( field, setName ) {
 /** Generate text for label for 'Null/Undefine' column. Only used in set mode
  *  (not in per-folder mode).
  *  @param field Instance of SeLiteSettings.Field
- *  @param valueCompound One of entries of result of Module.Module.getFieldsOfSet().
+ *  @param valueCompound Value compound for this field, containing its configured value. One of entries from a result of Module.Module.getFieldsOfSet().
  *  @param {[boolean]} atOptionLevel Whether this is called for RowLevel.OPTION. That can be only for instances of SeLiteSettings.Field.FixedMap.
- *  @param {[*]} value Value, or undefined or null. Optional; only used and required for SeLiteSettings.Field.FixedMap when atOptionLevel is true
- *  @return string Empty string, 'Null' or 'Undefine', as an appropriate action for this field.
+ *  @param {[*]} value Value being shown, or undefined or null. Optional; only used and needed for SeLiteSettings.Field.FixedMap when atOptionLevel is true
+ *  @return string Empty string, 'Null' or 'Undefine', as an appropriate action for this field with the given value.
  * */
 function nullOrUndefineLabel( field, valueCompound, atOptionLevel, value ) {
     targetFolder===null || SeLiteMisc.fail();
@@ -426,19 +426,16 @@ function nullOrUndefineLabel( field, valueCompound, atOptionLevel, value ) {
             : '';
     }
     else if( !field.multivalued ) {
-        return valueCompound.entry===null
-            ? (field.requireAndPopulate
-                ? ''
-                : 'Undefine'
-              )
-            : (field.allowNull
+        return valueCompound.entry!==undefined
+            ? 'Undefine'
+            : (valueCompound.entry!==null && field.allowNull
                 ? 'Null'
                 : ''
               );
     }
     else {
-        // We only allow 'Undefine' button once there are no value(s) for the multivalued field
-        return valueCompound.entry!==undefined && Object.keys(valueCompound.entry).length===0 && !field.requireAndPopulate
+        // We allow 'Undefine' button only once there are no value(s) for the multivalued field
+        return valueCompound.entry!==undefined && Object.keys(valueCompound.entry).length===0
             ? 'Undefine'
             : '';
     }
@@ -452,7 +449,7 @@ function nullOrUndefineLabel( field, valueCompound, atOptionLevel, value ) {
  *  @param string key 'key' (used as a trailing part of field option preference name);
  *  use for fields of Field.Choice family and for multivalued fields only. For multivalued non-choice fields it should be the same
  *  as parameter value. If the field is of a subclass of Field.Choice, then key and value may be different.
- *  @param valueOrPair
+ *  @param valueOrPair It indicates the value to display.
  *  For single valued non-choice fields or fields not defined in module.fields[]
  *  it is the value/label of the field as shown. Ignored if  not applicable.
  *  For multivalued or choice fields it's an anonymous object serving as an array
@@ -467,7 +464,7 @@ function nullOrUndefineLabel( field, valueCompound, atOptionLevel, value ) {
  *  @param optionIsSelected bool Whether the option is selected. Only used when rowLevel===RowLevel.OPTION and field instanceof Field.Choice.
  *  @param isNewValueRow bool Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell.
  *  It still puts the new <treerow> element to treeRowsOrChildren[moduleName...], so that it can be updated/removed once the user fills in the value. Optional; false by default.
- *  @param object valueCompound Anonymous object, one of entries in result of Module.getFieldsDownToFolder(..)
+ *  @param {object} valueCompound Value compound stored in the set being displayed (or in the sets and manifests applicable to targetFolder, if non-null). Anonymous object, one of entries in result of Module.getFieldsDownToFolder(..)
  *  or Module.Module.getFieldsOfSet() in form {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or from field default,
  *          setName: string set name (only valid if fromPreferences is true),
@@ -615,7 +612,6 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     var isNull, isNullOrUndefined;
     if( rowLevel===RowLevel.FIELD ) {
         valueCompound.entry!==null || !field.multivalued || SeLiteMisc.fail( 'Field ' +field.name + ' is multivalued, yet its compoundValue.entry is null. In per-folder mode: ' +(targetFolder!==null) );
-        valueCompound.entry!==undefined || !field.requireAndPopulate || SeLiteMisc.fail( 'Field ' +field.name+ ' has requireAndPopulate=true, yet its entry is undefined.');
         isNull= valueCompound.entry===null;
         isNullOrUndefined= isNull || valueCompound.entry===undefined;
     }
@@ -1438,15 +1434,12 @@ function createTreeView(original) {
  *  It can be anything (and is not used) if addOrRemove is +1 or -1, unless the field is an instance of SeLiteSettings.Field.FixedMap. Otherwise
  *  It should have been validated - this function doesn't validate keyOrValue.
  *  It can be null if it's a single-valued field.
- *  It can be undefined if !field.requireAndPopulate; then if it is multi-valued, the field must have
- *  no actual values (but it can/should contain VALUE_PRESENT).
+ *  It can be undefined (then if it is multi-valued, the field is stored as VALUE_PRESENT).
  *  @param {string} [fixedKey] Only used, when setting an option (key) of SeLiteSettings.Field.FixedMap to null/undefined.
  *  But do not use when setting the whole value of a SeLiteSettings.Field.FixedMap field to undefined.
  * */
 function updateSpecial( setName, field, addOrRemove, keyOrValue, fixedKey ) {
     !addOrRemove || field.multivalued || SeLiteMisc.fail("addOrRemove can be one of +1, -1 only if field.multivalued. addOrRemove is " +addOrRemove+ " and field.multivalued is " +field.multivalued);
-    addOrRemove || keyOrValue!==undefined || !field.requireAndPopulate || field instanceof SeLiteSettings.Field.FixedMap
-        || SeLiteMisc.fail("Field " +field.name+ " has requireAndPopulate==true, but keyOrValue is undefined.");
     addOrRemove || keyOrValue!==null || !field.multivalued || field instanceof SeLiteSettings.Field.FixedMap
         || SeLiteMisc.fail("Field " +field.name+ " is multivalued, yet keyOrValue is null.");
     fixedKey===undefined || field instanceof SeLiteSettings.Field.FixedMap

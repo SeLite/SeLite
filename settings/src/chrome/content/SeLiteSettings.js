@@ -427,7 +427,7 @@ SeLiteSettings.Field.prototype.setPref= function setPref( setFieldKeyName, value
  * For non-choice multivalued fields it's also used as the value stored in preferences; and for Int
  * it transforms it into a number.
  * @param {boolean|number|string} value Only used by SeLiteSettings.Field.FixedMap. Otherwise it must be undefined.
- * @TODO Low priority: API function to set a multivalued/choice field to undefined (if this.requireAndPopulate===false)
+ * @TODO Low priority: API function to set a multivalued/choice field to undefined
  * */
 SeLiteSettings.Field.prototype.addValue= function addValue( setName, key, value ) {
     this.multivalued || this instanceof SeLiteSettings.Field.Choice || SeLiteMisc.fail("Use SeLiteSettings.Field.addValue() only for multivalued or choice fields.");
@@ -1207,13 +1207,15 @@ SeLiteSettings.Module.prototype.setSelectedSetName= function setSelectedSetName(
 /** @param setName Name of the set; optional; undefined or an empty string if the module doesn't allow sets, or if you want a selected set.
  *  @return Object with sorted keys, serving as associative array {
  *      string field name: anonymous object {
- *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or is undefined
+ *          fromPreferences: boolean, whether the value comes from preferences (otherwise it comes from a values manifest or is undefined)
  *          entry: either
- *          - string/boolean/number ('primitive') value or null or undefined, for non-choice single-value fields; or
- *          - object (potentially empty) serving as an associative array, for choice, or non-choice and multi-value field name,
+ *          - string/boolean/number ('primitive') value, or null or undefined, for non-choice single-value fields; or
+ *          - object (potentially empty, if indicated by SeLiteSettings.VALUE_PRESENT) serving as an associative array, for choice field (multivalued or single valued), or for non-choice multi-valued field,
  *          if the whole field is stored other than undefined, in format {
  *             string key => string/number ('primitive') label or value entered by user
- *          }, or undefined if it has no values/choices in the given set and is indicated as 'undefined'
+ *          },
+ *          - null, if it has no value/choice in the given set and is indicated as 'null' by SeLiteSettings.NULL
+ *          - undefined otherwise (if the field has no value/choice in the given set)
  *      }
  *  }
  *  It doesn't inject any defaults from the module configuration or values manifests for fields that are not defined in the set.
@@ -1549,13 +1551,13 @@ SeLiteSettings.closingIde= function closingIde() {
  *  previous manifests stored in the cache and it doesn't store current manifests in the cache). The actual preferences won't be cached no matter what dontCache. For use by GUI.
  *  @return Object with sorted keys, serving as an associative array. A bit similar to result of getFieldsOfset(),
  *  but with more information and more structure: {
- *      string field name => anonymous object {
- *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest,
- *          setName: string set name (only valid if fromPreferences is true),
+ *      string field name => anonymous object (known as 'valueCompound' in ovOptions.js) {
+ *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest;
+ *          setName: string set name (only valid if fromPreferences is true);
  *          folderPath: string
  *          - folder path to the manifest file (either values manifest, or associations manifest)
  *          - empty '' if the values comes from a global (active) set
- *          - null if the value comes from field default in module schema
+ *          - null if the value comes from field default in module schema;
  *          entry: either
  *          - string/boolean/number ('primitive') value, for non-choice single-value fields, and
  *          - object serving as an associative array, for choice, or non-choice and multi-value field name, in format {
@@ -1567,7 +1569,8 @@ SeLiteSettings.closingIde= function closingIde() {
  *  where each 'entry' comes from either
  *  - a set
  *  - a values manifest
- *  - default key (value) of the field
+ *  - default key (value) of the field.
+ *  The structure of the result is mostly similar to result of SeLiteSettings.Module.prototype.getFieldsOfSet().
 * */
 SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToFolder( folderPath, dontCache ) {
     folderPath= folderPath || SeLiteSettings.testSuiteFolder;
