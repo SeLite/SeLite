@@ -409,8 +409,7 @@ function valueCompound( field, setName ) {
     return moduleSetFields[field.module.name][setName][field.name];
 }
 
-/** Generate text for label for 'Null/Undefine' column. Only used in set mode
- *  (not in per-folder mode).
+/** Generate text for label for 'Null/Undefine' column. Use only in editable mode, which shows set(s) - not for per-folder mode.
  *  @param field Instance of SeLiteSettings.Field
  *  @param valueCompound Value compound for this field, containing its configured value. One of entries from a result of Module.Module.getFieldsOfSet().
  *  @param {[boolean]} atOptionLevel Whether this is called for RowLevel.OPTION. That can be only for instances of SeLiteSettings.Field.FixedMap.
@@ -515,8 +514,8 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                 : field
             )
         : '';
-    /* Following is why I don't allow spaces in module/set/field names. For level===RowLevel.OPTION,
-     * variable key may contains space(s). That's why there can't be any more entries in 'properties' after key:
+    /* I use spaces as separators in the following (that's why I don't allow spaces in module/set/field name). For level===RowLevel.OPTION,
+     * variable 'key' may contains space(s), since it's the last item on the following list. (That's why there can't be any more entries in 'properties' after 'key'):
     */
     treerow.setAttribute( 'properties',
         rowLevel.forLevel(
