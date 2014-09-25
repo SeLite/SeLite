@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://change-this-to-the-site-you-are-testing/" />
+<title>common_case</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">common_case</td></tr>
+</thead><tbody>
+<!--Parameter 'loginOrAmpRole' is user login, or user role prefixed with & (then it's passed to SeLiteSettings.roleToUser())-->
+<tr>
+	<td>function</td>
+	<td>logIn</td>
+	<td>loginOrAmpRole</td>
+</tr>
+<!---->
+<tr>
+	<td>storeEval</td>
+	<td>SeLiteSettings.roleToUser( '${loginOrAmpRole}' )</td>
+	<td>login</td>
+</tr>
+<!--TODO Handle existing users with encoded passwords. Maybe have a routine to import passwords from loginManager to PMF test DB?-->
+<tr>
+	<td>getEval</td>
+	<td>phpMyFAQ.selectUserByLogin( storedVars.login )</td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>if</td>
+	<td>phpMyFAQ.selectedUser.pass===undefined</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>phpMyFAQ.selectedUser.pass= SeLiteMisc.loginManagerPassword( '${login}' )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ @href='?action=login' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=faqusername</td>
+	<td>${login}</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=faqpassword</td>
+	<td>`phpMyFAQ.selectedUser.pass`</td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+</tbody></table>
+</body>
+</html>

@@ -10,8 +10,8 @@
 var phpMyFAQ;
 if( phpMyFAQ===undefined ) {
     phpMyFAQ= {
-        /** @type {string}*/
-        selectedUserId: undefined,
+        /** @type {object} As loaded from 'user' table, with 'pass' field loaded from 'userlogin' table. */
+        selectedUser: undefined,
         /** @type {SeLiteData.Db}*/
         db: new SeLiteData.Db( SeLiteData.getStorageFromSettings() )
     };
@@ -27,6 +27,11 @@ if( phpMyFAQ===undefined ) {
     /*if( commonSettings.getField('exitConfirmationCheckerMode') ) {
         //commonSettings.getField('exitConfirmationCheckerMode').setDefaultKey( 'skipRevertedChanges' );
     }/**/
+
+    phpMyFAQ.selectUserByLogin= function selectUserByLogin( givenLogin ) {
+        phpMyFAQ.selectedUser= phpMyFAQ.formulas.user.selectOne( {login: givenLogin} );
+        phpMyFAQ.selectedUser.pass= phpMyFAQ.formulas.userlogin.selectOne( {login: givenLogin} ).pass;
+    };
 
         phpMyFAQ.tables= {};
         phpMyFAQ.tables.user= new SeLiteData.Table( {
@@ -69,7 +74,9 @@ if( phpMyFAQ===undefined ) {
            primary: ['id', 'login']
         });
         
-        phpMyFAQ.formulas= {};
-        phpMyFAQ.formulas.user= phpMyFAQ.tables.user.formula();
+        phpMyFAQ.formulas= {
+            user: phpMyFAQ.tables.user.formula(),
+            userlogin: phpMyFAQ.tables.userlogin.formula()
+        };
         console.warn('phpMyFaq framework loaded');
 })();
