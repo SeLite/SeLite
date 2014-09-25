@@ -27,56 +27,65 @@ if( phpMyFAQ===undefined ) {
     /*if( commonSettings.getField('exitConfirmationCheckerMode') ) {
         //commonSettings.getField('exitConfirmationCheckerMode').setDefaultKey( 'skipRevertedChanges' );
     }/**/
-
+    //@TODO join formula
     phpMyFAQ.selectUserByLogin= function selectUserByLogin( givenLogin ) {
         phpMyFAQ.selectedUser= phpMyFAQ.formulas.user.selectOne( {login: givenLogin} );
         phpMyFAQ.selectedUser.pass= phpMyFAQ.formulas.userlogin.selectOne( {login: givenLogin} ).pass;
     };
 
-        phpMyFAQ.tables= {};
-        phpMyFAQ.tables.user= new SeLiteData.Table( {
-           db:  phpMyFAQ.db,
-           name: 'user',
-           columns: ['user_id', 'login', 'session_id', 'session_timestamp', 'ip', 'account_status', 'last_login', 'auth_source', 'member_since', 'remember_me', 'success'
-           ],
-           primary: 'user_id' // However, for purpose of matching users I usually use 'login'
-        });
-        phpMyFAQ.tables.userdata= new SeLiteData.Table( {
-           db:  phpMyFAQ.db,
-           name: 'userdata',
-           columns: ['user_id', 'last_modified', 'display_name', 'email'
-           ],
-           primary: 'user_id'
-        });
-        phpMyFAQ.tables.userlogin= new SeLiteData.Table( {
-           db:  phpMyFAQ.db,
-           name: 'userlogin',
-           columns: ['login', 'pass'
-           ],
-           primary: 'login'
-        });
-        phpMyFAQ.tables.user_group= new SeLiteData.Table( {
-           db:  phpMyFAQ.db,
-           name: 'user_group',
-           columns: ['user_id', 'group_id'],
-           primary: ['user_id', 'group_id']//@TODO implement?
-        });
-        phpMyFAQ.tables.user_right= new SeLiteData.Table( {
-           db:  phpMyFAQ.db,
-           name: 'user_right',
-           columns: ['user_id', 'right_id'],
-           primary: ['user_id', 'right_id']
-        });
-        phpMyFAQ.tables.faqvisits= new SeLiteData.Table( {
-           db:  phpMyFAQ.db,
-           name: 'faqvisits',
-           columns: ['id', 'lang', 'visits', 'last_visit'],
-           primary: ['id', 'login']
-        });
-        
-        phpMyFAQ.formulas= {
-            user: phpMyFAQ.tables.user.formula(),
-            userlogin: phpMyFAQ.tables.userlogin.formula()
-        };
-        console.warn('phpMyFaq framework loaded');
+    SeLiteSettings.setTestDbKeeper( 
+        new SeLiteSettings.TestDbKeeper.Columns( {
+            userlogin: {
+                key: 'login', // This is the logical/matching column, rather than a primary key
+                columns: ['login', 'pass']
+            }
+        })
+    );
+
+    phpMyFAQ.tables= {};
+    phpMyFAQ.tables.user= new SeLiteData.Table( {
+       db:  phpMyFAQ.db,
+       name: 'user',
+       columns: ['user_id', 'login', 'session_id', 'session_timestamp', 'ip', 'account_status', 'last_login', 'auth_source', 'member_since', 'remember_me', 'success'
+       ],
+       primary: 'user_id' // However, for purpose of matching users I usually use 'login'
+    });
+    phpMyFAQ.tables.userdata= new SeLiteData.Table( {
+       db:  phpMyFAQ.db,
+       name: 'userdata',
+       columns: ['user_id', 'last_modified', 'display_name', 'email'
+       ],
+       primary: 'user_id'
+    });
+    phpMyFAQ.tables.userlogin= new SeLiteData.Table( {
+       db:  phpMyFAQ.db,
+       name: 'userlogin',
+       columns: ['login', 'pass'
+       ],
+       primary: 'login'
+    });
+    phpMyFAQ.tables.user_group= new SeLiteData.Table( {
+       db:  phpMyFAQ.db,
+       name: 'user_group',
+       columns: ['user_id', 'group_id'],
+       primary: ['user_id', 'group_id']//@TODO implement?
+    });
+    phpMyFAQ.tables.user_right= new SeLiteData.Table( {
+       db:  phpMyFAQ.db,
+       name: 'user_right',
+       columns: ['user_id', 'right_id'],
+       primary: ['user_id', 'right_id']
+    });
+    phpMyFAQ.tables.faqvisits= new SeLiteData.Table( {
+       db:  phpMyFAQ.db,
+       name: 'faqvisits',
+       columns: ['id', 'lang', 'visits', 'last_visit'],
+       primary: ['id', 'login']
+    });
+
+    phpMyFAQ.formulas= {
+        user: phpMyFAQ.tables.user.formula(),
+        userlogin: phpMyFAQ.tables.userlogin.formula()
+    };
+    console.warn('phpMyFaq framework loaded');
 })();
