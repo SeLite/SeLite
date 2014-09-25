@@ -543,7 +543,6 @@ SeLiteSettings.Field.String.prototype= new SeLiteSettings.Field.NonChoice('Strin
 SeLiteSettings.Field.String.prototype.constructor= SeLiteSettings.Field.String;
 
 /** @param string name
- *  @param bool startInProfileFolder Whether the file/folder picker dialog opens in user's Firefox profile folder (if the file/folder was not set yet)
  *  @param filters Optional, an object serving as an associative array of file filters { 'visible filter name': '*.extension; *.anotherExtension...', ... }
  *  A false/null/0 key or value mean 'All files'.
  *  See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsIFilePicker#appendFilter%28%29
@@ -554,12 +553,8 @@ SeLiteSettings.Field.String.prototype.constructor= SeLiteSettings.Field.String;
  *  @param saveFile Whether we're saving/creating a file, otherwise we're opening/reading. Optional, false by default.
     Only needed when isFolder is false, because the file/folder picker dialog always lets you create new folder (if you have access).
  * */
-SeLiteSettings.Field.FileOrFolder= function FileOrFolder( name, startInProfileFolder, filters, multivalued, defaultKey, isFolder, allowNull, customValidate, saveFile ) {
+SeLiteSettings.Field.FileOrFolder= function FileOrFolder( name, filters, multivalued, defaultKey, isFolder, allowNull, customValidate, saveFile ) {
     SeLiteSettings.Field.NonChoice.call( this, name, multivalued, defaultKey, allowNull, customValidate );
-    this.startInProfileFolder= startInProfileFolder || false;
-    if( typeof this.startInProfileFolder!='boolean' ) {
-        throw new Error( 'SeLiteSettings.Field.FileOrFolder() expects startInProfileFolder to be a boolean, if provided.');
-    }
     this.filters= filters || {};
     typeof(this.filters)==='object' && !Array.isArray(this.filters) || SeLiteMisc.fail( 'SeLiteSettings.Field.FileOrFolder() expects filters to be an object (not an array) serving as an associative array, if provided.');
     this.isFolder= isFolder || false;
@@ -573,7 +568,6 @@ SeLiteSettings.Field.FileOrFolder.prototype.constructor= SeLiteSettings.Field.Fi
 SeLiteSettings.Field.FileOrFolder.prototype.parentEquals= SeLiteSettings.Field.prototype.equals;
 SeLiteSettings.Field.FileOrFolder.prototype.equals= function equals( other ) {
     if( !this.parentEquals(other)
-    || this.startInProfileFolder!==other.startInProfileFolder
     || this.isFolder!==other.isFolder ) {
         return false;
     }
@@ -584,21 +578,19 @@ SeLiteSettings.Field.FileOrFolder.prototype.equals= function equals( other ) {
 };
 
 /** @param string name
- *  @param bool startInProfileFolder See SeLiteSettings.Field.FileOrFolder()
  *  @param filters See SeLiteSettings.Field.FileOrFolder()
  * */
-SeLiteSettings.Field.File= function File( name, startInProfileFolder, filters, multivalued, defaultKey, allowNull, customValidate, saveFile ) {
-    SeLiteSettings.Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultKey, false, allowNull, customValidate, saveFile );
+SeLiteSettings.Field.File= function File( name, filters, multivalued, defaultKey, allowNull, customValidate, saveFile ) {
+    SeLiteSettings.Field.FileOrFolder.call( this, name, filters, multivalued, defaultKey, false, allowNull, customValidate, saveFile );
 };
 SeLiteSettings.Field.File.prototype= new SeLiteSettings.Field.FileOrFolder('File.prototype');
 SeLiteSettings.Field.File.prototype.constructor= SeLiteSettings.Field.File;
 
 /** @param string name
- *  @param bool startInProfileFolder See SeLiteSettings.Field.FileOrFolder()
  *  @param filters See SeLiteSettings.Field.FileOrFolder()
  * */
-SeLiteSettings.Field.Folder= function Folder( name, startInProfileFolder, filters, multivalued, defaultKey, allowNull, customValidate ) {
-    SeLiteSettings.Field.FileOrFolder.call( this, name, startInProfileFolder, filters, multivalued, defaultKey, true, allowNull, customValidate, false );
+SeLiteSettings.Field.Folder= function Folder( name, filters, multivalued, defaultKey, allowNull, customValidate ) {
+    SeLiteSettings.Field.FileOrFolder.call( this, name, filters, multivalued, defaultKey, true, allowNull, customValidate, false );
 };
 SeLiteSettings.Field.Folder.prototype= new SeLiteSettings.Field.FileOrFolder('Folder.prototype');
 SeLiteSettings.Field.Folder.prototype.constructor= SeLiteSettings.Field.Folder;
@@ -607,7 +599,7 @@ SeLiteSettings.Field.Folder.prototype.constructor= SeLiteSettings.Field.Folder;
  * */
 SeLiteSettings.Field.SQLite= function SQLite( name, defaultKey, allowNull, customValidate, saveFile ) {
     // I match '*.sqlite*' rather than just '*.sqlite', because Drupal 7 adds DB prefix name to the end of the file name
-    SeLiteSettings.Field.File.call( this, name, true, { 'SQLite': '*.sqlite*', 'Any': null}, false, defaultKey, allowNull, customValidate, saveFile );
+    SeLiteSettings.Field.File.call( this, name, { 'SQLite': '*.sqlite*', 'Any': null}, false, defaultKey, allowNull, customValidate, saveFile );
 };
 SeLiteSettings.Field.SQLite.prototype= new SeLiteSettings.Field.File('SQLite.prototype', false, {}, false, '' );
 SeLiteSettings.Field.SQLite.prototype.constructor= SeLiteSettings.Field.SQLite;
