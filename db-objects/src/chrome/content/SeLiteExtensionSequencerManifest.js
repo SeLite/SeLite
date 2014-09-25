@@ -12,7 +12,7 @@ SeLiteExtensionSequencer.registerPlugin( {
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
         var settingsModule= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
         /** SeLiteData.getStorageFromSettings() depends on name tablePrefix. */
-        var tablePrefix= new SeLiteSettings.Field.String('tablePrefix', /*multivalued:*/false, '', /*this field can be undefined in sets, so that you can set it in 'values' manifests, therefore requireAndPopulate is false:*/false);
+        var tablePrefix= new SeLiteSettings.Field.String( 'tablePrefix', /*multivalued:*/false, /*defaultKey*/'' );
         settingsModule.addField( tablePrefix );
     }
 } );
