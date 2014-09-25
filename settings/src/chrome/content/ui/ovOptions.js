@@ -420,10 +420,10 @@ function valueCompound( field, setName ) {
  * */
 function nullOrUndefineLabel( field, valueCompound, atOptionLevel, value ) {
     targetFolder===null || SeLiteMisc.fail();
-    if( atOptionLevel && field instanceof SeLiteSettings.Field.FixedMap ) {
-        return value===null
+    if( atOptionLevel && field instanceof SeLiteSettings.Field.FixedMap ) { // FixedMap is always multivalued, hence it doesn't allow null
+        return value!==undefined
             ? 'Undefine'
-            : 'Null';
+            : '';
     }
     else if( !field.multivalued ) {
         return valueCompound.entry===null
@@ -431,7 +431,10 @@ function nullOrUndefineLabel( field, valueCompound, atOptionLevel, value ) {
                 ? ''
                 : 'Undefine'
               )
-            : 'Null';
+            : (field.allowNull
+                ? 'Null'
+                : ''
+              );
     }
     else {
         // We only allow 'Undefine' button once there are no value(s) for the multivalued field

@@ -10,7 +10,7 @@ SeLiteExtensionSequencer.registerPlugin( {
     preActivate: function(api) {
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
         var settingsModule= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
-       var bootstrappedCoreExtensions= new SeLiteSettings.Field.File( 'bootstrappedCoreExtensions', /*startInProfileFolder*/false, { 'Javascript': '*.js*', 'Any': null}, /*multivalued*/true, /*defaultKey*/[], /*requireAndPopulate*/false,
+       var bootstrappedCoreExtensions= new SeLiteSettings.Field.File( 'bootstrappedCoreExtensions', /*startInProfileFolder*/false, { 'Javascript': '*.js*', 'Any': null}, /*multivalued*/true, /*defaultKey*/[], /*requireAndPopulate*/false, /*allowNull*/false,
             function customValidate( key ) {
                 bootstrappedListChanged= true;
                 return true;
