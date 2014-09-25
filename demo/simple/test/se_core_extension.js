@@ -22,11 +22,7 @@ var charities= new SeLiteData.Table( {
     columns: ['id', 'name', 'course', 'lastAmount', 'totalAmount', 'enabled']
 });
 
-var charitiesAll= new SeLiteData.RecordSetFormula( {
-    table: charities,
-    columns: new SeLiteData.Settable().
-        set( charities.name, SeLiteData.RecordSetFormula.ALL_FIELDS )
-} );
+var charitiesAll= charities.formula();
 
 var charitiesById= new SeLiteData.RecordSetFormula( {
     fetchMatching: {

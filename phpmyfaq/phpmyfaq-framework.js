@@ -70,9 +70,6 @@ if( phpMyFAQ===undefined ) {
         });
         
         phpMyFAQ.formulas= {};
-        phpMyFAQ.formulas.user= new SeLiteData.RecordSetFormula( {
-            table: phpMyFAQ.tables.user,
-            columns: new SeLiteData.Settable().set( phpMyFAQ.tables.user.name/* same as 'user' */, SeLiteData.RecordSetFormula.ALL_FIELDS )
-        });
+        phpMyFAQ.formulas.user= phpMyFAQ.tables.user.formula();
         console.warn('phpMyFaq framework loaded');
 })();

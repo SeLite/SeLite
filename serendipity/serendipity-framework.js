@@ -261,10 +261,7 @@ if( Serendipity===undefined ) {
            primary: 'authorid' // However, for purpose of matching users I usually use 'username'
         });
         /** @type {SeLiteData.RecordSetFormula} */
-        Serendipity.formulas.authors= new SeLiteData.RecordSetFormula( {
-            table: Serendipity.tables.authors,
-            columns: new SeLiteData.Settable().set( Serendipity.tables.authors.name/* same as 'authors' */, SeLiteData.RecordSetFormula.ALL_FIELDS )
-        });
+        Serendipity.formulas.authors= Serendipity.tables.authors.formula();
         
         /** @type {SeLiteData.Table} */
         Serendipity.tables.config= new SeLiteData.Table( {
@@ -274,10 +271,7 @@ if( Serendipity===undefined ) {
            primary: ['name', 'value', 'authorid']
         });
         /** @type {SeLiteData.RecordSetFormula} */
-        Serendipity.formulas.config= new SeLiteData.RecordSetFormula( {
-            table: Serendipity.tables.config,
-            columns: new SeLiteData.Settable().set( Serendipity.tables.config.name/* same as 'config' */, SeLiteData.RecordSetFormula.ALL_FIELDS )
-        });
+        Serendipity.formulas.config= Serendipity.tables.config.formula();
         
         /** @type {SeLiteData.Table} */
         Serendipity.tables.entries= new SeLiteData.Table( {
@@ -300,9 +294,6 @@ if( Serendipity===undefined ) {
         });
 
         /** @type {SeLiteData.RecordSetFormula} */
-        Serendipity.formulas.entries= new SeLiteData.RecordSetFormula( {
-            table: Serendipity.tables.entries,
-            columns: new SeLiteData.Settable().set( Serendipity.tables.entries.name/* same as 'entries' */, SeLiteData.RecordSetFormula.ALL_FIELDS )
-        });
+        Serendipity.formulas.entries= Serendipity.tables.entries.formula();
     console.warn('Serendipity framework loaded');
 })();

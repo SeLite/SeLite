@@ -49,10 +49,7 @@ if( FUDforum===undefined ) {
            primary: 'id' // However, for purpose of matching users I usually use 'login'
         });
         FUDforum.formulas= {};
-        FUDforum.formulas.users= new SeLiteData.RecordSetFormula( {
-            table: FUDforum.tables.users,
-            columns: new SeLiteData.Settable().set( FUDforum.tables.users.name/* same as 'users' */, SeLiteData.RecordSetFormula.ALL_FIELDS )
-        });
+        FUDforum.formulas.users= FUDforum.tables.users.formula();
         /*@TODO
         FUDforum.tables.node= new SeLiteData.Table( {
            db:  FUDforum.db,

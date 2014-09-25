@@ -6,16 +6,15 @@ Components.utils.import( "chrome://selite-db-objects/content/DbObjects.js" );
 Components.utils.import( "chrome://selite-db-objects/content/DbFunctions.js" );
 
 Selenium.prototype.doReadRecord= function doReadRecord( info, storedVariableName ) {
-    /** @type {SeLiteData.Table} */ var table;
-    /** @type SeLiteData.RecordSetFormula*/var formula;
+    /** @type {SeLiteData.Table} */
+    var table;
+    /** @type SeLiteData.RecordSetFormula*/
+    var formula;
     LOG.debug( 'getRecord info: ' +typeof info+ ': ' +SeLiteMisc.objectToString(info, 2));
     if( 'table' in info ) {
         table= info.table;
         table instanceof SeLiteData.Table || SeLiteMisc.fail( 'info.table must be an instance of SeLiteData.Table');
-        formula= new SeLiteData.RecordSetFormula( {
-            table: table,
-            columns: new SeLiteData.Settable().set( table, SeLiteData.RecordSetFormula.ALL_FIELDS )
-        });
+        formula= table.formula();
     }
     else if( 'formula' in info ) {
         formula= info.formula;

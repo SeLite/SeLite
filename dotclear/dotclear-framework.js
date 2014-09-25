@@ -138,10 +138,7 @@ if( Dotclear===undefined ) {
     });
 
     Dotclear.formulas= {};
-    Dotclear.formulas.user= new SeLiteData.RecordSetFormula( {
-        table: Dotclear.tables.user,
-        columns: new SeLiteData.Settable().set( Dotclear.tables.user.name/* same as 'user'*/, SeLiteData.RecordSetFormula.ALL_FIELDS )
-    });
+    Dotclear.formulas.user= Dotclear.tables.user.formula();
     
     Dotclear.tables.post= new SeLiteData.Table( {
         db: Dotclear.db,
@@ -156,10 +153,7 @@ if( Dotclear===undefined ) {
             'nb_comment', 'nb_trackback'],
         primary: 'post_id'
     });
-    Dotclear.formulas.post= new SeLiteData.RecordSetFormula( {
-        table: Dotclear.tables.post,
-        columns: new SeLiteData.Settable().set( Dotclear.tables.post.name/* same as 'post'*/, SeLiteData.RecordSetFormula.ALL_FIELDS )
-    });
+    Dotclear.formulas.post= Dotclear.tables.post.formula();
 
     console.warn('Dotclear framework loaded');
 })();
