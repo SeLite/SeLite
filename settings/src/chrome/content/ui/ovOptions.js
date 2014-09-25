@@ -419,7 +419,7 @@ function valueCompound( field, setName ) {
  *  @return string Empty string, 'Null' or 'Undefine', as an appropriate action for this field with the given value.
  * */
 function nullOrUndefineLabel( field, valueCompound, atOptionLevel, value ) {
-    targetFolder===null || SeLiteMisc.fail();
+    !showingPerFolder() || SeLiteMisc.fail( "Don't call nullOrUndefineLabel() when showing fields per folder." );
     if( atOptionLevel && field instanceof SeLiteSettings.Field.FixedMap ) { // FixedMap is always multivalued, hence it doesn't allow null
         return value!==undefined
             ? 'Undefine'
@@ -571,7 +571,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     // Cell for checkbox (if the field is boolean) or radio-like select (if the field is a choice):
     treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
-    if( targetFolder!==null
+    if( showingPerFolder()
         || rowLevel!==RowLevel.FIELD && rowLevel!==RowLevel.OPTION
         || !(field instanceof SeLiteSettings.Field.Bool || field instanceof SeLiteSettings.Field.Choice)
         || (typeof value==='string' || typeof value==='number')
@@ -597,7 +597,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     // Cell for the text value:
     treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
-    if( targetFolder!==null
+    if( showingPerFolder()
         || rowLevel!==RowLevel.FIELD && rowLevel!==RowLevel.OPTION
         || !(field instanceof SeLiteSettings.Field)
         || field instanceof SeLiteSettings.Field.Bool
@@ -611,7 +611,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     }
     var isNull, isNullOrUndefined;
     if( rowLevel===RowLevel.FIELD ) {
-        valueCompound.entry!==null || !field.multivalued || SeLiteMisc.fail( 'Field ' +field.name + ' is multivalued, yet its compoundValue.entry is null. In per-folder mode: ' +(targetFolder!==null) );
+        valueCompound.entry!==null || !field.multivalued || SeLiteMisc.fail( 'Field ' +field.name + ' is multivalued, yet its compoundValue.entry is null. In per-folder mode: ' +showingPerFolder() );
         isNull= valueCompound.entry===null;
         isNullOrUndefined= isNull || valueCompound.entry===undefined;
     }
@@ -629,7 +629,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                 : 'undefined'
               )
         );
-        if( targetFolder!==null && valueCompound!==null ) {
+        if( showingPerFolder() && valueCompound!==null ) {
             if( valueCompound.fromPreferences ) {
                 treecell.setAttribute( 'properties',
                     valueCompound.folderPath!==''
@@ -649,7 +649,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
             treecell.setAttribute( 'properties', SeLiteSettings.FIELD_NULL_OR_UNDEFINED );
         }
     }
-    if( allowSets || allowMultivaluedNonChoices || targetFolder!==null ) {
+    if( allowSets || allowMultivaluedNonChoices || showingPerFolder() ) {
         // Cell for Action column (in module view) or 'Set' column (in per-folder view)
         treecell= document.createElementNS( XUL_NS, 'treecell');
         treerow.appendChild( treecell);
@@ -664,7 +664,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                     : DELETE_THE_SET
             );
         }
-        if( targetFolder===null ) {
+        if( !showingPerFolder() ) {
             if( field!==null && !SeLiteMisc.isInstance( field, [SeLiteSettings.Field.Choice, SeLiteSettings.Field.FixedMap] )
             && field.multivalued ) {
                 if( rowLevel===RowLevel.FIELD ) {
@@ -693,12 +693,12 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                 }
             }
         }
-        if( rowLevel===RowLevel.FIELD || targetFolder===null && rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap ) {
+        if( rowLevel===RowLevel.FIELD || !showingPerFolder() && rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap ) {
             // per-folder view: Manifest or definition; per-module view: Null/Undefine
             treecell= document.createElementNS( XUL_NS, 'treecell');
             treerow.appendChild( treecell);
             treecell.setAttribute('editable', 'false');
-            if( targetFolder===null ) {
+            if( !showingPerFolder() ) {
                 treecell.setAttribute( 'label', nullOrUndefineLabel(field, valueCompound, rowLevel===RowLevel.OPTION, value) );
             }
             else {
@@ -733,7 +733,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
  * */
 function generateSets( moduleChildren, module ) {
     try {
-        var setNames= targetFolder===null
+        var setNames= !showingPerFolder()
             ? module.setNames()
             : [null];
         if( !allowSets && setNames.length!==1 ) {
@@ -742,10 +742,10 @@ function generateSets( moduleChildren, module ) {
         for( var i=0; i<setNames.length; i++ ) {
             var setName= setNames[i];
             // setFields includes all fields from Preferences DB for the module name, even if they are not in the module definition
-            var setFields= targetFolder===null
+            var setFields= !showingPerFolder()
                 ? module.getFieldsOfSet( setName )
                 : module.getFieldsDownToFolder( targetFolder, true );
-            if( targetFolder===null ) {
+            if( !showingPerFolder() ) {
                 moduleSetFields[module.name]= moduleSetFields[module.name] || {};
                 moduleSetFields[module.name][ setName ]= setFields;
             }
@@ -967,7 +967,7 @@ function treeClickHandler( event ) {
             }
             if( column.value.element===treeColumnElements.value ) {
                 if( cellIsEditable && rowProperties) {
-                    if( targetFolder===null ) {
+                    if( !showingPerFolder() ) {
                         if( !(field instanceof SeLiteSettings.Field.FileOrFolder) ) {
                             tree.startEditing( row.value, column.value );
                         }
@@ -1010,7 +1010,7 @@ function treeClickHandler( event ) {
                             // Add a row for a new value, right below the clicked row (i.e. at the top of all existing values)
                             var pair= {};
                             pair[ SeLiteSettings.NEW_VALUE_ROW ]= SeLiteSettings.NEW_VALUE_ROW;
-                            // Since we're editing, that means targetFolder===null, so I don't need to generate anything for navigation from folder view here.
+                            // Since we're editing, it means that showingPerFolder()===false, so I don't need to generate anything for navigation from folder view here.
                             var treeItem= generateTreeItem(module, selectedSetName, field, pair, RowLevel.OPTION, false, /*Don't show the initial value:*/true );
 
                             var previouslyFirstValueRow;
@@ -1062,7 +1062,7 @@ function treeClickHandler( event ) {
                 }
             }
             if( column.value.element===treeColumnElements.manifest ) { // Manifest, or Null/Undefine
-                if( targetFolder!==null ) {
+                if( showingPerFolder() ) {
                     if( cellProperties!==SeLiteSettings.FIELD_DEFAULT ) {
                         if( cellProperties.startsWith(SeLiteSettings.ASSOCIATED_SET) ) {
                             var folder= cellProperties.substring( SeLiteSettings.ASSOCIATED_SET.length+1 );
@@ -1523,6 +1523,10 @@ var allowMultivaluedNonChoices= false;
  *  This will be set depending on how this file is invoked.
  * */
 var targetFolder= null;
+/** Shortcut function. Only valid once I set variable targetFolder.
+ *  @return {bool}
+ * */
+function showingPerFolder() { return targetFolder!==null; }
 
 /** Create an object for a new <treechildren>. Add it to the parent.
  *  @return XULElement for the new <treechildren>
@@ -1646,7 +1650,7 @@ window.addEventListener( "load", function(e) {
                 exceptionDetails[ moduleNames[i] ]= ''+ e+ ':\n' +e.stack;
             }
 
-            if( targetFolder===null || module.associatesWithFolders ) {
+            if( !showingPerFolder() || module.associatesWithFolders ) {
                 modules[ moduleNames[i] ]= module;
             }
         }
@@ -1660,7 +1664,7 @@ window.addEventListener( "load", function(e) {
     }
     var tree= document.createElementNS( XUL_NS, 'tree' );
     tree.setAttribute( 'id', 'settingsTree');
-    tree.setAttribute( 'editable', ''+(targetFolder===null) );
+    tree.setAttribute( 'editable', ''+!showingPerFolder() );
     tree.setAttribute( 'seltype', 'single' );
     tree.setAttribute( 'hidecolumnpicker', 'true');
     tree.setAttribute( 'hidevscroll', 'false');
@@ -1672,14 +1676,14 @@ window.addEventListener( "load", function(e) {
     
     for( var moduleName in modules ) {
         var module= modules[moduleName];
-        allowSets= allowSets || module.allowSets && targetFolder===null;
+        allowSets= allowSets || module.allowSets && !showingPerFolder();
         
         for( var fieldName in module.fields ) {
             var field= module.fields[fieldName];
             allowMultivaluedNonChoices= allowMultivaluedNonChoices || field.multivalued && field instanceof SeLiteSettings.Field.Choice;
         }
     }
-    tree.appendChild( generateTreeColumns(allowModules,  targetFolder!==null) );
+    tree.appendChild( generateTreeColumns(allowModules, showingPerFolder()) );
     var topTreeChildren= createTreeChildren( tree );
     
     var setNameToExpand= null;
