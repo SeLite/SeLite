@@ -142,6 +142,7 @@ RowLevel.OPTION= new RowLevel('OPTION', 3);
 // Special:
 RowLevel.CHECKBOX= new RowLevel('CHECKBOX', -1);
 RowLevel.ACTION= new RowLevel('ACTION', -1, true);
+// Following indicates column 'Null/Undefine'
 RowLevel.NULL_OR_UNDEFINE= new RowLevel('NULL_OR_UNDEFINE', -1);
 
 RowLevel.prototype.toString= function toString() {
@@ -171,7 +172,7 @@ if( !RowLevel.SET.below(RowLevel.MODULE) ) {
 
 /** This is a simple translation map. The results serves in treeCell() and other functions,
  *  that select an item from within a list depending on RowLevel instance.
- *  @return one of forModule, forSet, forField, forOption or forNullOrUndefine, depending on the level
+ *  @return one of forModule, forSet, forField, forOption or forNullOrUndefine, depending on the level. If this.level<0, it returns ''.
  * */
 RowLevel.prototype.forLevel= function forLevel( forModule, forSet, forCheckbox, forField, forOption, forNullOrUndefine ) {
     if( this===RowLevel.MODULE ) {
@@ -1048,7 +1049,7 @@ function treeClickHandler( event ) {
                             }
                         }
                         if( cellText===DELETE_THE_VALUE ) {
-                            var clickedTreeRow= moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ];
+                            var clickedTreeRow= moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ]; // same as above
                             delete moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ];
                             treeChildren.removeChild( clickedTreeRow.parentNode );
                             field.removeValue( selectedSetName, clickedOptionKey );
@@ -1146,7 +1147,14 @@ function treeClickHandler( event ) {
                 if( column.value.element===treeColumnElements.checked ) { // This clears the previous label 'undefined' or 'null' (if any)
                     valueCell.setAttribute( 'label', '' );
                 }
-                treeCell( fieldRow, RowLevel.NULL_OR_UNDEFINE).setAttribute( 'label',
+                var rowToUpdateLabel;
+                if( clickedOptionKey ) { // This is when a user clicks at 'undefine' for an option of a FixedMap instance
+                    rowToUpdateLabel= moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ]; // same as clickedTreeRow above
+                }
+                else {
+                    rowToUpdateLabel= fieldRow;
+                }
+                treeCell( rowToUpdateLabel, RowLevel.NULL_OR_UNDEFINE ).setAttribute( 'label',
                     clickedOptionKey===undefined
                     ? nullOrUndefineLabel( field, valueCompound(field, selectedSetName) )
                     : nullOrUndefineLabel( field, valueCompound(field, selectedSetName), true,
