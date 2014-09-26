@@ -32,7 +32,8 @@ if( FUDforum===undefined ) {
             new SeLiteSettings.TestDbKeeper.Columns( {
                 users: {
                     key: 'login', // This is the logical/matching column, rather then a primary key
-                    columnsToPreserve: ['passwd']
+                    columnsToPreserve: ['passwd'],
+                    defaults: { passwd: '' }
                 }
             })
         );

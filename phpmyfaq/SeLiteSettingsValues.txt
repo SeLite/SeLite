@@ -1,1 +1,3 @@
 extensions.selite-settings.common.bootstrappedCoreExtensions SELITE_THIS_MANIFEST_FOLDER/phpmyfaq-framework.js
+# When this manifest is applied, the framework is not loaded yet! So the following fails:
+extensions.selite-settings.common.roles:editor Palo

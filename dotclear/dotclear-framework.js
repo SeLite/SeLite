@@ -116,9 +116,7 @@ if( Dotclear===undefined ) {
             user: {
                 key: 'user_id',
                 columnsToPreserve: ['user_pwd', 'user_options'],
-                defaults: {
-                    user_options: JSON.stringify({})
-                }
+                defaults: { user_options: JSON.stringify({}) }
             }
         })
     );

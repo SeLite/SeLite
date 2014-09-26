@@ -242,7 +242,8 @@ if( Serendipity===undefined ) {
             new SeLiteSettings.TestDbKeeper.Columns( {
                 authors: {
                     key: 'username', // This is the logical/matching column, rather than a primary key
-                    columnsToPreserve: ['password']
+                    columnsToPreserve: ['password'],
+                    defaults: { password: '' }
                 }
             })
         );

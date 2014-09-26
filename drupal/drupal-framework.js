@@ -34,7 +34,8 @@ if( Drupal===undefined ) {
             new SeLiteSettings.TestDbKeeper.Columns( {
                 users: {
                     key: 'name',
-                    columnsToPreserve: ['pass']
+                    columnsToPreserve: ['pass'],
+                    defaults: { pass: '' }
                 }
             })
         );
