@@ -9,13 +9,19 @@ var vanillaDB= new SeLiteSettings.Field.SQLite('vanillaDB');
 // This is needed because Selenium IDE desn't allow base URL to contain path (http://code.google.com/p/selenium/issues/detail?id=3116).
 var webRoot= new SeLiteSettings.Field.String('webRoot', /*multivalued:*/false, undefined);
 
+// Following two fields logically belong to SeLite Miscellaneous. However, they couldn't be defined in SeLiteExtensionSequencerManifest.js there, since SeLite Miscellaneous gets initialised before SeLite Settings (due to dependency), and therefore 'extensions.selite-settings.common' module wouldn' be defined yet.
+// 'name' attribute of login (username) field. It serves when storing passwords via Firefox login manager.
+var usernameField= new SeLiteSettings.Field.String('usernameField', /*multivalued:*/false, undefined);
+// 'name' attribute of password field. It serves when storing passwords via Firefox login manager.
+var passwordField= new SeLiteSettings.Field.String('passwordField', /*multivalued:*/false, undefined);
+
 /** A map: role symbolic name => user name. Add the keys in your custom framework. Use SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' ).getField( 'roles' ).addKeys( [...] ); 
  * Use SeLiteSettings.roleToUser() in your scripts to get the user for a given role.
  * */
 var roles= new SeLiteSettings.Field.FixedMap.String( 'roles', [], {} );
 
 var settingsModule= new SeLiteSettings.Module( 'extensions.selite-settings.common',
-    [appDB, testDB, vanillaDB, roles, webRoot],
+    [appDB, testDB, vanillaDB, roles, webRoot, usernameField, passwordField],
     /*allowSets:*/true,
     /*defaultSetName:*/null,
     /*associatesWithFolders:*/true,
