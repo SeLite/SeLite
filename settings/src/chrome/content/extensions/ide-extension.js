@@ -101,6 +101,7 @@
         }        
         var appStorage;
         if( reloadAppAndTest ) {
+            // @TODO why should test need app DB storage? See check for vanillaDB storage below
             appStorage= SeLiteData.getStorageFromSettings( appDbField, undefined, true/*dontCreate*/ );
             // appStorage.connection() may be null, if the app DB file doesn't exist yet
             !appStorage || !appStorage.connection() || appStorage.close( true );

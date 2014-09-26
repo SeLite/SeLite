@@ -895,6 +895,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
                     var updateParts= [];
                     var bindings= {};
                     var originals= {}; // Original values that I'm replacing. For logging only.
+                    // @TODO I could have two queries, one for each of the following if/else branch, and re-use them
                     if( this.data[tableName] && keyValue in this.data[tableName] ) { // Restore the original values as they were in test DB
                         for( var i=0; i<tableDetails.columnsToPreserve.length; i++ ) {// @TODO for(..of..)
                             var column= tableDetails.columnsToPreserve[i];
@@ -905,7 +906,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
                         }
                         console.debug( 'Updating ' +tableName+ ', record with ' +tableDetails.key+ '=' +keyValue+'. Replacing ' +SeLiteMisc.objectToString(originals, 2)+ ' with preserved test values ' +SeLiteMisc.objectToString(bindings, 2) );
                     }
-                    else { // Initiate values to their defaults
+                    else { // Initiate values of fields listed in columnsToPreserve to their defaults (if any specified)
                         for( var column in tableDetails.defaults ) {
                             tableDetails.columnsToPreserve.indexOf(column)>=0 || SeLiteMisc.fail( 'Column "' +column+ '" is in "defaults", but it is not in "columnsToPreserve".' );
                             updateParts.push( column+ '=:' +column );
