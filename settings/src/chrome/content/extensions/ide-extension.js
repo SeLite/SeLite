@@ -73,16 +73,32 @@
         
         var appDB= fields['appDB'].entry;
         var testDB= fields['testDB'].entry;
-        if( !appDB || !testDB ) {
-            alert( 'Please configure appDB and testDB as per https://code.google.com/p/selite/wiki/InstallFramework' );
+        if( !testDB ) {
+            alert( 'Please configure testDB (and appDB' +(
+                        reloadAppAndTest || reloadVanillaAndTest
+                        ? ' and vanillaDB'
+                        : ''
+                    )
+                    + ') and as per https://code.google.com/p/selite/wiki/InstallFramework' );
             return;
         }
-        var vanillaDB= fields['vanillaDB'].entry;
-        if( !vanillaDB ) {
-            alert( 'Please configure appDB and testDB as per https://code.google.com/p/selite/wiki/InstallFramework' );
+        if( !appDB ) {
+            alert( 'Please configure appDB (and testDB' +(
+                        reloadAppAndTest || reloadVanillaAndTest
+                        ? ' and vanillaDB'
+                        : ''
+                    )
+                    + ') and as per https://code.google.com/p/selite/wiki/InstallFramework' );
             return;
         }
-        
+        var vanillaDB;
+        if( reloadAppAndTest || reloadVanillaAndTest ) {
+            vanillaDB= fields['vanillaDB'].entry;
+            if( !vanillaDB ) {
+                alert( 'Please configure vanillaDB as per https://code.google.com/p/selite/wiki/InstallFramework' );
+                return;
+            }
+        }        
         var appStorage;
         if( reloadAppAndTest ) {
             appStorage= SeLiteData.getStorageFromSettings( appDbField, undefined, true/*dontCreate*/ );
