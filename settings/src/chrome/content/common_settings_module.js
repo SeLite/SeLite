@@ -18,7 +18,7 @@ var passwordField= new SeLiteSettings.Field.String('passwordField', /*multivalue
 /** A map: role symbolic name => user name. Add the keys in your custom framework. Use SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' ).getField( 'roles' ).addKeys( [...] ); 
  * Use SeLiteSettings.roleToUser() in your scripts to get the user for a given role.
  * */
-var roles= new SeLiteSettings.Field.FixedMap.String( 'roles', [], {} );
+var roles= new SeLiteSettings.Field.FixedMap.String( 'roles' );
 
 var settingsModule= new SeLiteSettings.Module( 'extensions.selite-settings.common',
     [appDB, testDB, vanillaDB, roles, webRoot, usernameField, passwordField],

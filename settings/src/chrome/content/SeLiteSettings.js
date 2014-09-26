@@ -229,7 +229,7 @@ SeLiteSettings.Field= function Field( name, multivalued, defaultKey, allowNull, 
     this.multivalued= multivalued;
     !this.multivalued || defaultKey===undefined || Array.isArray(defaultKey)
         || typeof defaultKey==='object' && this instanceof SeLiteSettings.Field.FixedMap
-        || SeLiteMisc.fail( "Multi valued field " +name+ " must have default a default key - an array (possibly empty []) or undefined." );
+        || SeLiteMisc.fail( "Multi valued field " +name+ " must have a default key: an array (possibly empty []), or an object for FixedMap, or undefined." );
     this.multivalued || defaultKey===undefined || defaultKey===null || typeof defaultKey!=='object' || SeLiteMisc.fail( 'Single valued field ' +name+ " must have default key a primitive or null.");
     this.defaultKey= defaultKey;
     this.allowNull= allowNull || false;
@@ -423,7 +423,7 @@ SeLiteSettings.Field.prototype.addValue= function addValue( setName, key, value 
     var setNameDot= setName!==''
         ? setName+'.'
         : '';
-    if( this instanceof SeLiteSettings.Field.FixedMap ) {
+    if( this instanceof SeLiteSettings.Field.FixedMap ) {//@TODO Why this check? I should allow undefined.
         value!==undefined || SeLiteMisc.fail( ''+this+ '.addValue() was called with key=' +key+ ' and value===undefined.' );
     }
     else {
@@ -704,13 +704,17 @@ SeLiteSettings.Field.Choice.String.prototype.constructor= SeLiteSettings.Field.C
 
 /** This represents a freetype map with a fixed keyset. This is an abstract class, serving as a parent.
  *  @param {string} name
- *  @param {(string|number)[]} keySet We only allow strings, or numbers, because they're stored as strings (as a part of preference names). keySet specifically can't contain Javascript expression undefined, since updateSpecial() depends on that. Numbers get transformed to strings.
+ *  @param {(string|number)[]} [keySet] We only allow strings, or numbers, because they're stored as strings (as a part of preference names). keySet specifically can't contain Javascript expression undefined, since updateSpecial() depends on that. Numbers get transformed to strings. It's optional, because test frameworks can add keys later via addKeys().
+ *  @param {object} [defaultMappings]
+ *  @param {function} customValidate
  * */
 SeLiteSettings.Field.FixedMap= function FixedMap( name, keySet, defaultMappings, customValidate ) {
     loadingPackageDefinition || this.constructor!==SeLiteSettings.Field.FixedMap
         || SeLiteMisc.fail( "Can't define instances of SeLiteSettings.Field.FixedMap class itself outside the package. Use SeLiteSettings.Field.FixedMap.Bool, SeLiteSettings.Field.FixedMap.Int, SeLiteSettings.Field.FixedMap.Decimal or SeLiteSettings.Field.FixedMap.String." );
+    defaultMappings= defaultMappings || {};
     SeLiteSettings.Field.NonChoice.call( this, name, /*multivalued*/true, defaultMappings, /*allowNull*/false, customValidate );
-    this.keySet= keySet.slice();
+    keySet= keySet || [];
+    this.keySet= keySet.slice(); // protective copy
     for( var i=0; i<this.keySet.length; i++ ) {
         var key= this.keySet[i];
         SeLiteMisc.ensureType( key, ['string', 'number'], 'Parameter keySet must contain strings and/or numbers only.' );
@@ -1347,9 +1351,9 @@ function removeCommentsGetLines( contents ) {
     return result;
 }
 
-// moduleName.fieldName valueOrNothing
+// 'moduleName.fieldName valueOrNothing' or 'moduleName.fixedMapFieldName:key valueOrNothing'
 // valueOrNothing can't start with whitespace
-var valuesLineRegex=      /^([^ \t]+)\.([^. \t]+)([ \t]+([^ \t].*))?$/;
+var valuesLineRegex=      /^([^ \t]+)\.([^. \t:]+)(:([^. \t]+))?([ \t]+([^ \t].*))?$/;
 
 // moduleName setName
 var associationLineRegex= /^([^ \t]+)[ \t]+([^ \t]+)$/;
@@ -1438,7 +1442,8 @@ function manifestsDownToFolder( folderPath, dontCache ) {
                 values[folder].push( {
                     moduleName: parts[1],
                     fieldName: parts[2],
-                    value: parts[4] // This is always non-null (it can be an empty string)
+                    fixedMapKey: parts[4],
+                    value: parts[6] // This is always non-null (it can be an empty string)
                 } );
             }
         }
@@ -1587,17 +1592,24 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
                     }
                     if( field.multivalued || field instanceof SeLiteSettings.Field.Choice ) {
                         
-                        if( result[manifest.fieldName].folderPath!=manifestFolder ) {
-                            // override any less local value(s) from a manifest from upper folders
+                        if( result[manifest.fieldName].folderPath!=manifestFolder ) {//@TODO Do I need this if() check? Check SettingsScope.wiki
+                            // override any less local value(s) from any manifest from upper folders
                             result[ manifest.fieldName ].entry= !(field instanceof SeLiteSettings.Field.Choice)
                                 ? SeLiteMisc.sortedObject( field.compareValues )
                                 : {};
                         }
                         if( manifest.value!==SeLiteSettings.VALUE_PRESENT ) {
-                            result[ manifest.fieldName ].entry[ manifest.value ]=
-                                field instanceof SeLiteSettings.Field.Choice && manifest.value in field.choicePairs
-                                ? field.choicePairs[ manifest.value ]
-                                : manifest.value;
+                            if( !(field instanceof SeLiteSettings.Field.FixedMap) ) {
+                                result[ manifest.fieldName ].entry[ manifest.value ]=
+                                    field instanceof SeLiteSettings.Field.Choice && manifest.value in field.choicePairs
+                                    ? field.choicePairs[ manifest.value ]
+                                    : manifest.value;
+                            }
+                            else {
+                                // @TODO If we load frameworks automatically somehow, then load them before applying the rest of the manifests. Then change the following console.warn() to SeLiteMisc.fail():
+                                field.keySet.indexOf(manifest.fixedMapKey)>=0 || console.warn( 'FixedMap ' +field.name+ " uses (yet) undefined key: " +manifest.fixedMapKey+ ' (which has value: ' +manifest.value+ ').' );
+                                result[ manifest.fieldName ].entry[ manifest.fixedMapKey ]= manifest.value;
+                            }    
                         }
                     }
                     else { // single-valued, non-choice field:

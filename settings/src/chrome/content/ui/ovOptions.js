@@ -475,7 +475,6 @@ function nullOrUndefineLabel( field, valueCompound, atOptionLevel, value ) {
  *  @return object for a new element <treeitem> with one <treerow>
  * */
 function generateTreeItem( module, setName, field, valueOrPair, rowLevel, optionIsSelected, isNewValueRow, valueCompound ) {
-    //if( field instanceof SeLiteSettings.Field.FixedMap ) { console.log( SeLiteMisc.objectToString(valueCompound, 3)); }
     if( !(rowLevel instanceof RowLevel) || rowLevel===RowLevel.CHECKBOX || rowLevel===RowLevel.ACTION ) {
         throw new Error("Parameter rowLevel must be an instance of RowLevel, but not CHECKBOX neither ACTION.");
     }
@@ -529,13 +528,15 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     // Cell for name of the Module/Set/Field, and for keys of SeLiteSettings.Field.FixedMap
     var treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
-    treecell.setAttribute('label', !rowLevel.blank
-        ? rowLevel.forLevel( moduleName, setName, undefined, fieldName,
-            field instanceof SeLiteSettings.Field.FixedMap
-                ? key
-                : ''
-          )
-        : '' );
+    treecell.setAttribute( 'label',
+        rowLevel.blank
+            ? ''
+            : rowLevel.forLevel( moduleName, setName, undefined, fieldName,
+                field instanceof SeLiteSettings.Field.FixedMap
+                    ? key
+                    : ''
+              )
+    );
     treecell.setAttribute('editable', 'false');
 
     if( allowSets ) { // Radio-like checkbox for selecting a set
@@ -692,7 +693,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
             }
         }
         if( rowLevel===RowLevel.FIELD || !showingPerFolder() && rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap ) {
-            // per-folder view: Manifest or definition; per-module view: Null/Undefine
+            // If per-folder view: show Manifest or definition. Otherwise (i.e. per-module view): show Null/Undefine.
             treecell= document.createElementNS( XUL_NS, 'treecell');
             treerow.appendChild( treecell);
             treecell.setAttribute('editable', 'false');
@@ -740,6 +741,7 @@ function generateSets( moduleChildren, module ) {
         for( var i=0; i<setNames.length; i++ ) {
             var setName= setNames[i];
             // setFields includes all fields from Preferences DB for the module name, even if they are not in the module definition
+            
             var setFields= !showingPerFolder()
                 ? module.getFieldsOfSet( setName )
                 : module.getFieldsDownToFolder( targetFolder, true );
