@@ -37,7 +37,8 @@ if( phpMyFAQ===undefined ) {
         new SeLiteSettings.TestDbKeeper.Columns( {
             userlogin: {
                 key: 'login', // This is the logical/matching column, rather than a primary key
-                columns: ['login', 'pass']
+                columnsToPreserve: ['pass'],
+                defaults: { pass: '' }
             }
         })
     );

@@ -820,8 +820,8 @@ SeLiteSettings.TestDbKeeper.Columns= function Columns( description ) {
     for( var tableName in description ) {
         var tableDetails= description[tableName];
         SeLiteMisc.ensureType( tableDetails.key, 'string' );
-        SeLiteMisc.ensureInstance( tableDetails.columns, Array );
-        tableDetails.columns.indexOf(tableDetails.key)>=0 || SeLiteMisc.fail( 'SeLiteSettings.TestDbKeeper.Columns() needs a parameter slice for table ' +tableName+ ' to contain the key you have given - ' +tableDetails.key );
+        SeLiteMisc.ensureInstance( tableDetails.columnsToPreserve, Array );
+        tableDetails.columnsToPreserve.indexOf(tableDetails.key)<0 || SeLiteMisc.fail( 'SeLiteSettings.TestDbKeeper.Columns() needs sub-parameter columnsToPreserve for table ' +tableName+ ' not to contain the key ' +tableDetails.key );
     }
     this.data= {};
 };
@@ -833,19 +833,19 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.constructor= SeLiteSettings.TestDb
  */
 SeLiteSettings.TestDbKeeper.Columns.prototype.initialise= function initialise( testStorage ) {
     SeLiteSettings.TestDbKeeper.prototype.initialise.call( this, testStorage );
-    //this.tables= {}; // string tableName => SeLiteData.Table
     this.formulas= {}; // string tableName => SeLiteData.RecordSetFormula
     for( var tableName in this.description ) {
         var tableDetails= this.description[tableName];
+        var columns= tableDetails.columnsToPreserve.slice(); // protective copy
+        columns.push( tableDetails.key );
         var table= new SeLiteData.Table( {
             db: this.db,
             name: tableName,
-            columns: tableDetails.columns,
+            columns: columns,
         });
-        //this.tables[ tableName ]= table;
         this.formulas[ tableName ]= new SeLiteData.RecordSetFormula( {
             table: table,
-            columns: new SeLiteData.Settable().set( tableName, tableDetails.columns ),
+            columns: new SeLiteData.Settable().set( tableName, columns ),
             indexBy: tableDetails.key,
             indexUnique: true
         });
@@ -895,22 +895,19 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
                     var updateParts= [];
                     var bindings= {};
                     var originals= {}; // Original values that I'm replacing. For logging only.
-                    if( this.data[tableName] && keyValue in this.data[tableName] ) {
-                        for( var i=0; i<tableDetails.columns.length; i++ ) {// @TODO for(..of..)
-                            var column= tableDetails.columns[i];
-                            if( column!==tableDetails.key ) {
-                                var oldValue= this.data[ tableName ][ keyValue ][ column ];
-                                updateParts.push( column+ '=:' +column );
-                                bindings[ column ]= oldValue;
-                                originals[ column ]= reloadedData[ keyValue ][ column ];
-                            }
+                    if( this.data[tableName] && keyValue in this.data[tableName] ) { // Restore the original values as they were in test DB
+                        for( var i=0; i<tableDetails.columnsToPreserve.length; i++ ) {// @TODO for(..of..)
+                            var column= tableDetails.columnsToPreserve[i];
+                            var oldValue= this.data[ tableName ][ keyValue ][ column ];
+                            updateParts.push( column+ '=:' +column );
+                            bindings[ column ]= oldValue;
+                            originals[ column ]= reloadedData[ keyValue ][ column ];
                         }
                         console.debug( 'Updating ' +tableName+ ', record with ' +tableDetails.key+ '=' +keyValue+'. Replacing ' +SeLiteMisc.objectToString(originals, 2)+ ' with preserved test values ' +SeLiteMisc.objectToString(bindings, 2) );
                     }
-                    else {
+                    else { // Initiate values to their defaults
                         for( var column in tableDetails.defaults ) {
-                            tableDetails.columns.indexOf(column)>=0 || SeLiteMisc.fail( 'Column "' +column+ '" is in "defaults", but it is not in "columns".' );
-                            column!==tableDetails.key || SeLiteMisc.fail( '"defaults" cannot contain the table key ' +column);
+                            tableDetails.columnsToPreserve.indexOf(column)>=0 || SeLiteMisc.fail( 'Column "' +column+ '" is in "defaults", but it is not in "columnsToPreserve".' );
                             updateParts.push( column+ '=:' +column );
                             bindings[ column ]= tableDetails.defaults[column];
                             originals[ column ]= reloadedData[ keyValue ][ column ];

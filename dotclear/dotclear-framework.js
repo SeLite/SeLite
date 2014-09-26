@@ -115,7 +115,7 @@ if( Dotclear===undefined ) {
         new SeLiteSettings.TestDbKeeper.Columns( {
             user: {
                 key: 'user_id',
-                columns: ['user_id', 'user_pwd', 'user_options'],
+                columnsToPreserve: ['user_pwd', 'user_options'],
                 defaults: {
                     user_options: JSON.stringify({})
                 }
