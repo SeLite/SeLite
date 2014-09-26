@@ -167,7 +167,7 @@ var moduleNameRegex= /^[a-zA-Z0-9_/-][a-zA-Z0-9_/.-]*[a-zA-Z0-9_/-]$/;
  *   Set/SeLiteSettings.Field names and multi-value field keys can't contain dots.
  *  @param name
  *  @param description String to describe what is being checked, if the check fails.
- *  @param bool asFieldName Whether to check as a field name; otherwise it's deemed to be a field/set name. False by default.
+ *  @param {bool} [asModuleOrSetName] Whether to check as a module/set name; otherwise it's deemed to be a field or FixedMap key name. False by default.
  * */
 function ensureFieldName( name, description, asModuleOrSetName ) {
     var regex= asModuleOrSetName
@@ -175,7 +175,7 @@ function ensureFieldName( name, description, asModuleOrSetName ) {
         : fieldNameRegex;
     if( !regex.test( name ) ) {
         throw new Error( 'SeLiteSettings expect ' +description+ ' to be a valid preference '
-            +(asModuleOrSetName ? 'module or set' : 'field')+ ' name, but "' +name+ '" was passed.');
+            +(asModuleOrSetName ? 'module or set name' : 'field name or FixedMap key')+ ', but "' +name+ '" was passed.');
     }
 }
 
@@ -718,6 +718,7 @@ SeLiteSettings.Field.FixedMap= function FixedMap( name, keySet, defaultMappings,
     for( var i=0; i<this.keySet.length; i++ ) {
         var key= this.keySet[i];
         SeLiteMisc.ensureType( key, ['string', 'number'], 'Parameter keySet must contain strings and/or numbers only.' );
+        ensureFieldName(key);
         this.keySet[i]= ''+key;
     }
     for( var key in defaultMappings ) {
@@ -744,7 +745,8 @@ SeLiteSettings.Field.FixedMap.prototype.addKey= function addKey( key, defaultVal
     if( !this.module.addedKeys[this.name] ) {
         this.module.addedKeys[this.name]= {};
     }
-    //@TODO validation - like in SeLiteSettings.Field.FixedMap()
+    SeLiteMisc.ensureType( key, ['string', 'number'], 'Parameter keySet must contain strings and/or numbers only.' );
+    ensureFieldName(key);
     this.keySet.push( key );
     if( defaultValue!==undefined ) {
         this.defaultKey[ key ]= defaultValue;
