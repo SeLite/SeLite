@@ -1131,7 +1131,14 @@ function treeClickHandler( event ) {
                     ? fieldRow // field other than SeLiteSettings.Field.FixedMap
                     : treeRowsOrChildren[moduleName][selectedSetName][field.name][clickedOptionKey]; // for SeLiteSettings.Field.FixedMap
                 */
-                var valueCell= treeCell( fieldRow, RowLevel.FIELD );
+                var rowToUpdate;
+                if( clickedOptionKey ) { // The user clicked at 'undefine' for an option of a FixedMap instance
+                    rowToUpdate= moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ]; // same as clickedTreeRow above
+                }
+                else {
+                    rowToUpdate= fieldRow;
+                }
+                var valueCell= treeCell( rowToUpdate, RowLevel.FIELD );
                 valueCell.setAttribute( 'properties',
                     cellText==='Null' || cellText==='Undefine'
                         ? SeLiteSettings.FIELD_NULL_OR_UNDEFINED
@@ -1147,14 +1154,8 @@ function treeClickHandler( event ) {
                 if( column.value.element===treeColumnElements.checked ) { // This clears the previous label 'undefined' or 'null' (if any)
                     valueCell.setAttribute( 'label', '' );
                 }
-                var rowToUpdateLabel;
-                if( clickedOptionKey ) { // This is when a user clicks at 'undefine' for an option of a FixedMap instance
-                    rowToUpdateLabel= moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ]; // same as clickedTreeRow above
-                }
-                else {
-                    rowToUpdateLabel= fieldRow;
-                }
-                treeCell( rowToUpdateLabel, RowLevel.NULL_OR_UNDEFINE ).setAttribute( 'label',
+            
+                treeCell( rowToUpdate, RowLevel.NULL_OR_UNDEFINE ).setAttribute( 'label',
                     clickedOptionKey===undefined
                     ? nullOrUndefineLabel( field, valueCompound(field, selectedSetName) )
                     : nullOrUndefineLabel( field, valueCompound(field, selectedSetName), true,
