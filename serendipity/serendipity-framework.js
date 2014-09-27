@@ -34,7 +34,7 @@ if( Serendipity===undefined ) {
         /** @type {SeLiteSettings.Module} */
         var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
         commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor', 'contributor'] );
-        commonSettings.removeField( 'webRoot');
+        commonSettings.removeField( 'webRoot'); // see Serendipity.webRoot()
         console.log( 'Serendipity:' +Serendipity);
         /** This sets the user, used by Selenium.prototype.readSerendipityEditorBody() and the related functions to determine whether to use a rich editor or not.
          * @param {string} givenUsername User's username (not the role name).
