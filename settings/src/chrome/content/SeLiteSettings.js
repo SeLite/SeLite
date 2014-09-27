@@ -451,7 +451,7 @@ SeLiteSettings.Field.prototype.removeValue= function removeValue( setName, key )
     }
 };
 
-/** @return bool
+/** @return bool Whether field definition equals to the other field. This doesn't compare their module names.
  * */
 SeLiteSettings.Field.prototype.equals= function equals( other ) {
     return this.name===other.name
@@ -485,6 +485,9 @@ SeLiteSettings.Field.Bool= function Bool( name, defaultKey, allowNull ) {
 };
 SeLiteSettings.Field.Bool.prototype= new SeLiteSettings.Field.NonChoice('Bool.prototype');
 SeLiteSettings.Field.Bool.prototype.constructor= SeLiteSettings.Field.Bool;
+SeLiteSettings.Field.Bool.prototype.parse= function parse( key ) {
+    return key==='true'; // Do not use Boolean(key), because Boolean('false')===true!
+}
 SeLiteSettings.Field.Bool.prototype.validateKey= function validateKey( key ) {
     return typeof key==='boolean';
 };
@@ -1616,7 +1619,7 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
                     }
                     else { // single-valued, non-choice field:
                         result[ manifest.fieldName ].entry= manifest.value!==SeLiteSettings.NULL
-                            ? manifest.value
+                            ? field.parse(manifest.value)
                             : null;
                     }
                     result[ manifest.fieldName ].folderPath= manifestFolder;
