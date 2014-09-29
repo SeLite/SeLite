@@ -541,7 +541,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         treerow.appendChild( treecell);
         if( rowLevel===RowLevel.SET && module.allowSets) {
             subContainer( treeRowsOrChildren, module.name, setName )[ SeLiteSettings.SET_SELECTION_ROW ]= treerow;
-            treecell.setAttribute('value', ''+( setName==module.defaultSetName() ) );
+            treecell.setAttribute('value', ''+( setName===module.defaultSetName() ) );
         }
         else {
             treecell.setAttribute('value', 'false' );
@@ -895,17 +895,17 @@ function treeClickHandler( event ) {
             var cellText= tree.view.getCellText(row.value, column.value);
             
             var selectedSetName= propertiesPart( rowProperties, RowLevel.SET );
-            if( allowSets && column.value.element===treeColumnElements.defaultSet && cellIsEditable ) { // Make the selected set be default, or unflag it as default. If making it the default, de-select previously default set (if any)
+            if( allowSets && column.value.element===treeColumnElements.defaultSet && cellIsEditable ) { // Make the selected set be default, or unflag it as default.
+                debugger;
                 module.setDefaultSetName( cellValue==='true'
                     ? selectedSetName
                     : null
                 );
                 modifiedPreferences= true;
-                if( cellValue==='true' ) {
+                if( cellValue==='true' ) { // Making it the default, hence de-select previously default set (if any)
                     for( var setName in moduleRowsOrChildren ) {
                         var treeRow= moduleRowsOrChildren[setName][SeLiteSettings.SET_SELECTION_ROW];
                         var cell= treeCell( treeRow, RowLevel.SET );
-                        cell.setAttribute( 'editable', ''+(setName!==selectedSetName) );
                         if( setName!==selectedSetName) {
                             cell.setAttribute( 'value', 'false' );
                         }
