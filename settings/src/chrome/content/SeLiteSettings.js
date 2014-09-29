@@ -1179,15 +1179,20 @@ SeLiteSettings.Module.prototype.defaultSetName= function defaultSetName() {
 };
 
 /** It marks the given set as the default set for the module. It doesn't call nsIPrefService.savePrefFile().
- *  @param string name of the set to become default
+ *  @param string name of the set to become default. If null/undefined/empty, then this deselects the default set.
  *  @throws If the module doesn't allow sets.
  * */
 SeLiteSettings.Module.prototype.setDefaultSetName= function setDefaultSetName( setName ) {
     if( !this.allowSets ) {
         throw new Error( "SeLiteSettings.Module '" +this.name+ "' doesn't allow sets.");
     }
-    ensureFieldName( setName, 'setName', true );
-    this.prefsBranch.setCharPref( SeLiteSettings.DEFAULT_SET_NAME, setName );
+    !setName || ensureFieldName( setName, 'setName', true );
+    if( setName ) {
+        this.prefsBranch.setCharPref( SeLiteSettings.DEFAULT_SET_NAME, setName );
+    }
+    else {
+        this.prefsBranch.clearUserPref( SeLiteSettings.DEFAULT_SET_NAME );
+    }
 };
 
 /** @param setName Name of the set; optional; undefined or an empty string if the module doesn't allow sets, or if you want the default set.
@@ -1576,11 +1581,11 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
     
     var manifests= manifestsDownToFolder(folderPath, dontCache);
     
-    // First, load values from values manifests.
+    // First, merge values from values manifests.
     for( var manifestFolder in manifests.values ) {
-        for( var i=0; i<manifests.values[manifestFolder].length; i++ ) {
-            
+        for( var i=0; i<manifests.values[manifestFolder].length; i++ ) { //@TODO for .. of..
             var manifest= manifests.values[manifestFolder][i];
+            
             if( manifest.moduleName==this.name ) {
                 if( manifest.fieldName in this.fields ) {
                     
@@ -1595,9 +1600,8 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
                         manifest.value= OS.Path.normalize( manifest.value );
                     }
                     if( field.multivalued || field instanceof SeLiteSettings.Field.Choice ) {
-                        
-                        if( result[manifest.fieldName].folderPath!=manifestFolder ) {//@TODO Do I need this if() check? Check SettingsScope.wiki
-                            // override any less local value(s) from any manifest from upper folders
+                        // If the field has any values from higher folders, forget them. The field may already have values from this same folder from the previous iterations - keep those.
+                        if( result[manifest.fieldName].folderPath!=manifestFolder ) {
                             result[ manifest.fieldName ].entry= !(field instanceof SeLiteSettings.Field.Choice)
                                 ? SeLiteMisc.sortedObject( field.compareValues )
                                 : {};
@@ -1817,7 +1821,7 @@ SeLiteSettings.Module.prototype.createSet= function createSet( setName ) {
     if( setName!=='' ) {
         ensureFieldName( setName, 'set name', true);
     }
-    SeLiteMisc.ensure( !(this.associatesWithFolders && setName===''), 'SeLiteSettings.Module associates with folders, therefore a set name cannot be empty.' ); // @TODO why this limitation?
+    this.allowSets===Boolean(setName) || SeLiteMisc.fail( "Module " +this.name+ (this.allowSets ? " allows" : " doesn't allow")+ " sets, but the given set name is " +setName );
     
     // Following makes the set show up even if
     // it has no stored fields. That is initially, or later (if the user deletes all the values in the set) - therefore I do this now.

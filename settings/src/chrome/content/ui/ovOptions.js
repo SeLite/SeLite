@@ -358,11 +358,7 @@ var modules= SeLiteMisc.sortedObject(true);
     *   }
     *   ...
  *  }
- * Reasons for having it:
- * 1. I want users to select a set (and then I deselect the previously default set).
- * But I don't want users to deselect currently selected set (that would leave its module without a selected set). @TODO Relax that.
- * So when a user selects a set, I change its 'editable' attribute to false. Navigating tree using DOM functions seems to be more complex.
-   2. I use this when saving a set/module/all displayed modules.
+ * I use this when saving a set/module/all displayed modules.
  *  * */
 var treeRowsOrChildren= SeLiteMisc.sortedObject(true);
 
@@ -540,14 +536,12 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     );
     treecell.setAttribute('editable', 'false');
 
-    if( allowSets ) { // Radio-like checkbox for selecting a set
+    if( allowSets ) { // Radio-like checkbox for (de)selecting a set
         treecell= document.createElementNS( XUL_NS, 'treecell');
         treerow.appendChild( treecell);
         if( rowLevel===RowLevel.SET && module.allowSets) {
             subContainer( treeRowsOrChildren, module.name, setName )[ SeLiteSettings.SET_SELECTION_ROW ]= treerow;
-            var thisSetIsDefault= setName==module.defaultSetName();
-            treecell.setAttribute('value', ''+thisSetIsDefault );
-            treecell.setAttribute('editable', ''+!thisSetIsDefault ); // I allow to select an unselected set, but not to de-select a selected set //@TODO Relax this
+            treecell.setAttribute('value', ''+( setName==module.defaultSetName() ) );
         }
         else {
             treecell.setAttribute('value', 'false' );
@@ -606,9 +600,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     ) {
         treecell.setAttribute('editable' , 'false');
     }
-    else {
-        //treecell.setAttribute( 'tooltip', 'tooltip'); //@TODO?
-    }
+    
     var isNull, isNullOrUndefined;
     if( rowLevel===RowLevel.FIELD ) {
         valueCompound.entry!==null || !field.multivalued || SeLiteMisc.fail( 'Field ' +field.name + ' is multivalued, yet its compoundValue.entry is null. In per-folder mode: ' +showingPerFolder() );
@@ -903,17 +895,20 @@ function treeClickHandler( event ) {
             var cellText= tree.view.getCellText(row.value, column.value);
             
             var selectedSetName= propertiesPart( rowProperties, RowLevel.SET );
-            if( allowSets && column.value.element===treeColumnElements.defaultSet && cellIsEditable ) { // Make the clicked set be the default, de-select previously default set (if any)
-                cellValue==='true' || SeLiteMisc.fail( 'Only unselected sets should have the set selection column editable.' );
-                module.setDefaultSetName( selectedSetName );
+            if( allowSets && column.value.element===treeColumnElements.defaultSet && cellIsEditable ) { // Make the selected set be default, or unflag it as default. If making it the default, de-select previously default set (if any)
+                module.setDefaultSetName( cellValue==='true'
+                    ? selectedSetName
+                    : null
+                );
                 modifiedPreferences= true;
-                
-                for( var setName in moduleRowsOrChildren ) {
-                    var treeRow= moduleRowsOrChildren[setName][SeLiteSettings.SET_SELECTION_ROW];
-                    var cell= treeCell( treeRow, RowLevel.SET );
-                    cell.setAttribute( 'editable', ''+(setName!==selectedSetName) );
-                    if( setName!==selectedSetName) {
-                        cell.setAttribute( 'value', 'false' );
+                if( cellValue==='true' ) {
+                    for( var setName in moduleRowsOrChildren ) {
+                        var treeRow= moduleRowsOrChildren[setName][SeLiteSettings.SET_SELECTION_ROW];
+                        var cell= treeCell( treeRow, RowLevel.SET );
+                        cell.setAttribute( 'editable', ''+(setName!==selectedSetName) );
+                        if( setName!==selectedSetName) {
+                            cell.setAttribute( 'value', 'false' );
+                        }
                     }
                 }
                 SeLiteSettings.changedDefaultSet();
@@ -992,11 +987,10 @@ function treeClickHandler( event ) {
                         }
                     }
                     if( cellText===DELETE_THE_SET ) {
-                        if( selectedSetName===module.defaultSetName() ) {
-                            alert( "Please select (or create and select) a different set before you remove this one." ); // @TODO relax this
-                            return;
-                        }
                         if( confirm('Are you sure you want to delete this set?') ) {
+                            if( selectedSetName===module.defaultSetName() ) {
+                                module.setDefaultSetName();
+                            }
                             module.removeSet( selectedSetName);
                             SeLiteSettings.savePrefFile(); // Must save here, before reload()
                             window.location.reload();
@@ -1123,7 +1117,7 @@ function treeClickHandler( event ) {
         if( modifiedPreferences ) {
             SeLiteSettings.savePrefFile();
             
-            if( column.value.element!==treeColumnElements.selectedSet ) {
+            if( column.value.element!==treeColumnElements.defaultSet ) {
                 moduleSetFields[moduleName][selectedSetName]= module.getFieldsOfSet( selectedSetName );
                 
                 var fieldRow= fieldTreeRow(selectedSetName, field);
