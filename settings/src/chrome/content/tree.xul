@@ -15,12 +15,12 @@ treechildren::-moz-tree-checkbox(SELITE_OPTION_NOT_UNIQUE_CELL,checked) {
 }
 
 /* See Firefox url chrome://global/skin/checkbox/ > 'Up to higher level directory'. */
-treechildren::-moz-tree-checkbox(SELITE_SELECTED_SET_NAME,checked),
+treechildren::-moz-tree-checkbox(SELITE_DEFAULT_SET_NAME,checked),
 treechildren::-moz-tree-checkbox(SELITE_OPTION_UNIQUE_CELL,checked) {
   list-style-image: url('chrome://global/skin/radio/radio-check.gif');
 }
 
-treechildren::-moz-tree-cell-text(SELITE_SELECTED_SET) {
+treechildren::-moz-tree-cell-text(SELITE_DEFAULT_SET) {
     color: blue;
 }
 
@@ -41,7 +41,7 @@ treechildren::-moz-tree-cell-text(SELITE_FIELD_NULL_OR_UNDEFINED) {
     <!-- Can't have tooltip per cell. See http://forums.mozillazine.org/viewtopic.php?f=19&p=6445785
     and https://developer.mozilla.org/en-US/docs/XUL/PopupGuide/Tooltips#Tooltips_in_Trees
     -->
-    <tooltip id="tooltipActive" label="Click at cells to make a set active"/>
+    <tooltip id="tooltipActive" label="Click at cells to make a set default"/>
     <tooltip id="tooltipChoice" label="Click at cells to toggle checked/unchecked or to select/deselect a choice (where applicable)"/>
     <tooltip id="tooltipValue" label="Click at cells to edit the value (where applicable)"/>
     <tooltip id="tooltipNull" label="Click at cells to make the value null/undefined"/>

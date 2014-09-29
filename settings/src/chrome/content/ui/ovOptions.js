@@ -205,7 +205,7 @@ RowLevel.prototype.forLevel= function forLevel( forModule, forSet, forCheckbox, 
  */
 var treeColumnElements= {
     moduleSetField: null,
-    selectedSet: null,
+    defaultSet: null,
     checked: null,
     value: null,
     action: null, // This is 'Set' in folder-based view
@@ -261,12 +261,12 @@ function generateTreeColumns( allowModules, perFolder ) {
     treecols.appendChild( splitter );
     
     if( allowSets ) {
-        treecol= treeColumnElements.selectedSet= document.createElementNS( XUL_NS, 'treecol');
-        treecol.setAttribute('label', 'Active');
+        treecol= treeColumnElements.defaultSet= document.createElementNS( XUL_NS, 'treecol');
+        treecol.setAttribute('label', 'Default');
         treecol.setAttribute('type', 'checkbox');
         treecol.setAttribute('editable', 'true' );
         treecol.setAttribute( 'ordinal', '3');
-        treecol.setAttribute( 'tooltip', 'tooltipActive');
+        treecol.setAttribute( 'tooltip', 'tooltipDefault');
         treecols.appendChild(treecol);
         
         splitter= document.createElementNS( XUL_NS, 'splitter' );
@@ -359,8 +359,8 @@ var modules= SeLiteMisc.sortedObject(true);
     *   ...
  *  }
  * Reasons for having it:
- * 1. I want users to select a set (and then I deselect the previously selected set).
- * But I don't want users to deselect currently selected set (that would leave its module without a selected set).
+ * 1. I want users to select a set (and then I deselect the previously default set).
+ * But I don't want users to deselect currently selected set (that would leave its module without a selected set). @TODO Relax that.
  * So when a user selects a set, I change its 'editable' attribute to false. Navigating tree using DOM functions seems to be more complex.
    2. I use this when saving a set/module/all displayed modules.
  *  * */
@@ -468,7 +468,7 @@ function nullOrUndefineLabel( field, valueCompound, atOptionLevel, value ) {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or from field default,
  *          setName: string set name (only valid if fromPreferences is true),
  *          folderPath: string folder path to the manifest file (either values manifest, or associations manifest);
- *              empty string '' if the value(s) come from a global (active) set;
+ *              empty string '' if the value(s) come from the default set;
  *              null if fromPreferences===true or if the value comes from field default (as in the module definition)
  *          entry: as described for Module.getFieldsDownToFolder(..)
  *  }
@@ -545,15 +545,15 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         treerow.appendChild( treecell);
         if( rowLevel===RowLevel.SET && module.allowSets) {
             subContainer( treeRowsOrChildren, module.name, setName )[ SeLiteSettings.SET_SELECTION_ROW ]= treerow;
-            var thisSetSelected= setName==module.selectedSetName();
-            treecell.setAttribute('value', ''+thisSetSelected );
-            treecell.setAttribute('editable', ''+!thisSetSelected ); // I allow to select an unselected set, but not to de-select a selected set
+            var thisSetIsDefault= setName==module.defaultSetName();
+            treecell.setAttribute('value', ''+thisSetIsDefault );
+            treecell.setAttribute('editable', ''+!thisSetIsDefault ); // I allow to select an unselected set, but not to de-select a selected set //@TODO Relax this
         }
         else {
             treecell.setAttribute('value', 'false' );
             treecell.setAttribute('editable', 'false' );
         }
-        treecell.setAttribute('properties', SeLiteSettings.SELECTED_SET_NAME ); // so that I can style it in CSS as a radio button
+        treecell.setAttribute('properties', SeLiteSettings.DEFAULT_SET_NAME ); // so that I can style it in CSS as a radio button
     }
     // Register treerow in treeRowsOrChildren[][...]
     if( rowLevel===RowLevel.FIELD ) {
@@ -634,7 +634,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                 treecell.setAttribute( 'properties',
                     valueCompound.folderPath!==''
                         ? SeLiteSettings.ASSOCIATED_SET
-                        : SeLiteSettings.SELECTED_SET
+                        : SeLiteSettings.DEFAULT_SET
                 );
             }
             else {
@@ -684,8 +684,8 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                             : 'module default'
                       )
                 );
-                if( valueCompound.fromPreferences && valueCompound.setName===module.selectedSetName() ) {
-                    treecell.setAttribute( 'properties', SeLiteSettings.SELECTED_SET );
+                if( valueCompound.fromPreferences && valueCompound.setName===module.defaultSetName() ) {
+                    treecell.setAttribute( 'properties', SeLiteSettings.DEFAULT_SET );
                 }
                 else
                 if( !valueCompound.fromPreferences && valueCompound.folderPath===null ) {
@@ -903,9 +903,9 @@ function treeClickHandler( event ) {
             var cellText= tree.view.getCellText(row.value, column.value);
             
             var selectedSetName= propertiesPart( rowProperties, RowLevel.SET );
-            if( allowSets && column.value.element===treeColumnElements.selectedSet && cellIsEditable ) { // Select the clicked set, de-select previously selected set
+            if( allowSets && column.value.element===treeColumnElements.defaultSet && cellIsEditable ) { // Make the clicked set be the default, de-select previously default set (if any)
                 cellValue==='true' || SeLiteMisc.fail( 'Only unselected sets should have the set selection column editable.' );
-                module.setSelectedSetName( selectedSetName );
+                module.setDefaultSetName( selectedSetName );
                 modifiedPreferences= true;
                 
                 for( var setName in moduleRowsOrChildren ) {
@@ -992,8 +992,8 @@ function treeClickHandler( event ) {
                         }
                     }
                     if( cellText===DELETE_THE_SET ) {
-                        if( selectedSetName===module.selectedSetName() ) {
-                            alert( "Please select (or create and select) a different set before you remove this one." );
+                        if( selectedSetName===module.defaultSetName() ) {
+                            alert( "Please select (or create and select) a different set before you remove this one." ); // @TODO relax this
                             return;
                         }
                         if( confirm('Are you sure you want to delete this set?') ) {
@@ -1132,6 +1132,7 @@ function treeClickHandler( event ) {
                     : treeRowsOrChildren[moduleName][selectedSetName][field.name][clickedOptionKey]; // for SeLiteSettings.Field.FixedMap
                 */
                 var rowToUpdate;
+                !clickedOptionKey || field instanceof SeLiteSettings.Field.FixedMap || SeLiteMisc.fail( "When clickedOptionKey is set, the field should be a FixedMap instance."); //@TODO check this
                 if( clickedOptionKey ) { // The user clicked at 'undefine' for an option of a FixedMap instance
                     rowToUpdate= moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ]; // same as clickedTreeRow above
                 }
@@ -1162,6 +1163,10 @@ function treeClickHandler( event ) {
                         moduleSetFields[moduleName][selectedSetName][field.name].entry[clickedOptionKey]
                       )
                 );
+                //@TODO
+                if( clickedOptionKey ) {
+                    // fieldRow: 1. 'undefined' 2. Null/Undefine
+                }
             }
         }
     }
