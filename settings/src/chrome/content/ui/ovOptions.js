@@ -15,6 +15,9 @@
 */
 "use strict";
 
+/* This has many workarounds because of inflexibility in Mozilla XUL model. It can run in two main modes: editable (showing all sets for any modules, or for matching modules) and review (per-folder).
+ * On change of fields, it doesn't reload the page, but it only updates elements as needed. However, if you add/remove a configuration set, then it reloads the whole page, which loses the collapse/expand status.
+ * */
 var XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 var nsIFilePicker = Components.interfaces.nsIFilePicker;
 Components.utils.import("resource://gre/modules/FileUtils.jsm" );
@@ -860,7 +863,7 @@ function onTreeBlur() {
     //console.log('onblur; newValueRow: ' +newValueRow+ '; pastFirstBlur: ' +pastFirstBlur);
     if( newValueRow!==undefined ) {
         if( pastFirstBlur ) {
-            var info= gatherAndValidateCell( newValueRow, '' ); // This assumes that a new value is only empty. Otherwise we'd have to retrieve the actual value. 
+            var info= preProcessEdit( newValueRow, '' ); // This assumes that a new value is only empty. Otherwise we'd have to retrieve the actual value. 
             // If validation fails, I'm not calling startEditing(..). See notes in setCellText()
             pastFirstBlur= false;
             newValueRow= undefined;
@@ -1176,8 +1179,8 @@ function fieldTreeRow( setName, field ) {
         : treeRowsOrChildren[field.module.name][setName][field.name][SeLiteSettings.FIELD_MAIN_ROW];
 }
 
-/** Gather some information about the cell, the field, set and module.
- *  Validate the value.
+/** Gather some information about the cell, the field, set and module. Validate the value, show an alert if validation fails. If there is a valid change of the field, show/hide 'Undefine' or 'Null' label and related 'properties'.
+ <br>Only used after type events (setCellText, or blur other than ESC).
  * @param row is 0-based index among the expanded rows, not all rows.
  * @param string value new value (as typed)
  * @return object An anonymous object {
@@ -1202,7 +1205,7 @@ function fieldTreeRow( setName, field ) {
         }
  *  }
  * */
-function gatherAndValidateCell( row, value ) {
+function preProcessEdit( row, value ) {
     var tree= document.getElementById( 'settingsTree' );
     var rowProperties= tree.view.getRowProperties(row);
 
@@ -1311,11 +1314,11 @@ function gatherAndValidateCell( row, value ) {
 function setCellText( row, col, value, original) {
     //console.log('setCellText');
     newValueRow= undefined; // This is called before 'blur' event, so we validate here. We only leave it for onTreeBlur() if setCellText doesn't get called.
-    var info= gatherAndValidateCell( row, value );
+    var info= preProcessEdit( row, value );
     if( !info.validationPassed || !info.valueChanged ) {
         // If validation fails, I wanted to keep the field as being edited, but the following line didn't work here in Firefox 25.0. It could also interfere with onTreeBlur().
         //if( !info.validationPassed ) { document.getElementById( 'settingsTree' ).startEditing( row, col ); }
-        return; // if validation failed, gatherAndValidateCell() already showed an alert, and removed the tree row if the value was a newly added entry of a multi-valued field
+        return; // if validation failed, preProcessEdit() already showed an alert, and removed the tree row if the value was a newly added entry of a multi-valued field
     }
     original.setCellText( row, col, value );
     if( !info.field.multivalued ) {
@@ -1386,7 +1389,7 @@ function setCellText( row, col, value, original) {
         info.field.setPref( setNameDot+ info.field.name+ '.' +info.oldKey, value ); //@TODO Check this for Int/Decimal - may need to treat value
     }
     SeLiteSettings.savePrefFile(); //@TODO Do we need this line?
-    moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName );
+    moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName ); // not efficient, but robust
     return true;
 }
 
