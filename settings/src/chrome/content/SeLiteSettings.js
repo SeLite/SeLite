@@ -989,7 +989,7 @@ SeLiteSettings.Module= function Module( name, fields, allowSets, defaultSetName,
     
     this.associatesWithFolders= associatesWithFolders || false;
     SeLiteMisc.ensureType( this.associatesWithFolders, 'boolean', 'SeLiteSettings.Module() expects associatesWithFolders to be a boolean, if provided.');
-    !this.associatesWithFolders || SeLiteMisc.ensure(this.allowSets, 'SeLiteSettings.Module() must be called with allowSets=true, if associatesWithFolders is true.' );
+    !this.associatesWithFolders || this.allowSets || SeLiteMisc.fail( 'SeLiteSettings.Module() for module name ' +name+ ' was called with associatesWithFolders==true and allowSets!=true.' ); // @TODO Why this limitation?
     
     this.definitionJavascriptFile= definitionJavascriptFile;
     if( this.definitionJavascriptFile!==undefined && typeof this.definitionJavascriptFile!=='string') {
@@ -1205,7 +1205,7 @@ SeLiteSettings.Module.prototype.setSelectedSetName= function setSelectedSetName(
  *          - undefined otherwise (if the field has no value/choice in the given set)
  *      }
  *  }
- *  It doesn't inject any defaults from the module configuration or values manifests for fields that are not defined in the set.
+ *  It doesn't inject any field defaults (from the module configuration). If setName is not empty and it differs to name of the default set, this doesn't inject any values from default set. If you'd like the values of the given set to merge with values of default set (if any) or with field defaults, use getFieldsDownToSet() instead. This ignores any manifests.
  * */
 SeLiteSettings.Module.prototype.getFieldsOfSet= function getFieldsOfSet( setName ) {
     if( setName===undefined || setName===null ) {
@@ -1630,9 +1630,10 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
             }
         }
     }
-    // Second, merge the 'global' set - one that is marked as active (if any) - with associated sets.
+    
+    // Second, queue up the 'default' set and any associated sets.
     // I'm not modifying manifests.associations itself, because it can be cached & reused.
-    // I merge those into a new object - associations, which will have same structure as manifests.associations.
+    // So I merge those into a new object - associations, which will have same structure as manifests.associations.
     var associations= SeLiteMisc.sortedObject(true);
     if( this.allowSets && this.selectedSetName()!==null ) {
         associations['']= [{
@@ -1643,21 +1644,67 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
     for( var associationFolder in manifests.associations ) {
         associations[associationFolder]= manifests.associations[associationFolder];
     }
-    // Third, load global set (if any) and sets associated via associations manifests. They override values from any values manifests.
-    for( var associationFolder in associations ) {
-        for( var i=0; i<associations[associationFolder].length; i++ ) {
-            var manifest= associations[associationFolder][i];
-            if( manifest.moduleName==this.name ) {
-                var fields= this.getFieldsOfSet( manifest.setName );
+    
+    // Third, merge with any applicable sets: default set (if any) and sets associated via associations manifests. They override values from any values manifests.  then apply field defaults where needed.
+    return this.mergeSetsAndDefaults( associations, result, dontCache );
+};
+
+/** This gets values of the given set (if any). It merges them with values of default set (if any), and with field defaults, as per SettingsScope.wiki.
+ * @private
+ * @param {string} [setName]
+ * @param {bool} [dontCache]
+ * @return {object} like result of getFieldsDownToFolder()
+ * */
+SeLiteSettings.Module.prototype.getFieldsDownToSet= function getFieldsDownToSet( setName, dontCache ) {
+    this.allowsSets || SeLiteMisc.fail( "You can't use getFieldsDownToSet() for module " +this.name+ " since it doesn't allow sets." );
+    var setEntries= SeLiteMisc.sortedObject(true);
+    if( this.selectedSetName()!==null && this.selectedSetName()!==setName ) {
+        setEntries['']= [{
+            moduleName: this.name,
+            setName: this.selectedSetName(),
+        }];
+    }
+    if( setName ) {
+        setEntries['']= [{
+            moduleName: this.name,
+            setName: setName,
+        }];
+    }
+    return this.mergeSetsAndDefaults( setEntries, undefined, dontCache );
+};
+
+/** Get values of given set(s) and merge them on top of the given result (if any). Get field defaults and apply them to any fields left without a value.
+ * @private
+ * @param {object} applicableSets, result of SeLiteMisc.sortedObject(true). When this is called by getFieldsDownToFolder, applicableSets is in form {
+ *     '' => default set name (if any),
+ *     topmost folder name having an associated set => name of that associated set,
+ *     ....
+ *     leafmost folder name having an associated set => name of that associated set
+ * }
+ * When called from getFieldsDownToSet(), applicableSets is in form {
+ *     '' => default set name (if any),
+ *     string given setName (if any and if other than the default set name) => the same given setName
+ * }
+ * @param {object} [result] If present, this merges the fields into that object and it returns it. Otherwise it creates a new object by calling SeLiteMisc.sortedObject(true).
+ * @param {bool} [dontCache]
+ * @return {object} like result of getFieldsDownToFolder()
+ * */
+SeLiteSettings.Module.prototype.mergeSetsAndDefaults= function getFieldsDownToSet( applicableSets, result, dontCache ) {
+    result= result || SeLiteMisc.sortedObject(true);
+    for( var folderOrSetName in applicableSets ) {
+        for( var i=0; i<applicableSets[folderOrSetName].length; i++ ) {
+            var setEntry= applicableSets[folderOrSetName][i];
+            if( setEntry.moduleName==this.name ) {
+                var fields= this.getFieldsOfSet( setEntry.setName );
                 for( var fieldName in fields ) {
                     // override any value(s) from values manifests, no matter whether from upper or lower (more local) level
-                    // override any less local value(s) from global set or sets associated with upper (less local) folders
+                    // override any less local value(s) from default set or sets associated with upper (less local) folders
                     if( fields[fieldName].fromPreferences ) {
                         result[ fieldName ]= {
                             entry: fields[fieldName].entry,
                             fromPreferences: true,
-                            folderPath: associationFolder,
-                            setName: manifest.setName
+                            folderPath: folderOrSetName,
+                            setName: setEntry.setName
                         }
                     }
                 }
@@ -1771,7 +1818,7 @@ SeLiteSettings.Module.prototype.createSet= function createSet( setName ) {
     if( setName!=='' ) {
         ensureFieldName( setName, 'set name', true);
     }
-    SeLiteMisc.ensure( !(this.associatesWithFolders && setName===''), 'SeLiteSettings.Module associates with folders, therefore a set name cannot be empty.' );
+    SeLiteMisc.ensure( !(this.associatesWithFolders && setName===''), 'SeLiteSettings.Module associates with folders, therefore a set name cannot be empty.' ); // @TODO why this limitation?
     
     // Following makes the set show up even if
     // it has no stored fields. That is initially, or later (if the user deletes all the values in the set) - therefore I do this now.

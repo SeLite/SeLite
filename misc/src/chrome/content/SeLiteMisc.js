@@ -620,6 +620,7 @@ SeLiteMisc.sortedObject= function sortedObject( sortCompare ) {
     //return  new SortedObjectProxy( target, sortedObjectProxyHandler );
 };
 
+/** @private */
 SeLiteMisc.SortedObjectTarget= function SortedObjectTarget( sortCompare ) {
     Object.defineProperty( this, SELITE_MISC_SORTED_OBJECT_COMPARE, {
       enumerable: false, configurable: false, writable: false,
