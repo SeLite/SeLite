@@ -118,89 +118,48 @@ function chooseFileOrFolder( field, tree, row, column, isFolder, currentTargetFo
     return false;
 }
 
-/** Enumeration-like class. Instances are dual-purpose symbols-like, used to indicate tree levels and also tree columns.
- * @param string name
- * @param int level. If not set or negative, then the instance can't be used with below().
- * @param bool blank Whether generateTreeItem() should store its parameter value in properties,
- * and not as value (so that Module/Set/Field cell is blank). Optional; false by default.
+/** Enumeration-like class. Instances of subclasses indicate hierarchical levels of rows within the tree, or the column.
+ * @param {string} name
+ * @param {int} level 0-based level/index
  */
-function RowLevel( name, level, blank ) {
-    if( RowLevel.MODULE && RowLevel.SET && RowLevel.CHECKBOX && RowLevel.FIELD && RowLevel.OPTION && RowLevel.ACTION && RowLevel.NULL_OR_UNDEFINE ) {
-        throw new Error( "Do not create any other instances of RowLevel, because they are compared to by identity." );
-    }
-    if( level===undefined ) {
-        level= -1;
-    }
-    if( blank===undefined) {
-        blank= false;
-    }
-    this.name= name;
+function RowLevelOrColumn( name, level ) {
     this.level= level;
-    this.blank= blank;
+    this.name= name;
+    this.constructor.instances= this.constructor.instances || [];
+    this.constructor.instances.push( this );
 }
+RowLevelOrColumn.prototype.toString= function toString() {
+    return this.constructor.name+ '.' +this.name;
+};
+/** This is a simple translation map. It returns n-th argument (counting from 0), where n=this.level.
+ * */
+RowLevelOrColumn.prototype.forLevel= function forLevel(first, second, etc ) {
+    this.level<arguments.length || SeLiteMisc.fail( ''+this+ '.forLevel() was called with few arguments: only ' +arguments.length+ ' of them.' );
+    this.constructor.instances.length===arguments.length || SeLiteMisc.fail( "Class " +this.constructor.name+ " has " +this.constructor.instances.length+ " instances, but forLevel() received a different number of arguments: " +arguments.length );
+    return arguments[this.level];
+};
+
+function RowLevel( name, level ) {
+    RowLevelOrColumn.call( this, name, level );
+}
+RowLevel.prototype= new RowLevelOrColumn();
+RowLevel.prototype.constructor= RowLevel;
 RowLevel.MODULE= new RowLevel('MODULE', 0);
 RowLevel.SET= new RowLevel('SET', 1);
 RowLevel.FIELD= new RowLevel('FIELD', 2);
 RowLevel.OPTION= new RowLevel('OPTION', 3);
-// Special:
-RowLevel.CHECKBOX= new RowLevel('CHECKBOX', -1);
-RowLevel.ACTION= new RowLevel('ACTION', -1, true);
-// Following indicates column 'Null/Undefine'
-RowLevel.NULL_OR_UNDEFINE= new RowLevel('NULL_OR_UNDEFINE', -1);
 
-RowLevel.prototype.toString= function toString() {
-    return 'RowLevel.' +this.name;
-};
-
-/** @param other object of RowLevel
- *  @return bool Whether this is at a more detailed level (i.e. 'below') other.
- *  sameLevel.below(sameLevel) is false.
- * */
-RowLevel.prototype.below= function below( other ) {
-    if( !(other instanceof RowLevel) ) {
-        throw new Error( 'RowLevel.below(other) expects other to be an instance of RowLevel.');
-    }
-    if( this.level<0 ) {
-        throw new Error( 'RowLevel.below(other) cannot be called on level ' +this );
-    }
-    if( other.level<0 ) {
-        throw new Error( 'RowLevel.below(other) cannot be used with parameter ' +other );
-    }
-    return this.level>other.level;
-};
-
-if( !RowLevel.SET.below(RowLevel.MODULE) ) {
-    throw new Error( 'Bad RowLevel.below()');
+function Column( name, level ) {
+    RowLevelOrColumn.call( this, name, level );
 }
-
-/** This is a simple translation map. The results serves in treeCell() and other functions,
- *  that select an item from within a list depending on RowLevel instance.
- *  @return one of forModule, forSet, forField, forOption or forNullOrUndefine, depending on the level. If this.level<0, it returns ''.
- * */
-RowLevel.prototype.forLevel= function forLevel( forModule, forSet, forCheckbox, forField, forOption, forNullOrUndefine ) {
-    if( this===RowLevel.MODULE ) {
-        return forModule;
-    }
-    if( this===RowLevel.SET || this===RowLevel.ACTION ) {
-        return forSet;
-    }
-    if( this===RowLevel.CHECKBOX ) {
-        return forCheckbox;
-    }
-    if( this===RowLevel.FIELD ) {
-        return forField;
-    }
-    if( this===RowLevel.OPTION ) {
-        return forOption;
-    }
-    if( this===RowLevel.NULL_OR_UNDEFINE ) {
-        return forNullOrUndefine;
-    }
-    if( this.level<0 ) {
-        return '';
-    }
-    throw new Error( "Bad instance of RowLevel." );
-};
+Column.prototype= new RowLevelOrColumn();
+Column.prototype.constructor= Column;
+Column.MODULE_SET_FIELD= new Column('MODULE_SET_FIELD', 0);
+Column.DEFAULT= new Column('DEFAULT', 1); // @TODO instances after DEFAULT should be treated with -1, if !allowSets
+Column.TRUE= new Column('TRUE', 2); // @TODO rename to CHECKED
+Column.VALUE= new Column('VALUE', 3);
+Column.ACTION= new Column('ACTION', 4);
+Column.NULL_UNDEFINE= new Column('NULL_UNDEFINE', 5);
 
 /** It contains elements for <treecol> tags, as returned by document.createElementNS( XUL_NS, 'tree_col').
  These are not nsITreeColumn instances, but their .element fields!
@@ -367,15 +326,15 @@ var treeRowsOrChildren= SeLiteMisc.sortedObject(true);
 
 /** Get a <treecell> element/object from a given treeRow and level
  *  @param object treeRow object/element for <treerow>
- *  @param object level RowLevel, it indicates which column to return <treecell> for
+ *  @param {Column} level It indicates which column to return <treecell> for
  *  @return object Element for <treecell>
  * */
 function treeCell( treeRow, level ) {
     treeRow instanceof XULElement || SeLiteMisc.fail( 'treeCell() requires treeRow to be an XULElement object, but it received ' +treeRow );
     treeRow.tagName==='treerow' || SeLiteMisc.fail( 'treeCell() requires treeRow to be an XULElement object for <treerow>, but it received XULElement for ' +treeRow.tagName );
-    level instanceof RowLevel || SeLiteMisc.fail( 'treeCell() requires level to be an instance of RowLevel.' );
+    level instanceof Column || SeLiteMisc.fail( 'treeCell() requires level to be an instance of Column.' );
     var cells= treeRow.getElementsByTagName( 'treecell' );
-    allowSets || level!==RowLevel.SET || SeLiteMisc.fail( 'allowSets is false, therefore level should not be RowLevel.SET.' );
+    allowSets || level!==Column.DEFAULT || SeLiteMisc.fail( 'allowSets is false, therefore level should not be Column.DEFAULT.' );
     return cells[ allowSets
         ? level.forLevel(0,         1, 2, 3, 4, 5)
         : level.forLevel(0, undefined, 1, 2, 3, 4)
@@ -413,7 +372,7 @@ function valueCompound( field, setName ) {
  *  @param field Instance of SeLiteSettings.Field
  *  @param valueCompound Value compound for this field, containing its configured value. One of entries from a result of Module.Module.getFieldsOfSet().
  *  @param {[boolean]} atOptionLevel Whether this is called for RowLevel.OPTION. That can be only for instances of SeLiteSettings.Field.FixedMap.
- *  @param {[*]} value Value being shown, or undefined or null. Optional; only used and needed for SeLiteSettings.Field.FixedMap when atOptionLevel is true
+ *  @param {[*]} value Value being shown, or undefined or null. Optional; only used if filed is an SeLiteSettings.Field.FixedMap and atOptionLevel is true
  *  @return string Empty string, 'Null' or 'Undefine', as an appropriate action for this field with the given value.
  * */
 function nullOrUndefineLabel( field, valueCompound, atOptionLevel, value ) {
@@ -458,7 +417,7 @@ function nullOrUndefineLabel( field, valueCompound, atOptionLevel, value ) {
  *  -- for multivalued non-choice fields it should be the same as valueItself
  *  -- if the field is of a subclass of Field.Choice, then key and valueItself may be different.
  *  - valueItself is the actual value/label as displayed
- *  @param rowLevel object of RowLevel
+ *  @param {RowLevel} rowLevel
  *  @param optionIsSelected bool Whether the option is selected. Only used when rowLevel===RowLevel.OPTION and field instanceof Field.Choice.
  *  @param isNewValueRow bool Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell.
  *  It still puts the new <treerow> element to treeRowsOrChildren[moduleName...], so that it can be updated/removed once the user fills in the value. Optional; false by default.
@@ -475,13 +434,11 @@ function nullOrUndefineLabel( field, valueCompound, atOptionLevel, value ) {
  *  @return object for a new element <treeitem> with one <treerow>
  * */
 function generateTreeItem( module, setName, field, valueOrPair, rowLevel, optionIsSelected, isNewValueRow, valueCompound ) {
-    if( !(rowLevel instanceof RowLevel) || rowLevel===RowLevel.CHECKBOX || rowLevel===RowLevel.ACTION ) {
-        throw new Error("Parameter rowLevel must be an instance of RowLevel, but not CHECKBOX neither ACTION.");
-    }
+    rowLevel instanceof RowLevel || SeLiteMisc.fail( "Parameter rowLevel must be an instance of RowLevel, but it is " +rowLevel );
     var multivaluedOrChoice= field!==null && (field.multivalued || field instanceof SeLiteSettings.Field.Choice);
     var key= null; // If valueOrPair is an object with exactly one (iterable) key, this is the key
     if( typeof valueOrPair==='object' && valueOrPair!==null ) {
-        rowLevel===RowLevel.OPTION || SeLiteMisc.fail( "generateTreeItem(): parameter valueOrPair must not be an object, unless RowLevel is OPTION, but that is " +rowLevel );
+        rowLevel===RowLevel.OPTION || SeLiteMisc.fail( "generateTreeItem(): parameter valueOrPair must not be an object, unless rowLevel is OPTION, but rowLevel is " +rowLevel );
         multivaluedOrChoice || SeLiteMisc.fail( 'generateTreeItem(): parameter valueOrPair can be an object only for multivalued fields or choice fields, but it was used with ' +field );
         var keys= Object.keys(valueOrPair);
         keys.length===1 || SeLiteMisc.fail( "generateItem(): parameter valueOrPair can be an object, but with exactly one field, yet it received one with " +keys.length+ ' fields.' );
@@ -493,7 +450,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
             
     if( field && typeof field!=='string' && !(field instanceof SeLiteSettings.Field) ) {
         throw new Error( "Parameter field must be an instance of a subclass of Field, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but it is "
-            +(typeof field==='object' ? 'an instance of ' +field.constructor.name : typeof field)+ ': ' +field );
+            +(typeof field==='object' ? 'an instance of ' +field.constructor.name : typeof field)+ ': ' +field ); //@TODO re/use/move SeLiteMisc
     }
     optionIsSelected= optionIsSelected || false;
     if( isNewValueRow===undefined ) {
@@ -503,7 +460,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     var treeitem= document.createElementNS( XUL_NS, 'treeitem');
     var treerow= document.createElementNS( XUL_NS, 'treerow');
     treeitem.appendChild( treerow );
-    // Shortcut xxxName variables prevent null exceptions, so I can pass them to rowLevel.forLevel(..) without extra validation
+    // Shortcut xxxName variables prevent null exceptions, so I can pass them as parts of expressions to rowLevel.forLevel(..) without extra validation
     var moduleName= module
         ? module.name
         : '';
@@ -520,18 +477,15 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         rowLevel.forLevel(
             moduleName,
             moduleName+' '+setName,
-            undefined,
-            moduleName+' '+setName+' '+fieldName,
-            moduleName+' '+setName+' '+fieldName+ ' ' +key)
+            undefined, //@TODO?! check
+            moduleName+' '+setName+' '+fieldName )
     );
     
     // Cell for name of the Module/Set/Field, and for keys of SeLiteSettings.Field.FixedMap
     var treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
     treecell.setAttribute( 'label',
-        rowLevel.blank
-            ? ''
-            : rowLevel.forLevel( moduleName, setName, undefined, fieldName,
+        rowLevel.forLevel( moduleName, setName, fieldName,
                 field instanceof SeLiteSettings.Field.FixedMap
                     ? key
                     : ''
@@ -645,7 +599,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         }
     }
     if( allowSets || allowMultivaluedNonChoices || showingPerFolder() ) {
-        // Cell for Action column (in module view) or 'Set' column (in per-folder view)
+        // Cell for Action column (in edit mode) or 'Set' column (in per-folder view)
         treecell= document.createElementNS( XUL_NS, 'treecell');
         treerow.appendChild( treecell);
         treecell.setAttribute('editable', 'false');
@@ -790,8 +744,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                     pair[key]= compound.entry!==undefined
                         ? compound.entry[key]
                         : undefined;
-                    var optionItem= generateTreeItem(module, setName, field, pair,
-                        RowLevel.OPTION,
+                    var optionItem= generateTreeItem(module, setName, field, pair, RowLevel.OPTION,
                         /*optionIsSelected*/false,
                         /*isNewValueRow*/false,
                         compound
@@ -808,8 +761,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                     var pair= {};
                     pair[key]= pairsToList[key];
                     isChoice || compound.entry===undefined || typeof(compound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value of type ' +typeof compound.entry+ ': ' +compound.entry );
-                    var optionItem= generateTreeItem(module, setName, field, pair,
-                        RowLevel.OPTION,
+                    var optionItem= generateTreeItem(module, setName, field, pair, RowLevel.OPTION,
                         isChoice && typeof(compound.entry)==='object'
                             && compound.entry!==null && key in compound.entry,
                         false,
@@ -823,9 +775,9 @@ function generateFields( setChildren, module, setName, setFields ) {
     }
 }
 
-/** @param string properties <treerow> or <treecell> 'properties' attribute, which contains space-separated module/set/field/choice name
+/** @param string properties <treerow> or <treecell> 'properties' attribute, which contains space-separated module/set/field/choice(option) name
  *  - as applicable. Do not use with cells for set selection cells.
- *  @param level object of RowLevel. Here it acts more like a 'column' level, indicating which level we want the name for. Not all levels
+ *  @param {RowLevel} level It indicates which level we want the name for. Not all levels
  *  may apply. For level===RowLevel.OPTION this may return a string with space(s) in it.
  *  @return string name for the given level, or undefined if there's no property (word) at that level.
  *  Side note: I would have used https://developer.mozilla.org/en-US/docs/Web/API/element.dataset,
@@ -841,8 +793,7 @@ function propertiesPart( properties, level ) {
     if( level!==RowLevel.OPTION ) {
         return propertiesParts[level.level];
     }
-    // For RowLevel.OPTION, we return the part at the index respective to RowLevel.OPTION.level, and any other (optional) parts
-    // concatenated with spaces - that's for values that contain space(s)
+    // Column.VALUE stands for anything in properties after the part for previous (COLUMN.MODULE...COLUMN.FIELD). That's because the part of properties that represents field 'value' (@TODO check: is it the value or the key) may contain space(s). That's why this concatenates the slices with spaces.
     propertiesParts= propertiesParts.slice( level.level );
     return propertiesParts.join( ' ');
 }
@@ -878,14 +829,14 @@ function treeClickHandler( event ) {
     //console.log( 'click');
     // FYI: event.currentTarget.tagName=='tree'. However, document.getElementById('settingsTree')!=event.currentTarget
     var tree= document.getElementById('settingsTree');
-    var row= { value: -1 }; // value is 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
+    var row= { value: -1 }; // value will be 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
     var column= { value: null }; // value is instance of TreeColumn. See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeColumn
             // column.value.element is one of 'treecol' nodes created above. column.value.type can be TreeColumn.TYPE_CHECKBOX etc.
     tree.boxObject.getCellAt(event.clientX, event.clientY, row, column, {}/*unused, but needed*/ );
     
     if( row.value>=0 && column.value ) {
-        var modifiedPreferences= false;
-        var rowProperties= tree.view.getRowProperties(row.value); // This requires Gecko 22+ (Firefox 22+). See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeView#getCellProperties%28%29
+        var modifiedPreferences= false;//debugger;
+        var rowProperties= tree.view.getRowProperties(row.value);
         var clickedOptionKey= propertiesPart( rowProperties, RowLevel.OPTION );
         var moduleName= propertiesPart( rowProperties, RowLevel.MODULE );
         var module= modules[moduleName];
@@ -908,7 +859,7 @@ function treeClickHandler( event ) {
                 if( cellValue==='true' ) { // Making it the default, hence de-select previously default set (if any)
                     for( var setName in moduleRowsOrChildren ) {
                         var treeRow= moduleRowsOrChildren[setName][SeLiteSettings.SET_SELECTION_ROW];
-                        var cell= treeCell( treeRow, RowLevel.SET );
+                        var cell= treeCell( treeRow, Column.DEFAULT );
                         if( setName!==selectedSetName) {
                             cell.setAttribute( 'value', 'false' );
                         }
@@ -921,13 +872,13 @@ function treeClickHandler( event ) {
                 
                 if( isSingleNonChoice  ) {
                     field instanceof SeLiteSettings.Field.Bool || SeLiteMisc.fail('field ' +field.name+ ' should be Field.Bool');
-                    var clickedCell= treeCell( moduleRowsOrChildren[selectedSetName][field.name], RowLevel.CHECKBOX );
+                    var clickedCell= treeCell( moduleRowsOrChildren[selectedSetName][field.name], Column.TRUE );
                     field.setValue( selectedSetName, clickedCell.getAttribute( 'value')==='true' );
                     // I don't need to call updateSpecial() here - if the field was SeLiteSettings.NULL, then the above setValue() replaced that
                 }
                 else {
                     var clickedTreeRow= moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ];
-                    var clickedCell= treeCell( clickedTreeRow, RowLevel.CHECKBOX );
+                    var clickedCell= treeCell( clickedTreeRow, Column.TRUE );
                     
                     if( !field.multivalued ) { // field is a single-valued choice. The field is only editable if it was unchecked
                         // - so the user checked it now. Uncheck & remove the previously checked value (if any).
@@ -936,7 +887,7 @@ function treeClickHandler( event ) {
                             if( SeLiteSettings.reservedNames.indexOf(otherOptionKey)<0 && otherOptionKey!==clickedOptionKey ) {
                                 var otherOptionRow= moduleRowsOrChildren[selectedSetName][field.name][otherOptionKey];
                                 
-                                var otherOptionCell= treeCell( otherOptionRow, RowLevel.CHECKBOX );
+                                var otherOptionCell= treeCell( otherOptionRow, Column.TRUE );
                                 if( otherOptionCell.getAttribute('value')==='true' ) {
                                     otherOptionCell.setAttribute( 'value', 'false');
                                     otherOptionCell.setAttribute( 'editable', 'true');
@@ -1101,13 +1052,13 @@ function treeClickHandler( event ) {
                                     : undefined );
                             var compound= moduleSetFields[moduleName][selectedSetName][field.name];
                             if( field instanceof SeLiteSettings.Field.Bool && compound.entry ) {
-                                treeCell( fieldTreeRow(selectedSetName, field), RowLevel.CHECKBOX ).setAttribute( 'value', 'false' );
+                                treeCell( fieldTreeRow(selectedSetName, field), RowLevel.TRUE ).setAttribute( 'value', 'false' );
                             }
                             !field.multivalued || !(field instanceof SeLiteSettings.Field.Choice) || SeLiteMisc.fail('There should be no Null button for multivalued choices.' );
                             if( !field.multivalued && field instanceof SeLiteSettings.Field.Choice && compound.entry ) {
                                 var keys= Object.keys(compound.entry);
                                 keys.length===1 || SeLiteMisc.fail();
-                                var previousChoiceCell= treeCell( treeRowsOrChildren[moduleName][selectedSetName][field.name][ keys[0] ], RowLevel.CHECKBOX );
+                                var previousChoiceCell= treeCell( treeRowsOrChildren[moduleName][selectedSetName][field.name][ keys[0] ], RowLevel.TRUE );
                                 previousChoiceCell.setAttribute( 'value', 'false' );
                                 previousChoiceCell.setAttribute( 'editable', 'true' );
                             }
@@ -1136,7 +1087,7 @@ function treeClickHandler( event ) {
                 else {
                     rowToUpdate= fieldRow;
                 }
-                var valueCell= treeCell( rowToUpdate, RowLevel.FIELD );
+                var valueCell= treeCell( rowToUpdate, Column.TRUE/* TODO?!?! When I tried VALUE, things were not better.*/ );
                 valueCell.setAttribute( 'properties',
                     cellText==='Null' || cellText==='Undefine'
                         ? SeLiteSettings.FIELD_NULL_OR_UNDEFINED
@@ -1153,7 +1104,7 @@ function treeClickHandler( event ) {
                     valueCell.setAttribute( 'label', '' );
                 }
             
-                treeCell( rowToUpdate, RowLevel.NULL_OR_UNDEFINE ).setAttribute( 'label',
+                treeCell( rowToUpdate, Column.NULL_UNDEFINE ).setAttribute( 'label',
                     clickedOptionKey===undefined
                     ? nullOrUndefineLabel( field, valueCompound(field, selectedSetName) )
                     : nullOrUndefineLabel( field, valueCompound(field, selectedSetName), true,
@@ -1267,19 +1218,19 @@ function preProcessEdit( row, value ) {
     if( validationPassed ) {
         if( valueChanged ) {
             var fieldRow= fieldTreeRow(setName, field);
-            treeCell( fieldRow, RowLevel.FIELD ).setAttribute( 'properties', '' ); // Clear it, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED
+            treeCell( fieldRow, Column.VALUE/*@TODO?!?!:TRUE (originally FIELD)*/ ).setAttribute( 'properties', '' ); // Clear it, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED (which has special CSS style)
             if( !(field instanceof SeLiteSettings.Field.FixedMap) ) {
                 if( field.multivalued ) { //Clear it, in case it was 'undefined' (if this is the first value)
-                    treeCell( fieldRow, RowLevel.FIELD ).setAttribute( 'label', '' );
+                    treeCell( fieldRow, Column.VALUE/*@TODO?!?!:TRUE (original FIELD)*/ ).setAttribute( 'label', '' );
                 }
-                treeCell( fieldRow, RowLevel.NULL_OR_UNDEFINE ).setAttribute( 'label',
+                treeCell( fieldRow, Column.NULL_UNDEFINE ).setAttribute( 'label',
                     nullOrUndefineLabel( field, valueCompound(field, setName) )
                 );
             }
             else {
                 var optionRow= treeRowsOrChildren[module.name][setName][field.name][oldKey];
-                treeCell( optionRow, RowLevel.FIELD ).setAttribute( 'properties', '' ); // Clear at option level, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED
-                treeCell( optionRow, RowLevel.NULL_OR_UNDEFINE ).setAttribute( 'label',
+                treeCell( optionRow, Column.VALUE/*@TODO?!?!:TRUE (original FIELD)*/ ).setAttribute( 'properties', '' ); // Clear at option level, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED
+                treeCell( optionRow, Column.NULL_UNDEFINE ).setAttribute( 'label',
                     nullOrUndefineLabel( field, valueCompound(field, setName), true, value ) //@TODO cast value to the exact type
                 );
             }
@@ -1348,7 +1299,7 @@ function setCellText( row, col, value, original) {
             treeChildren.removeChild( info.treeRow.parentNode );
             var pair= {};
             pair[ value ]= value;
-            var treeItem= generateTreeItem( info.module, info.setName, info.field, pair, RowLevel.OPTION ); // This sets 'properties' and it adds an entry to treeRow[value]
+            var treeItem= generateTreeItem( info.module, info.setName, info.field, pair, RowLevel.OPTION ); // That sets 'properties' and it adds an entry to treeRow[value]
                 // (which is same as fieldTreeRowsOrChildren[value] here).
             // Firefox 22.b04 and 24.0a1 doesn't handle parent.insertBefore(newItem, null), even though it should - https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore
             if(true){//@TODO cleanup
