@@ -1055,13 +1055,13 @@ function treeClickHandler( event ) {
                                     : undefined );
                             var compound= moduleSetFields[moduleName][selectedSetName][field.name];
                             if( field instanceof SeLiteSettings.Field.Bool && compound.entry ) {
-                                treeCell( fieldTreeRow(selectedSetName, field), RowLevel.TRUE ).setAttribute( 'value', 'false' );
+                                treeCell( fieldTreeRow(selectedSetName, field), Column.TRUE ).setAttribute( 'value', 'false' );
                             }
                             !field.multivalued || !(field instanceof SeLiteSettings.Field.Choice) || SeLiteMisc.fail('There should be no Null button for multivalued choices.' );
                             if( !field.multivalued && field instanceof SeLiteSettings.Field.Choice && compound.entry ) {
                                 var keys= Object.keys(compound.entry);
                                 keys.length===1 || SeLiteMisc.fail();
-                                var previousChoiceCell= treeCell( treeRowsOrChildren[moduleName][selectedSetName][field.name][ keys[0] ], RowLevel.TRUE );
+                                var previousChoiceCell= treeCell( treeRowsOrChildren[moduleName][selectedSetName][field.name][ keys[0] ], Column.TRUE );
                                 previousChoiceCell.setAttribute( 'value', 'false' );
                                 previousChoiceCell.setAttribute( 'editable', 'true' );
                             }
