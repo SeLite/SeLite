@@ -399,6 +399,54 @@ function nullOrUndefineLabel( field, valueCompound, atOptionLevel, value ) {
     }
 }
 
+function keyFromValueOrPair( valueOrPair ) {
+    var key= null; // If valueOrPair is an object with exactly one (iterable) key, this is the key
+    if( typeof valueOrPair==='object' && valueOrPair!==null ) {
+        var keys= Object.keys(valueOrPair);
+        keys.length===1 || SeLiteMisc.fail( "keyFromValueOrPair(): parameter valueOrPair can be an object, but with exactly one field, yet it received one with " +keys.length+ ' fields.' );
+        key= keys[0];
+    }
+    return key;
+}
+
+function valueFromValueOrPairAndKey( valueOrPair, key ) {
+    return key!==null
+        ? valueOrPair[key]
+        : valueOrPair;
+}
+        
+/** {RowLevel} rowLevel
+ *  {Column} column
+ * */
+function generateCellLabel( rowLevel, column, module, setName, field, valueOrPair ) {
+    SeLiteMisc.ensureInstance( rowLevel, RowLevel );
+    SeLiteMisc.ensureInstance( column, Column );
+    !field || SeLiteMisc.ensureInstance( field, SeLiteSettings.Field );
+    var moduleName= module
+        ? module.name
+        : '';
+    var fieldName= field
+        ? field.name
+        : '';
+    
+    if( column===Column.MODULE_SET_FIELD ) {
+        [RowLevel.MODULE, RowLevel.SET, RowLevel.FIELD].indexOf(rowLevel)>=0 || SeLiteMisc.fail();
+        return rowLevel.forLevel( moduleName, setName, fieldName,
+            field instanceof SeLiteSettings.Field.FixedMap
+                ? key
+                : ''
+        )
+    }
+    else if( column===Column.VALUE ) {
+        return value!==null
+            ? ''+value
+            : (isNull
+                ? 'null'
+                : 'undefined'
+              );
+    }
+}
+
 /** @param module object of Module
  *  @param setName string set name; either '' if the module doesn't allow sets; otherwise it's a set name when at field level
  *  attribute for the <treerow> nodes, so that when we handle a click event, we know what field the node is for.
@@ -437,18 +485,13 @@ function nullOrUndefineLabel( field, valueCompound, atOptionLevel, value ) {
 function generateTreeItem( module, setName, field, valueOrPair, rowLevel, optionIsSelected, isNewValueRow, valueCompound ) {
     rowLevel instanceof RowLevel || SeLiteMisc.fail( "Parameter rowLevel must be an instance of RowLevel, but it is " +rowLevel );
     var multivaluedOrChoice= field!==null && (field.multivalued || field instanceof SeLiteSettings.Field.Choice);
-    var key= null; // If valueOrPair is an object with exactly one (iterable) key, this is the key
+    var key= keyFromValueOrPair( valueOrPair );
     if( typeof valueOrPair==='object' && valueOrPair!==null ) {
         rowLevel===RowLevel.OPTION || SeLiteMisc.fail( "generateTreeItem(): parameter valueOrPair must not be an object, unless rowLevel is OPTION, but rowLevel is " +rowLevel );
         multivaluedOrChoice || SeLiteMisc.fail( 'generateTreeItem(): parameter valueOrPair can be an object only for multivalued fields or choice fields, but it was used with ' +field );
-        var keys= Object.keys(valueOrPair);
-        keys.length===1 || SeLiteMisc.fail( "generateItem(): parameter valueOrPair can be an object, but with exactly one field, yet it received one with " +keys.length+ ' fields.' );
-        key= keys[0];
     }
-    var value= key!==null
-        ? valueOrPair[key]
-        : valueOrPair;
-            
+    var value= valueFromValueOrPairAndKey( valueOrPair, key );
+    
     if( field && typeof field!=='string' && !(field instanceof SeLiteSettings.Field) ) {
         throw new Error( "Parameter field must be an instance of a subclass of Field, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but it is "
             +(typeof field==='object' ? 'an instance of ' +field.constructor.name : typeof field)+ ': ' +field ); //@TODO re/use/move SeLiteMisc
@@ -727,7 +770,7 @@ function generateSets( moduleChildren, module ) {
 function generateFields( setChildren, module, setName, setFields ) {
     for( var fieldName in setFields ) {
         var compound= setFields[fieldName];
-        var field= fieldName in module.fields
+        var field= fieldName in module.fields //@TODO simplify
             ? module.fields[fieldName]
             : fieldName;
         
