@@ -1222,7 +1222,7 @@ function preProcessEdit( row, value ) {
             treeCell( fieldRow, Column.VALUE/*@TODO?!?!:TRUE (originally FIELD)*/ ).setAttribute( 'properties', '' ); // Clear it, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED (which has special CSS style)
             if( !(field instanceof SeLiteSettings.Field.FixedMap) ) {
                 if( field.multivalued ) { //Clear it, in case it was 'undefined' (if this is the first value)
-                    treeCell( fieldRow, Column.VALUE/*@TODO?!?!:TRUE (original FIELD)*/ ).setAttribute( 'label', '' );
+                    treeCell( fieldRow, Column.TRUE/*@TODO VALUE fails?!?!:TRUE (original FIELD)*/ ).setAttribute( 'label', '' );
                 }
                 treeCell( fieldRow, Column.NULL_UNDEFINE ).setAttribute( 'label',
                     nullOrUndefineLabel( field, valueCompound(field, setName) )
@@ -1341,7 +1341,7 @@ function setCellText( row, col, value, original) {
         info.field.setPref( setNameDot+ info.field.name+ '.' +info.oldKey, value ); //@TODO Check this for Int/Decimal - may need to treat value
     }
     SeLiteSettings.savePrefFile(); //@TODO Do we need this line?
-    moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName ); // not efficient, but robust
+    moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName ); // not efficient, but robust: re-load the whole lot, rather than tweak it
     return true;
 }
 
