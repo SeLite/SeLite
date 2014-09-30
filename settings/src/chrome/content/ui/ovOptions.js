@@ -476,7 +476,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         rowLevel.forLevel(
             moduleName,
             moduleName+' '+setName,
-            undefined, //@TODO?! check
+            moduleName+' '+setName+' '+fieldName,
             moduleName+' '+setName+' '+fieldName+
                 (field instanceof SeLiteSettings.Field.Choice || field instanceof SeLiteSettings.Field.FixedMap
                     ? ' ' +key
@@ -859,7 +859,7 @@ function treeClickHandler( event ) {
                     : null
                 );
                 modifiedPreferences= true;
-                if( cellValue==='true' ) { // Making it the default, hence de-select previously default set (if any)
+                if( cellValue==='true' ) { // We're making the selected set default, hence de-select previously default set (if any)
                     for( var setName in moduleRowsOrChildren ) {
                         var treeRow= moduleRowsOrChildren[setName][SeLiteSettings.SET_SELECTION_ROW];
                         var cell= treeCell( treeRow, Column.DEFAULT );
