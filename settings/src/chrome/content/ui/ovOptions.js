@@ -470,15 +470,19 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                 : field
             )
         : '';
-    /* I use spaces as separators in the following (that's why I don't allow spaces in module/set/field name). For level===RowLevel.OPTION,
-     * variable 'key' may contains space(s), since it's the last item on the following list. (That's why there can't be any more entries in 'properties' after 'key'):
+    /* I use spaces as separators in the following (that's why I don't allow spaces in module/set/field name). For level===RowLevel.OPTION, variable 'key' may contain space(s), since it's the last item on the following list. (That's why there can't be any more entries in 'properties' after 'key'):
     */
     treerow.setAttribute( 'properties',
         rowLevel.forLevel(
             moduleName,
             moduleName+' '+setName,
             undefined, //@TODO?! check
-            moduleName+' '+setName+' '+fieldName )
+            moduleName+' '+setName+' '+fieldName+
+                (field instanceof SeLiteSettings.Field.Choice || field instanceof SeLiteSettings.Field.FixedMap
+                    ? ' ' +key
+                    : ''
+                )
+            )
     );
     
     // Cell for name of the Module/Set/Field, and for keys of SeLiteSettings.Field.FixedMap
@@ -835,7 +839,7 @@ function treeClickHandler( event ) {
     tree.boxObject.getCellAt(event.clientX, event.clientY, row, column, {}/*unused, but needed*/ );
     
     if( row.value>=0 && column.value ) {
-        var modifiedPreferences= false;//debugger;
+        var modifiedPreferences= false;
         var rowProperties= tree.view.getRowProperties(row.value);
         var clickedOptionKey= propertiesPart( rowProperties, RowLevel.OPTION );
         var moduleName= propertiesPart( rowProperties, RowLevel.MODULE );
@@ -850,7 +854,6 @@ function treeClickHandler( event ) {
             
             var selectedSetName= propertiesPart( rowProperties, RowLevel.SET );
             if( allowSets && column.value.element===treeColumnElements.defaultSet && cellIsEditable ) { // Make the selected set be default, or unflag it as default.
-                debugger;
                 module.setDefaultSetName( cellValue==='true'
                     ? selectedSetName
                     : null
@@ -1075,13 +1078,9 @@ function treeClickHandler( event ) {
                 moduleSetFields[moduleName][selectedSetName]= module.getFieldsOfSet( selectedSetName );
                 
                 var fieldRow= fieldTreeRow(selectedSetName, field);
-                /*var optionRow= clickedOptionKey===undefined
-                    ? fieldRow // field other than SeLiteSettings.Field.FixedMap
-                    : treeRowsOrChildren[moduleName][selectedSetName][field.name][clickedOptionKey]; // for SeLiteSettings.Field.FixedMap
-                */
                 var rowToUpdate;
-                !clickedOptionKey || field instanceof SeLiteSettings.Field.FixedMap || SeLiteMisc.fail( "When clickedOptionKey is set, the field should be a FixedMap instance."); //@TODO check this
-                if( clickedOptionKey ) { // The user clicked at 'undefine' for an option of a FixedMap instance
+                !clickedOptionKey || field instanceof SeLiteSettings.Field.Choice || field instanceof SeLiteSettings.Field.FixedMap || SeLiteMisc.fail( "When clickedOptionKey is set, the field should be an instance of Choice or FixedMap.");
+                if( clickedOptionKey && field instanceof SeLiteSettings.Field.FixedMap ) { // The user clicked at 'undefine' for an option of a FixedMap instance
                     rowToUpdate= moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ]; // same as clickedTreeRow above
                 }
                 else {
