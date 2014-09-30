@@ -125,7 +125,9 @@ function chooseFileOrFolder( field, tree, row, column, isFolder, currentTargetFo
 function RowLevelOrColumn( name, level ) {
     this.level= level;
     this.name= name;
-    this.constructor.instances= this.constructor.instances || [];
+    if( !('instances' in this.constructor) ) {
+        this.constructor.instances= [];
+    }
     this.constructor.instances.push( this );
 }
 RowLevelOrColumn.prototype.toString= function toString() {
@@ -142,6 +144,7 @@ RowLevelOrColumn.prototype.forLevel= function forLevel(first, second, etc ) {
 function RowLevel( name, level ) {
     RowLevelOrColumn.call( this, name, level );
 }
+RowLevel= SeLiteMisc.proxyEnsureFieldsExist( RowLevel );
 RowLevel.prototype= new RowLevelOrColumn();
 RowLevel.prototype.constructor= RowLevel;
 RowLevel.MODULE= new RowLevel('MODULE', 0);
@@ -152,6 +155,7 @@ RowLevel.OPTION= new RowLevel('OPTION', 3);
 function Column( name, level ) {
     RowLevelOrColumn.call( this, name, level );
 }
+Column= SeLiteMisc.proxyEnsureFieldsExist( Column );
 Column.prototype= new RowLevelOrColumn();
 Column.prototype.constructor= Column;
 Column.MODULE_SET_FIELD= new Column('MODULE_SET_FIELD', 0);

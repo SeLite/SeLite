@@ -181,6 +181,25 @@ SeLiteMisc.ensureInstance= function ensureInstance( object, classes, message ) {
     }
 };
 
+/** @private */
+SeLiteMisc.proxyEnsureFieldsExistHandler= {
+  get: function(target, name, receiver) {
+    // Check whether name is set in target. Don't use target[name]!==undefined for that, because it may be set to undefined.
+    name in target || SeLiteMisc.fail( 'Accessing unset field ' +name+ ' in ' +target.constructor.name+ ': ' +target );
+    return target[name];
+  }
+};
+/** This generates a proxy for given target object or class (constructor function). The proxy ensures that any fields read have been set already. This serves to prevent typing/renaming accidents that would access non-existing fields, which normally returns undefined. Such problems arise when you access fields directly, rather than via accessor methods, and when you don't access any properties/methods on the retrieved fields themselves. An example is when you compare the field values by operators.
+ <br/> Instead of using the fields directly you could have accessor methods, but those don't gurarentee correct code anyway (since they may contain typos, too), hence they don't solve the problem; however, they do make code more verbose and less hands-on.
+ <br/> This uses Proxy, which decreases execution speed a bit. However, it helps to identify mistakes earlier, while keeping code shorter.
+ <br/> If you need the code to determine whether the proxy contains a field with a given name, use expression: fieldName in target.
+ @param {object|function} target An object, or a class (constructor function). If it's a class, it should be leaf-like. Any classes that inherit from the proxy won't be protected by this mechanism - you need to use SeLiteMisc.proxyEnsureFieldsExist() for those subclasses, too.
+ @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy#Extending_constructor
+ * */
+SeLiteMisc.proxyEnsureFieldsExist= function proxyEnsureFieldsExist( target ) {
+    return new Proxy( target, SeLiteMisc.proxyEnsureFieldsExistHandler );
+};
+
 /** @param mixed Container - object or array
  *  @param mixed Field - string field name, or integer/integer string index of the item
  *  @param Any further parameters are treated as chained 'subfields' - useful for traversing deeper array/object/mixed structures
