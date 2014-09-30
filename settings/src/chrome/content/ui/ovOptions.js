@@ -425,8 +425,15 @@ function collectValueForThisRow( field, value, rowLevel, valueCompound ) {
       );
 }
 
-/** {RowLevel} rowLevel
- *  {Column} column
+/** {Column} column
+ *  {SeLiteSettings.Module} module
+ *  {string} setName
+ *  {SeLiteSettings.Field} field
+ *  {string} key
+ *  {string} value
+ *  {RowLevel} rowLevel
+ *  {bool} isNewValueRow
+ *  {object} valueCompound
  * */
 function generateCellLabel( column, module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound ) {
     SeLiteMisc.ensureInstance( rowLevel, RowLevel );
@@ -447,13 +454,7 @@ function generateCellLabel( column, module, setName, field, key, value, rowLevel
         )
     }
     else if( column===Column.VALUE ) {
-        var valueForThisRow= rowLevel===RowLevel.FIELD//@TODO collectValueForThisRow()
-            ? valueCompound.entry
-            : ( rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap
-                ? value
-                : undefined
-              );
-        
+        var valueForThisRow= collectValueForThisRow( field, value, rowLevel, valueCompound );
         (typeof value==='string' || typeof value==='number' || valueForThisRow===null || valueForThisRow===undefined) && !isNewValueRow || SeLiteMisc.fail();
         return value!==null
             ? ''+value
@@ -597,12 +598,6 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     var treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
     treecell.setAttribute( 'label', generateCellLabel(Column.MODULE_SET_FIELD, module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound) );
-        /*rowLevel.forLevel( moduleName, setName, fieldName,
-                field instanceof SeLiteSettings.Field.FixedMap
-                    ? key
-                    : ''
-              )
-    );*/
     treecell.setAttribute('editable', 'false');
 
     if( allowSets ) { // Radio-like checkbox for (de)selecting a set
@@ -670,24 +665,11 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         treecell.setAttribute('editable' , 'false');
     }
     
-    var valueForThisRow= rowLevel===RowLevel.FIELD//@TODO collectValueForThisRow()
-        ? valueCompound.entry
-        : ( rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap
-            ? value
-            : undefined
-          );
-
+    var valueForThisRow= collectValueForThisRow( field, value, rowLevel, valueCompound );
     if( (typeof value==='string' || typeof value==='number' || valueForThisRow===null || valueForThisRow===undefined)
         && !isNewValueRow
     ) {
         treecell.setAttribute( 'label', generateCellLabel(Column.VALUE, module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound) );
-        /*value!==null
-            ? ''+value
-            : (isNull
-                ? 'null'
-                : 'undefined'
-              )
-        );*/
         if( showingPerFolder() && valueCompound!==null ) {
             if( valueCompound.fromPreferences ) {
                 treecell.setAttribute( 'properties',
@@ -714,43 +696,13 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         treerow.appendChild( treecell);
         treecell.setAttribute('editable', 'false');
         treecell.setAttribute( 'label', generateCellLabel( Column.ACTION, module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound) );
-        /*if( rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET ) {
-            treecell.setAttribute( 'label',
-                !setName
-                    ? (allowSets && module.allowSets
-                        ? CREATE_NEW_SET
-                        : ''
-                      )
-                    : DELETE_THE_SET
-            );
-        }*/
-        if( !showingPerFolder() ) {
-            if( field!==null && !SeLiteMisc.isInstance( field, [SeLiteSettings.Field.Choice, SeLiteSettings.Field.FixedMap] )
-            && field.multivalued ) {
-                /*if( rowLevel===RowLevel.FIELD ) {
-                    treecell.setAttribute( 'label', ADD_NEW_VALUE );
-                }
-                if( rowLevel===RowLevel.OPTION ) {
-                    treecell.setAttribute( 'label', DELETE_THE_VALUE );
-                }*/
+        if( showingPerFolder() && rowLevel===RowLevel.FIELD ) {
+            if( valueCompound.fromPreferences && valueCompound.setName===module.defaultSetName() ) {
+                treecell.setAttribute( 'properties', SeLiteSettings.DEFAULT_SET );
             }
-        }
-        else {
-            if( rowLevel===RowLevel.FIELD ) {
-                /*treecell.setAttribute( 'label', valueCompound.fromPreferences
-                    ? valueCompound.setName
-                    : (valueCompound.folderPath
-                            ? ''
-                            : 'module default'
-                      )
-                );*/
-                if( valueCompound.fromPreferences && valueCompound.setName===module.defaultSetName() ) {
-                    treecell.setAttribute( 'properties', SeLiteSettings.DEFAULT_SET );
-                }
-                else
-                if( !valueCompound.fromPreferences && valueCompound.folderPath===null ) {
-                    treecell.setAttribute( 'properties', SeLiteSettings.FIELD_DEFAULT );
-                }
+            else
+            if( !valueCompound.fromPreferences && valueCompound.folderPath===null ) {
+                treecell.setAttribute( 'properties', SeLiteSettings.FIELD_DEFAULT );
             }
         }
         if( rowLevel===RowLevel.FIELD || !showingPerFolder() && rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap ) {
@@ -759,10 +711,6 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
             treerow.appendChild( treecell);
             treecell.setAttribute('editable', 'false');
             treecell.setAttribute( 'label', generateCellLabel( Column.NULL_UNDEFINE, module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound) );
-            /*if( !showingPerFolder() ) {
-                treecell.setAttribute( 'label', nullOrUndefineLabel(field, valueCompound, rowLevel===RowLevel.OPTION, value) );
-            }
-            else {*/
             if( showingPerFolder() ) {
                 treecell.setAttribute( 'properties', valueCompound.folderPath!==null
                     ? (     valueCompound.folderPath!==''
@@ -774,16 +722,6 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                       )
                     : SeLiteSettings.FIELD_DEFAULT // For the click handler
                 );
-                /*treecell.setAttribute( 'label', valueCompound.folderPath
-                    ? OS.Path.join( valueCompound.folderPath, valueCompound.fromPreferences
-                            ? SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME
-                            : SeLiteSettings.VALUES_MANIFEST_FILENAME
-                      )
-                    : (!valueCompound.fromPreferences
-                            ? module.definitionJavascriptFile
-                            : ''
-                      )
-                );*/
             }
         }
     }
