@@ -409,7 +409,7 @@ function keyFromValueOrPair( valueOrPair ) {
     return key;
 }
 
-function valueFromValueOrPairAndKey( valueOrPair, key ) {
+function valueFromValueOrPairAndKey( valueOrPair, key ) {//@TODO eliminate: currently used 1x
     return key!==null
         ? valueOrPair[key]
         : valueOrPair;
@@ -493,7 +493,7 @@ function generateCellLabel( column, module, setName, field, key, value, rowLevel
                   );
         }
     }
-    else if( column===Column.NULL_OR_UNDEFINE ) {
+    else if( column===Column.NULL_UNDEFINE ) {
         rowLevel===RowLevel.FIELD || !showingPerFolder() && rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap || SeLiteMisc.fail();
             // If per-folder view: show Manifest or definition. Otherwise (i.e. per-module view): show Null/Undefine.
         if( !showingPerFolder() ) {
