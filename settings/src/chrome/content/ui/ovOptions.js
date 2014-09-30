@@ -371,12 +371,13 @@ function valueCompound( field, setName ) {
 /** Generate text for label for 'Null/Undefine' column. Use only in editable mode, which shows set(s) - not for per-folder mode.
  *  @param field Instance of SeLiteSettings.Field
  *  @param valueCompound Value compound for this field, containing its configured value. One of entries from a result of Module.Module.getFieldsOfSet().
- *  @param {[boolean]} atOptionLevel Whether this is called for RowLevel.OPTION. That can be only for instances of SeLiteSettings.Field.FixedMap.
- *  @param {[*]} value Value being shown, or undefined or null. Optional; only used if filed is an SeLiteSettings.Field.FixedMap and atOptionLevel is true
+ *  @param {boolean} [atOptionLevel] Whether this is called for RowLevel.OPTION level and for SeLiteSettings.Field.FixedMap. Optional; only used if field instanceof SeLiteSettings.Field.FixedMap.
+ *  @param {*} [value] Value being shown, or undefined or null. Optional; only used if field is an SeLiteSettings.Field.FixedMap and atOptionLevel is true.
  *  @return string Empty string, 'Null' or 'Undefine', as an appropriate action for this field with the given value.
  * */
 function nullOrUndefineLabel( field, valueCompound, atOptionLevel, value ) {
     !showingPerFolder() || SeLiteMisc.fail( "Don't call nullOrUndefineLabel() when showing fields per folder." );
+    !atOptionLevel || field instanceof SeLiteSettings.Field.Choice || field instanceof SeLiteSettings.Field.FixedMap || SeLiteMisc.fail( "atOptionLevel can be true only if the field is an instance of Choice or FixedMap, but it is " +field );
     if( atOptionLevel && field instanceof SeLiteSettings.Field.FixedMap ) { // FixedMap is always multivalued, hence it doesn't allow null
         return value!==undefined
             ? 'Undefine'
@@ -1102,7 +1103,8 @@ function treeClickHandler( event ) {
                 if( column.value.element===treeColumnElements.checked ) { // This clears the previous label 'undefined' or 'null' (if any)
                     valueCell.setAttribute( 'label', '' );
                 }
-            
+                
+                clickedOptionKey===undefined || SeLiteMisc.ensureInstance( field, [SeLiteSettings.Field.Choice, SeLiteSettings.Field.FixedMap] );
                 treeCell( rowToUpdate, Column.NULL_UNDEFINE ).setAttribute( 'label',
                     clickedOptionKey===undefined
                     ? nullOrUndefineLabel( field, valueCompound(field, selectedSetName) )
