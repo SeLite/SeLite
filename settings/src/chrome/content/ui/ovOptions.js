@@ -414,11 +414,21 @@ function valueFromValueOrPairAndKey( valueOrPair, key ) {
         ? valueOrPair[key]
         : valueOrPair;
 }
-        
+
+function collectValueForThisRow( field, value, rowLevel, valueCompound ) {
+    SeLiteMisc.ensureInstance( rowLevel, RowLevel );
+    return rowLevel===RowLevel.FIELD
+    ? valueCompound.entry
+    : ( rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap
+        ? value
+        : undefined
+      );
+}
+
 /** {RowLevel} rowLevel
  *  {Column} column
  * */
-function generateCellLabel( rowLevel, column, module, setName, field, valueOrPair ) {
+function generateCellLabel( column, module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound ) {
     SeLiteMisc.ensureInstance( rowLevel, RowLevel );
     SeLiteMisc.ensureInstance( column, Column );
     !field || SeLiteMisc.ensureInstance( field, SeLiteSettings.Field );
@@ -430,7 +440,6 @@ function generateCellLabel( rowLevel, column, module, setName, field, valueOrPai
         : '';
     
     if( column===Column.MODULE_SET_FIELD ) {
-        [RowLevel.MODULE, RowLevel.SET, RowLevel.FIELD].indexOf(rowLevel)>=0 || SeLiteMisc.fail();
         return rowLevel.forLevel( moduleName, setName, fieldName,
             field instanceof SeLiteSettings.Field.FixedMap
                 ? key
@@ -438,13 +447,70 @@ function generateCellLabel( rowLevel, column, module, setName, field, valueOrPai
         )
     }
     else if( column===Column.VALUE ) {
+        var valueForThisRow= rowLevel===RowLevel.FIELD//@TODO collectValueForThisRow()
+            ? valueCompound.entry
+            : ( rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap
+                ? value
+                : undefined
+              );
+        
+        (typeof value==='string' || typeof value==='number' || valueForThisRow===null || valueForThisRow===undefined) && !isNewValueRow || SeLiteMisc.fail();
         return value!==null
             ? ''+value
-            : (isNull
+            : ( valueForThisRow===null
                 ? 'null'
                 : 'undefined'
-              );
+            );
     }
+    else if( column===Column.ACTION ) {
+        allowSets || allowMultivaluedNonChoices || showingPerFolder() || SeLiteMisc.fail();
+        if( rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET ) {
+            return !setName
+                    ? (allowSets && module.allowSets
+                        ? CREATE_NEW_SET
+                        : ''
+                      )
+                    : DELETE_THE_SET;
+        }
+        else if( !showingPerFolder() ) {
+            if( field!==null && !SeLiteMisc.isInstance( field, [SeLiteSettings.Field.Choice, SeLiteSettings.Field.FixedMap] )
+            && field.multivalued ) {
+                if( rowLevel===RowLevel.FIELD ) {
+                    return ADD_NEW_VALUE;
+                }
+                if( rowLevel===RowLevel.OPTION ) {
+                    return DELETE_THE_VALUE;
+                }
+            }
+        }
+        else if( rowLevel===RowLevel.FIELD ) {
+            return valueCompound.fromPreferences
+                ? valueCompound.setName
+                : (valueCompound.folderPath
+                        ? ''
+                        : 'module default'
+                  );
+        }
+    }
+    else if( column===Column.NULL_OR_UNDEFINE ) {
+        rowLevel===RowLevel.FIELD || !showingPerFolder() && rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap || SeLiteMisc.fail();
+            // If per-folder view: show Manifest or definition. Otherwise (i.e. per-module view): show Null/Undefine.
+        if( !showingPerFolder() ) {
+            return nullOrUndefineLabel( field, valueCompound, rowLevel===RowLevel.OPTION, value );
+        }
+        else {
+            return valueCompound.folderPath
+                ? OS.Path.join( valueCompound.folderPath, valueCompound.fromPreferences
+                        ? SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME
+                        : SeLiteSettings.VALUES_MANIFEST_FILENAME
+                  )
+                : (!valueCompound.fromPreferences
+                        ? module.definitionJavascriptFile
+                        : ''
+                  );
+        }
+    }
+    return '';
 }
 
 /** @param module object of Module
@@ -468,7 +534,7 @@ function generateCellLabel( rowLevel, column, module, setName, field, valueOrPai
  *  - valueItself is the actual value/label as displayed
  *  @param {RowLevel} rowLevel
  *  @param optionIsSelected bool Whether the option is selected. Only used when rowLevel===RowLevel.OPTION and field instanceof Field.Choice.
- *  @param isNewValueRow bool Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell.
+ *  @param {bool} [isNewValueRow] Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell.
  *  It still puts the new <treerow> element to treeRowsOrChildren[moduleName...], so that it can be updated/removed once the user fills in the value. Optional; false by default.
  *  @param {object} valueCompound Value compound stored in the set being displayed (or in the sets and manifests applicable to targetFolder, if non-null). Anonymous object, one of entries in result of Module.getFieldsDownToFolder(..)
  *  or Module.Module.getFieldsOfSet() in form {
@@ -485,11 +551,11 @@ function generateCellLabel( rowLevel, column, module, setName, field, valueOrPai
 function generateTreeItem( module, setName, field, valueOrPair, rowLevel, optionIsSelected, isNewValueRow, valueCompound ) {
     rowLevel instanceof RowLevel || SeLiteMisc.fail( "Parameter rowLevel must be an instance of RowLevel, but it is " +rowLevel );
     var multivaluedOrChoice= field!==null && (field.multivalued || field instanceof SeLiteSettings.Field.Choice);
-    var key= keyFromValueOrPair( valueOrPair );
     if( typeof valueOrPair==='object' && valueOrPair!==null ) {
         rowLevel===RowLevel.OPTION || SeLiteMisc.fail( "generateTreeItem(): parameter valueOrPair must not be an object, unless rowLevel is OPTION, but rowLevel is " +rowLevel );
         multivaluedOrChoice || SeLiteMisc.fail( 'generateTreeItem(): parameter valueOrPair can be an object only for multivalued fields or choice fields, but it was used with ' +field );
     }
+    var key= keyFromValueOrPair( valueOrPair );
     var value= valueFromValueOrPairAndKey( valueOrPair, key );
     
     if( field && typeof field!=='string' && !(field instanceof SeLiteSettings.Field) ) {
@@ -497,9 +563,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
             +(typeof field==='object' ? 'an instance of ' +field.constructor.name : typeof field)+ ': ' +field ); //@TODO re/use/move SeLiteMisc
     }
     optionIsSelected= optionIsSelected || false;
-    if( isNewValueRow===undefined ) {
-        isNewValueRow= false;
-    }
+    isNewValueRow= isNewValueRow || false;
     valueCompound= valueCompound || null;
     var treeitem= document.createElementNS( XUL_NS, 'treeitem');
     var treerow= document.createElementNS( XUL_NS, 'treerow');
@@ -532,13 +596,13 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     // Cell for name of the Module/Set/Field, and for keys of SeLiteSettings.Field.FixedMap
     var treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
-    treecell.setAttribute( 'label',
-        rowLevel.forLevel( moduleName, setName, fieldName,
+    treecell.setAttribute( 'label', generateCellLabel(Column.MODULE_SET_FIELD, module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound) );
+        /*rowLevel.forLevel( moduleName, setName, fieldName,
                 field instanceof SeLiteSettings.Field.FixedMap
                     ? key
                     : ''
               )
-    );
+    );*/
     treecell.setAttribute('editable', 'false');
 
     if( allowSets ) { // Radio-like checkbox for (de)selecting a set
@@ -606,26 +670,24 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         treecell.setAttribute('editable' , 'false');
     }
     
-    var isNull, isNullOrUndefined;
-    if( rowLevel===RowLevel.FIELD ) {
-        valueCompound.entry!==null || !field.multivalued || SeLiteMisc.fail( 'Field ' +field.name + ' is multivalued, yet its compoundValue.entry is null. In per-folder mode: ' +showingPerFolder() );
-        isNull= valueCompound.entry===null;
-        isNullOrUndefined= isNull || valueCompound.entry===undefined;
-    }
-    else if( rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap ) {
-        isNull= value===null;
-        isNullOrUndefined= isNull || value===undefined;
-    }
-    if( (typeof value==='string' || typeof value==='number' || isNullOrUndefined
-        ) && !isNewValueRow
+    var valueForThisRow= rowLevel===RowLevel.FIELD//@TODO collectValueForThisRow()
+        ? valueCompound.entry
+        : ( rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap
+            ? value
+            : undefined
+          );
+
+    if( (typeof value==='string' || typeof value==='number' || valueForThisRow===null || valueForThisRow===undefined)
+        && !isNewValueRow
     ) {
-        treecell.setAttribute('label', value!==null
+        treecell.setAttribute( 'label', generateCellLabel(Column.VALUE, module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound) );
+        /*value!==null
             ? ''+value
             : (isNull
                 ? 'null'
                 : 'undefined'
               )
-        );
+        );*/
         if( showingPerFolder() && valueCompound!==null ) {
             if( valueCompound.fromPreferences ) {
                 treecell.setAttribute( 'properties',
@@ -642,7 +704,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                 );
             }
         }
-        if( isNullOrUndefined ) {
+        if( valueForThisRow===null || valueForThisRow===undefined ) {
             treecell.setAttribute( 'properties', SeLiteSettings.FIELD_NULL_OR_UNDEFINED );
         }
     }
@@ -651,7 +713,8 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         treecell= document.createElementNS( XUL_NS, 'treecell');
         treerow.appendChild( treecell);
         treecell.setAttribute('editable', 'false');
-        if( rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET ) {
+        treecell.setAttribute( 'label', generateCellLabel( Column.ACTION, module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound) );
+        /*if( rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET ) {
             treecell.setAttribute( 'label',
                 !setName
                     ? (allowSets && module.allowSets
@@ -660,27 +723,27 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                       )
                     : DELETE_THE_SET
             );
-        }
+        }*/
         if( !showingPerFolder() ) {
             if( field!==null && !SeLiteMisc.isInstance( field, [SeLiteSettings.Field.Choice, SeLiteSettings.Field.FixedMap] )
             && field.multivalued ) {
-                if( rowLevel===RowLevel.FIELD ) {
+                /*if( rowLevel===RowLevel.FIELD ) {
                     treecell.setAttribute( 'label', ADD_NEW_VALUE );
                 }
                 if( rowLevel===RowLevel.OPTION ) {
                     treecell.setAttribute( 'label', DELETE_THE_VALUE );
-                }
+                }*/
             }
         }
         else {
             if( rowLevel===RowLevel.FIELD ) {
-                treecell.setAttribute( 'label', valueCompound.fromPreferences
+                /*treecell.setAttribute( 'label', valueCompound.fromPreferences
                     ? valueCompound.setName
                     : (valueCompound.folderPath
                             ? ''
                             : 'module default'
                       )
-                );
+                );*/
                 if( valueCompound.fromPreferences && valueCompound.setName===module.defaultSetName() ) {
                     treecell.setAttribute( 'properties', SeLiteSettings.DEFAULT_SET );
                 }
@@ -695,10 +758,12 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
             treecell= document.createElementNS( XUL_NS, 'treecell');
             treerow.appendChild( treecell);
             treecell.setAttribute('editable', 'false');
-            if( !showingPerFolder() ) {
+            treecell.setAttribute( 'label', generateCellLabel( Column.NULL_UNDEFINE, module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound) );
+            /*if( !showingPerFolder() ) {
                 treecell.setAttribute( 'label', nullOrUndefineLabel(field, valueCompound, rowLevel===RowLevel.OPTION, value) );
             }
-            else {
+            else {*/
+            if( showingPerFolder() ) {
                 treecell.setAttribute( 'properties', valueCompound.folderPath!==null
                     ? (     valueCompound.folderPath!==''
                             ? (valueCompound.fromPreferences
@@ -709,7 +774,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                       )
                     : SeLiteSettings.FIELD_DEFAULT // For the click handler
                 );
-                treecell.setAttribute( 'label', valueCompound.folderPath
+                /*treecell.setAttribute( 'label', valueCompound.folderPath
                     ? OS.Path.join( valueCompound.folderPath, valueCompound.fromPreferences
                             ? SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME
                             : SeLiteSettings.VALUES_MANIFEST_FILENAME
@@ -718,7 +783,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
                             ? module.definitionJavascriptFile
                             : ''
                       )
-                );
+                );*/
             }
         }
     }
