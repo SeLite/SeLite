@@ -201,7 +201,7 @@ var proxyEnsureFieldsExistClassHandler= {
     // Following is based on https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply#Using_apply_to_chain_constructors
     var fNewConstr = function () { target.apply(this, args); };
     fNewConstr.prototype = target.prototype;
-    return new fNewConstr();
+    return new Proxy( new fNewConstr(), proxyEnsureFieldsExistObjectHandler );
   }
 };
 /** This generates a proxy for the given target object or class (constructor function). The proxy ensures that any fields read have been set already. This serves to prevent typing/renaming accidents that would access non-existing fields, which normally returns undefined. Such problems arise when you access fields directly, rather than via accessor methods, and when you don't access any properties/methods on the retrieved fields themselves. An example is when you compare the field values by operators.
