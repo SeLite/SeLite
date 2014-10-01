@@ -475,7 +475,7 @@ function generateCellLabel( column, module, setName, field, key, value, rowLevel
                     : DELETE_THE_SET;
         }
         else if( !showingPerFolder() ) {
-            if( field!==null && !SeLiteMisc.isInstance( field, [SeLiteSettings.Field.Choice, SeLiteSettings.Field.FixedMap] )
+            if( field!==null && !SeLiteMisc.isInstance( field, [SeLiteSettings.Field.Choice, SeLiteSettings.Field.FixedMap], 'field' )
             && field.multivalued ) {
                 if( rowLevel===RowLevel.FIELD ) {
                     return ADD_NEW_VALUE;

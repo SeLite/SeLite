@@ -74,35 +74,57 @@ SeLiteMisc.ensure= function ensure( condition, message ) {
 };
 
 SeLiteMisc.oneOf= function oneOf( item, choices ) {
-    Array.isArray(choices) || SeLiteMisc.fail( 'SeLiteMisc.ensureOneOf() expects choices to be an array');
+    Array.isArray(choices) || SeLiteMisc.fail( 'SeLiteMisc.OneOf() expects choices to be an array');
     return choices.indexOf(item)>=0;
 };
 
-SeLiteMisc.ensureOneOf= function ensureOneOf( item, choices, message ) {
+/** It ensures that item is one of choices.
+ * @param {*} item
+ * @param {array} choices
+ * @param {string} [variableName] If other than undefined/null/false, then it should be name or description of the Javascript parameter that is being validated. If this function throws an error, the message will contain item, choices and variableName.
+ * @param {string} [message] Message for the error, if validation fails. Otherwise this generates a message containing item and choices.
+ * */
+SeLiteMisc.ensureOneOf= function ensureOneOf( item, choices, variableName, message ) {
     SeLiteMisc.ensure( SeLiteMisc.oneOf(item, choices),
-        message || 'Expecting one of [' +choices.join(',')+ '], but got ' +item );
+        message
+        || (variableName
+            ? 'Variable ' +variableName+ ' should be one of [' +choices.join(',')+ '], but got ' +item
+            : 'Expecting one of [' +choices.join(',')+ '], but got ' +item
+        ) );
 };
 
 /** Validates that typeof item is one of 
  *  @param item mixed
  *  @param typeStringOrStrings string, one of: 'number', 'string', 'object', 'function', 'boolean', 'undefined'
- *  @param {string} [message] Message to produce on validation failure, optional.
+ *  @param {string} [variableName] See same parameter of ensureOneOf().
+ *  @param {string} [message] See same parameter of ensureOneOf().
  * */
-SeLiteMisc.ensureType= function ensureType( item, typeStringOrStrings, message ) {
+SeLiteMisc.ensureType= function ensureType( item, typeStringOrStrings, variableName, message ) {
     message= message || '';
-    if( !Array.isArray(typeStringOrStrings) ) {
-        if( typeof typeStringOrStrings!=='string' ) {
-            SeLiteMisc.fail( 'typeStringOrStrings must be a string or an array');
-        }
-        typeStringOrStrings= [typeStringOrStrings];
+    var typeStrings= typeStringOrStrings;
+    if( !Array.isArray(typeStrings) ) {
+        typeof typeStrings==='string' || SeLiteMisc.fail( 'typeStringOrStrings must be a string or an array');
+        typeStrings= [typeStrings];
     }
-    for( var i=0; i<typeStringOrStrings.length; i++ ) {
-        SeLiteMisc.ensureOneOf( typeStringOrStrings[i], ['number', 'string', 'object', 'function', 'boolean', 'undefined'] );
-        if( typeof item===typeStringOrStrings[i] ) {
+    for( var i=0; i<typeStrings.length; i++ ) {
+        SeLiteMisc.ensureOneOf(// Internal validation of each typeStringOrStrings[i] itself
+            typeStrings[i],
+            ['number', 'string', 'object', 'function', 'boolean', 'undefined'],
+            'typeStringOrStrings'
+                +(typeStrings===typeStringOrStrings
+                    ? '[' +i+ ']'
+                    : ''
+                )
+        );
+        if( typeof item===typeStrings[i] ) {
             return;
         }
     }
-    SeLiteMisc.fail( message+ ' Expecting type from within [' +typeStringOrStrings+ '], but the actual type of the item is ' +typeof item+ '. The item: ' +item );
+    SeLiteMisc.fail( message
+        || (variableName
+            ? 'Variable ' +variableName+ ' should have type from within [' +typeStrings+ '], but the actual type of the item is ' +typeof item+ '. The item: ' +item
+            : 'Expecting an item of type from within [' +typeStrings+ '], but the actual type of the item is ' +typeof item+ '. The item: ' +item
+    ) );
 };
 
 /** @var array of strings which are names of global classes/objects.
@@ -114,19 +136,19 @@ var globalClasses= ['Array', 'Boolean', 'Date', 'Function', 'Iterator', 'Number'
 /** Detect whether the given object is an instance of one of the given class(es).
  *  @param {object} object Object
  *  @param {function|array} classes Class (that is, a constructor function), or an array of them.
- *  @param {string} message Extra message to include on failure, optional
+ *  @param {string} [variableName] See same parameter of ensureOneOf(). Only used on failure.
  */
-SeLiteMisc.isInstance= function isInstance( object, classes, message ) {
+SeLiteMisc.isInstance= function isInstance( object, classes, variableName ) {
     if( typeof classes==='function' ) {
         classes= [classes];
     }
     else {
-        SeLiteMisc.ensure( Array.isArray(classes), "Parameter clases must be a constructor method, or an array of them." );
+        SeLiteMisc.ensure( Array.isArray(classes), "Parameter clases must be a constructor method, or an array of them." ); // internal validation
     }
-    typeof object==='object' || SeLiteMisc.fail( 'Expecting an object, but ' +typeof object+ ' was given. ' +message );
+    SeLiteMisc.ensureType( object, 'object', variableName || 'object' ); // semi-internal validation
     for( var i=0; i<classes.length; i++ ) {//@TODO use loop for of() once NetBeans supports it
         var clazz= classes[i];
-        SeLiteMisc.ensureType( clazz, 'function' );
+        SeLiteMisc.ensureType( clazz, 'function', 'classes[' +i+ ']' ); // internal validation
         if( object instanceof clazz
             || SeLiteMisc.oneOf(clazz.name, globalClasses) && object.constructor.name===clazz.name ) {
             return true;
@@ -156,27 +178,32 @@ SeLiteMisc.classNameOf= function classNameOf( objectOrConstructor ) {
 /** Validate that a parameter is an object and of a given class (or of one of given classes).
  *  @param object Object
  *  @param classes Class (that is, a constructor function), or an array of them.
- *  @param message string, extra message, optional
+ *  @param {string} [variableName] See same parameter of ensureOneOf().
+ *  @param {string} [message] See same parameter of ensureOneOf().
  *  @see SeLiteMisc.isInstance()
  * */
-SeLiteMisc.ensureInstance= function ensureInstance( object, classes, message ) {
+SeLiteMisc.ensureInstance= function ensureInstance( object, classes, variableName, message ) {
     if( typeof classes==='function' ) {
         classes= [classes];
     }
-    if( !SeLiteMisc.isInstance(object, classes, message) ) {
+    if( !SeLiteMisc.isInstance(object, classes, variableName) ) {
         var classNames= [];
         classes.forEach( function(className) {
             classNames.push( SeLiteMisc.classNameOf(className) );
         } );
-        SeLiteMisc.fail( 'Expecting an instance of '
+        SeLiteMisc.fail( message ||
+            (variableName
+                ? 'Variable ' +variableName+ ' should be an instance of '
+                : 'Expecting an instance of '
+                )
             +(classNames.length===1
                 ? classNames[0]
                 : ' one of [' +classNames.join(',')+ ']'
             )+ ', but ' 
             +(object!==null
-                ? 'an instance of ' +object.constructor.name+ ' was given. '
+                ? 'an instance of ' +object.constructor.name
                 : 'null'
-            )+message
+            )+ ' was given. '
         );
     }
 };
@@ -422,7 +449,7 @@ SeLiteMisc.timestampInSeconds= function timestampInSeconds() {
  *  @throws Error if the parameter is not an object.
  **/
 SeLiteMisc.isEmptyObject= function isEmptyObject( obj ) {
-    SeLiteMisc.ensureType( obj, "object", 'Parameter of SeLiteMisc.isEmptyObject() must be an object.' );
+    SeLiteMisc.ensureType( obj, "object", 'obj' );
     for( var field in obj ) {
         return false;
     }
@@ -442,8 +469,8 @@ SeLiteMisc.isEmptyObject= function isEmptyObject( obj ) {
  *  @return boolean Whether both objects have same fields and their values
  * */
 SeLiteMisc.compareAllFields= function compareAllFields( firstContainer, secondContainer, strictOrMethodName, throwOnDifference ) {
-    SeLiteMisc.ensureType( firstContainer, 'object', 'SeLiteMisc.compareAllFields() requires firstContainer to be an object');
-    SeLiteMisc.ensureType( secondContainer, 'object', 'SeLiteMisc.compareAllFields() requires secondContainer to be an object');
+    SeLiteMisc.ensureType( firstContainer, 'object', 'firstContainer' );
+    SeLiteMisc.ensureType( secondContainer, 'object', 'secondContainer' );
     if( Array.isArray(firstContainer) || Array.isArray(secondContainer) ) {
         return SeLiteMisc.compareArrays( firstArray, secondArray, strictOrMethodName, throwOnDifference );
     }
@@ -746,7 +773,7 @@ function IterableArray( keys ) {
     this[SELITE_MISC_ITERABLE_ARRAY_KEYS]= keys!==undefined
         ? keys
         : [];
-    SeLiteMisc.ensure( Array.isArray(this[SELITE_MISC_ITERABLE_ARRAY_KEYS]), "IterableArray(keys) expects keys to be an array, or undefined." );
+    SeLiteMisc.ensureInstance( this[SELITE_MISC_ITERABLE_ARRAY_KEYS], 'array', 'keys (unless undefined)' );
     this.watch( SELITE_MISC_ITERABLE_ARRAY_KEYS, IterableArrayKeysWatchThrow );
 }
 IterableArray.prototype.__iterator__= function __iterator__() {
@@ -1304,9 +1331,9 @@ var NTH_RECORD= 'NTH_RECORD', NUMBER_OF_RECORDS='NUMBER_OF_RECORDS', INDEX_OF_RE
  *  @throws Error on failure, or if action=NTH_RECORD and positionOrRecord is equal to or higher than number of records
  **/
 function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
-    SeLiteMisc.ensureType( recordSet, 'object', 'recordSet must be an object');
-    SeLiteMisc.ensureType( positionOrRecord, ['number', 'object', 'undefined'], 'positionOrRecord must be a number, or an object or undefined.');
-    SeLiteMisc.ensureOneOf( action, [NTH_RECORD, NUMBER_OF_RECORDS, INDEX_OF_RECORD], 'nthRecordOrLengthOrIndexesOf() called with wrong parameter action' );
+    SeLiteMisc.ensureType( recordSet, 'object', 'recordSet' );
+    SeLiteMisc.ensureType( positionOrRecord, ['number', 'object', 'undefined'], 'positionOrRecord' );
+    SeLiteMisc.ensureOneOf( action, [NTH_RECORD, NUMBER_OF_RECORDS, INDEX_OF_RECORD], 'action' );
     
     // Following three booleans reflect what we're doing.
     var nthRecord= action===NTH_RECORD;
@@ -1320,8 +1347,8 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
         ? positionOrRecord
         : undefined;
     
-    SeLiteMisc.ensureType( record, ['object', 'undefined'] );
-    SeLiteMisc.ensureType( position, ['number', 'undefined'] );
+    SeLiteMisc.ensureType( record, ['object', 'undefined'], 'record' );
+    SeLiteMisc.ensureType( position, ['number', 'undefined'], 'position' );
     
     if( nthRecord && (position<0 || position!=Math.round(position) ) ) {
         throw new Error( "nthRecordOrLengthOrIndexesOf() requires non-decimal non-negative position, but it was: " +position);
