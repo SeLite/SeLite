@@ -17,6 +17,7 @@
 
 /* This has many workarounds because of inflexibility in Mozilla XUL model. It can run in two main modes: editable (showing all sets for any modules, or for matching modules) and review (per-folder).
  * On change of fields, it doesn't reload the page, but it only updates elements as needed. However, if you add/remove a configuration set, then it reloads the whole page, which loses the collapse/expand status.
+ * This needs to show two separate columns Action and Null/Undefine, because if you have a multi-valued Field.String that allows null, and the field has null value, then this needs to show both 'Add a new value' and 'Undefine' - hence two columns.
  * */
 var XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 var nsIFilePicker = Components.interfaces.nsIFilePicker;
@@ -469,7 +470,7 @@ function generateCellLabel( column, module, setName, field, key, value, rowLevel
         if( rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET ) {
             return '';
         }
-        var valueForThisRow= /*value; */collectValueForThisRow( field, value, rowLevel, valueCompound );
+        var valueForThisRow= value; //collectValueForThisRow( field, value, rowLevel, valueCompound );
         typeof value==='string' || typeof value==='number' || valueForThisRow===null || valueForThisRow===undefined || SeLiteMisc.fail();
         return value!==null
             ? ''+value
@@ -679,7 +680,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         treecell.setAttribute('editable' , 'false');
     }
     
-    var valueForThisRow= /*value; */collectValueForThisRow( field, value, rowLevel, valueCompound );
+    var valueForThisRow= value; //collectValueForThisRow( field, value, rowLevel, valueCompound );
     if( (typeof value==='string' || typeof value==='number' || valueForThisRow===null || valueForThisRow===undefined)
         && !isNewValueRow
     ) {
@@ -794,7 +795,7 @@ function generateFields( setChildren, module, setName, setFields ) {
         var singleValueOrNull= typeof compound.entry!=='object'
             ? compound.entry
             : null;
-        var fieldItem= generateTreeItem(module, setName, field, singleValueOrNull, RowLevel.FIELD, false, false, compound );
+        var fieldItem= generateTreeItem(module, setName, field, /*key=undefined, */singleValueOrNull, RowLevel.FIELD, false, false, compound );
         setChildren.appendChild( fieldItem );
         
         var isChoice= field instanceof SeLiteSettings.Field.Choice;
@@ -809,7 +810,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                     pair[key]= compound.entry!==undefined
                         ? compound.entry[key]
                         : undefined;
-                    var optionItem= generateTreeItem(module, setName, field, pair, RowLevel.OPTION, /*optionIsSelected*/false, compound
+                    var optionItem= generateTreeItem(module, setName, field, /*key, */pair, RowLevel.OPTION, /*optionIsSelected*/false, compound
                     );
                     fieldChildren.appendChild( optionItem );
                 }
@@ -823,7 +824,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                     var pair= {};
                     pair[key]= pairsToList[key];
                     isChoice || compound.entry===undefined || typeof(compound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value of type ' +typeof compound.entry+ ': ' +compound.entry );
-                    var optionItem= generateTreeItem(module, setName, field, pair, RowLevel.OPTION,
+                    var optionItem= generateTreeItem(module, setName, field, /*key,*/pair, RowLevel.OPTION,
                         isChoice && typeof(compound.entry)==='object'
                             && compound.entry!==null && key in compound.entry,
                         false,
@@ -1021,7 +1022,7 @@ function treeClickHandler( event ) {
                             var pair= {};
                             pair[ SeLiteSettings.NEW_VALUE_ROW ]= SeLiteSettings.NEW_VALUE_ROW;
                             // Since we're editing, it means that showingPerFolder()===false, so I don't need to generate anything for navigation from folder view here.
-                            var treeItem= generateTreeItem(module, selectedSetName, field, pair, RowLevel.OPTION, false, /*Don't show the initial value:*/true );
+                            var treeItem= generateTreeItem(module, selectedSetName, field, /*key SeLiteSettings.NEW_VALUE_ROW,*/pair, RowLevel.OPTION, false, /*Don't show the initial value:*/true );
 
                             var previouslyFirstValueRow;
                             for( var key in moduleRowsOrChildren[selectedSetName][field.name] ) {
@@ -1361,7 +1362,7 @@ function setCellText( row, col, value, original) {
             treeChildren.removeChild( info.treeRow.parentNode );
             var pair= {};
             pair[ value ]= value;
-            var treeItem= generateTreeItem( info.module, info.setName, info.field, pair, RowLevel.OPTION ); // That sets 'properties' and it adds an entry to treeRow[value]
+            var treeItem= generateTreeItem( info.module, info.setName, info.field, /*key=value,*/pair, RowLevel.OPTION ); // That sets 'properties' and it adds an entry to treeRow[value]
                 // (which is same as fieldTreeRowsOrChildren[value] here).
             // Firefox 22.b04 and 24.0a1 doesn't handle parent.insertBefore(newItem, null), even though it should - https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore
             if(true){//@TODO cleanup
