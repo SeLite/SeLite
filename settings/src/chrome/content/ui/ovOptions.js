@@ -430,7 +430,7 @@ function collectValueForThisRow( field, value, rowLevel, valueCompound ) {
 }
 
 /** {Column} column
- *  {SeLiteSettings.Module} module
+ *  {SeLiteSettings.Module} module We need this in addition to field when we call it with rowLevel===RowLevel.MODULE (since there is no field at that level).
  *  {string} setName
  *  {SeLiteSettings.Field} field
  *  {string} key
