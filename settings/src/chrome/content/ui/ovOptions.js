@@ -533,22 +533,15 @@ function generateCellLabel( column, module, setName, field, key, value, rowLevel
 /** @param module object of Module
  *  @param setName string set name; either '' if the module doesn't allow sets; otherwise it's a set name when at field level
  *  attribute for the <treerow> nodes, so that when we handle a click event, we know what field the node is for.
- *  @param field mixed, usually an object of a subclass of Field. If rowLevel==RowLevel.MODULE or rowLevel==RowLevel.SET,
- *  then field is null. Otherwise it must be an instance of a subclass of Field.
+ *  @param {SeLiteSettings.Field} field An object of a subclass of Field. If rowLevel==RowLevel.MODULE or rowLevel==RowLevel.SET,  then field is null.
  *  @param string key 'key' (used as a trailing part of field option preference name);
  *  use for fields of Field.Choice family and for multivalued fields only. For multivalued non-choice fields it should be the same
  *  as parameter value. If the field is of a subclass of Field.Choice, then key and value may be different.
- *  @param valueOrPair It indicates the value to display.
- *  For single valued non-choice fields or fields not defined in module.fields[]
- *  it is the value/label of the field as shown. Ignored if  not applicable.
- *  For multivalued or choice fields it's an anonymous object serving as an array
- *  { string key => string/number ('primitive') valueItself
- *    ....
- *  } where
- *  - key serves as a trailing part of field option preference name)
- *  -- for multivalued non-choice fields it should be the same as valueItself
- *  -- if the field is of a subclass of Field.Choice, then key and valueItself may be different.
- *  - valueItself is the actual value/label as displayed
+ *  @param {string} key Key for the value to display. If no such key, it should be undefined.
+ *  It must not be undefined for multivalued or choice field. It serves as a trailing part of field option preference name)
+ *  -- for multivalued non-choice fields it should be the same as value
+ *  -- if the field is of a subclass of Field.Choice or Field.FixedMap, then key and value may be different.
+ *  @param {(string|number)} value
  *  @param {RowLevel} rowLevel
  *  @param optionIsSelected bool Whether the option is selected. Only used when rowLevel===RowLevel.OPTION and field instanceof Field.Choice.
  *  @param {bool} [isNewValueRow] Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell.
@@ -564,15 +557,13 @@ function generateCellLabel( column, module, setName, field, key, value, rowLevel
  *  Required if rowLevel===RowLevel.FIELD.
  *  @return object for a new element <treeitem> with one <treerow>
  * */
-function generateTreeItem( module, setName, field, valueOrPair, rowLevel, optionIsSelected, isNewValueRow, valueCompound ) {
+function generateTreeItem( module, setName, field, key, value, rowLevel, optionIsSelected, isNewValueRow, valueCompound ) {
     rowLevel instanceof RowLevel || SeLiteMisc.fail( "Parameter rowLevel must be an instance of RowLevel, but it is " +rowLevel );
     var multivaluedOrChoice= field!==null && (field.multivalued || field instanceof SeLiteSettings.Field.Choice);
-    if( typeof valueOrPair==='object' && valueOrPair!==null ) {
+    /*if( typeof valueOrPair==='object' && valueOrPair!==null ) {
         rowLevel===RowLevel.OPTION || SeLiteMisc.fail( "generateTreeItem(): parameter valueOrPair must not be an object, unless rowLevel is OPTION, but rowLevel is " +rowLevel );
         multivaluedOrChoice || SeLiteMisc.fail( 'generateTreeItem(): parameter valueOrPair can be an object only for multivalued fields or choice fields, but it was used with ' +field );
-    }
-    var key= keyFromValueOrPair( valueOrPair );
-    var value= valueFromValueOrPairAndKey( valueOrPair, key );
+    }*/
     
     if( field && typeof field!=='string' && !(field instanceof SeLiteSettings.Field) ) {
         throw new Error( "Parameter field must be an instance of a subclass of Field, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but it is "
@@ -767,7 +758,7 @@ function generateSets( moduleChildren, module ) {
             }
             var setChildren= null;
             if( allowSets && module.allowSets ) {
-                var setItem= generateTreeItem(module, setName, null, null, RowLevel.SET );
+                var setItem= generateTreeItem(module, setName, null, /*key*/ null, /*value*/null, RowLevel.SET );
                 moduleChildren.appendChild( setItem );
                 setChildren= createTreeChildren( setItem );
             }
@@ -792,10 +783,10 @@ function generateFields( setChildren, module, setName, setFields ) {
             ? module.fields[fieldName]
             : fieldName;
         
-        var singleValueOrNull= typeof compound.entry!=='object'
+        var singleValue= typeof compound.entry!=='object'
             ? compound.entry
             : null;
-        var fieldItem= generateTreeItem(module, setName, field, /*key=undefined, */singleValueOrNull, RowLevel.FIELD, false, false, compound );
+        var fieldItem= generateTreeItem(module, setName, field, /*key*/null, singleValue, RowLevel.FIELD, false, false, compound );
         setChildren.appendChild( fieldItem );
         
         var isChoice= field instanceof SeLiteSettings.Field.Choice;
@@ -806,11 +797,10 @@ function generateFields( setChildren, module, setName, setFields ) {
             if( field instanceof SeLiteSettings.Field.FixedMap ) {
                 for( var i=0; i<field.keySet.length; i++ ) { //@TODO loop for( .. of ..) once NetBeans supports it
                     var key= field.keySet[i];
-                    var pair= {};
-                    pair[key]= compound.entry!==undefined
+                    var value= compound.entry!==undefined
                         ? compound.entry[key]
-                        : undefined;
-                    var optionItem= generateTreeItem(module, setName, field, /*key, */pair, RowLevel.OPTION, /*optionIsSelected*/false, compound
+                        : null;
+                    var optionItem= generateTreeItem(module, setName, field, key, value, RowLevel.OPTION, /*optionIsSelected*/false, compound
                     );
                     fieldChildren.appendChild( optionItem );
                 }
@@ -821,10 +811,8 @@ function generateFields( setChildren, module, setName, setFields ) {
                     : compound.entry;
 
                 for( var key in pairsToList ) {////@TODO potential IterableArray
-                    var pair= {};
-                    pair[key]= pairsToList[key];
                     isChoice || compound.entry===undefined || typeof(compound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value of type ' +typeof compound.entry+ ': ' +compound.entry );
-                    var optionItem= generateTreeItem(module, setName, field, /*key,*/pair, RowLevel.OPTION,
+                    var optionItem= generateTreeItem(module, setName, field, key, /*value*/pairsToList[key], RowLevel.OPTION,
                         isChoice && typeof(compound.entry)==='object'
                             && compound.entry!==null && key in compound.entry,
                         false,
@@ -1019,10 +1007,8 @@ function treeClickHandler( event ) {
                         var treeChildren= moduleRowsOrChildren[selectedSetName][field.name][SeLiteSettings.FIELD_TREECHILDREN];
                         if( cellText===ADD_NEW_VALUE ) {
                             // Add a row for a new value, right below the clicked row (i.e. at the top of all existing values)
-                            var pair= {};
-                            pair[ SeLiteSettings.NEW_VALUE_ROW ]= SeLiteSettings.NEW_VALUE_ROW;
                             // Since we're editing, it means that showingPerFolder()===false, so I don't need to generate anything for navigation from folder view here.
-                            var treeItem= generateTreeItem(module, selectedSetName, field, /*key SeLiteSettings.NEW_VALUE_ROW,*/pair, RowLevel.OPTION, false, /*Don't show the initial value:*/true );
+                            var treeItem= generateTreeItem(module, selectedSetName, field, /*key*/SeLiteSettings.NEW_VALUE_ROW, /*value*/SeLiteSettings.NEW_VALUE_ROW, RowLevel.OPTION, false, /*Don't show the initial value:*/true );
 
                             var previouslyFirstValueRow;
                             for( var key in moduleRowsOrChildren[selectedSetName][field.name] ) {
@@ -1360,9 +1346,7 @@ function setCellText( row, col, value, original) {
         if( rowAfterNewPosition!==info.treeRow ) { // Repositioning - remove treeRow, create a new treeRow
             var treeChildren= info.fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN];
             treeChildren.removeChild( info.treeRow.parentNode );
-            var pair= {};
-            pair[ value ]= value;
-            var treeItem= generateTreeItem( info.module, info.setName, info.field, /*key=value,*/pair, RowLevel.OPTION ); // That sets 'properties' and it adds an entry to treeRow[value]
+            var treeItem= generateTreeItem( info.module, info.setName, info.field, /*key*/value, value, RowLevel.OPTION ); // That sets 'properties' and it adds an entry to treeRow[value]
                 // (which is same as fieldTreeRowsOrChildren[value] here).
             // Firefox 22.b04 and 24.0a1 doesn't handle parent.insertBefore(newItem, null), even though it should - https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore
             if(true){//@TODO cleanup
@@ -1714,7 +1698,7 @@ window.addEventListener( "load", function(e) {
     var setNameToExpand= null;
     if( allowModules ) {
         for( var moduleName in modules ) {
-            var moduleTreeItem= generateTreeItem( modules[moduleName], null, null, null, RowLevel.MODULE );
+            var moduleTreeItem= generateTreeItem( modules[moduleName], null, null, /*keyundefined*/null, /*valueundefined*/null, RowLevel.MODULE );
             topTreeChildren.appendChild( moduleTreeItem );
             
             var moduleChildren= createTreeChildren( moduleTreeItem );
@@ -1727,7 +1711,7 @@ window.addEventListener( "load", function(e) {
         
         var moduleChildren;
         if( allowSets && modules[moduleName].allowSets ) {
-            var moduleTreeItem= generateTreeItem( modules[moduleName], null, null, null, RowLevel.MODULE );
+            var moduleTreeItem= generateTreeItem( modules[moduleName], null, null, /*keyundefined*/null, /*valueundefined*/null, RowLevel.MODULE );
             topTreeChildren.appendChild( moduleTreeItem );
             moduleChildren= createTreeChildren( moduleTreeItem );
         }
