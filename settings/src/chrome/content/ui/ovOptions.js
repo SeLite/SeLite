@@ -374,12 +374,12 @@ function valueCompound( field, setName ) {
 
 /** Generate text for label for 'Null/Undefine' column. Use only in editable mode, which shows set(s) - not for per-folder mode.
  *  @param field Instance of SeLiteSettings.Field
- *  @param valueCompoundEntry @TODO replace with valueCompound.entry? Value compound for this field, containing its configured value. One of entries from a result of Module.Module.getFieldsOfSet().
+ *  @param valueCompoundEntry Value compound 's .entry for this field, containing its configured value. One of entries from a result of Module.Module.getFieldsOfSet().
  *  @param {boolean} [atOptionLevel] Whether this is called for RowLevel.OPTION level and for SeLiteSettings.Field.FixedMap. Optional; only used if field instanceof SeLiteSettings.Field.FixedMap.
  *  @param {*} [value] Value being shown, or undefined or null. Optional; only used if field is an SeLiteSettings.Field.FixedMap and atOptionLevel is true.
  *  @return string Empty string, 'Null' or 'Undefine', as an appropriate action for this field with the given value.
  * */
-function nullOrUndefineLabel( field, valueCompound, atOptionLevel, value ) {
+function nullOrUndefineLabel( field, valueCompoundEntry, atOptionLevel, value ) {
     !showingPerFolder() || SeLiteMisc.fail( "Don't call nullOrUndefineLabel() when showing fields per folder." );
     !atOptionLevel || field instanceof SeLiteSettings.Field.Choice || field instanceof SeLiteSettings.Field.FixedMap || SeLiteMisc.fail( "atOptionLevel can be true only if the field is an instance of Choice or FixedMap, but it is " +field );
     if( atOptionLevel && field instanceof SeLiteSettings.Field.FixedMap ) { // FixedMap is always multivalued, hence it doesn't allow null
@@ -388,16 +388,16 @@ function nullOrUndefineLabel( field, valueCompound, atOptionLevel, value ) {
             : '';
     }
     else if( !field.multivalued ) {
-        return valueCompound.entry!==undefined
+        return valueCompoundEntry!==undefined
             ? 'Undefine'
-            : (valueCompound.entry!==null && field.allowNull
+            : (valueCompoundEntry!==null && field.allowNull
                 ? 'Null'
                 : ''
               );
     }
     else {
         // We allow 'Undefine' button only once there are no value(s) for the multivalued field
-        return valueCompound.entry!==undefined && Object.keys(valueCompound.entry).length===0
+        return valueCompoundEntry!==undefined && Object.keys(valueCompoundEntry).length===0
             ? 'Undefine'
             : '';
     }
@@ -506,7 +506,7 @@ function generateCellLabel( column, module, setName, field, key, value, rowLevel
         rowLevel===RowLevel.FIELD || !showingPerFolder() && rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap || SeLiteMisc.fail();
             // If per-folder view: show Manifest or definition. Otherwise (i.e. per-module view): show Null/Undefine.
         if( !showingPerFolder() ) {
-            return nullOrUndefineLabel( field, valueCompound, rowLevel===RowLevel.OPTION, value );
+            return nullOrUndefineLabel( field, valueCompound.entry, rowLevel===RowLevel.OPTION, value );
         }
         else {
             return valueCompound.folderPath
@@ -1161,8 +1161,8 @@ function treeClickHandler( event ) {
                 clickedOptionKey===undefined || SeLiteMisc.ensureInstance( field, [SeLiteSettings.Field.Choice, SeLiteSettings.Field.FixedMap] );
                 treeCell( rowToUpdate, Column.NULL_UNDEFINE ).setAttribute( 'label',
                     clickedOptionKey===undefined
-                    ? nullOrUndefineLabel( field, valueCompound(field, selectedSetName) )
-                    : nullOrUndefineLabel( field, valueCompound(field, selectedSetName), true,
+                    ? nullOrUndefineLabel( field, valueCompound(field, selectedSetName).entry )
+                    : nullOrUndefineLabel( field, valueCompound(field, selectedSetName).entry, true,
                         moduleSetFields[moduleName][selectedSetName][field.name].entry[clickedOptionKey]
                       )
                 );
@@ -1281,7 +1281,7 @@ function preProcessEdit( row, value ) {
                 /*treeCell( fieldRow, Column.NULL_UNDEFINE ).setAttribute( 'label',
                     generateCellLabel( Column.NULL_UNDEFINE, module, setName, field, undefined, value, RowLevel.FIELD, false, valueCompound ) );*/
                 treeCell( fieldRow, Column.NULL_UNDEFINE ).setAttribute( 'label',
-                    nullOrUndefineLabel( field, valueCompound(field, setName) )
+                    nullOrUndefineLabel( field, valueCompound(field, setName).entry )
                 );/**/
             }
             else {
@@ -1290,7 +1290,7 @@ function preProcessEdit( row, value ) {
                 /*treeCell( optionRow, Column.NULL_UNDEFINE ).setAttribute( 'label',
                     generateCellLabel( Column.NULL_UNDEFINE, module, setName, field, undefined, value, RowLevel.OPTION, false, valueCompound ) );*/ //@TODO cast value to the exact type?
                 treeCell( optionRow, Column.NULL_UNDEFINE ).setAttribute( 'label',
-                    nullOrUndefineLabel( field, valueCompound(field, setName), true, value ) //@TODO cast value to the exact type
+                    nullOrUndefineLabel( field, valueCompound(field, setName).entry, true, value ) //@TODO cast value to the exact type
                 );/**/
             }
         }
