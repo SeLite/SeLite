@@ -443,19 +443,20 @@ function generateCellLabel( column, module, setName, field, key, value, rowLevel
     SeLiteMisc.ensureInstance( rowLevel, RowLevel );
     SeLiteMisc.ensureInstance( column, Column );
     !field || SeLiteMisc.ensureInstance( field, SeLiteSettings.Field );
-    var moduleName= module
-        ? module.name
-        : '';
-    var fieldName= field
-        ? field.name
-        : '';
     
     if( column===Column.MODULE_SET_FIELD ) {
-        return rowLevel.forLevel( moduleName, setName, fieldName,
+        return rowLevel.forLevel(
+            module
+                ? module.name
+                : '',
+            setName,
+            field
+                ? field.name
+                : '',
             field instanceof SeLiteSettings.Field.FixedMap
                 ? key
                 : ''
-        )
+        );
     }
     else if( column===Column.VALUE ) {
         var valueForThisRow= collectValueForThisRow( field, value, rowLevel, valueCompound );
