@@ -204,7 +204,7 @@ var proxyEnsureFieldsExistClassHandler= {
     return new Proxy( new fNewConstr(), proxyEnsureFieldsExistObjectHandler );
   }
 };
-/** This generates a proxy for the given target object or class (constructor function). The proxy ensures that any fields read have been set already. This serves to prevent typing/renaming accidents that would access non-existing fields, which normally returns undefined. Such problems arise when you access fields directly, rather than via accessor methods, and when you don't access any properties/methods on the retrieved fields themselves. An example is when you compare the field values by operators.
+/** This generates a proxy for the given target object or class (constructor function). The proxy ensures that any fields read have been set already. This serves to prevent typing/renaming accidents that would access non-existing fields, doing which normally returns undefined. Such problems arise when you access fields directly, rather than via accessor methods, and when you don't access any properties/methods on the retrieved fields themselves. An example is when you compare the field values by operators.
  <br/> Instead of using the fields directly you could have accessor methods, but those don't gurarentee correct code anyway (since they may contain typos, too), hence they don't solve the problem; however, they do make code more verbose and less hands-on.
  <br/> This uses Proxy, which decreases execution speed a bit. However, it helps to identify mistakes earlier, while keeping code shorter.
  <br/> If you need the code to determine whether the proxy contains a field with a given name, use expression: fieldName in target.
