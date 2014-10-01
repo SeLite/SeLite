@@ -404,22 +404,6 @@ function nullOrUndefineLabel( field, valueCompoundEntry, atOptionLevel, value ) 
     }
 }
 
-function keyFromValueOrPair( valueOrPair ) {
-    var key= null; // If valueOrPair is an object with exactly one (iterable) key, this is the key
-    if( typeof valueOrPair==='object' && valueOrPair!==null ) {
-        var keys= Object.keys(valueOrPair);
-        keys.length===1 || SeLiteMisc.fail( "keyFromValueOrPair(): parameter valueOrPair can be an object, but with exactly one field, yet it received one with " +keys.length+ ' fields.' );
-        key= keys[0];
-    }
-    return key;
-}
-
-function valueFromValueOrPairAndKey( valueOrPair, key ) {//@TODO eliminate: currently used 1x
-    return key!==null
-        ? valueOrPair[key]
-        : valueOrPair;
-}
-
 function collectValueForThisRow( field, value, rowLevel, valueCompound ) {
     SeLiteMisc.ensureInstance( rowLevel, RowLevel );
     if( rowLevel===RowLevel.FIELD && value!==valueCompound.entry) { debugger;}
