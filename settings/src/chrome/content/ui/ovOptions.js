@@ -419,9 +419,9 @@ function valueFromValueOrPairAndKey( valueOrPair, key ) {//@TODO eliminate: curr
         : valueOrPair;
 }
 
-// @TODO replace valueCompound with valueCompound.entry
 function collectValueForThisRow( field, value, rowLevel, valueCompound ) {
     SeLiteMisc.ensureInstance( rowLevel, RowLevel );
+    if( rowLevel===RowLevel.FIELD && value!==valueCompound.entry) { debugger;}
     return rowLevel===RowLevel.FIELD
         ? valueCompound.entry
         : ( rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap
@@ -546,7 +546,7 @@ function generateCellLabel( column, module, setName, field, key, value, rowLevel
  *  @param optionIsSelected bool Whether the option is selected. Only used when rowLevel===RowLevel.OPTION and field instanceof Field.Choice.
  *  @param {bool} [isNewValueRow] Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell.
  *  It still puts the new <treerow> element to treeRowsOrChildren[moduleName...], so that it can be updated/removed once the user fills in the value. Optional; false by default.
- *  @param {object} valueCompound Value compound for this field stored in the set being displayed (or in the sets and manifests applicable to targetFolder, if non-null). Its entry part may be different to (the part of) valueOrPair when rowLevel===RowLevel.OPTION, since valueOrPair then indicates what to display for this row. valueCompound is an anonymous object, one of entries in result of Module.getFieldsDownToFolder(..) or Module.Module.getFieldsOfSet(), i.e. in form {
+ *  @param {object} valueCompound Value compound for this field stored in the set being displayed (or in the sets and manifests applicable to targetFolder, if targetFolder!=null). Its entry part may be different to (the part of) valueOrPair when rowLevel===RowLevel.OPTION, since valueOrPair then indicates what to display for this row. valueCompound is an anonymous object, one of entries in result of Module.getFieldsDownToFolder(..) or Module.Module.getFieldsOfSet(), i.e. in form {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or from field default,
  *          setName: string set name (only valid if fromPreferences is true),
  *          folderPath: string folder path to the manifest file (either values manifest, or associations manifest);
