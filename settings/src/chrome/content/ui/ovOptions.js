@@ -428,6 +428,13 @@ function collectValueForThisRow( field, value, rowLevel, valueCompound ) {
             ? value
             : undefined
           );
+    return rowLevel===RowLevel.FIELD || rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap
+        ? value//Compound.entry
+        : '';
+        /*: ( rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap
+            ? value
+            : undefined
+          );*/
 }
 
 /** {Column} column
@@ -437,10 +444,9 @@ function collectValueForThisRow( field, value, rowLevel, valueCompound ) {
  *  {string} key
  *  {string} value
  *  {RowLevel} rowLevel
- *  {bool} isNewValueRow
  *  {object} valueCompound
  * */
-function generateCellLabel( column, module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound ) {
+function generateCellLabel( column, module, setName, field, key, value, rowLevel, valueCompound ) {
     SeLiteMisc.ensureInstance( rowLevel, RowLevel );
     SeLiteMisc.ensureInstance( column, Column );
     !field || SeLiteMisc.ensureInstance( field, SeLiteSettings.Field );
@@ -463,8 +469,8 @@ function generateCellLabel( column, module, setName, field, key, value, rowLevel
         if( rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET ) {
             return '';
         }
-        var valueForThisRow= collectValueForThisRow( field, value, rowLevel, valueCompound );
-        (typeof value==='string' || typeof value==='number' || valueForThisRow===null || valueForThisRow===undefined) && !isNewValueRow || SeLiteMisc.fail();
+        var valueForThisRow= /*value; */collectValueForThisRow( field, value, rowLevel, valueCompound );
+        typeof value==='string' || typeof value==='number' || valueForThisRow===null || valueForThisRow===undefined || SeLiteMisc.fail();
         return value!==null
             ? ''+value
             : ( valueForThisRow===null
@@ -605,7 +611,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
     // Cell for name of the Module/Set/Field, and for keys of SeLiteSettings.Field.FixedMap
     var treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
-    treecell.setAttribute( 'label', generateCellLabel(Column.MODULE_SET_FIELD, module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound) );
+    treecell.setAttribute( 'label', generateCellLabel(Column.MODULE_SET_FIELD, module, setName, field, key, value, rowLevel, valueCompound) );
     treecell.setAttribute('editable', 'false');
 
     if( allowSets ) { // Radio-like checkbox for (de)selecting a set
@@ -673,11 +679,11 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         treecell.setAttribute('editable' , 'false');
     }
     
-    var valueForThisRow= collectValueForThisRow( field, value, rowLevel, valueCompound );
+    var valueForThisRow= /*value; */collectValueForThisRow( field, value, rowLevel, valueCompound );
     if( (typeof value==='string' || typeof value==='number' || valueForThisRow===null || valueForThisRow===undefined)
         && !isNewValueRow
     ) {
-        treecell.setAttribute( 'label', generateCellLabel(Column.VALUE, module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound) );
+        treecell.setAttribute( 'label', generateCellLabel(Column.VALUE, module, setName, field, key, value, rowLevel, valueCompound) );
         if( showingPerFolder() && valueCompound!==null ) {
             if( valueCompound.fromPreferences ) {
                 treecell.setAttribute( 'properties',
@@ -695,7 +701,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
             }
         }
         if( valueForThisRow===null || valueForThisRow===undefined ) {
-            treecell.setAttribute( 'properties', SeLiteSettings.FIELD_NULL_OR_UNDEFINED );
+            treecell.setAttribute( 'properties', SeLiteSettings.FIELD_NULL_OR_UNDEFINED ); //@TODO This overrides the above
         }
     }
     if( allowSets || allowMultivaluedNonChoices || showingPerFolder() ) {
@@ -703,7 +709,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
         treecell= document.createElementNS( XUL_NS, 'treecell');
         treerow.appendChild( treecell);
         treecell.setAttribute('editable', 'false');
-        treecell.setAttribute( 'label', generateCellLabel( Column.ACTION, module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound) );
+        treecell.setAttribute( 'label', generateCellLabel( Column.ACTION, module, setName, field, key, value, rowLevel, valueCompound) );
         if( showingPerFolder() && rowLevel===RowLevel.FIELD ) {
             if( valueCompound.fromPreferences && valueCompound.setName===module.defaultSetName() ) {
                 treecell.setAttribute( 'properties', SeLiteSettings.DEFAULT_SET );
@@ -718,7 +724,7 @@ function generateTreeItem( module, setName, field, valueOrPair, rowLevel, option
             treecell= document.createElementNS( XUL_NS, 'treecell');
             treerow.appendChild( treecell);
             treecell.setAttribute('editable', 'false');
-            treecell.setAttribute( 'label', generateCellLabel( Column.NULL_UNDEFINE, module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound) );
+            treecell.setAttribute( 'label', generateCellLabel( Column.NULL_UNDEFINE, module, setName, field, key, value, rowLevel, valueCompound) );
             if( showingPerFolder() ) {
                 treecell.setAttribute( 'properties', valueCompound.folderPath!==null
                     ? (     valueCompound.folderPath!==''
@@ -803,10 +809,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                     pair[key]= compound.entry!==undefined
                         ? compound.entry[key]
                         : undefined;
-                    var optionItem= generateTreeItem(module, setName, field, pair, RowLevel.OPTION,
-                        /*optionIsSelected*/false,
-                        /*isNewValueRow*/false,
-                        compound
+                    var optionItem= generateTreeItem(module, setName, field, pair, RowLevel.OPTION, /*optionIsSelected*/false, compound
                     );
                     fieldChildren.appendChild( optionItem );
                 }
@@ -1279,7 +1282,7 @@ function preProcessEdit( row, value ) {
                     treeCell( fieldRow, Column.TRUE/*@TODO VALUE fails?!?!:TRUE (original FIELD)*/ ).setAttribute( 'label', '' );
                 }
                 /*treeCell( fieldRow, Column.NULL_UNDEFINE ).setAttribute( 'label',
-                    generateCellLabel( Column.NULL_UNDEFINE, module, setName, field, undefined, value, RowLevel.FIELD, false, valueCompound ) );*/
+                    generateCellLabel( Column.NULL_UNDEFINE, module, setName, field, undefined, value, RowLevel.FIELD, valueCompound ) );*/
                 treeCell( fieldRow, Column.NULL_UNDEFINE ).setAttribute( 'label',
                     nullOrUndefineLabel( field, valueCompound(field, setName).entry )
                 );/**/
@@ -1288,7 +1291,7 @@ function preProcessEdit( row, value ) {
                 var optionRow= treeRowsOrChildren[module.name][setName][field.name][oldKey];
                 treeCell( optionRow, Column.VALUE/*@TODO?!?!:TRUE (original FIELD)*/ ).setAttribute( 'properties', '' ); // Clear at option level, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED
                 /*treeCell( optionRow, Column.NULL_UNDEFINE ).setAttribute( 'label',
-                    generateCellLabel( Column.NULL_UNDEFINE, module, setName, field, undefined, value, RowLevel.OPTION, false, valueCompound ) );*/ //@TODO cast value to the exact type?
+                    generateCellLabel( Column.NULL_UNDEFINE, module, setName, field, undefined, value, RowLevel.OPTION, valueCompound ) );*/ //@TODO cast value to the exact type?
                 treeCell( optionRow, Column.NULL_UNDEFINE ).setAttribute( 'label',
                     nullOrUndefineLabel( field, valueCompound(field, setName).entry, true, value ) //@TODO cast value to the exact type
                 );/**/
