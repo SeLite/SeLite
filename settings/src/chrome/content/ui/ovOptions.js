@@ -374,7 +374,7 @@ function valueCompound( field, setName ) {
 
 /** Generate text for label for 'Null/Undefine' column. Use only in editable mode, which shows set(s) - not for per-folder mode.
  *  @param field Instance of SeLiteSettings.Field
- *  @param valueCompound Value compound for this field, containing its configured value. One of entries from a result of Module.Module.getFieldsOfSet().
+ *  @param valueCompoundEntry @TODO replace with valueCompound.entry? Value compound for this field, containing its configured value. One of entries from a result of Module.Module.getFieldsOfSet().
  *  @param {boolean} [atOptionLevel] Whether this is called for RowLevel.OPTION level and for SeLiteSettings.Field.FixedMap. Optional; only used if field instanceof SeLiteSettings.Field.FixedMap.
  *  @param {*} [value] Value being shown, or undefined or null. Optional; only used if field is an SeLiteSettings.Field.FixedMap and atOptionLevel is true.
  *  @return string Empty string, 'Null' or 'Undefine', as an appropriate action for this field with the given value.
@@ -419,14 +419,15 @@ function valueFromValueOrPairAndKey( valueOrPair, key ) {//@TODO eliminate: curr
         : valueOrPair;
 }
 
+// @TODO replace valueCompound with valueCompound.entry
 function collectValueForThisRow( field, value, rowLevel, valueCompound ) {
     SeLiteMisc.ensureInstance( rowLevel, RowLevel );
     return rowLevel===RowLevel.FIELD
-    ? valueCompound.entry
-    : ( rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap
-        ? value
-        : undefined
-      );
+        ? valueCompound.entry
+        : ( rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap
+            ? value
+            : undefined
+          );
 }
 
 /** {Column} column
@@ -545,8 +546,7 @@ function generateCellLabel( column, module, setName, field, key, value, rowLevel
  *  @param optionIsSelected bool Whether the option is selected. Only used when rowLevel===RowLevel.OPTION and field instanceof Field.Choice.
  *  @param {bool} [isNewValueRow] Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell.
  *  It still puts the new <treerow> element to treeRowsOrChildren[moduleName...], so that it can be updated/removed once the user fills in the value. Optional; false by default.
- *  @param {object} valueCompound Value compound stored in the set being displayed (or in the sets and manifests applicable to targetFolder, if non-null). Anonymous object, one of entries in result of Module.getFieldsDownToFolder(..)
- *  or Module.Module.getFieldsOfSet() in form {
+ *  @param {object} valueCompound Value compound for this field stored in the set being displayed (or in the sets and manifests applicable to targetFolder, if non-null). Its entry part may be different to (the part of) valueOrPair when rowLevel===RowLevel.OPTION, since valueOrPair then indicates what to display for this row. valueCompound is an anonymous object, one of entries in result of Module.getFieldsDownToFolder(..) or Module.Module.getFieldsOfSet(), i.e. in form {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or from field default,
  *          setName: string set name (only valid if fromPreferences is true),
  *          folderPath: string folder path to the manifest file (either values manifest, or associations manifest);
@@ -1278,16 +1278,20 @@ function preProcessEdit( row, value ) {
                 if( field.multivalued ) { //Clear it, in case it was 'undefined' (if this is the first value)
                     treeCell( fieldRow, Column.TRUE/*@TODO VALUE fails?!?!:TRUE (original FIELD)*/ ).setAttribute( 'label', '' );
                 }
+                /*treeCell( fieldRow, Column.NULL_UNDEFINE ).setAttribute( 'label',
+                    generateCellLabel( Column.NULL_UNDEFINE, module, setName, field, undefined, value, RowLevel.FIELD, false, valueCompound ) );*/
                 treeCell( fieldRow, Column.NULL_UNDEFINE ).setAttribute( 'label',
                     nullOrUndefineLabel( field, valueCompound(field, setName) )
-                );
+                );/**/
             }
             else {
                 var optionRow= treeRowsOrChildren[module.name][setName][field.name][oldKey];
                 treeCell( optionRow, Column.VALUE/*@TODO?!?!:TRUE (original FIELD)*/ ).setAttribute( 'properties', '' ); // Clear at option level, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED
+                /*treeCell( optionRow, Column.NULL_UNDEFINE ).setAttribute( 'label',
+                    generateCellLabel( Column.NULL_UNDEFINE, module, setName, field, undefined, value, RowLevel.OPTION, false, valueCompound ) );*/ //@TODO cast value to the exact type?
                 treeCell( optionRow, Column.NULL_UNDEFINE ).setAttribute( 'label',
                     nullOrUndefineLabel( field, valueCompound(field, setName), true, value ) //@TODO cast value to the exact type
-                );
+                );/**/
             }
         }
     }
