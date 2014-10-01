@@ -459,6 +459,9 @@ function generateCellLabel( column, module, setName, field, key, value, rowLevel
         );
     }
     else if( column===Column.VALUE ) {
+        if( rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET ) {
+            return '';
+        }
         var valueForThisRow= collectValueForThisRow( field, value, rowLevel, valueCompound );
         (typeof value==='string' || typeof value==='number' || valueForThisRow===null || valueForThisRow===undefined) && !isNewValueRow || SeLiteMisc.fail();
         return value!==null
