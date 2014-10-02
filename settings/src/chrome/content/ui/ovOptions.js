@@ -537,7 +537,11 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
 function RowInfo() {
     // Following is only for code completion hints in IDEs. I don't set any fields here, since I want SeLiteMisc.proxyEnsureFieldsExist() to catch access to any unassigned fields.
     if( false ) {
-        this.key= this.value= undefined;
+        // Basic
+        this.module= this.setName= undefined;
+        this.field= this.key= this.value= undefined;
+        this.rowLevel= this.valueCompound= undefined;
+        // Basic results
         this.isUndefined= this.isNull= false;
         /** It controls 'True' column */
         this.isSelected= undefined;
@@ -548,8 +552,8 @@ function RowInfo() {
 }
 RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
 
-/** @param module object of Module
- *  @param setName string set name; either '' if the module doesn't allow sets; otherwise it's a set name when at field level
+/** @param {SeLiteSettings.Module} module object of Module
+ *  @param {string} setName set name; either '' if the module doesn't allow sets; otherwise it's a set name when at field level
  *  attribute for the <treerow> nodes, so that when we handle a click event, we know what field the node is for.
  *  @param {SeLiteSettings.Field} field An object of a subclass of Field. If rowLevel==RowLevel.MODULE or rowLevel==RowLevel.SET,  then field is null.
  *  @param {string} key Key for the value to display. If no such key, it should be undefined.
@@ -560,9 +564,6 @@ RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
  *  as parameter value. If the field is of a subclass of Field.Choice, then key and value may be different.
  *  @param {(string|number)} [value]
  *  @param {RowLevel} rowLevel
- *  @param optionIsSelected bool Whether the option is selected. Only used when rowLevel===RowLevel.OPTION and field instanceof Field.Choice.
- *  @param {bool} [isNewValueRow] Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell.
- *  It still puts the new <treerow> element to treeRowsOrChildren[moduleName...], so that it can be updated/removed once the user fills in the value. Optional; false by default.
  *  @param {object} valueCompound Value compound for this field stored in the set being displayed (or in the sets and manifests applicable to targetFolder, if targetFolder!=null). Its entry part may be different to (the part of) valueOrPair when rowLevel===RowLevel.OPTION, since valueOrPair then indicates what to display for this row. valueCompound is an anonymous object, one of entries in result of Module.getFieldsDownToFolder(..) or Module.Module.getFieldsOfSet(), i.e. in form {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or from field default,
  *          setName: string set name (only valid if fromPreferences is true),
@@ -572,9 +573,8 @@ RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
  *          entry: as described for Module.getFieldsDownToFolder(..)
  *  }
  *  Required if rowLevel===RowLevel.FIELD.
- *  @return {RowInfo}
  * */
-function collectRowInfo( module, setName, field, key, value, rowLevel, optionIsSelected, isNewValueRow, valueCompound ) {
+RowInfo.prototype.fillIn= function fillIn( module, setName, field, key, value, rowLevel, valueCompound ) {
     SeLiteMisc.ensureInstance( module, SeLiteSettings.Module, 'module' );
     SeLiteMisc.ensureType( setName, ['string', 'null'], setName );
     SeLiteMisc.ensureType( field, ['object', 'undefined'], "field" );
@@ -585,89 +585,40 @@ function collectRowInfo( module, setName, field, key, value, rowLevel, optionIsS
     SeLiteMisc.ensureType( value, ['string', 'number', 'boolean', 'undefined', 'null'], 'key' );
     SeLiteMisc.ensureInstance( rowLevel, RowLevel, 'rowLevel' );
     
-    optionIsSelected= optionIsSelected || false;
-    isNewValueRow= isNewValueRow || false;
     valueCompound= valueCompound || null;
-    SeLiteMisc.ensureType( optionIsSelected, 'boolean', 'optionIsSelected' );
-    SeLiteMisc.ensureType( isNewValueRow, 'boolean', 'isNewValueRow' );
     SeLiteMisc.ensureType( valueCompound, 'object', 'valueCompound' );
-    
-    var multivaluedOrChoice= field!==null && (field.multivalued || field instanceof SeLiteSettings.Field.Choice);
-    /*if( typeof valueOrPair==='object' && valueOrPair!==null ) {
-        rowLevel===RowLevel.OPTION || SeLiteMisc.fail( "generateTreeItem(): parameter valueOrPair must not be an object, unless rowLevel is OPTION, but rowLevel is " +rowLevel );
-        multivaluedOrChoice || SeLiteMisc.fail( 'generateTreeItem(): parameter valueOrPair can be an object only for multivalued fields or choice fields, but it was used with ' +field );
-    }*/
     
     var result= new RowInfo();
     
-    var treeitem= document.createElementNS( XUL_NS, 'treeitem');
-    var treerow= document.createElementNS( XUL_NS, 'treerow');
-    treeitem.appendChild( treerow );
-    // Shortcut xxxName variables prevent null exceptions, so I can pass them as parts of expressions to rowLevel.forLevel(..) without extra validation
-    var moduleName= module
-        ? module.name
-        : '';
-    var fieldName= field
-        ? field.name
-        : '';
-    
-    var valueForThisRow= value; //collectValueForThisRow( field, value, rowLevel, valueCompound );
-    if( (typeof value==='string' || typeof value==='number' || valueForThisRow===null || valueForThisRow===undefined)
-        && !isNewValueRow
-    ) {
-        if( showingPerFolder() && valueCompound!==null ) {
-            if( valueCompound.fromPreferences ) {
-                result.source= valueCompound.setName!==module.defaultSetName()//old?!: valueCompound.folderPath!==''
-                    ? ValueSource.ASSOCIATED_SET
-                    : ValueSource.DEFAULT_SET;
-            }
-            else {
-                result.source= valueCompound.folderPath!==null//or?: !==''
-                    ? ValueSource.VALUES_MANIFEST
-                    : ValueSource.FIELD_DEFAULT;
-            }
+    if( showingPerFolder() && valueCompound!==null ) {
+        if( valueCompound.fromPreferences ) {
+            result.source= valueCompound.setName!==module.defaultSetName()//old?!: valueCompound.folderPath!==''
+                ? ValueSource.ASSOCIATED_SET
+                : ValueSource.DEFAULT_SET;
+        }
+        else {
+            result.source= valueCompound.folderPath!==null//or?: !==''
+                ? ValueSource.VALUES_MANIFEST
+                : ValueSource.FIELD_DEFAULT;
         }
     }
-    return result;
 }
 
-/** @param module object of Module
- *  @param setName string set name; either '' if the module doesn't allow sets; otherwise it's a set name when at field level
- *  attribute for the <treerow> nodes, so that when we handle a click event, we know what field the node is for.
- *  @param {SeLiteSettings.Field} field An object of a subclass of Field. If rowLevel==RowLevel.MODULE or rowLevel==RowLevel.SET,  then field is null.
- *  @param string key 'key' (used as a trailing part of field option preference name);
- *  use for fields of Field.Choice family and for multivalued fields only. For multivalued non-choice fields it should be the same
- *  as parameter value. If the field is of a subclass of Field.Choice, then key and value may be different.
- *  @param {string} key Key for the value to display. If no such key, it should be undefined.
- *  It must not be undefined for multivalued or choice field. It serves as a trailing part of field option preference name)
- *  -- for multivalued non-choice fields it should be the same as value
- *  -- if the field is of a subclass of Field.Choice or Field.FixedMap, then key and value may be different.
- *  @param {(string|number)} value
- *  @param {RowLevel} rowLevel
- *  @param optionIsSelected bool Whether the option is selected. Only used when rowLevel===RowLevel.OPTION and field instanceof Field.Choice.
- *  @param {bool} [isNewValueRow] Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell.
- *  It still puts the new <treerow> element to treeRowsOrChildren[moduleName...], so that it can be updated/removed once the user fills in the value. Optional; false by default.
- *  @param {object} valueCompound Value compound for this field stored in the set being displayed (or in the sets and manifests applicable to targetFolder, if targetFolder!=null). Its entry part may be different to (the part of) valueOrPair when rowLevel===RowLevel.OPTION, since valueOrPair then indicates what to display for this row. valueCompound is an anonymous object, one of entries in result of Module.getFieldsDownToFolder(..) or Module.Module.getFieldsOfSet(), i.e. in form {
- *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or from field default,
- *          setName: string set name (only valid if fromPreferences is true),
- *          folderPath: string folder path to the manifest file (either values manifest, or associations manifest);
- *              empty string '' if the value(s) come from the default set;
- *              null if fromPreferences===true or if the value comes from field default (as in the module definition)
- *          entry: as described for Module.getFieldsDownToFolder(..)
- *  }
- *  Required if rowLevel===RowLevel.FIELD.
+/** 
+ *  @param {boolean} optionIsSelected Whether the option is selected. Only used when rowLevel===RowLevel.OPTION and field instanceof Field.Choice.
+ *  @param {bool} [isNewValueRow] Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell. It still puts the new <treerow> element to treeRowsOrChildren[moduleName...], so that it can be updated/removed once the user fills in the value. Optional; false by default.
  *  @return object for a new element <treeitem> with one <treerow>
  * */
 function generateTreeItem( module, setName, field, key, value, rowLevel, optionIsSelected, isNewValueRow, valueCompound ) {
-    collectRowInfo( module, setName, field, key, value, rowLevel, optionIsSelected, isNewValueRow, valueCompound );
+    var rowInfo= new RowInfo();
+    rowInfo.fillIn( module, setName, field, key, value, rowLevel, valueCompound );
     var multivaluedOrChoice= field!==null && (field.multivalued || field instanceof SeLiteSettings.Field.Choice);
-    /*if( typeof valueOrPair==='object' && valueOrPair!==null ) {
-        rowLevel===RowLevel.OPTION || SeLiteMisc.fail( "generateTreeItem(): parameter valueOrPair must not be an object, unless rowLevel is OPTION, but rowLevel is " +rowLevel );
-        multivaluedOrChoice || SeLiteMisc.fail( 'generateTreeItem(): parameter valueOrPair can be an object only for multivalued fields or choice fields, but it was used with ' +field );
-    }*/
     optionIsSelected= optionIsSelected || false;
     isNewValueRow= isNewValueRow || false;
     valueCompound= valueCompound || null;
+    SeLiteMisc.ensureType( isNewValueRow, 'boolean', 'optionIsSelected' );
+    SeLiteMisc.ensureType( isNewValueRow, 'boolean', 'isNewValueRow' );
+    
     var treeitem= document.createElementNS( XUL_NS, 'treeitem');
     var treerow= document.createElementNS( XUL_NS, 'treerow');
     treeitem.appendChild( treerow );
