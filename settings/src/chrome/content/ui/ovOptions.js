@@ -522,10 +522,14 @@ function generateCellLabel( column, module, setName, field, key, value, rowLevel
 /** Enum-like, instances indicate the source of value for a field. Only used in per-folder mode.
  *  @class
  * */
-function ValueSource( name ) { this.name= name;}
-ValueSource.
+function ValueSource( name ) { SeLiteMisc.Enum.call( this, name ); }
 ValueSource= SeLiteMisc.proxyEnsureFieldsExist( ValueSource );
-ValueSource.ASSOCIATED_SET= new ValueSource();
+ValueSource.prototype= new SeLiteMisc.Enum( '', true );
+ValueSource.prototype.constructor= ValueSource;
+ValueSource.ASSOCIATED_SET= new ValueSource( 'ASSOCIATED_SET' );
+ValueSource.DEFAULT_SET= new ValueSource( 'DEFAULT_SET' );
+ValueSource.VALUES_MANIFEST= new ValueSource( 'VALUES_MANIFEST' );
+ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
 
 /** This keeps information for a row to display (at any given RowLevel).
  * @class
