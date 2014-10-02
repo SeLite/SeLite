@@ -980,10 +980,9 @@ SeLiteMisc.objectFillIn= function objectFillIn( obj, keys, values, valuesFromObj
     typeof obj==='object' || SeLiteMisc.fail( 'obj must be an object' );
     Array.isArray(keys) || SeLiteMisc.fail( 'keys must be an object' );
     typeof values==='object' || SeLiteMisc.fail( 'values must be an array or an object' );
-    !valuesFromObject || !(0 in values) || SeLiteMisc.fail( 'values must not be an array and it cannot contain numeric indexes if you pass valuesFromObject==true' );
+    !valuesFromObject || !(0 in values) || SeLiteMisc.fail( 'values must not be an array and it cannot contain numeric indexes, if you pass valuesFromObject==true' );
     for( var i=0; i<keys.length; i++ ) {
         var key= keys[i];
-        key!=='0' && key!==0 || SeLiteMisc.fail( 'keys must not contain numbers or numeric strings' );
         if( !valuesFromObject ) {
             obj[ key ]= values[i];
         }

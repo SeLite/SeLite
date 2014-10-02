@@ -165,7 +165,7 @@ Column.prototype.constructor= Column;
 
 Column.MODULE_SET_FIELD= new Column('MODULE_SET_FIELD', 0);
 Column.DEFAULT= new Column('DEFAULT', 1); // @TODO instances after DEFAULT should be treated with -1, if !allowSets
-Column.TRUE= new Column('TRUE', 2); // @TODO rename to CHECKED
+Column.CHECKED= new Column('CHECKED', 2); // Column for checkbox (if the field is boolean) or radio-like select (if the field is a choice)
 Column.VALUE= new Column('VALUE', 3);
 Column.ACTION= new Column('ACTION', 4);
 Column.NULL_UNDEFINE= new Column('NULL_UNDEFINE', 5);
@@ -537,7 +537,7 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
 function RowInfo() {
     // Following is only for code completion hints in IDEs. I don't set any fields here, since I want SeLiteMisc.proxyEnsureFieldsExist() to catch access to any unassigned fields.
     if( false ) {
-        // Basic
+        // 'Inputs'
         this.module= this.setName= undefined;
         this.field= this.key= this.value= undefined;
         this.rowLevel= this.valueCompound= undefined;
@@ -546,8 +546,10 @@ function RowInfo() {
         /** It controls 'True' column */
         this.isSelected= undefined;
         this.isFromManifest= this.isFromModuleDefault= false;
-        /** @var {ValueSource} Location of the module definition or 'values' manifest where the value comes from. Only in per-folder mode. */
+        /** @var {(ValueSource|undefined)} Location of the module definition or 'values' manifest where the value comes from. Only in per-folder mode. */
         this.source= new ValueSource();
+        /** @var {boolean} Whether the radio button for a Choice field is checked. Not valid for Bool fields. */
+        this.optionIsSelected= false;
     }
 }
 RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
@@ -589,21 +591,63 @@ RowInfo.prototype.fillIn= function fillIn( module, setName, field, key, value, r
     valueCompound= valueCompound || null;
     SeLiteMisc.ensureType( valueCompound, 'object', 'valueCompound' );
     
-    var result= new RowInfo();
-    
-    if( showingPerFolder() && valueCompound!==null ) {
-        if( valueCompound.fromPreferences ) {
-            result.source= valueCompound.setName!==module.defaultSetName()//old?!: valueCompound.folderPath!==''
+    // Basic collecting
+    if( showingPerFolder() && this.valueCompound!==null && this.valueCompound!==undefined ) {//@TODO use either null, or undefined
+        if( this.valueCompound.fromPreferences ) {
+            this.source= this.valueCompound.setName!==this.module.defaultSetName()//old?!: valueCompound.folderPath!==''
                 ? ValueSource.ASSOCIATED_SET
                 : ValueSource.DEFAULT_SET;
         }
         else {
-            result.source= valueCompound.folderPath!==null//or?: !==''
+            this.source= this.valueCompound.folderPath!==null//or?: !==''
                 ? ValueSource.VALUES_MANIFEST
                 : ValueSource.FIELD_DEFAULT;
         }
     }
+    if( rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.Choice ) {
+        this.optionIsSelected= typeof(this.valueCompound.entry)==='object' && this.valueCompound.entry!==null && key in this.valueCompound.entry;
+    }
 }
+
+function CellInfo() {
+    if( false ) {
+        this.value= '';
+        this.editable= false;
+        this.properties= '';
+    }
+}
+CellInfo= SeLiteMisc.proxyEnsureFieldsExist( CellInfo );
+
+/** Validate the parameters. Then set this.xyz to results of relevant functions collectXyz().
+ *  @param {RowInfo} rowInfo
+ *  @param {Column} column
+ * */
+CellInfo.prototype.collect= function collect( rowInfo, column ) {
+    column!==Column.DEFAULT || allowSets || SeLiteMisc.fail( "allowSets is false, but column is not DEFAULT: " +column );
+    this.editable= rowInfo.collectEditable( column );
+};
+
+/** @param {Column} column
+ * @returns {boolean} When you use the result for value of 'editable' attribute, convert it to a string.
+ */
+RowInfo.prototype.collectEditable= function collectEditable( column ) {
+    if( column===Column.MODULE_SET_FIELD ) {
+        return false;
+    }
+    if( column===Column.DEFAULT ) {
+        return this.rowLevel===RowLevel.SET && this.module.allowSets;
+    }
+    if( column===Column.CHECKED ) {
+        return !showingPerFolder()
+        && (rowLevel===RowLevel.FIELD || rowLevel===RowLevel.OPTION)
+        && (field instanceof SeLiteSettings.Field.Bool || field instanceof SeLiteSettings.Field.Choice)
+        && ( (typeof value!=='string' && typeof value!=='number')
+             || field instanceof SeLiteSettings.Field.Choice
+           )
+        && ( rowLevel!==RowLevel.FIELD || !(field instanceof SeLiteSettings.Field.Choice) )
+        && ( rowLevel!==RowLevel.OPTION || !this.optionIsSelected || field.multivalued );
+    }
+};
 
 /** 
  *  @param {boolean} optionIsSelected Whether the option is selected. Only used when rowLevel===RowLevel.OPTION and field instanceof Field.Choice.
@@ -613,6 +657,9 @@ RowInfo.prototype.fillIn= function fillIn( module, setName, field, key, value, r
 function generateTreeItem( module, setName, field, key, value, rowLevel, optionIsSelected, isNewValueRow, valueCompound ) {
     var rowInfo= new RowInfo();
     rowInfo.fillIn( module, setName, field, key, value, rowLevel, valueCompound );
+    
+    var cellInfo= new CellInfo();
+    cellInfo.collect( rowInfo );
     var multivaluedOrChoice= field!==null && (field.multivalued || field instanceof SeLiteSettings.Field.Choice);
     optionIsSelected= optionIsSelected || false;
     isNewValueRow= isNewValueRow || false;
@@ -831,7 +878,7 @@ function generateFields( setChildren, module, setName, setFields ) {
         var singleValue= typeof compound.entry!=='object'
             ? compound.entry
             : null;
-        var fieldItem= generateTreeItem(module, setName, field, /*key*/null, singleValue, RowLevel.FIELD, false, false, compound );
+        var fieldItem= generateTreeItem(module, setName, field, /*key*/null, singleValue, RowLevel.FIELD, /*optionIsSelected*/false, false, compound );
         setChildren.appendChild( fieldItem );
         
         var isChoice= field instanceof SeLiteSettings.Field.Choice;
@@ -858,6 +905,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                 for( var key in pairsToList ) {////@TODO potential IterableArray
                     isChoice || compound.entry===undefined || typeof(compound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value of type ' +typeof compound.entry+ ': ' +compound.entry );
                     var optionItem= generateTreeItem(module, setName, field, key, /*value*/pairsToList[key], RowLevel.OPTION,
+                        /*optionIsSelected:*/
                         isChoice && typeof(compound.entry)==='object'
                             && compound.entry!==null && key in compound.entry,
                         false,
@@ -967,13 +1015,13 @@ function treeClickHandler( event ) {
                 
                 if( isSingleNonChoice  ) {
                     field instanceof SeLiteSettings.Field.Bool || SeLiteMisc.fail('field ' +field.name+ ' should be Field.Bool');
-                    var clickedCell= treeCell( moduleRowsOrChildren[selectedSetName][field.name], Column.TRUE );
+                    var clickedCell= treeCell( moduleRowsOrChildren[selectedSetName][field.name], Column.CHECKED );
                     field.setValue( selectedSetName, clickedCell.getAttribute( 'value')==='true' );
                     // I don't need to call updateSpecial() here - if the field was SeLiteSettings.NULL, then the above setValue() replaced that
                 }
                 else {
                     var clickedTreeRow= moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ];
-                    var clickedCell= treeCell( clickedTreeRow, Column.TRUE );
+                    var clickedCell= treeCell( clickedTreeRow, Column.CHECKED );
                     
                     if( !field.multivalued ) { // field is a single-valued choice. The field is only editable if it was unchecked
                         // - so the user checked it now. Uncheck & remove the previously checked value (if any).
@@ -982,7 +1030,7 @@ function treeClickHandler( event ) {
                             if( SeLiteSettings.reservedNames.indexOf(otherOptionKey)<0 && otherOptionKey!==clickedOptionKey ) {
                                 var otherOptionRow= moduleRowsOrChildren[selectedSetName][field.name][otherOptionKey];
                                 
-                                var otherOptionCell= treeCell( otherOptionRow, Column.TRUE );
+                                var otherOptionCell= treeCell( otherOptionRow, Column.CHECKED );
                                 if( otherOptionCell.getAttribute('value')==='true' ) {
                                     otherOptionCell.setAttribute( 'value', 'false');
                                     otherOptionCell.setAttribute( 'editable', 'true');
@@ -1053,7 +1101,7 @@ function treeClickHandler( event ) {
                         if( cellText===ADD_NEW_VALUE ) {
                             // Add a row for a new value, right below the clicked row (i.e. at the top of all existing values)
                             // Since we're editing, it means that showingPerFolder()===false, so I don't need to generate anything for navigation from folder view here.
-                            var treeItem= generateTreeItem(module, selectedSetName, field, /*key*/SeLiteSettings.NEW_VALUE_ROW, /*value*/SeLiteSettings.NEW_VALUE_ROW, RowLevel.OPTION, false, /*Don't show the initial value:*/true );
+                            var treeItem= generateTreeItem(module, selectedSetName, field, /*key*/SeLiteSettings.NEW_VALUE_ROW, /*value*/SeLiteSettings.NEW_VALUE_ROW, RowLevel.OPTION, /*optionIsSelected*/false, /*Don't show the initial value:*/true );
 
                             var previouslyFirstValueRow;
                             for( var key in moduleRowsOrChildren[selectedSetName][field.name] ) {
@@ -1145,13 +1193,13 @@ function treeClickHandler( event ) {
                                     : undefined );
                             var compound= moduleSetFields[moduleName][selectedSetName][field.name];
                             if( field instanceof SeLiteSettings.Field.Bool && compound.entry ) {
-                                treeCell( fieldTreeRow(selectedSetName, field), Column.TRUE ).setAttribute( 'value', 'false' );
+                                treeCell( fieldTreeRow(selectedSetName, field), Column.CHECKED ).setAttribute( 'value', 'false' );
                             }
                             !field.multivalued || !(field instanceof SeLiteSettings.Field.Choice) || SeLiteMisc.fail('There should be no Null button for multivalued choices.' );
                             if( !field.multivalued && field instanceof SeLiteSettings.Field.Choice && compound.entry ) {
                                 var keys= Object.keys(compound.entry);
                                 keys.length===1 || SeLiteMisc.fail();
-                                var previousChoiceCell= treeCell( treeRowsOrChildren[moduleName][selectedSetName][field.name][ keys[0] ], Column.TRUE );
+                                var previousChoiceCell= treeCell( treeRowsOrChildren[moduleName][selectedSetName][field.name][ keys[0] ], Column.CHECKED );
                                 previousChoiceCell.setAttribute( 'value', 'false' );
                                 previousChoiceCell.setAttribute( 'editable', 'true' );
                             }
@@ -1176,7 +1224,7 @@ function treeClickHandler( event ) {
                 else {
                     rowToUpdate= fieldRow;
                 }
-                var valueCell= treeCell( rowToUpdate, Column.TRUE/* TODO?!?! When I tried VALUE, things were not better.*/ );
+                var valueCell= treeCell( rowToUpdate, Column.CHECKED/* TODO?!?! When I tried VALUE, things were not better.*/ );
                 valueCell.setAttribute( 'properties',
                     cellText==='Null' || cellText==='Undefine'
                         ? SeLiteSettings.FIELD_NULL_OR_UNDEFINED
@@ -1311,7 +1359,7 @@ function preProcessEdit( row, value ) {
             treeCell( fieldRow, Column.VALUE/*@TODO?!?!:TRUE (originally FIELD)*/ ).setAttribute( 'properties', '' ); // Clear it, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED (which has special CSS style)
             if( !(field instanceof SeLiteSettings.Field.FixedMap) ) {
                 if( field.multivalued ) { //Clear it, in case it was 'undefined' (if this is the first value)
-                    treeCell( fieldRow, Column.TRUE/*@TODO VALUE fails?!?!:TRUE (original FIELD)*/ ).setAttribute( 'label', '' );
+                    treeCell( fieldRow, Column.CHECKED/*@TODO VALUE fails?!?!:TRUE (original FIELD)*/ ).setAttribute( 'label', '' );
                 }
                 /*treeCell( fieldRow, Column.NULL_UNDEFINE ).setAttribute( 'label',
                     generateCellLabel( Column.NULL_UNDEFINE, module, setName, field, undefined, value, RowLevel.FIELD, valueCompound ) );*/
