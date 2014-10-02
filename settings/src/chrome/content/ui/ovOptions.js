@@ -575,6 +575,7 @@ RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
  *  Required if rowLevel===RowLevel.FIELD.
  * */
 RowInfo.prototype.fillIn= function fillIn( module, setName, field, key, value, rowLevel, valueCompound ) {
+    SeLiteMisc.objectFillIn( this, ['module', 'setName', 'field', 'key', 'value', 'rowLevel', 'valueCompound'], arguments );
     SeLiteMisc.ensureInstance( module, SeLiteSettings.Module, 'module' );
     SeLiteMisc.ensureType( setName, ['string', 'null'], setName );
     SeLiteMisc.ensureType( field, ['object', 'undefined'], "field" );

@@ -970,6 +970,29 @@ SeLiteMisc.objectClone= function objectClone( original, acceptableFields, requir
     return result;
 };
 
+/** This fills in fields from keys[] in obj with values from values[]. It is not intended to work with fields that have numeric names.
+ *  @param {object} obj
+ *  @param {array} keys
+ *  @param {(array|object)} values Either an array of values, in the same order as keys[]. Or an object serving as an associative array { key => value }.
+ *  @param {boolean} [valuesFromObject] This must be true if values is an object serving as an associative array, with fieldnames same as entries in keys[]. Then this essentially performs a clone of values into obj. valuesFromObject must be not set/false if values is result of keyword-like variable arguments from a function body, or if it's array-like, with 'length' property and with all values at numeric indexes, starting from 0.
+ * */
+SeLiteMisc.objectFillIn= function objectFillIn( obj, keys, values, valuesFromObject ) {
+    typeof obj==='object' || SeLiteMisc.fail( 'obj must be an object' );
+    Array.isArray(keys) || SeLiteMisc.fail( 'keys must be an object' );
+    typeof values==='object' || SeLiteMisc.fail( 'values must be an array or an object' );
+    !valuesFromObject || !(0 in values) || SeLiteMisc.fail( 'values must not be an array and it cannot contain numeric indexes if you pass valuesFromObject==true' );
+    for( var i=0; i<keys.length; i++ ) {
+        var key= keys[i];
+        key!=='0' && key!==0 || SeLiteMisc.fail( 'keys must not contain numbers or numeric strings' );
+        if( !valuesFromObject ) {
+            obj[ key ]= values[i];
+        }
+        else {
+            obj[ key ]= values[ key ];
+        }
+    }
+};
+
 /** This deletes all iterable fields from the given object.
  *  @return obj
  **/
