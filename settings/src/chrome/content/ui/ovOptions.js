@@ -125,11 +125,12 @@ function chooseFileOrFolder( field, tree, row, column, isFolder, currentTargetFo
  * @param {int} level 0-based level/index
  */
 function RowLevelOrColumn( name, level ) {
-    SeLiteMisc.Enum.call( this, name, true );
+    SeLiteMisc.Enum.call( this, name );
     this.level= level;
 }
-RowLevelOrColumn.prototype= new SeLiteMisc.Enum( '', true );
 RowLevelOrColumn= SeLiteMisc.proxyEnsureFieldsExist( RowLevelOrColumn );
+RowLevelOrColumn.prototype= new SeLiteMisc.Enum( '', true );
+RowLevelOrColumn.prototype.constructor= RowLevelOrColumn;
 
 /** This is a simple translation map. It returns n-th argument (counting from 0), where n=this.level.
  * */
@@ -145,8 +146,9 @@ function RowLevel( name, level ) {
     RowLevelOrColumn.call( this, name, level );
 }
 RowLevel= SeLiteMisc.proxyEnsureFieldsExist( RowLevel );
-RowLevel.prototype= new RowLevelOrColumn();
+RowLevel.prototype= new RowLevelOrColumn( '', -1 );
 RowLevel.prototype.constructor= RowLevel;
+
 RowLevel.MODULE= new RowLevel('MODULE', 0);
 RowLevel.SET= new RowLevel('SET', 1);
 RowLevel.FIELD= new RowLevel('FIELD', 2);
@@ -158,8 +160,9 @@ function Column( name, level ) {
     RowLevelOrColumn.call( this, name, level );
 }
 Column= SeLiteMisc.proxyEnsureFieldsExist( Column );
-Column.prototype= new RowLevelOrColumn();
+Column.prototype= new RowLevelOrColumn( '', -1 );
 Column.prototype.constructor= Column;
+
 Column.MODULE_SET_FIELD= new Column('MODULE_SET_FIELD', 0);
 Column.DEFAULT= new Column('DEFAULT', 1); // @TODO instances after DEFAULT should be treated with -1, if !allowSets
 Column.TRUE= new Column('TRUE', 2); // @TODO rename to CHECKED

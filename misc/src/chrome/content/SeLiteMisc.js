@@ -226,15 +226,15 @@ var proxyEnsureFieldsExistClassHandler= {
   construct: function construct( target, args ) {
     // I can't use keyword this, since this.constructor.name is 'Object' and not target.name.
     // Following is based on https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply#Using_apply_to_chain_constructors
-    var fNewConstr = function () { target.apply(this, args); };
+    var fNewConstr = function () {
+        Object.defineProperty( this, 'SELITE_MISC_TARGET_CONSTRUCTOR', {
+          enumerable: false, configurable: false, writable: false,
+          value: target
+        });
+        target.apply(this, args);
+    };
     fNewConstr.prototype = target.prototype;
-    var result= new Proxy( new fNewConstr(), proxyEnsureFieldsExistObjectHandler );
-    
-    Object.defineProperty( result, 'SELITE_MISC_TARGET_CONSTRUCTOR', {
-      enumerable: false, configurable: false, writable: false,
-      value: target
-    });
-    return result;
+    return new Proxy( new fNewConstr(), proxyEnsureFieldsExistObjectHandler );
   }
 };
 /** This generates a proxy for the given target object or class (constructor function). The proxy ensures that any fields read have been set already. This serves to prevent typing/renaming accidents that would access non-existing fields, doing which normally returns undefined. Such problems arise when you access fields directly, rather than via accessor methods, and when you don't access any properties/methods on the retrieved fields themselves. An example is when you compare the field values by operators.
@@ -255,6 +255,7 @@ If used for multiple or all classes in the inheritance ancestry tree, this slows
     object instanceof ClassXyz===true
     object.constructor.name===ClassXyz
  However, object.constructor refers to the original ClassXyz.
+ For classes, this sets SELITE_MISC_TARGET_CLASS on the proxy class, and SELITE_MISC_TARGET_CONSTRUCTOR on its new instances. SELITE_MISC_TARGET_CONSTRUCTOR is only available after the instance is fully created - so you can't use SELITE_MISC_TARGET_CONSTRUCTOR in target constructor (e.g. to check whether it's an instance of any subclass). Beware that if you have a subclass of a proxyfied class, but you don't proxyfy that subclass and you sets its prototype to be an instance of the parent (proxyfied) class, then child instances will have SELITE_MISC_TARGET_CONSTRUCTOR set to the target constructor of the parent class.
  * */
 SeLiteMisc.proxyEnsureFieldsExist= function proxyEnsureFieldsExist( target ) {
     typeof target==='object' && target!==null || typeof target==='function' || SeLiteMisc.fail( 'Parameter target should be an object or a class (constructor function), but it is ' +typeof target );
@@ -274,13 +275,17 @@ SeLiteMisc.proxyEnsureFieldsExist= function proxyEnsureFieldsExist( target ) {
  * @class
  * @param {string} name
  */
-SeLiteMisc.Enum= function Enum( name, forSubclassPrototype ) {
+SeLiteMisc.Enum= function Enum( name, forDirectSubclassPrototype ) {
     this.name= name;
-    // Following checks whether this is a direct instance of SeLiteMisc.Enum after it was passed through SeLiteMisc.proxyEnsureFieldsExist().
-    this.SELITE_MISC_TARGET_CONSTRUCTOR!==SeLiteMisc.Enum.SELITE_MISC_TARGET_CLASS || forSubclassPrototype || SeLiteMisc.fail( "Don't instantiate SeLiteMisc.Enum() directly, unless it's for prototype of its subclass." );
+    // Following checks whether this is a direct instance of SeLiteMisc.Enum - after SeLiteMisc.Enum was passed through SeLiteMisc.proxyEnsureFieldsExist(). The first part of the check handles instances of unproxfied subclasses of SeLiteMisc.Enum. object.hasOwnProperty() works the same on target and proxy.
+    if( this.hasOwnProperty('SELITE_MISC_TARGET_CONSTRUCTOR') && this.SELITE_MISC_TARGET_CONSTRUCTOR===SeLiteMisc.Enum.SELITE_MISC_TARGET_CLASS ) {
+        forDirectSubclassPrototype || SeLiteMisc.fail( "Don't instantiate SeLiteMisc.Enum() directly, unless it's for a prototype of its direct subclass." );
+        return;
+    }
     
     // this.constructor is the actual leaf constructor (class) - instances[] is therefore separate between subclasses of SeLiteMisc.Enum
-    if( !('instances' in this.constructor) ) { // this is instead of: this.constructor.instances= this.constructor.instances, to make this class compatible with SeLiteMisc.proxyEnsureFieldsExist()
+    if( !('instances' in this.constructor) ) { // this check is instead of: this.constructor.instances= this.constructor.instances, to make this class compatible with SeLiteMisc.proxyEnsureFieldsExist()
+        /** Array of instances for the particular leaf subclass. */
         this.constructor.instances= [];
     }
     this.constructor.instances.push( this );
