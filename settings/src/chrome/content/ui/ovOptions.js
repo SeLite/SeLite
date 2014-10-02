@@ -638,6 +638,7 @@ RowInfo.prototype.collectEditable= function collectEditable( column ) {
  * */
 RowInfo.prototype.setCellDetails= function setCellDetails( treecell, column ) {
     var cellInfo= new CellInfo( this, column );
+    // Checkbox/radio button cells use attribute 'value'. Other cells use attribute 'label'.
     treecell.setAttribute( 'editable', '' +cellInfo.editable );
 };
 /** 
@@ -710,8 +711,8 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
     if( typeof this.value==='boolean' ) {
         treecell.setAttribute('value', ''+this.value);
     }
-    if( this.field instanceof SeLiteSettings.Field.Choice ) {
-        treecell.setAttribute( 'value', ''+/*TODO optionIsSelected*/false );
+    else if( this.rowLevel===RowLevel.OPTION && this.field instanceof SeLiteSettings.Field.Choice ) {
+        treecell.setAttribute( 'value', ''+this.optionIsSelected );
     }
     if( this.rowLevel===RowLevel.OPTION ) {
         treecell.setAttribute('properties', this.field.multivalued
