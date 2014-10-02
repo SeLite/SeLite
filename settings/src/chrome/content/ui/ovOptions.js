@@ -125,9 +125,12 @@ function chooseFileOrFolder( field, tree, row, column, isFolder, currentTargetFo
  * @param {int} level 0-based level/index
  */
 function RowLevelOrColumn( name, level ) {
-    SeLiteMisc.Enum.call( this, name );
+    SeLiteMisc.Enum.call( this, name, true );
     this.level= level;
 }
+RowLevelOrColumn.prototype= new SeLiteMisc.Enum( '', true );
+RowLevelOrColumn= SeLiteMisc.proxyEnsureFieldsExist( RowLevelOrColumn );
+
 /** This is a simple translation map. It returns n-th argument (counting from 0), where n=this.level.
  * */
 RowLevelOrColumn.prototype.forLevel= function forLevel(first, second, etc ) {

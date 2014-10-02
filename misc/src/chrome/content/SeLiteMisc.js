@@ -228,14 +228,21 @@ var proxyEnsureFieldsExistClassHandler= {
     // Following is based on https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply#Using_apply_to_chain_constructors
     var fNewConstr = function () { target.apply(this, args); };
     fNewConstr.prototype = target.prototype;
-    return new Proxy( new fNewConstr(), proxyEnsureFieldsExistObjectHandler );
+    var result= new Proxy( new fNewConstr(), proxyEnsureFieldsExistObjectHandler );
+    
+    Object.defineProperty( result, 'SELITE_MISC_TARGET_CONSTRUCTOR', {
+      enumerable: false, configurable: false, writable: false,
+      value: target
+    });
+    return result;
   }
 };
 /** This generates a proxy for the given target object or class (constructor function). The proxy ensures that any fields read have been set already. This serves to prevent typing/renaming accidents that would access non-existing fields, doing which normally returns undefined. Such problems arise when you access fields directly, rather than via accessor methods, and when you don't access any properties/methods on the retrieved fields themselves. An example is when you compare the field values by operators.
  <br/> Instead of using the fields directly you could have accessor methods, but those don't gurarentee correct code anyway (since they may contain typos, too), hence they don't solve the problem; however, they do make code more verbose and less hands-on.
  <br/> This uses Proxy, which decreases execution speed a bit. However, it helps to identify mistakes earlier, while keeping code shorter.
  <br/> If you need the code to determine whether the proxy contains a field with a given name, use expression: fieldName in target.
- @param {object|function} target An object, or a class (a constructor function). If it's a class, it should be leaf-like. Any classes that inherit from the proxy won't be protected by this mechanism - you need to use SeLiteMisc.proxyEnsureFieldsExist() for those subclasses, too. If target is a class (a function), then this covers both access to 'static' properties set on the class itself, and 
+ @param {object|function} target An object, or a class (a constructor function). If it's a class, it may be an parent class, or a leaf-like. If used for non-leaf classes, then this doesn't protect instances of leaf classes: any classes that inherit from the proxy won't be protected by this mechanism - you need to use SeLiteMisc.proxyEnsureFieldsExist() for those subclasses, too. If target is a class (a function), then this covers both access to 'static' properties set on the class itself, and access to properties set on its instances.
+If used for multiple or all classes in the inheritance ancestry tree, this slows down access through prototype chain a bit; if that matters, then use it for leaf-classes only.
  @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
  Usage:
     var object= SeLiteMisc.proxyEnsureFieldsExist( {...} or new ClassXyz(...) );
@@ -251,18 +258,28 @@ var proxyEnsureFieldsExistClassHandler= {
  * */
 SeLiteMisc.proxyEnsureFieldsExist= function proxyEnsureFieldsExist( target ) {
     typeof target==='object' && target!==null || typeof target==='function' || SeLiteMisc.fail( 'Parameter target should be an object or a class (constructor function), but it is ' +typeof target );
-    return new Proxy( target, typeof target==='object'
-        ? proxyEnsureFieldsExistObjectHandler
-        : proxyEnsureFieldsExistClassHandler
-    );
+    if( typeof target==='object' ) {
+        return new Proxy( target, proxyEnsureFieldsExistObjectHandler );
+    }
+    var result= new Proxy( target, proxyEnsureFieldsExistClassHandler );
+    
+    Object.defineProperty( result, 'SELITE_MISC_TARGET_CLASS', {
+      enumerable: false, configurable: false, writable: false,
+      value: target
+    });
+    return result;
 };
 
 /** Enumeration-like class.
  * @class
  * @param {string} name
  */
-SeLiteMisc.Enum= function Enum( name, level ) {
+SeLiteMisc.Enum= function Enum( name, forSubclassPrototype ) {
     this.name= name;
+    // Following checks whether this is a direct instance of SeLiteMisc.Enum after it was passed through SeLiteMisc.proxyEnsureFieldsExist().
+    this.SELITE_MISC_TARGET_CONSTRUCTOR!==SeLiteMisc.Enum.SELITE_MISC_TARGET_CLASS || forSubclassPrototype || SeLiteMisc.fail( "Don't instantiate SeLiteMisc.Enum() directly, unless it's for prototype of its subclass." );
+    
+    // this.constructor is the actual leaf constructor (class) - instances[] is therefore separate between subclasses of SeLiteMisc.Enum
     if( !('instances' in this.constructor) ) { // this is instead of: this.constructor.instances= this.constructor.instances, to make this class compatible with SeLiteMisc.proxyEnsureFieldsExist()
         this.constructor.instances= [];
     }
@@ -271,6 +288,7 @@ SeLiteMisc.Enum= function Enum( name, level ) {
 SeLiteMisc.Enum.prototype.toString= function toString() {
     return this.constructor.name+ '.' +this.name;
 };
+SeLiteMisc.Enum= SeLiteMisc.proxyEnsureFieldsExist( SeLiteMisc.Enum );
 
 /** @param mixed Container - object or array
  *  @param mixed Field - string field name, or integer/integer string index of the item
