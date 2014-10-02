@@ -650,21 +650,18 @@ RowInfo.prototype.collectEditable= function collectEditable( column ) {
 };
 
 /** 
- *  @param {boolean} optionIsSelected Whether the option is selected. Only used when rowLevel===RowLevel.OPTION and field instanceof Field.Choice.
  *  @param {bool} [isNewValueRow] Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell. It still puts the new <treerow> element to treeRowsOrChildren[moduleName...], so that it can be updated/removed once the user fills in the value. Optional; false by default.
  *  @return object for a new element <treeitem> with one <treerow>
  * */
-function generateTreeItem( module, setName, field, key, value, rowLevel, optionIsSelected, isNewValueRow, valueCompound ) {
+function generateTreeItem( module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound ) {
     var rowInfo= new RowInfo();
     rowInfo.fillIn( module, setName, field, key, value, rowLevel, valueCompound );
     
     var cellInfo= new CellInfo();
     cellInfo.collect( rowInfo );
     var multivaluedOrChoice= field!==null && (field.multivalued || field instanceof SeLiteSettings.Field.Choice);
-    optionIsSelected= optionIsSelected || false;
     isNewValueRow= isNewValueRow || false;
     valueCompound= valueCompound || null;
-    SeLiteMisc.ensureType( isNewValueRow, 'boolean', 'optionIsSelected' );
     SeLiteMisc.ensureType( isNewValueRow, 'boolean', 'isNewValueRow' );
     
     var treeitem= document.createElementNS( XUL_NS, 'treeitem');
@@ -733,7 +730,7 @@ function generateTreeItem( module, setName, field, key, value, rowLevel, optionI
         || (typeof value==='string' || typeof value==='number')
            && !(field instanceof SeLiteSettings.Field.Choice)
         || rowLevel===RowLevel.FIELD && field instanceof SeLiteSettings.Field.Choice
-        || rowLevel===RowLevel.OPTION && optionIsSelected && !field.multivalued
+        || rowLevel===RowLevel.OPTION && /*TODO optionIsSelected*/false && !field.multivalued
     ) {
         treecell.setAttribute('editable', 'false');
     }
@@ -741,7 +738,7 @@ function generateTreeItem( module, setName, field, key, value, rowLevel, optionI
         treecell.setAttribute('value', ''+value);
     }
     if( field instanceof SeLiteSettings.Field.Choice ) {
-        treecell.setAttribute( 'value', ''+optionIsSelected );
+        treecell.setAttribute( 'value', ''+/*TODO optionIsSelected*/false );
     }
     if( rowLevel===RowLevel.OPTION ) {
         treecell.setAttribute('properties', field.multivalued
@@ -878,7 +875,7 @@ function generateFields( setChildren, module, setName, setFields ) {
         var singleValue= typeof compound.entry!=='object'
             ? compound.entry
             : null;
-        var fieldItem= generateTreeItem(module, setName, field, /*key*/null, singleValue, RowLevel.FIELD, /*optionIsSelected*/false, false, compound );
+        var fieldItem= generateTreeItem(module, setName, field, /*key*/null, singleValue, RowLevel.FIELD, false, compound );
         setChildren.appendChild( fieldItem );
         
         var isChoice= field instanceof SeLiteSettings.Field.Choice;
@@ -892,7 +889,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                     var value= compound.entry!==undefined
                         ? compound.entry[key]
                         : null;
-                    var optionItem= generateTreeItem(module, setName, field, key, value, RowLevel.OPTION, /*optionIsSelected*/false, compound
+                    var optionItem= generateTreeItem(module, setName, field, key, value, RowLevel.OPTION, compound
                     );
                     fieldChildren.appendChild( optionItem );
                 }
@@ -904,13 +901,7 @@ function generateFields( setChildren, module, setName, setFields ) {
 
                 for( var key in pairsToList ) {////@TODO potential IterableArray
                     isChoice || compound.entry===undefined || typeof(compound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value of type ' +typeof compound.entry+ ': ' +compound.entry );
-                    var optionItem= generateTreeItem(module, setName, field, key, /*value*/pairsToList[key], RowLevel.OPTION,
-                        /*optionIsSelected:*/
-                        isChoice && typeof(compound.entry)==='object'
-                            && compound.entry!==null && key in compound.entry,
-                        false,
-                        compound
-                    );
+                    var optionItem= generateTreeItem(module, setName, field, key, /*value*/pairsToList[key], RowLevel.OPTION, false, compound );
                     fieldChildren.appendChild( optionItem );
                 }
             }
@@ -1101,7 +1092,7 @@ function treeClickHandler( event ) {
                         if( cellText===ADD_NEW_VALUE ) {
                             // Add a row for a new value, right below the clicked row (i.e. at the top of all existing values)
                             // Since we're editing, it means that showingPerFolder()===false, so I don't need to generate anything for navigation from folder view here.
-                            var treeItem= generateTreeItem(module, selectedSetName, field, /*key*/SeLiteSettings.NEW_VALUE_ROW, /*value*/SeLiteSettings.NEW_VALUE_ROW, RowLevel.OPTION, /*optionIsSelected*/false, /*Don't show the initial value:*/true );
+                            var treeItem= generateTreeItem(module, selectedSetName, field, /*key*/SeLiteSettings.NEW_VALUE_ROW, /*value*/SeLiteSettings.NEW_VALUE_ROW, RowLevel.OPTION, /*Don't show the initial value:*/true );
 
                             var previouslyFirstValueRow;
                             for( var key in moduleRowsOrChildren[selectedSetName][field.name] ) {
