@@ -825,6 +825,7 @@ function generateSets( moduleChildren, module ) {
             }
             var setChildren= null;
             if( allowSets && module.allowSets ) {
+                var rowInfo= new RowInfo( module, setName, null, /*key*/ null, /*value*/null, RowLevel.SET );
                 var setItem= generateTreeItem(module, setName, null, /*key*/ null, /*value*/null, RowLevel.SET );
                 moduleChildren.appendChild( setItem );
                 setChildren= createTreeChildren( setItem );
@@ -853,6 +854,7 @@ function generateFields( setChildren, module, setName, setFields ) {
         var singleValue= typeof compound.entry!=='object'
             ? compound.entry
             : null;
+        var rowInfo= new RowInfo( module, setName, field, /*key*/null, singleValue, RowLevel.FIELD, false, compound );
         var fieldItem= generateTreeItem(module, setName, field, /*key*/null, singleValue, RowLevel.FIELD, false, compound );
         setChildren.appendChild( fieldItem );
         
@@ -867,6 +869,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                     var value= compound.entry!==undefined
                         ? compound.entry[key]
                         : null;
+                    var rowInfo= new RowInfo( module, setName, field, key, value, RowLevel.OPTION, compound );
                     var optionItem= generateTreeItem(module, setName, field, key, value, RowLevel.OPTION, compound
                     );
                     fieldChildren.appendChild( optionItem );
@@ -879,6 +882,7 @@ function generateFields( setChildren, module, setName, setFields ) {
 
                 for( var key in pairsToList ) {////@TODO potential IterableArray
                     isChoice || compound.entry===undefined || typeof(compound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value of type ' +typeof compound.entry+ ': ' +compound.entry );
+                    var rowInfo= new RowInfo( module, setName, field, key, /*value*/pairsToList[key], RowLevel.OPTION, false, compound );
                     var optionItem= generateTreeItem(module, setName, field, key, /*value*/pairsToList[key], RowLevel.OPTION, false, compound );
                     fieldChildren.appendChild( optionItem );
                 }
@@ -1070,6 +1074,7 @@ function treeClickHandler( event ) {
                         if( cellText===ADD_NEW_VALUE ) {
                             // Add a row for a new value, right below the clicked row (i.e. at the top of all existing values)
                             // Since we're editing, it means that showingPerFolder()===false, so I don't need to generate anything for navigation from folder view here.
+                            var rowInfo= new RowInfo( module, selectedSetName, field, /*key*/SeLiteSettings.NEW_VALUE_ROW, /*value*/SeLiteSettings.NEW_VALUE_ROW, RowLevel.OPTION, /*Don't show the initial value:*/true );
                             var treeItem= generateTreeItem(module, selectedSetName, field, /*key*/SeLiteSettings.NEW_VALUE_ROW, /*value*/SeLiteSettings.NEW_VALUE_ROW, RowLevel.OPTION, /*Don't show the initial value:*/true );
 
                             var previouslyFirstValueRow;
@@ -1408,6 +1413,7 @@ function setCellText( row, col, value, original) {
         if( rowAfterNewPosition!==info.treeRow ) { // Repositioning - remove treeRow, create a new treeRow
             var treeChildren= info.fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN];
             treeChildren.removeChild( info.treeRow.parentNode );
+            var rowInfo= new RowInfo( info.module, info.setName, info.field, /*key*/value, value, RowLevel.OPTION );
             var treeItem= generateTreeItem( info.module, info.setName, info.field, /*key*/value, value, RowLevel.OPTION ); // That sets 'properties' and it adds an entry to treeRow[value]
                 // (which is same as fieldTreeRowsOrChildren[value] here).
             // Firefox 22.b04 and 24.0a1 doesn't handle parent.insertBefore(newItem, null), even though it should - https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore
@@ -1760,6 +1766,7 @@ window.addEventListener( "load", function(e) {
     var setNameToExpand= null;
     if( allowModules ) {
         for( var moduleName in modules ) {
+            var rowInfo= new RowInfo( modules[moduleName], null, null, /*keyundefined*/null, /*valueundefined*/null, RowLevel.MODULE );
             var moduleTreeItem= generateTreeItem( modules[moduleName], null, null, /*keyundefined*/null, /*valueundefined*/null, RowLevel.MODULE );
             topTreeChildren.appendChild( moduleTreeItem );
             
@@ -1773,6 +1780,7 @@ window.addEventListener( "load", function(e) {
         
         var moduleChildren;
         if( allowSets && modules[moduleName].allowSets ) {
+            var rowInfo= new RowInfo( modules[moduleName], null, null, /*keyundefined*/null, /*valueundefined*/null, RowLevel.MODULE );
             var moduleTreeItem= generateTreeItem( modules[moduleName], null, null, /*keyundefined*/null, /*valueundefined*/null, RowLevel.MODULE );
             topTreeChildren.appendChild( moduleTreeItem );
             moduleChildren= createTreeChildren( moduleTreeItem );
