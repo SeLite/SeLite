@@ -559,10 +559,8 @@ RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
  * */
 function collectRowInfo( module, setName, field, key, value, rowLevel, optionIsSelected, isNewValueRow, valueCompound ) {
     SeLiteMisc.ensureInstance( rowLevel, RowLevel, 'rowLevel' );
-    if( field && typeof field!=='string' && !(field instanceof SeLiteSettings.Field) ) {
-        throw new Error( "Parameter field must be an instance of a subclass of Field, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but it is "
-            +(typeof field==='object' ? 'an instance of ' +field.constructor.name : typeof field)+ ': ' +field ); //@TODO re/use/move SeLiteMisc
-    }
+    field || rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET || SeLiteMisc.fail( "Parameter field must be set, rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but rowLevel is " +rowLevel );
+    !field || SeLiteMisc.ensureInstance( field, SeLiteSettings.Field, 'field (if defined)' );
     optionIsSelected= optionIsSelected || false;
     isNewValueRow= isNewValueRow || false;
     valueCompound= valueCompound || null;
@@ -774,10 +772,9 @@ function generateTreeItem( module, setName, field, key, value, rowLevel, optionI
         multivaluedOrChoice || SeLiteMisc.fail( 'generateTreeItem(): parameter valueOrPair can be an object only for multivalued fields or choice fields, but it was used with ' +field );
     }*/
     
-    if( field && typeof field!=='string' && !(field instanceof SeLiteSettings.Field) ) {
-        throw new Error( "Parameter field must be an instance of a subclass of Field, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but it is "
-            +(typeof field==='object' ? 'an instance of ' +field.constructor.name : typeof field)+ ': ' +field ); //@TODO re/use/move SeLiteMisc
-    }
+    SeLiteMisc.ensureType( field, 'object', 'field' );
+    field || rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET || SeLiteMisc.fail( "Parameter field must be set, rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but rowLevel is " +rowLevel );
+    !field || SeLiteMisc.ensureInstance( field, SeLiteSettings.Field, 'field (if defined)' );
     optionIsSelected= optionIsSelected || false;
     isNewValueRow= isNewValueRow || false;
     valueCompound= valueCompound || null;
