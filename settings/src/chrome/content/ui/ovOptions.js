@@ -406,7 +406,7 @@ function nullOrUndefineLabel( field, valueCompoundEntry, atOptionLevel, value ) 
 
 //@TODO remove
 function collectValueForThisRow( field, value, rowLevel, valueCompound ) {
-    SeLiteMisc.ensureInstance( rowLevel, RowLevel );
+    SeLiteMisc.ensureInstance( rowLevel, RowLevel, 'rowLevel' );
     if( rowLevel===RowLevel.FIELD && value!==valueCompound.entry) { debugger;}
     return rowLevel===RowLevel.FIELD
         ? valueCompound.entry
@@ -433,9 +433,9 @@ function collectValueForThisRow( field, value, rowLevel, valueCompound ) {
  *  {object} valueCompound
  * */
 function generateCellLabel( column, module, setName, field, key, value, rowLevel, valueCompound ) {
-    SeLiteMisc.ensureInstance( rowLevel, RowLevel );
-    SeLiteMisc.ensureInstance( column, Column );
-    !field || SeLiteMisc.ensureInstance( field, SeLiteSettings.Field );
+    SeLiteMisc.ensureInstance( rowLevel, RowLevel, 'rowLevel' );
+    SeLiteMisc.ensureInstance( column, Column, 'column' );
+    !field || SeLiteMisc.ensureInstance( field, SeLiteSettings.Field, 'field (if defined)' );
     
     if( column===Column.MODULE_SET_FIELD ) {
         return rowLevel.forLevel(
@@ -560,7 +560,7 @@ RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
 function collectRowInfo( module, setName, field, key, value, rowLevel, optionIsSelected, isNewValueRow, valueCompound ) {
     var result= new RowInfo();
 
-    SeLiteMisc.ensureInstance( );rowLevel instanceof RowLevel || SeLiteMisc.fail( "Parameter rowLevel must be an instance of RowLevel, but it is " +rowLevel );
+    SeLiteMisc.ensureInstance( rowLevel, RowLevel, 'rowLevel' );
     var multivaluedOrChoice= field!==null && (field.multivalued || field instanceof SeLiteSettings.Field.Choice);
     /*if( typeof valueOrPair==='object' && valueOrPair!==null ) {
         rowLevel===RowLevel.OPTION || SeLiteMisc.fail( "generateTreeItem(): parameter valueOrPair must not be an object, unless rowLevel is OPTION, but rowLevel is " +rowLevel );
@@ -1353,7 +1353,7 @@ function treeClickHandler( event ) {
                     valueCell.setAttribute( 'label', '' );
                 }
                 
-                clickedOptionKey===undefined || SeLiteMisc.ensureInstance( field, [SeLiteSettings.Field.Choice, SeLiteSettings.Field.FixedMap] );
+                clickedOptionKey===undefined || SeLiteMisc.ensureInstance( field, [SeLiteSettings.Field.Choice, SeLiteSettings.Field.FixedMap], 'field (if modified preferences and clickedOptionKey is defined' );
                 treeCell( rowToUpdate, Column.NULL_UNDEFINE ).setAttribute( 'label',
                     clickedOptionKey===undefined
                     ? nullOrUndefineLabel( field, valueCompound(field, selectedSetName).entry )

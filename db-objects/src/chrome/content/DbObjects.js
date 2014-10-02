@@ -207,7 +207,7 @@ SeLiteData.Record.prototype.toString= function toString() {
  *  @return {RecordHolder} for that instance.
  **/
 SeLiteData.recordHolder= function recordHolder( record ) {
-    SeLiteMisc.ensureInstance( record, SeLiteData.Record );
+    SeLiteMisc.ensureInstance( record, SeLiteData.Record, 'record' );
     return record[SeLiteData.Record.RECORD_TO_HOLDER_FIELD];
 };
 
@@ -579,7 +579,7 @@ SeLiteData.RecordSetFormula.prototype.selectOne= function selectOne( parametersO
  *  @param object recordSetHolder of class RecordSetHolder
  **/
 SeLiteData.RecordSet= function RecordSet( recordSetHolder ) {
-    SeLiteMisc.ensureInstance( recordSetHolder, RecordSetHolder );
+    SeLiteMisc.ensureInstance( recordSetHolder, RecordSetHolder, 'recordSetHolder' );
     // Set the link from record to its record holder. The field for this link is non-iterable.
     Object.defineProperty( this, SeLiteData.RecordSet.RECORDSET_TO_HOLDER_FIELD, { value: recordSetHolder } );
 };
@@ -591,7 +591,7 @@ SeLiteData.RecordSet.RECORDSET_TO_HOLDER_FIELD= 'RECORDSET_TO_HOLDER_FIELD';
  *  @return {RecordSetHolder} for that instance.
  **/
 function recordSetHolder( recordSet ) {
-    SeLiteMisc.ensureInstance(recordSet, SeLiteData.RecordSet);
+    SeLiteMisc.ensureInstance( recordSet, SeLiteData.RecordSet, 'recordSet' );
     return recordSet[SeLiteData.RecordSet.RECORDSET_TO_HOLDER_FIELD];
 };
 

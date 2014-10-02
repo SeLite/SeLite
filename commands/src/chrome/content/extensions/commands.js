@@ -383,7 +383,7 @@
                 !( params.characters.length>=2 && params.characters.startsWith('/') && params.characters.endsWith('/') ) || SeLiteMisc.fail( "It looks that parameter subfield 'characters' is a string representing a regular expression. Please pass a regular expression itself (i.e. not enclosed in apostrophes or quotation marks). Alternatively pass a string or an array of acceptable characters." );
                 params.characters= new RegExp( '[' +params.characters.replace('\\', '\\\\').replace('[','\\]') + ']' );
             }
-            SeLiteMisc.ensureInstance( params.characters, RegExp, "Parameter subfield must be a string, an array or a regular expression (but not a string that is a regular expression)." );
+            SeLiteMisc.ensureInstance( params.characters, RegExp, "params.characters (if specified and other than a string or an array; not a string that is a regular expression)" );
             acceptableChars= SeLiteMisc.acceptableCharacters( params.characters );
         }
         else {

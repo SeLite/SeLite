@@ -80,7 +80,7 @@ SeLiteMisc.getUrlParam= function getUrlParam( paramName ) {
 SeLiteMisc.loginManagerPassword= function loginManagerPassword( username, hostnameOrUseBaseURL ) {
     // You could also use passwordManager.getAllLogins(); it returns an array of nsILoginInfo objects
     var testLocation= selenium.browserbot.getCurrentWindow().location;
-    SeLiteMisc.ensureType( hostnameOrUseBaseURL, ['undefined', 'string', 'boolean'], 'Param hostnameOrUseBaseURL must be undefined, string or a boolean.' );
+    SeLiteMisc.ensureType( hostnameOrUseBaseURL, ['undefined', 'string', 'boolean'], 'hostnameOrUseBaseURL' );
     var hostname= hostnameOrUseBaseURL
         ? (typeof hostnameOrUseBaseURL==='string'
             ? hostnameOrUseBaseURL

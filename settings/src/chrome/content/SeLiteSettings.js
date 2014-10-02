@@ -59,8 +59,8 @@ var unnamedTestSuiteFolderChangeHandlers= [];
  *  this replaces the previously registered function with the one given now.
  * */
 SeLiteSettings.addTestSuiteFolderChangeHandler= function addTestSuiteFolderChangeHandler( handler, handlerName ) {
-    SeLiteMisc.ensureType( handler, 'function');
-    SeLiteMisc.ensureType( handlerName, ['string', 'undefined'] );
+    SeLiteMisc.ensureType( handler, 'function', 'handler' );
+    SeLiteMisc.ensureType( handlerName, ['string', 'undefined'], 'handlerName' );
     if( handlerName===undefined ) {
         unnamedTestSuiteFolderChangeHandlers.push(handler);
     }
@@ -77,7 +77,7 @@ var closingIdeHandlers= [];
  *  of Se IDE (during the same run of Firefox).
  * */
 SeLiteSettings.addClosingIdeHandler= function addClosingIdeHandler( handler ) {
-    SeLiteMisc.ensureType( handler, 'function', 'handler must be a function' );
+    SeLiteMisc.ensureType( handler, 'function', 'handler' );
     closingIdeHandlers.push( handler );
 };
 // -------- end of functionality required by SeLiteData
@@ -186,7 +186,7 @@ SeLiteSettings.getField= function getField( fullNameOrField ) {
     if( fullNameOrField instanceof SeLiteSettings.Field ) {
         return fullNameOrField;
     }
-    SeLiteMisc.ensureType( fullNameOrField, 'string', 'SeLiteSettings.getField() expects fullNameOrField to be a string or a Field instance.');
+    SeLiteMisc.ensureType( fullNameOrField, 'string', 'fullNameOrField (if not an instance of SeLiteSettings.Field)' );
     var lastDotIndex= fullNameOrField.lastIndexOf( '.' );
     lastDotIndex>0 && lastDotIndex<fullNameOrField.length-1 || SeLiteMisc.fail('fullNameOrField does not contain a dot: ' +fullNameOrField );
     var moduleName= fullNameOrField.substring( 0, lastDotIndex );
@@ -233,9 +233,9 @@ SeLiteSettings.Field= function Field( name, multivalued, defaultKey, allowNull, 
     this.multivalued || defaultKey===undefined || defaultKey===null || typeof defaultKey!=='object' || SeLiteMisc.fail( 'Single valued field ' +name+ " must have default key a primitive or null.");
     this.defaultKey= defaultKey;
     this.allowNull= allowNull || false;
-    SeLiteMisc.ensureType( this.allowNull, 'boolean', 'SeLiteSettings.Field() expects allowNull to be a boolean, if present.' );
+    SeLiteMisc.ensureType( this.allowNull, 'boolean', 'allowNull (if present)' );
     this.customValidate= customValidate || undefined;
-    SeLiteMisc.ensureType( this.customValidate, ['function', 'undefined'], 'SeLiteSettings.Field() expects customValidate to be a function, if present.' );
+    SeLiteMisc.ensureType( this.customValidate, ['function', 'undefined'], 'customValidate (if present)' );
     
     !(this.defaultKey===null && multivalued) || SeLiteMisc.fail( 'SeLiteSettings.Field ' +name+ " must have a non-null defaultKey (possibly undefined), because it's multivalued." );
     if( this.defaultKey!==undefined && this.defaultKey!==null ) {
@@ -261,7 +261,7 @@ SeLiteSettings.Field= function Field( name, multivalued, defaultKey, allowNull, 
         }
         SeLiteMisc.ensureInstance(this, 
             [SeLiteSettings.Field.Bool, SeLiteSettings.Field.Int, SeLiteSettings.Field.Decimal, SeLiteSettings.Field.String, SeLiteSettings.Field.File, SeLiteSettings.Field.Folder, SeLiteSettings.Field.SQLite, SeLiteSettings.Field.Choice.Int, SeLiteSettings.Field.Choice.Decimal, SeLiteSettings.Field.Choice.String, SeLiteSettings.Field.FixedMap.String],
-            "SeLiteSettings.Field instance with name '" +this.name+ "' is not of an acceptable class." );
+            "Instance being created, of non-standard direct subclass of SeLiteSettings.Field, with name '" +this.name );
     }
     loadingPackageDefinition || this.name.indexOf('.')<0 || SeLiteMisc.fail( 'SeLiteSettings.Field() expects name not to contain a dot, but it received: ' +this.name);
     this.module= null; // instance of Module that this belongs to (once registered)
@@ -561,9 +561,9 @@ SeLiteSettings.Field.FileOrFolder= function FileOrFolder( name, filters, multiva
     this.filters= filters || {};
     typeof(this.filters)==='object' && !Array.isArray(this.filters) || SeLiteMisc.fail( 'SeLiteSettings.Field.FileOrFolder() expects filters to be an object (not an array) serving as an associative array, if provided.');
     this.isFolder= isFolder || false;
-    SeLiteMisc.ensureType( this.isFolder, 'boolean', "SeLiteSettings.Field.FileOrFolder(..) expects isFolder to be a boolean, if provided." );
+    SeLiteMisc.ensureType( this.isFolder, 'boolean', "isFolder (if provided)" );
     this.saveFile= saveFile || false;
-    SeLiteMisc.ensureType( this.saveFile, 'boolean', "SeLiteSettings.Field.FileOrFolder(..) expects saveFile to be a boolean, if provided." );
+    SeLiteMisc.ensureType( this.saveFile, 'boolean', "saveFile (if provided)" );
 }
 SeLiteSettings.Field.FileOrFolder.prototype= new SeLiteSettings.Field.NonChoice('FileOrFolder.prototype');
 SeLiteSettings.Field.FileOrFolder.prototype.constructor= SeLiteSettings.Field.FileOrFolder;
@@ -720,7 +720,7 @@ SeLiteSettings.Field.FixedMap= function FixedMap( name, keySet, defaultMappings,
     this.keySet= keySet.slice(); // protective copy
     for( var i=0; i<this.keySet.length; i++ ) {
         var key= this.keySet[i];
-        SeLiteMisc.ensureType( key, ['string', 'number'], 'Parameter keySet must contain strings and/or numbers only.' );
+        SeLiteMisc.ensureType( key, ['string', 'number'], 'keySet[' +i+ ']' );
         ensureFieldName(key);
         this.keySet[i]= ''+key;
     }
@@ -748,7 +748,7 @@ SeLiteSettings.Field.FixedMap.prototype.addKey= function addKey( key, defaultVal
     if( !this.module.addedKeys[this.name] ) {
         this.module.addedKeys[this.name]= {};
     }
-    SeLiteMisc.ensureType( key, ['string', 'number'], 'Parameter keySet must contain strings and/or numbers only.' );
+    SeLiteMisc.ensureType( key, ['string', 'number'], 'key' );
     ensureFieldName(key);
     this.keySet.push( key );
     if( defaultValue!==undefined ) {
@@ -828,8 +828,8 @@ SeLiteSettings.TestDbKeeper.Columns= function Columns( description ) {
     this.description= description;
     for( var tableName in description ) {
         var tableDetails= description[tableName];
-        SeLiteMisc.ensureType( tableDetails.key, 'string' );
-        SeLiteMisc.ensureInstance( tableDetails.columnsToPreserve, Array );
+        SeLiteMisc.ensureType( tableDetails.key, 'string', 'description[' +tableName+ '].key' );
+        SeLiteMisc.ensureInstance( tableDetails.columnsToPreserve, Array, 'description[' +tableName+ '].columnsToPreserve' );
         tableDetails.columnsToPreserve.indexOf(tableDetails.key)<0 || SeLiteMisc.fail( 'SeLiteSettings.TestDbKeeper.Columns() needs sub-parameter columnsToPreserve for table ' +tableName+ ' not to contain the key ' +tableDetails.key );
     }
     this.data= {};
@@ -988,7 +988,7 @@ SeLiteSettings.Module= function Module( name, fields, allowSets, defaultSetNameV
     defaultSetNameValue===null || ensureFieldName( defaultSetNameValue, 'defaultSetNameValue', true );
     
     this.associatesWithFolders= associatesWithFolders || false;
-    SeLiteMisc.ensureType( this.associatesWithFolders, 'boolean', 'SeLiteSettings.Module() expects associatesWithFolders to be a boolean, if provided.');
+    SeLiteMisc.ensureType( this.associatesWithFolders, 'boolean', 'associatesWithFolders (if provided)' );
     
     this.definitionJavascriptFile= definitionJavascriptFile;
     if( this.definitionJavascriptFile!==undefined && typeof this.definitionJavascriptFile!=='string') {
@@ -1307,7 +1307,7 @@ SeLiteSettings.Module.forName= function forName( moduleNameOrModule ) {
     if( moduleNameOrModule instanceof SeLiteSettings.Module ) {
         return moduleNameOrModule;
     }
-    SeLiteMisc.ensureType( moduleNameOrModule, 'string', 'Parameter moduleName must be a string.' );
+    SeLiteMisc.ensureType( moduleNameOrModule, 'string', 'moduleNameOrModule (if not an instance of SeLiteSettings.Module)' );
     return modules[moduleNameOrModule];
 };
 

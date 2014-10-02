@@ -719,7 +719,7 @@ SeLiteData.getStorageFromSettings= function getStorageFromSettings( appDbFieldOr
     tablePrefixFieldOrFieldName===undefined || tablePrefixDBfield instanceof SeLiteSettings.Field.String || SeLiteMisc.fail('Parameter tablePrefixDBfield must be an instance of SeLiteSettings.Field.String, or a string, but it is (after processing) ' +tablePrefixFieldOrFieldName+ '; tablePrefixField: ' +tablePrefixDBfield );
     
     dontCreate= dontCreate || false;
-    SeLiteMisc.ensureType( dontCreate, 'boolean', 'Parameter dontCreate must be a boolean, if specified.' );
+    SeLiteMisc.ensureType( dontCreate, 'boolean', 'dontCreate (if specified)' );
     var instance= appDBfield.name in StorageFromSettings.instances
         ? StorageFromSettings.instances[appDBfield.name]
         : (dontCreate

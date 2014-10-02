@@ -773,7 +773,7 @@ function IterableArray( keys ) {
     this[SELITE_MISC_ITERABLE_ARRAY_KEYS]= keys!==undefined
         ? keys
         : [];
-    SeLiteMisc.ensureInstance( this[SELITE_MISC_ITERABLE_ARRAY_KEYS], 'array', 'keys (unless undefined)' );
+    SeLiteMisc.ensureInstance( this[SELITE_MISC_ITERABLE_ARRAY_KEYS], 'array', 'keys (if defined)' );
     this.watch( SELITE_MISC_ITERABLE_ARRAY_KEYS, IterableArrayKeysWatchThrow );
 }
 IterableArray.prototype.__iterator__= function __iterator__() {
