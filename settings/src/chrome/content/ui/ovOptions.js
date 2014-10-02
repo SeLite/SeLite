@@ -540,7 +540,9 @@ function RowInfo() {
         // 'Inputs'
         this.module= this.setName= undefined;
         this.field= this.key= this.value= undefined;
-        this.rowLevel= this.valueCompound= undefined;
+        this.rowLevel= undefined;
+        this.isNewValueRow= false;
+        this.valueCompound= undefined;
         // Basic results
         this.isUndefined= this.isNull= false;
         /** It controls 'True' column */
@@ -576,10 +578,11 @@ RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
  *  }
  *  Required if rowLevel===RowLevel.FIELD.
  * */
-RowInfo.prototype.fillIn= function fillIn( module, setName, field, key, value, rowLevel, valueCompound ) {
-    SeLiteMisc.objectFillIn( this, ['module', 'setName', 'field', 'key', 'value', 'rowLevel', 'valueCompound'], arguments );
+RowInfo.prototype.fillIn= function fillIn( module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound ) {
+    SeLiteMisc.objectFillIn( this, ['module', 'setName', 'field', 'key', 'value', 'rowLevel', 'isNewValueRow', 'valueCompound'], arguments );
     SeLiteMisc.ensureInstance( module, SeLiteSettings.Module, 'module' );
     SeLiteMisc.ensureType( setName, ['string', 'null'], setName );
+    
     SeLiteMisc.ensureType( field, ['object', 'undefined'], "field" );
     field || rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET || SeLiteMisc.fail( "Parameter field must be defined, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but rowLevel is " +rowLevel );
     !field || SeLiteMisc.ensureInstance( field, SeLiteSettings.Field, 'field (if defined)' );
@@ -588,8 +591,11 @@ RowInfo.prototype.fillIn= function fillIn( module, setName, field, key, value, r
     SeLiteMisc.ensureType( value, ['string', 'number', 'boolean', 'undefined', 'null'], 'key' );
     SeLiteMisc.ensureInstance( rowLevel, RowLevel, 'rowLevel' );
     
-    valueCompound= valueCompound || null;
-    SeLiteMisc.ensureType( valueCompound, 'object', 'valueCompound' );
+    this.isNewValueRow= this.isNewValueRow || false;
+    SeLiteMisc.ensureType( this.isNewValueRow, 'boolean', 'isNewValueRow' );
+    
+    this.valueCompound= this.valueCompound || null;
+    SeLiteMisc.ensureType( this.valueCompound, 'object', 'valueCompound' );
     
     // Basic collecting
     if( showingPerFolder() && this.valueCompound!==null && this.valueCompound!==undefined ) {//@TODO use either null, or undefined
@@ -611,7 +617,7 @@ RowInfo.prototype.fillIn= function fillIn( module, setName, field, key, value, r
 
 function CellInfo() {
     if( false ) {
-        this.value= '';
+        this.label= '';
         this.editable= false;
         this.properties= '';
     }
@@ -655,14 +661,11 @@ RowInfo.prototype.collectEditable= function collectEditable( column ) {
  * */
 function generateTreeItem( module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound ) {
     var rowInfo= new RowInfo();
-    rowInfo.fillIn( module, setName, field, key, value, rowLevel, valueCompound );
+    rowInfo.fillIn( module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound );
     
     var cellInfo= new CellInfo();
     cellInfo.collect( rowInfo );
     var multivaluedOrChoice= field!==null && (field.multivalued || field instanceof SeLiteSettings.Field.Choice);
-    isNewValueRow= isNewValueRow || false;
-    valueCompound= valueCompound || null;
-    SeLiteMisc.ensureType( isNewValueRow, 'boolean', 'isNewValueRow' );
     
     var treeitem= document.createElementNS( XUL_NS, 'treeitem');
     var treerow= document.createElementNS( XUL_NS, 'treerow');
@@ -762,7 +765,7 @@ function generateTreeItem( module, setName, field, key, value, rowLevel, isNewVa
     
     var valueForThisRow= value; //collectValueForThisRow( field, value, rowLevel, valueCompound );
     if( (typeof value==='string' || typeof value==='number' || valueForThisRow===null || valueForThisRow===undefined)
-        && !isNewValueRow
+        && /*TODO !isNewValueRow*/false
     ) {
         treecell.setAttribute( 'label', generateCellLabel(Column.VALUE, module, setName, field, key, value, rowLevel, valueCompound) );
         if( showingPerFolder() && valueCompound!==null ) {
