@@ -120,13 +120,14 @@ function chooseFileOrFolder( field, tree, row, column, isFolder, currentTargetFo
 }
 
 /** Enumeration-like class. Instances of subclasses indicate hierarchical levels of rows within the tree, or the column.
+ * @class
  * @param {string} name
  * @param {int} level 0-based level/index
  */
 function RowLevelOrColumn( name, level ) {
     this.level= level;
     this.name= name;
-    if( !('instances' in this.constructor) ) {
+    if( !('instances' in this.constructor) ) { // this is instead of: this.constructor.instances= this.constructor.instances, to make this class compatible with SeLiteMisc.proxyEnsureFieldsExist()
         this.constructor.instances= [];
     }
     this.constructor.instances.push( this );
@@ -142,6 +143,8 @@ RowLevelOrColumn.prototype.forLevel= function forLevel(first, second, etc ) {
     return arguments[this.level];
 };
 
+/** @class
+ */
 function RowLevel( name, level ) {
     RowLevelOrColumn.call( this, name, level );
 }
@@ -153,6 +156,8 @@ RowLevel.SET= new RowLevel('SET', 1);
 RowLevel.FIELD= new RowLevel('FIELD', 2);
 RowLevel.OPTION= new RowLevel('OPTION', 3);
 
+/** @class
+*/
 function Column( name, level ) {
     RowLevelOrColumn.call( this, name, level );
 }
@@ -515,6 +520,14 @@ function generateCellLabel( column, module, setName, field, key, value, rowLevel
     return '';
 }
 
+/** Enum-like, instances indicate the source of value for a field. Only used in per-folder mode.
+ *  @class
+ * */
+function ValueSource( name ) { this.name= name;}
+ValueSource.
+ValueSource= SeLiteMisc.proxyEnsureFieldsExist( ValueSource );
+ValueSource.ASSOCIATED_SET= new ValueSource();
+
 /** This keeps information for a row to display (at any given RowLevel).
  * @class
  * */
@@ -523,8 +536,10 @@ function RowInfo() {
     if( false ) {
         this.key= this.value= undefined;
         this.isUndefined= this.isNull= false;
-        this.isSelected= undefined; // It controls 'True' column
+        /** It controls 'True' column */
+        this.isSelected= undefined;
         this.isFromManifest= this.isFromModuleDefault= false;
+        /** Location of the module definition or 'values' manifest where the value comes from. Only in per-folder mode. */
         this.source= undefined;
     }
 }
@@ -592,117 +607,29 @@ function collectRowInfo( module, setName, field, key, value, rowLevel, optionIsS
     var fieldName= field
         ? field.name
         : '';
-    /* I use spaces as separators in the following (that's why I don't allow spaces in module/set/field name). For level===RowLevel.OPTION, variable 'key' may contain space(s), since it's the last item on the following list. (That's why there can't be any more entries in 'properties' after 'key'):
-    */
-    treerow.setAttribute( 'properties',
-        rowLevel.forLevel(
-            moduleName,
-            moduleName+' '+setName,
-            moduleName+' '+setName+' '+fieldName,
-            moduleName+' '+setName+' '+fieldName+
-                (field instanceof SeLiteSettings.Field.Choice || field instanceof SeLiteSettings.Field.FixedMap
-                    ? ' ' +key
-                    : ''
-                )
-            )
-    );
-    
-    // Cell for name of the Module/Set/Field, and for keys of SeLiteSettings.Field.FixedMap
-    var treecell= document.createElementNS( XUL_NS, 'treecell');
-    treerow.appendChild( treecell);
-    treecell.setAttribute( 'label', generateCellLabel(Column.MODULE_SET_FIELD, module, setName, field, key, value, rowLevel, valueCompound) );
-    treecell.setAttribute('editable', 'false');
-
-    if( allowSets ) { // Radio-like checkbox for (de)selecting a set
-        treecell= document.createElementNS( XUL_NS, 'treecell');
-        treerow.appendChild( treecell);
-        if( rowLevel===RowLevel.SET && module.allowSets) {
-            subContainer( treeRowsOrChildren, module.name, setName )[ SeLiteSettings.SET_SELECTION_ROW ]= treerow;
-            treecell.setAttribute('value', ''+( setName===module.defaultSetName() ) );
-        }
-        else {
-            treecell.setAttribute('value', 'false' );
-            treecell.setAttribute('editable', 'false' );
-        }
-        treecell.setAttribute('properties', SeLiteSettings.DEFAULT_SET_NAME ); // so that I can style it in CSS as a radio button
-    }
-    // Register treerow in treeRowsOrChildren[][...]
-    if( rowLevel===RowLevel.FIELD ) {
-        if( !multivaluedOrChoice ) {
-           subContainer( treeRowsOrChildren, module.name, setName )[ fieldName ]= treerow;
-        }
-        else {
-            subContainer( treeRowsOrChildren, module.name, setName, fieldName )[ SeLiteSettings.FIELD_MAIN_ROW ]= treerow;
-        }
-    }
-    if( rowLevel===RowLevel.OPTION ) {
-        subContainer( treeRowsOrChildren, module.name, setName, fieldName )[ key ]= treerow;
-    }
-    
-    // Cell for checkbox (if the field is boolean) or radio-like select (if the field is a choice):
-    treecell= document.createElementNS( XUL_NS, 'treecell');
-    treerow.appendChild( treecell);
-    if( showingPerFolder()
-        || rowLevel!==RowLevel.FIELD && rowLevel!==RowLevel.OPTION
-        || !(field instanceof SeLiteSettings.Field.Bool || field instanceof SeLiteSettings.Field.Choice)
-        || (typeof value==='string' || typeof value==='number')
-           && !(field instanceof SeLiteSettings.Field.Choice)
-        || rowLevel===RowLevel.FIELD && field instanceof SeLiteSettings.Field.Choice
-        || rowLevel===RowLevel.OPTION && optionIsSelected && !field.multivalued
-    ) {
-        treecell.setAttribute('editable', 'false');
-    }
-    if( typeof value==='boolean' ) {
-        treecell.setAttribute('value', ''+value);
-    }
-    if( field instanceof SeLiteSettings.Field.Choice ) {
-        treecell.setAttribute( 'value', ''+optionIsSelected );
-    }
-    if( rowLevel===RowLevel.OPTION ) {
-        treecell.setAttribute('properties', field.multivalued
-            ? SeLiteSettings.OPTION_NOT_UNIQUE_CELL
-            : SeLiteSettings.OPTION_UNIQUE_CELL
-        );
-    }
-    
-    // Cell for the text value:
-    treecell= document.createElementNS( XUL_NS, 'treecell');
-    treerow.appendChild( treecell);
-    if( showingPerFolder()
-        || rowLevel!==RowLevel.FIELD && rowLevel!==RowLevel.OPTION
-        || !(field instanceof SeLiteSettings.Field)
-        || field instanceof SeLiteSettings.Field.Bool
-        || field.multivalued && rowLevel===RowLevel.FIELD
-        || field instanceof SeLiteSettings.Field.Choice
-    ) {
-        treecell.setAttribute('editable' , 'false');
-    }
     
     var valueForThisRow= value; //collectValueForThisRow( field, value, rowLevel, valueCompound );
     if( (typeof value==='string' || typeof value==='number' || valueForThisRow===null || valueForThisRow===undefined)
         && !isNewValueRow
     ) {
-        treecell.setAttribute( 'label', generateCellLabel(Column.VALUE, module, setName, field, key, value, rowLevel, valueCompound) );
         if( showingPerFolder() && valueCompound!==null ) {
             if( valueCompound.fromPreferences ) {
-                treecell.setAttribute( 'properties',
-                    valueCompound.folderPath!==''
-                        ? SeLiteSettings.ASSOCIATED_SET
-                        : SeLiteSettings.DEFAULT_SET
-                );
+                if( valueCompound.folderPath!=='' ) {
+                    //associated set
+                }
+                else {
+                    // default set
+                }
             }
             else {
-                treecell.setAttribute( 'properties',
                     valueCompound.folderPath!==null
                         ? SeLiteSettings.VALUES_MANIFEST
                         : SeLiteSettings.FIELD_DEFAULT // For visual effect
-                );
+                ;
             }
         }
-        if( valueForThisRow===null || valueForThisRow===undefined ) {
-            treecell.setAttribute( 'properties', SeLiteSettings.FIELD_NULL_OR_UNDEFINED ); //@TODO This overrides the above
-        }
     }
+    var treecell;
     if( allowSets || allowMultivaluedNonChoices || showingPerFolder() ) {
         // Cell for Action column (in edit mode) or 'Set' column (in per-folder view)
         treecell= document.createElementNS( XUL_NS, 'treecell');
