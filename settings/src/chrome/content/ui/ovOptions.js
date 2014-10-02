@@ -542,8 +542,8 @@ function RowInfo() {
         /** It controls 'True' column */
         this.isSelected= undefined;
         this.isFromManifest= this.isFromModuleDefault= false;
-        /** Location of the module definition or 'values' manifest where the value comes from. Only in per-folder mode. */
-        this.source= undefined;
+        /** @var {ValueSource} Location of the module definition or 'values' manifest where the value comes from. Only in per-folder mode. */
+        this.source= new ValueSource();
     }
 }
 RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
@@ -617,18 +617,14 @@ function collectRowInfo( module, setName, field, key, value, rowLevel, optionIsS
     ) {
         if( showingPerFolder() && valueCompound!==null ) {
             if( valueCompound.fromPreferences ) {
-                if( valueCompound.folderPath!=='' ) {
-                    //associated set
-                }
-                else {
-                    // default set
-                }
+                result.source= valueCompound.folderPath!==''
+                    ? ValueSource.ASSOCIATED_SET
+                    : ValueSource.DEFAULT_SET;
             }
             else {
-                    valueCompound.folderPath!==null
-                        ? SeLiteSettings.VALUES_MANIFEST
-                        : SeLiteSettings.FIELD_DEFAULT // For visual effect
-                ;
+                result.source= valueCompound.folderPath!==null
+                    ? ValueSource.VALUES_MANIFEST
+                    : ValueSource.FIELD_DEFAULT; // For visual effect
             }
         }
     }
