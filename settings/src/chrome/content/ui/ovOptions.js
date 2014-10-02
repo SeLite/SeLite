@@ -534,14 +534,13 @@ RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
  *  @param setName string set name; either '' if the module doesn't allow sets; otherwise it's a set name when at field level
  *  attribute for the <treerow> nodes, so that when we handle a click event, we know what field the node is for.
  *  @param {SeLiteSettings.Field} field An object of a subclass of Field. If rowLevel==RowLevel.MODULE or rowLevel==RowLevel.SET,  then field is null.
- *  @param string key 'key' (used as a trailing part of field option preference name);
- *  use for fields of Field.Choice family and for multivalued fields only. For multivalued non-choice fields it should be the same
- *  as parameter value. If the field is of a subclass of Field.Choice, then key and value may be different.
  *  @param {string} key Key for the value to display. If no such key, it should be undefined.
- *  It must not be undefined for multivalued or choice field. It serves as a trailing part of field option preference name)
+ *  It must be defined for multivalued or choice field. It serves as a trailing part of field option preference name)
  *  -- for multivalued non-choice fields it should be the same as value
  *  -- if the field is of a subclass of Field.Choice or Field.FixedMap, then key and value may be different.
- *  @param {(string|number)} value
+    TODO: checl: For multivalued non-choice fields it should be the same
+ *  as parameter value. If the field is of a subclass of Field.Choice, then key and value may be different.
+ *  @param {(string|number)} [value]
  *  @param {RowLevel} rowLevel
  *  @param optionIsSelected bool Whether the option is selected. Only used when rowLevel===RowLevel.OPTION and field instanceof Field.Choice.
  *  @param {bool} [isNewValueRow] Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell.
@@ -558,9 +557,16 @@ RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
  *  @return {RowInfo}
  * */
 function collectRowInfo( module, setName, field, key, value, rowLevel, optionIsSelected, isNewValueRow, valueCompound ) {
-    SeLiteMisc.ensureInstance( rowLevel, RowLevel, 'rowLevel' );
-    field || rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET || SeLiteMisc.fail( "Parameter field must be set, rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but rowLevel is " +rowLevel );
+    SeLiteMisc.ensureInstance( module, SeLiteSettings.Module, 'module' );
+    SeLiteMisc.ensureType( setName, ['string', 'null'], setName );
+    SeLiteMisc.ensureType( field, ['object', 'undefined'], "field" );
+    field || rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET || SeLiteMisc.fail( "Parameter field must be defined, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but rowLevel is " +rowLevel );
     !field || SeLiteMisc.ensureInstance( field, SeLiteSettings.Field, 'field (if defined)' );
+    
+    SeLiteMisc.ensureType( key, ['string', 'undefined', 'null'], 'key' );
+    SeLiteMisc.ensureType( value, ['string', 'number', 'boolean', 'undefined', 'null'], 'key' );
+    SeLiteMisc.ensureInstance( rowLevel, RowLevel, 'rowLevel' );
+    
     optionIsSelected= optionIsSelected || false;
     isNewValueRow= isNewValueRow || false;
     valueCompound= valueCompound || null;
@@ -584,10 +590,7 @@ function collectRowInfo( module, setName, field, key, value, rowLevel, optionIsS
         ? module.name
         : '';
     var fieldName= field
-        ?   (field instanceof SeLiteSettings.Field
-                ? field.name
-                : field
-            )
+        ? field.name
         : '';
     /* I use spaces as separators in the following (that's why I don't allow spaces in module/set/field name). For level===RowLevel.OPTION, variable 'key' may contain space(s), since it's the last item on the following list. (That's why there can't be any more entries in 'properties' after 'key'):
     */
@@ -765,16 +768,12 @@ function collectRowInfo( module, setName, field, key, value, rowLevel, optionIsS
  *  @return object for a new element <treeitem> with one <treerow>
  * */
 function generateTreeItem( module, setName, field, key, value, rowLevel, optionIsSelected, isNewValueRow, valueCompound ) {
-    rowLevel instanceof RowLevel || SeLiteMisc.fail( "Parameter rowLevel must be an instance of RowLevel, but it is " +rowLevel );
+    collectRowInfo( module, setName, field, key, value, rowLevel, optionIsSelected, isNewValueRow, valueCompound );
     var multivaluedOrChoice= field!==null && (field.multivalued || field instanceof SeLiteSettings.Field.Choice);
     /*if( typeof valueOrPair==='object' && valueOrPair!==null ) {
         rowLevel===RowLevel.OPTION || SeLiteMisc.fail( "generateTreeItem(): parameter valueOrPair must not be an object, unless rowLevel is OPTION, but rowLevel is " +rowLevel );
         multivaluedOrChoice || SeLiteMisc.fail( 'generateTreeItem(): parameter valueOrPair can be an object only for multivalued fields or choice fields, but it was used with ' +field );
     }*/
-    
-    SeLiteMisc.ensureType( field, 'object', 'field' );
-    field || rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET || SeLiteMisc.fail( "Parameter field must be set, rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but rowLevel is " +rowLevel );
-    !field || SeLiteMisc.ensureInstance( field, SeLiteSettings.Field, 'field (if defined)' );
     optionIsSelected= optionIsSelected || false;
     isNewValueRow= isNewValueRow || false;
     valueCompound= valueCompound || null;
@@ -786,10 +785,7 @@ function generateTreeItem( module, setName, field, key, value, rowLevel, optionI
         ? module.name
         : '';
     var fieldName= field
-        ?   (field instanceof SeLiteSettings.Field
-                ? field.name
-                : field
-            )
+        ? field.name
         : '';
     /* I use spaces as separators in the following (that's why I don't allow spaces in module/set/field name). For level===RowLevel.OPTION, variable 'key' may contain space(s), since it's the last item on the following list. (That's why there can't be any more entries in 'properties' after 'key'):
     */
