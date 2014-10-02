@@ -623,16 +623,23 @@ RowInfo.prototype.collectEditable= function collectEditable( column ) {
     }
     if( column===Column.CHECKED ) {
         return !showingPerFolder()
-        && (rowLevel===RowLevel.FIELD || rowLevel===RowLevel.OPTION)
-        && (field instanceof SeLiteSettings.Field.Bool || field instanceof SeLiteSettings.Field.Choice)
-        && ( (typeof value!=='string' && typeof value!=='number')
-             || field instanceof SeLiteSettings.Field.Choice
+        && (this.rowLevel===RowLevel.FIELD || this.rowLevel===RowLevel.OPTION)
+        && (this.field instanceof SeLiteSettings.Field.Bool || this.field instanceof SeLiteSettings.Field.Choice)
+        && ( (typeof this.value!=='string' && typeof this.value!=='number')
+             || this.field instanceof SeLiteSettings.Field.Choice
            )
-        && ( rowLevel!==RowLevel.FIELD || !(field instanceof SeLiteSettings.Field.Choice) )
-        && ( rowLevel!==RowLevel.OPTION || !this.optionIsSelected || field.multivalued );
+        && ( this.rowLevel!==RowLevel.FIELD || !(this.field instanceof SeLiteSettings.Field.Choice) )
+        && ( this.rowLevel!==RowLevel.OPTION || !this.optionIsSelected || this.field.multivalued );
     }
 };
 
+/**@param {object} treecell result of document.createElementNS( XUL_NS, 'treecell') 
+ * @param {Column} column
+ * */
+RowInfo.prototype.setCellDetails= function setCellDetails( treecell, column ) {
+    var cellInfo= new CellInfo( this, column );
+    treecell.setAttribute( 'editable', '' +cellInfo.editable );
+};
 /** 
  *  @return object for a new element <treeitem> with one <treerow>
  * */
@@ -668,18 +675,18 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
     var treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
     treecell.setAttribute( 'label', generateCellLabel(Column.MODULE_SET_FIELD, this.module, this.setName, this.field, this.key, this.value, this.rowLevel, this.valueCompound) );
-    treecell.setAttribute('editable', 'false');
+    this.setCellDetails( treecell, Column.MODULE_SET_FIELD );
 
     if( allowSets ) { // Radio-like checkbox for (de)selecting a set
         treecell= document.createElementNS( XUL_NS, 'treecell');
         treerow.appendChild( treecell);
+        this.setCellDetails( treecell, Column.DEFAULT );
         if( this.rowLevel===RowLevel.SET && this.module.allowSets) {
             subContainer( treeRowsOrChildren, this.module.name, this.setName )[ SeLiteSettings.SET_SELECTION_ROW ]= treerow;
             treecell.setAttribute('value', ''+( this.setName===this.module.defaultSetName() ) );
         }
         else {
             treecell.setAttribute('value', 'false' );
-            treecell.setAttribute('editable', 'false' );
         }
         treecell.setAttribute('properties', SeLiteSettings.DEFAULT_SET_NAME ); // so that I can style it in CSS as a radio button
     }
@@ -699,16 +706,7 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
     // Cell for checkbox (if this.field is boolean) or radio-like select (if this.field is a choice):
     treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
-    if( showingPerFolder()
-        || this.rowLevel!==RowLevel.FIELD && this.rowLevel!==RowLevel.OPTION
-        || !(this.field instanceof SeLiteSettings.Field.Bool || this.field instanceof SeLiteSettings.Field.Choice)
-        || (typeof this.value==='string' || typeof this.value==='number')
-           && !(this.field instanceof SeLiteSettings.Field.Choice)
-        || this.rowLevel===RowLevel.FIELD && this.field instanceof SeLiteSettings.Field.Choice
-        || this.rowLevel===RowLevel.OPTION && this.optionIsSelected && !this.field.multivalued
-    ) {
-        treecell.setAttribute('editable', 'false');
-    }
+    this.setCellDetails( treecell, Column.CHECKED );
     if( typeof this.value==='boolean' ) {
         treecell.setAttribute('value', ''+this.value);
     }
@@ -722,19 +720,10 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
         );
     }
     
-    var cellInfo= new CellInfo( this, Column.VALUE );
     // Cell for the text value:
     treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
-    if( showingPerFolder()
-        || this.rowLevel!==RowLevel.FIELD && this.rowLevel!==RowLevel.OPTION
-        || !(this.field instanceof SeLiteSettings.Field)
-        || this.field instanceof SeLiteSettings.Field.Bool
-        || this.field.multivalued && this.rowLevel===RowLevel.FIELD
-        || this.field instanceof SeLiteSettings.Field.Choice
-    ) {
-        treecell.setAttribute('editable' , 'false');
-    }
+    this.setCellDetails( treecell, Column.VALUE );
     
     var valueForThisRow= this.value; //collectValueForThisRow( this.field, this.value, this.rowLevel, this.valueCompound );
     if( (typeof this.value==='string' || typeof this.value==='number' || valueForThisRow===null || valueForThisRow===undefined)
@@ -765,7 +754,7 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
         // Cell for Action column (in edit mode) or 'Set' column (in per-folder view)
         treecell= document.createElementNS( XUL_NS, 'treecell');
         treerow.appendChild( treecell);
-        treecell.setAttribute('editable', 'false');
+        this.setCellDetails( treecell, Column.ACTION );
         treecell.setAttribute( 'label', generateCellLabel( Column.ACTION, this.module, this.setName, this.field, this.key, this.value, this.rowLevel, this.valueCompound) );
         if( showingPerFolder() && this.rowLevel===RowLevel.FIELD ) {
             if( this.valueCompound.fromPreferences && this.valueCompound.setName===this.module.defaultSetName() ) {
@@ -780,7 +769,7 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
             // If per-folder view: show Manifest or definition. Otherwise (i.e. per-module view): show Null/Undefine.
             treecell= document.createElementNS( XUL_NS, 'treecell');
             treerow.appendChild( treecell);
-            treecell.setAttribute('editable', 'false');
+            this.setCellDetails( treecell, Column.NULL_UNDEFINE );
             treecell.setAttribute( 'label', generateCellLabel( Column.NULL_UNDEFINE, this.module, this.setName, this.field, this.key, this.value, this.rowLevel, this.valueCompound) );
             if( showingPerFolder() ) {
                 treecell.setAttribute( 'properties', this.valueCompound.folderPath!==null
