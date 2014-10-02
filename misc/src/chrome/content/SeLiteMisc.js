@@ -257,6 +257,21 @@ SeLiteMisc.proxyEnsureFieldsExist= function proxyEnsureFieldsExist( target ) {
     );
 };
 
+/** Enumeration-like class.
+ * @class
+ * @param {string} name
+ */
+SeLiteMisc.Enum= function Enum( name, level ) {
+    this.name= name;
+    if( !('instances' in this.constructor) ) { // this is instead of: this.constructor.instances= this.constructor.instances, to make this class compatible with SeLiteMisc.proxyEnsureFieldsExist()
+        this.constructor.instances= [];
+    }
+    this.constructor.instances.push( this );
+}
+SeLiteMisc.Enum.prototype.toString= function toString() {
+    return this.constructor.name+ '.' +this.name;
+};
+
 /** @param mixed Container - object or array
  *  @param mixed Field - string field name, or integer/integer string index of the item
  *  @param Any further parameters are treated as chained 'subfields' - useful for traversing deeper array/object/mixed structures
