@@ -531,31 +531,8 @@ ValueSource.DEFAULT_SET= new ValueSource( 'DEFAULT_SET' );
 ValueSource.VALUES_MANIFEST= new ValueSource( 'VALUES_MANIFEST' );
 ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
 
-/** This keeps information for a row to display (at any given RowLevel).
+/** This keeps information for a row to display (at any given RowLevel). It populates the fields from given parameters, and it collects some extra fields.
  * @class
- * */
-function RowInfo() {
-    // Following is only for code completion hints in IDEs. I don't set any fields here, since I want SeLiteMisc.proxyEnsureFieldsExist() to catch access to any unassigned fields.
-    if( false ) {
-        // 'Inputs'
-        this.module= this.setName= undefined;
-        this.field= this.key= this.value= undefined;
-        this.rowLevel= undefined;
-        this.isNewValueRow= false;
-        this.valueCompound= undefined;
-        // Basic results
-        this.isUndefined= this.isNull= false;
-        /** It controls 'True' column */
-        this.isSelected= undefined;
-        this.isFromManifest= this.isFromModuleDefault= false;
-        /** @var {(ValueSource|undefined)} Location of the module definition or 'values' manifest where the value comes from. Only in per-folder mode. */
-        this.source= new ValueSource();
-        /** @var {boolean} Whether the radio button for a Choice field is checked. Not valid for Bool fields. */
-        this.optionIsSelected= false;
-    }
-}
-RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
-
 /** @param {SeLiteSettings.Module} module object of Module
  *  @param {string} setName set name; either '' if the module doesn't allow sets; otherwise it's a set name when at field level
  *  attribute for the <treerow> nodes, so that when we handle a click event, we know what field the node is for.
@@ -568,6 +545,7 @@ RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
  *  as parameter value. If the field is of a subclass of Field.Choice, then key and value may be different.
  *  @param {(string|number)} [value]
  *  @param {RowLevel} rowLevel
+ *  @param {bool} [isNewValueRow] Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell. It still puts the new <treerow> element to treeRowsOrChildren[moduleName...], so that it can be updated/removed once the user fills in the value. Optional; false by default.
  *  @param {object} valueCompound Value compound for this field stored in the set being displayed (or in the sets and manifests applicable to targetFolder, if targetFolder!=null). Its entry part may be different to (the part of) valueOrPair when rowLevel===RowLevel.OPTION, since valueOrPair then indicates what to display for this row. valueCompound is an anonymous object, one of entries in result of Module.getFieldsDownToFolder(..) or Module.Module.getFieldsOfSet(), i.e. in form {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or from field default,
  *          setName: string set name (only valid if fromPreferences is true),
@@ -578,7 +556,7 @@ RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
  *  }
  *  Required if rowLevel===RowLevel.FIELD.
  * */
-RowInfo.prototype.fillIn= function fillIn( module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound ) {
+function RowInfo( module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound ) {
     SeLiteMisc.objectFillIn( this, ['module', 'setName', 'field', 'key', 'value', 'rowLevel', 'isNewValueRow', 'valueCompound'], arguments );
     SeLiteMisc.ensureInstance( module, SeLiteSettings.Module, 'module' );
     SeLiteMisc.ensureType( setName, ['string', 'null'], setName );
@@ -600,6 +578,7 @@ RowInfo.prototype.fillIn= function fillIn( module, setName, field, key, value, r
     // Basic collecting
     if( showingPerFolder() && this.valueCompound!==null && this.valueCompound!==undefined ) {//@TODO use either null, or undefined
         if( this.valueCompound.fromPreferences ) {
+            /** @var {(ValueSource|undefined)} Location of the module definition or 'values' manifest where the value comes from. Only in per-folder mode. */
             this.source= this.valueCompound.setName!==this.module.defaultSetName()//old?!: valueCompound.folderPath!==''
                 ? ValueSource.ASSOCIATED_SET
                 : ValueSource.DEFAULT_SET;
@@ -611,27 +590,26 @@ RowInfo.prototype.fillIn= function fillIn( module, setName, field, key, value, r
         }
     }
     if( rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.Choice ) {
+        /** @var {boolean} Whether the radio button for a Choice field is checked. Not valid for Bool fields. */
         this.optionIsSelected= typeof(this.valueCompound.entry)==='object' && this.valueCompound.entry!==null && key in this.valueCompound.entry;
     }
-}
+    //         this.isUndefined= this.isNull= false;
 
-function CellInfo() {
-    if( false ) {
-        this.label= '';
-        this.editable= false;
-        this.properties= '';
-    }
 }
-CellInfo= SeLiteMisc.proxyEnsureFieldsExist( CellInfo );
+RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
 
-/** Validate the parameters. Then set this.xyz to results of relevant functions collectXyz().
+/** Instantiate. Validate the parameters. Then set this.xyz to results of relevant functions collectXyz().
+ *  @class
  *  @param {RowInfo} rowInfo
  *  @param {Column} column
  * */
-CellInfo.prototype.collect= function collect( rowInfo, column ) {
+function CellInfo( rowInfo, column ) {
     column!==Column.DEFAULT || allowSets || SeLiteMisc.fail( "allowSets is false, but column is not DEFAULT: " +column );
+    this.label= '';
     this.editable= rowInfo.collectEditable( column );
-};
+    this.properties= '';
+}
+CellInfo= SeLiteMisc.proxyEnsureFieldsExist( CellInfo );
 
 /** @param {Column} column
  * @returns {boolean} When you use the result for value of 'editable' attribute, convert it to a string.
@@ -656,15 +634,11 @@ RowInfo.prototype.collectEditable= function collectEditable( column ) {
 };
 
 /** 
- *  @param {bool} [isNewValueRow] Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell. It still puts the new <treerow> element to treeRowsOrChildren[moduleName...], so that it can be updated/removed once the user fills in the value. Optional; false by default.
  *  @return object for a new element <treeitem> with one <treerow>
  * */
 function generateTreeItem( module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound ) {
-    var rowInfo= new RowInfo();
-    rowInfo.fillIn( module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound );
+    var rowInfo= new RowInfo( module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound );
     
-    var cellInfo= new CellInfo();
-    cellInfo.collect( rowInfo );
     var multivaluedOrChoice= field!==null && (field.multivalued || field instanceof SeLiteSettings.Field.Choice);
     
     var treeitem= document.createElementNS( XUL_NS, 'treeitem');
@@ -750,6 +724,7 @@ function generateTreeItem( module, setName, field, key, value, rowLevel, isNewVa
         );
     }
     
+    var cellInfo= new CellInfo( rowInfo, Column.VALUE );
     // Cell for the text value:
     treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
