@@ -636,31 +636,29 @@ RowInfo.prototype.collectEditable= function collectEditable( column ) {
 /** 
  *  @return object for a new element <treeitem> with one <treerow>
  * */
-function generateTreeItem( module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound ) {
-    var rowInfo= new RowInfo( module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound );
-    
-    var multivaluedOrChoice= field!==null && (field.multivalued || field instanceof SeLiteSettings.Field.Choice);
+RowInfo.prototype.generateTreeItem= function generateTreeItem() {
+    var multivaluedOrChoice= this.field!==null && (this.field.multivalued || this.field instanceof SeLiteSettings.Field.Choice);
     
     var treeitem= document.createElementNS( XUL_NS, 'treeitem');
     var treerow= document.createElementNS( XUL_NS, 'treerow');
     treeitem.appendChild( treerow );
-    // Shortcut xxxName variables prevent null exceptions, so I can pass them as parts of expressions to rowLevel.forLevel(..) without extra validation
-    var moduleName= module
-        ? module.name
+    // Shortcut xxxName variables prevent null exceptions, so I can pass them as parts of expressions to this.rowLevel.forLevel(..) without extra validation
+    var moduleName= this.module
+        ? this.module.name
         : '';
-    var fieldName= field
-        ? field.name
+    var fieldName= this.field
+        ? this.field.name
         : '';
-    /* I use spaces as separators in the following (that's why I don't allow spaces in module/set/field name). For level===RowLevel.OPTION, variable 'key' may contain space(s), since it's the last item on the following list. (That's why there can't be any more entries in 'properties' after 'key'):
+    /* I use spaces as separators in the following (that's why I don't allow spaces in module/set/field name). For level===RowLevel.OPTION, this.key may contain space(s), since it's the last item on the following list. (That's why there can't be any more entries in 'properties' after value of this.key):
     */
     treerow.setAttribute( 'properties',
-        rowLevel.forLevel(
+        this.rowLevel.forLevel(
             moduleName,
-            moduleName+' '+setName,
-            moduleName+' '+setName+' '+fieldName,
-            moduleName+' '+setName+' '+fieldName+
-                (field instanceof SeLiteSettings.Field.Choice || field instanceof SeLiteSettings.Field.FixedMap
-                    ? ' ' +key
+            moduleName+' '+this.setName,
+            moduleName+' '+this.setName+' '+fieldName,
+            moduleName+' '+this.setName+' '+fieldName+
+                (this.field instanceof SeLiteSettings.Field.Choice || this.field instanceof SeLiteSettings.Field.FixedMap
+                    ? ' ' +this.key
                     : ''
                 )
             )
@@ -669,15 +667,15 @@ function generateTreeItem( module, setName, field, key, value, rowLevel, isNewVa
     // Cell for name of the Module/Set/Field, and for keys of SeLiteSettings.Field.FixedMap
     var treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
-    treecell.setAttribute( 'label', generateCellLabel(Column.MODULE_SET_FIELD, module, setName, field, key, value, rowLevel, valueCompound) );
+    treecell.setAttribute( 'label', generateCellLabel(Column.MODULE_SET_FIELD, this.module, this.setName, this.field, this.key, this.value, this.rowLevel, this.valueCompound) );
     treecell.setAttribute('editable', 'false');
 
     if( allowSets ) { // Radio-like checkbox for (de)selecting a set
         treecell= document.createElementNS( XUL_NS, 'treecell');
         treerow.appendChild( treecell);
-        if( rowLevel===RowLevel.SET && module.allowSets) {
-            subContainer( treeRowsOrChildren, module.name, setName )[ SeLiteSettings.SET_SELECTION_ROW ]= treerow;
-            treecell.setAttribute('value', ''+( setName===module.defaultSetName() ) );
+        if( this.rowLevel===RowLevel.SET && this.module.allowSets) {
+            subContainer( treeRowsOrChildren, this.module.name, this.setName )[ SeLiteSettings.SET_SELECTION_ROW ]= treerow;
+            treecell.setAttribute('value', ''+( this.setName===this.module.defaultSetName() ) );
         }
         else {
             treecell.setAttribute('value', 'false' );
@@ -686,74 +684,74 @@ function generateTreeItem( module, setName, field, key, value, rowLevel, isNewVa
         treecell.setAttribute('properties', SeLiteSettings.DEFAULT_SET_NAME ); // so that I can style it in CSS as a radio button
     }
     // Register treerow in treeRowsOrChildren[][...]
-    if( rowLevel===RowLevel.FIELD ) {
+    if( this.rowLevel===RowLevel.FIELD ) {
         if( !multivaluedOrChoice ) {
-           subContainer( treeRowsOrChildren, module.name, setName )[ fieldName ]= treerow;
+           subContainer( treeRowsOrChildren, this.module.name, this.setName )[ fieldName ]= treerow;
         }
         else {
-            subContainer( treeRowsOrChildren, module.name, setName, fieldName )[ SeLiteSettings.FIELD_MAIN_ROW ]= treerow;
+            subContainer( treeRowsOrChildren, this.module.name, this.setName, fieldName )[ SeLiteSettings.FIELD_MAIN_ROW ]= treerow;
         }
     }
-    if( rowLevel===RowLevel.OPTION ) {
-        subContainer( treeRowsOrChildren, module.name, setName, fieldName )[ key ]= treerow;
+    if( this.rowLevel===RowLevel.OPTION ) {
+        subContainer( treeRowsOrChildren, this.module.name, this.setName, fieldName )[ this.key ]= treerow;
     }
     
-    // Cell for checkbox (if the field is boolean) or radio-like select (if the field is a choice):
+    // Cell for checkbox (if this.field is boolean) or radio-like select (if this.field is a choice):
     treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
     if( showingPerFolder()
-        || rowLevel!==RowLevel.FIELD && rowLevel!==RowLevel.OPTION
-        || !(field instanceof SeLiteSettings.Field.Bool || field instanceof SeLiteSettings.Field.Choice)
-        || (typeof value==='string' || typeof value==='number')
-           && !(field instanceof SeLiteSettings.Field.Choice)
-        || rowLevel===RowLevel.FIELD && field instanceof SeLiteSettings.Field.Choice
-        || rowLevel===RowLevel.OPTION && /*TODO optionIsSelected*/false && !field.multivalued
+        || this.rowLevel!==RowLevel.FIELD && this.rowLevel!==RowLevel.OPTION
+        || !(this.field instanceof SeLiteSettings.Field.Bool || this.field instanceof SeLiteSettings.Field.Choice)
+        || (typeof this.value==='string' || typeof this.value==='number')
+           && !(this.field instanceof SeLiteSettings.Field.Choice)
+        || this.rowLevel===RowLevel.FIELD && this.field instanceof SeLiteSettings.Field.Choice
+        || this.rowLevel===RowLevel.OPTION && this.optionIsSelected && !this.field.multivalued
     ) {
         treecell.setAttribute('editable', 'false');
     }
-    if( typeof value==='boolean' ) {
-        treecell.setAttribute('value', ''+value);
+    if( typeof this.value==='boolean' ) {
+        treecell.setAttribute('value', ''+this.value);
     }
-    if( field instanceof SeLiteSettings.Field.Choice ) {
+    if( this.field instanceof SeLiteSettings.Field.Choice ) {
         treecell.setAttribute( 'value', ''+/*TODO optionIsSelected*/false );
     }
-    if( rowLevel===RowLevel.OPTION ) {
-        treecell.setAttribute('properties', field.multivalued
+    if( this.rowLevel===RowLevel.OPTION ) {
+        treecell.setAttribute('properties', this.field.multivalued
             ? SeLiteSettings.OPTION_NOT_UNIQUE_CELL
             : SeLiteSettings.OPTION_UNIQUE_CELL
         );
     }
     
-    var cellInfo= new CellInfo( rowInfo, Column.VALUE );
+    var cellInfo= new CellInfo( this, Column.VALUE );
     // Cell for the text value:
     treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
     if( showingPerFolder()
-        || rowLevel!==RowLevel.FIELD && rowLevel!==RowLevel.OPTION
-        || !(field instanceof SeLiteSettings.Field)
-        || field instanceof SeLiteSettings.Field.Bool
-        || field.multivalued && rowLevel===RowLevel.FIELD
-        || field instanceof SeLiteSettings.Field.Choice
+        || this.rowLevel!==RowLevel.FIELD && this.rowLevel!==RowLevel.OPTION
+        || !(this.field instanceof SeLiteSettings.Field)
+        || this.field instanceof SeLiteSettings.Field.Bool
+        || this.field.multivalued && this.rowLevel===RowLevel.FIELD
+        || this.field instanceof SeLiteSettings.Field.Choice
     ) {
         treecell.setAttribute('editable' , 'false');
     }
     
-    var valueForThisRow= value; //collectValueForThisRow( field, value, rowLevel, valueCompound );
-    if( (typeof value==='string' || typeof value==='number' || valueForThisRow===null || valueForThisRow===undefined)
-        && /*TODO !isNewValueRow*/false
+    var valueForThisRow= this.value; //collectValueForThisRow( this.field, this.value, this.rowLevel, this.valueCompound );
+    if( (typeof this.value==='string' || typeof this.value==='number' || valueForThisRow===null || valueForThisRow===undefined)
+        && this.isNewValueRow
     ) {
-        treecell.setAttribute( 'label', generateCellLabel(Column.VALUE, module, setName, field, key, value, rowLevel, valueCompound) );
-        if( showingPerFolder() && valueCompound!==null ) {
-            if( valueCompound.fromPreferences ) {
+        treecell.setAttribute( 'label', generateCellLabel(Column.VALUE, this.module, this.setName, this.field, this.key, this.value, this.rowLevel, this.valueCompound) );
+        if( showingPerFolder() && this.valueCompound!==null ) {
+            if( this.valueCompound.fromPreferences ) {
                 treecell.setAttribute( 'properties',
-                    valueCompound.folderPath!==''
+                    this.valueCompound.folderPath!==''
                         ? SeLiteSettings.ASSOCIATED_SET
                         : SeLiteSettings.DEFAULT_SET
                 );
             }
             else {
                 treecell.setAttribute( 'properties',
-                    valueCompound.folderPath!==null
+                    this.valueCompound.folderPath!==null
                         ? SeLiteSettings.VALUES_MANIFEST
                         : SeLiteSettings.FIELD_DEFAULT // For visual effect
                 );
@@ -768,29 +766,29 @@ function generateTreeItem( module, setName, field, key, value, rowLevel, isNewVa
         treecell= document.createElementNS( XUL_NS, 'treecell');
         treerow.appendChild( treecell);
         treecell.setAttribute('editable', 'false');
-        treecell.setAttribute( 'label', generateCellLabel( Column.ACTION, module, setName, field, key, value, rowLevel, valueCompound) );
-        if( showingPerFolder() && rowLevel===RowLevel.FIELD ) {
-            if( valueCompound.fromPreferences && valueCompound.setName===module.defaultSetName() ) {
+        treecell.setAttribute( 'label', generateCellLabel( Column.ACTION, this.module, this.setName, this.field, this.key, this.value, this.rowLevel, this.valueCompound) );
+        if( showingPerFolder() && this.rowLevel===RowLevel.FIELD ) {
+            if( this.valueCompound.fromPreferences && this.valueCompound.setName===this.module.defaultSetName() ) {
                 treecell.setAttribute( 'properties', SeLiteSettings.DEFAULT_SET );
             }
             else
-            if( !valueCompound.fromPreferences && valueCompound.folderPath===null ) {
+            if( !this.valueCompound.fromPreferences && this.valueCompound.folderPath===null ) {
                 treecell.setAttribute( 'properties', SeLiteSettings.FIELD_DEFAULT );
             }
         }
-        if( rowLevel===RowLevel.FIELD || !showingPerFolder() && rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap ) {
+        if( this.rowLevel===RowLevel.FIELD || !showingPerFolder() && this.rowLevel===RowLevel.OPTION && this.field instanceof SeLiteSettings.Field.FixedMap ) {
             // If per-folder view: show Manifest or definition. Otherwise (i.e. per-module view): show Null/Undefine.
             treecell= document.createElementNS( XUL_NS, 'treecell');
             treerow.appendChild( treecell);
             treecell.setAttribute('editable', 'false');
-            treecell.setAttribute( 'label', generateCellLabel( Column.NULL_UNDEFINE, module, setName, field, key, value, rowLevel, valueCompound) );
+            treecell.setAttribute( 'label', generateCellLabel( Column.NULL_UNDEFINE, this.module, this.setName, this.field, this.key, this.value, this.rowLevel, this.valueCompound) );
             if( showingPerFolder() ) {
-                treecell.setAttribute( 'properties', valueCompound.folderPath!==null
-                    ? (     valueCompound.folderPath!==''
-                            ? (valueCompound.fromPreferences
+                treecell.setAttribute( 'properties', this.valueCompound.folderPath!==null
+                    ? (     this.valueCompound.folderPath!==''
+                            ? (this.valueCompound.fromPreferences
                                     ? SeLiteSettings.ASSOCIATED_SET
                                     : SeLiteSettings.VALUES_MANIFEST
-                              ) + ' ' +valueCompound.folderPath
+                              ) + ' ' +this.valueCompound.folderPath
                             : ''
                       )
                     : SeLiteSettings.FIELD_DEFAULT // For the click handler
@@ -825,8 +823,7 @@ function generateSets( moduleChildren, module ) {
             }
             var setChildren= null;
             if( allowSets && module.allowSets ) {
-                var rowInfo= new RowInfo( module, setName, null, /*key*/ null, /*value*/null, RowLevel.SET );
-                var setItem= generateTreeItem(module, setName, null, /*key*/ null, /*value*/null, RowLevel.SET );
+                var setItem= new RowInfo( module, setName, null, /*key*/ null, /*value*/null, RowLevel.SET ).generateTreeItem();
                 moduleChildren.appendChild( setItem );
                 setChildren= createTreeChildren( setItem );
             }
@@ -854,8 +851,7 @@ function generateFields( setChildren, module, setName, setFields ) {
         var singleValue= typeof compound.entry!=='object'
             ? compound.entry
             : null;
-        var rowInfo= new RowInfo( module, setName, field, /*key*/null, singleValue, RowLevel.FIELD, false, compound );
-        var fieldItem= generateTreeItem(module, setName, field, /*key*/null, singleValue, RowLevel.FIELD, false, compound );
+        var fieldItem= new RowInfo( module, setName, field, /*key*/null, singleValue, RowLevel.FIELD, false, compound ).generateTreeItem();
         setChildren.appendChild( fieldItem );
         
         var isChoice= field instanceof SeLiteSettings.Field.Choice;
@@ -869,9 +865,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                     var value= compound.entry!==undefined
                         ? compound.entry[key]
                         : null;
-                    var rowInfo= new RowInfo( module, setName, field, key, value, RowLevel.OPTION, compound );
-                    var optionItem= generateTreeItem(module, setName, field, key, value, RowLevel.OPTION, compound
-                    );
+                    var optionItem= new RowInfo( module, setName, field, key, value, RowLevel.OPTION, compound ).generateTreeItem();
                     fieldChildren.appendChild( optionItem );
                 }
             }
@@ -882,8 +876,7 @@ function generateFields( setChildren, module, setName, setFields ) {
 
                 for( var key in pairsToList ) {////@TODO potential IterableArray
                     isChoice || compound.entry===undefined || typeof(compound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value of type ' +typeof compound.entry+ ': ' +compound.entry );
-                    var rowInfo= new RowInfo( module, setName, field, key, /*value*/pairsToList[key], RowLevel.OPTION, false, compound );
-                    var optionItem= generateTreeItem(module, setName, field, key, /*value*/pairsToList[key], RowLevel.OPTION, false, compound );
+                    var optionItem= new RowInfo( module, setName, field, key, /*value*/pairsToList[key], RowLevel.OPTION, false, compound ).generateTreeItem();
                     fieldChildren.appendChild( optionItem );
                 }
             }
@@ -1074,8 +1067,7 @@ function treeClickHandler( event ) {
                         if( cellText===ADD_NEW_VALUE ) {
                             // Add a row for a new value, right below the clicked row (i.e. at the top of all existing values)
                             // Since we're editing, it means that showingPerFolder()===false, so I don't need to generate anything for navigation from folder view here.
-                            var rowInfo= new RowInfo( module, selectedSetName, field, /*key*/SeLiteSettings.NEW_VALUE_ROW, /*value*/SeLiteSettings.NEW_VALUE_ROW, RowLevel.OPTION, /*Don't show the initial value:*/true );
-                            var treeItem= generateTreeItem(module, selectedSetName, field, /*key*/SeLiteSettings.NEW_VALUE_ROW, /*value*/SeLiteSettings.NEW_VALUE_ROW, RowLevel.OPTION, /*Don't show the initial value:*/true );
+                            var treeItem= new RowInfo( module, selectedSetName, field, /*key*/SeLiteSettings.NEW_VALUE_ROW, /*value*/SeLiteSettings.NEW_VALUE_ROW, RowLevel.OPTION, /*Don't show the initial value:*/true ).generateTreeItem();
 
                             var previouslyFirstValueRow;
                             for( var key in moduleRowsOrChildren[selectedSetName][field.name] ) {
@@ -1413,9 +1405,7 @@ function setCellText( row, col, value, original) {
         if( rowAfterNewPosition!==info.treeRow ) { // Repositioning - remove treeRow, create a new treeRow
             var treeChildren= info.fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN];
             treeChildren.removeChild( info.treeRow.parentNode );
-            var rowInfo= new RowInfo( info.module, info.setName, info.field, /*key*/value, value, RowLevel.OPTION );
-            var treeItem= generateTreeItem( info.module, info.setName, info.field, /*key*/value, value, RowLevel.OPTION ); // That sets 'properties' and it adds an entry to treeRow[value]
-                // (which is same as fieldTreeRowsOrChildren[value] here).
+            var treeItem= new RowInfo( info.module, info.setName, info.field, /*key*/value, value, RowLevel.OPTION ).generateTreeItem(); // That sets 'properties' and it adds an entry to treeRow[value] (which is same as fieldTreeRowsOrChildren[value] here).
             // Firefox 22.b04 and 24.0a1 doesn't handle parent.insertBefore(newItem, null), even though it should - https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore
             if(true){//@TODO cleanup
                 if( rowAfterNewPosition!==null ) {
@@ -1766,8 +1756,7 @@ window.addEventListener( "load", function(e) {
     var setNameToExpand= null;
     if( allowModules ) {
         for( var moduleName in modules ) {
-            var rowInfo= new RowInfo( modules[moduleName], null, null, /*keyundefined*/null, /*valueundefined*/null, RowLevel.MODULE );
-            var moduleTreeItem= generateTreeItem( modules[moduleName], null, null, /*keyundefined*/null, /*valueundefined*/null, RowLevel.MODULE );
+            var moduleTreeItem= new RowInfo( modules[moduleName], null, null, /*keyundefined*/null, /*valueundefined*/null, RowLevel.MODULE ).generateTreeItem();
             topTreeChildren.appendChild( moduleTreeItem );
             
             var moduleChildren= createTreeChildren( moduleTreeItem );
@@ -1780,8 +1769,7 @@ window.addEventListener( "load", function(e) {
         
         var moduleChildren;
         if( allowSets && modules[moduleName].allowSets ) {
-            var rowInfo= new RowInfo( modules[moduleName], null, null, /*keyundefined*/null, /*valueundefined*/null, RowLevel.MODULE );
-            var moduleTreeItem= generateTreeItem( modules[moduleName], null, null, /*keyundefined*/null, /*valueundefined*/null, RowLevel.MODULE );
+            var moduleTreeItem= new RowInfo( modules[moduleName], null, null, /*keyundefined*/null, /*valueundefined*/null, RowLevel.MODULE ).generateTreeItem();
             topTreeChildren.appendChild( moduleTreeItem );
             moduleChildren= createTreeChildren( moduleTreeItem );
         }
