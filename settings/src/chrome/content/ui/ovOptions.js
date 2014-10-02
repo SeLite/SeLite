@@ -617,53 +617,18 @@ function collectRowInfo( module, setName, field, key, value, rowLevel, optionIsS
     ) {
         if( showingPerFolder() && valueCompound!==null ) {
             if( valueCompound.fromPreferences ) {
-                result.source= valueCompound.folderPath!==''
+                result.source= valueCompound.setName!==module.defaultSetName()//old?!: valueCompound.folderPath!==''
                     ? ValueSource.ASSOCIATED_SET
                     : ValueSource.DEFAULT_SET;
             }
             else {
-                result.source= valueCompound.folderPath!==null
+                result.source= valueCompound.folderPath!==null//or?: !==''
                     ? ValueSource.VALUES_MANIFEST
-                    : ValueSource.FIELD_DEFAULT; // For visual effect
+                    : ValueSource.FIELD_DEFAULT;
             }
         }
     }
-    var treecell;
-    if( allowSets || allowMultivaluedNonChoices || showingPerFolder() ) {
-        // Cell for Action column (in edit mode) or 'Set' column (in per-folder view)
-        treecell= document.createElementNS( XUL_NS, 'treecell');
-        treerow.appendChild( treecell);
-        treecell.setAttribute('editable', 'false');
-        treecell.setAttribute( 'label', generateCellLabel( Column.ACTION, module, setName, field, key, value, rowLevel, valueCompound) );
-        if( showingPerFolder() && rowLevel===RowLevel.FIELD ) {
-            if( valueCompound.fromPreferences && valueCompound.setName===module.defaultSetName() ) {
-                treecell.setAttribute( 'properties', SeLiteSettings.DEFAULT_SET );
-            }
-            else
-            if( !valueCompound.fromPreferences && valueCompound.folderPath===null ) {
-                treecell.setAttribute( 'properties', SeLiteSettings.FIELD_DEFAULT );
-            }
-        }
-        if( rowLevel===RowLevel.FIELD || !showingPerFolder() && rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap ) {
-            // If per-folder view: show Manifest or definition. Otherwise (i.e. per-module view): show Null/Undefine.
-            treecell= document.createElementNS( XUL_NS, 'treecell');
-            treerow.appendChild( treecell);
-            treecell.setAttribute('editable', 'false');
-            treecell.setAttribute( 'label', generateCellLabel( Column.NULL_UNDEFINE, module, setName, field, key, value, rowLevel, valueCompound) );
-            if( showingPerFolder() ) {
-                treecell.setAttribute( 'properties', valueCompound.folderPath!==null
-                    ? (     valueCompound.folderPath!==''
-                            ? (valueCompound.fromPreferences
-                                    ? SeLiteSettings.ASSOCIATED_SET
-                                    : SeLiteSettings.VALUES_MANIFEST
-                              ) + ' ' +valueCompound.folderPath
-                            : ''
-                      )
-                    : SeLiteSettings.FIELD_DEFAULT // For the click handler
-                );
-            }
-        }
-    }
+    return result;
 }
 
 /** @param module object of Module
