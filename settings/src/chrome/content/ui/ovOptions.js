@@ -558,15 +558,7 @@ RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
  *  @return {RowInfo}
  * */
 function collectRowInfo( module, setName, field, key, value, rowLevel, optionIsSelected, isNewValueRow, valueCompound ) {
-    var result= new RowInfo();
-
     SeLiteMisc.ensureInstance( rowLevel, RowLevel, 'rowLevel' );
-    var multivaluedOrChoice= field!==null && (field.multivalued || field instanceof SeLiteSettings.Field.Choice);
-    /*if( typeof valueOrPair==='object' && valueOrPair!==null ) {
-        rowLevel===RowLevel.OPTION || SeLiteMisc.fail( "generateTreeItem(): parameter valueOrPair must not be an object, unless rowLevel is OPTION, but rowLevel is " +rowLevel );
-        multivaluedOrChoice || SeLiteMisc.fail( 'generateTreeItem(): parameter valueOrPair can be an object only for multivalued fields or choice fields, but it was used with ' +field );
-    }*/
-    
     if( field && typeof field!=='string' && !(field instanceof SeLiteSettings.Field) ) {
         throw new Error( "Parameter field must be an instance of a subclass of Field, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but it is "
             +(typeof field==='object' ? 'an instance of ' +field.constructor.name : typeof field)+ ': ' +field ); //@TODO re/use/move SeLiteMisc
@@ -574,6 +566,18 @@ function collectRowInfo( module, setName, field, key, value, rowLevel, optionIsS
     optionIsSelected= optionIsSelected || false;
     isNewValueRow= isNewValueRow || false;
     valueCompound= valueCompound || null;
+    SeLiteMisc.ensureType( optionIsSelected, 'boolean', 'optionIsSelected' );
+    SeLiteMisc.ensureType( isNewValueRow, 'boolean', 'isNewValueRow' );
+    SeLiteMisc.ensureType( valueCompound, 'object', 'valueCompound' );
+    
+    var multivaluedOrChoice= field!==null && (field.multivalued || field instanceof SeLiteSettings.Field.Choice);
+    /*if( typeof valueOrPair==='object' && valueOrPair!==null ) {
+        rowLevel===RowLevel.OPTION || SeLiteMisc.fail( "generateTreeItem(): parameter valueOrPair must not be an object, unless rowLevel is OPTION, but rowLevel is " +rowLevel );
+        multivaluedOrChoice || SeLiteMisc.fail( 'generateTreeItem(): parameter valueOrPair can be an object only for multivalued fields or choice fields, but it was used with ' +field );
+    }*/
+    
+    var result= new RowInfo();
+    
     var treeitem= document.createElementNS( XUL_NS, 'treeitem');
     var treerow= document.createElementNS( XUL_NS, 'treerow');
     treeitem.appendChild( treerow );
