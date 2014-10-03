@@ -467,7 +467,7 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
  *  Required if rowLevel===RowLevel.FIELD.
  * */
 function RowInfo( module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound ) {
-    SeLiteMisc.objectFillIn( this, ['module', 'setName', 'field', 'key', 'value', 'rowLevel', 'isNewValueRow', 'valueCompound'], arguments );
+    SeLiteMisc.objectFillIn( this, ['module', 'setName', 'field', 'key', 'value', 'rowLevel', 'isNewValueRow', 'valueCompound'], arguments, false, /*dontSetMissingOnes*/false );
     
     SeLiteMisc.ensureInstance( this.module, SeLiteSettings.Module, 'module' );
     SeLiteMisc.ensureType( this.setName, ['string', 'null'], 'setName' );
@@ -487,6 +487,22 @@ function RowInfo( module, setName, field, key, value, rowLevel, isNewValueRow, v
     SeLiteMisc.ensureType( this.valueCompound, 'object', 'valueCompound' );
     
     // Basic collecting
+    if( false ) {//@TODO factor out
+    typeof valueCompound.entry!=='object' // I only pass the single value or undefined as 'value' parameter
+                    ? valueCompound.entry
+                    : undefined;
+    if( field.multivalued || isChoice) {
+        if( field instanceof SeLiteSettings.Field.FixedMap ) {
+            valueCompound.entry[key]
+        }
+        else {
+            var pairsToList= isChoice
+                        ? field.choicePairs
+                        : valueCompound.entry;
+            this.value= pairsToList[key];
+        }
+    }
+    }
     if( showingPerFolder() && this.valueCompound!==null && this.valueCompound!==undefined ) {//@TODO use either null, or undefined
         if( this.valueCompound.fromPreferences ) {
             /** @var {(ValueSource|undefined)} Location of the module definition or 'values' manifest where the value comes from. Only in per-folder mode. */
@@ -506,6 +522,7 @@ function RowInfo( module, setName, field, key, value, rowLevel, isNewValueRow, v
     }
     //         this.isUndefined= this.isNull= false;
 }
+RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
 
 /** Instantiate. Validate the parameters. Then set this.xyz to results of relevant functions collectXyz().
  *  @class
@@ -587,9 +604,8 @@ RowInfo.prototype.collectProperties= function collectProperties( column ) {
         }
     }
     else if( column===Column.VALUE ) {//@TODO Big
-        if( //(typeof this.value==='string' || typeof this.value==='number' || this.value===null || this.value===undefined)
-            !this.isNewValueRow ) {
-            if( this.rowLevel===RowLevel.FIELD && (this.value===null || this.value===undefined) ) {
+        if( !this.isNewValueRow ) {
+            if( this.rowLevel===RowLevel.FIELD && (this.valueCompound===null || this.valueCompound===undefined) ) {
                 return SeLiteSettings.FIELD_NULL_OR_UNDEFINED;
             }
             if( this.rowLevel===RowLevel.OPTION ) {

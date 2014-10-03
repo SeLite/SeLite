@@ -974,25 +974,39 @@ SeLiteMisc.objectClone= function objectClone( original, acceptableFields, requir
     return result;
 };
 
-/** This fills in fields from keys[] in obj with values from values[]. It is not intended to work with fields that have numeric names.
- *  @param {object} obj
+/** This fills in fields from keys[] in target with values from values[]. It is not intended to work with fields that have numeric names.
+ *  @param {object} target
  *  @param {array} keys
  *  @param {(array|object)} values Either an array of values, in the same order as keys[]. Or an object serving as an associative array { key => value }.
- *  @param {boolean} [valuesFromObject] This must be true if values is an object serving as an associative array, with fieldnames same as entries in keys[]. Then this essentially performs a clone of values into obj. valuesFromObject must be not set/false if values is result of keyword-like variable arguments from a function body, or if it's array-like, with 'length' property and with all values at numeric indexes, starting from 0.
+ *  @param {boolean} [valuesFromProperObject] This must be true if values is an object serving as an associative array, with fieldnames same as entries in keys[]. Then this essentially performs a clone of values into target. valuesFromProperObject must be not set/false if values is target of keyword-like variable arguments from a function body, or if it's array-like, with 'length' property and with all values at numeric indexes, starting from 0.
+ *  @param {boolean} [dontSetMissingOnes] If true, then this only sets field(s) that are present in values. It doesn't set any missing fields to undefined; this can be benefitial if target is a result of SeLiteMisc.proxyEnsureFieldsExist(...). If false (as is default), it sets any missing fields to undefined.
  * */
-SeLiteMisc.objectFillIn= function objectFillIn( obj, keys, values, valuesFromObject ) {
-    typeof obj==='object' || SeLiteMisc.fail( 'obj must be an object' );
+SeLiteMisc.objectFillIn= function objectFillIn( target, keys, values, valuesFromProperObject, dontSetMissingOnes ) {
+    typeof target==='object' || SeLiteMisc.fail( 'target must be an object' );
     Array.isArray(keys) || SeLiteMisc.fail( 'keys must be an object' );
     typeof values==='object' || SeLiteMisc.fail( 'values must be an array or an object' );
-    !valuesFromObject || !(0 in values) || SeLiteMisc.fail( 'values must not be an array and it cannot contain numeric indexes, if you pass valuesFromObject==true' );
-    for( var i=0; i<keys.length; i++ ) {
-        var key= keys[i];
-        if( !valuesFromObject ) {
-            obj[ key ]= values[i];
+    if( !valuesFromProperObject ) {
+        var length= dontSetMissingOnes
+            ? values.length
+            : keys.length;
+        for( var i=0; i<length; i++ ) {
+            target[ keys[i] ]= values[i];
+        }
+    }
+    else {
+        !(0 in values) || SeLiteMisc.fail( 'values must not be an array and it cannot contain numeric indexes, if you pass valuesFromProperObject==true' );
+        if( dontSetMissingOnes ) {
+            for( var key in values ) {
+                keys.indexOf( key )>=0 || SeLiteMisc.fail( 'Key ' +key+ ' is not present in values.' );
+                target[ key ]= values[ key ];
+            }
         }
         else {
-            obj[ key ]= values[ key ];
-        }
+            for( var i=0; i<keys.length; i++ ) {
+                var key= keys[i];
+                target[ key ]= values[ key ];
+            }
+        }        
     }
 };
 
