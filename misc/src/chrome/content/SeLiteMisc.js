@@ -31,7 +31,7 @@ var SeLiteMisc= {};
  *  - as it mentions, the rethrown exception will have incorreect stack information: Note that the thrown MyError will report incorrect lineNumber and fileName at least in Firefox.
  *  and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw?redirectlocale=en-US&redirectslug=JavaScript%2FReference%2FStatements%2Fthrow
 */
-SeLiteMisc.fail= function fail( errorOrMessage ) {
+SeLiteMisc.fail= function fail( errorOrMessage ) {debugger;
     console.error( errorOrMessage );
     console.error( SeLiteMisc.stack() );
     throw errorOrMessage
@@ -256,6 +256,7 @@ If used for multiple or all classes in the inheritance ancestry tree, this slows
     object.constructor.name===ClassXyz
  However, object.constructor refers to the original ClassXyz.
  For classes, this sets SELITE_MISC_TARGET_CLASS on the proxy class, and SELITE_MISC_TARGET_CONSTRUCTOR on its new instances. SELITE_MISC_TARGET_CONSTRUCTOR is only available after the instance is fully created - so you can't use SELITE_MISC_TARGET_CONSTRUCTOR in target constructor (e.g. to check whether it's an instance of any subclass). Beware that if you have a subclass of a proxyfied class, but you don't proxyfy that subclass and you sets its prototype to be an instance of the parent (proxyfied) class, then child instances will have SELITE_MISC_TARGET_CONSTRUCTOR set to the target constructor of the parent class.
+<br/>Beware that if you profyfy a class, this doesn't ensure access to fields this.xxx in the target constructor itself, or in any functions invoked from the target constructor. If you need that, factor such functionality out of the constructor.
  * */
 SeLiteMisc.proxyEnsureFieldsExist= function proxyEnsureFieldsExist( target ) {
     typeof target==='object' && target!==null || typeof target==='function' || SeLiteMisc.fail( 'Parameter target should be an object or a class (constructor function), but it is ' +typeof target );

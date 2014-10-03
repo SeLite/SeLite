@@ -605,10 +605,18 @@ RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
  * */
 function CellInfo( rowInfo, column ) {
     column!==Column.DEFAULT || allowSets || SeLiteMisc.fail( "allowSets is false, but column is not DEFAULT: " +column );
+    
+    var columnMayBeActionOrNullUndefine= allowSets || allowMultivaluedNonChoices || showingPerFolder();
+    column!==Column.ACTION || columnMayBeActionOrNullUndefine || SeLiteMisc.fail( "Can't use Column.ACTION" );
+    column!==Column.NULL_UNDEFINE || columnMayBeActionOrNullUndefine && (
+        rowInfo.rowLevel===RowLevel.FIELD ||
+        !showingPerFolder() && rowInfo.rowLevel===RowLevel.OPTION && rowInfo.field instanceof SeLiteSettings.Field.FixedMap
+    ) || SeLiteMisc.fail( "Can't use Column.NULL_UNDEFINE" );
+    
     this.label= '';
     this.value= rowInfo.collectValue( column );
     this.editable= rowInfo.collectEditable( column );
-    this.properties= '';
+    this.properties= rowInfo.collectProperties( column );
 }
 CellInfo= SeLiteMisc.proxyEnsureFieldsExist( CellInfo );
 
@@ -658,15 +666,78 @@ RowInfo.prototype.collectValue= function collectValue( column ) {
     }
 };
 
+/** @param {Column} column
+ *  @return {(string|undefined)} Value to use for 'properties' attribute, or undefined if not applicable.
+ */
+RowInfo.prototype.collectProperties= function collectProperties( column ) {
+    if( column===Column.DEFAULT ) {
+        return SeLiteSettings.DEFAULT_SET_NAME; // so that I can style it in CSS as a radio button
+    }
+    else if( column===Column.CHECKED ) {
+        if( this.rowLevel===RowLevel.OPTION ) {
+            return this.field.multivalued
+                ? SeLiteSettings.OPTION_NOT_UNIQUE_CELL
+                : SeLiteSettings.OPTION_UNIQUE_CELL
+        }
+    }
+    else if( column===Column.VALUE ) {//@TODO Big
+        if( (typeof this.value==='string' || typeof this.value==='number' || this.value===null || this.value===undefined)
+        && this.isNewValueRow ) {//@TODO why isNewValueRow?
+            if( showingPerFolder() && this.valueCompound!==null ) {
+                if( this.valueCompound.fromPreferences ) {
+                    return this.valueCompound.folderPath!==''
+                        ? SeLiteSettings.ASSOCIATED_SET
+                        : SeLiteSettings.DEFAULT_SET;
+                }
+                else {
+                    return this.valueCompound.folderPath!==null
+                        ? SeLiteSettings.VALUES_MANIFEST
+                        : SeLiteSettings.FIELD_DEFAULT; // For visual effect
+                }
+            }
+            if( this.value===null || this.value===undefined ) {
+                return SeLiteSettings.FIELD_NULL_OR_UNDEFINED;
+            }
+        }
+    }
+    else if( column===Column.ACTION ) {
+        if( showingPerFolder() && this.rowLevel===RowLevel.FIELD ) {
+            if( this.valueCompound.fromPreferences && this.valueCompound.setName===this.module.defaultSetName() ) {
+                return SeLiteSettings.DEFAULT_SET;
+            }
+            else
+            if( !this.valueCompound.fromPreferences && this.valueCompound.folderPath===null ) {
+                return SeLiteSettings.FIELD_DEFAULT;
+            }
+        }
+    }
+    else if( column===Column.NULL_UNDEFINE ) {
+        if( showingPerFolder() ) {
+            return this.valueCompound.folderPath!==null
+                ? (     this.valueCompound.folderPath!==''
+                        ? (this.valueCompound.fromPreferences
+                                ? SeLiteSettings.ASSOCIATED_SET
+                                : SeLiteSettings.VALUES_MANIFEST
+                          ) + ' ' +this.valueCompound.folderPath
+                        : ''
+                  )
+                : SeLiteSettings.FIELD_DEFAULT; // For the click handler
+        }
+    }
+};
+
 /**@param {object} treecell result of document.createElementNS( XUL_NS, 'treecell') 
  * @param {Column} column
  * */
 RowInfo.prototype.setCellDetails= function setCellDetails( treecell, column ) {
     var cellInfo= new CellInfo( this, column );
-    // Checkbox/radio button cells use attribute 'value'. Other cells use attribute 'label'.
     treecell.setAttribute( 'editable', '' +cellInfo.editable );
+    // Checkbox/radio button cells use attribute 'value'. Other cells use attribute 'label'.
     if( cellInfo.value!==undefined ) {
         treecell.setAttribute( 'value', cellInfo.value );
+    }
+    if( cellInfo.properties!==undefined ) {
+        treecell.setAttribute( 'properties', cellInfo.properties );
     }
 };
 /** 
@@ -713,7 +784,6 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
         if( this.rowLevel===RowLevel.SET && this.module.allowSets) {
             subContainer( treeRowsOrChildren, this.module.name, this.setName )[ SeLiteSettings.SET_SELECTION_ROW ]= treerow;
         }
-        treecell.setAttribute('properties', SeLiteSettings.DEFAULT_SET_NAME ); // so that I can style it in CSS as a radio button
     }
     // Register treerow in treeRowsOrChildren[][...]
     if( this.rowLevel===RowLevel.FIELD ) {
@@ -732,12 +802,6 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
     treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
     this.setCellDetails( treecell, Column.CHECKED );
-    if( this.rowLevel===RowLevel.OPTION ) {
-        treecell.setAttribute('properties', this.field.multivalued
-            ? SeLiteSettings.OPTION_NOT_UNIQUE_CELL
-            : SeLiteSettings.OPTION_UNIQUE_CELL
-        );
-    }
     
     // Cell for the text value:
     treecell= document.createElementNS( XUL_NS, 'treecell');
@@ -749,25 +813,6 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
         && this.isNewValueRow
     ) {
         treecell.setAttribute( 'label', generateCellLabel(Column.VALUE, this.module, this.setName, this.field, this.key, this.value, this.rowLevel, this.valueCompound) );
-        if( showingPerFolder() && this.valueCompound!==null ) {
-            if( this.valueCompound.fromPreferences ) {
-                treecell.setAttribute( 'properties',
-                    this.valueCompound.folderPath!==''
-                        ? SeLiteSettings.ASSOCIATED_SET
-                        : SeLiteSettings.DEFAULT_SET
-                );
-            }
-            else {
-                treecell.setAttribute( 'properties',
-                    this.valueCompound.folderPath!==null
-                        ? SeLiteSettings.VALUES_MANIFEST
-                        : SeLiteSettings.FIELD_DEFAULT // For visual effect
-                );
-            }
-        }
-        if( valueForThisRow===null || valueForThisRow===undefined ) {
-            treecell.setAttribute( 'properties', SeLiteSettings.FIELD_NULL_OR_UNDEFINED ); //@TODO This overrides the above
-        }
     }
     if( allowSets || allowMultivaluedNonChoices || showingPerFolder() ) {
         // Cell for Action column (in edit mode) or 'Set' column (in per-folder view)
@@ -775,33 +820,12 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
         treerow.appendChild( treecell);
         this.setCellDetails( treecell, Column.ACTION );
         treecell.setAttribute( 'label', generateCellLabel( Column.ACTION, this.module, this.setName, this.field, this.key, this.value, this.rowLevel, this.valueCompound) );
-        if( showingPerFolder() && this.rowLevel===RowLevel.FIELD ) {
-            if( this.valueCompound.fromPreferences && this.valueCompound.setName===this.module.defaultSetName() ) {
-                treecell.setAttribute( 'properties', SeLiteSettings.DEFAULT_SET );
-            }
-            else
-            if( !this.valueCompound.fromPreferences && this.valueCompound.folderPath===null ) {
-                treecell.setAttribute( 'properties', SeLiteSettings.FIELD_DEFAULT );
-            }
-        }
         if( this.rowLevel===RowLevel.FIELD || !showingPerFolder() && this.rowLevel===RowLevel.OPTION && this.field instanceof SeLiteSettings.Field.FixedMap ) {
             // If per-folder view: show Manifest or definition. Otherwise (i.e. per-module view): show Null/Undefine.
             treecell= document.createElementNS( XUL_NS, 'treecell');
             treerow.appendChild( treecell);
             this.setCellDetails( treecell, Column.NULL_UNDEFINE );
             treecell.setAttribute( 'label', generateCellLabel( Column.NULL_UNDEFINE, this.module, this.setName, this.field, this.key, this.value, this.rowLevel, this.valueCompound) );
-            if( showingPerFolder() ) {
-                treecell.setAttribute( 'properties', this.valueCompound.folderPath!==null
-                    ? (     this.valueCompound.folderPath!==''
-                            ? (this.valueCompound.fromPreferences
-                                    ? SeLiteSettings.ASSOCIATED_SET
-                                    : SeLiteSettings.VALUES_MANIFEST
-                              ) + ' ' +this.valueCompound.folderPath
-                            : ''
-                      )
-                    : SeLiteSettings.FIELD_DEFAULT // For the click handler
-                );
-            }
         }
     }
     return treeitem;
