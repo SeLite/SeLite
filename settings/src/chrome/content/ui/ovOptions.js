@@ -606,13 +606,14 @@ RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
 function CellInfo( rowInfo, column ) {
     column!==Column.DEFAULT || allowSets || SeLiteMisc.fail( "allowSets is false, but column is not DEFAULT: " +column );
     this.label= '';
+    this.value= rowInfo.collectValue( column );
     this.editable= rowInfo.collectEditable( column );
     this.properties= '';
 }
 CellInfo= SeLiteMisc.proxyEnsureFieldsExist( CellInfo );
 
 /** @param {Column} column
- * @returns {boolean} When you use the result for value of 'editable' attribute, convert it to a string.
+ * @returns {boolean} Value to use for 'editable' attribute - but convert it to a string first.
  */
 RowInfo.prototype.collectEditable= function collectEditable( column ) {
     if( column===Column.MODULE_SET_FIELD ) {
@@ -633,6 +634,30 @@ RowInfo.prototype.collectEditable= function collectEditable( column ) {
     }
 };
 
+/** @param {Column} column
+ *  @return {(string|undefined)} Value to use for 'value' attribute, or undefined if not applicable.
+ */
+RowInfo.prototype.collectValue= function collectValue( column ) {
+    if( column===Column.DEFAULT ) {
+        if( allowSets ) { // Radio-like checkbox for (de)selecting a set
+            if( this.rowLevel===RowLevel.SET && this.module.allowSets) {
+                return ''+( this.setName===this.module.defaultSetName() );
+            }
+            else {
+                return 'false';
+            }
+        }
+    }
+    else if( column===Column.CHECKED ) {
+        if( typeof this.value==='boolean' ) {
+            return ''+this.value;
+        }
+        else if( this.rowLevel===RowLevel.OPTION && this.field instanceof SeLiteSettings.Field.Choice ) {
+            return ''+this.optionIsSelected;
+        }
+    }
+};
+
 /**@param {object} treecell result of document.createElementNS( XUL_NS, 'treecell') 
  * @param {Column} column
  * */
@@ -640,6 +665,9 @@ RowInfo.prototype.setCellDetails= function setCellDetails( treecell, column ) {
     var cellInfo= new CellInfo( this, column );
     // Checkbox/radio button cells use attribute 'value'. Other cells use attribute 'label'.
     treecell.setAttribute( 'editable', '' +cellInfo.editable );
+    if( cellInfo.value!==undefined ) {
+        treecell.setAttribute( 'value', cellInfo.value );
+    }
 };
 /** 
  *  @return object for a new element <treeitem> with one <treerow>
@@ -684,10 +712,6 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
         this.setCellDetails( treecell, Column.DEFAULT );
         if( this.rowLevel===RowLevel.SET && this.module.allowSets) {
             subContainer( treeRowsOrChildren, this.module.name, this.setName )[ SeLiteSettings.SET_SELECTION_ROW ]= treerow;
-            treecell.setAttribute('value', ''+( this.setName===this.module.defaultSetName() ) );
-        }
-        else {
-            treecell.setAttribute('value', 'false' );
         }
         treecell.setAttribute('properties', SeLiteSettings.DEFAULT_SET_NAME ); // so that I can style it in CSS as a radio button
     }
@@ -708,12 +732,6 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
     treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
     this.setCellDetails( treecell, Column.CHECKED );
-    if( typeof this.value==='boolean' ) {
-        treecell.setAttribute('value', ''+this.value);
-    }
-    else if( this.rowLevel===RowLevel.OPTION && this.field instanceof SeLiteSettings.Field.Choice ) {
-        treecell.setAttribute( 'value', ''+this.optionIsSelected );
-    }
     if( this.rowLevel===RowLevel.OPTION ) {
         treecell.setAttribute('properties', this.field.multivalued
             ? SeLiteSettings.OPTION_NOT_UNIQUE_CELL
