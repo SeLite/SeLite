@@ -26,7 +26,7 @@ if( runningAsComponent ) {
 var SeLiteMisc= {};
 
 /** This throws the given error or a new error (containg the given message, if any). It also logs the current stack trace to console as a warning.
- *  @param errorOrMessage An Error, or a string message, or undefined/null.
+ *  @param {*} [errorOrMessage] An underlying Error, or a message for a new error.
  *  @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
  *  - as it mentions, the rethrown exception will have incorreect stack information: Note that the thrown MyError will report incorrect lineNumber and fileName at least in Firefox.
  *  and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw?redirectlocale=en-US&redirectslug=JavaScript%2FReference%2FStatements%2Fthrow
@@ -34,7 +34,7 @@ var SeLiteMisc= {};
 SeLiteMisc.fail= function fail( errorOrMessage ) {debugger;
     console.error( errorOrMessage );
     console.error( SeLiteMisc.stack() );
-    throw errorOrMessage
+    throw errorOrMessage!==undefined
         ?(typeof errorOrMessage==='object' &&  errorOrMessage.constructor.name==='Error'
             ? errorOrMessage
             : new Error(errorOrMessage)
@@ -220,21 +220,24 @@ var proxyEnsureFieldsExistObjectHandler= {
     return target[name];
   }
 };
+SeLiteMisc.PROXY_TARGET_CONSTRUCTOR= 'SELITE_MISC_PROXY_TARGET_CONSTRUCTOR';
+SeLiteMisc.PROXY_TARGET_CLASS= 'SELITE_MISC_PROXY_TARGET_CLASS';
 /** @private */
 var proxyEnsureFieldsExistClassHandler= {
   get: proxyEnsureFieldsExistObjectHandler.get,
-  construct: function construct( target, args ) {
-    // I can't use keyword this, since this.constructor.name is 'Object' and not target.name.
+  construct: function construct( targetConstructor, args ) {
+    // Right here we're not in a constructor body yet - I can't use keyword this as a new instance/object here, since this.constructor.name is 'Object' and not target.name.
     // Following is based on https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply#Using_apply_to_chain_constructors
-    var fNewConstr = function () {
-        Object.defineProperty( this, 'SELITE_MISC_TARGET_CONSTRUCTOR', {
-          enumerable: false, configurable: false, writable: false,
-          value: target
-        });
-        target.apply(this, args);
-    };
-    fNewConstr.prototype = target.prototype;
-    return new Proxy( new fNewConstr(), proxyEnsureFieldsExistObjectHandler );
+    var fNewConstr = function () {};
+    fNewConstr.prototype = targetConstructor.prototype;
+    var proxy= new Proxy( new fNewConstr(), proxyEnsureFieldsExistObjectHandler );
+    Object.defineProperty( proxy, SeLiteMisc.PROXY_TARGET_CONSTRUCTOR, {
+      enumerable: false, configurable: false, writable: false,
+      value: targetConstructor
+    });
+    // I invoke targetconstructor only after the previous steps, so that targetConstructor has protected access to the fields and it can use this[SeLiteMisc.PROXY_TARGET_CONSTRUCTOR]
+    targetConstructor.apply( proxy, args );
+    return proxy;
   }
 };
 /** This generates a proxy for the given target object or class (constructor function). The proxy ensures that any fields read have been set already. This serves to prevent typing/renaming accidents that would access non-existing fields, doing which normally returns undefined. Such problems arise when you access fields directly, rather than via accessor methods, and when you don't access any properties/methods on the retrieved fields themselves. An example is when you compare the field values by operators.
@@ -255,17 +258,17 @@ If used for multiple or all classes in the inheritance ancestry tree, this slows
     object instanceof ClassXyz===true
     object.constructor.name===ClassXyz
  However, object.constructor refers to the original ClassXyz.
- For classes, this sets SELITE_MISC_TARGET_CLASS on the proxy class, and SELITE_MISC_TARGET_CONSTRUCTOR on its new instances. SELITE_MISC_TARGET_CONSTRUCTOR is only available after the instance is fully created - so you can't use SELITE_MISC_TARGET_CONSTRUCTOR in target constructor (e.g. to check whether it's an instance of any subclass). Beware that if you have a subclass of a proxyfied class, but you don't proxyfy that subclass and you sets its prototype to be an instance of the parent (proxyfied) class, then child instances will have SELITE_MISC_TARGET_CONSTRUCTOR set to the target constructor of the parent class.
-<br/>Beware that if you profyfy a class, this doesn't ensure access to fields this.xxx in the target constructor itself, or in any functions invoked from the target constructor. If you need that, factor such functionality out of the constructor.
+ For classes, this sets proxyClass[SeLiteMisc.PROXY_TARGET_CLASS] pointing to the original class, and for instances it sets proxyInstance[SeLiteMisc.PROXY_TARGET_CONSTRUCTOR] pointing to the original instance (or original new instance). Beware that if you have a subclass of a proxyfied class, but you don't proxyfy that subclass and you sets its prototype to be an instance of the parent (proxyfied) class, then child instances will have proxyInstance[SeLiteMisc.PROXY_TARGET_CONSTRUCTOR] set to the target constructor of the parent class.
  * */
 SeLiteMisc.proxyEnsureFieldsExist= function proxyEnsureFieldsExist( target ) {
     typeof target==='object' && target!==null || typeof target==='function' || SeLiteMisc.fail( 'Parameter target should be an object or a class (constructor function), but it is ' +typeof target );
     if( typeof target==='object' ) {
         return new Proxy( target, proxyEnsureFieldsExistObjectHandler );
     }
+    
     var result= new Proxy( target, proxyEnsureFieldsExistClassHandler );
     
-    Object.defineProperty( result, 'SELITE_MISC_TARGET_CLASS', {
+    Object.defineProperty( result, SeLiteMisc.PROXY_TARGET_CLASS, {
       enumerable: false, configurable: false, writable: false,
       value: target
     });
@@ -279,7 +282,7 @@ SeLiteMisc.proxyEnsureFieldsExist= function proxyEnsureFieldsExist( target ) {
 SeLiteMisc.Enum= function Enum( name, forDirectSubclassPrototype ) {
     this.name= name;
     // Following checks whether this is a direct instance of SeLiteMisc.Enum - after SeLiteMisc.Enum was passed through SeLiteMisc.proxyEnsureFieldsExist(). The first part of the check handles instances of unproxfied subclasses of SeLiteMisc.Enum. object.hasOwnProperty() works the same on target and proxy.
-    if( this.hasOwnProperty('SELITE_MISC_TARGET_CONSTRUCTOR') && this.SELITE_MISC_TARGET_CONSTRUCTOR===SeLiteMisc.Enum.SELITE_MISC_TARGET_CLASS ) {
+    if( this.hasOwnProperty(SeLiteMisc.PROXY_TARGET_CONSTRUCTOR) && this[SeLiteMisc.PROXY_TARGET_CONSTRUCTOR]===SeLiteMisc.Enum[SeLiteMisc.PROXY_TARGET_CLASS] ) {
         forDirectSubclassPrototype || SeLiteMisc.fail( "Don't instantiate SeLiteMisc.Enum() directly, unless it's for a prototype of its direct subclass." );
         return;
     }

@@ -145,11 +145,15 @@ RowLevelOrColumn.prototype.forLevel= function forLevel(first, second, etc ) {
 function RowLevel( name, level ) {
     RowLevelOrColumn.call( this, name, level );
 }
+var unproxyfiedRowLevel= RowLevel;
 RowLevel= SeLiteMisc.proxyEnsureFieldsExist( RowLevel );
 RowLevel.prototype= new RowLevelOrColumn( '', -1 );
 RowLevel.prototype.constructor= RowLevel;
 
 RowLevel.MODULE= new RowLevel('MODULE', 0);
+// @TODO test unit for SeLiteMisc:
+//SeLiteMisc.fail( ''+(RowLevel.SELITE_MISC_TARGET_CLASS===unproxyfiedRowLevel) );
+//SeLiteMisc.fail( ''+(RowLevel.MODULE.SELITE_MISC_TARGET_CONSTRUCTOR===unproxyfiedRowLevel) )
 RowLevel.SET= new RowLevel('SET', 1);
 RowLevel.FIELD= new RowLevel('FIELD', 2);
 RowLevel.OPTION= new RowLevel('OPTION', 3);
