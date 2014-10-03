@@ -24,7 +24,7 @@ var nsIFilePicker = Components.interfaces.nsIFilePicker;
 Components.utils.import("resource://gre/modules/FileUtils.jsm" );
 Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
 Components.utils.import("resource://gre/modules/osfile.jsm");
-//var console = (Components.utils.import("resource://gre/modules/devtools/Console.jsm", {})).console;
+var console = (Components.utils.import("resource://gre/modules/devtools/Console.jsm", {})).console;
 
 var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                               .getService(Components.interfaces.nsIPromptService);
@@ -156,7 +156,7 @@ RowLevel.MODULE= new RowLevel('MODULE', 0);
 //SeLiteMisc.fail( ''+(RowLevel.MODULE.SELITE_MISC_TARGET_CONSTRUCTOR===unproxyfiedRowLevel) )
 RowLevel.SET= new RowLevel('SET', 1);
 RowLevel.FIELD= new RowLevel('FIELD', 2);
-RowLevel.OPTION= new RowLevel('OPTION', 3);
+RowLevel.OPTION= new RowLevel('OPTION', 3); // For options of Choice, for entries in multi-valued String/Int/Decimal, for entries in FixedMap
 
 /** @class
 */
@@ -543,9 +543,6 @@ RowInfo.prototype.collectEditable= function collectEditable( column ) {
         return !showingPerFolder()
         && (this.rowLevel===RowLevel.FIELD || this.rowLevel===RowLevel.OPTION)
         && (this.field instanceof SeLiteSettings.Field.Bool || this.field instanceof SeLiteSettings.Field.Choice)
-        && ( (typeof this.value!=='string' && typeof this.value!=='number')
-             || this.field instanceof SeLiteSettings.Field.Choice
-           )
         && ( this.rowLevel!==RowLevel.FIELD || !(this.field instanceof SeLiteSettings.Field.Choice) )
         && ( this.rowLevel!==RowLevel.OPTION || !this.optionIsSelected || this.field.multivalued );
     }
@@ -566,8 +563,8 @@ RowInfo.prototype.collectValue= function collectValue( column ) {
         }
     }
     else if( column===Column.CHECKED ) {
-        if( typeof this.value==='boolean' ) {
-            return ''+this.value;
+        if( this.field instanceof SeLiteSettings.Field.Bool ) {
+            return ''+this.valueCompound.entry;
         }
         else if( this.rowLevel===RowLevel.OPTION && this.field instanceof SeLiteSettings.Field.Choice ) {
             return ''+this.optionIsSelected;
@@ -590,33 +587,27 @@ RowInfo.prototype.collectProperties= function collectProperties( column ) {
         }
     }
     else if( column===Column.VALUE ) {//@TODO Big
-        if( (typeof this.value==='string' || typeof this.value==='number' || this.value===null || this.value===undefined)
-        && this.isNewValueRow ) {//@TODO why isNewValueRow?
-            if( showingPerFolder() && this.valueCompound!==null ) {
-                if( this.valueCompound.fromPreferences ) {
-                    return this.valueCompound.folderPath!==''
-                        ? SeLiteSettings.ASSOCIATED_SET
-                        : SeLiteSettings.DEFAULT_SET;
-                }
-                else {
-                    return this.valueCompound.folderPath!==null
-                        ? SeLiteSettings.VALUES_MANIFEST
-                        : SeLiteSettings.FIELD_DEFAULT; // For visual effect
-                }
-            }
-            if( this.value===null || this.value===undefined ) {
+        if( //(typeof this.value==='string' || typeof this.value==='number' || this.value===null || this.value===undefined)
+            !this.isNewValueRow ) {
+            if( this.rowLevel===RowLevel.FIELD && (this.value===null || this.value===undefined) ) {
                 return SeLiteSettings.FIELD_NULL_OR_UNDEFINED;
+            }
+            if( this.rowLevel===RowLevel.OPTION ) {
+                
             }
         }
     }
     else if( column===Column.ACTION_SET ) {
         if( showingPerFolder() && this.rowLevel===RowLevel.FIELD ) {
-            if( this.valueCompound.fromPreferences && this.valueCompound.setName===this.module.defaultSetName() ) {
-                return SeLiteSettings.DEFAULT_SET;
+            if( this.valueCompound.fromPreferences ) {
+                return this.valueCompound.setName===this.module.defaultSetName()
+                    ? SeLiteSettings.DEFAULT_SET
+                    : SeLiteSettings.ASSOCIATED_SET;
             }
-            else
-            if( !this.valueCompound.fromPreferences && this.valueCompound.folderPath===null ) {
-                return SeLiteSettings.FIELD_DEFAULT;
+            else {
+                return this.valueCompound.folderPath===null
+                    ? SeLiteSettings.VALUES_MANIFEST
+                    : SeLiteSettings.FIELD_DEFAULT;
             }
         }
     }
@@ -636,7 +627,7 @@ RowInfo.prototype.collectProperties= function collectProperties( column ) {
 };
 
 /** @param {Column} column
- *  @return {(string|undefined)} Value to use for 'label' attribute, or undefined if not applicable.
+ *  @return {(string|undefined)} Value to use for 'label' attribute (which also shows up for editable cells other than checkbox/radio button), or undefined if not applicable.
  */
 RowInfo.prototype.collectLabel= function collectLabel( column ) {
     if( column===Column.MODULE_SET_FIELD_FIXEDMAPKEYS ) {
@@ -657,6 +648,18 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
         if( this.rowLevel===RowLevel.MODULE || this.rowLevel===RowLevel.SET ) {
             return '';
         }
+        if( this.rowLevel===RowLevel.FIELD ) {
+            if( /*single-valued fields:*/ this.valueCompound.entry===null || /*single/multi valued:*/this.valueCompound.entry===undefined || /* single-valued fields: */typeof this.valueCompound.entry!=='object' ) {
+                return ''+this.valueCompound.entry;
+            }
+        }
+        if( this.rowLevel===RowLevel.OPTION ) { //multi-valued freetype or FixedMap; single/multi-valued Choice 
+            //@TODO
+            if( !this.valueCompound.entry ) {
+                debugger;
+            }
+            return '' +this.valueCompound.entry[this.key];
+        }/*
         var valueForThisRow= this.value; //@TODO?: collectValueForThisRow( field, value, rowLevel, valueCompound );
         if( this.value==='string' || typeof this.value==='number' || valueForThisRow===null || valueForThisRow===undefined ) { //@TODO old?!!: && this.isNewValueRow
             return this.value!==null
@@ -665,7 +668,7 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
                     ? 'null'
                     : 'undefined'
                 );
-        }
+        }*/
     }
     else if( column===Column.ACTION_SET ) {
         if( this.rowLevel===RowLevel.MODULE || this.rowLevel===RowLevel.SET ) {
@@ -850,7 +853,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                 typeof valueCompound.entry!=='object' // I only pass the single value or undefined as 'value' parameter
                     ? valueCompound.entry
                     : undefined,
-                RowLevel.FIELD, false, valueCompound ).generateTreeItem();
+                RowLevel.FIELD, /*isNewValueRow*/false, valueCompound ).generateTreeItem();
             setChildren.appendChild( fieldItem );
 
             var isChoice= field instanceof SeLiteSettings.Field.Choice;
@@ -859,7 +862,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                 if( field instanceof SeLiteSettings.Field.FixedMap ) {
                     for( var i=0; i<field.keySet.length; i++ ) { //@TODO loop for( .. of ..) once NetBeans supports it
                         var key= field.keySet[i]
-                        var optionItem= new RowInfo( module, setName, field, key, /*value*/valueCompound.entry[key], RowLevel.OPTION, valueCompound ).generateTreeItem();
+                        var optionItem= new RowInfo( module, setName, field, key, /*value*/valueCompound.entry[key], RowLevel.OPTION, /*isNewValueRow*/false, valueCompound ).generateTreeItem();
                         fieldChildren.appendChild( optionItem );
                     }
                 }
@@ -1062,7 +1065,7 @@ function treeClickHandler( event ) {
                         if( cellText===ADD_NEW_VALUE ) {
                             // Add a row for a new value, right below the clicked row (i.e. at the top of all existing values)
                             // Since we're editing, it means that showingPerFolder()===false, so I don't need to generate anything for navigation from folder view here.
-                            var treeItem= new RowInfo( module, selectedSetName, field, /*key*/SeLiteSettings.NEW_VALUE_ROW, /*value*/SeLiteSettings.NEW_VALUE_ROW, RowLevel.OPTION, /*Don't show the initial value:*/true ).generateTreeItem();
+                            var treeItem= new RowInfo( module, selectedSetName, field, /*key*/SeLiteSettings.NEW_VALUE_ROW, /*value*/SeLiteSettings.NEW_VALUE_ROW, RowLevel.OPTION, /*isNewValueRow: don't show the initial value:*/true ).generateTreeItem();
 
                             var previouslyFirstValueRow;
                             for( var key in moduleRowsOrChildren[selectedSetName][field.name] ) {
