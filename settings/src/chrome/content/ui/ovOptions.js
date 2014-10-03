@@ -740,8 +740,6 @@ RowInfo.prototype.setCellDetails= function setCellDetails( treecell, column ) {
  *  @return object for a new element <treeitem> with one <treerow>
  * */
 RowInfo.prototype.generateTreeItem= function generateTreeItem() {
-    var multivaluedOrChoice= this.field!==null && (this.field.multivalued || this.field instanceof SeLiteSettings.Field.Choice);
-    
     var treeitem= document.createElementNS( XUL_NS, 'treeitem');
     var treerow= document.createElementNS( XUL_NS, 'treerow');
     treeitem.appendChild( treerow );
@@ -767,6 +765,18 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
             )
     );
     
+    var columns= [Column.MODULE_SET_FIELD];
+    if( allowSets ) {
+        columns.push( Column.DEFAULT );
+    }
+    columns.push( Column.CHECKED, Column.VALUE );
+    if( allowSets || allowMultivaluedNonChoices || showingPerFolder() ) {
+        columns.push( Column.ACTION );
+        if( this.rowLevel===RowLevel.FIELD || !showingPerFolder() && this.rowLevel===RowLevel.OPTION && this.field instanceof SeLiteSettings.Field.FixedMap ) {
+            columns.push( Column.NULL_UNDEFINE );
+        }
+    }
+    
     // Cell for name of the Module/Set/Field, and for keys of SeLiteSettings.Field.FixedMap
     var treecell= document.createElementNS( XUL_NS, 'treecell');
     treerow.appendChild( treecell);
@@ -782,7 +792,7 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
     }
     // Register treerow in treeRowsOrChildren[][...]
     if( this.rowLevel===RowLevel.FIELD ) {
-        if( !multivaluedOrChoice ) {
+        if( !this.field.multivalued && !(this.field instanceof SeLiteSettings.Field.Choice) ) {//single valued
            subContainer( treeRowsOrChildren, this.module.name, this.setName )[ fieldName ]= treerow;
         }
         else {
@@ -803,7 +813,6 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
     treerow.appendChild( treecell);
     this.setCellDetails( treecell, Column.VALUE );
     
-    var valueForThisRow= this.value; //collectValueForThisRow( this.field, this.value, this.rowLevel, this.valueCompound );
     if( allowSets || allowMultivaluedNonChoices || showingPerFolder() ) {
         // Cell for Action column (in edit mode) or 'Set' column (in per-folder view)
         treecell= document.createElementNS( XUL_NS, 'treecell');
