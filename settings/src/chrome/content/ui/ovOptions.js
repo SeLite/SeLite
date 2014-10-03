@@ -24,7 +24,7 @@ var nsIFilePicker = Components.interfaces.nsIFilePicker;
 Components.utils.import("resource://gre/modules/FileUtils.jsm" );
 Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
 Components.utils.import("resource://gre/modules/osfile.jsm");
-var console = (Components.utils.import("resource://gre/modules/devtools/Console.jsm", {})).console;
+//var console = (Components.utils.import("resource://gre/modules/devtools/Console.jsm", {})).console;
 
 var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                               .getService(Components.interfaces.nsIPromptService);
@@ -653,12 +653,17 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
                 return ''+this.valueCompound.entry;
             }
         }
-        if( this.rowLevel===RowLevel.OPTION ) { //multi-valued freetype or FixedMap; single/multi-valued Choice 
-            //@TODO
-            if( !this.valueCompound.entry ) {
-                debugger;
+        if( this.rowLevel===RowLevel.OPTION ) { //multi-valued freetype or FixedMap; single/multi-valued Choice
+            if( this.field instanceof SeLiteSettings.Field.Choice ) {
+                return '' +this.field.choicePairs[this.key];
             }
-            return '' +this.valueCompound.entry[this.key];
+            else {
+                if( this.key in this.valueCompound.entry ) {
+                    return '' +this.valueCompound.entry[this.key];
+                }
+                SeLiteMisc.ensureInstance( this.field, SeLiteSettings.Field.FixedMap, 'this.field' );
+                return 'undefined';
+            }
         }/*
         var valueForThisRow= this.value; //@TODO?: collectValueForThisRow( field, value, rowLevel, valueCompound );
         if( this.value==='string' || typeof this.value==='number' || valueForThisRow===null || valueForThisRow===undefined ) { //@TODO old?!!: && this.isNewValueRow
