@@ -558,16 +558,23 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
  * */
 function RowInfo( module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound ) {
     SeLiteMisc.objectFillIn( this, ['module', 'setName', 'field', 'key', 'value', 'rowLevel', 'isNewValueRow', 'valueCompound'], arguments );
-    SeLiteMisc.ensureInstance( module, SeLiteSettings.Module, 'module' );
-    SeLiteMisc.ensureType( setName, ['string', 'null'], setName );
+}
+RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
+/** Validate and calculate all this.xxx fields as applicable.
+ *  @return {RowInfo} this
+ * */
+// I don't perform the following in RowInfo() constructor, because SeLiteMisc.proxyEnsureFieldsExist() doesn't protect constructor itself.
+RowInfo.prototype.setUp= function setUp() {
+    SeLiteMisc.ensureInstance( this.module, SeLiteSettings.Module, 'module' );
+    SeLiteMisc.ensureType( this.setName, ['string', 'null'], 'setName' );
     
-    SeLiteMisc.ensureType( field, ['object', 'undefined'], "field" );
-    field || rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET || SeLiteMisc.fail( "Parameter field must be defined, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but rowLevel is " +rowLevel );
-    !field || SeLiteMisc.ensureInstance( field, SeLiteSettings.Field, 'field (if defined)' );
+    SeLiteMisc.ensureType( this.field, ['object', 'undefined'], "field" );
+    this.field || this.rowLevel===RowLevel.MODULE || this.rowLevel===RowLevel.SET || SeLiteMisc.fail( "Parameter field must be defined, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but rowLevel is " +this.rowLevel );
+    !this.field || SeLiteMisc.ensureInstance( this.field, SeLiteSettings.Field, 'field (if defined)' );
     
-    SeLiteMisc.ensureType( key, ['string', 'undefined', 'null'], 'key' );
-    SeLiteMisc.ensureType( value, ['string', 'number', 'boolean', 'undefined', 'null'], 'key' );
-    SeLiteMisc.ensureInstance( rowLevel, RowLevel, 'rowLevel' );
+    SeLiteMisc.ensureType( this.key, ['string', 'undefined', 'null'], 'key' );
+    SeLiteMisc.ensureType( this.value, ['string', 'number', 'boolean', 'undefined', 'null'], 'key' );
+    SeLiteMisc.ensureInstance( this.rowLevel, RowLevel, 'rowLevel' );
     
     this.isNewValueRow= this.isNewValueRow || false;
     SeLiteMisc.ensureType( this.isNewValueRow, 'boolean', 'isNewValueRow' );
@@ -589,14 +596,13 @@ function RowInfo( module, setName, field, key, value, rowLevel, isNewValueRow, v
                 : ValueSource.FIELD_DEFAULT;
         }
     }
-    if( rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.Choice ) {
+    if( this.rowLevel===RowLevel.OPTION && this.field instanceof SeLiteSettings.Field.Choice ) {
         /** @var {boolean} Whether the radio button for a Choice field is checked. Not valid for Bool fields. */
-        this.optionIsSelected= typeof(this.valueCompound.entry)==='object' && this.valueCompound.entry!==null && key in this.valueCompound.entry;
+        this.optionIsSelected= typeof(this.valueCompound.entry)==='object' && this.valueCompound.entry!==null && this.key in this.valueCompound.entry;
     }
     //         this.isUndefined= this.isNull= false;
-
-}
-RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
+    return this;
+};
 
 /** Instantiate. Validate the parameters. Then set this.xyz to results of relevant functions collectXyz().
  *  @class
@@ -855,7 +861,7 @@ function generateSets( moduleChildren, module ) {
             }
             var setChildren= null;
             if( allowSets && module.allowSets ) {
-                var setItem= new RowInfo( module, setName, null, /*key*/ null, /*value*/null, RowLevel.SET ).generateTreeItem();
+                var setItem= new RowInfo( module, setName, null, /*key*/ null, /*value*/null, RowLevel.SET ).setUp().generateTreeItem();
                 moduleChildren.appendChild( setItem );
                 setChildren= createTreeChildren( setItem );
             }
@@ -883,7 +889,7 @@ function generateFields( setChildren, module, setName, setFields ) {
         var singleValue= typeof compound.entry!=='object'
             ? compound.entry
             : null;
-        var fieldItem= new RowInfo( module, setName, field, /*key*/null, singleValue, RowLevel.FIELD, false, compound ).generateTreeItem();
+        var fieldItem= new RowInfo( module, setName, field, /*key*/null, singleValue, RowLevel.FIELD, false, compound ).setUp().generateTreeItem();
         setChildren.appendChild( fieldItem );
         
         var isChoice= field instanceof SeLiteSettings.Field.Choice;
@@ -897,7 +903,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                     var value= compound.entry!==undefined
                         ? compound.entry[key]
                         : null;
-                    var optionItem= new RowInfo( module, setName, field, key, value, RowLevel.OPTION, compound ).generateTreeItem();
+                    var optionItem= new RowInfo( module, setName, field, key, value, RowLevel.OPTION, compound ).setUp().generateTreeItem();
                     fieldChildren.appendChild( optionItem );
                 }
             }
@@ -908,7 +914,7 @@ function generateFields( setChildren, module, setName, setFields ) {
 
                 for( var key in pairsToList ) {////@TODO potential IterableArray
                     isChoice || compound.entry===undefined || typeof(compound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value of type ' +typeof compound.entry+ ': ' +compound.entry );
-                    var optionItem= new RowInfo( module, setName, field, key, /*value*/pairsToList[key], RowLevel.OPTION, false, compound ).generateTreeItem();
+                    var optionItem= new RowInfo( module, setName, field, key, /*value*/pairsToList[key], RowLevel.OPTION, false, compound ).setUp().generateTreeItem();
                     fieldChildren.appendChild( optionItem );
                 }
             }
@@ -1099,7 +1105,7 @@ function treeClickHandler( event ) {
                         if( cellText===ADD_NEW_VALUE ) {
                             // Add a row for a new value, right below the clicked row (i.e. at the top of all existing values)
                             // Since we're editing, it means that showingPerFolder()===false, so I don't need to generate anything for navigation from folder view here.
-                            var treeItem= new RowInfo( module, selectedSetName, field, /*key*/SeLiteSettings.NEW_VALUE_ROW, /*value*/SeLiteSettings.NEW_VALUE_ROW, RowLevel.OPTION, /*Don't show the initial value:*/true ).generateTreeItem();
+                            var treeItem= new RowInfo( module, selectedSetName, field, /*key*/SeLiteSettings.NEW_VALUE_ROW, /*value*/SeLiteSettings.NEW_VALUE_ROW, RowLevel.OPTION, /*Don't show the initial value:*/true ).setUp().generateTreeItem();
 
                             var previouslyFirstValueRow;
                             for( var key in moduleRowsOrChildren[selectedSetName][field.name] ) {
@@ -1437,7 +1443,7 @@ function setCellText( row, col, value, original) {
         if( rowAfterNewPosition!==info.treeRow ) { // Repositioning - remove treeRow, create a new treeRow
             var treeChildren= info.fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN];
             treeChildren.removeChild( info.treeRow.parentNode );
-            var treeItem= new RowInfo( info.module, info.setName, info.field, /*key*/value, value, RowLevel.OPTION ).generateTreeItem(); // That sets 'properties' and it adds an entry to treeRow[value] (which is same as fieldTreeRowsOrChildren[value] here).
+            var treeItem= new RowInfo( info.module, info.setName, info.field, /*key*/value, value, RowLevel.OPTION ).setUp().generateTreeItem(); // That sets 'properties' and it adds an entry to treeRow[value] (which is same as fieldTreeRowsOrChildren[value] here).
             // Firefox 22.b04 and 24.0a1 doesn't handle parent.insertBefore(newItem, null), even though it should - https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore
             if(true){//@TODO cleanup
                 if( rowAfterNewPosition!==null ) {
@@ -1788,7 +1794,7 @@ window.addEventListener( "load", function(e) {
     var setNameToExpand= null;
     if( allowModules ) {
         for( var moduleName in modules ) {
-            var moduleTreeItem= new RowInfo( modules[moduleName], null, null, /*keyundefined*/null, /*valueundefined*/null, RowLevel.MODULE ).generateTreeItem();
+            var moduleTreeItem= new RowInfo( modules[moduleName], null, null, /*keyundefined*/null, /*valueundefined*/null, RowLevel.MODULE ).setUp().generateTreeItem();
             topTreeChildren.appendChild( moduleTreeItem );
             
             var moduleChildren= createTreeChildren( moduleTreeItem );
@@ -1801,7 +1807,7 @@ window.addEventListener( "load", function(e) {
         
         var moduleChildren;
         if( allowSets && modules[moduleName].allowSets ) {
-            var moduleTreeItem= new RowInfo( modules[moduleName], null, null, /*keyundefined*/null, /*valueundefined*/null, RowLevel.MODULE ).generateTreeItem();
+            var moduleTreeItem= new RowInfo( modules[moduleName], null, null, /*keyundefined*/null, /*valueundefined*/null, RowLevel.MODULE ).setUp().generateTreeItem();
             topTreeChildren.appendChild( moduleTreeItem );
             moduleChildren= createTreeChildren( moduleTreeItem );
         }
