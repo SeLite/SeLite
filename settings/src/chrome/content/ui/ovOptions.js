@@ -846,10 +846,10 @@ function generateFields( setChildren, module, setName, setFields ) {
         var field= module.fields[fieldName];
         if( field ) {
             var compound= setFields[fieldName];
-            var fieldItem= new RowInfo( module, setName, field, /*key*/null,
-                typeof compound.entry!=='object' // I pass single value or null as 'value' parameter
+            var fieldItem= new RowInfo( module, setName, field, /*key*/undefined,
+                typeof compound.entry!=='object' // I only pass the single value or undefined as 'value' parameter
                     ? compound.entry
-                    : null,
+                    : undefined,
                 RowLevel.FIELD, false, compound ).generateTreeItem();
             setChildren.appendChild( fieldItem );
 
@@ -859,9 +859,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                 if( field instanceof SeLiteSettings.Field.FixedMap ) {
                     for( var i=0; i<field.keySet.length; i++ ) { //@TODO loop for( .. of ..) once NetBeans supports it
                         var key= field.keySet[i];
-                        var value= compound.entry!==undefined
-                            ? compound.entry[key]
-                            : null;
+                        var value= compound.entry[key];
                         var optionItem= new RowInfo( module, setName, field, key, value, RowLevel.OPTION, compound ).generateTreeItem();
                         fieldChildren.appendChild( optionItem );
                     }
@@ -1754,7 +1752,7 @@ window.addEventListener( "load", function(e) {
     var setNameToExpand= null;
     if( allowModules ) {
         for( var moduleName in modules ) {
-            var moduleTreeItem= new RowInfo( modules[moduleName], null, null, /*keyundefined*/null, /*valueundefined*/null, RowLevel.MODULE ).generateTreeItem();
+            var moduleTreeItem= new RowInfo( modules[moduleName], null, null, /*key*/undefined, /*value*/undefined, RowLevel.MODULE ).generateTreeItem();
             topTreeChildren.appendChild( moduleTreeItem );
             
             var moduleChildren= createTreeChildren( moduleTreeItem );
@@ -1767,7 +1765,7 @@ window.addEventListener( "load", function(e) {
         
         var moduleChildren;
         if( allowSets && modules[moduleName].allowSets ) {
-            var moduleTreeItem= new RowInfo( modules[moduleName], null, null, /*keyundefined*/null, /*valueundefined*/null, RowLevel.MODULE ).generateTreeItem();
+            var moduleTreeItem= new RowInfo( modules[moduleName], null, null, /*key*/undefined, /*value*/undefined, RowLevel.MODULE ).generateTreeItem();
             topTreeChildren.appendChild( moduleTreeItem );
             moduleChildren= createTreeChildren( moduleTreeItem );
         }
