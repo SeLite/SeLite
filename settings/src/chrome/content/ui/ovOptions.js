@@ -845,12 +845,12 @@ function generateFields( setChildren, module, setName, setFields ) {
     for( var fieldName in setFields ) {
         var field= module.fields[fieldName];
         if( field ) {
-            var compound= setFields[fieldName];
+            var valueCompound= setFields[fieldName];
             var fieldItem= new RowInfo( module, setName, field, /*key*/undefined,
-                typeof compound.entry!=='object' // I only pass the single value or undefined as 'value' parameter
-                    ? compound.entry
+                typeof valueCompound.entry!=='object' // I only pass the single value or undefined as 'value' parameter
+                    ? valueCompound.entry
                     : undefined,
-                RowLevel.FIELD, false, compound ).generateTreeItem();
+                RowLevel.FIELD, false, valueCompound ).generateTreeItem();
             setChildren.appendChild( fieldItem );
 
             var isChoice= field instanceof SeLiteSettings.Field.Choice;
@@ -858,20 +858,19 @@ function generateFields( setChildren, module, setName, setFields ) {
                 var fieldChildren= createTreeChildren( fieldItem );
                 if( field instanceof SeLiteSettings.Field.FixedMap ) {
                     for( var i=0; i<field.keySet.length; i++ ) { //@TODO loop for( .. of ..) once NetBeans supports it
-                        var key= field.keySet[i];
-                        var value= compound.entry[key];
-                        var optionItem= new RowInfo( module, setName, field, key, value, RowLevel.OPTION, compound ).generateTreeItem();
+                        var key= field.keySet[i]
+                        var optionItem= new RowInfo( module, setName, field, key, /*value*/valueCompound.entry[key], RowLevel.OPTION, valueCompound ).generateTreeItem();
                         fieldChildren.appendChild( optionItem );
                     }
                 }
                 else {
                     var pairsToList= isChoice
                         ? field.choicePairs
-                        : compound.entry;
+                        : valueCompound.entry;
 
                     for( var key in pairsToList ) {////@TODO potential IterableArray
-                        isChoice || compound.entry===undefined || typeof(compound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value of type ' +typeof compound.entry+ ': ' +compound.entry );
-                        var optionItem= new RowInfo( module, setName, field, key, /*value*/pairsToList[key], RowLevel.OPTION, false, compound ).generateTreeItem();
+                        isChoice || valueCompound.entry===undefined || typeof(valueCompound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value of type ' +typeof valueCompound.entry+ ': ' +valueCompound.entry );
+                        var optionItem= new RowInfo( module, setName, field, key, /*value*/pairsToList[key], RowLevel.OPTION, false, valueCompound ).generateTreeItem();
                         fieldChildren.appendChild( optionItem );
                     }
                 }
