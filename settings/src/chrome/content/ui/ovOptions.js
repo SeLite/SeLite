@@ -167,7 +167,7 @@ Column= SeLiteMisc.proxyEnsureFieldsExist( Column );
 Column.prototype= new RowLevelOrColumn( '', -1 );
 Column.prototype.constructor= Column;
 
-Column.MODULE_SET_FIELD= new Column('MODULE_SET_FIELD', 0);
+Column.MODULE_SET_FIELD_FIXEDMAPKEYS= new Column('MODULE_SET_FIELD_FIXEDMAPKEYS', 0);
 Column.DEFAULT= new Column('DEFAULT', 1); // @TODO instances after DEFAULT should be treated with -1, if !allowSets
 Column.CHECKED= new Column('CHECKED', 2); // Column for checkbox (if the field is boolean) or radio-like select (if the field is a choice)
 Column.VALUE= new Column('VALUE', 3);
@@ -535,7 +535,7 @@ CellInfo= SeLiteMisc.proxyEnsureFieldsExist( CellInfo );
  * @returns {boolean} Value to use for 'editable' attribute - but convert it to a string first.
  */
 RowInfo.prototype.collectEditable= function collectEditable( column ) {
-    if( column===Column.MODULE_SET_FIELD ) {
+    if( column===Column.MODULE_SET_FIELD_FIXEDMAPKEYS ) {
         return false;
     }
     if( column===Column.DEFAULT ) {
@@ -641,7 +641,7 @@ RowInfo.prototype.collectProperties= function collectProperties( column ) {
  *  @return {(string|undefined)} Value to use for 'label' attribute, or undefined if not applicable.
  */
 RowInfo.prototype.collectLabel= function collectLabel( column ) {
-    if( column===Column.MODULE_SET_FIELD ) {
+    if( column===Column.MODULE_SET_FIELD_FIXEDMAPKEYS ) {
         return this.rowLevel.forLevel(
             this.module
                 ? this.module.name
@@ -765,7 +765,7 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
             )
     );
     
-    var columns= [Column.MODULE_SET_FIELD];
+    var columns= [Column.MODULE_SET_FIELD_FIXEDMAPKEYS];
     if( allowSets ) {
         columns.push( Column.DEFAULT );
     }
@@ -776,21 +776,19 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
             columns.push( Column.NULL_UNDEFINE );
         }
     }
-    
-    // Cell for name of the Module/Set/Field, and for keys of SeLiteSettings.Field.FixedMap
-    var treecell= document.createElementNS( XUL_NS, 'treecell');
-    treerow.appendChild( treecell);
-    this.setCellDetails( treecell, Column.MODULE_SET_FIELD );
-
-    if( allowSets ) { // Radio-like checkbox for (de)selecting a set
-        treecell= document.createElementNS( XUL_NS, 'treecell');
+    for( var i=0; i<columns.length; i++ ) { //@TODO for(..of..)
+        var treecell= document.createElementNS( XUL_NS, 'treecell');
         treerow.appendChild( treecell);
-        this.setCellDetails( treecell, Column.DEFAULT );
+        this.setCellDetails( treecell, columns[i] );
+    }
+    //@TODO .ACTION ->ACTION_SET; NULL_UNDEFINE -> NULL_UNDEFINE_DEFINITION
+
+    // Register treerow in treeRowsOrChildren[][...] if needed
+    if( allowSets ) { // Radio-like checkbox for (de)selecting a set
         if( this.rowLevel===RowLevel.SET && this.module.allowSets) {
             subContainer( treeRowsOrChildren, this.module.name, this.setName )[ SeLiteSettings.SET_SELECTION_ROW ]= treerow;
         }
     }
-    // Register treerow in treeRowsOrChildren[][...]
     if( this.rowLevel===RowLevel.FIELD ) {
         if( !this.field.multivalued && !(this.field instanceof SeLiteSettings.Field.Choice) ) {//single valued
            subContainer( treeRowsOrChildren, this.module.name, this.setName )[ fieldName ]= treerow;
@@ -801,29 +799,6 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
     }
     if( this.rowLevel===RowLevel.OPTION ) {
         subContainer( treeRowsOrChildren, this.module.name, this.setName, fieldName )[ this.key ]= treerow;
-    }
-    
-    // Cell for checkbox (if this.field is boolean) or radio-like select (if this.field is a choice):
-    treecell= document.createElementNS( XUL_NS, 'treecell');
-    treerow.appendChild( treecell);
-    this.setCellDetails( treecell, Column.CHECKED );
-    
-    // Cell for the text value:
-    treecell= document.createElementNS( XUL_NS, 'treecell');
-    treerow.appendChild( treecell);
-    this.setCellDetails( treecell, Column.VALUE );
-    
-    if( allowSets || allowMultivaluedNonChoices || showingPerFolder() ) {
-        // Cell for Action column (in edit mode) or 'Set' column (in per-folder view)
-        treecell= document.createElementNS( XUL_NS, 'treecell');
-        treerow.appendChild( treecell);
-        this.setCellDetails( treecell, Column.ACTION );
-        if( this.rowLevel===RowLevel.FIELD || !showingPerFolder() && this.rowLevel===RowLevel.OPTION && this.field instanceof SeLiteSettings.Field.FixedMap ) {
-            // If per-folder view: show Manifest or definition. Otherwise (i.e. per-module view): show Null/Undefine.
-            treecell= document.createElementNS( XUL_NS, 'treecell');
-            treerow.appendChild( treecell);
-            this.setCellDetails( treecell, Column.NULL_UNDEFINE );
-        }
     }
     return treeitem;
 }
