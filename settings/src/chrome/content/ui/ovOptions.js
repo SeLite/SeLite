@@ -665,7 +665,7 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
                     ? 'null'
                     : 'undefined'
                 );
-    }
+        }
     }
     else if( column===Column.ACTION_SET ) {
         if( this.rowLevel===RowLevel.MODULE || this.rowLevel===RowLevel.SET ) {
@@ -713,7 +713,6 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
                   );
         }
     }
-    return undefined;
 };
 
 /**@param {object} treecell result of document.createElementNS( XUL_NS, 'treecell') 
@@ -728,7 +727,7 @@ RowInfo.prototype.setCellDetails= function setCellDetails( treecell, column ) {
         treecell.setAttribute( 'value', cellInfo.value );
     }
     if( cellInfo.label!==undefined ) {
-        treecell.setAttribute( 'label', cellInfo.value );
+        treecell.setAttribute( 'label', cellInfo.label );
     }
     if( cellInfo.properties!==undefined ) {
         treecell.setAttribute( 'properties', cellInfo.properties );
@@ -844,13 +843,14 @@ function generateSets( moduleChildren, module ) {
  * */
 function generateFields( setChildren, module, setName, setFields ) {
     for( var fieldName in setFields ) {
-        var compound= setFields[fieldName];
         var field= module.fields[fieldName];
         if( field ) {
-            var singleValue= typeof compound.entry!=='object'
-                ? compound.entry
-                : null;
-            var fieldItem= new RowInfo( module, setName, field, /*key*/null, singleValue, RowLevel.FIELD, false, compound ).generateTreeItem();
+            var compound= setFields[fieldName];
+            var fieldItem= new RowInfo( module, setName, field, /*key*/null,
+                typeof compound.entry!=='object' // I pass single value or null as 'value' parameter
+                    ? compound.entry
+                    : null,
+                RowLevel.FIELD, false, compound ).generateTreeItem();
             setChildren.appendChild( fieldItem );
 
             var isChoice= field instanceof SeLiteSettings.Field.Choice;

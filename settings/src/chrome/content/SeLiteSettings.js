@@ -1201,8 +1201,7 @@ SeLiteSettings.Module.prototype.setDefaultSetName= function setDefaultSetName( s
  *          fromPreferences: boolean, whether the value comes from preferences (otherwise it comes from a values manifest or is undefined)
  *          entry: either
  *          - string/boolean/number ('primitive') value, or null or undefined, for non-choice single-value fields; or
- *          - object (potentially empty, if indicated by SeLiteSettings.VALUE_PRESENT) serving as an associative array, for choice field (multivalued or single valued), or for non-choice multi-valued field,
- *          if the whole field is stored other than undefined, in format {
+ *          - object (potentially empty) serving as an associative array, for choice field (multivalued or single valued) or for non-choice multi-valued field, if the field has a value (or multiple values) or if it's empty but present (as indicated by SeLiteSettings.VALUE_PRESENT), in format {
  *             string key => string/number ('primitive') label or value entered by user
  *          },
  *          - null, if it has no value/choice in the given set and is indicated as 'null' by SeLiteSettings.NULL
