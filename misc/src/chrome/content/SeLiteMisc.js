@@ -211,8 +211,8 @@ SeLiteMisc.ensureInstance= function ensureInstance( object, classes, variableNam
 /** @private */
 var proxyEnsureFieldsExistObjectHandler= {
   get: function get(target, name, receiver) {
-    // Check whether name is set in target. Don't use target[name]!==undefined for that, because it may be set to undefined.
-    name in target || SeLiteMisc.fail( 'Accessing an unset field "' +name+ '" in ' +
+    // Check whether name is set in target. Don't use target[name]!==undefined for that, because it may be set to undefined. I allow access to 'toJSON' even if not set. That's needed when your code creates new Error(), which (in Firefox) accesses 'toJSON' for all 'this' objects on the stack.
+    name in target || name==='toJSON' || SeLiteMisc.fail( 'Accessing an unset field "' +name+ '" in ' +
         (typeof target==='object'
             ? 'instance of ' +target.constructor.name+ ': ' +target
             : 'class ' +target.name
