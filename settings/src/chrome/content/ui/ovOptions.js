@@ -171,8 +171,8 @@ Column.MODULE_SET_FIELD_FIXEDMAPKEYS= new Column('MODULE_SET_FIELD_FIXEDMAPKEYS'
 Column.DEFAULT= new Column('DEFAULT', 1); // @TODO instances after DEFAULT should be treated with -1, if !allowSets
 Column.CHECKED= new Column('CHECKED', 2); // Column for checkbox (if the field is boolean) or radio-like select (if the field is a choice)
 Column.VALUE= new Column('VALUE', 3);
-Column.ACTION= new Column('ACTION', 4);
-Column.NULL_UNDEFINE= new Column('NULL_UNDEFINE', 5);
+Column.ACTION_SET= new Column('ACTION_SET', 4);
+Column.NULL_UNDEFINE_DEFINITION= new Column('NULL_UNDEFINE_DEFINITION', 5);
 
 /** It contains elements for <treecol> tags, as returned by document.createElementNS( XUL_NS, 'tree_col').
  These are not nsITreeColumn instances, but their .element fields!
@@ -518,11 +518,11 @@ function CellInfo( rowInfo, column ) {
     column!==Column.DEFAULT || allowSets || SeLiteMisc.fail( "allowSets is false, but column is not DEFAULT: " +column );
     
     var columnMayBeActionOrNullUndefine= allowSets || allowMultivaluedNonChoices || showingPerFolder();
-    column!==Column.ACTION || columnMayBeActionOrNullUndefine || SeLiteMisc.fail( "Can't use Column.ACTION" );
-    column!==Column.NULL_UNDEFINE || columnMayBeActionOrNullUndefine && (
+    column!==Column.ACTION_SET || columnMayBeActionOrNullUndefine || SeLiteMisc.fail( "Can't use Column.ACTION_SET" );
+    column!==Column.NULL_UNDEFINE_DEFINITION || columnMayBeActionOrNullUndefine && (
         rowInfo.rowLevel===RowLevel.FIELD ||
         !showingPerFolder() && rowInfo.rowLevel===RowLevel.OPTION && rowInfo.field instanceof SeLiteSettings.Field.FixedMap
-    ) || SeLiteMisc.fail( "Can't use Column.NULL_UNDEFINE" );
+    ) || SeLiteMisc.fail( "Can't use Column.NULL_UNDEFINE_DEFINITION" );
     
     this.label= rowInfo.collectLabel( column );
     this.value= rowInfo.collectValue( column );
@@ -611,7 +611,7 @@ RowInfo.prototype.collectProperties= function collectProperties( column ) {
             }
         }
     }
-    else if( column===Column.ACTION ) {
+    else if( column===Column.ACTION_SET ) {
         if( showingPerFolder() && this.rowLevel===RowLevel.FIELD ) {
             if( this.valueCompound.fromPreferences && this.valueCompound.setName===this.module.defaultSetName() ) {
                 return SeLiteSettings.DEFAULT_SET;
@@ -622,7 +622,7 @@ RowInfo.prototype.collectProperties= function collectProperties( column ) {
             }
         }
     }
-    else if( column===Column.NULL_UNDEFINE ) {
+    else if( column===Column.NULL_UNDEFINE_DEFINITION ) {
         if( showingPerFolder() ) {
             return this.valueCompound.folderPath!==null
                 ? (     this.valueCompound.folderPath!==''
@@ -669,7 +669,7 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
                 );
     }
     }
-    else if( column===Column.ACTION ) {
+    else if( column===Column.ACTION_SET ) {
         if( this.rowLevel===RowLevel.MODULE || this.rowLevel===RowLevel.SET ) {
             return !this.setName
                     ? (allowSets && this.module.allowSets
@@ -698,7 +698,7 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
                   );
         }
     }
-    else if( column===Column.NULL_UNDEFINE ) {
+    else if( column===Column.NULL_UNDEFINE_DEFINITION ) {
         // If per-folder view: show Manifest or definition. Otherwise (i.e. per-module view): show Null/Undefine.
         if( !showingPerFolder() ) {
             return nullOrUndefineLabel( this.field, this.valueCompound.entry, this.rowLevel===RowLevel.OPTION, this.value );
@@ -771,9 +771,9 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
     }
     columns.push( Column.CHECKED, Column.VALUE );
     if( allowSets || allowMultivaluedNonChoices || showingPerFolder() ) {
-        columns.push( Column.ACTION );
+        columns.push( Column.ACTION_SET );
         if( this.rowLevel===RowLevel.FIELD || !showingPerFolder() && this.rowLevel===RowLevel.OPTION && this.field instanceof SeLiteSettings.Field.FixedMap ) {
-            columns.push( Column.NULL_UNDEFINE );
+            columns.push( Column.NULL_UNDEFINE_DEFINITION );
         }
     }
     for( var i=0; i<columns.length; i++ ) { //@TODO for(..of..)
@@ -781,7 +781,6 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
         treerow.appendChild( treecell);
         this.setCellDetails( treecell, columns[i] );
     }
-    //@TODO .ACTION ->ACTION_SET; NULL_UNDEFINE -> NULL_UNDEFINE_DEFINITION
 
     // Register treerow in treeRowsOrChildren[][...] if needed
     if( allowSets ) { // Radio-like checkbox for (de)selecting a set
@@ -1212,7 +1211,7 @@ function treeClickHandler( event ) {
                 }
                 
                 clickedOptionKey===undefined || SeLiteMisc.ensureInstance( field, [SeLiteSettings.Field.Choice, SeLiteSettings.Field.FixedMap], 'field (if modified preferences and clickedOptionKey is defined' );
-                treeCell( rowToUpdate, Column.NULL_UNDEFINE ).setAttribute( 'label',
+                treeCell( rowToUpdate, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
                     clickedOptionKey===undefined
                     ? nullOrUndefineLabel( field, valueCompound(field, selectedSetName).entry )
                     : nullOrUndefineLabel( field, valueCompound(field, selectedSetName).entry, true,
@@ -1331,18 +1330,18 @@ function preProcessEdit( row, value ) {
                 if( field.multivalued ) { //Clear it, in case it was 'undefined' (if this is the first value)
                     treeCell( fieldRow, Column.CHECKED/*@TODO VALUE fails?!?!:TRUE (original FIELD)*/ ).setAttribute( 'label', '' );
                 }
-                /*treeCell( fieldRow, Column.NULL_UNDEFINE ).setAttribute( 'label',
-                    generateCellLabel( Column.NULL_UNDEFINE, module, setName, field, undefined, value, RowLevel.FIELD, valueCompound ) );*/
-                treeCell( fieldRow, Column.NULL_UNDEFINE ).setAttribute( 'label',
+                /*treeCell( fieldRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
+                    generateCellLabel( Column.NULL_UNDEFINE_DEFINITION, module, setName, field, undefined, value, RowLevel.FIELD, valueCompound ) );*/
+                treeCell( fieldRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
                     nullOrUndefineLabel( field, valueCompound(field, setName).entry )
                 );/**/
             }
             else {
                 var optionRow= treeRowsOrChildren[module.name][setName][field.name][oldKey];
                 treeCell( optionRow, Column.VALUE/*@TODO?!?!:TRUE (original FIELD)*/ ).setAttribute( 'properties', '' ); // Clear at option level, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED
-                /*treeCell( optionRow, Column.NULL_UNDEFINE ).setAttribute( 'label',
-                    generateCellLabel( Column.NULL_UNDEFINE, module, setName, field, undefined, value, RowLevel.OPTION, valueCompound ) );*/ //@TODO cast value to the exact type?
-                treeCell( optionRow, Column.NULL_UNDEFINE ).setAttribute( 'label',
+                /*treeCell( optionRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
+                    generateCellLabel( Column.NULL_UNDEFINE_DEFINITION, module, setName, field, undefined, value, RowLevel.OPTION, valueCompound ) );*/ //@TODO cast value to the exact type?
+                treeCell( optionRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
                     nullOrUndefineLabel( field, valueCompound(field, setName).entry, true, value ) //@TODO cast value to the exact type
                 );/**/
             }
