@@ -455,7 +455,6 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
  *  -- if the field is of a subclass of Field.Choice or Field.FixedMap, then key and value may be different.
  *  @param {(string|number)} [value]
  *  @param {RowLevel} rowLevel
- *  @param {bool} [isNewValueRow] Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell. It still puts the new <treerow> element to treeRowsOrChildren[moduleName...], so that it can be updated/removed once the user fills in the value. Optional; false by default.
  *  @param {object} valueCompound Value compound for this field stored in the set being displayed (or in the sets and manifests applicable to targetFolder, if targetFolder!=null). Its entry part may be different to (the part of) valueOrPair when rowLevel===RowLevel.OPTION, since valueOrPair then indicates what to display for this row. valueCompound is an anonymous object, one of entries in result of Module.getFieldsDownToFolder(..) or Module.Module.getFieldsOfSet(), i.e. in form {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or from field default,
  *          setName: string set name (only valid if fromPreferences is true),
@@ -466,8 +465,8 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
  *  }
  *  Required if rowLevel===RowLevel.FIELD.
  * */
-function RowInfo( module, setName, field, key, value, rowLevel, isNewValueRow, valueCompound ) {
-    SeLiteMisc.objectFillIn( this, ['module', 'setName', 'field', 'key', 'value', 'rowLevel', 'isNewValueRow', 'valueCompound'], arguments, false, /*dontSetMissingOnes*/false );
+function RowInfo( module, setName, field, key, value, rowLevel, valueCompound ) {
+    SeLiteMisc.objectFillIn( this, ['module', 'setName', 'field', 'key', 'value', 'rowLevel', 'valueCompound'], arguments );
     
     SeLiteMisc.ensureInstance( this.module, SeLiteSettings.Module, 'module' );
     SeLiteMisc.ensureType( this.setName, ['string', 'null'], 'setName' );
@@ -479,9 +478,6 @@ function RowInfo( module, setName, field, key, value, rowLevel, isNewValueRow, v
     SeLiteMisc.ensureType( this.key, ['string', 'undefined', 'null'], 'key' );
     SeLiteMisc.ensureType( this.value, ['string', 'number', 'boolean', 'undefined', 'null'], 'key' );
     SeLiteMisc.ensureInstance( this.rowLevel, RowLevel, 'rowLevel' );
-    
-    this.isNewValueRow= this.isNewValueRow || false;
-    SeLiteMisc.ensureType( this.isNewValueRow, 'boolean', 'isNewValueRow' );
     
     this.valueCompound= this.valueCompound || null;
     SeLiteMisc.ensureType( this.valueCompound, 'object', 'valueCompound' );
@@ -604,7 +600,7 @@ RowInfo.prototype.collectProperties= function collectProperties( column ) {
         }
     }
     else if( column===Column.VALUE ) {//@TODO Big
-        if( !this.isNewValueRow ) {
+        if( this.key!==SeLiteSettings.NEW_VALUE_ROW ) {
             if( this.rowLevel===RowLevel.FIELD && (this.valueCompound===null || this.valueCompound===undefined) ) {
                 return SeLiteSettings.FIELD_NULL_OR_UNDEFINED;
             }
@@ -682,7 +678,7 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
             }
         }/*
         var valueForThisRow= this.value; //@TODO?: collectValueForThisRow( field, value, rowLevel, valueCompound );
-        if( this.value==='string' || typeof this.value==='number' || valueForThisRow===null || valueForThisRow===undefined ) { //@TODO old?!!: && this.isNewValueRow
+        if( this.value==='string' || typeof this.value==='number' || valueForThisRow===null || valueForThisRow===undefined ) { //@TODO? && this.key!==SeLiteSettings.NEW_VALUE_ROW
             return this.value!==null
                 ? ''+this.value
                 : ( valueForThisRow===null
@@ -874,7 +870,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                 typeof valueCompound.entry!=='object' // I only pass the single value or undefined as 'value' parameter
                     ? valueCompound.entry
                     : undefined,
-                RowLevel.FIELD, /*isNewValueRow*/false, valueCompound ).generateTreeItem();
+                RowLevel.FIELD, valueCompound ).generateTreeItem();
             setChildren.appendChild( fieldItem );
 
             var isChoice= field instanceof SeLiteSettings.Field.Choice;
@@ -883,7 +879,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                 if( field instanceof SeLiteSettings.Field.FixedMap ) {
                     for( var i=0; i<field.keySet.length; i++ ) { //@TODO loop for( .. of ..) once NetBeans supports it
                         var key= field.keySet[i]
-                        var optionItem= new RowInfo( module, setName, field, key, /*value*/valueCompound.entry[key], RowLevel.OPTION, /*isNewValueRow*/false, valueCompound ).generateTreeItem();
+                        var optionItem= new RowInfo( module, setName, field, key, /*value*/valueCompound.entry[key], RowLevel.OPTION, valueCompound ).generateTreeItem();
                         fieldChildren.appendChild( optionItem );
                     }
                 }
@@ -894,7 +890,7 @@ function generateFields( setChildren, module, setName, setFields ) {
 
                     for( var key in pairsToList ) {////@TODO potential IterableArray
                         isChoice || valueCompound.entry===undefined || typeof(valueCompound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value of type ' +typeof valueCompound.entry+ ': ' +valueCompound.entry );
-                        var optionItem= new RowInfo( module, setName, field, key, /*value*/pairsToList[key], RowLevel.OPTION, false, valueCompound ).generateTreeItem();
+                        var optionItem= new RowInfo( module, setName, field, key, /*value*/pairsToList[key], RowLevel.OPTION, valueCompound ).generateTreeItem();
                         fieldChildren.appendChild( optionItem );
                     }
                 }
@@ -1086,7 +1082,7 @@ function treeClickHandler( event ) {
                         if( cellText===ADD_NEW_VALUE ) {
                             // Add a row for a new value, right below the clicked row (i.e. at the top of all existing values)
                             // Since we're editing, it means that showingPerFolder()===false, so I don't need to generate anything for navigation from folder view here.
-                            var treeItem= new RowInfo( module, selectedSetName, field, /*key*/SeLiteSettings.NEW_VALUE_ROW, /*value*/SeLiteSettings.NEW_VALUE_ROW, RowLevel.OPTION, /*isNewValueRow: don't show the initial value:*/true ).generateTreeItem();
+                            var treeItem= new RowInfo( module, selectedSetName, field, /*key*/SeLiteSettings.NEW_VALUE_ROW, /*value*/SeLiteSettings.NEW_VALUE_ROW, RowLevel.OPTION ).generateTreeItem();
 
                             var previouslyFirstValueRow;
                             for( var key in moduleRowsOrChildren[selectedSetName][field.name] ) {
