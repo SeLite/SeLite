@@ -168,7 +168,7 @@ Column.prototype= new RowLevelOrColumn( '', -1 );
 Column.prototype.constructor= Column;
 
 Column.MODULE_SET_FIELD_FIXEDMAPKEYS= new Column('MODULE_SET_FIELD_FIXEDMAPKEYS', 0);
-Column.DEFAULT= new Column('DEFAULT', 1); // @TODO instances after DEFAULT should be treated with -1, if !allowSets
+Column.DEFAULT= new Column('DEFAULT', 1);
 Column.CHECKED= new Column('CHECKED', 2); // Column for checkbox (if the field is boolean) or radio-like select (if the field is a choice)
 Column.VALUE= new Column('VALUE', 3);
 Column.ACTION_SET= new Column('ACTION_SET', 4);
@@ -345,7 +345,7 @@ var treeRowsOrChildren= SeLiteMisc.sortedObject(true);
 function treeCell( treeRow, level ) {
     treeRow instanceof XULElement || SeLiteMisc.fail( 'treeCell() requires treeRow to be an XULElement object, but it received ' +treeRow );
     treeRow.tagName==='treerow' || SeLiteMisc.fail( 'treeCell() requires treeRow to be an XULElement object for <treerow>, but it received XULElement for ' +treeRow.tagName );
-    level instanceof Column || SeLiteMisc.fail( 'treeCell() requires level to be an instance of Column.' );
+    SeLiteMisc.ensureInstance( level, Column, 'level' );
     var cells= treeRow.getElementsByTagName( 'treecell' );
     allowSets || level!==Column.DEFAULT || SeLiteMisc.fail( 'allowSets is false, therefore level should not be Column.DEFAULT.' );
     return cells[ allowSets
@@ -453,8 +453,6 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
  *  It must be defined for multivalued or choice field. It serves as a trailing part of field option preference name)
  *  -- for multivalued non-choice fields it should be the same as value
  *  -- if the field is of a subclass of Field.Choice or Field.FixedMap, then key and value may be different.
-    TODO: checl: For multivalued non-choice fields it should be the same
- *  as parameter value. If the field is of a subclass of Field.Choice, then key and value may be different.
  *  @param {(string|number)} [value]
  *  @param {RowLevel} rowLevel
  *  @param {bool} [isNewValueRow] Whether the row is for a new value that will be entered by the user. If so, then this doesn't set the label for the value cell. It still puts the new <treerow> element to treeRowsOrChildren[moduleName...], so that it can be updated/removed once the user fills in the value. Optional; false by default.
@@ -757,8 +755,8 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
             moduleName,
             moduleName+' '+this.setName,
             moduleName+' '+this.setName+' '+fieldName,
-            moduleName+' '+this.setName+' '+fieldName+
-                (this.field instanceof SeLiteSettings.Field.Choice || this.field instanceof SeLiteSettings.Field.FixedMap
+            moduleName+' '+this.setName+' '+fieldName
+                +(this.field instanceof SeLiteSettings.Field.Choice || this.field instanceof SeLiteSettings.Field.FixedMap
                     ? ' ' +this.key
                     : ''
                 )
@@ -847,49 +845,46 @@ function generateSets( moduleChildren, module ) {
 function generateFields( setChildren, module, setName, setFields ) {
     for( var fieldName in setFields ) {
         var compound= setFields[fieldName];
-        var field= fieldName in module.fields //@TODO simplify
-            ? module.fields[fieldName]
-            : fieldName;
-        
-        var singleValue= typeof compound.entry!=='object'
-            ? compound.entry
-            : null;
-        var fieldItem= new RowInfo( module, setName, field, /*key*/null, singleValue, RowLevel.FIELD, false, compound ).generateTreeItem();
-        setChildren.appendChild( fieldItem );
-        
-        var isChoice= field instanceof SeLiteSettings.Field.Choice;
-        if( field instanceof SeLiteSettings.Field &&
-            (field.multivalued || isChoice)
-        ) {
-            var fieldChildren= createTreeChildren( fieldItem );
-            if( field instanceof SeLiteSettings.Field.FixedMap ) {
-                for( var i=0; i<field.keySet.length; i++ ) { //@TODO loop for( .. of ..) once NetBeans supports it
-                    var key= field.keySet[i];
-                    var value= compound.entry!==undefined
-                        ? compound.entry[key]
-                        : null;
-                    var optionItem= new RowInfo( module, setName, field, key, value, RowLevel.OPTION, compound ).generateTreeItem();
-                    fieldChildren.appendChild( optionItem );
-                }
-            }
-            else {
-                var pairsToList= isChoice
-                    ? field.choicePairs
-                    : compound.entry;
+        var field= module.fields[fieldName];
+        if( field ) {
+            var singleValue= typeof compound.entry!=='object'
+                ? compound.entry
+                : null;
+            var fieldItem= new RowInfo( module, setName, field, /*key*/null, singleValue, RowLevel.FIELD, false, compound ).generateTreeItem();
+            setChildren.appendChild( fieldItem );
 
-                for( var key in pairsToList ) {////@TODO potential IterableArray
-                    isChoice || compound.entry===undefined || typeof(compound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value of type ' +typeof compound.entry+ ': ' +compound.entry );
-                    var optionItem= new RowInfo( module, setName, field, key, /*value*/pairsToList[key], RowLevel.OPTION, false, compound ).generateTreeItem();
-                    fieldChildren.appendChild( optionItem );
+            var isChoice= field instanceof SeLiteSettings.Field.Choice;
+            if( field.multivalued || isChoice ) {
+                var fieldChildren= createTreeChildren( fieldItem );
+                if( field instanceof SeLiteSettings.Field.FixedMap ) {
+                    for( var i=0; i<field.keySet.length; i++ ) { //@TODO loop for( .. of ..) once NetBeans supports it
+                        var key= field.keySet[i];
+                        var value= compound.entry!==undefined
+                            ? compound.entry[key]
+                            : null;
+                        var optionItem= new RowInfo( module, setName, field, key, value, RowLevel.OPTION, compound ).generateTreeItem();
+                        fieldChildren.appendChild( optionItem );
+                    }
                 }
+                else {
+                    var pairsToList= isChoice
+                        ? field.choicePairs
+                        : compound.entry;
+
+                    for( var key in pairsToList ) {////@TODO potential IterableArray
+                        isChoice || compound.entry===undefined || typeof(compound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value of type ' +typeof compound.entry+ ': ' +compound.entry );
+                        var optionItem= new RowInfo( module, setName, field, key, /*value*/pairsToList[key], RowLevel.OPTION, false, compound ).generateTreeItem();
+                        fieldChildren.appendChild( optionItem );
+                    }
+                }
+                treeRowsOrChildren[ module.name ][ setName ][ fieldName ][ SeLiteSettings.FIELD_TREECHILDREN ]= fieldChildren;
             }
-            treeRowsOrChildren[ module.name ][ setName ][ fieldName ][ SeLiteSettings.FIELD_TREECHILDREN ]= fieldChildren;
         }
     }
 }
 
 /** @param string properties <treerow> or <treecell> 'properties' attribute, which contains space-separated module/set/field/choice(option) name
- *  - as applicable. Do not use with cells for set selection cells.
+ *  - as applicable. Do not use with cells for Column.DEFAULT.
  *  @param {RowLevel} level It indicates which level we want the name for. Not all levels
  *  may apply. For level===RowLevel.OPTION this may return a string with space(s) in it.
  *  @return string name for the given level, or undefined if there's no property (word) at that level.
@@ -897,7 +892,7 @@ function generateFields( setChildren, module, setName, setFields ) {
  *  but I didn't know (and still don't know) how to get it for <treerow> element where the user clicked - tree.view doesn't let me.
  * */
 function propertiesPart( properties, level ) {
-    level instanceof RowLevel || SeLiteMisc.fail( "propertiesPart() expects parameter level to be an instance of RowLevel, but its type is " +(typeof level)+ ": " +level );
+    SeLiteMisc.ensureInstance( level, RowLevel, 'level' );
     var propertiesParts= properties.split( ' ' );
     
     if( level.level>=propertiesParts.length ) {
