@@ -986,6 +986,7 @@ SeLiteMisc.objectFillIn= function objectFillIn( target, keys, values, valuesFrom
     Array.isArray(keys) || SeLiteMisc.fail( 'keys must be an object' );
     typeof values==='object' || SeLiteMisc.fail( 'values must be an array or an object' );
     if( !valuesFromProperObject ) {
+        keys.length>=values.length || SeLiteMisc.fail( 'values.length==' +values.length+ ', which is less than keys.length==' +keys.length );
         var length= dontSetMissingOnes
             ? values.length
             : keys.length;
