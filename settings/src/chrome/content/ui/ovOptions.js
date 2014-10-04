@@ -379,16 +379,15 @@ function subContainer( parent, fieldOrFields ) {
 /** Simple shortcut function
  * */
 function valueCompound( field, setName ) {
-    if( moduleSetFields[field.module.name][setName]===undefined ) debugger;
     return moduleSetFields[field.module.name][setName][field.name];
 }
 
-/** Generate text for label for 'Null/Undefine' column. Use only in editable mode, which shows set(s) - not for per-folder mode.
+/** Generate text for label for 'Null/Undefine' column. Use only in editable mode, not in per-folder mode.
  *  @param field Instance of SeLiteSettings.Field
  *  @param valueCompoundEntry Value compound 's .entry for this field, containing its configured value. One of entries from a result of Module.Module.getFieldsOfSet().
  *  @param {boolean} [atOptionLevel] Whether this is called for RowLevel.OPTION level and for SeLiteSettings.Field.FixedMap. Optional; only used if field instanceof SeLiteSettings.Field.FixedMap.
  *  @param {*} [value] Value being shown, or undefined or null. Optional; only used if field is an SeLiteSettings.Field.FixedMap and atOptionLevel is true.
- *  @return string Empty string, 'Null' or 'Undefine', as an appropriate action for this field with the given value.
+ *  @return string Empty string, 'Null' or 'Undefine', as an appropriate 'label' property for Column.NULL_UNDEFINE_DEFINITION for this field with the given value.
  * */
 function nullOrUndefineLabel( field, valueCompoundEntry, atOptionLevel, value ) {
     !showingPerFolder() || SeLiteMisc.fail( "Don't call nullOrUndefineLabel() when showing fields per folder." );
