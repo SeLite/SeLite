@@ -16,8 +16,9 @@
 "use strict";
 
 /* This has many workarounds because of inflexibility in Mozilla XUL model. It can run in two main modes: editable (showing all sets for any modules, or for matching modules) and review (per-folder).
- * On change of fields, it doesn't reload the page, but it only updates elements as needed. However, if you add/remove a configuration set, then it reloads the whole page, which loses the collapse/expand status.
- * This needs to show two separate columns Action and Null/Undefine, because if you have a multi-valued Field.String that allows null, and the field has null value, then this needs to show both 'Add a new value' and 'Undefine' - hence two columns.
+ * <br/>On change of fields, it doesn't reload the whole page. It updates the preferences in Firefox. Then it reloads the relevant row(s) in GUI based on the updated preferences. 
+ * <br/>If you add/remove a configuration set, then it reloads the whole page, which loses the collapse/expand status.
+ * <br/>It needs to show two separate columns Action and Null/Undefine, because if you have a multi-valued Field.String that allows null, and the field has null value, then this needs to show both 'Add a new value' and 'Undefine' - hence two columns.
  * */
 var XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 var nsIFilePicker = Components.interfaces.nsIFilePicker;
@@ -378,6 +379,7 @@ function subContainer( parent, fieldOrFields ) {
 /** Simple shortcut function
  * */
 function valueCompound( field, setName ) {
+    if( moduleSetFields[field.module.name][setName]===undefined ) debugger;
     return moduleSetFields[field.module.name][setName][field.name];
 }
 
@@ -1279,7 +1281,7 @@ function fieldTreeRow( setName, field ) {
  * */
 function preProcessEdit( row, value ) {
     var tree= document.getElementById( 'settingsTree' );
-    var rowProperties= tree.view.getRowProperties(row);
+    var rowProperties= tree.view.getRowProperties(row);debugger;
 
     var moduleName= propertiesPart( rowProperties, RowLevel.MODULE );
     var module= modules[moduleName];
@@ -1301,7 +1303,7 @@ function preProcessEdit( row, value ) {
             treeRow= moduleRowsOrChildren[setName][fieldName];
             // Can't use treeRow.constructor.name here - because it's a native object.
             treeRow instanceof XULElement && treeRow.tagName==='treerow' || SeLiteMisc.fail( 'treeRow should be an instance of XULElement for a <treerow>.');
-            var oldKey= moduleSetFields[moduleName][setName][fieldName].entry;
+            var oldKey= moduleSetFields[moduleName][setName][fieldName].entry; // @TODO replace with valueCompound()
             valueChanged= value!==''+oldKey;
         }
         else {
@@ -1336,40 +1338,13 @@ function preProcessEdit( row, value ) {
             ) );
         }
     }
-    if( validationPassed ) {
-        if( valueChanged ) {
-            var fieldRow= fieldTreeRow(setName, field);
-            treeCell( fieldRow, Column.VALUE/*@TODO?!?!:TRUE (originally FIELD)*/ ).setAttribute( 'properties', '' ); // Clear it, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED (which has special CSS style)
-            if( !(field instanceof SeLiteSettings.Field.FixedMap) ) {
-                if( field.multivalued ) { //Clear it, in case it was 'undefined' (if this is the first value)
-                    treeCell( fieldRow, Column.CHECKED/*@TODO VALUE fails?!?!:TRUE (original FIELD)*/ ).setAttribute( 'label', '' );
-                }
-                /*treeCell( fieldRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
-                    generateCellLabel( Column.NULL_UNDEFINE_DEFINITION, module, setName, field, undefined, value, RowLevel.FIELD, valueCompound ) );*/
-                var rowInfo= new RowInfo( module, setName, RowLevel.FIELD );
-                treeCell( fieldRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
-                    nullOrUndefineLabel( field, valueCompound(field, setName).entry )
-                );/**/
-            }
-            else {
-                var optionRow= treeRowsOrChildren[module.name][setName][field.name][oldKey];
-                treeCell( optionRow, Column.VALUE/*@TODO?!?!:TRUE (original FIELD)*/ ).setAttribute( 'properties', '' ); // Clear at option level, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED
-                var rowInfo= new RowInfo( module, setName, RowLevel.FIELD );
-                /*treeCell( optionRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
-                    generateCellLabel( Column.NULL_UNDEFINE_DEFINITION, module, setName, field, undefined, value, RowLevel.OPTION, valueCompound ) );*/ //@TODO cast value to the exact type?
-                treeCell( optionRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
-                    nullOrUndefineLabel( field, valueCompound(field, setName).entry, true, value ) //@TODO cast value to the exact type
-                );/**/
-            }
-        }
-    }
-    else {
+    if( !validationPassed ) {
         if( field.multivalued && fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] ) { // adding first value for a multivalued field
             fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN].removeChild( fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW].parentNode );
             delete treeRowsOrChildren[module.name][setName][field.name][SeLiteSettings.NEW_VALUE_ROW];
         }
     }
-    return {
+    return RowLevelOrColumn= SeLiteMisc.proxyEnsureFieldsExist( {
         module: module,
         rowProperties: rowProperties,
         setName: setName,
@@ -1380,7 +1355,7 @@ function preProcessEdit( row, value ) {
         validationPassed: validationPassed,
         valueChanged: valueChanged,
         parsed: parsed
-    };
+    } );
 }
 
 /** This - nsITreeView.setCellText() - gets triggered only for string/number fields and for File fields; not for checkboxes.
@@ -1464,7 +1439,32 @@ function setCellText( row, col, value, original) {
         info.field.setPref( setNameDot+ info.field.name+ '.' +info.oldKey, value ); //@TODO Check this for Int/Decimal - may need to treat value
     }
     SeLiteSettings.savePrefFile(); //@TODO Do we need this line?
-    moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName ); // not efficient, but robust: re-load the whole lot, rather than tweak it
+    moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName ); // not efficient, but robust: re-load the whole lot, rather than tweak it. @TODO use valueCompound()
+    
+    // Now update GUI:
+    var fieldRow= fieldTreeRow(info.setName, info.field);
+    treeCell( fieldRow, Column.VALUE/*@TODO?!?!:TRUE (originally FIELD)*/ ).setAttribute( 'properties', '' ); // Clear it, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED (which has special CSS style)
+    // Clear Null/Undefine etc.
+    var rowInfo= new RowInfo( info.module, info.setName, RowLevel.FIELD, info.field, value, valueCompound(info.field, info.setName) );
+    if( !(info.field instanceof SeLiteSettings.Field.FixedMap) ) {
+        if( info.field.multivalued ) { //Clear label at field level, in case it was 'undefined' (if this is the first value)
+            treeCell( fieldRow, Column.CHECKED/*@TODO VALUE fails?!?!:TRUE (original FIELD)*/ ).setAttribute( 'label', '' );
+        }
+        /*treeCell( fieldRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
+            generateCellLabel( Column.NULL_UNDEFINE_DEFINITION, module, setName, field, undefined, value, RowLevel.FIELD, valueCompound ) );*/
+        treeCell( fieldRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
+            nullOrUndefineLabel( info.field, valueCompound(info.field, info.setName).entry )
+        );/**/
+    }
+    else {
+        var optionRow= treeRowsOrChildren[info.module.name][info.setName][info.field.name][info.oldKey];
+        treeCell( optionRow, Column.VALUE/*@TODO?!?!:TRUE (original FIELD)*/ ).setAttribute( 'properties', '' ); // Clear at option level, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED
+        /*treeCell( optionRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
+            generateCellLabel( Column.NULL_UNDEFINE_DEFINITION, module, setName, field, undefined, value, RowLevel.OPTION, valueCompound ) );*/ //@TODO cast value to the exact type?
+        treeCell( optionRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
+            nullOrUndefineLabel( info.field, valueCompound(info.field, info.setName).entry, true, value ) //@TODO cast value to the exact type
+        );/**/
+    }
     return true;
 }
 
