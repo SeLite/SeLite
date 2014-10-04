@@ -479,25 +479,27 @@ function RowInfo( module, setName, field, key, value, rowLevel, valueCompound ) 
     SeLiteMisc.ensureType( this.value, ['string', 'number', 'boolean', 'undefined', 'null'], 'key' );
     SeLiteMisc.ensureInstance( this.rowLevel, RowLevel, 'rowLevel' );
     
-    this.valueCompound= this.valueCompound || null;
-    SeLiteMisc.ensureType( this.valueCompound, 'object', 'valueCompound' );
+    rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET || 'valueCompound' in this && SeLiteMisc.ensureType( this.valueCompound, 'non-null-object', 'valueCompound' );
     
     // Basic collecting
-    if( false ) {//@TODO factor out
-    typeof valueCompound.entry!=='object' // I only pass the single value or undefined as 'value' parameter
-                    ? valueCompound.entry
-                    : undefined;
-    if( field.multivalued || isChoice) {
-        if( field instanceof SeLiteSettings.Field.FixedMap ) {
-            valueCompound.entry[key]
+    if( field ) {
+        if( !field.multivalued && !(field instanceof SeLiteSettings.Field.Choice) ) {
+            rowLevel===RowLevel.FIELD || SeLiteMisc.fail();
+            this.value= typeof valueCompound.entry!=='object' // I only pass the single value or undefined as 'value' parameter
+                ? valueCompound.entry
+                : undefined;
         }
-        else {
-            var pairsToList= isChoice
-                        ? field.choicePairs
-                        : valueCompound.entry;
-            this.value= pairsToList[key];
+        else if( rowLevel===RowLevel.OPTION ) {
+            if( field instanceof SeLiteSettings.Field.FixedMap ) {
+                this.value= valueCompound.entry[ this.key ];
+            }
+            else {
+                var pairsToList= field instanceof SeLiteSettings.Field.Choice
+                    ? field.choicePairs
+                    : valueCompound.entry;
+                this.value= pairsToList[ this.key ];
+            }
         }
-    }
     }
     if( showingPerFolder() && this.valueCompound!==null && this.valueCompound!==undefined ) {//@TODO use either null, or undefined
         if( this.valueCompound.fromPreferences ) {

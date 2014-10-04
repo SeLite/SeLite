@@ -95,7 +95,7 @@ SeLiteMisc.ensureOneOf= function ensureOneOf( item, choices, variableName, messa
 
 /** Validates that typeof item is one of 
  *  @param item mixed
- *  @param typeStringOrStrings string, one of: 'number', 'string', 'object', 'function', 'boolean', 'undefined' or meta-type 'null'.
+ *  @param typeStringOrStrings string, one of: 'number', 'string', 'object', 'function', 'boolean', 'undefined' or meta-types 'null', 'non-null-object'.
  *  @param {string} [variableName] See same parameter of ensureOneOf().
  *  @param {string} [message] See same parameter of ensureOneOf().
  * */
@@ -109,14 +109,17 @@ SeLiteMisc.ensureType= function ensureType( item, typeStringOrStrings, variableN
     for( var i=0; i<typeStrings.length; i++ ) {
         SeLiteMisc.ensureOneOf(// Internal validation of each typeStringOrStrings[i] itself
             typeStrings[i],
-            ['number', 'string', 'object', 'function', 'boolean', 'undefined', 'null'],
+            ['number', 'string', 'object', 'function', 'boolean', 'undefined', 'null', 'non-null-object'],
             'typeStringOrStrings'
                 +(typeStrings===typeStringOrStrings
                     ? '[' +i+ ']'
                     : ''
                 )
         );
-        if( typeof item===typeStrings[i] || typeStrings[i]==='null' && item===null ) {
+        if( typeof item===typeStrings[i]
+            || typeStrings[i]==='null' && item===null
+            || typeStrings[i]==='non-null-object' && typeof item==='object' && item!==null
+        ) {
             return;
         }
     }
