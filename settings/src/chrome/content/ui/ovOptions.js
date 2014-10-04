@@ -465,7 +465,7 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
  *  Required if rowLevel===RowLevel.FIELD.
  * */
 function RowInfo( module, setName, field, key, rowLevel, valueCompound ) {
-    SeLiteMisc.objectFillIn( this, ['module', 'setName', 'field', 'key', 'value', 'rowLevel', 'valueCompound'], arguments );
+    SeLiteMisc.objectFillIn( this, ['module', 'setName', 'field', 'key', 'rowLevel', 'valueCompound'], arguments );
     
     SeLiteMisc.ensureInstance( this.module, SeLiteSettings.Module, 'module' );
     SeLiteMisc.ensureType( this.setName, ['string', 'null'], 'setName' );
@@ -475,7 +475,6 @@ function RowInfo( module, setName, field, key, rowLevel, valueCompound ) {
     !this.field || SeLiteMisc.ensureInstance( this.field, SeLiteSettings.Field, 'field (if defined)' );
     
     SeLiteMisc.ensureType( this.key, ['string', 'undefined', 'null'], 'key' );
-    SeLiteMisc.ensureType( this.value, ['string', 'number', 'boolean', 'undefined', 'null'], 'key' );
     SeLiteMisc.ensureInstance( this.rowLevel, RowLevel, 'rowLevel' );
     
     rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET || 'valueCompound' in this && SeLiteMisc.ensureType( this.valueCompound, 'non-null-object', 'valueCompound' );
@@ -499,6 +498,7 @@ function RowInfo( module, setName, field, key, rowLevel, valueCompound ) {
                 this.value= pairsToList[ this.key ];
             }
         }
+        !('value' in this) || SeLiteMisc.ensureType( this.value, ['string', 'number', 'boolean', 'undefined', 'null'], 'value' );
     }
     if( showingPerFolder() && this.valueCompound!==null && this.valueCompound!==undefined ) {//@TODO use either null, or undefined
         if( this.valueCompound.fromPreferences ) {
