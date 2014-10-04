@@ -465,7 +465,7 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
  *  Required if rowLevel===RowLevel.FIELD.
  * */
 function RowInfo( module, setName, rowLevel, field, key, valueCompound ) {
-    SeLiteMisc.objectFillIn( this, ['module', 'setName', 'rowLevel', 'field', 'key', 'valueCompound'], arguments );
+    SeLiteMisc.objectFillIn( this, ['module', 'setName', 'rowLevel', 'field', 'key', 'valueCompound'], arguments, false, /*dontSetMissingOnes*/true );
     
     SeLiteMisc.ensureInstance( this.module, SeLiteSettings.Module, 'module' );
     SeLiteMisc.ensureType( this.setName, ['string', 'null'], 'setName' );
@@ -474,7 +474,7 @@ function RowInfo( module, setName, rowLevel, field, key, valueCompound ) {
     this.field || this.rowLevel===RowLevel.MODULE || this.rowLevel===RowLevel.SET || SeLiteMisc.fail( "Parameter field must be defined, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but rowLevel is " +this.rowLevel );
     !this.field || SeLiteMisc.ensureInstance( this.field, SeLiteSettings.Field, 'field (if defined)' );
     
-    SeLiteMisc.ensureType( this.key, ['string', 'undefined', 'null'], 'key' );
+    !('key' in this) || SeLiteMisc.ensureType( this.key, ['string', 'undefined', 'null'], 'key' );
     SeLiteMisc.ensureInstance( this.rowLevel, RowLevel, 'rowLevel' );
     
     rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET || 'valueCompound' in this && SeLiteMisc.ensureType( this.valueCompound, 'non-null-object', 'valueCompound' );
@@ -500,7 +500,7 @@ function RowInfo( module, setName, rowLevel, field, key, valueCompound ) {
         }
         !('value' in this) || SeLiteMisc.ensureType( this.value, ['string', 'number', 'boolean', 'undefined', 'null'], 'value' );
     }
-    if( showingPerFolder() && this.valueCompound!==null && this.valueCompound!==undefined ) {//@TODO use either null, or undefined
+    if( showingPerFolder() && 'valueCompound' in this && this.valueCompound!==null && this.valueCompound!==undefined ) {//@TODO use either null, or undefined
         if( this.valueCompound.fromPreferences ) {
             /** @var {(ValueSource|undefined)} Location of the module definition or 'values' manifest where the value comes from. Only in per-folder mode. */
             this.source= this.valueCompound.setName!==this.module.defaultSetName()//old?!: valueCompound.folderPath!==''
@@ -601,7 +601,7 @@ RowInfo.prototype.collectProperties= function collectProperties( column ) {
         }
     }
     else if( column===Column.VALUE ) {//@TODO Big
-        if( this.key!==SeLiteSettings.NEW_VALUE_ROW ) {
+        if( 'key' in this && this.key!==SeLiteSettings.NEW_VALUE_ROW ) {
             if( this.rowLevel===RowLevel.FIELD && (this.valueCompound===null || this.valueCompound===undefined) ) {
                 return SeLiteSettings.FIELD_NULL_OR_UNDEFINED;
             }
