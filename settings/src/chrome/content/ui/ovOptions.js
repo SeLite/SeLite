@@ -453,7 +453,6 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
  *  It must be defined for multivalued or choice field. It serves as a trailing part of field option preference name)
  *  -- for multivalued non-choice fields it should be the same as value
  *  -- if the field is of a subclass of Field.Choice or Field.FixedMap, then key and value may be different.
- *  @param {(string|number)} [value]
  *  @param {RowLevel} rowLevel
  *  @param {object} valueCompound Value compound for this field stored in the set being displayed (or in the sets and manifests applicable to targetFolder, if targetFolder!=null). Its entry part may be different to (the part of) valueOrPair when rowLevel===RowLevel.OPTION, since valueOrPair then indicates what to display for this row. valueCompound is an anonymous object, one of entries in result of Module.getFieldsDownToFolder(..) or Module.Module.getFieldsOfSet(), i.e. in form {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or from field default,
@@ -465,7 +464,7 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
  *  }
  *  Required if rowLevel===RowLevel.FIELD.
  * */
-function RowInfo( module, setName, field, key, value, rowLevel, valueCompound ) {
+function RowInfo( module, setName, field, key, rowLevel, valueCompound ) {
     SeLiteMisc.objectFillIn( this, ['module', 'setName', 'field', 'key', 'value', 'rowLevel', 'valueCompound'], arguments );
     
     SeLiteMisc.ensureInstance( this.module, SeLiteSettings.Module, 'module' );
@@ -845,7 +844,7 @@ function generateSets( moduleChildren, module ) {
             }
             var setChildren= null;
             if( allowSets && module.allowSets ) {
-                var setItem= new RowInfo( module, setName, null, /*key*/ null, /*value*/null, RowLevel.SET ).generateTreeItem();
+                var setItem= new RowInfo( module, setName, null, /*key*/ null, RowLevel.SET ).generateTreeItem();
                 moduleChildren.appendChild( setItem );
                 setChildren= createTreeChildren( setItem );
             }
@@ -869,9 +868,6 @@ function generateFields( setChildren, module, setName, setFields ) {
         if( field ) {
             var valueCompound= setFields[fieldName];
             var fieldItem= new RowInfo( module, setName, field, /*key*/undefined,
-                typeof valueCompound.entry!=='object' // I only pass the single value or undefined as 'value' parameter
-                    ? valueCompound.entry
-                    : undefined,
                 RowLevel.FIELD, valueCompound ).generateTreeItem();
             setChildren.appendChild( fieldItem );
 
@@ -881,7 +877,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                 if( field instanceof SeLiteSettings.Field.FixedMap ) {
                     for( var i=0; i<field.keySet.length; i++ ) { //@TODO loop for( .. of ..) once NetBeans supports it
                         var key= field.keySet[i]
-                        var optionItem= new RowInfo( module, setName, field, key, /*value*/valueCompound.entry[key], RowLevel.OPTION, valueCompound ).generateTreeItem();
+                        var optionItem= new RowInfo( module, setName, field, key, RowLevel.OPTION, valueCompound ).generateTreeItem();
                         fieldChildren.appendChild( optionItem );
                     }
                 }
@@ -892,7 +888,7 @@ function generateFields( setChildren, module, setName, setFields ) {
 
                     for( var key in pairsToList ) {////@TODO potential IterableArray
                         isChoice || valueCompound.entry===undefined || typeof(valueCompound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value of type ' +typeof valueCompound.entry+ ': ' +valueCompound.entry );
-                        var optionItem= new RowInfo( module, setName, field, key, /*value*/pairsToList[key], RowLevel.OPTION, valueCompound ).generateTreeItem();
+                        var optionItem= new RowInfo( module, setName, field, key,  RowLevel.OPTION, valueCompound ).generateTreeItem();
                         fieldChildren.appendChild( optionItem );
                     }
                 }
@@ -1084,7 +1080,7 @@ function treeClickHandler( event ) {
                         if( cellText===ADD_NEW_VALUE ) {
                             // Add a row for a new value, right below the clicked row (i.e. at the top of all existing values)
                             // Since we're editing, it means that showingPerFolder()===false, so I don't need to generate anything for navigation from folder view here.
-                            var treeItem= new RowInfo( module, selectedSetName, field, /*key*/SeLiteSettings.NEW_VALUE_ROW, /*value*/SeLiteSettings.NEW_VALUE_ROW, RowLevel.OPTION ).generateTreeItem();
+                            var treeItem= new RowInfo( module, selectedSetName, field, /*key*/SeLiteSettings.NEW_VALUE_ROW, RowLevel.OPTION ).generateTreeItem();
 
                             var previouslyFirstValueRow;
                             for( var key in moduleRowsOrChildren[selectedSetName][field.name] ) {
@@ -1422,7 +1418,7 @@ function setCellText( row, col, value, original) {
         if( rowAfterNewPosition!==info.treeRow ) { // Repositioning - remove treeRow, create a new treeRow
             var treeChildren= info.fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN];
             treeChildren.removeChild( info.treeRow.parentNode );
-            var treeItem= new RowInfo( info.module, info.setName, info.field, /*key*/value, value, RowLevel.OPTION ).generateTreeItem(); // That sets 'properties' and it adds an entry to treeRow[value] (which is same as fieldTreeRowsOrChildren[value] here).
+            var treeItem= new RowInfo( info.module, info.setName, info.field, /*key*/value, RowLevel.OPTION ).generateTreeItem(); // That sets 'properties' and it adds an entry to treeRow[value] (which is same as fieldTreeRowsOrChildren[value] here).
             // Firefox 22.b04 and 24.0a1 doesn't handle parent.insertBefore(newItem, null), even though it should - https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore
             if(true){//@TODO cleanup
                 if( rowAfterNewPosition!==null ) {
@@ -1773,7 +1769,7 @@ window.addEventListener( "load", function(e) {
     var setNameToExpand= null;
     if( allowModules ) {
         for( var moduleName in modules ) {
-            var moduleTreeItem= new RowInfo( modules[moduleName], null, null, /*key*/undefined, /*value*/undefined, RowLevel.MODULE ).generateTreeItem();
+            var moduleTreeItem= new RowInfo( modules[moduleName], null, null, /*key*/undefined, RowLevel.MODULE ).generateTreeItem();
             topTreeChildren.appendChild( moduleTreeItem );
             
             var moduleChildren= createTreeChildren( moduleTreeItem );
@@ -1786,7 +1782,7 @@ window.addEventListener( "load", function(e) {
         
         var moduleChildren;
         if( allowSets && modules[moduleName].allowSets ) {
-            var moduleTreeItem= new RowInfo( modules[moduleName], null, null, /*key*/undefined, /*value*/undefined, RowLevel.MODULE ).generateTreeItem();
+            var moduleTreeItem= new RowInfo( modules[moduleName], null, null, /*key*/undefined, RowLevel.MODULE ).generateTreeItem();
             topTreeChildren.appendChild( moduleTreeItem );
             moduleChildren= createTreeChildren( moduleTreeItem );
         }
