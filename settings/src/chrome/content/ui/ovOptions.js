@@ -720,7 +720,7 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
     else if( column===Column.NULL_UNDEFINE_DEFINITION ) {
         // If per-folder view: show Manifest or definition. Otherwise (i.e. per-module view): show Null/Undefine.
         if( !showingPerFolder() ) {
-            return nullOrUndefineLabel( this.field, this.valueCompound.entry, this.rowLevel===RowLevel.OPTION, this.value );
+            return nullOrUndefineLabel( this.field, this.valueCompound.entry, this.rowLevel===RowLevel.OPTION, 'value' in this ? this.value : undefined );
         }
         else {
             return this.valueCompound.folderPath
