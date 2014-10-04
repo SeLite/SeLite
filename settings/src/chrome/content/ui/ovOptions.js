@@ -448,12 +448,12 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
 /** @param {SeLiteSettings.Module} module object of Module
  *  @param {string} setName set name; either '' if the module doesn't allow sets; otherwise it's a set name when at field level
  *  attribute for the <treerow> nodes, so that when we handle a click event, we know what field the node is for.
+ *  @param {RowLevel} rowLevel
  *  @param {SeLiteSettings.Field} field An object of a subclass of Field. If rowLevel==RowLevel.MODULE or rowLevel==RowLevel.SET,  then field is null.
  *  @param {string} key Key for the value to display. If no such key, it should be undefined.
  *  It must be defined for multivalued or choice field. It serves as a trailing part of field option preference name)
  *  -- for multivalued non-choice fields it should be the same as value
  *  -- if the field is of a subclass of Field.Choice or Field.FixedMap, then key and value may be different.
- *  @param {RowLevel} rowLevel
  *  @param {object} valueCompound Value compound for this field stored in the set being displayed (or in the sets and manifests applicable to targetFolder, if targetFolder!=null). Its entry part may be different to (the part of) valueOrPair when rowLevel===RowLevel.OPTION, since valueOrPair then indicates what to display for this row. valueCompound is an anonymous object, one of entries in result of Module.getFieldsDownToFolder(..) or Module.Module.getFieldsOfSet(), i.e. in form {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or from field default,
  *          setName: string set name (only valid if fromPreferences is true),
@@ -1169,7 +1169,7 @@ function treeClickHandler( event ) {
                                 cellText==='Null'
                                     ? null
                                     : undefined );
-                            var compound= moduleSetFields[moduleName][selectedSetName][field.name];
+                            var compound= valueCompound(field, selectedSetName);
                             if( field instanceof SeLiteSettings.Field.Bool && compound.entry ) {
                                 treeCell( fieldTreeRow(selectedSetName, field), Column.CHECKED ).setAttribute( 'value', 'false' );
                             }
@@ -1194,14 +1194,19 @@ function treeClickHandler( event ) {
                 moduleSetFields[moduleName][selectedSetName]= module.getFieldsOfSet( selectedSetName );
                 
                 var fieldRow= fieldTreeRow(selectedSetName, field);
-                var rowToUpdate;
+                var rowToUpdate, rowLevel;
+                
                 !clickedOptionKey || field instanceof SeLiteSettings.Field.Choice || field instanceof SeLiteSettings.Field.FixedMap || SeLiteMisc.fail( "When clickedOptionKey is set, the field should be an instance of Choice or FixedMap.");
                 if( clickedOptionKey && field instanceof SeLiteSettings.Field.FixedMap ) { // The user clicked at 'undefine' for an option of a FixedMap instance
                     rowToUpdate= moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ]; // same as clickedTreeRow above
+                    rowLevel= RowLevel.OPTION;
                 }
                 else {
                     rowToUpdate= fieldRow;
+                    rowLevel= RowLevel.FIELD;
                 }
+                var rowInfo= new RowInfo( module, selectedSetName, rowLevel, field, clickedOptionKey, valueCompound(field, selectedSetName) );
+                
                 var valueCell= treeCell( rowToUpdate, Column.CHECKED/* TODO?!?! When I tried VALUE, things were not better.*/ );
                 valueCell.setAttribute( 'properties',
                     cellText==='Null' || cellText==='Undefine'
@@ -1341,6 +1346,7 @@ function preProcessEdit( row, value ) {
                 }
                 /*treeCell( fieldRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
                     generateCellLabel( Column.NULL_UNDEFINE_DEFINITION, module, setName, field, undefined, value, RowLevel.FIELD, valueCompound ) );*/
+                var rowInfo= new RowInfo( module, setName, RowLevel.FIELD );
                 treeCell( fieldRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
                     nullOrUndefineLabel( field, valueCompound(field, setName).entry )
                 );/**/
@@ -1348,6 +1354,7 @@ function preProcessEdit( row, value ) {
             else {
                 var optionRow= treeRowsOrChildren[module.name][setName][field.name][oldKey];
                 treeCell( optionRow, Column.VALUE/*@TODO?!?!:TRUE (original FIELD)*/ ).setAttribute( 'properties', '' ); // Clear at option level, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED
+                var rowInfo= new RowInfo( module, setName, RowLevel.FIELD );
                 /*treeCell( optionRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
                     generateCellLabel( Column.NULL_UNDEFINE_DEFINITION, module, setName, field, undefined, value, RowLevel.OPTION, valueCompound ) );*/ //@TODO cast value to the exact type?
                 treeCell( optionRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
