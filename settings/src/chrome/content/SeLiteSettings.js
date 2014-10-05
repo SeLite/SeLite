@@ -1295,7 +1295,7 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function getFieldsOfSet( setName
         !isChoice || result[fieldName].entry===undefined || typeof(result[fieldName].entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value ' +typeof result[fieldName].entry ); 
         result[ fieldName ].fromPreferences= fieldHasPreference || children.length>0;
     }
-    return result;
+    return SeLiteMisc.proxyEnsureFieldsExist( result );
 };
 
 /** @param {string|SeLiteSettings.Module} moduleNameOrModule
@@ -1570,12 +1570,12 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
     
     var result= SeLiteMisc.sortedObject(true);
     for( var fieldName in this.fields ) {
-        result[ fieldName ]= {
+        result[ fieldName ]= SeLiteMisc.proxyEnsureFieldsExist( {
             entry: undefined,
             fromPreferences: false,
             folderPath: undefined,
             setName: undefined
-        };
+        } );
     }
     
     var manifests= manifestsDownToFolder(folderPath, dontCache);
@@ -1661,16 +1661,16 @@ SeLiteSettings.Module.prototype.getFieldsDownToSet= function getFieldsDownToSet(
     this.allowsSets || SeLiteMisc.fail( "You can't use getFieldsDownToSet() for module " +this.name+ " since it doesn't allow sets." );
     var setEntries= SeLiteMisc.sortedObject(true);
     if( this.defaultSetName()!==null && this.defaultSetName()!==setName ) {
-        setEntries['']= [{
+        setEntries['']= [  SeLiteMisc.proxyEnsureFieldsExist({
             moduleName: this.name,
             setName: this.defaultSetName(),
-        }];
+        }) ];
     }
     if( setName ) {
-        setEntries['']= [{
+        setEntries['']= [  SeLiteMisc.proxyEnsureFieldsExist({
             moduleName: this.name,
             setName: setName,
-        }];
+        }) ];
     }
     return this.mergeSetsAndDefaults( setEntries, undefined, dontCache );
 };
@@ -1702,12 +1702,12 @@ SeLiteSettings.Module.prototype.mergeSetsAndDefaults= function getFieldsDownToSe
                     // override any value(s) from values manifests, no matter whether from upper or lower (more local) level
                     // override any less local value(s) from default set or sets associated with upper (less local) folders
                     if( fields[fieldName].fromPreferences ) {
-                        result[ fieldName ]= {
+                        result[ fieldName ]= SeLiteMisc.proxyEnsureFieldsExist( {
                             entry: fields[fieldName].entry,
                             fromPreferences: true,
                             folderPath: folderOrSetName,
                             setName: setEntry.setName
-                        }
+                        } );
                     }
                 }
             }
