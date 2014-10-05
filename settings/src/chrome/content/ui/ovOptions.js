@@ -439,32 +439,37 @@ function RowInfo( module, setName, rowLevel, field, key, valueCompound ) {
     
     SeLiteMisc.ensureInstance( this.module, SeLiteSettings.Module, 'module' );
     SeLiteMisc.ensureType( this.setName, ['string', 'null'], 'setName' );
+    SeLiteMisc.ensureInstance( this.rowLevel, RowLevel, 'rowLevel' );
     
     SeLiteMisc.ensureType( this.field, ['object', 'undefined'], "field" );
     this.field || this.rowLevel===RowLevel.MODULE || this.rowLevel===RowLevel.SET || SeLiteMisc.fail( "Parameter field must be defined, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but rowLevel is " +this.rowLevel );
     !this.field || SeLiteMisc.ensureInstance( this.field, SeLiteSettings.Field, 'field (if defined)' );
     
     !('key' in this) || SeLiteMisc.ensureType( this.key, ['string', 'undefined', 'null'], 'key' );
-    SeLiteMisc.ensureInstance( this.rowLevel, RowLevel, 'rowLevel' );
+    if( 'key' in this && this.key===SeLiteSettings.NEW_VALUE_ROW ) {
+        this.rowLevel===RowLevel.OPTION && this.field.multivalued && !SeLiteMisc.isInstance( this.field, [SeLiteSettings.Field.FixedMap,SeLiteSettings.Field.Choice] ) || SeLiteMisc.fail( 'Only use SeLiteSettings.NEW_VALUE_ROW for multivalued freetype fields at RowLevel.OPTION.' );
+        !('valueCompound' in this) || SeLiteMisc.fail( 'When using SeLiteSettings.NEW_VALUE_ROW, do not pass valueCompound.' );
+        this.valueCompound= SeLiteMisc.proxyEnsureFieldsExist({ entry: {} });
+    }
     
     rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET || 'valueCompound' in this && SeLiteMisc.ensureType( this.valueCompound, 'some-object', 'valueCompound' );
     
     // Basic collecting
-    if( field ) {
-        if( !field.multivalued && !(field instanceof SeLiteSettings.Field.Choice) ) {
-            rowLevel===RowLevel.FIELD || SeLiteMisc.fail();
-            this.value= typeof valueCompound.entry!=='object' // I only pass the single value or undefined as 'value' parameter
-                ? valueCompound.entry
+    if( this.field ) {
+        if( !this.field.multivalued && !(this.field instanceof SeLiteSettings.Field.Choice) ) {
+            this.rowLevel===RowLevel.FIELD || SeLiteMisc.fail();
+            this.value= typeof this.valueCompound.entry!=='object' // I only pass the single value or undefined as 'value' parameter
+                ? this.valueCompound.entry
                 : undefined;
         }
-        else if( rowLevel===RowLevel.OPTION ) {
-            if( field instanceof SeLiteSettings.Field.FixedMap ) {
+        else if( this.rowLevel===RowLevel.OPTION ) {
+            if( this.field instanceof SeLiteSettings.Field.FixedMap ) {
                 this.value= valueCompound.entry[ this.key ];
             }
             else {
-                var pairsToList= field instanceof SeLiteSettings.Field.Choice
-                    ? field.choicePairs
-                    : valueCompound.entry;
+                var pairsToList= this.field instanceof SeLiteSettings.Field.Choice
+                    ? this.field.choicePairs
+                    : this.valueCompound.entry;
                 this.value= pairsToList[ this.key ];
             }
         }
@@ -681,14 +686,17 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
                 return ''+this.valueCompound.entry;
             }
         }
-        if( this.rowLevel===RowLevel.OPTION ) { //multi-valued freetype or FixedMap; single/multi-valued Choice
+        if( this.rowLevel===RowLevel.OPTION ) { //multi-valued freetype, File or FixedMap; single/multi-valued Choice
             if( this.field instanceof SeLiteSettings.Field.Choice ) {
                 return '' +this.field.choicePairs[this.key];
             }
             else {
+                if( this.key===SeLiteSettings.NEW_VALUE_ROW ) {
+                    return undefined; // nothing to show
+                }
                 if( this.key in this.valueCompound.entry ) {
                     return '' +this.valueCompound.entry[this.key];
-                }
+                }// free-type or File get listed at OPTION level only when they have value(s). Since there is no value, the field is FixedMap (for which we list all entries, even undefined ones) and we show the value as 'undefined'.
                 SeLiteMisc.ensureInstance( this.field, SeLiteSettings.Field.FixedMap, 'this.field' );
                 return 'undefined';
             }
