@@ -584,11 +584,13 @@ RowInfo.prototype.collectProperties= function collectProperties( column ) {
     }
     else if( column===Column.VALUE ) {//@TODO Big
         if( 'key' in this && this.key!==SeLiteSettings.NEW_VALUE_ROW ) {
-            if( this.rowLevel===RowLevel.FIELD && (this.valueCompound===null || this.valueCompound===undefined) ) {
+            if( this.rowLevel===RowLevel.FIELD && this.valueCompound.entry===undefined ) {
                 return SeLiteSettings.FIELD_NULL_OR_UNDEFINED;
             }
             if( this.rowLevel===RowLevel.OPTION ) {
-                
+                if( this.field instanceof SeLiteSettings.Field.FixedMap && this.valueCompound.entry[this.key]===undefined ) {
+                    return SeLiteSettings.FIELD_NULL_OR_UNDEFINED;
+                }
             }
         }
     }
