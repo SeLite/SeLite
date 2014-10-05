@@ -93,41 +93,55 @@ SeLiteMisc.ensureOneOf= function ensureOneOf( item, choices, variableName, messa
         ) );
 };
 
-/** Validates that typeof item is one of 
- *  @param item mixed
- *  @param typeStringOrStrings string, one of: 'number', 'string', 'object', 'function', 'boolean', 'undefined' or meta-types 'null', 'non-null-object'.
- *  @param {string} [variableName] See same parameter of ensureOneOf().
- *  @param {string} [message] See same parameter of ensureOneOf().
- * */
-SeLiteMisc.ensureType= function ensureType( item, typeStringOrStrings, variableName, message ) {
-    message= message || '';
-    var typeStrings= typeStringOrStrings;
-    if( !Array.isArray(typeStrings) ) {
-        typeof typeStrings==='string' || SeLiteMisc.fail( 'typeStringOrStrings must be a string or an array');
-        typeStrings= [typeStrings];
+/** It finds out whether the item's type is one of the given type(s).
+ *  @param {*} item
+ *  @param {(string|array)} typeStringOrStrings string, one of: 'number', 'string', 'object', 'function', 'boolean', 'undefined' or meta-types 'null', 'some-object'. 'some-object' stands for a non-null object.
+ *  @return {boolean}
+ */
+SeLiteMisc.hasType= function hasType( item, typeStringOrStrings ) {
+    var typeStringOrStringsWasArray= true;
+    if( !Array.isArray(typeStringOrStrings) ) {
+        typeof typeStringOrStrings==='string' || SeLiteMisc.fail( 'typeStringOrStrings must be a string or an array');
+        typeStringOrStrings= [typeStringOrStrings];
+        typeStringOrStringsWasArray= false;
     }
-    for( var i=0; i<typeStrings.length; i++ ) {
+    for( var i=0; i<typeStringOrStrings.length; i++ ) {
         SeLiteMisc.ensureOneOf(// Internal validation of each typeStringOrStrings[i] itself
-            typeStrings[i],
-            ['number', 'string', 'object', 'function', 'boolean', 'undefined', 'null', 'non-null-object'],
+            typeStringOrStrings[i],
+            ['number', 'string', 'object', 'function', 'boolean', 'undefined', 'null', 'some-object'],
             'typeStringOrStrings'
-                +(typeStrings===typeStringOrStrings
+                +(typeStringOrStringsWasArray
                     ? '[' +i+ ']'
                     : ''
                 )
         );
-        if( typeof item===typeStrings[i]
-            || typeStrings[i]==='null' && item===null
-            || typeStrings[i]==='non-null-object' && typeof item==='object' && item!==null
+        if( typeof item===typeStringOrStrings[i]
+            || typeStringOrStrings[i]==='null' && item===null
+            || typeStringOrStrings[i]==='some-object' && typeof item==='object' && item!==null
         ) {
-            return;
+            return true;
         }
     }
-    SeLiteMisc.fail( message
-        || (variableName
-            ? 'Variable ' +variableName+ ' should have type from within [' +typeStrings+ '], but the actual type of the item is ' +typeof item+ '. The item: ' +item
-            : 'Expecting an item of type from within [' +typeStrings+ '], but the actual type of the item is ' +typeof item+ '. The item: ' +item
-    ) );
+    return false;
+};
+
+/** Validates that typeof item is one of 
+ *  @param {*} item
+ *  @param {(string|array)} typeStringOrStrings See same parameter of hasType().
+ *  @param {string} [variableName] See same parameter of ensureOneOf().
+ *  @param {string} [message] See same parameter of ensureOneOf().
+ * */
+SeLiteMisc.ensureType= function ensureType( item, typeStringOrStrings, variableName, message ) {
+    if( !SeLiteMisc.hasType(item, typeStringOrStrings) ) {
+        typeStringOrStrings= Array.isArray(typeStringOrStrings)
+            ? typeStringOrStrings
+            : [typeStringOrStrings];
+        SeLiteMisc.fail( message
+            || (variableName
+                ? 'Variable ' +variableName+ ' should have type from within [' +typeStrings+ '], but the actual type of the item is ' +typeof item+ '. The item: ' +item
+                : 'Expecting an item of type from within [' +typeStringOrStrings+ '], but the actual type of the item is ' +typeof item+ '. The item: ' +item
+        ) );
+    }
 };
 
 /** @var array of strings which are names of global classes/objects.

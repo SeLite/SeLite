@@ -289,14 +289,14 @@ function generateTreeColumns( allowModules, perFolder ) {
         treecols.appendChild(treecol);
     }
     
-    // Per-folder view: Manifest or definition. Per-module view: Null/Undefine
+    // Per-folder view: Manifest/Definition. Per-module view: Null/Undefine
     splitter= document.createElementNS( XUL_NS, 'splitter' );
     splitter.setAttribute( 'ordinal', '10');
     treecols.appendChild( splitter );
 
     treecol= treeColumnElements.manifest= document.createElementNS( XUL_NS, 'treecol');
     treecol.setAttribute('label', perFolder
-        ? 'Manifest or definition'
+        ? 'Manifest/Definition'
         : 'Null/Undefine');
     treecol.setAttribute('editable', 'false');
     treecol.setAttribute( 'flex', '1');
@@ -447,7 +447,7 @@ function RowInfo( module, setName, rowLevel, field, key, valueCompound ) {
     !('key' in this) || SeLiteMisc.ensureType( this.key, ['string', 'undefined', 'null'], 'key' );
     SeLiteMisc.ensureInstance( this.rowLevel, RowLevel, 'rowLevel' );
     
-    rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET || 'valueCompound' in this && SeLiteMisc.ensureType( this.valueCompound, 'non-null-object', 'valueCompound' );
+    rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET || 'valueCompound' in this && SeLiteMisc.ensureType( this.valueCompound, 'some-object', 'valueCompound' );
     
     // Basic collecting
     if( field ) {
@@ -470,10 +470,10 @@ function RowInfo( module, setName, rowLevel, field, key, valueCompound ) {
         }
         !('value' in this) || SeLiteMisc.ensureType( this.value, ['string', 'number', 'boolean', 'undefined', 'null'], 'value' );
     }
-    if( showingPerFolder() && 'valueCompound' in this && this.valueCompound!==null && this.valueCompound!==undefined ) {//@TODO use either null, or undefined
+    if( showingPerFolder() && 'valueCompound' in this && this.valueCompound!==undefined ) {
         if( this.valueCompound.fromPreferences ) {
             /** @var {(ValueSource|undefined)} Location of the module definition or 'values' manifest where the value comes from. Only in per-folder mode. */
-            this.source= this.valueCompound.setName!==this.module.defaultSetName()//old?!: valueCompound.folderPath!==''
+            this.source= this.valueCompounds.etName!==this.module.defaultSetName()//old?!: valueCompound.folderPath!==''
                 ? ValueSource.ASSOCIATED_SET
                 : ValueSource.DEFAULT_SET;
         }
@@ -485,7 +485,7 @@ function RowInfo( module, setName, rowLevel, field, key, valueCompound ) {
     }
     if( this.rowLevel===RowLevel.OPTION && this.field instanceof SeLiteSettings.Field.Choice ) {
         /** @var {boolean} Whether the radio button for a Choice field is checked. Not valid for Bool fields. */
-        this.optionIsSelected= typeof(this.valueCompound.entry)==='object' && this.valueCompound.entry!==null && this.key in this.valueCompound.entry;
+        this.optionIsSelected= SeLiteMisc.hasType( this.valueCompound.entry, 'some-object' ) && this.key in this.valueCompound.entry;
     }
     //         this.isUndefined= this.isNull= false;
 }
@@ -582,7 +582,7 @@ RowInfo.prototype.collectProperties= function collectProperties( column ) {
                 : SeLiteSettings.OPTION_UNIQUE_CELL
         }
     }
-    else if( column===Column.VALUE ) {//@TODO Big
+    else if( column===Column.VALUE ) {
         if( 'key' in this && this.key!==SeLiteSettings.NEW_VALUE_ROW ) {
             if( this.rowLevel===RowLevel.FIELD && this.valueCompound.entry===undefined ) {
                 return SeLiteSettings.FIELD_NULL_OR_UNDEFINED;
@@ -730,7 +730,7 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
         }
     }
     else if( column===Column.NULL_UNDEFINE_DEFINITION ) {
-        // If per-folder view: show Manifest or definition. Otherwise (i.e. per-module view): show Null/Undefine.
+        // If per-folder view: show Manifest/Definition. Otherwise (i.e. per-module view): show Null/Undefine.
         if( !showingPerFolder() ) {
             return this.nullOrUndefineLabel( this.rowLevel===RowLevel.OPTION );
         }
