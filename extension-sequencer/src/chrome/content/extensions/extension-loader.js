@@ -54,7 +54,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                 catch( e ) {
                     problems.push( 'Add-on ' +addon.name+ ' has an error in its SeLiteExtensionSequencerManifest.js. Please report this issue '+
                         (addon.id.indexOf('selite.googlecode.com')>0
-                         ? 'at https://code.google.com/p/selite/wiki/ReportingIssues/'
+                         ? 'at <a href="https://code.google.com/p/selite/wiki/ReportingIssues/">https://code.google.com/p/selite/wiki/ReportingIssues/</a>'
                          : 'to its author (but not to SeLite project).'
                         )
                     );
@@ -79,7 +79,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                 return dependancyPluginNames[pluginId];
             };
 
-            problems.push( "Following Selenium IDE plugin(s) are missing their dependancy plugin(s). Please, install (or enable) any missing dependancies. Please follow documentation of the plugin; if it's an SeLite add-on, see https://code.google.com/p/selite/wiki/AddOnsDependencies." );
+            problems.push( 'Following Selenium IDE plugin(s) are missing their dependancy plugin(s). Please, install (or enable) any missing dependancies. Please follow documentation of the plugin; if it is an SeLite add-on, see <a href="https://code.google.com/p/selite/wiki/AddOnsDependencies">https://code.google.com/p/selite/wiki/AddOnsDependencies</a>.' );
             problems.push( '' );
             problems.push( "Plugin(s) missing at least one direct dependency:" );
             for( var pluginId in sortedPlugins.missingDirectDependancies ) {

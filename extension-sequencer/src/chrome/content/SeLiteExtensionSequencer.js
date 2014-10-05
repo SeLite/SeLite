@@ -207,7 +207,7 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
 /** @private
  *  Shortcut method to generate a non-modal popup. I need this  since I can't use alert() here in Firefox 30. So I follow https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Alerts_and_Notifications.
  *  Call it max. once at any time - see https://bugzilla.mozilla.org/show_bug.cgi?id=324570.
- *  @param {string} title Since the alert may show outside of Firefox, make the title clarify that it's about a Firefox add-on.
+ *  @param {string} title Not used right now. In future implementation (once Mozilla fixes their alert service) the alert may show outside of Firefox, therefore make the title clarify that it's about a Firefox add-on.
  *  @param {string} message Message
  * */
 SeLiteExtensionSequencer.popup= function popup( window, title, message ) {
@@ -246,7 +246,13 @@ SeLiteExtensionSequencer.popup= function popup( window, title, message ) {
                 newTabBrowser.addEventListener(
                     "load",
                     function () {
-                        newTabBrowser.contentDocument.body.innerHTML= message;
+                        // As per https://developer.mozilla.org/en-US/Add-ons/Overlay_Extensions/XUL_School/DOM_Building_and_HTML_Insertion#See_Also -> https://developer.mozilla.org/en-US/docs/Displaying_web_content_in_an_extension_without_security_issues
+                        var body= newTabBrowser.contentDocument.body;
+                        var fragment= Components.classes["@mozilla.org/feed-unescapehtml;1"]
+                         .getService(Components.interfaces.nsIScriptableUnescapeHTML)
+                         .parseFragment( message, false, null, body );
+                        //newTabBrowser.contentDocument.body.innerHTML= message;
+                        body.appendChild( fragment );
                     },
                     true
                 );
