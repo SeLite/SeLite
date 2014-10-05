@@ -473,7 +473,7 @@ function RowInfo( module, setName, rowLevel, field, key, valueCompound ) {
     if( showingPerFolder() && 'valueCompound' in this && this.valueCompound!==undefined ) {
         if( this.valueCompound.fromPreferences ) {
             /** @var {(ValueSource|undefined)} Location of the module definition or 'values' manifest where the value comes from. Only in per-folder mode. */
-            this.source= this.valueCompounds.etName!==this.module.defaultSetName()//old?!: valueCompound.folderPath!==''
+            this.source= this.valueCompound.setName!==this.module.defaultSetName()//old?!: valueCompound.folderPath!==''
                 ? ValueSource.ASSOCIATED_SET
                 : ValueSource.DEFAULT_SET;
         }
@@ -545,7 +545,7 @@ RowInfo.prototype.collectEditable= function collectEditable( column ) {
 };
 
 /** @param {Column} column
- *  @return {(string|undefined)} Value to use for 'value' attribute, or undefined if not applicable.
+ *  @return {(string|undefined)} Value to use for 'value' attribute, or undefined if not applicable. 'value' only controls checked/unchecked state of checbkox/radio button; it doesn't show as text, which comes from 'label' - see collectLabel().
  */
 RowInfo.prototype.collectValue= function collectValue( column ) {
     if( column===Column.DEFAULT ) {
@@ -674,7 +674,10 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
             return '';
         }
         if( this.rowLevel===RowLevel.FIELD ) {
-            if( /*single-valued fields:*/ this.valueCompound.entry===null || /*single/multi valued:*/this.valueCompound.entry===undefined || /* single-valued fields: */typeof this.valueCompound.entry!=='object' ) {
+            if( this.valueCompound.entry===null //single-valued fields
+             || this.valueCompound.entry===undefined //single/multi valued
+             || typeof this.valueCompound.entry!=='object' // single-valued fields
+            ) {
                 return ''+this.valueCompound.entry;
             }
         }
