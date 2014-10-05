@@ -517,18 +517,30 @@ CellInfo= SeLiteMisc.proxyEnsureFieldsExist( CellInfo );
  * @returns {boolean} Value to use for 'editable' attribute - but convert it to a string first.
  */
 RowInfo.prototype.collectEditable= function collectEditable( column ) {
+    // the simplest cases - 'catch all' - first
+    if( this.rowLevel===RowLevel.MODULE ) {
+        return false;
+    }
+    if( this.rowLevel===RowLevel.SET || column===Column.DEFAULT ) {
+        return column===Column.DEFAULT && this.rowLevel===RowLevel.SET && this.module.allowSets;
+    }
     if( column===Column.MODULE_SET_FIELD_FIXEDMAPKEYS ) {
         return false;
     }
-    if( column===Column.DEFAULT ) {
-        return this.rowLevel===RowLevel.SET && this.module.allowSets;
-    }
+    var isChoice= this.field instanceof SeLiteSettings.Field.Choice;
     if( column===Column.CHECKED ) {
         return !showingPerFolder()
         && (this.rowLevel===RowLevel.FIELD || this.rowLevel===RowLevel.OPTION)
-        && (this.field instanceof SeLiteSettings.Field.Bool || this.field instanceof SeLiteSettings.Field.Choice)
-        && ( this.rowLevel!==RowLevel.FIELD || !(this.field instanceof SeLiteSettings.Field.Choice) )
+        && (this.field instanceof SeLiteSettings.Field.Bool || isChoice)
+        && ( this.rowLevel!==RowLevel.FIELD || !isChoice )
         && ( this.rowLevel!==RowLevel.OPTION || !this.optionIsSelected || this.field.multivalued );
+    }
+    if( isChoice ) {
+        return false;
+    }
+    if( column===Column.VALUE ) {
+        return this.rowLevel===RowLevel.FIELD && !this.field.multivalued
+            || this.rowLevel===RowLevel.OPTION && this.field.multivalued; // This includes FixedMap
     }
 };
 
