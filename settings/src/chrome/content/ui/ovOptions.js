@@ -1300,7 +1300,7 @@ function fieldTreeRow( setName, field ) {
  * */
 function preProcessEdit( row, value ) {
     var tree= document.getElementById( 'settingsTree' );
-    var rowProperties= tree.view.getRowProperties(row);debugger;
+    var rowProperties= tree.view.getRowProperties(row);
 
     var moduleName= propertiesPart( rowProperties, RowLevel.MODULE );
     var module= modules[moduleName];
@@ -1336,7 +1336,7 @@ function preProcessEdit( row, value ) {
         fieldTreeRowsOrChildren= moduleRowsOrChildren[setName][fieldName];
         fieldTreeRowsOrChildren instanceof SeLiteMisc.SortedObjectTarget || SeLiteMisc.fail( "fieldTreeRowsOrChildren should be an instance of SeLiteMisc.SortedObjectTarget, but it is " +fieldTreeRowsOrChildren.constructor.name );
         oldKey= propertiesPart( rowProperties, RowLevel.OPTION );
-        oldKey!==null && oldKey!==undefined || SeLiteMisc.fail( 'Module ' +module.name+ ', set ' +setName+ ', field ' +field.name+ " is null/undefined, but it shoduln't be because it's a multi-valued field.");
+        oldKey!==null || SeLiteMisc.fail( 'Module ' +module.name+ ', set ' +setName+ ', field ' +field.name+ " must not be null.");
         valueChanged= value!==oldKey; // oldKey is a string, so this comparison is OK
         if( valueChanged ) {
             if( trimmed in fieldTreeRowsOrChildren ) {
@@ -1344,7 +1344,9 @@ function preProcessEdit( row, value ) {
                 validationPassed= false;
             }
         }
-        treeRow= fieldTreeRowsOrChildren[oldKey];
+        treeRow= fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW]
+            ? fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW]
+            : fieldTreeRowsOrChildren[oldKey];
     }
     if( validationPassed && valueChanged ) {
         parsed= field.parse(trimmed);
@@ -1358,7 +1360,7 @@ function preProcessEdit( row, value ) {
         }
     }
     if( !validationPassed ) {
-        if( field.multivalued && fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] ) { // adding first value for a multivalued field
+        if( field.multivalued && fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] ) { // This would be the first value for this (multivalued) field. We have no previous value to revert it to, so we remove this row.
             fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN].removeChild( fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW].parentNode );
             delete treeRowsOrChildren[module.name][setName][field.name][SeLiteSettings.NEW_VALUE_ROW];
         }
@@ -1399,8 +1401,7 @@ function setCellText( row, col, value, original) {
     }
     else
     if( !(info.field instanceof SeLiteSettings.Field.FixedMap) ) {
-        var rowAfterNewPosition= null; // It may be null - then append the new row at the end; if same as treeRow, then the new value stays in treeRow.
-            // If the new value still fits at the original position, then rowAfterNewPosition will be treeRow.
+        var rowAfterNewPosition; // If same as info.treeRow, then the new value stays where it was typed. If undefined, then append the new row at the end.
         for( var otherKey in info.fieldTreeRowsOrChildren ) {
             // Following check also excludes SeLiteSettings.NEW_VALUE_ROW, because we don't want to compare it to real values. 
             if( SeLiteSettings.reservedNames.indexOf(otherKey)<0 && info.field.compareValues(otherKey, value)>=0 ) {
@@ -1408,10 +1409,10 @@ function setCellText( row, col, value, original) {
                 break;
             }
         }
-        if( rowAfterNewPosition===null && info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] && Object.keys(info.fieldTreeRowsOrChildren).length===3 ) {
+        if( !rowAfterNewPosition && info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] && Object.keys(info.fieldTreeRowsOrChildren).length===3 ) {
             // fieldTreeRowsOrChildren has 3 keys: SeLiteSettings.FIELD_MAIN_ROW, SeLiteSettings.FIELD_TREECHILDREN, SeLiteSettings.NEW_VALUE_ROW.
             // So there's no other existing value, and the row being edited is a new one (it didn't have a real value set yet)
-            info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW]===info.treeRow && info.oldKey===SeLiteSettings.NEW_VALUE_ROW
+            info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW]===info.treeRow && info.oldKey===undefined
             || SeLiteMisc.fail( "This assumes that if fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] is set, then that's the row we're just editing." );
             rowAfterNewPosition= info.treeRow;
         }
@@ -1421,7 +1422,7 @@ function setCellText( row, col, value, original) {
             var treeItem= new RowInfo( info.module, info.setName, RowLevel.OPTION, info.field, /*key*/value ).generateTreeItem(); // That sets 'properties' and it adds an entry to treeRow[value] (which is same as fieldTreeRowsOrChildren[value] here).
             // Firefox 22.b04 and 24.0a1 doesn't handle parent.insertBefore(newItem, null), even though it should - https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore
             if(true){//@TODO cleanup
-                if( rowAfterNewPosition!==null ) {
+                if( rowAfterNewPosition ) {
                     treeChildren.insertBefore( treeItem, rowAfterNewPosition.parentNode );
                 }
                 else {
@@ -1430,7 +1431,7 @@ function setCellText( row, col, value, original) {
             }
             else {
                 treeChildren.insertBefore( treeItem,
-                rowAfterNewPosition!==null
+                rowAfterNewPosition
                     ? rowAfterNewPosition.parentNode
                     : null );
             }
