@@ -53,10 +53,14 @@ if( SeLiteExitConfirmationChecker===undefined ) {
 
         SeLiteExitConfirmationChecker.overrideOnBeforeUnload= function overrideOnBeforeUnload() {
             console.debug( "SeLiteExitConfirmationChecker.overrideOnBeforeUnload()" );
-            /** @var object {number index of the input in SeLiteExitConfirmationChecker.inputs => (string|boolean) original value } */SeLiteExitConfirmationChecker.originalInputValues= {}; // It could be an array. But SeLiteExitConfirmationChecker.modifiedInputValues can't be an array and therefore both are objects serving as associative arrays.
-            /** @var object {number index of the input in SeLiteExitConfirmationChecker.inputs => (string|boolean) modified value } */SeLiteExitConfirmationChecker.modifiedInputValues= {};
-            /** @var Array of inputs. Used to assign a numeric ID to identify each modified input (that ID is an index in this array). I can't use Selenium locators to identify the modified inputs, because the same input can be referred to (and modified through) multiple locators. */SeLiteExitConfirmationChecker.inputs= [];
-            /** @var Array of strings, each being the first used locator for the respective input. Used only for reporting the inputs to the user. */SeLiteExitConfirmationChecker.inputLocators= [];
+            /** @var object {number index of the input in SeLiteExitConfirmationChecker.inputs => (string|boolean) original value } */
+            SeLiteExitConfirmationChecker.originalInputValues= {}; // It could be an array. But SeLiteExitConfirmationChecker.modifiedInputValues can't be an array and therefore both are objects serving as associative arrays.
+            /** @var object {number index of the input in SeLiteExitConfirmationChecker.inputs => (string|boolean) modified value } */
+            SeLiteExitConfirmationChecker.modifiedInputValues= {};
+            /** @var Array of inputs. Used to assign a numeric ID to identify each modified input (that ID is an index in this array). I can't use Selenium locators to identify the modified inputs, because the same input can be referred to (and modified through) multiple locators. */
+            SeLiteExitConfirmationChecker.inputs= [];
+            /** @var Array of strings, each being the first used locator for the respective input. Used only for reporting the inputs to the user. */
+            SeLiteExitConfirmationChecker.inputLocators= [];
 
             var window= selenium.browserbot.getCurrentWindow(true);
             var originalOnBeforeUnload= window.onbeforeunload;
@@ -168,9 +172,9 @@ if( SeLiteExitConfirmationChecker===undefined ) {
         };
         
         /** Call this after a Selenese command modified an input that should trigger window.onbeforeunload. Users should call this only for custom inputs (or custom Selenese commands). See also SeLiteExitConfirmationChecker.inputAfterChange().
-         * @param {type} locator
-         * @param {type} elementValueField
-         * @returns {undefined}
+         * @param {object} locator
+         * @param {*} elementValueField
+         * @returns {void}
          */
         SeLiteExitConfirmationChecker.inputBeforeChange= function inputBeforeChange( locator, elementValueField, ignoreIfNotOverriden ) {
             // @TODO Consider: if( !selenium.browserbot.getCurrentWindow(true).overridenBySeLite )
@@ -189,7 +193,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
             }
         };
         
-        /** Call this after a Selenese command modified an input that should trigger window.onbeforeunload. See SeLiteExitConfirmationChecker.inputBeforeChange().
+        /** Call this after a Selenese command modified an input that should trigger a confirmation from window.onbeforeunload(). For parameters see SeLiteExitConfirmationChecker.inputBeforeChange().
          * */
         SeLiteExitConfirmationChecker.inputAfterChange= function inputAfterChange( locator, elementValueField, ignoreIfNotOverriden ) {
             if( SeLiteExitConfirmationChecker.window!==selenium.browserbot.getCurrentWindow(true) ) {
@@ -206,7 +210,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
             var input= selenium.browserbot.findElement(locator);
             var inputIndex= inputToIndex(input, locator);
             var value= elementValue( input, elementValueField );
-            if( exitConfirmationCheckerMode.basic ) {
+            if( exitConfirmationCheckerMode.includeRevertedChanges ) {
                 SeLiteExitConfirmationChecker.modifiedInputValues[inputIndex]= value;
             }
             else
