@@ -4,7 +4,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>exit-confirmation-checker@selite.googlecode.com</em:id>
     <em:name>SeLite Exit Confirmation Checker</em:name>
-    <em:version>0.07</em:version>
+    <em:version>0.08</em:version>
     <em:creator>Peter Kehl</em:creator>
     <em:homepageURL>https://code.google.com/p/selite/</em:homepageURL>
     <em:description>Validation of confirmation when leaving an unsubmitted form etc.</em:description>

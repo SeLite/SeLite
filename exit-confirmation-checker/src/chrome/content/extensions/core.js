@@ -158,9 +158,9 @@ if( SeLiteExitConfirmationChecker===undefined ) {
             return SeLiteExitConfirmationChecker.inputs.push( element ) -1;
         };
         
-        /** @private Helper function to retrieve a value (or an array of values) from an element.
+        /** @private Helper function to retrieve a value from an element, or to call a given function on the element.
          *  @param {object} input
-         *  @param {(string|function|undefined)} [elementValueField='value'] Name of the attribute that keeps the value. If a function, then this will call it with the input as the parameter.
+         *  @param {(string|function|undefined)} [elementValueField='value'] Name of the attribute that keeps the value. If a function, then it will be called with input as its only parameter.
          *  @return {*} value (or an array of values)
          * */
         var elementValue= function elementValue( input, elementValueField ) {
@@ -173,7 +173,8 @@ if( SeLiteExitConfirmationChecker===undefined ) {
         
         /** Call this after a Selenese command modified an input that should trigger window.onbeforeunload. Users should call this only for custom inputs (or custom Selenese commands). See also SeLiteExitConfirmationChecker.inputAfterChange().
          * @param {object} locator
-         * @param {*} elementValueField
+         * @param {*} elementValueField Name of the value field, or a function that returns the value.
+         * @param {boolean} [ignoreIfNotOverriden] Whether this should pass quietly if the application has not overriden window.onbeforeunload().
          * @returns {void}
          */
         SeLiteExitConfirmationChecker.inputBeforeChange= function inputBeforeChange( locator, elementValueField, ignoreIfNotOverriden ) {
@@ -254,8 +255,9 @@ if( SeLiteExitConfirmationChecker===undefined ) {
         
         var oldDoSelect= Selenium.prototype.doSelect;
         Selenium.prototype.doSelect= function doSelect( selectLocator, optionLocator ) {
-            //@TODO
+            SeLiteExitConfirmationChecker.inputBeforeChange( selectLocator, 'selectedIndex', true );
             oldDoSelect.call( this, selectLocator, optionLocator );
+            SeLiteExitConfirmationChecker.inputAfterChange( selectLocator, 'selectedIndex', true );
         };
         
         // TODO addSelection, removeSelection, removeAllSelections
