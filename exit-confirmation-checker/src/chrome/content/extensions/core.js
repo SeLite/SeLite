@@ -255,6 +255,10 @@ if( SeLiteExitConfirmationChecker===undefined ) {
         };
         
         // TODO addSelection, removeSelection, removeAllSelections
+        
+        // @TODO 'check', 'uncheck'
+        // @TODO click at a checkbox
+        // @TODO selectRandom, typeRandom, clickRandom
     }
     SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteExitConfirmationChecker']= loadedTimes+1;
 } )();
