@@ -98,15 +98,17 @@ if( SeLiteExitConfirmationChecker===undefined ) {
             window.onbeforeunload.overridenBySeLite= true;
         };
         
-        var original_executeCurrentCommand= TestLoop.prototype._executeCurrentCommand;
-        TestLoop.prototype._executeCurrentCommand= function _executeCurrentCommand() {
-            console.debug('SeLite ExitConfirmationChecker: _executeCurrentCommand');
+        var original_resume= TestLoop.prototype.resume;
+        TestLoop.prototype.resume= function resume() {
+            console.debug('SeLite ExitConfirmationChecker: resume');
             
             if( SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload ) {
                 SeLiteExitConfirmationChecker.overrideOnBeforeUnload();
                 SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload= false;
             }
-            original_executeCurrentCommand.call( this );
+            debugger;
+            original_resume.call( this );
+            
             if( !this.result.failed ) { // See also comments in auto-check.js
                 if( SeLiteExitConfirmationChecker.modifiedInputValues!==undefined && SeLiteExitConfirmationChecker.appAskedToConfirm!==undefined ) {
                     var hadModifiedInputs= Object.keys( SeLiteExitConfirmationChecker.modifiedInputValues ).length>0;
@@ -179,7 +181,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
          */
         SeLiteExitConfirmationChecker.inputBeforeChange= function inputBeforeChange( locator, elementValueField, ignoreIfNotOverriden ) {
             // @TODO Consider: if( !selenium.browserbot.getCurrentWindow(true).overridenBySeLite )
-            if( SeLiteExitConfirmationChecker.window!==selenium.browserbot.getCurrentWindow(true) ) {
+            if( SeLiteExitConfirmationChecker.window!==selenium.browserbot.getCurrentWindow(true) ) {//debugger;
                 SeLiteExitConfirmationChecker.window= undefined; // To assist garbage collector
                 if( !ignoreIfNotOverriden ) {
                     throw Error( "SeLite ExitConfirmationChecker didn't override current window.onbeforeunload, yet you've called SeLiteExitConfirmationChecker.inputBeforeChange() without ignoreIfNotOverriden=true." );

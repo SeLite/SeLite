@@ -18,20 +18,16 @@
 
 // The following if() check is needed because Se IDE loads extensions twice - http://code.google.com/p/selenium/issues/detail?id=6697
 if( typeof HtmlRunnerTestLoop!=='undefined' ) {
-    // @TODO Use $$.fn.interceptAfter from SelBlocks/Global, if it becomes L/GPL
+    // @TODO Use $$.fn.interceptAfter from SelBlocks/Global, if it becomes GNU L/GPL
     ( function(global) {
         Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
         
         var settingsModule= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
         
-        // This intercepts and depends on current implementation of
-        // - _executeCurrentCommand() of TestLoop.prototype - defined in selenium-executionloop.js, then copied to HtmlRunnerTestLoop.prototype via objectExtend() in selenium-testrunner.js and selenium-testrunner-original.js
-        // I have no idea why the following works when I intercept TestLoop.prototype._executeCurrentCommand() rather than HtmlRunnerTestLoop.prototype._executeCurrentCommand() in Se 2.5.0. Maybe Selenium IDE loads chrome://selenium-ide/content/selenium-core/scripts/selenium-testrunner.js twice. Anyway, if this stops working, I may have to change it to intercept HtmlRunnerTestLoop.prototype._executeCurrentCommand() 
-        var original_executeCurrentCommand= TestLoop.prototype._executeCurrentCommand;
-
-        TestLoop.prototype._executeCurrentCommand= function _executeCurrentCommand() {
-            original_executeCurrentCommand.call( this );
+        var original_resume= TestLoop.prototype.resume;
+        TestLoop.prototype.resume= function resume() {
+            original_resume.call( this );
             // - AssertResult.prototype.setFailed and AssertHandler.prototype.execute in selenium-commandhandlers.js
             // For getters (e.g. getEval), this.result is an instance of AccessorResult, which doesn't have field .passed (as of Selenium IDE 2.5.0). That's why the following checks !this.result.failed rather than this.result.passed.
             if( !this.result.failed ) { // Only perform the checks, if there was no Selenese failure already. Otherwise if the following raised an error, it would hide the previous error.
@@ -136,11 +132,12 @@ var SeLiteAutoCheck= {};
     SeLiteAutoCheck.DetectorPHP.prototype.constructor= SeLiteAutoCheck.DetectorPHP;
 
     SeLiteAutoCheck.DetectorPHP.prototype.failedNotIgnored= function failedNotIgnored( document ) {
+        // At some point, xdebug 2.2.1 on PHP 5.4.9 generated error messages with no formatting. Then I'd have to match: errorElements= eval_xpath( "//*[ contains(text(), 'Notice:') or contains(text(), 'Warning:') or contains(text(), 'Error:') or contains(text(), 'Fatal error:')]", document );
         var errorElements= eval_xpath( "//table[ contains(@class, 'xdebug-error') ]", document);
         var fromXdebug= errorElements.length!==0;
         if( !fromXdebug ) {
             // Following matches one node per error - the description/message
-            errorElements= eval_xpath( "//b[ .='Notice' or .='Warning' or .='Error' ]/following-sibling::node()[1][ starts-with(., ': ') ]", document );
+            errorElements= eval_xpath( "//b[ .='Notice' or .='Warning' or .='Error' or .='Fatal error']/following-sibling::node()[1][ starts-with(., ': ') ]", document );
             // I could match both the description and file path by one regex, but matching and handling results would be more complicated:
             // "//b[ .='Notice' or .='Warning' or .='Error' ][ following-sibling::node()[1][starts-with(., ': ') and following-sibling::node()[2][contains(., 'on line')] ] ]/following-sibling::node()[ 1 ]"
         }
