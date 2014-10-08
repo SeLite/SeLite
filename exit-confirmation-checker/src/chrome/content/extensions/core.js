@@ -92,22 +92,26 @@ if( SeLiteExitConfirmationChecker===undefined ) {
                     return originalResult;
                 }
                 console.debug( 'SeLite ExitConfirmationChecker: window.onbeforeunload finishing, not returning anything');
-                // I can't throw an error here - Firefox ignores it. So I set SeLiteExitConfirmationChecker.appAskedToConfirm and I handle it in _executeCurrentCommand() below.
+                // I can't throw an error here - Firefox ignores it. So I set SeLiteExitConfirmationChecker.appAskedToConfirm and I handle it in global.seLiteAfterCurrentCommand() below.
                 SeLiteExitConfirmationChecker.appAskedToConfirm= originalResult!==undefined;
                 // I don't return anything, so there won't be any confirmation popup.
             };
             window.onbeforeunload.overridenBySeLite= true;
         };
         
-        var originalSeLitePostCurrentCommand= global.seLitePostCurrentCommand;
-        global.seLitePostCurrentCommand= function seLitePostCurrentCommand() {
-            console.debug('SeLite ExitConfirmationChecker: seLitePostCurrentCommand');
+        var originalSeLiteBeforeCurrentCommand= global.seLiteBeforeCurrentCommand;
+        global.seLiteBeforeCurrentCommand= function seLiteBeforeCurrentCommand() {
+            // BrowserBot's recordPageLoad() overloaded above sets SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload *after* a command opened a new page. If the next command modifies an input, I need to perform the following *before* that next command - hence global.seLiteBeforeCurrentCommand. But I also need to raise an error (if appropriate) *after* that next command - hence global.seLiteAfterCurrentCommand.
             if( SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload ) {
                 SeLiteExitConfirmationChecker.overrideOnBeforeUnload();
                 SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload= false;
             }
-            originalSeLitePostCurrentCommand.call( this );
-            
+            originalSeLiteBeforeCurrentCommand.call( this );
+        };
+        
+        var originalSeLiteAfterCurrentCommand= global.seLiteAfterCurrentCommand;
+        global.seLiteAfterCurrentCommand= function seLiteAfterCurrentCommand() {
+            console.debug('SeLite ExitConfirmationChecker: seLiteAfterCurrentCommand');
             if( !this.result.failed ) { // See also comments in auto-check.js
                 if( SeLiteExitConfirmationChecker.modifiedInputValues!==undefined && SeLiteExitConfirmationChecker.appAskedToConfirm!==undefined ) {
                     var hadModifiedInputs= Object.keys( SeLiteExitConfirmationChecker.modifiedInputValues ).length>0;
@@ -134,7 +138,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
                         else {
                             // see AssertHandler.prototype.execute() in chrome://selenium-ide/content/selenium-core/scripts/selenium-commandhandlers.js
                             var result= new AssertResult();
-                            result.setFailed( "(Ignore this log line, see the other one. It's due to https://code.google.com/p/selite/wiki/ThirdPartyIssues > verify* should show the diff)" );
+                            result.setFailed( "(Ignore this log line, see the previous error. This line is due to https://code.google.com/p/selite/wiki/ThirdPartyIssues > verify* should show the diff)" );
                             this.result= result;
                             this.waitForCondition = this.result.terminationCondition;
                             LOG.error( message );

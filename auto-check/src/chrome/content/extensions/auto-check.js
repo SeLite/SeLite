@@ -49,7 +49,6 @@ if( loadedTimes===1 ) { // Setup the overrides on the second load
                 if( detectorClassName ) {
                     var detectorClass= SeLiteMisc.cascadeField(global, detectorClassName, true);
                     var detector= new detectorClass( fieldsDownToFolder['autoCheckRequired'].entry, fieldsDownToFolder['autoCheckRefused'].entry, fieldsDownToFolder['autoCheckIgnored'].entry, fieldsDownToFolder['autoCheckAssert'].entry );
-                    //var doc= selenium.browserbot.getCurrentWindow().document;
                     var doc= selenium.browserbot.getDocument();
                     LOG.debug( 'SeLiteSettings Auto Check validating: ' +selenium.browserbot.getCurrentWindow().location );
                     var message= detector.failedRequired( doc ) || detector.failedRefused( doc ) || detector.failedNotIgnored( doc );
