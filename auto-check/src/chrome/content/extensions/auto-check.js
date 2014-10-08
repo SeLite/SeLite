@@ -17,7 +17,10 @@
 "use strict";
 
 // The following if() check is needed because Se IDE loads extensions twice - http://code.google.com/p/selenium/issues/detail?id=6697
-if( typeof HtmlRunnerTestLoop!=='undefined' ) {
+//if( typeof HtmlRunnerTestLoop!=='undefined' ) {
+Components.utils.import( "chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js" );
+var loadedTimes= SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteAutoCheck'] || 0;
+if( loadedTimes===1 ) { // Setup the overrides on the second load
     // @TODO Use $$.fn.interceptAfter from SelBlocks/Global, if it becomes GNU L/GPL
     ( function(global) {
         Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
@@ -25,10 +28,10 @@ if( typeof HtmlRunnerTestLoop!=='undefined' ) {
         
         var settingsModule= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
         
-        var original_resume= TestLoop.prototype.resume;
-        TestLoop.prototype.resume= function resume() {
-            original_resume.call( this );
-            // - AssertResult.prototype.setFailed and AssertHandler.prototype.execute in selenium-commandhandlers.js
+        var originalSeLitePostCurrentCommand= global.seLitePostCurrentCommand;
+        global.seLitePostCurrentCommand= function seLitePostCurrentCommand() {
+            originalSeLitePostCurrentCommand.call( this );
+            // See AssertResult.prototype.setFailed and AssertHandler.prototype.execute in selenium-commandhandlers.js.
             // For getters (e.g. getEval), this.result is an instance of AccessorResult, which doesn't have field .passed (as of Selenium IDE 2.5.0). That's why the following checks !this.result.failed rather than this.result.passed.
             if( !this.result.failed ) { // Only perform the checks, if there was no Selenese failure already. Otherwise if the following raised an error, it would hide the previous error.
                 var fieldsDownToFolder= settingsModule.getFieldsDownToFolder( /*folderPath:*/undefined, /*dontCache:*/true );
@@ -55,10 +58,12 @@ if( typeof HtmlRunnerTestLoop!=='undefined' ) {
                             throw new SeleniumError( message );
                         }
                         else {
+                            // see AssertHandler.prototype.execute() in chrome://selenium-ide/content/selenium-core/scripts/selenium-commandhandlers.js
                             var result= new AssertResult();
-                            result.setFailed( message ); // see AssertHandler.prototype.execute() in chrome://selenium-ide/content/selenium-core/scripts/selenium-commandhandlers.js
+                            result.setFailed( "(Ignore this log line, see the other one. It's due to https://code.google.com/p/selite/wiki/ThirdPartyIssues > verify* should show the diff)" );
                             this.result= result;
                             this.waitForCondition = this.result.terminationCondition;
+                            LOG.error( message );
                         }
                     }
                 }
@@ -66,6 +71,7 @@ if( typeof HtmlRunnerTestLoop!=='undefined' ) {
         };
     } )( this );
 }
+SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteAutoCheck']= loadedTimes+1;
 
 var SeLiteAutoCheck= {};
 

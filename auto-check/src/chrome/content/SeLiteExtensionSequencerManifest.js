@@ -6,7 +6,8 @@ SeLiteExtensionSequencer.registerPlugin( {
     requisitePlugins: {
         'misc@selite.googlecode.com': 'SeLite Miscellaneous',
         'bootstrap@selite.googlecode.com': 'SeLite Bootstrap',
-        'settings@selite.googlecode.com': 'SeLite Settings'
+        'settings@selite.googlecode.com': 'SeLite Settings',
+        'testcase-debug-context@selite.googlecode.com': 'SeLite TestCase Debug Context'
     },
     preActivate: function(api) {
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );

@@ -20,66 +20,89 @@
 "use strict";
 // Anonymous function keeps global and origTestCasePrototype out of global scope
 ( function(global) {
-// Se IDE loads this file twice, and with a different scope object! I need to create TestCaseDebugContext when this file is loaded for the first time. I couldn't use 'var TestCaseDebugContext=...', or global.TestCaseDebugContext= .... because it would disappear (due to the different scope object). Since I want "use strict"; I set it on TestCase, which exists outside the loading scope, and therefore it's preserved between the both loadings of this file.
-// See http://code.google.com/p/selenium/issues/detail?id=6697
-if( typeof TestCase.TestCaseDebugContext==="undefined" ) {
-    global.TestCaseDebugContext= function TestCaseDebugContext( testCase ) {
-        this.testCase= testCase;
-    };
-
-    global.TestCaseDebugContext.prototype.reset= function reset() {
-        this.failed = false;
-        this.started = false;
-        this.debugIndex = -1;
-    };
-
-    global.TestCaseDebugContext.prototype.nextCommand= function nextCommand() {
-        if (!this.started) {
-            this.started = true;
-            this.debugIndex = this.testCase.startPoint
-                ? this.testCase.commands.indexOf(this.testCase.startPoint)
-                : 0;
-        } else {
-            this.debugIndex++;
-        }
-        for (; this.debugIndex < this.testCase.commands.length; this.debugIndex++) {
-            var command = this.testCase.commands[this.debugIndex];
-            if (command.type==='command') {
-                return command;
-            }
-        }
-        return null;
-    };
-
-    global.TestCaseDebugContext.prototype.currentCommand= function currentCommand() {
-        var command = this.testCase.commands[this.debugIndex];
-        if (!command) {
-            this.testCase.log.warn("currentCommand() not found: commands.length=" + this.testCase.commands.length + ", debugIndex=" + this.debugIndex);
-        }
-        return command;
-    };
-    var origTestCasePrototype;
-    if( origTestCasePrototype===undefined ) { // This check is needed because of http://code.google.com/p/selenium/issues/detail?id=6697
-        origTestCasePrototype= TestCase.prototype;
-        TestCase= function TestCase(tempTitle) {
-            if (!tempTitle) tempTitle = "Untitled";
-            this.log = new Log("TestCase");
-            this.tempTitle = tempTitle;
-            this.formatLocalMap = {};
-            this.commands = [];
-            this.recordModifiedInCommands();
-            this.baseURL = "";
-
-            this.debugContext= new TestCase.TestCaseDebugContext( this );
+    // Se IDE loads this file twice, and with a different scope object! I need to create TestCaseDebugContext when this file is loaded for the first time. I couldn't use 'var TestCaseDebugContext=...', or global.TestCaseDebugContext= .... because it would disappear (due to the different scope object). Since I want "use strict"; I set it on TestCase, which exists outside the loading scope, and therefore it's preserved between both loadings of this file.
+    // See http://code.google.com/p/selenium/issues/detail?id=6697
+    if( typeof TestCase.TestCaseDebugContext==="undefined" ) {
+        global.TestCaseDebugContext= function TestCaseDebugContext( testCase ) {
+            this.testCase= testCase;
         };
 
-        TestCase.prototype= origTestCasePrototype;
-        TestCase.TestCaseDebugContext= global.TestCaseDebugContext;
+        global.TestCaseDebugContext.prototype.reset= function reset() {
+            this.failed = false;
+            this.started = false;
+            this.debugIndex = -1;
+        };
+
+        global.TestCaseDebugContext.prototype.nextCommand= function nextCommand() {
+            if (!this.started) {
+                this.started = true;
+                this.debugIndex = this.testCase.startPoint
+                    ? this.testCase.commands.indexOf(this.testCase.startPoint)
+                    : 0;
+            } else {
+                this.debugIndex++;
+            }
+            for (; this.debugIndex < this.testCase.commands.length; this.debugIndex++) {
+                var command = this.testCase.commands[this.debugIndex];
+                if (command.type==='command') {
+                    return command;
+                }
+            }
+            return null;
+        };
+
+        global.TestCaseDebugContext.prototype.currentCommand= function currentCommand() {
+            var command = this.testCase.commands[this.debugIndex];
+            if (!command) {
+                this.testCase.log.warn("currentCommand() not found: commands.length=" + this.testCase.commands.length + ", debugIndex=" + this.debugIndex);
+            }
+            return command;
+        };
+        var origTestCasePrototype;
+        if( origTestCasePrototype===undefined ) { // This check is needed because of http://code.google.com/p/selenium/issues/detail?id=6697
+            origTestCasePrototype= TestCase.prototype;
+            TestCase= function TestCase(tempTitle) {
+                if (!tempTitle) tempTitle = "Untitled";
+                this.log = new Log("TestCase");
+                this.tempTitle = tempTitle;
+                this.formatLocalMap = {};
+                this.commands = [];
+                this.recordModifiedInCommands();
+                this.baseURL = "";
+
+                this.debugContext= new TestCase.TestCaseDebugContext( this );
+            };
+
+            TestCase.prototype= origTestCasePrototype;
+            TestCase.TestCaseDebugContext= global.TestCaseDebugContext;
+        }
     }
-}
-else {
-    // This is so that SelBlocksGlobal can intercept TestCaseDebugContext.
-    // I set it here when Se IDE loads this file for the second time.
-    global.TestCaseDebugContext= TestCase.TestCaseDebugContext;
-}
+    else {
+        // This is so that SelBlocksGlobal can intercept TestCaseDebugContext.
+        // I set it here when Se IDE loads this file for the second time.
+        global.TestCaseDebugContext= TestCase.TestCaseDebugContext;
+
+        /** This will be appended to _executeCurrentCommand() through a tail override.
+         * */
+        global.seLitePostCurrentCommand= function seLitePostCurrentCommand() {};
+
+        // I need the following on the 2nd load, since TestLoop is not defined on the 1st load.
+        // Set up override of TestLoop.prototype.resume(), which splits it into SeLite-custom functions. SeLite needs that, so that both AutoCheck, ExitConfirmationChecker and SelBlocksGlobal's try..catch can generate errors logged and counted in Selenium IDE
+        var originalResume= TestLoop.prototype.resume;
+        /**/TestLoop.prototype.resume= function resume() { // For Selenium IDE 2.8.0
+            // this.prototype._executeCurrentCommand() comes from IDETestLoop.prototype in chrome/content/selenium-runner.js, which gets set only after debugger.js loads core extensions. Also, IDETestLoop is not in scope here, so I have to use this.
+            // I thought that this.prototype should come from IDETestLoop, but this.prototype is not defined here. No idea why.
+            if( !this._executeCurrentCommand.isExtendedBySeLite ) {
+                var original_executeCurrentCommand= this._executeCurrentCommand;
+                this._executeCurrentCommand= function _executeCurrentCommand() {
+                    original_executeCurrentCommand.call( this );
+                    global.seLitePostCurrentCommand.call( this );
+                };
+                this._executeCurrentCommand.isExtendedBySeLite= true;
+            }
+            originalResume.call( this );
+        };/**/
+        // As of Se IDE 2.8.0, TestLoop.prototype._executeCurrentCommand doesn't come from selenium-runner.js here, but it comes from TestLoop. It's overriden from selenium-runner.js only later.
+    }
 } )( this );
+//debugger;

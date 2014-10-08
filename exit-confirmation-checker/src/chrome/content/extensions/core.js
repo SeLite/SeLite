@@ -16,12 +16,13 @@
 */
 "use strict";
 
-/** @var {object} Namespace-like holder. */var SeLiteExitConfirmationChecker;
+/** @var {object} Namespace-like holder. */
+var SeLiteExitConfirmationChecker;
 if( SeLiteExitConfirmationChecker===undefined ) {
     SeLiteExitConfirmationChecker= {};
 }
 // Anonymous function to prevent leaking into Selenium global namespace
-( function() {
+( function( global ) {
     Components.utils.import( "chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js" );
     var loadedTimes= SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteExitConfirmationChecker'] || 0;
     if( loadedTimes===1 ) { // Setup the overrides on the second load
@@ -98,16 +99,14 @@ if( SeLiteExitConfirmationChecker===undefined ) {
             window.onbeforeunload.overridenBySeLite= true;
         };
         
-        var original_resume= TestLoop.prototype.resume;
-        TestLoop.prototype.resume= function resume() {
-            console.debug('SeLite ExitConfirmationChecker: resume');
-            
+        var originalSeLitePostCurrentCommand= global.seLitePostCurrentCommand;
+        global.seLitePostCurrentCommand= function seLitePostCurrentCommand() {
+            console.debug('SeLite ExitConfirmationChecker: seLitePostCurrentCommand');
             if( SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload ) {
                 SeLiteExitConfirmationChecker.overrideOnBeforeUnload();
                 SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload= false;
             }
-            debugger;
-            original_resume.call( this );
+            originalSeLitePostCurrentCommand.call( this );
             
             if( !this.result.failed ) { // See also comments in auto-check.js
                 if( SeLiteExitConfirmationChecker.modifiedInputValues!==undefined && SeLiteExitConfirmationChecker.appAskedToConfirm!==undefined ) {
@@ -135,7 +134,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
                         else {
                             // see AssertHandler.prototype.execute() in chrome://selenium-ide/content/selenium-core/scripts/selenium-commandhandlers.js
                             var result= new AssertResult();
-                            result.setFailed( "(Ignore this log line. It's due to https://code.google.com/p/selite/wiki/ThirdPartyIssues > verify* should show the diff)" );
+                            result.setFailed( "(Ignore this log line, see the other one. It's due to https://code.google.com/p/selite/wiki/ThirdPartyIssues > verify* should show the diff)" );
                             this.result= result;
                             this.waitForCondition = this.result.terminationCondition;
                             LOG.error( message );
@@ -181,7 +180,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
          */
         SeLiteExitConfirmationChecker.inputBeforeChange= function inputBeforeChange( locator, elementValueField, ignoreIfNotOverriden ) {
             // @TODO Consider: if( !selenium.browserbot.getCurrentWindow(true).overridenBySeLite )
-            if( SeLiteExitConfirmationChecker.window!==selenium.browserbot.getCurrentWindow(true) ) {//debugger;
+            if( SeLiteExitConfirmationChecker.window!==selenium.browserbot.getCurrentWindow(true) ) {
                 SeLiteExitConfirmationChecker.window= undefined; // To assist garbage collector
                 if( !ignoreIfNotOverriden ) {
                     throw Error( "SeLite ExitConfirmationChecker didn't override current window.onbeforeunload, yet you've called SeLiteExitConfirmationChecker.inputBeforeChange() without ignoreIfNotOverriden=true." );
@@ -269,4 +268,4 @@ if( SeLiteExitConfirmationChecker===undefined ) {
         // @TODO selectRandom, typeRandom, clickRandom
     }
     SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteExitConfirmationChecker']= loadedTimes+1;
-} )();
+} )( this );
