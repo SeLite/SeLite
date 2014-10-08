@@ -132,6 +132,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
                             message+= '.';
                         }
                         var fieldsDownToFolder= settingsModule.getFieldsDownToFolder( /*folderPath:*/undefined, /*dontCache:*/true );
+                        SeLiteExitConfirmationChecker.lastErrorMessage= message; // for internal tests only - no need for access methods
                         if( fieldsDownToFolder['exitConfirmationCheckerAssert'] && fieldsDownToFolder['exitConfirmationCheckerAssert'].entry ) {
                             throw new SeleniumError( message );
                         }
