@@ -16,7 +16,7 @@
                 var someWereModified= freetype.value!=='' || select.selectedIndex>0;
                 
                 // See https://developer.mozilla.org/en-US/docs/WindowEventHandlers.onbeforeunload
-                if( someWereModified==performCorrectValidation ) {
+                if( someWereModified===performCorrectValidation ) {
                     return true; // Ask for confirmation
                 }
             }
