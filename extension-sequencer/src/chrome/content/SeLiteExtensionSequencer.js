@@ -99,20 +99,15 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
  *  @param object addonsById Object { string addOnId => Addon object }. This includes all add-ons, not just ones with SeLiteExtensionSequencerManifest.js. I need those other add-ons when checking for non-sequenced dependencies.
  *  @return Object {
  *      sortedPluginIds: [pluginId... ] in the order they can be loaded,
- *      missingDirectDependancies: {
- *          direct: { string pluginId: [string missing direct dependency plugin id, ...],
+ *      missingDirectDependancies: { string pluginId: [string missing direct dependency plugin id, ...],
  *                    ...
- *                  },
- *          indirect: { string pluginId: [string missing indirect dependency plugin id, ...],
- *                      ...
- *                  }
  *      } where direct dependencies can be sequenced or non-sequenced,
  *      missingIndirectDependancies: {
  *          string pluginId: [string missing indirect dependency plugin id, ...],
  *          ...
  *      } where indirect dependencies can be sequenced or non-sequenced,
  *      nonSequencedDependencies: [pluginId...] of any non-sequenced dependancies
- *          that are present (i.e. that are in addonsById).
+ *          that are present (i.e. that are in given addonsById).
  *  }
  * */
 SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
@@ -183,7 +178,7 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
         for( var j=0; j<pluginUnprocessedRequisites[pluginId].length; j++ ) {//@TODO instead of the following: for( var requisiteId of pluginUnprocessedRequisites[pluginId] )
             var requisiteId= pluginUnprocessedRequisites[pluginId][j];
             
-            if( requisiteId in plugin.requisitePlugins || requisiteId in plugin.nonSequencedRequisitePlugins) {
+            if( requisiteId in plugin.requisitePlugins || requisiteId in plugin.nonSequencedRequisitePlugins ) {
                 direct.push(requisiteId);
             }
             else {
@@ -191,12 +186,9 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
             }
         }
         if( direct.length ) {
-            missingDirectDependancies[pluginId]= {
-                direct: direct,
-                indirect: indirect
-            };
+            missingDirectDependancies[pluginId]= direct;
         }
-        else {
+        if( indirect.length ) {
             missingIndirectDependancies[pluginId]= indirect;
         }
     }

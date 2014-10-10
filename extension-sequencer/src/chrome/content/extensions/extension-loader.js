@@ -87,10 +87,10 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
             problems.push( "Plugin(s) missing at least one direct dependency:" );
             for( var pluginId in sortedPlugins.missingDirectDependancies ) {
                 problems.push( addonsById[pluginId].name+ ' depends on missing plugin(s): ' +
-                    sortedPlugins.missingDirectDependancies[pluginId].direct.map(pluginIdToName).join(', ')+ '.' );
-                if( sortedPlugins.missingDirectDependancies[pluginId].indirect.length ) {
+                    sortedPlugins.missingDirectDependancies[pluginId].map(pluginIdToName).join(', ')+ '.' );
+                if( pluginId in sortedPlugins.missingIndirectDependancies ) {
                     problems.push( 'It also indirectly depends on other missing dependancies through other plugin(s): ' +
-                        sortedPlugins.missingDirectDependancies[pluginId].indirect.map(pluginIdToName).join(', ')+ '.' );
+                        sortedPlugins.missingIndirectDependancies[pluginId].map(pluginIdToName).join(', ')+ '.' );
                 }
             }
             if( Object.keys(sortedPlugins.missingIndirectDependancies).length ) {
