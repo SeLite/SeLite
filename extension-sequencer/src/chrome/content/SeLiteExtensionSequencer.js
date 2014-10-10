@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 "use strict";
-//var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 
 function SeLiteExtensionSequencer() {}
 
@@ -96,11 +96,12 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
  *  that they can be safely loaded. It removes any plugins that miss any of their
  *  required dependencies, and any plugins that require (directly or indirectly)
  *  any of those removed plugins. It reports those removed plugins in the result.
- *  @param object addonsById Object { string addOnId => Addon object }. This includes all add-ons, not just ones with SeLiteExtensionSequencerManifest.js. I need those other add-ons when checking for non-sequenced dependencies.
+ *  @param object addonsById Object { string addOnId => Addon object }. This includes all active add-ons, not just ones with SeLiteExtensionSequencerManifest.js. I need those other add-ons when checking for non-sequenced dependencies.
  *  @return Object {
  *      sortedPluginIds: [pluginId... ] in the order they can be loaded,
- *      missingDirectDependancies: { string pluginId: [string missing direct dependency plugin id, ...],
- *                    ...
+ *      missingDirectDependancies: {
+ *          string pluginId: [string missing direct dependency plugin id, ...],
+ *          ...
  *      } where direct dependencies can be sequenced or non-sequenced,
  *      missingIndirectDependancies: {
  *          string pluginId: [string missing indirect dependency plugin id, ...],
@@ -111,10 +112,10 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
  *  }
  * */
 SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
-    // pluginUnprocessedRequisites contains plugins with their required dependencies.
-    // I add in any optional plugin IDs, if they are installed
-    //  - so they get loaded in correct order, before the plugins that use them.
-    var pluginUnprocessedRequisites= {}; // { dependant plugin id => [sequenced requisite plugin id...], ... }
+    console.error( 'addonsById: ' +Object.keys(addonsById));
+    // pluginUnprocessedRequisites contains plugins with their required dependencies (sequenced or not).
+    // I add in any optional plugin IDs, if they are installed, so they get loaded in correct order, before the plugins that use them.
+    var pluginUnprocessedRequisites= {}; // { dependant plugin id => [requisite plugin id...], ... }
     // Object { dependant plugin id => true } containing plugins that are missing any non-sequenced dependencies
     var missingNonSequencedDependencies= {};
     var nonSequencedDependencies= []; // Array of IDs of non-sequenced dependencies
@@ -123,38 +124,39 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
         var plugin= SeLiteExtensionSequencer.plugins[dependantId];
         pluginUnprocessedRequisites[dependantId]= Object.keys( plugin.requisitePlugins ).slice(0); // protective copy //@TODO no need for slice(0)
         
+        // Any optional dependencies, that are present, are treated as required dependencies:
         for( var optionalPluginId in plugin.optionalRequisitePlugins ) {
             if( optionalPluginId in SeLiteExtensionSequencer.plugins ) {
                 pluginUnprocessedRequisites[dependantId].push( optionalPluginId );
             }
         }
         for( var nonSequencedPluginId in plugin.nonSequencedRequisitePlugins ) {
-            //console.error( 'dependant '+dependantId+ ' depends on nonsequenced ' +nonSequencedPluginId);
+            console.error( 'dependant '+dependantId+ ' depends on nonsequenced ' +nonSequencedPluginId);
             if( nonSequencedPluginId in addonsById ) {
-                if( nonSequencedDependencies.indexOf(nonSequencedPluginId)<0 ) {
-                    nonSequencedDependencies.push( nonSequencedPluginId );
-                }
+                nonSequencedDependencies.indexOf(nonSequencedPluginId)>=0 || nonSequencedDependencies.push( nonSequencedPluginId );
             }
             else {
                 missingNonSequencedDependencies[dependantId]= true;
+                pluginUnprocessedRequisites[dependantId].push( nonSequencedPluginId );
             }
         }
     }
-    
+    console.error( 'missingNonSequencedDependencies for dependant: ' +Object.keys(missingNonSequencedDependencies).join(', ') );
     var sortedPluginIds= []; // [pluginId...] sorted, starting with ones with no dependencies, to the dependant ones
     
     // I believe this has computational cost O(N^2), which is fine with me.
+    // @TODO protect against cyclic dependancies, report and disable them
     outer: while( true ) {
         for( var pluginId in pluginUnprocessedRequisites ) {
             if( missingNonSequencedDependencies[pluginId] ) {
                 continue; // I won't load this plugin; therefore no need to do further processing for it.
             }
-            if( !pluginUnprocessedRequisites[pluginId].length ) { // The plugin's dependencies were all removed in previous runs of the following inner loop. Now clear this plugin as OK and remove it as a dependancy for other plugins that depend on it.
+            if( !pluginUnprocessedRequisites[pluginId].length ) { // The plugin's dependencies were all removed in previous run(s) of the following inner loop, when it procesed those dependencies. Now clear this plugin as OK and remove it as a dependancy for other plugins that depend on it.
+                // sortedPluginIds[] contains all dependencies of pluginId, so pluginId can be loaded after them:
                 sortedPluginIds.push( pluginId );
                 delete pluginUnprocessedRequisites[pluginId];
 
-                // Remove pluginId from dependencies of the rest of unprocessed plugins
-                // - from pluginUnprocessedRequisites[xxx][]
+                // Remove pluginId from dependencies of the rest of unprocessed plugins - from pluginUnprocessedRequisites[xxx][]
                 for( var dependantId in pluginUnprocessedRequisites ) {
                     var requisites= pluginUnprocessedRequisites[dependantId];
                     var index= requisites.indexOf(pluginId);
@@ -168,16 +170,16 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
         }
         break;
     }
-    var missingDirectDependancies= {}
+    var missingDirectDependancies= {};
     var missingIndirectDependancies= {};
-    
+    console.error( 'pluginUnprocessedRequisites ' +Object.keys(pluginUnprocessedRequisites));
     for( var pluginId in pluginUnprocessedRequisites ) { // pluginId is of the dependant
         var plugin= SeLiteExtensionSequencer.plugins[ pluginId ];
         var direct= [], indirect= [];
         
         for( var j=0; j<pluginUnprocessedRequisites[pluginId].length; j++ ) {//@TODO instead of the following: for( var requisiteId of pluginUnprocessedRequisites[pluginId] )
             var requisiteId= pluginUnprocessedRequisites[pluginId][j];
-            
+            console.error( 'requisiteId ' +requisiteId);
             if( requisiteId in plugin.requisitePlugins || requisiteId in plugin.nonSequencedRequisitePlugins ) {
                 direct.push(requisiteId);
             }
@@ -193,6 +195,7 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
         }
     }
     //console.log( 'SeLiteExtensionSequencer.sortedPlugins() called and finished.' );
+    console.log( 'missingDirectDependancies: ' +Object.keys(missingDirectDependancies));
     return {
         missingDirectDependancies: missingDirectDependancies,
         missingIndirectDependancies: missingIndirectDependancies,

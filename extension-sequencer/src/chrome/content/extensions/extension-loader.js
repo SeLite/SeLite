@@ -38,31 +38,33 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
         var problems= []; // Chunks of message. This will add new lines after each chunk.
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
-        var addonsById= {}; // Object { string addOnId => Addon object }. This includes all add-ons, not just ones with SeLiteExtensionSequencerManifest.js. I need those other add-ons later when calling SeLiteExtensionSequencer.sortedPlugins( addonsById ), which checks for non-sequenced dependencies.
+        var addonsById= {}; // Object { string addOnId => Addon object }. This includes all active (enabled) add-ons, not just ones with SeLiteExtensionSequencerManifest.js. I need those other add-ons later when calling SeLiteExtensionSequencer.sortedPlugins( addonsById ), which checks for non-sequenced dependencies.
         for( var i=0; i<addons.length; i++ ) { //@TODO for(.. of ..) once NetBeans supports it
             var addon= addons[i];
-            addonsById[ addon.id ]= addon;
-            // On Windows some addon objects don't have function 'hasResource'
-            if( addon.isActive && addon.hasResource && addon.hasResource( 'chrome/content/SeLiteExtensionSequencerManifest.js') ) {
-                console.log( 'SeLiteExtensionSequencer is registering addon with ID ' +addon.id );
-                var fileUrl= addon.getResourceURI('chrome/content/SeLiteExtensionSequencerManifest.js').spec;
-                try {
-                    subScriptLoader.loadSubScript(
-                        fileUrl,
-                        { SeLiteExtensionSequencer: SeLiteExtensionSequencer
-                        },
-                        'UTF-8'
-                    );
-                }
-                catch( e ) {
-                    problems.push( 'Add-on ' +addon.name+ ' has an error in its SeLiteExtensionSequencerManifest.js. Please report this issue '+
-                        (addon.id.indexOf('selite.googlecode.com')>0
-                         ? 'at <a href="https://code.google.com/p/selite/wiki/ReportingIssues/">https://code.google.com/p/selite/wiki/ReportingIssues/</a>'
-                         : 'to its author (but not to SeLite project).'
-                        )
-                    );
-                    problems.push( ''+e );
-                    problems.push( e.stack );
+            if( addon.isActive ) {
+                addonsById[ addon.id ]= addon;
+                // On Windows some addon objects don't have function 'hasResource'
+                if( addon.hasResource && addon.hasResource( 'chrome/content/SeLiteExtensionSequencerManifest.js') ) {
+                    console.log( 'SeLiteExtensionSequencer is registering addon with ID ' +addon.id );
+                    var fileUrl= addon.getResourceURI('chrome/content/SeLiteExtensionSequencerManifest.js').spec;
+                    try {
+                        subScriptLoader.loadSubScript(
+                            fileUrl,
+                            { SeLiteExtensionSequencer: SeLiteExtensionSequencer
+                            },
+                            'UTF-8'
+                        );
+                    }
+                    catch( e ) {
+                        problems.push( 'Add-on ' +addon.name+ ' has an error in its SeLiteExtensionSequencerManifest.js. Please report this issue '+
+                            (addon.id.indexOf('selite.googlecode.com')>0
+                             ? 'at <a href="https://code.google.com/p/selite/wiki/ReportingIssues/">https://code.google.com/p/selite/wiki/ReportingIssues/</a>'
+                             : 'to its author (but not to SeLite project).'
+                            )
+                        );
+                        problems.push( ''+e );
+                        problems.push( e.stack );
+                    }
                 }
             }
         }
@@ -82,7 +84,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                 return dependancyPluginNames[pluginId];
             };
 
-            problems.push( 'Following Selenium IDE plugin(s) are missing their dependancy plugin(s). Please, install (or enable) any missing dependancies. Please follow documentation of the plugin; if it is an SeLite add-on, see <a href="https://code.google.com/p/selite/wiki/AddOnsDependencies">https://code.google.com/p/selite/wiki/AddOnsDependencies</a>.' );
+            problems.push( 'Following Selenium IDE plugin(s) are missing their dependancy plugin(s). Please, install (or enable) any missing dependancies. Please follow documentation of the plugin; if it is an SeLite add-on, see <a href="https://code.google.com/p/selite/wiki/AddOnsDependencies">https://code.google.com/p/selite/wiki/AddOnsDependants</a>.' );
             problems.push( '' );
             problems.push( "Plugin(s) missing at least one direct dependency:" );
             for( var pluginId in sortedPlugins.missingDirectDependancies ) {
@@ -93,7 +95,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                         sortedPlugins.missingIndirectDependancies[pluginId].map(pluginIdToName).join(', ')+ '.' );
                 }
             }
-            if( Object.keys(sortedPlugins.missingIndirectDependancies).length ) {
+            if( Object.keys(sortedPlugins.missingIndirectDependancies).length ) {//@TODO check for 'missing indirect dependencies only'
                 problems.push( '' );
                 problems.push( "\nPlugin(s) missing indirect dependencies only:" );
                 for( var pluginId in sortedPlugins.missingIndirectDependancies ) {
