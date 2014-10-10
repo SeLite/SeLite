@@ -5,8 +5,8 @@
  * You can obtain one at http://mozilla.org/MPL/1.1/.
  */
 "use strict";
-// Anonymous function keeps 'global' and local variables out of global scope
-( function(global) {
+
+window.setTimeout( function() {
     // Se IDE loads this file twice, and with a different scope object! See http://code.google.com/p/selenium/issues/detail?id=6697
     if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
         Favorites.interceptedBySeLiteRunAllFavorites= true;
@@ -111,14 +111,14 @@
 
         // Update any old-style absolute paths. I don't intercept Favorites.prototype.load(), because that was already run from favorites' content/logic/Favorites.js when it created an instance.
         var updatedSomePaths= false;
-        for( var i=0; i<global.editor.favorites.favorites.length; i++ ) {
-            var favorite= global.editor.favorites.favorites[i];
+        for( var i=0; i<editor.favorites.favorites.length; i++ ) {
+            var favorite= editor.favorites.favorites[i];
             if( /^([a-zA-Z]:\\|\/)/.test(favorite.path) ) {
                 favorite.path= getRelativePathToHome(favorite.path);
                 updatedSomePaths= true;
             }
             if( updatedSomePaths ) {
-                global.editor.favorites.save( global.editor.favorites.prefBranch );
+                editor.favorites.save( editor.favorites.prefBranch );
             }
         }
 
@@ -344,4 +344,4 @@
         // 'editor' is an instance of either StandaloneEditor or SidebarEditor. Those classes don't refer to Editor.prototype, but they have copies of all functions from Editor.prototype (copied via objectExtend()).
         SidebarEditor.prototype.playTestSuite= StandaloneEditor.prototype.playTestSuite= Editor.prototype.playTestSuite;
     }
-} )( this );
+}, 3000 );

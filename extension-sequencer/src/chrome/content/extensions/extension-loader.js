@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 "use strict";
-//var console = (Components.utils.import("resource://gre/modules/devtools/Console.jsm", {})).console;
-//console.error( 'extension-loader');
 Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
 Components.utils.import("resource://gre/modules/AddonManager.jsm");
 
@@ -32,7 +30,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
     ide_api.addPluginProvidedUserExtension( 'chrome://selite-extension-sequencer/content/extensions/core.js' );
     ide_api.addPlugin( 'extension-sequencer@selite.googlecode.com' );
 
-    // For some reasons I couldn't use console here (Firefox 26.0, Selenium IDE 2.5.0). Using it generated a log: can't start debugging: a debuggee script is on the stack webconsole.js:68. I can use console in the handler function passed to AddonManager.getAllAddons():
+    // For some reasons I couldn't use console (from resource://gre/modules/devtools/Console.jsm) here (in Firefox 26.0, Selenium IDE 2.5.0). Using it generated a log: can't start debugging: a debuggee script is on the stack webconsole.js:68. I could use console in the handler function passed to AddonManager.getAllAddons():
     AddonManager.getAllAddons(
     function( addons ) {
         var problems= []; // Chunks of message. This will add new lines after each chunk.
@@ -105,113 +103,68 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
             }
         }
         if( problems.length>0 ) {
+            console.error( "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
             SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
         }
         
-        // The actual registration is in the following function, because I need ability to call it in two ways (see below).
-        var registerAddOns= function registerAddOns() {
-            var failed= {}; // Object { string failed pluginId => exception }
-            for( var i=0; i<sortedPlugins.sortedPluginIds.length; i++ ) {
-                var pluginId= sortedPlugins.sortedPluginIds[i];
-                var plugin= SeLiteExtensionSequencer.plugins[pluginId];
-                var ide_api = new API();
-                try {
-                    // I register the plugin even if it has no core/ide extension url. That way it
-                    // will be listed in Selenium IDE > Options > Options > Plugins.
-                    console.log( 'SeLiteExtensionSequencer is adding plugin with ID ' +pluginId+ '. Its core extension files are ' +plugin.coreUrl+ '. Its IDE extension files are ' +plugin.ideUrl+ '.' );
-                    ide_api.addPlugin(pluginId);
-                    for( var j=0; j<plugin.ideUrl.length; j++ ) {
-                        ide_api.addPluginProvidedIdeExtension( plugin.ideUrl[j] );
+        // The actual registration
+        var failed= {}; // Object { string failed pluginId => exception }
+        for( var i=0; i<sortedPlugins.sortedPluginIds.length; i++ ) {
+            var pluginId= sortedPlugins.sortedPluginIds[i];
+            var plugin= SeLiteExtensionSequencer.plugins[pluginId];
+            var ide_api = new API();
+            try {
+                // I register the plugin even if it has no core/ide extension url. That way it
+                // will be listed in Selenium IDE > Options > Options > Plugins.
+                ide_api.addPlugin(pluginId);
+                for( var j=0; j<plugin.ideUrl.length; j++ ) {
+                    ide_api.addPluginProvidedIdeExtension( plugin.ideUrl[j] );
+                }
+                for( var j=0; j<plugin.coreUrl.length; j++ ) {
+                    if( j<plugin.xmlUrl.length ) {
+                        ide_api.addPluginProvidedUserExtension( plugin.coreUrl[j], plugin.xmlUrl[j] );
                     }
-                    for( var j=0; j<plugin.coreUrl.length; j++ ) {
-                        if( j<plugin.xmlUrl.length ) {
-                            ide_api.addPluginProvidedUserExtension( plugin.coreUrl[j], plugin.xmlUrl[j] );
-                        }
-                        else {
-                            ide_api.addPluginProvidedUserExtension( plugin.coreUrl[j] );
-                        }
-                    }
-                    if( plugin.preActivate ) {
-                        plugin.preActivate.call( null, ide_api );
+                    else {
+                        ide_api.addPluginProvidedUserExtension( plugin.coreUrl[j] );
                     }
                 }
-                catch(e) {
-                    failed[pluginId]= e;
+                if( plugin.preActivate ) {
+                    plugin.preActivate.call( null, ide_api );
                 }
             }
-            problems= [];
-            if( Object.keys(failed).length ) {
-                for( var pluginId in failed ) {
-                    var e= failed[pluginId];
-                    if( problems.length ) {
-                        problems.push( '' );
-                    }
-                    problems.push( 'Failure when initialising Selenium IDE plugin ' +pluginId+ ': ' +e+ '\n' +e.stack );
-                    var isSeLiteAddon= addon.id.indexOf('selite.googlecode.com');
-                    problems.push( 'Please get its newest version (if available)' +(
-                            isSeLiteAddon
-                                ? ' from <a href="https://code.google.com/p/selite/wiki/AddOns">https://code.google.com/p/selite/wiki/AddOns</a>'
-                                : ' from its website'
-                        )
-                        + ', check its documentation' +(
-                            isSeLiteAddon
-                                ? ' at <a href="https://code.google.com/p/selite/wiki/ProjectHome">https://code.google.com/p/selite/wiki/ProjectHome</a>'
-                                : '' )
-                        + " and if that doesn't help, report the issue" +(
-                            isSeLiteAddon
-                                ? ' at <a href="https://code.google.com/p/selite/wiki/ReportingIssues">https://code.google.com/p/selite/wiki/ReportingIssues</a>.'
-                                : ' to its author.'
-                        )
-                    );
-                }
-            }
-            if( problems.length>0 ) {
-                SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
-            }
-        };
-        /*
-        // Almost ready to register the addons. However, if there are any non-sequenced dependancies that were not registered with Selenium API yet, then tail-override API.prototype._save() and make it invoke registerAddOns() only after all non-sequenced dependancies get loaded. If that doesn't happen within a short time limit, that may mean that non-sequenced dependancy didn't register itself with Selenium IDE API, or its initialisation failed; then show a warning message.
-        var expectedNonSequencedDependencies= sortedPlugins.nonSequencedDependencies.slice(0); // This will be an array of pluginIds of non-sequenced dependencies that were not loaded yet.
-        console.error( 'expectedNonSequencedDependencies: ' +expectedNonSequencedDependencies.join(', ') );
-        typeof editor!=='undefined' || console.error( 'no editor');
-        console.error( 'editor.pluginManager.getEnabledUserExtensions(): ' +editor.pluginManager.getEnabledUserExtensions() );
-        if( sortedPlugins.nonSequencedDependencies.length ) {
-            // See Selenium IDE's chrome/content/api.js > function API(), which sets: this.preferences = SeleniumIDE.Preferences; See also API.prototype._save()
-            console.error( "SeleniumIDE.Preferences.getString('pluginsData', '[]'): " +SeleniumIDE.Preferences.getString('pluginsData', '[]') );
-            //@TODO The following includes all Se extensions, not just ones that were loaded already!!!!
-            var plugins= JSON.parse( SeleniumIDE.Preferences.getString('pluginsData', '[]') ); // An array of objects { id: pluginId, ... code:{ideExtensions: array, userExtensions:array, formatters:array} ... }
-            for( var i=0; i<plugins.length; i++ ) {
-                var index= expectedNonSequencedDependencies.indexOf( plugins[i].id );
-                if( index>=0 ) {
-                    expectedNonSequencedDependencies.splice( index, 1 );
-                }
+            catch(e) {
+                failed[pluginId]= e;
             }
         }
-        console.error( 'expectedNonSequencedDependencies: ' +expectedNonSequencedDependencies.join(', ') );
-        if( expectedNonSequencedDependencies.length ) {
-            // Tail-override of API.prototype._save(), which is called by addXXX()
-            var oldSave= API.prototype._save;
-            API.prototype._save= function _save() {
-                oldSave.call( this );
-                var pluginIndex= expectedNonSequencedDependencies.indexOf(this.id);
-                if( pluginIndex>=0 ) {
-                    expectedNonSequencedDependencies.splice( pluginIndex, 1 );
+        problems= [];
+        if( Object.keys(failed).length ) {
+            for( var pluginId in failed ) {
+                var e= failed[pluginId];
+                if( problems.length ) {
+                    problems.push( '' );
                 }
-                if( !expectedNonSequencedDependencies.length ) {
-                    SeLiteExtensionSequencer.nonSequencedDependenciesLoaded= true;
-                    registerAddOns();
-                }
-            };
-            window.setTimeout( function() {
-                    if( !SeLiteExtensionSequencer.nonSequencedDependenciesLoaded ) {
-                        SeLiteExtensionSequencer.popup( window, "Add-on(s) for Firefox and Selenium IDE expected the following non-sequenced dependencies, which are present, but not registered with Selenium IDE: " +expectedNonSequencedDependencies.join(', ') );
-                    }
-                }, 3000 );
+                problems.push( 'Failure when initialising Selenium IDE plugin ' +pluginId+ ': ' +e+ '\n' +e.stack );
+                var isSeLiteAddon= addon.id.indexOf('selite.googlecode.com');
+                problems.push( 'Please get its newest version (if available)' +(
+                        isSeLiteAddon
+                            ? ' from <a href="https://code.google.com/p/selite/wiki/AddOns">https://code.google.com/p/selite/wiki/AddOns</a>'
+                            : ' from its website'
+                    )
+                    + ', check its documentation' +(
+                        isSeLiteAddon
+                            ? ' at <a href="https://code.google.com/p/selite/wiki/ProjectHome">https://code.google.com/p/selite/wiki/ProjectHome</a>'
+                            : '' )
+                    + " and if that doesn't help, report the issue" +(
+                        isSeLiteAddon
+                            ? ' at <a href="https://code.google.com/p/selite/wiki/ReportingIssues">https://code.google.com/p/selite/wiki/ReportingIssues</a>.'
+                            : ' to its author.'
+                    )
+                );
+            }
         }
-        else {
-            registerAddOns();
-        }*/
-        registerAddOns();
+        if( problems.length>0 ) {
+            SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
+        }
     });
     SeLiteExtensionSequencer.processedAlready= true;
 }
