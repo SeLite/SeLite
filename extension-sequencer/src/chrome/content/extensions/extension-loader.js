@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 "use strict";
+//var console = (Components.utils.import("resource://gre/modules/devtools/Console.jsm", {})).console;
+//console.error( 'extension-loader');
 Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
 Components.utils.import("resource://gre/modules/AddonManager.jsm");
 
 // Selenium IDE loads this file twice. Maybe related to
 // http://code.google.com/p/selenium/issues/detail?id=6697
 // Therefore here I make sure to register this plugin itself and I load sequencer manifests of target plugins and register them with Selenium only once.
+// Developers: if you use debugger; statements here, that will (normally) not trigger a breakpoint, not even if you invoke firefox with parameter -jsdebugger, because this gets processed before Browser Debugger/ToolBox shows up.
 if( !SeLiteExtensionSequencer.processedAlready ) {
     // I must reset SeLiteExtensionSequencer.coreExtensionsLoadedTimes. I can't expect that extensions will have an even number of loads - because if the user closes Selenium IDE before running any Selenese, the extensions don't get loaded for the 2nd time during that run of Selenium IDE, and the odd-even sequence would not apply.
     SeLiteExtensionSequencer.coreExtensionsLoadedTimes= {};

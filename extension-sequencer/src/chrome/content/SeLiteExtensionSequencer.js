@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 "use strict";
-var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+//var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 
 function SeLiteExtensionSequencer() {}
 
@@ -28,7 +28,7 @@ function SeLiteExtensionSequencer() {}
 */
 SeLiteExtensionSequencer.coreExtensionsLoadedTimes= {};
 
-/** Object serving as an associative array {
+/** Object serving as an associative array, containing all add-ons registered through Extension Sequencer (whether successfuly loaded or not) {
  *     string pluginId => object just like parameter prototype of SeLiteExtensionSequencer.registerPlugin()
  *  }
  * */
@@ -58,7 +58,7 @@ SeLiteExtensionSequencer.plugins= {};
  *  @return void
 **/
 SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
-    console.log( 'SeLiteExtensionSequencer.registerPlugin() called with a plugin that has pluginId: ' +prototype.pluginId );
+    //console.log( 'SeLiteExtensionSequencer.registerPlugin() called with a plugin that has pluginId: ' +prototype.pluginId );
     var plugin= {
         pluginId: prototype.pluginId,
         coreUrl: prototype.coreUrl || [],
@@ -100,8 +100,12 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
  *  @return Object {
  *      sortedPluginIds: [pluginId... ] in the order they can be loaded,
  *      missingDirectDependancies: {
- *          string pluginId: [string missing direct dependency plugin id, ...],
- *          ...
+ *          direct: { string pluginId: [string missing direct dependency plugin id, ...],
+ *                    ...
+ *                  },
+ *          indirect: { string pluginId: [string missing indirect dependency plugin id, ...],
+ *                      ...
+ *                  }
  *      } where direct dependencies can be sequenced or non-sequenced,
  *      missingIndirectDependancies: {
  *          string pluginId: [string missing indirect dependency plugin id, ...],
@@ -118,17 +122,19 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
     var pluginUnprocessedRequisites= {}; // { dependant plugin id => [sequenced requisite plugin id...], ... }
     // Object { dependant plugin id => true } containing plugins that are missing any non-sequenced dependencies
     var missingNonSequencedDependencies= {};
-    var nonSequencedDependencies= [];
+    var nonSequencedDependencies= []; // Array of IDs of non-sequenced dependencies
+    
     for( var dependantId in SeLiteExtensionSequencer.plugins ) {
         var plugin= SeLiteExtensionSequencer.plugins[dependantId];
-        pluginUnprocessedRequisites[dependantId]=
-            Object.keys( plugin.requisitePlugins ).slice(0); // protective copy
+        pluginUnprocessedRequisites[dependantId]= Object.keys( plugin.requisitePlugins ).slice(0); // protective copy //@TODO no need for slice(0)
+        
         for( var optionalPluginId in plugin.optionalRequisitePlugins ) {
             if( optionalPluginId in SeLiteExtensionSequencer.plugins ) {
                 pluginUnprocessedRequisites[dependantId].push( optionalPluginId );
             }
         }
         for( var nonSequencedPluginId in plugin.nonSequencedRequisitePlugins ) {
+            //console.error( 'dependant '+dependantId+ ' depends on nonsequenced ' +nonSequencedPluginId);
             if( nonSequencedPluginId in addonsById ) {
                 if( nonSequencedDependencies.indexOf(nonSequencedPluginId)<0 ) {
                     nonSequencedDependencies.push( nonSequencedPluginId );
@@ -170,32 +176,31 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
     var missingDirectDependancies= {}
     var missingIndirectDependancies= {};
     
-    if( Object.keys(pluginUnprocessedRequisites).length ) {
-        for( var pluginId in pluginUnprocessedRequisites ) {
-            //var isMissingDirectDependenciesOnly= true;
-            var direct= [], indirect= [];
-            //for( var requisiteId of pluginUnprocessedRequisites[pluginId] ) { @TODO instead of the following
-            for( var j=0; j<pluginUnprocessedRequisites[pluginId].length; j++ ) {
-                var requisiteId= pluginUnprocessedRequisites[pluginId][j];
-                if( requisiteId in SeLiteExtensionSequencer.plugins ) {
-                    indirect.push(requisiteId);
-                }
-                else {
-                    direct.push(requisiteId);
-                }
-            }
-            if( direct.length ) {
-                missingDirectDependancies[pluginId]= {
-                    direct: direct,
-                    indirect: indirect
-                };
+    for( var pluginId in pluginUnprocessedRequisites ) { // pluginId is of the dependant
+        var plugin= SeLiteExtensionSequencer.plugins[ pluginId ];
+        var direct= [], indirect= [];
+        
+        for( var j=0; j<pluginUnprocessedRequisites[pluginId].length; j++ ) {//@TODO instead of the following: for( var requisiteId of pluginUnprocessedRequisites[pluginId] )
+            var requisiteId= pluginUnprocessedRequisites[pluginId][j];
+            
+            if( requisiteId in plugin.requisitePlugins || requisiteId in plugin.nonSequencedRequisitePlugins) {
+                direct.push(requisiteId);
             }
             else {
-                missingIndirectDependancies[pluginId]= indirect;
+                indirect.push(requisiteId);
             }
         }
+        if( direct.length ) {
+            missingDirectDependancies[pluginId]= {
+                direct: direct,
+                indirect: indirect
+            };
+        }
+        else {
+            missingIndirectDependancies[pluginId]= indirect;
+        }
     }
-    console.log( 'SeLiteExtensionSequencer.sortedPlugins() called and finished.' );
+    //console.log( 'SeLiteExtensionSequencer.sortedPlugins() called and finished.' );
     return {
         missingDirectDependancies: missingDirectDependancies,
         missingIndirectDependancies: missingIndirectDependancies,
