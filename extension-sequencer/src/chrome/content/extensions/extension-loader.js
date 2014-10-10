@@ -169,11 +169,17 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                 SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
             }
         };
-        // Almost ready to register the addons. However, if there are any non-sequenced dependancies that were not registered with Selenium API yet, then tail-override API.prototype.addXXX() and make it invoke registerAddOns() only once all non-sequenced dependancies are loaded. If that doesn't happen within a short time limit, that may mean that non-sequenced dependancy didn't register itself with Selenium IDE API, or its initialisation failed; then show a warning message.
-        var expectedNonSequencedDependencies= []; // This will be an array of pluginIds of non-sequenced dependencies that were not loaded yet
+        /*
+        // Almost ready to register the addons. However, if there are any non-sequenced dependancies that were not registered with Selenium API yet, then tail-override API.prototype._save() and make it invoke registerAddOns() only after all non-sequenced dependancies get loaded. If that doesn't happen within a short time limit, that may mean that non-sequenced dependancy didn't register itself with Selenium IDE API, or its initialisation failed; then show a warning message.
+        var expectedNonSequencedDependencies= sortedPlugins.nonSequencedDependencies.slice(0); // This will be an array of pluginIds of non-sequenced dependencies that were not loaded yet.
+        console.error( 'expectedNonSequencedDependencies: ' +expectedNonSequencedDependencies.join(', ') );
+        typeof editor!=='undefined' || console.error( 'no editor');
+        console.error( 'editor.pluginManager.getEnabledUserExtensions(): ' +editor.pluginManager.getEnabledUserExtensions() );
         if( sortedPlugins.nonSequencedDependencies.length ) {
             // See Selenium IDE's chrome/content/api.js > function API(), which sets: this.preferences = SeleniumIDE.Preferences; See also API.prototype._save()
-            var plugins= JSON.parse(SeleniumIDE.Preferences.getString('pluginsData', '[]')); // An array of objects { id: pluginId, ... code:{ideExtensions: array, userExtensions:array, formatters:array} ... }
+            console.error( "SeleniumIDE.Preferences.getString('pluginsData', '[]'): " +SeleniumIDE.Preferences.getString('pluginsData', '[]') );
+            //@TODO The following includes all Se extensions, not just ones that were loaded already!!!!
+            var plugins= JSON.parse( SeleniumIDE.Preferences.getString('pluginsData', '[]') ); // An array of objects { id: pluginId, ... code:{ideExtensions: array, userExtensions:array, formatters:array} ... }
             for( var i=0; i<plugins.length; i++ ) {
                 var index= expectedNonSequencedDependencies.indexOf( plugins[i].id );
                 if( index>=0 ) {
@@ -181,6 +187,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                 }
             }
         }
+        console.error( 'expectedNonSequencedDependencies: ' +expectedNonSequencedDependencies.join(', ') );
         if( expectedNonSequencedDependencies.length ) {
             // Tail-override of API.prototype._save(), which is called by addXXX()
             var oldSave= API.prototype._save;
@@ -203,7 +210,8 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
         }
         else {
             registerAddOns();
-        }
+        }*/
+        registerAddOns();
     });
     SeLiteExtensionSequencer.processedAlready= true;
 }
