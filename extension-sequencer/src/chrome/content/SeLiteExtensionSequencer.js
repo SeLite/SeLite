@@ -32,7 +32,7 @@ SeLiteExtensionSequencer.coreExtensionsLoadedTimes= {};
  *     string pluginId => object just like parameter prototype of SeLiteExtensionSequencer.registerPlugin()
  *  }
  * */
-SeLiteExtensionSequencer.plugins= {};
+SeLiteExtensionSequencer.pluginInfos= {};
 
 /** Register a Firefox plugin which is a Selenium IDE core extension. It will be
  *  initiated by SeLiteExtensionSequencer later, in a proper sequence - after any dependencies.
@@ -59,7 +59,7 @@ SeLiteExtensionSequencer.plugins= {};
 **/
 SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
     //console.log( 'SeLiteExtensionSequencer.registerPlugin() called with a plugin that has pluginId: ' +prototype.pluginId );
-    var plugin= {
+    var pluginInfo= {
         pluginId: prototype.pluginId,
         coreUrl: prototype.coreUrl || [],
         xmlUrl: prototype.xmlUrl || [],
@@ -69,26 +69,26 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
         nonSequencedRequisitePlugins: prototype.nonSequencedRequisitePlugins || {},
         preActivate: prototype.preActivate || false
     };
-    if( !Array.isArray(plugin.coreUrl) ) {
-        plugin.coreUrl= [plugin.coreUrl];
+    if( !Array.isArray(pluginInfo.coreUrl) ) {
+        pluginInfo.coreUrl= [pluginInfo.coreUrl];
     }
-    if( !Array.isArray(plugin.xmlUrl) ) {
-        plugin.xmlUrl= [plugin.xmlUrl];
+    if( !Array.isArray(pluginInfo.xmlUrl) ) {
+        pluginInfo.xmlUrl= [pluginInfo.xmlUrl];
     }
-    if( !Array.isArray(plugin.ideUrl) ) {
-        plugin.ideUrl= [plugin.ideUrl];
+    if( !Array.isArray(pluginInfo.ideUrl) ) {
+        pluginInfo.ideUrl= [pluginInfo.ideUrl];
     }
-    if( plugin.pluginId in SeLiteExtensionSequencer.plugins ) {
-        throw new Error("Plugin " +plugin.pluginId+ " was already registered with SeLite Extension Sequencer.");
+    if( pluginInfo.pluginId in SeLiteExtensionSequencer.pluginInfos ) {
+        throw new Error("Plugin " +pluginInfo.pluginId+ " was already registered with SeLite Extension Sequencer.");
     }
-    var mergedPluginIds= Object.keys(plugin.requisitePlugins).concat( Object.keys(plugin.optionalRequisitePlugins) ).concat( Object.keys(plugin.nonSequencedRequisitePlugins) );
+    var mergedPluginIds= Object.keys(pluginInfo.requisitePlugins).concat( Object.keys(pluginInfo.optionalRequisitePlugins) ).concat( Object.keys(pluginInfo.nonSequencedRequisitePlugins) );
     for( var i=0; i<mergedPluginIds.length; i++ ) {
         if( mergedPluginIds.indexOf(mergedPluginIds[i])!=i ) {
             // This doesn't need to show human-friendly plugin names, because it should be caught by developer
-            throw new Error( "SeLite Extension Sequencer: plugin " +plugin.pluginId+ " lists a dependancy package " +mergedPluginIds[i]+ " two or more times." );
+            throw new Error( "SeLite Extension Sequencer: plugin " +pluginInfo.pluginId+ " lists a dependancy package " +mergedPluginIds[i]+ " two or more times." );
         }
     }
-    SeLiteExtensionSequencer.plugins[plugin.pluginId]= plugin;
+    SeLiteExtensionSequencer.pluginInfos[pluginInfo.pluginId]= pluginInfo;
 };
 
 /** Get an array of plugin IDs, sorted so that ones with no dependencies are first,
@@ -117,17 +117,17 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
     var missingNonSequencedDependencies= {};
     var nonSequencedDependencies= []; // Array of IDs of non-sequenced dependencies
     
-    for( var dependantId in SeLiteExtensionSequencer.plugins ) {
-        var plugin= SeLiteExtensionSequencer.plugins[dependantId];
-        pluginUnprocessedRequisites[dependantId]= Object.keys( plugin.requisitePlugins ).slice(0); // protective copy //@TODO no need for slice(0)
+    for( var dependantId in SeLiteExtensionSequencer.pluginInfos ) {
+        var pluginInfo= SeLiteExtensionSequencer.pluginInfos[dependantId];
+        pluginUnprocessedRequisites[dependantId]= Object.keys( pluginInfo.requisitePlugins ).slice(0); // protective copy //@TODO no need for slice(0)
         
         // Any optional dependencies, that are present, are treated as required dependencies:
-        for( var optionalPluginId in plugin.optionalRequisitePlugins ) {
-            if( optionalPluginId in SeLiteExtensionSequencer.plugins ) {
+        for( var optionalPluginId in pluginInfo.optionalRequisitePlugins ) {
+            if( optionalPluginId in SeLiteExtensionSequencer.pluginInfos ) {
                 pluginUnprocessedRequisites[dependantId].push( optionalPluginId );
             }
         }
-        for( var nonSequencedPluginId in plugin.nonSequencedRequisitePlugins ) {
+        for( var nonSequencedPluginId in pluginInfo.nonSequencedRequisitePlugins ) {
             if( nonSequencedPluginId in addonsById ) {
                 nonSequencedDependencies.indexOf(nonSequencedPluginId)>=0 || nonSequencedDependencies.push( nonSequencedPluginId );
             }
@@ -169,13 +169,13 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
     var missingIndirectDependancies= {};
     !Object.keys(pluginUnprocessedRequisites).length || console.error( 'pluginUnprocessedRequisites ' +Object.keys(pluginUnprocessedRequisites) );
     for( var pluginId in pluginUnprocessedRequisites ) { // pluginId is of the dependant
-        var plugin= SeLiteExtensionSequencer.plugins[ pluginId ];
+        var pluginInfo= SeLiteExtensionSequencer.pluginInfos[ pluginId ];
         var direct= [], indirect= [];
         
         for( var j=0; j<pluginUnprocessedRequisites[pluginId].length; j++ ) {//@TODO instead of the following: for( var requisiteId of pluginUnprocessedRequisites[pluginId] )
             var requisiteId= pluginUnprocessedRequisites[pluginId][j];
             console.error( 'requisiteId ' +requisiteId);
-            if( requisiteId in plugin.requisitePlugins || requisiteId in plugin.nonSequencedRequisitePlugins ) {
+            if( requisiteId in pluginInfo.requisitePlugins || requisiteId in pluginInfo.nonSequencedRequisitePlugins ) {
                 direct.push(requisiteId);
             }
             else {

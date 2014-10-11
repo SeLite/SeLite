@@ -69,13 +69,13 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
         var sortedPlugins= SeLiteExtensionSequencer.sortedPlugins( addonsById );
         if( Object.keys(sortedPlugins.missingDirectDependancies).length ) {
             var dependancyPluginNames= {}; // { pluginId => pluginName } - for dependancies only
-            for( var dependantId in SeLiteExtensionSequencer.plugins ) {
-                var plugin= SeLiteExtensionSequencer.plugins[dependantId];
-                for( var dependencyPluginId in plugin.requisitePlugins ) {
-                    dependancyPluginNames[dependencyPluginId]= plugin.requisitePlugins[dependencyPluginId];
+            for( var dependantId in SeLiteExtensionSequencer.pluginInfos ) {
+                var pluginInfo= SeLiteExtensionSequencer.pluginInfos[dependantId];
+                for( var dependencyPluginId in pluginInfo.requisitePlugins ) {
+                    dependancyPluginNames[dependencyPluginId]= pluginInfo.requisitePlugins[dependencyPluginId];
                 }
-                for( var dependencyPluginId in plugin.optionalRequisitePlugins ) {
-                    dependancyPluginNames[dependencyPluginId]= plugin.optionalRequisitePlugins[dependencyPluginId];
+                for( var dependencyPluginId in pluginInfo.optionalRequisitePlugins ) {
+                    dependancyPluginNames[dependencyPluginId]= pluginInfo.optionalRequisitePlugins[dependencyPluginId];
                 }
             }                
             var pluginIdToName= function pluginIdToName(pluginId) {
@@ -111,25 +111,25 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
         var failed= {}; // Object { string failed pluginId => exception }
         for( var i=0; i<sortedPlugins.sortedPluginIds.length; i++ ) {
             var pluginId= sortedPlugins.sortedPluginIds[i];
-            var plugin= SeLiteExtensionSequencer.plugins[pluginId];
+            var pluginInfo= SeLiteExtensionSequencer.pluginInfos[pluginId];
             var ide_api = new API();
             try {
                 // I register the plugin even if it has no core/ide extension url. That way it
                 // will be listed in Selenium IDE > Options > Options > Plugins.
                 ide_api.addPlugin(pluginId);
-                for( var j=0; j<plugin.ideUrl.length; j++ ) {
-                    ide_api.addPluginProvidedIdeExtension( plugin.ideUrl[j] );
+                for( var j=0; j<pluginInfo.ideUrl.length; j++ ) {
+                    ide_api.addPluginProvidedIdeExtension( pluginInfo.ideUrl[j] );
                 }
-                for( var j=0; j<plugin.coreUrl.length; j++ ) {
-                    if( j<plugin.xmlUrl.length ) {
-                        ide_api.addPluginProvidedUserExtension( plugin.coreUrl[j], plugin.xmlUrl[j] );
+                for( var j=0; j<pluginInfo.coreUrl.length; j++ ) {
+                    if( j<pluginInfo.xmlUrl.length ) {
+                        ide_api.addPluginProvidedUserExtension( pluginInfo.coreUrl[j], pluginInfo.xmlUrl[j] );
                     }
                     else {
-                        ide_api.addPluginProvidedUserExtension( plugin.coreUrl[j] );
+                        ide_api.addPluginProvidedUserExtension( pluginInfo.coreUrl[j] );
                     }
                 }
-                if( plugin.preActivate ) {
-                    plugin.preActivate.call( null, ide_api );
+                if( pluginInfo.preActivate ) {
+                    pluginInfo.preActivate.call( null, ide_api );
                 }
             }
             catch(e) {
