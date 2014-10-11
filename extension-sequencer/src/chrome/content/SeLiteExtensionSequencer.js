@@ -102,17 +102,14 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
  *      missingDirectDependancies: {
  *          string pluginId: [string missing direct dependency plugin id, ...],
  *          ...
- *      } where direct dependencies can be sequenced or non-sequenced,
+ *      },
  *      missingIndirectDependancies: {
  *          string pluginId: [string missing indirect dependency plugin id, ...],
  *          ...
- *      } where indirect dependencies can be sequenced or non-sequenced,
- *      nonSequencedDependencies: [pluginId...] of any non-sequenced dependancies
- *          that are present (i.e. that are in given addonsById).
+ *      } where both direct and indirect dependencies can be a mixture of sequenced or non-sequenced
  *  }
  * */
 SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
-    console.error( 'addonsById: ' +Object.keys(addonsById));
     // pluginUnprocessedRequisites contains plugins with their required dependencies (sequenced or not).
     // I add in any optional plugin IDs, if they are installed, so they get loaded in correct order, before the plugins that use them.
     var pluginUnprocessedRequisites= {}; // { dependant plugin id => [requisite plugin id...], ... }
@@ -131,7 +128,6 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
             }
         }
         for( var nonSequencedPluginId in plugin.nonSequencedRequisitePlugins ) {
-            console.error( 'dependant '+dependantId+ ' depends on nonsequenced ' +nonSequencedPluginId);
             if( nonSequencedPluginId in addonsById ) {
                 nonSequencedDependencies.indexOf(nonSequencedPluginId)>=0 || nonSequencedDependencies.push( nonSequencedPluginId );
             }
@@ -141,7 +137,7 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
             }
         }
     }
-    console.error( 'missingNonSequencedDependencies for dependant: ' +Object.keys(missingNonSequencedDependencies).join(', ') );
+    !Object.keys(missingNonSequencedDependencies).length || console.error( 'SeLiteExtensionSequencer: following add-on(s) are missing non sequenced dependencies: ' +Object.keys(missingNonSequencedDependencies).join(', ') );
     var sortedPluginIds= []; // [pluginId...] sorted, starting with ones with no dependencies, to the dependant ones
     
     // I believe this has computational cost O(N^2), which is fine with me.
@@ -172,7 +168,7 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
     }
     var missingDirectDependancies= {};
     var missingIndirectDependancies= {};
-    console.error( 'pluginUnprocessedRequisites ' +Object.keys(pluginUnprocessedRequisites));
+    !Object.keys(pluginUnprocessedRequisites).length || console.error( 'pluginUnprocessedRequisites ' +Object.keys(pluginUnprocessedRequisites) );
     for( var pluginId in pluginUnprocessedRequisites ) { // pluginId is of the dependant
         var plugin= SeLiteExtensionSequencer.plugins[ pluginId ];
         var direct= [], indirect= [];
@@ -194,12 +190,10 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
             missingIndirectDependancies[pluginId]= indirect;
         }
     }
-    //console.log( 'SeLiteExtensionSequencer.sortedPlugins() called and finished.' );
-    console.log( 'missingDirectDependancies: ' +Object.keys(missingDirectDependancies));
+    console.log( 'SeLiteExtensionSequencer: Following add-ons are missing direct dependancies: ' +Object.keys(missingDirectDependancies) );
     return {
         missingDirectDependancies: missingDirectDependancies,
         missingIndirectDependancies: missingIndirectDependancies,
-        nonSequencedDependencies: nonSequencedDependencies,
         sortedPluginIds: sortedPluginIds
     };
 };
@@ -261,9 +255,6 @@ SeLiteExtensionSequencer.popup= function popup( window, title, message ) {
 
 // Whether I've processed extension(s) already
 SeLiteExtensionSequencer.processedAlready= false;
-
-// Whether all expected non-sequenced dependencies were loaded already.
-SeLiteExtensionSequencer.nonSequencedDependenciesLoaded= false;
 
 var Flag= {
     alertShown: false // Whether I've already shown the alert (potentially in another window). It helps me to ensure that I don't show the same message again if the user opens a new window.
