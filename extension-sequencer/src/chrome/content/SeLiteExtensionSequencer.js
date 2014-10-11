@@ -140,8 +140,7 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
     !Object.keys(missingNonSequencedDependencies).length || console.error( 'SeLiteExtensionSequencer: following add-on(s) are missing non sequenced dependencies: ' +Object.keys(missingNonSequencedDependencies).join(', ') );
     var sortedPluginIds= []; // [pluginId...] sorted, starting with ones with no dependencies, to the dependant ones
     
-    // I believe this has computational cost O(N^2), which is fine with me.
-    // @TODO protect against cyclic dependancies, report and disable them
+    // I believe this has computational cost between O(N^2) and O(N^3), which is fine with me. This should report cyclic dependancies as as missing.
     outer: while( true ) {
         for( var pluginId in pluginUnprocessedRequisites ) {
             if( missingNonSequencedDependencies[pluginId] ) {

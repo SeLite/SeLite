@@ -2,4 +2,3 @@ content selite-run-all-favorites  chrome/content/
 skin selite-run-all-favorites classic/1.0 chrome/skin/
 
 overlay chrome://browser/content/browser.xul chrome://selite-run-all-favorites/content/extensions/browser.xul
-overlay chrome://selenium-ide/content/selenium-ide-common.xul chrome://selite-run-all-favorites/content/ui/ovCommon.xul
