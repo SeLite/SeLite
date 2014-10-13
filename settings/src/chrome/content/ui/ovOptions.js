@@ -413,6 +413,7 @@ function RowInfo( module, setName, rowLevel, field, key, valueCompound, isUndecl
         this.valueCompound= SeLiteMisc.proxyEnsureFieldsExist({ entry: {} });
     }
     !('isUndeclaredEntry' in this) || SeLiteMisc.ensureType( this.isUndeclaredEntry, 'boolean', "isUndeclaredEntry (if defined)" );
+    !('isUndeclaredEntry' in this) || !this.isUndeclaredEntry || rowLevel===RowLevel.FIELD && SeLiteMisc.hasType(this.valueCompound.entry, ['some-object', 'primitive']) || rowLevel===RowLevel.OPTION && SeLiteMisc.hasType(this.valueCompound.entry, 'some-object') || SeLiteMisc.fail();
     
     rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET || 'valueCompound' in this && SeLiteMisc.ensureType( this.valueCompound, 'some-object', 'valueCompound' );
     
