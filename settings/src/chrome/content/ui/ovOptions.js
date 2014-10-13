@@ -392,10 +392,11 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
  *              null if fromPreferences===true or if the value comes from field default (as in the module definition)
  *          entry: as described for Module.getFieldsDownToFolder(..)
  *  }
+ *  @param {boolean} [isUndeclaredEntry] Whether this is a value of an undeclared field, or a value of an undeclared key of a declared Field.FixedMap.
  *  Required if rowLevel===RowLevel.FIELD.
  * */
-function RowInfo( module, setName, rowLevel, field, key, valueCompound ) {
-    SeLiteMisc.objectFillIn( this, ['module', 'setName', 'rowLevel', 'field', 'key', 'valueCompound'], arguments, false, /*dontSetMissingOnes*/true );
+function RowInfo( module, setName, rowLevel, field, key, valueCompound, isUndeclaredEntry ) {
+    SeLiteMisc.objectFillIn( this, ['module', 'setName', 'rowLevel', 'field', 'key', 'valueCompound', 'isUndeclaredEntry'], arguments, false, /*dontSetMissingOnes*/true );
     
     SeLiteMisc.ensureInstance( this.module, SeLiteSettings.Module, 'module' );
     SeLiteMisc.ensureType( this.setName, ['string', 'null'], 'setName' );
@@ -411,6 +412,7 @@ function RowInfo( module, setName, rowLevel, field, key, valueCompound ) {
         !('valueCompound' in this) || SeLiteMisc.fail( 'When using SeLiteSettings.NEW_VALUE_ROW, do not pass valueCompound.' );
         this.valueCompound= SeLiteMisc.proxyEnsureFieldsExist({ entry: {} });
     }
+    !('isUndeclaredEntry' in this) || SeLiteMisc.ensureType( this.isUndeclaredEntry, 'boolean', "isUndeclaredEntry (if defined)" );
     
     rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET || 'valueCompound' in this && SeLiteMisc.ensureType( this.valueCompound, 'some-object', 'valueCompound' );
     
@@ -848,7 +850,7 @@ function generateSets( moduleChildren, module ) {
 
 /** @param setFields Result of SeLiteSettings.Module.getFieldsOfSet() or SeLiteSettings.Module.getFieldsDownToFolder()
  * */
-function generateFields( setChildren, module, setName, setFields ) {//@TODO for undeclared fields
+function generateFields( setChildren, module, setName, setFields ) {
     for( var fieldName in setFields ) {
         var field= module.fields[fieldName];
         if( field ) {
@@ -861,9 +863,15 @@ function generateFields( setChildren, module, setName, setFields ) {//@TODO for 
                 var fieldChildren= createTreeChildren( fieldItem );
                 if( field instanceof SeLiteSettings.Field.FixedMap ) {
                     for( var i=0; i<field.keySet.length; i++ ) { //@TODO loop for( .. of ..) once NetBeans supports it
-                        var key= field.keySet[i]
+                        var key= field.keySet[i];
                         var optionItem= new RowInfo( module, setName, RowLevel.OPTION, field, key, valueCompound ).generateTreeItem();
                         fieldChildren.appendChild( optionItem );
+                    }
+                    for( var key in valueCompound.entry ) {
+                        if( field.keySet.indexOf(key)<0 ) {
+                            var optionItem= new RowInfo( module, setName, RowLevel.OPTION, field, key, valueCompound, true ).generateTreeItem();
+                            fieldChildren.appendChild( optionItem );
+                        }
                     }
                 }
                 else {
@@ -872,7 +880,6 @@ function generateFields( setChildren, module, setName, setFields ) {//@TODO for 
                         : valueCompound.entry;
 
                     for( var key in pairsToList ) {////@TODO potential IterableArray
-                        if( !(isChoice || valueCompound.entry===undefined || typeof(valueCompound.entry)==='object') ) debugger;
                         isChoice || valueCompound.entry===undefined || typeof(valueCompound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value of type ' +typeof valueCompound.entry+ ': ' +valueCompound.entry );
                         var optionItem= new RowInfo( module, setName, RowLevel.OPTION, field, key, valueCompound ).generateTreeItem();
                         fieldChildren.appendChild( optionItem );
@@ -880,6 +887,9 @@ function generateFields( setChildren, module, setName, setFields ) {//@TODO for 
                 }
                 treeRowsOrChildren[ module.name ][ setName ][ fieldName ][ SeLiteSettings.FIELD_TREECHILDREN ]= fieldChildren;
             }
+        }
+        else {
+            //@TODO
         }
     }
 }

@@ -189,7 +189,7 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
             missingIndirectDependancies[pluginId]= indirect;
         }
     }
-    console.log( 'SeLiteExtensionSequencer: Following add-ons are missing direct dependancies: ' +Object.keys(missingDirectDependancies) );
+    !Object.keys(missingDirectDependancies).length || console.log( 'SeLiteExtensionSequencer: Following add-ons are missing direct dependancies: ' +Object.keys(missingDirectDependancies) );
     return {
         missingDirectDependancies: missingDirectDependancies,
         missingIndirectDependancies: missingIndirectDependancies,
