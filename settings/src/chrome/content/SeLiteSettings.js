@@ -1229,9 +1229,6 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function getFieldsOfSet( setName
             var fieldName= fieldKeyValue.indexOf( '.' )>=0
                 ? fieldKeyValue.substring( 0, fieldKeyValue.indexOf('.') )
                 : fieldKeyValue;
-            var field= field
-                ? this.fields[fieldName]
-                : undefined;
             var keyValue= fieldName && fieldKeyValue.length>fieldName.length+1
                 ? fieldKeyValue.substring( fieldName.length+1 )
                 : undefined;
@@ -1247,6 +1244,9 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function getFieldsOfSet( setName
                     : ''
                 )
             );
+            var field= fieldName
+                ? this.fields[fieldName]
+                : undefined;
             if( !field ) {
                 if( key!==undefined ) {
                     if( !result[fieldName] ) {
@@ -1265,7 +1265,7 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function getFieldsOfSet( setName
                 }
             }
             // @TODO if we allow customisable set of options for Field.Choice, handle it, too
-            else if( field instanceof Field.FixedMap && !(key in field.keySet) ) {
+            else if( field instanceof SeLiteSettings.Field.FixedMap && !(key in field.keySet) ) {
                 result[fieldName].entry[ key ]= value;
             }
         }

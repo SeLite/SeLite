@@ -595,12 +595,15 @@ RowInfo.prototype.collectProperties= function collectProperties( column ) {
 RowInfo.prototype.nullOrUndefineLabel= function nullOrUndefineLabel( atOptionLevel ) {
     !showingPerFolder() || SeLiteMisc.fail( "Don't call nullOrUndefineLabel() when showing fields per folder." );
     !atOptionLevel || this.field instanceof SeLiteSettings.Field.Choice || this.field instanceof SeLiteSettings.Field.FixedMap || SeLiteMisc.fail( "atOptionLevel can be true only if the field is an instance of Choice or FixedMap, but it is " +this.field );
-    if( atOptionLevel && this.field instanceof SeLiteSettings.Field.FixedMap ) { // FixedMap is always multivalued, hence it doesn't allow null
+    if( !this.field ) {
+        return '';
+    }
+    else if( atOptionLevel && this.field instanceof SeLiteSettings.Field.FixedMap ) { // FixedMap is always multivalued, hence it doesn't allow null
         return 'value' in this && this.value!==undefined
             ? 'Undefine'
             : '';
     }
-    else if( !this.field.multivalued ) {
+    else if( this.field && !this.field.multivalued ) {
         return this.valueCompound.entry!==undefined
             ? 'Undefine'
             : (this.valueCompound.entry!==null && this.field.allowNull
@@ -610,7 +613,7 @@ RowInfo.prototype.nullOrUndefineLabel= function nullOrUndefineLabel( atOptionLev
     }
     else {
         // We allow 'Undefine' button only once there are no value(s) for the multivalued field
-        return this.valueCompound.entry!==undefined && Object.keys(this.valueCompound.entry).length===0
+        return typeof(this.valueCompound.entry)==='object' && Object.keys(this.valueCompound.entry).length===0
             ? 'Undefine'
             : '';
     }
@@ -845,7 +848,7 @@ function generateSets( moduleChildren, module ) {
 
 /** @param setFields Result of SeLiteSettings.Module.getFieldsOfSet() or SeLiteSettings.Module.getFieldsDownToFolder()
  * */
-function generateFields( setChildren, module, setName, setFields ) {
+function generateFields( setChildren, module, setName, setFields ) {//@TODO for undeclared fields
     for( var fieldName in setFields ) {
         var field= module.fields[fieldName];
         if( field ) {
@@ -869,6 +872,7 @@ function generateFields( setChildren, module, setName, setFields ) {
                         : valueCompound.entry;
 
                     for( var key in pairsToList ) {////@TODO potential IterableArray
+                        if( !(isChoice || valueCompound.entry===undefined || typeof(valueCompound.entry)==='object') ) debugger;
                         isChoice || valueCompound.entry===undefined || typeof(valueCompound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value of type ' +typeof valueCompound.entry+ ': ' +valueCompound.entry );
                         var optionItem= new RowInfo( module, setName, RowLevel.OPTION, field, key, valueCompound ).generateTreeItem();
                         fieldChildren.appendChild( optionItem );
