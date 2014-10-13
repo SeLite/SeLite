@@ -1209,9 +1209,23 @@ SeLiteSettings.Module.prototype.setDefaultSetName= function setDefaultSetName( s
  *      }
  *  }
  *  It doesn't inject any field defaults (from the module configuration). If setName is not empty and it differs to name of the default set, this doesn't inject any values from default set. If you'd like the values of the given set to merge with values of default set (if any) or with field defaults, use getFieldsDownToSet() instead. This ignores any manifests.
+ *  @private For SeLite internal use only.
  * */
 SeLiteSettings.Module.prototype.getFieldsOfSet= function getFieldsOfSet( setName ) {
-    if( setName===undefined || setName===null ) {
+    var result= SeLiteMisc.sortedObject(true);
+    for( var fieldName in this.fields ) {
+        result[ fieldName ]= this.getFieldOfSet( setName, fieldName );
+    }
+    return SeLiteMisc.proxyEnsureFieldsExist( result );
+};
+
+/** @private 
+ * @param {string} setName
+ * @param {string} fieldName
+ * @returns {object}
+ */
+SeLiteSettings.Module.prototype.getFieldOfSet= function getFieldOfSet( setName, fieldName ) {
+    if( !setName ) {
         setName= this.allowSets
             ? this.defaultSetName()
             : '';
@@ -1219,83 +1233,80 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function getFieldsOfSet( setName
     var setNameWithDot= setName!==''
         ? setName+ '.'
         : '';
-    var result= SeLiteMisc.sortedObject(true);
     
-    for( var fieldName in this.fields ) {
-        var field= this.fields[fieldName];
-        var isChoice= field instanceof SeLiteSettings.Field.Choice;
-        var multivaluedOrChoice= field.multivalued || isChoice;
-        var fieldNameWithDot= multivaluedOrChoice
-            ? fieldName+ '.'
-            : fieldName;
-        var children; // An array of preference string key(s) present for this field
-        var fieldHasPreference= this.prefsBranch.prefHasUserValue(setNameWithDot+fieldName); // True if a single-valued field has a value, or if a multivalued/choice (choice or non-choice) has SeLiteSettings.VALUE_PRESENT
-        if( !multivaluedOrChoice &&  fieldHasPreference ) {
-            children= [setNameWithDot+fieldName];
-        }
-        else
-        if( multivaluedOrChoice ) {
-            children= this.prefsBranch.getChildList( setNameWithDot+fieldNameWithDot, {} );
-        } else {
-            children= [];
-        }
-        var multivaluedOrChoiceFieldPreference= multivaluedOrChoice && fieldHasPreference
-            ? this.prefsBranch.getCharPref(setNameWithDot+fieldName)
-            : undefined;
-        if( multivaluedOrChoice && fieldHasPreference ) {
-            children.length===0 || SeLiteMisc.fail('Set "' + setName+ '", field "' +fieldName+ '" has field preference, therefore it should have no children.');
-            field.multivalued && multivaluedOrChoiceFieldPreference===SeLiteSettings.VALUE_PRESENT
-            || !field.multivalued && multivaluedOrChoiceFieldPreference===SeLiteSettings.NULL
-            || SeLiteMisc.fail( 'SeLiteSettings.Module ' +this.name+ ', set ' + setName+
-                ', field ' +fieldName+ ' is multivalued and/or a choice, but it has its own preference which is other than ' +SeLiteSettings.VALUE_PRESENT+ ' or ' +SeLiteSettings.NULL );
-        }
-        result[ fieldName ]= {
-            fromPreferences: false,
-            entry: undefined
-        };
-        if( multivaluedOrChoice && (fieldHasPreference && multivaluedOrChoiceFieldPreference===SeLiteSettings.VALUE_PRESENT || children.length>0) ) {
-            // When presenting SeLiteSettings.Field.Choice, they are not sorted by stored values, but by keys from the field definition.
-            // So I only use sortedObject for multivalued fields other than SeLiteSettings.Field.Choice
-            result[fieldName].entry= isChoice
-                ? {}
-                : SeLiteMisc.sortedObject( field.compareValues );
-        }
-        for( var i=0; i<children.length; i++ ) {
-            var prefName= children[i];
-            var type= this.prefsBranch.getPrefType( prefName );
+    var field= this.fields[fieldName];
+    var isChoice= field instanceof SeLiteSettings.Field.Choice;
+    var multivaluedOrChoice= field.multivalued || isChoice;
+    var fieldNameWithDot= multivaluedOrChoice
+        ? fieldName+ '.'
+        : fieldName;
+    var children; // An array of preference string key(s) present for this field
+    var fieldHasPreference= this.prefsBranch.prefHasUserValue(setNameWithDot+fieldName); // True if a single-valued field has a value, or if a multivalued/choice (choice or non-choice) has SeLiteSettings.VALUE_PRESENT
+    if( !multivaluedOrChoice &&  fieldHasPreference ) {
+        children= [setNameWithDot+fieldName];
+    }
+    else
+    if( multivaluedOrChoice ) {
+        children= this.prefsBranch.getChildList( setNameWithDot+fieldNameWithDot, {} );
+    } else {
+        children= [];
+    }
+    var multivaluedOrChoiceFieldPreference= multivaluedOrChoice && fieldHasPreference
+        ? this.prefsBranch.getCharPref(setNameWithDot+fieldName)
+        : undefined;
+    if( multivaluedOrChoice && fieldHasPreference ) {
+        children.length===0 || SeLiteMisc.fail('Set "' + setName+ '", field "' +fieldName+ '" has field preference, therefore it should have no children.');
+        field.multivalued && multivaluedOrChoiceFieldPreference===SeLiteSettings.VALUE_PRESENT
+        || !field.multivalued && multivaluedOrChoiceFieldPreference===SeLiteSettings.NULL
+        || SeLiteMisc.fail( 'SeLiteSettings.Module ' +this.name+ ', set ' + setName+
+            ', field ' +fieldName+ ' is multivalued and/or a choice, but it has its own preference which is other than ' +SeLiteSettings.VALUE_PRESENT+ ' or ' +SeLiteSettings.NULL );
+    }
+    var result= {
+        fromPreferences: false,
+        entry: undefined
+    };
+    if( multivaluedOrChoice && (fieldHasPreference && multivaluedOrChoiceFieldPreference===SeLiteSettings.VALUE_PRESENT || children.length>0) ) {
+        // When presenting SeLiteSettings.Field.Choice, they are not sorted by stored values, but by keys from the field definition.
+        // So I only use sortedObject for multivalued fields other than SeLiteSettings.Field.Choice
+        result.entry= isChoice
+            ? {}
+            : SeLiteMisc.sortedObject( field.compareValues );
+    }
+    for( var i=0; i<children.length; i++ ) {
+        var prefName= children[i];
+        var type= this.prefsBranch.getPrefType( prefName );
 
-            var value= null;
-            if( type===nsIPrefBranch.PREF_STRING ) {
-                value= this.prefsBranch.getCharPref(prefName);
-            }
-            else if( type===nsIPrefBranch.PREF_BOOL ) {
-                value= this.prefsBranch.getBoolPref(prefName);
-            }
-            else if( type===nsIPrefBranch.PREF_INT ) {
-                value= this.prefsBranch.getIntPref(prefName);
-            }
-            if( multivaluedOrChoice ) {
-                if( field instanceof SeLiteSettings.Field.FixedMap ) {
-                    value= value!==SeLiteSettings.NULL
-                        ? value
-                        : null;
-                }
-                result[fieldName].entry[ prefName.substring(setNameWithDot.length+fieldNameWithDot.length) ]= value;
-            }
-            else {
-                result[ fieldName ].entry= value!==SeLiteSettings.NULL
+        var value= null;
+        if( type===nsIPrefBranch.PREF_STRING ) {
+            value= this.prefsBranch.getCharPref(prefName);
+        }
+        else if( type===nsIPrefBranch.PREF_BOOL ) {
+            value= this.prefsBranch.getBoolPref(prefName);
+        }
+        else if( type===nsIPrefBranch.PREF_INT ) {
+            value= this.prefsBranch.getIntPref(prefName);
+        }
+        if( multivaluedOrChoice ) {
+            if( field instanceof SeLiteSettings.Field.FixedMap ) {
+                value= value!==SeLiteSettings.NULL
                     ? value
                     : null;
             }
+            result.entry[ prefName.substring(setNameWithDot.length+fieldNameWithDot.length) ]= value;
         }
-        if( isChoice && !field.multivalued && fieldHasPreference ) {
-            multivaluedOrChoiceFieldPreference===SeLiteSettings.NULL || SeLiteMisc.fail('This should have failed above already. SeLiteSettings.Module ' +field.module.name+ ', set ' +setName+ ', field ' +field.name+ ' has preference ' +fieldPreference );
-            result[fieldName].entry= null;
+        else {
+            result.entry= value!==SeLiteSettings.NULL
+                ? value
+                : null;
         }
-        !isChoice || result[fieldName].entry===undefined || typeof(result[fieldName].entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value ' +typeof result[fieldName].entry ); 
-        result[ fieldName ].fromPreferences= fieldHasPreference || children.length>0;
     }
-    return SeLiteMisc.proxyEnsureFieldsExist( result );
+    if( isChoice && !field.multivalued && fieldHasPreference ) {
+        multivaluedOrChoiceFieldPreference===SeLiteSettings.NULL || SeLiteMisc.fail('This should have failed above already. SeLiteSettings.Module ' +field.module.name+ ', set ' +setName+ ', field ' +field.name+ ' has preference ' +fieldPreference );
+        result.entry= null;
+    }
+    !isChoice || result.entry===undefined || typeof(result.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value ' +typeof result.entry ); 
+    result.fromPreferences= fieldHasPreference || children.length>0;
+    return result;
 };
 
 /** @param {string|SeLiteSettings.Module} moduleNameOrModule
