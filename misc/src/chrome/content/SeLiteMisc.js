@@ -384,6 +384,27 @@ SeLiteMisc.itemGeneric= function itemGeneric( containerAndFields, nullReplacemen
         : targetNullReplacement;
 };
 
+/** Access sub(sub...)container of given parent.
+ *  If parent[field1][field2][...] is not defined, then this creates any missing chains as new anonymous naturally sorted objects.
+ *  @param parent A parent container
+ *  @param string field
+ *  @param string another field (optional)
+ *  @param string another field (optional)
+ *  ....
+ *  @return the target parent[field][field2][...]
+ * */
+SeLiteMisc.subContainer= function subContainer( parent, fieldOrFields ) {
+    var object= parent;
+    for( var i=1; i<arguments.length; i++ ) {
+        var fieldName= arguments[i];
+        if( object[fieldName]===undefined ) {
+            object[fieldName]= SeLiteMisc.sortedObject(true);
+        }
+        object= object[fieldName];
+    }
+    return object;
+};
+
 var OBJECT_TO_STRING_INDENTATION= "  ";
 
 /** Get a simple string representation of the given object/array. Used for debugging.

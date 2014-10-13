@@ -355,50 +355,10 @@ function treeCell( treeRow, level ) {
     ];
 }
 
-/** Access sub(sub...)container of given parent.
- *  If parent[field1][field2][...] is not defined, then this creates any missing chains as new anonymous naturally sorted objects.
- *  @param parent A parent container
- *  @param string field
- *  @param string another field (optional)
- *  @param string another field (optional)
- *  ....
- *  @return the target parent[field][field2][...]@TODO move to SeLite Misc?
- * */
-function subContainer( parent, fieldOrFields ) {
-    var object= parent;
-    for( var i=1; i<arguments.length; i++ ) {
-        var fieldName= arguments[i];
-        if( object[fieldName]===undefined ) {
-            object[fieldName]= SeLiteMisc.sortedObject(true);
-        }
-        object= object[fieldName];
-    }
-    return object;
-}
-
 /** Simple shortcut function
  * */
 function valueCompound( field, setName ) {
     return moduleSetFields[field.module.name][setName][field.name];
-}
-
-//@TODO remove
-function collectValueForThisRow( field, value, rowLevel, valueCompound ) {
-    SeLiteMisc.ensureInstance( rowLevel, RowLevel, 'rowLevel' );
-    if( rowLevel===RowLevel.FIELD && value!==valueCompound.entry) { debugger;}
-    return rowLevel===RowLevel.FIELD
-        ? valueCompound.entry
-        : ( rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap
-            ? value
-            : undefined
-          );
-    return rowLevel===RowLevel.FIELD || rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap
-        ? value//Compound.entry
-        : '';
-        /*: ( rowLevel===RowLevel.OPTION && field instanceof SeLiteSettings.Field.FixedMap
-            ? value
-            : undefined
-          );*/
 }
 
 /** Enum-like, instances indicate the source of value for a field. Only used in per-folder mode.
@@ -826,19 +786,19 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
     // Register treerow in treeRowsOrChildren[][...] if needed
     if( allowSets ) { // Radio-like checkbox for (de)selecting a set
         if( this.rowLevel===RowLevel.SET && this.module.allowSets) {
-            subContainer( treeRowsOrChildren, this.module.name, this.setName )[ SeLiteSettings.SET_SELECTION_ROW ]= treerow;
+            SeLiteMisc.subContainer( treeRowsOrChildren, this.module.name, this.setName )[ SeLiteSettings.SET_SELECTION_ROW ]= treerow;
         }
     }
     if( this.rowLevel===RowLevel.FIELD ) {
         if( !this.field.multivalued && !(this.field instanceof SeLiteSettings.Field.Choice) ) {//single valued
-           subContainer( treeRowsOrChildren, this.module.name, this.setName )[ fieldName ]= treerow;
+           SeLiteMisc.subContainer( treeRowsOrChildren, this.module.name, this.setName )[ fieldName ]= treerow;
         }
         else {
-            subContainer( treeRowsOrChildren, this.module.name, this.setName, fieldName )[ SeLiteSettings.FIELD_MAIN_ROW ]= treerow;
+            SeLiteMisc.subContainer( treeRowsOrChildren, this.module.name, this.setName, fieldName )[ SeLiteSettings.FIELD_MAIN_ROW ]= treerow;
         }
     }
     if( this.rowLevel===RowLevel.OPTION ) {
-        subContainer( treeRowsOrChildren, this.module.name, this.setName, fieldName )[ this.key ]= treerow;
+        SeLiteMisc.subContainer( treeRowsOrChildren, this.module.name, this.setName, fieldName )[ this.key ]= treerow;
     }
     return treeitem;
 }
