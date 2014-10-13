@@ -819,7 +819,7 @@ function generateSets( moduleChildren, module ) {
             // setFields includes all fields from Preferences DB for the module name, even if they are not in the module definition
             
             var setFields= !showingPerFolder()
-                ? module.getFieldsOfSet( setName )
+                ? module.getFieldsOfSet( setName, true )
                 : module.getFieldsDownToFolder( targetFolder, true );
             if( !showingPerFolder() ) {
                 moduleSetFields[module.name]= moduleSetFields[module.name] || {};
@@ -1174,7 +1174,7 @@ function treeClickHandler( event ) {
             SeLiteSettings.savePrefFile();
             
             if( column.value.element!==treeColumnElements.defaultSet ) {
-                moduleSetFields[moduleName][selectedSetName]= module.getFieldsOfSet( selectedSetName );
+                moduleSetFields[moduleName][selectedSetName]= module.getFieldsOfSet( selectedSetName, true );
                 
                 var fieldRow= fieldTreeRow(selectedSetName, field);
                 var rowToUpdate, rowLevel;
@@ -1288,7 +1288,7 @@ function preProcessEdit( row, value ) {
         else {
             //@TODO cast value to the exact type, then use strict comparison ===
             //@TODO Check what if the whole field (.entry) is undefined. 
-            var oldValue= module.getFieldsOfSet( setName )[ field.name ].entry[ oldKey ];
+            var oldValue= module.getFieldsOfSet( setName, true )[ field.name ].entry[ oldKey ];
             valueChanged= value!=oldValue;
         }
     }
@@ -1419,7 +1419,7 @@ function setCellText( row, col, value, original) {
         info.field.setPref( setNameDot+ info.field.name+ '.' +info.oldKey, value ); //@TODO Check this for Int/Decimal - may need to treat value
     }
     SeLiteSettings.savePrefFile(); //@TODO Do we need this line?
-    moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName ); // not efficient, but robust: re-load the whole lot, rather than tweak it. @TODO use valueCompound()
+    moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName, true ); // not efficient, but robust: re-load the whole lot, rather than tweak it. @TODO use valueCompound()
     
     // Now update GUI:
     var fieldRow= fieldTreeRow(info.setName, info.field);

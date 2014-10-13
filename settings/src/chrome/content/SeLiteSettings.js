@@ -465,6 +465,7 @@ SeLiteSettings.Field.prototype.equals= function equals( other ) {
 /** Just a shortcut function. It returns a slice of what module.getFieldsDownToFolder() returns. It has same parameters, too.
  *  @param folderPath string, optional
  *  @param boolean dontCache, optional
+ *  @param {bool} [includeUndeclaredEntries] See same parameter of SeLiteSettings.Module.prototype.getFieldsOfSet().
  *  @return object {
             entry: mixed,
             fromPreferences: boolean,
@@ -473,8 +474,8 @@ SeLiteSettings.Field.prototype.equals= function equals( other ) {
     }
     @see SeLiteSettings.Module.getFieldsDownToFolder()
  * */
-SeLiteSettings.Field.prototype.getDownToFolder= function getDownToFolder( folderPath, dontCache ) {
-    return this.module.getFieldsDownToFolder( folderPath, dontCache )[ this.name ];
+SeLiteSettings.Field.prototype.getDownToFolder= function getDownToFolder( folderPath, dontCache, includeUndeclaredEntries ) {
+    return this.module.getFieldsDownToFolder( folderPath, dontCache, includeUndeclaredEntries )[ this.name ];
 };
 
 // @TODO Move this line to Javascript.wiki?: See also https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
@@ -1610,6 +1611,7 @@ SeLiteSettings.closingIde= function closingIde() {
  *  it returns fields of the default set (or field default values).
  *  @param bool dontCache If true, then this doesn't cache manifest files (it doesn't use any
  *  previous manifests stored in the cache and it doesn't store current manifests in the cache). The actual preferences won't be cached no matter what dontCache. For use by GUI.
+ *  @param {bool} [includeUndeclaredEntries] See same parameter of SeLiteSettings.Module.prototype.getFieldsOfSet().
  *  @return Object with sorted keys, serving as an associative array. A bit similar to result of getFieldsOfset(),
  *  but with more information and more structure: {
  *      string field name => anonymous object (known as 'valueCompound' in ovOptions.js) {
@@ -1633,7 +1635,7 @@ SeLiteSettings.closingIde= function closingIde() {
  *  - default key (value) of the field.
  *  The structure of the result is mostly similar to result of SeLiteSettings.Module.prototype.getFieldsOfSet().
 * */
-SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToFolder( folderPath, dontCache ) {
+SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToFolder( folderPath, dontCache, includeUndeclaredEntries ) {
     folderPath= folderPath || SeLiteSettings.testSuiteFolder;
     this.associatesWithFolders || SeLiteMisc.fail( "SeLiteSettings.Module.getFieldsDownToFolder() requires module.associatesWithFolders to be true, but it was called for module " +this.name );
     dontCache= dontCache || false;
@@ -1656,7 +1658,7 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
             var manifest= manifests.values[manifestFolder][i];
             
             if( manifest.moduleName==this.name ) {
-                if( manifest.fieldName in this.fields ) {
+                if( manifest.fieldName in this.fields || includeUndeclaredEntries ) {
                     
                     var field= this.fields[manifest.fieldName];
                     if( manifest.value.indexOf(SeLiteSettings.SELITE_THIS_MANIFEST_FOLDER)>=0 ) {
@@ -1668,10 +1670,12 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
                         manifest.value= manifest.value.replace( SeLiteSettings.SELITE_THIS_MANIFEST_FOLDER, manifestFolder, 'g' );
                         manifest.value= OS.Path.normalize( manifest.value );
                     }
-                    if( field.multivalued || field instanceof SeLiteSettings.Field.Choice ) {
+                    // Handle multivalued fields or Field.Choice, or undeclared multivalued fields
+                    if( field && (field.multivalued || field instanceof SeLiteSettings.Field.Choice) || !field && result[manifest.fieldName] && result[manifest.fieldName].folderPath===manifestFolder ) {
                         // If the field has any values from higher folders, forget them. The field may already have values from this same folder from the previous iterations - keep those.
-                        if( result[manifest.fieldName].folderPath!=manifestFolder ) {
-                            result[ manifest.fieldName ].entry= !(field instanceof SeLiteSettings.Field.Choice)
+                        if( result[manifest.fieldName].folderPath!==manifestFolder ) {
+                            // We list options for Field.Choice in the order of their definition. Entries of (other) multi-valued entries fields are sorted as in the field definition:
+                            result[ manifest.fieldName ].entry= field && !(field instanceof SeLiteSettings.Field.Choice)
                                 ? SeLiteMisc.sortedObject( field.compareValues )
                                 : {};
                         }
@@ -1684,14 +1688,17 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
                             }
                             else {
                                 // @TODO If we load frameworks automatically somehow, then load them before applying the rest of the manifests. Then change the following console.warn() to SeLiteMisc.fail():
-                                field.keySet.indexOf(manifest.fixedMapKey)>=0 || console.warn( 'FixedMap ' +field.name+ " uses (yet) undefined key: " +manifest.fixedMapKey+ ' (which has value: ' +manifest.value+ ').' );
+                                field.keySet.indexOf(manifest.fixedMapKey)>=0 || includeUndeclaredEntries || console.warn( 'FixedMap ' +field.name+ " uses (yet) undefined key: " +manifest.fixedMapKey+ ' (which has value: ' +manifest.value+ ').' );
                                 result[ manifest.fieldName ].entry[ manifest.fixedMapKey ]= manifest.value;
                             }    
                         }
                     }
-                    else { // single-valued, non-choice field:
+                    else { // single-valued, non-choice field, or first value of a (potentially multi-valued) undeclared field
                         result[ manifest.fieldName ].entry= manifest.value!==SeLiteSettings.NULL
-                            ? field.parse(manifest.value)
+                            ? ( field
+                                    ? field.parse(manifest.value)
+                                    : manifest.value
+                              )
                             : null;
                     }
                     result[ manifest.fieldName ].folderPath= manifestFolder;
@@ -1718,7 +1725,7 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
     }
     
     // Third, merge with any applicable sets: default set (if any) and sets associated via associations manifests. They override values from any values manifests.  then apply field defaults where needed.
-    return this.mergeSetsAndDefaults( associations, result, dontCache );
+    return this.mergeSetsAndDefaults( associations, result, dontCache, includeUndeclaredEntries );
 };
 
 /** This gets values of the given set (if any). It merges them with values of default set (if any), and with field defaults, as per SettingsScope.wiki.
