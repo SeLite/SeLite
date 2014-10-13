@@ -1195,7 +1195,8 @@ SeLiteSettings.Module.prototype.setDefaultSetName= function setDefaultSetName( s
     }
 };
 
-/** @param setName Name of the set; optional; undefined or an empty string if the module doesn't allow sets, or if you want the default set.
+/** @param {string} setName Name of the set; optional; undefined or an empty string if the module doesn't allow sets, or if you want the default set.
+ * @param {boolean} [includeUndeclaredEntries] Whether to include values of undeclared fields or FixedMap entries.
  *  @return Object with sorted keys, serving as associative array {
  *      string field name: anonymous object {
  *          fromPreferences: boolean, whether the value comes from preferences (otherwise it comes from a values manifest or is undefined)
@@ -1211,12 +1212,81 @@ SeLiteSettings.Module.prototype.setDefaultSetName= function setDefaultSetName( s
  *  It doesn't inject any field defaults (from the module configuration). If setName is not empty and it differs to name of the default set, this doesn't inject any values from default set. If you'd like the values of the given set to merge with values of default set (if any) or with field defaults, use getFieldsDownToSet() instead. This ignores any manifests.
  *  @private For SeLite internal use only.
  * */
-SeLiteSettings.Module.prototype.getFieldsOfSet= function getFieldsOfSet( setName ) {
+SeLiteSettings.Module.prototype.getFieldsOfSet= function getFieldsOfSet( setName, includeUndeclaredEntries ) {
     var result= SeLiteMisc.sortedObject(true);
     for( var fieldName in this.fields ) {
         result[ fieldName ]= this.getFieldOfSet( setName, fieldName );
     }
+    if( includeUndeclaredEntries ) {
+        var setNameWithDot= setName!==''
+            ? setName+ '.'
+            : '';
+        var children= this.prefsBranch.getChildList( setNameWithDot, {} );
+        for( var i=0; i<children.length; i++ ) {//@TODO for(..of..)
+            var prefName= children[i];
+            var fieldKeyValue= prefName.substring( setNameWithDot.length );
+            var fieldName= fieldKeyValue.indexOf( '.' )>=0
+                ? fieldKeyValue.substring( 0, fieldKeyValue.indexOf('.') )
+                : fieldKeyValue;
+            var field= field
+                ? this.fields[fieldName]
+                : undefined;
+            var keyValue= fieldName && fieldKeyValue.length>fieldName.length+1
+                ? fieldKeyValue.substring( fieldName.length+1 )
+                : undefined;
+            var key= keyValue && keyValue.indexOf('.')>=0
+                ? keyValue.substring( 0, keyValue.indexOf('.') )
+                : undefined;
+            /*var valueString= key!==undefined && keyValue.length>key.length+1
+                ? keyValue.substring( key.length+1 )
+                : undefined;*/
+            var value= this.preferenceValue( setNameWithDot+fieldName+
+                (key!==undefined
+                    ? '.' +key
+                    : ''
+                )
+            );
+            if( !field ) {
+                if( key!==undefined ) {
+                    if( !result[fieldName] ) {
+                        result[fieldName]= {
+                            entry: {},
+                            fromPreferences: true
+                        };
+                    }
+                    result[fieldName].entry[ key ]= value;
+                }
+                else {
+                    result[fieldName]= {
+                        entry: value,
+                        fromPreferences: true
+                    };
+                }
+            }
+            // @TODO if we allow customisable set of options for Field.Choice, handle it, too
+            else if( field instanceof Field.FixedMap && !(key in field.keySet) ) {
+                result[fieldName].entry[ key ]= value;
+            }
+        }
+    }
     return SeLiteMisc.proxyEnsureFieldsExist( result );
+};
+
+/** @private
+ *  @param {string} prefName
+ *  @return {*} Value of the given preference, at its appropriate type (string, boolean or int).
+ * */
+SeLiteSettings.Module.prototype.preferenceValue= function preferenceValue( prefName ) {
+    var type= this.prefsBranch.getPrefType( prefName );
+    if( type===nsIPrefBranch.PREF_STRING ) {
+        return this.prefsBranch.getCharPref(prefName);
+    }
+    else if( type===nsIPrefBranch.PREF_BOOL ) {
+        return this.prefsBranch.getBoolPref(prefName);
+    }
+    else if( type===nsIPrefBranch.PREF_INT ) {
+        return this.prefsBranch.getIntPref(prefName);
+    }
 };
 
 /** @private 
@@ -1233,15 +1303,14 @@ SeLiteSettings.Module.prototype.getFieldOfSet= function getFieldOfSet( setName, 
     var setNameWithDot= setName!==''
         ? setName+ '.'
         : '';
-    
     var field= this.fields[fieldName];
     var isChoice= field instanceof SeLiteSettings.Field.Choice;
     var multivaluedOrChoice= field.multivalued || isChoice;
     var fieldNameWithDot= multivaluedOrChoice
         ? fieldName+ '.'
         : fieldName;
-    var children; // An array of preference string key(s) present for this field
     var fieldHasPreference= this.prefsBranch.prefHasUserValue(setNameWithDot+fieldName); // True if a single-valued field has a value, or if a multivalued/choice (choice or non-choice) has SeLiteSettings.VALUE_PRESENT
+    var children; // An array of preference string key(s) present for this field
     if( !multivaluedOrChoice &&  fieldHasPreference ) {
         children= [setNameWithDot+fieldName];
     }
@@ -1272,20 +1341,10 @@ SeLiteSettings.Module.prototype.getFieldOfSet= function getFieldOfSet( setName, 
             ? {}
             : SeLiteMisc.sortedObject( field.compareValues );
     }
-    for( var i=0; i<children.length; i++ ) {
+    for( var i=0; i<children.length; i++ ) {//@TODO for(..of..)
         var prefName= children[i];
-        var type= this.prefsBranch.getPrefType( prefName );
 
-        var value= null;
-        if( type===nsIPrefBranch.PREF_STRING ) {
-            value= this.prefsBranch.getCharPref(prefName);
-        }
-        else if( type===nsIPrefBranch.PREF_BOOL ) {
-            value= this.prefsBranch.getBoolPref(prefName);
-        }
-        else if( type===nsIPrefBranch.PREF_INT ) {
-            value= this.prefsBranch.getIntPref(prefName);
-        }
+        var value= this.preferenceValue( prefName );
         if( multivaluedOrChoice ) {
             if( field instanceof SeLiteSettings.Field.FixedMap ) {
                 value= value!==SeLiteSettings.NULL
