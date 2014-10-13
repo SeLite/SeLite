@@ -1196,7 +1196,7 @@ SeLiteSettings.Module.prototype.setDefaultSetName= function setDefaultSetName( s
 };
 
 /** @param {string} setName Name of the set; optional; undefined or an empty string if the module doesn't allow sets, or if you want the default set.
- * @param {boolean} [includeUndeclaredEntries] Whether to include values of undeclared fields or FixedMap entries.
+ * @param {boolean} [includeUndeclaredEntries] Whether to include values of undeclared fields or FixedMap entries. That won't include undeclared options for declared Field.Choice instances.
  *  @return Object with sorted keys, serving as associative array {
  *      string field name: anonymous object {
  *          fromPreferences: boolean, whether the value comes from preferences (otherwise it comes from a values manifest or is undefined)
@@ -1725,9 +1725,10 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
  * @private
  * @param {string} [setName]
  * @param {bool} [dontCache]
+ * @param {bool} [includeUndeclaredEntries] Like the same parameter of SeLiteSettings.Module.prototype.getFieldsOfSet().
  * @return {object} like result of getFieldsDownToFolder()
  * */
-SeLiteSettings.Module.prototype.getFieldsDownToSet= function getFieldsDownToSet( setName, dontCache ) {
+SeLiteSettings.Module.prototype.getFieldsDownToSet= function getFieldsDownToSet( setName, dontCache, includeUndeclaredEntries ) {
     this.allowsSets || SeLiteMisc.fail( "You can't use getFieldsDownToSet() for module " +this.name+ " since it doesn't allow sets." );
     var setEntries= SeLiteMisc.sortedObject(true);
     if( this.defaultSetName()!==null && this.defaultSetName()!==setName ) {
@@ -1742,7 +1743,7 @@ SeLiteSettings.Module.prototype.getFieldsDownToSet= function getFieldsDownToSet(
             setName: setName,
         }) ];
     }
-    return this.mergeSetsAndDefaults( setEntries, undefined, dontCache );
+    return this.mergeSetsAndDefaults( setEntries, undefined, dontCache, includeUndeclaredEntries );
 };
 
 /** Get values of given set(s) and merge them on top of the given result (if any). Get field defaults and apply them to any fields left without a value.
@@ -1759,15 +1760,16 @@ SeLiteSettings.Module.prototype.getFieldsDownToSet= function getFieldsDownToSet(
  * }
  * @param {object} [result] If present, this merges the fields into that object and it returns it. Otherwise it creates a new object by calling SeLiteMisc.sortedObject(true).
  * @param {bool} [dontCache]
+ * @param {bool} [includeUndeclaredEntries] Like the same parameter of SeLiteSettings.Module.prototype.getFieldsOfSet().
  * @return {object} like result of getFieldsDownToFolder()
  * */
-SeLiteSettings.Module.prototype.mergeSetsAndDefaults= function getFieldsDownToSet( applicableSets, result, dontCache ) {
+SeLiteSettings.Module.prototype.mergeSetsAndDefaults= function getFieldsDownToSet( applicableSets, result, dontCache, includeUndeclaredEntries ) {
     result= result || SeLiteMisc.sortedObject(true);
     for( var folderOrSetName in applicableSets ) {
         for( var i=0; i<applicableSets[folderOrSetName].length; i++ ) {
             var setEntry= applicableSets[folderOrSetName][i];
             if( setEntry.moduleName==this.name ) {
-                var fields= this.getFieldsOfSet( setEntry.setName );
+                var fields= this.getFieldsOfSet( setEntry.setName, includeUndeclaredEntries );
                 for( var fieldName in fields ) {
                     // override any value(s) from values manifests, no matter whether from upper or lower (more local) level
                     // override any less local value(s) from default set or sets associated with upper (less local) folders
