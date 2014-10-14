@@ -1,3 +1,8 @@
 extensions.selite-settings.common.bootstrappedCoreExtensions SELITE_THIS_MANIFEST_FOLDER/phpmyfaq-framework.js
-# When this manifest is applied, the framework is not loaded yet! So the following fails:
-extensions.selite-settings.common.roles:editor Palo
+extensions.selite-settings.common.autoCheckAssert true
+extensions.selite-settings.common.maxTimeDifference 5
+
+#extensions.selite-settings.common.usernameField @TODO
+extensions.selite-settings.common.passwordField pass
+
+extensions.selite-settings.common.roles:editor Paul

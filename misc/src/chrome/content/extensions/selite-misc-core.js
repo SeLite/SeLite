@@ -65,6 +65,20 @@ SeLiteMisc.getUrlParam= function getUrlParam( paramName ) {
     var loginManagerInstance = Components.classes["@mozilla.org/login-manager;1"].
         getService(Components.interfaces.nsILoginManager);
 
+function hostname( hostnameOrUseBaseURL ) {
+    var testLocation= selenium.browserbot.getCurrentWindow().location;
+    SeLiteMisc.ensureType( hostnameOrUseBaseURL, ['undefined', 'string', 'boolean'], 'hostnameOrUseBaseURL' );
+    return hostnameOrUseBaseURL
+        ? (typeof hostnameOrUseBaseURL==='string'
+            ? hostnameOrUseBaseURL
+            : selenium.browserbot.baseUrl
+          )
+        : testLocation.protocol+ '//' +testLocation.hostname+
+            (testLocation.port
+            ? ':' +testLocation.port
+            : '');
+}
+
 /** This retrieves a web form password for a user. It doesn't work with .htaccess/HTTP authentication,
     but that can be retrieved too, see
     <br> https://developer.mozilla.org/En/Using_nsILoginManager
@@ -79,17 +93,7 @@ SeLiteMisc.getUrlParam= function getUrlParam( paramName ) {
 */
 SeLiteMisc.loginManagerPassword= function loginManagerPassword( username, hostnameOrUseBaseURL ) {
     // You could also use passwordManager.getAllLogins(); it returns an array of nsILoginInfo objects
-    var testLocation= selenium.browserbot.getCurrentWindow().location;
-    SeLiteMisc.ensureType( hostnameOrUseBaseURL, ['undefined', 'string', 'boolean'], 'hostnameOrUseBaseURL' );
-    var hostname= hostnameOrUseBaseURL
-        ? (typeof hostnameOrUseBaseURL==='string'
-            ? hostnameOrUseBaseURL
-            : selenium.browserbot.baseUrl
-          )
-        : testLocation.protocol+ '//' +testLocation.hostname+
-            (testLocation.port
-            ? ':' +testLocation.port
-            : '');
+    var hostname= hostname( hostnameOrUseBaseURL );
     console.log( 'SeLiteMisc.loginManagerPassword(): hostname is ' +hostname );
     var logins = loginManagerInstance.findLogins(
         {}, hostname,
@@ -104,5 +108,20 @@ SeLiteMisc.loginManagerPassword= function loginManagerPassword( username, hostna
     }
     return null;
 };
+
+/** It inserts or updates details in Firefox Login Manager.
+ * */
+SeLiteMisc.setLoginManagerEntry= function setLoginManagerEntry( username, password, hostnameOrUseBaseURL, formActionOrUserBaseURL ) {
+    var loginInfo= Components.classes["@mozilla.org/login-manager/loginInfo;1"]
+                .createInstance(Components.interfaces.nsILoginInfo);
+    loginInfo.hostname= hostname( hostnameOrUseBaseURL );
+    loginInfo.formSubmitURL= hostname( formActionOrUserBaseURL );
+    loginInfo.httpRealm= null;
+    loginInfo.username= username;
+    loginInfo.password= password;
+    loginInfo.usernameField= SeLiteSettings.commonSettings.fields['usernameField'].getDownToFolder().entry;
+    loginInfo.passwordField= SeLiteSettings.commonSettings.fields['passwordField'].getDownToFolder().entry;
+};
+    // @TODO detect whether the login was stored already. Insert or update.
 
 }) ();

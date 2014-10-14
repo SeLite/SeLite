@@ -31,6 +31,9 @@ if( phpMyFAQ===undefined ) {
     phpMyFAQ.selectUserByLogin= function selectUserByLogin( givenLogin ) {
         phpMyFAQ.selectedUser= phpMyFAQ.formulas.user.selectOne( {login: givenLogin} );
         phpMyFAQ.selectedUser.pass= phpMyFAQ.formulas.userlogin.selectOne( {login: givenLogin} ).pass;
+        if( phpMyFAQ.selectedUser.pass===undefined || phpMyFAQ.selectedUser.pass==='' ) {
+            phpMyFAQ.selectedUser.pass= SeLiteMisc.loginManagerPassword( givenLogin );
+        }
     };
 
     SeLiteSettings.setTestDbKeeper( 

@@ -11,7 +11,7 @@
 <thead>
 <tr><td rowspan="1" colspan="3">common_case</td></tr>
 </thead><tbody>
-<!--Parameter 'loginOrAmpRole' is user login, or user role prefixed with & (then it's passed to SeLiteSettings.roleToUser())-->
+<!--@param 'loginOrAmpRole' is a user login, or user role prefixed with &.-->
 <tr>
 	<td>function</td>
 	<td>logIn</td>
@@ -23,26 +23,9 @@
 	<td>SeLiteSettings.roleToUser( '${loginOrAmpRole}' )</td>
 	<td>login</td>
 </tr>
-<!--TODO Handle existing users with encoded passwords. Maybe have a routine to import passwords from loginManager to PMF test DB?-->
 <tr>
 	<td>getEval</td>
 	<td>phpMyFAQ.selectUserByLogin( storedVars.login )</td>
-	<td></td>
-</tr>
-<!---->
-<tr>
-	<td>if</td>
-	<td>phpMyFAQ.selectedUser.pass===undefined</td>
-	<td></td>
-</tr>
-<tr>
-	<td>getEval</td>
-	<td>phpMyFAQ.selectedUser.pass= SeLiteMisc.loginManagerPassword( '${login}' )</td>
-	<td></td>
-</tr>
-<tr>
-	<td>endIf</td>
-	<td></td>
 	<td></td>
 </tr>
 <!---->
@@ -66,6 +49,101 @@
 	<td></td>
 	<td></td>
 </tr>
+<!------------------->
+<tr>
+	<td>function</td>
+	<td>ensureUnderWebRoot</td>
+	<td>forceReload</td>
+</tr>
+<tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>!window.location.href.startsWith( SeLiteSettings.webRoot() ) || $forceReload</td>
+	<td></td>
+</tr>
+<tr>
+	<td>open</td>
+	<td>` SeLiteSettings.webRoot() `</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!---------------------->
+<tr>
+	<td>function</td>
+	<td>logOut</td>
+	<td></td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>ensureUnderWebRoot</td>
+	<td>forceReload=true</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ contains(@href, '`Serendipity.config('indexFile')`?/admin' ) ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeElementPresent</td>
+	<td>//a[ contains(@href, 'serendipity[adminModule]=logout' ) ]</td>
+	<td>userLoggedIn</td>
+</tr>
+<tr>
+	<td>if</td>
+	<td>$userLoggedIn</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ contains(@href, 'serendipity[adminModule]=logout' ) ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!----------------->
+<!--This requires the password to be stored in the test DB in plain text. Like for accounts created by script createUser.-->
+<tr>
+	<td>function</td>
+	<td>logInAsStoredUser</td>
+	<td>login</td>
+</tr>
+<tr>
+	<td>readRecord</td>
+	<td>=`{ formula: Serendipity.formulas.authors, username: $login }`</td>
+	<td>user</td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>logIn</td>
+	<td>loginOrAmpRole=$login, passwd=$user.password</td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!----------------->
 </tbody></table>
 </body>
 </html>
