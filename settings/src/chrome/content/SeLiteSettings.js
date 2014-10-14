@@ -1670,6 +1670,7 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
                         manifest.value= manifest.value.replace( SeLiteSettings.SELITE_THIS_MANIFEST_FOLDER, manifestFolder, 'g' );
                         manifest.value= OS.Path.normalize( manifest.value );
                     }
+                    
                     // Handle multivalued fields or Field.Choice, or undeclared multivalued fields
                     if( field && (field.multivalued || field instanceof SeLiteSettings.Field.Choice) || !field && result[manifest.fieldName] && result[manifest.fieldName].folderPath===manifestFolder ) {
                         // If the field has any values from higher folders, forget them. The field may already have values from this same folder from the previous iterations - keep those.
@@ -1683,8 +1684,8 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
                             if( !(field instanceof SeLiteSettings.Field.FixedMap) ) {
                                 result[ manifest.fieldName ].entry[ manifest.value ]=
                                     field instanceof SeLiteSettings.Field.Choice && manifest.value in field.choicePairs
-                                    ? field.choicePairs[ manifest.value ]
-                                    : manifest.value;
+                                        ? field.choicePairs[ manifest.value ]
+                                        : manifest.value;
                             }
                             else {
                                 // @TODO If we load frameworks automatically somehow, then load them before applying the rest of the manifests. Then change the following console.warn() to SeLiteMisc.fail():
