@@ -427,7 +427,9 @@ function RowInfo( module, setName, rowLevel, field, key, valueCompound, isUndecl
         }
         else if( this.rowLevel===RowLevel.OPTION ) {
             if( this.field instanceof SeLiteSettings.Field.FixedMap ) {
-                this.value= valueCompound.entry[ this.key ];
+                this.value= valueCompound.entry
+                    ? valueCompound.entry[ this.key ]
+                    : undefined;
             }
             else {
                 var pairsToList= this.field instanceof SeLiteSettings.Field.Choice
@@ -556,7 +558,7 @@ RowInfo.prototype.collectProperties= function collectProperties( column ) {
                 return SeLiteSettings.FIELD_NULL_OR_UNDEFINED;
             }
             if( this.rowLevel===RowLevel.OPTION ) {
-                if( this.field instanceof SeLiteSettings.Field.FixedMap && this.valueCompound.entry[this.key]===undefined ) {
+                if( this.field instanceof SeLiteSettings.Field.FixedMap && (!this.valueCompound.entry || this.valueCompound.entry[this.key]===undefined) ) {
                     return SeLiteSettings.FIELD_NULL_OR_UNDEFINED;
                 }
             }
@@ -660,7 +662,7 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
                 if( this.key===SeLiteSettings.NEW_VALUE_ROW ) {
                     return undefined; // nothing to show
                 }
-                if( this.key in this.valueCompound.entry ) {
+                if( this.valueCompound.entry && this.key in this.valueCompound.entry ) {
                     return '' +this.valueCompound.entry[this.key];
                 }// free-type or File get listed at OPTION level only when they have value(s). Since there is no value, the field is FixedMap (for which we list all entries, even undefined ones) and we show the value as 'undefined'.
                 SeLiteMisc.ensureInstance( this.field, SeLiteSettings.Field.FixedMap, 'this.field' );

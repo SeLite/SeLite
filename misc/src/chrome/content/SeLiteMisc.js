@@ -95,7 +95,7 @@ SeLiteMisc.ensureOneOf= function ensureOneOf( item, choices, variableName, messa
 
 /** It finds out whether the item's type is one of the given type(s).
  *  @param {*} item
- *  @param {(string|array)} typeStringOrStrings string, one of: 'number', 'string', 'object', 'function', 'boolean', 'undefined' or meta-types 'null', 'some-object'. 'some-object' stands for a non-null object.
+ *  @param {(string|array)} typeStringOrStrings string, one of: 'number', 'string', 'object', 'function', 'boolean', 'undefined' or meta-types 'null', 'some-object' or 'primitive'. 'some-object' stands for a non-null object; 'primitive' stands for number/string/boolean.
  *  @return {boolean}
  */
 SeLiteMisc.hasType= function hasType( item, typeStringOrStrings ) {
@@ -108,7 +108,7 @@ SeLiteMisc.hasType= function hasType( item, typeStringOrStrings ) {
     for( var i=0; i<typeStringOrStrings.length; i++ ) {
         SeLiteMisc.ensureOneOf(// Internal validation of each typeStringOrStrings[i] itself
             typeStringOrStrings[i],
-            ['number', 'string', 'object', 'function', 'boolean', 'undefined', 'null', 'some-object'],
+            ['number', 'string', 'object', 'function', 'boolean', 'undefined', 'null', 'some-object', 'primitive'],
             'typeStringOrStrings'
                 +(typeStringOrStringsWasArray
                     ? '[' +i+ ']'
@@ -118,6 +118,7 @@ SeLiteMisc.hasType= function hasType( item, typeStringOrStrings ) {
         if( typeof item===typeStringOrStrings[i]
             || typeStringOrStrings[i]==='null' && item===null
             || typeStringOrStrings[i]==='some-object' && typeof item==='object' && item!==null
+            || typeStringOrStrings[i]==='primitive' && ['number', 'string', 'boolean'].indexOf(typeof item)>=0
         ) {
             return true;
         }
