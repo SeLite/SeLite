@@ -26,7 +26,12 @@ treechildren::-moz-tree-cell-text(SELITE_DEFAULT_SET) {
 treechildren::-moz-tree-cell-text(SELITE_VALUES_MANIFEST) {
     color: brown;
 }
-treechildren::-moz-tree-cell-text(SELITE_SET_OR_DEFINITION) { cursor: pointer}
+
+treechildren::-moz-tree-cell-text(SELITE_FIELD_DEFAULT) { cursor: pointer}
+treechildren::-moz-tree-cell-text(SELITE_VALUES_MANIFEST) { cursor: pointer}
+treechildren::-moz-tree-cell-text(SELITE_DEFAULT_SET) { cursor: pointer}
+treechildren::-moz-tree-cell-text(SELITE_ASSOCIATED_SET) { cursor: pointer}
+
 
 treechildren::-moz-tree-cell-text(SELITE_FIELD_DEFAULT) {
     color: green;

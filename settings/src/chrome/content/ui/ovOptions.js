@@ -567,18 +567,14 @@ RowInfo.prototype.collectProperties= function collectProperties( column ) {
     else if( column===Column.ACTION_SET ) {
         if( showingPerFolder() && this.rowLevel===RowLevel.FIELD ) {
             if( this.valueCompound.fromPreferences ) {
-                return SeLiteSettings.SELITE_SET_OR_DEFINITION+ ' ' +(
-                    this.valueCompound.setName===this.module.defaultSetName()
-                        ? SeLiteSettings.DEFAULT_SET
-                        : SeLiteSettings.ASSOCIATED_SET
-                );
+                return this.valueCompound.setName===this.module.defaultSetName()
+                    ? SeLiteSettings.DEFAULT_SET
+                    : SeLiteSettings.ASSOCIATED_SET;
             }
             else {
-                return SeLiteSettings.SELITE_SET_OR_DEFINITION+ ' ' +(
-                    this.valueCompound.folderPath===null
-                        ? SeLiteSettings.VALUES_MANIFEST
-                        : SeLiteSettings.FIELD_DEFAULT
-                );
+                return this.valueCompound.folderPath===null
+                    ? SeLiteSettings.VALUES_MANIFEST
+                    : SeLiteSettings.FIELD_DEFAULT;
             }
         }
     }

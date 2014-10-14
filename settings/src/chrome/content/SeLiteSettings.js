@@ -141,7 +141,6 @@ SeLiteSettings.DEFAULT_SET= 'SELITE_DEFAULT_SET';
 SeLiteSettings.VALUES_MANIFEST= 'SELITE_VALUES_MANIFEST';
 SeLiteSettings.FIELD_DEFAULT= 'SELITE_FIELD_DEFAULT';
 SeLiteSettings.FIELD_NULL_OR_UNDEFINED= 'SELITE_FIELD_NULL_OR_UNDEFINED';
-SeLiteSettings.SELITE_SET_OR_DEFINITION= 'SELITE_SET_OR_DEFINITION';
 
 /** An array of strings that are reserved names. For internal use only.
  * */
