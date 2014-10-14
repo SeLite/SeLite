@@ -223,7 +223,7 @@ SeLiteData.Storage.prototype.selectOne= function selectOne( query, bindings, fie
  *  @throws error on failure
  **/
 SeLiteData.Storage.prototype.execute= function execute( query, bindings ) {
-    if( bindings==null ) {
+    if( !bindings ) {
         this.connection().executeSimpleSQL( query );
     }
     else {
