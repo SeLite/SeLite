@@ -31,7 +31,7 @@ var SeLiteMisc= {};
  *  - as it mentions, the rethrown exception will have incorreect stack information: Note that the thrown MyError will report incorrect lineNumber and fileName at least in Firefox.
  *  and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw?redirectlocale=en-US&redirectslug=JavaScript%2FReference%2FStatements%2Fthrow
 */
-SeLiteMisc.fail= function fail( errorOrMessage ) {debugger;
+SeLiteMisc.fail= function fail( errorOrMessage ) {
     console.error( errorOrMessage );
     console.error( SeLiteMisc.stack() );
     throw errorOrMessage!==undefined
