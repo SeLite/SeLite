@@ -23,10 +23,11 @@ treechildren::-moz-tree-checkbox(SELITE_OPTION_UNIQUE_CELL,checked) {
 treechildren::-moz-tree-cell-text(SELITE_DEFAULT_SET) {
     color: blue;
 }
-
 treechildren::-moz-tree-cell-text(SELITE_VALUES_MANIFEST) {
     color: brown;
 }
+treechildren::-moz-tree-cell-text(SELITE_SET_OR_DEFINITION) { cursor: pointer}
+
 treechildren::-moz-tree-cell-text(SELITE_FIELD_DEFAULT) {
     color: green;
     font-style: italic;
