@@ -635,7 +635,7 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
                 : '',
             this.setName,
             this.field
-                ? this.field.name
+                ? this.field.name//@TODO undeclared fields
                 : '',
             this.field instanceof SeLiteSettings.Field.FixedMap
                 ? this.key
@@ -668,16 +668,7 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
                 SeLiteMisc.ensureInstance( this.field, SeLiteSettings.Field.FixedMap, 'this.field' );
                 return 'undefined';
             }
-        }/*
-        var valueForThisRow= this.value; //@TODO?: collectValueForThisRow( field, value, rowLevel, valueCompound );
-        if( this.value==='string' || typeof this.value==='number' || valueForThisRow===null || valueForThisRow===undefined ) { //@TODO? && this.key!==SeLiteSettings.NEW_VALUE_ROW
-            return this.value!==null
-                ? ''+this.value
-                : ( valueForThisRow===null
-                    ? 'null'
-                    : 'undefined'
-                );
-        }*/
+        }
     }
     else if( column===Column.ACTION_SET ) {
         if( this.rowLevel===RowLevel.MODULE || this.rowLevel===RowLevel.SET ) {
@@ -714,6 +705,7 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
             return this.nullOrUndefineLabel( this.rowLevel===RowLevel.OPTION );
         }
         else {
+            //if( 'field' in this && /*this.valueCompound &&*/ this.field.name==='roles' ) debugger;
             return this.valueCompound.folderPath
                 ? OS.Path.join( this.valueCompound.folderPath, this.valueCompound.fromPreferences
                         ? SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME
