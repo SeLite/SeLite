@@ -227,7 +227,7 @@ SeLiteMisc.ensureInstance= function ensureInstance( object, classes, variableNam
 };
 
 /** @private */
-var proxyEnsureFieldsExistObjectHandler= {
+var proxyVerifyFieldsOnReadObjectHandler= {
   get: function get(target, name, receiver) {
     // Check whether name is set in target. Don't use target[name]!==undefined for that, because it may be set to undefined. I allow access to 'toJSON' even if not set. That's needed when your code creates new Error(), which (in Firefox) accesses 'toJSON' for all 'this' objects on the stack.
     name in target || name==='toJSON' || SeLiteMisc.fail( 'Accessing an unset field "' +name+ '" in ' +
@@ -241,14 +241,14 @@ var proxyEnsureFieldsExistObjectHandler= {
 SeLiteMisc.PROXY_TARGET_CONSTRUCTOR= 'SELITE_MISC_PROXY_TARGET_CONSTRUCTOR';
 SeLiteMisc.PROXY_TARGET_CLASS= 'SELITE_MISC_PROXY_TARGET_CLASS';
 /** @private */
-var proxyEnsureFieldsExistClassHandler= {
-  get: proxyEnsureFieldsExistObjectHandler.get,
+var proxyVerifyFieldsOnReadClassHandler= {
+  get: proxyVerifyFieldsOnReadObjectHandler.get,
   construct: function construct( targetConstructor, args ) {
     // Right here we're not in a constructor body yet - I can't use keyword this as a new instance/object here, since this.constructor.name is 'Object' and not target.name.
     // Following is based on https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply#Using_apply_to_chain_constructors
     var fNewConstr = function () {};
     fNewConstr.prototype = targetConstructor.prototype;
-    var proxy= new Proxy( new fNewConstr(), proxyEnsureFieldsExistObjectHandler );
+    var proxy= new Proxy( new fNewConstr(), proxyVerifyFieldsOnReadObjectHandler );
     Object.defineProperty( proxy, SeLiteMisc.PROXY_TARGET_CONSTRUCTOR, {
       enumerable: false, configurable: false, writable: false,
       value: targetConstructor
@@ -262,14 +262,14 @@ var proxyEnsureFieldsExistClassHandler= {
  <br/> Instead of using the fields directly you could have accessor methods, but those don't gurarentee correct code anyway (since they may contain typos, too), hence they don't solve the problem; however, they do make code more verbose and less hands-on.
  <br/> This uses Proxy, which decreases execution speed a bit. However, it helps to identify mistakes earlier, while keeping code shorter.
  <br/> If you need the code to determine whether the proxy contains a field with a given name, use expression: fieldName in target.
- @param {object|function} target An object, or a class (a constructor function). If it's a class, it may be an parent class, or a leaf-like. If used for non-leaf classes, then this doesn't protect instances of leaf classes: any classes that inherit from the proxy won't be protected by this mechanism - you need to use SeLiteMisc.proxyEnsureFieldsExist() for those subclasses, too. If target is a class (a function), then this covers both access to 'static' properties set on the class itself, and access to properties set on its instances.
+ @param {object|function} target An object, or a class (a constructor function). If it's a class, it may be an parent class, or a leaf-like. If used for non-leaf classes, then this doesn't protect instances of leaf classes: any classes that inherit from the proxy won't be protected by this mechanism - you need to use SeLiteMisc.proxyVerifyFieldsOnRead() for those subclasses, too. If target is a class (a function), then this covers both access to 'static' properties set on the class itself, and access to properties set on its instances.
 If used for multiple or all classes in the inheritance ancestry tree, this slows down access through prototype chain a bit; if that matters, then use it for leaf-classes only.
  @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
  Usage:
-    var object= SeLiteMisc.proxyEnsureFieldsExist( {...} or new ClassXyz(...) );
+    var object= SeLiteMisc.proxyVerifyFieldsOnRead( {...} or new ClassXyz(...) );
  or
     function ClassXyz(...) {...}
-    ClassXyz= SeLiteMisc.proxyEnsureFieldsExist( ClassXyz );
+    ClassXyz= SeLiteMisc.proxyVerifyFieldsOnRead( ClassXyz );
     var object= new ClassXyz;
  
  When using with a class, following standard invariants work:
@@ -278,13 +278,13 @@ If used for multiple or all classes in the inheritance ancestry tree, this slows
  However, object.constructor refers to the original ClassXyz.
  For classes, this sets proxyClass[SeLiteMisc.PROXY_TARGET_CLASS] pointing to the original class, and for instances it sets proxyInstance[SeLiteMisc.PROXY_TARGET_CONSTRUCTOR] pointing to the original instance (or original new instance). Beware that if you have a subclass of a proxyfied class, but you don't proxyfy that subclass and you sets its prototype to be an instance of the parent (proxyfied) class, then child instances will have proxyInstance[SeLiteMisc.PROXY_TARGET_CONSTRUCTOR] set to the target constructor of the parent class.
  * */
-SeLiteMisc.proxyEnsureFieldsExist= function proxyEnsureFieldsExist( target ) {
+SeLiteMisc.proxyVerifyFieldsOnRead= function proxyVerifyFieldsOnRead( target ) {
     typeof target==='object' && target!==null || typeof target==='function' || SeLiteMisc.fail( 'Parameter target should be an object or a class (constructor function), but it is ' +typeof target );
     if( typeof target==='object' ) {
-        return new Proxy( target, proxyEnsureFieldsExistObjectHandler );
+        return new Proxy( target, proxyVerifyFieldsOnReadObjectHandler );
     }
     
-    var result= new Proxy( target, proxyEnsureFieldsExistClassHandler );
+    var result= new Proxy( target, proxyVerifyFieldsOnReadClassHandler );
     
     Object.defineProperty( result, SeLiteMisc.PROXY_TARGET_CLASS, {
       enumerable: false, configurable: false, writable: false,
@@ -299,14 +299,14 @@ SeLiteMisc.proxyEnsureFieldsExist= function proxyEnsureFieldsExist( target ) {
  */
 SeLiteMisc.Enum= function Enum( name, forDirectSubclassPrototype ) {
     this.name= name;
-    // Following checks whether this is a direct instance of SeLiteMisc.Enum - after SeLiteMisc.Enum was passed through SeLiteMisc.proxyEnsureFieldsExist(). The first part of the check handles instances of unproxfied subclasses of SeLiteMisc.Enum. object.hasOwnProperty() works the same on target and proxy.
+    // Following checks whether this is a direct instance of SeLiteMisc.Enum - after SeLiteMisc.Enum was passed through SeLiteMisc.proxyVerifyFieldsOnRead(). The first part of the check handles instances of unproxfied subclasses of SeLiteMisc.Enum. object.hasOwnProperty() works the same on target and proxy.
     if( this.hasOwnProperty(SeLiteMisc.PROXY_TARGET_CONSTRUCTOR) && this[SeLiteMisc.PROXY_TARGET_CONSTRUCTOR]===SeLiteMisc.Enum[SeLiteMisc.PROXY_TARGET_CLASS] ) {
         forDirectSubclassPrototype || SeLiteMisc.fail( "Don't instantiate SeLiteMisc.Enum() directly, unless it's for a prototype of its direct subclass." );
         return;
     }
     
     // this.constructor is the actual leaf constructor (class) - instances[] is therefore separate between subclasses of SeLiteMisc.Enum
-    if( !('instances' in this.constructor) ) { // this check is instead of: this.constructor.instances= this.constructor.instances, to make this class compatible with SeLiteMisc.proxyEnsureFieldsExist()
+    if( !('instances' in this.constructor) ) { // this check is instead of: this.constructor.instances= this.constructor.instances, to make this class compatible with SeLiteMisc.proxyVerifyFieldsOnRead()
         /** Array of instances for the particular leaf subclass. */
         this.constructor.instances= [];
     }
@@ -315,7 +315,7 @@ SeLiteMisc.Enum= function Enum( name, forDirectSubclassPrototype ) {
 SeLiteMisc.Enum.prototype.toString= function toString() {
     return this.constructor.name+ '.' +this.name;
 };
-SeLiteMisc.Enum= SeLiteMisc.proxyEnsureFieldsExist( SeLiteMisc.Enum );
+SeLiteMisc.Enum= SeLiteMisc.proxyVerifyFieldsOnRead( SeLiteMisc.Enum );
 
 /** @param mixed Container - object or array
  *  @param mixed Field - string field name, or integer/integer string index of the item
@@ -1018,7 +1018,7 @@ SeLiteMisc.objectClone= function objectClone( original, acceptableFields, requir
  *  @param {array} keys
  *  @param {(array|object)} values Either an array of values, in the same order as keys[]. Or an object serving as an associative array { key => value }.
  *  @param {boolean} [valuesFromProperObject] This must be true if values is an object serving as an associative array, with fieldnames same as entries in keys[]. Then this essentially performs a clone of values into target. valuesFromProperObject must not be true if values is an array or an array-like object, with 'length' property and with all values at numeric indexes, starting from 0 (e.g. a result of keyword-like variable arguments, which can be passed from a body of a function).
- *  @param {boolean} [dontSetMissingOnes] If true, then this only sets field(s) that are present in values. It doesn't set any missing fields to undefined; this can be benefitial if target is a result of SeLiteMisc.proxyEnsureFieldsExist(...). If false (as is default), it sets any missing fields to undefined.
+ *  @param {boolean} [dontSetMissingOnes] If true, then this only sets field(s) that are present in values. It doesn't set any missing fields to undefined; this can be benefitial if target is a result of SeLiteMisc.proxyVerifyFieldsOnRead(...). If false (as is default), it sets any missing fields to undefined.
  * */
 SeLiteMisc.objectFillIn= function objectFillIn( target, keys, values, valuesFromProperObject, dontSetMissingOnes ) {
     typeof target==='object' || SeLiteMisc.fail( 'target must be an object' );

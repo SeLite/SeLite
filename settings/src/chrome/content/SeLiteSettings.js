@@ -1270,7 +1270,7 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function getFieldsOfSet( setName
             }
         }
     }
-    return SeLiteMisc.proxyEnsureFieldsExist( result );
+    return SeLiteMisc.proxyVerifyFieldsOnRead( result );
 };
 
 /** @private
@@ -1642,7 +1642,7 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
     
     var result= SeLiteMisc.sortedObject(true);
     for( var fieldName in this.fields ) {
-        result[ fieldName ]= SeLiteMisc.proxyEnsureFieldsExist( {
+        result[ fieldName ]= SeLiteMisc.proxyVerifyFieldsOnRead( {
             entry: undefined,
             fromPreferences: false,
             folderPath: undefined,
@@ -1739,13 +1739,13 @@ SeLiteSettings.Module.prototype.getFieldsDownToSet= function getFieldsDownToSet(
     this.allowsSets || SeLiteMisc.fail( "You can't use getFieldsDownToSet() for module " +this.name+ " since it doesn't allow sets." );
     var setEntries= SeLiteMisc.sortedObject(true);
     if( this.defaultSetName()!==null && this.defaultSetName()!==setName ) {
-        setEntries['']= [  SeLiteMisc.proxyEnsureFieldsExist({
+        setEntries['']= [  SeLiteMisc.proxyVerifyFieldsOnRead({
             moduleName: this.name,
             setName: this.defaultSetName(),
         }) ];
     }
     if( setName ) {
-        setEntries['']= [  SeLiteMisc.proxyEnsureFieldsExist({
+        setEntries['']= [  SeLiteMisc.proxyVerifyFieldsOnRead({
             moduleName: this.name,
             setName: setName,
         }) ];
@@ -1781,7 +1781,7 @@ SeLiteSettings.Module.prototype.mergeSetsAndDefaults= function getFieldsDownToSe
                     // override any value(s) from values manifests, no matter whether from upper or lower (more local) level
                     // override any less local value(s) from default set or sets associated with upper (less local) folders
                     if( fields[fieldName].fromPreferences ) {
-                        result[ fieldName ]= SeLiteMisc.proxyEnsureFieldsExist( {
+                        result[ fieldName ]= SeLiteMisc.proxyVerifyFieldsOnRead( {
                             entry: fields[fieldName].entry,
                             fromPreferences: true,
                             folderPath: folderOrSetName,

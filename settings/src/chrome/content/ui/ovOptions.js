@@ -129,7 +129,7 @@ function RowLevelOrColumn( name, level ) {
     SeLiteMisc.Enum.call( this, name );
     this.level= level;
 }
-RowLevelOrColumn= SeLiteMisc.proxyEnsureFieldsExist( RowLevelOrColumn );
+RowLevelOrColumn= SeLiteMisc.proxyVerifyFieldsOnRead( RowLevelOrColumn );
 RowLevelOrColumn.prototype= new SeLiteMisc.Enum( '', true );
 RowLevelOrColumn.prototype.constructor= RowLevelOrColumn;
 
@@ -147,7 +147,7 @@ function RowLevel( name, level ) {
     RowLevelOrColumn.call( this, name, level );
 }
 var unproxyfiedRowLevel= RowLevel;
-RowLevel= SeLiteMisc.proxyEnsureFieldsExist( RowLevel );
+RowLevel= SeLiteMisc.proxyVerifyFieldsOnRead( RowLevel );
 RowLevel.prototype= new RowLevelOrColumn( '', -1 );
 RowLevel.prototype.constructor= RowLevel;
 
@@ -164,7 +164,7 @@ RowLevel.OPTION= new RowLevel('OPTION', 3); // For options of Choice, for entrie
 function Column( name, level ) {
     RowLevelOrColumn.call( this, name, level );
 }
-Column= SeLiteMisc.proxyEnsureFieldsExist( Column );
+Column= SeLiteMisc.proxyVerifyFieldsOnRead( Column );
 Column.prototype= new RowLevelOrColumn( '', -1 );
 Column.prototype.constructor= Column;
 
@@ -365,7 +365,7 @@ function valueCompound( field, setName ) {
  *  @class
  * */
 function ValueSource( name ) { SeLiteMisc.Enum.call( this, name ); }
-ValueSource= SeLiteMisc.proxyEnsureFieldsExist( ValueSource );
+ValueSource= SeLiteMisc.proxyVerifyFieldsOnRead( ValueSource );
 ValueSource.prototype= new SeLiteMisc.Enum( '', true );
 ValueSource.prototype.constructor= ValueSource;
 ValueSource.ASSOCIATED_SET= new ValueSource( 'ASSOCIATED_SET' );
@@ -410,7 +410,7 @@ function RowInfo( module, setName, rowLevel, field, key, valueCompound, isUndecl
     if( 'key' in this && this.key===SeLiteSettings.NEW_VALUE_ROW ) {
         this.rowLevel===RowLevel.OPTION && this.field.multivalued && !SeLiteMisc.isInstance( this.field, [SeLiteSettings.Field.FixedMap,SeLiteSettings.Field.Choice] ) || SeLiteMisc.fail( 'Only use SeLiteSettings.NEW_VALUE_ROW for multivalued freetype fields at RowLevel.OPTION.' );
         !('valueCompound' in this) || SeLiteMisc.fail( 'When using SeLiteSettings.NEW_VALUE_ROW, do not pass valueCompound.' );
-        this.valueCompound= SeLiteMisc.proxyEnsureFieldsExist({ entry: {} });
+        this.valueCompound= SeLiteMisc.proxyVerifyFieldsOnRead({ entry: {} });
     }
     !('isUndeclaredEntry' in this) || SeLiteMisc.ensureType( this.isUndeclaredEntry, 'boolean', "isUndeclaredEntry (if defined)" );
     !('isUndeclaredEntry' in this) || !this.isUndeclaredEntry || rowLevel===RowLevel.FIELD && SeLiteMisc.hasType(this.valueCompound.entry, ['some-object', 'primitive']) || rowLevel===RowLevel.OPTION && SeLiteMisc.hasType(this.valueCompound.entry, 'some-object') || SeLiteMisc.fail();
@@ -459,7 +459,7 @@ function RowInfo( module, setName, rowLevel, field, key, valueCompound, isUndecl
     }
     //         this.isUndefined= this.isNull= false;
 }
-RowInfo= SeLiteMisc.proxyEnsureFieldsExist( RowInfo );
+RowInfo= SeLiteMisc.proxyVerifyFieldsOnRead( RowInfo );
 
 /** Instantiate. Validate the parameters. Then set this.xyz to results of relevant functions collectXyz().
  *  @class
@@ -481,7 +481,7 @@ function CellInfo( rowInfo, column ) {
     this.editable= rowInfo.collectEditable( column );
     this.properties= rowInfo.collectProperties( column );
 }
-CellInfo= SeLiteMisc.proxyEnsureFieldsExist( CellInfo );
+CellInfo= SeLiteMisc.proxyVerifyFieldsOnRead( CellInfo );
 
 /** @param {Column} column
  * @returns {boolean} Value to use for 'editable' attribute - but convert it to a string first.
@@ -1333,7 +1333,7 @@ function preProcessEdit( row, value ) {
             delete treeRowsOrChildren[module.name][setName][field.name][SeLiteSettings.NEW_VALUE_ROW];
         }
     }
-    return RowLevelOrColumn= SeLiteMisc.proxyEnsureFieldsExist( {
+    return RowLevelOrColumn= SeLiteMisc.proxyVerifyFieldsOnRead( {
         module: module,
         rowProperties: rowProperties,
         setName: setName,
