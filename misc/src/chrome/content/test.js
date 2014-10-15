@@ -48,3 +48,38 @@ recordsLoop: for( var i=0; i<records.length; i++ ) {
     }
     SeLiteMisc.fail( 'by name, breed - the result doesnt contain original entry at 0-based index ' +i );
 }
+
+var object= {};
+SeLiteMisc.objectFillIn( object, ['name', 'job'], ['Joe', 'painter']  /*valuesFromProperObject:false, dontSetMissingOnes: false*/ );
+object.name==='Joe' && object.job==='painter' || SeLiteMisc.fail();
+object= {};
+SeLiteMisc.objectFillIn( object, ['name', 'job', 'pet'], ['Joe', 'painter'], /*aluesFromProperObject*/false, /*dontSetMissingOnes*/true );
+object.name==='Joe' && object.job==='painter' && object.pet===undefined || SeLiteMisc.fail();
+
+function objectFillInFromArgumentsWithMissingOnes( name, job, pet ) {
+    return SeLiteMisc.objectFillIn( {}, ['name', 'job', 'pet'], arguments, /*valuesFromProperObject*/false /*dontSetMissingOnes: false*/ );
+}
+objectFillInFromArgumentsWithMissingOnes( 'Joe' ).job===undefined || SeLiteMisc.fail();
+
+function objectFillInFromArgumentsWithoutMissingOnes( name, job, pet ) {
+    return SeLiteMisc.objectFillIn( {}, ['name', 'job', 'pet'], arguments, /*valuesFromProperObject*/false, /*dontSetMissingOnes*/true );
+}
+!('job' in objectFillInFromArgumentsWithoutMissingOnes('Joe') ) || SeLiteMisc.fail();
+
+var objectProxyOnRead= SeLiteMisc.proxyVerifyFieldsOnRead( {
+        i: 1
+    }
+);
+objectProxyOnRead.i;
+objectProxyOnRead.i= 2;
+objectProxyOnRead.unsetField;
+
+var objectProxy= SeLiteMisc.proxyVerifyFields( {
+        i: 1
+    },
+    ['i']
+);
+objectProxy.i;
+objectProxy.i= 2;
+objectProxy.unsetFieldOne= 3;
+objectProxy.unsetFieldTwo;

@@ -400,6 +400,7 @@ SeLiteMisc.proxyVerifyFields= function proxyVerifyFieldsOnRead( target, definiti
     }    
     !(SeLiteMisc.PROXY_FIELD_DEFINITIONS in target) || SeLiteMisc.fail( "Can't define multiple proxies for the same target " +typeof target+ ': ' +target );
     target[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= definitions;
+    // @TODO verify existing fields on target
     if( typeof target==='object' ) {
         return new Proxy( target, proxyVerifyFieldsObjectHandler );
     }
@@ -1138,6 +1139,7 @@ SeLiteMisc.objectClone= function objectClone( original, acceptableFields, requir
  *  @param {(array|object)} values Either an array of values, in the same order as keys[]. Or an object serving as an associative array { key => value }.
  *  @param {boolean} [valuesFromProperObject] This must be true if values is an object serving as an associative array, with fieldnames same as entries in keys[]. Then this essentially performs a clone of values into target. valuesFromProperObject must not be true if values is an array or an array-like object, with 'length' property and with all values at numeric indexes, starting from 0 (e.g. a result of keyword-like variable arguments, which can be passed from a body of a function).
  *  @param {boolean} [dontSetMissingOnes] If true, then this only sets field(s) that are present in values. It doesn't set any missing fields to undefined; this can be benefitial if target is a result of SeLiteMisc.proxyVerifyFieldsOnRead(...). If false (as is default), it sets any missing fields to undefined.
+ *  @return {object} target
  * */
 SeLiteMisc.objectFillIn= function objectFillIn( target, keys, values, valuesFromProperObject, dontSetMissingOnes ) {
     typeof target==='object' || SeLiteMisc.fail( 'target must be an object' );
@@ -1168,6 +1170,7 @@ SeLiteMisc.objectFillIn= function objectFillIn( target, keys, values, valuesFrom
             }
         }        
     }
+    return target;
 };
 
 /** This deletes all iterable fields from the given object.
