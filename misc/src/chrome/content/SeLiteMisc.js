@@ -93,22 +93,24 @@ SeLiteMisc.ensureOneOf= function ensureOneOf( item, choices, variableName, messa
         ) );
 };
 
+/** This is exported just for documentation value. Do not modify it.
+ * */
+SeLiteMisc.TYPE_NAMES= ['number', 'string', 'object', 'function', 'boolean', 'undefined', 'null', 'some-object', 'primitive'];
+
 /** It finds out whether the item's type is one of the given type(s).
  *  @param {*} item
  *  @param {(string|array)} typeStringOrStrings string, one of: 'number', 'string', 'object', 'function', 'boolean', 'undefined' or meta-types 'null', 'some-object' or 'primitive'. 'some-object' stands for a non-null object; 'primitive' stands for number/string/boolean.
  *  @return {boolean}
  */
 SeLiteMisc.hasType= function hasType( item, typeStringOrStrings ) {
-    var typeStringOrStringsWasArray= true;
-    if( !Array.isArray(typeStringOrStrings) ) {
-        typeof typeStringOrStrings==='string' || SeLiteMisc.fail( 'typeStringOrStrings must be a string or an array');
+    var typeStringOrStringsWasArray= Array.isArray(typeStringOrStrings);
+    if( !typeStringOrStringsWasArray ) {
+        typeof typeStringOrStrings==='string' || SeLiteMisc.fail( 'typeStringOrStrings must be a string or an array, but it is ' +typeof typeStringOrStrings );
         typeStringOrStrings= [typeStringOrStrings];
-        typeStringOrStringsWasArray= false;
     }
     for( var i=0; i<typeStringOrStrings.length; i++ ) {
         SeLiteMisc.ensureOneOf(// Internal validation of each typeStringOrStrings[i] itself
-            typeStringOrStrings[i],
-            ['number', 'string', 'object', 'function', 'boolean', 'undefined', 'null', 'some-object', 'primitive'],
+            typeStringOrStrings[i], SeLiteMisc.TYPE_NAMES,
             'typeStringOrStrings'
                 +(typeStringOrStringsWasArray
                     ? '[' +i+ ']'
@@ -175,7 +177,7 @@ SeLiteMisc.isInstance= function isInstance( object, classes, variableName ) {
     return false;
 };
 
-/** @param {(object|function)} objectOrConstructor An object (instance), or a constructor of a clas (a function).
+/** @param {(object|function)} objectOrConstructor An object (instance), or a constructor of a class (a function).
  *  @return string Either class name (constructor method name), or 'null', or a meaningful short message.
  * */
 SeLiteMisc.classNameOf= function classNameOf( objectOrConstructor ) {
@@ -193,6 +195,19 @@ SeLiteMisc.classNameOf= function classNameOf( objectOrConstructor ) {
         );
 };
 
+/** @param {*}
+ *  @return {(object|function)} Either 'object of XXX' or 'class XXX', where XXX is objectOrConstructor (if it's a class), or a constructor of objectOrConstructor.
+ * */
+SeLiteMisc.typeAndClassNameOf= function typeAndClassNameOf( objectOrConstructor ) {
+    return (objectOrConstructor!==null
+            ? (typeof objectOrConstructor==='object'
+                    ? 'object of '
+                    : 'class '
+              )
+            : ''
+        )+ SeLiteMisc.classNameOf( objectOrConstructor );
+};
+        
 /** Validate that a parameter is an object and of a given class (or of one of given classes).
  *  @param object Object
  *  @param classes Class (that is, a constructor function), or an array of them.
@@ -226,25 +241,56 @@ SeLiteMisc.ensureInstance= function ensureInstance( object, classes, variableNam
     }
 };
 
+SeLiteMisc.PROXY_TARGET_CONSTRUCTOR= 'SELITE_MISC_PROXY_TARGET_CONSTRUCTOR';
+SeLiteMisc.PROXY_TARGET_CLASS= 'SELITE_MISC_PROXY_TARGET_CLASS';
+SeLiteMisc.PROXY_FIELD_DEFINITIONS= 'SELITE_MISC_PROXY_FIELD_DEFINITIONS';
+
 /** @private */
 var proxyVerifyFieldsOnReadObjectHandler= {
   get: function get(target, name, receiver) {
     // Check whether name is set in target. Don't use target[name]!==undefined for that, because it may be set to undefined. I allow access to 'toJSON' even if not set. That's needed when your code creates new Error(), which (in Firefox) accesses 'toJSON' for all 'this' objects on the stack.
-    name in target || name==='toJSON' || SeLiteMisc.fail( 'Accessing an unset field "' +name+ '" in ' +
-        (typeof target==='object'
-            ? 'instance of ' +target.constructor.name+ ': ' +target
-            : 'class ' +target.name
-        ) );
+    name in target || name==='toJSON' || SeLiteMisc.fail( 'Accessing an unset field "' +name+ '" in ' +SeLiteMisc.typeAndClassNameOf(target) );
     return target[name];
   }
 };
-SeLiteMisc.PROXY_TARGET_CONSTRUCTOR= 'SELITE_MISC_PROXY_TARGET_CONSTRUCTOR';
-SeLiteMisc.PROXY_TARGET_CLASS= 'SELITE_MISC_PROXY_TARGET_CLASS';
+/** For verifying on both read and write */
+var proxyVerifyFieldsObjectHandler= {
+  get: proxyVerifyFieldsOnReadObjectHandler.get,
+  /** It seems to be supposed to return boolean, but the value is not documented at MDN. */
+  set: function set(target, name, value, receiver) {
+      var definition= target[SeLiteMisc.PROXY_FIELD_DEFINITIONS][name];
+      definition!==undefined || SeLiteMisc.fail( "Can't set an undeclared field " +name+ ' on ' +SeLiteMisc.typeAndClassNameOf(target) );
+      if( definition==='any' ) {
+          return;
+      }
+      for( var i=0; i<definition.length; i++ ) { //@TODO for(..of..)
+          var definitionEntry= definition[i];
+          if( SeLiteMisc.TYPE_NAMES.indexOf(definitionEntry)>=0 ) {
+              
+          }
+          else {
+              if( typeof definitionEntry==='string' ) {//@TODO handle sub-classes
+                  if( SeLiteMisc.classNameOf(value)===definitionEntry ) {
+                      break;
+                  }
+              }
+              else {
+                  if( value instanceof definitionEntry) {
+                      break;
+                  }
+              }
+          }
+      }
+      i<definition.length || SeLiteMisc.fail( "Declared field " +field+ ' on ' +SeLiteMisc.typeAndClassNameOf(target)+ " doesn't accept " +typeof value+ ': ' +value );
+      target[name]= value;
+  }
+};
+
 /** @private */
 var proxyVerifyFieldsOnReadClassHandler= {
   get: proxyVerifyFieldsOnReadObjectHandler.get,
   construct: function construct( targetConstructor, args ) {
-    // Right here we're not in a constructor body yet - I can't use keyword this as a new instance/object here, since this.constructor.name is 'Object' and not target.name.
+    // Right here we're not in a constructor body yet, so I can't use keyword this as a new instance/object here (since this.constructor.name is 'Object' and not target.name).
     // Following is based on https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply#Using_apply_to_chain_constructors
     var fNewConstr = function () {};
     fNewConstr.prototype = targetConstructor.prototype;
@@ -258,6 +304,28 @@ var proxyVerifyFieldsOnReadClassHandler= {
     return proxy;
   }
 };
+function proxyVerifyFieldsClassHandler( treatedDefinitions ) {
+    return {
+        get: proxyVerifyFieldsObjectHandler.get,
+        set: proxyVerifyFieldsObjectHandler.set,
+        // Just like proxyVerifyFieldsOnReadClassHandler.construct(), but this sets field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS on the newly created object
+        construct: function construct( targetConstructor, args ) {
+          var fNewConstr = function () {
+              this[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= treatedDefinitions;
+          };
+          fNewConstr.prototype = targetConstructor.prototype;
+          var proxy= new Proxy( new fNewConstr(), proxyVerifyFieldsObjectHandler );
+          Object.defineProperty( proxy, SeLiteMisc.PROXY_TARGET_CONSTRUCTOR, {
+            enumerable: false, configurable: false, writable: false,
+            value: targetConstructor
+          });
+          // I invoke targetconstructor only after the previous steps, so that targetConstructor has protected access to the fields and it can use this[SeLiteMisc.PROXY_TARGET_CONSTRUCTOR]
+          targetConstructor.apply( proxy, args );
+          return proxy;
+        }
+    };
+}
+
 /** This generates a proxy for the given target object or class (constructor function). The proxy ensures that any fields read have been set already. This serves to prevent typing/renaming accidents that would access non-existing fields, doing which normally returns undefined. Such problems arise when you access fields directly, rather than via accessor methods, and when you don't access any properties/methods on the retrieved fields themselves. An example is when you compare the field values by operators.
  <br/> Instead of using the fields directly you could have accessor methods, but those don't gurarentee correct code anyway (since they may contain typos, too), hence they don't solve the problem; however, they do make code more verbose and less hands-on.
  <br/> This uses Proxy, which decreases execution speed a bit. However, it helps to identify mistakes earlier, while keeping code shorter.
@@ -285,7 +353,54 @@ SeLiteMisc.proxyVerifyFieldsOnRead= function proxyVerifyFieldsOnRead( target ) {
     }
     
     var result= new Proxy( target, proxyVerifyFieldsOnReadClassHandler );
+    Object.defineProperty( result, SeLiteMisc.PROXY_TARGET_CLASS, {
+      enumerable: false, configurable: false, writable: false,
+      value: target
+    });
+    return result;
+};
+/** Like SeLiteMisc.proxyVerifyFieldsOnRead(), but this creates a proxy that verifies fields on both read and write.
+ *  @param {object} target
+ *  @param {(object|array)} definitions Either an array of field names, or an object {
+ *      fieldName: either
+ *          - a string: one of SeLiteMisc.TYPE_NAMES or the name of a class, or 
+ *          - a function: a constructor function of a class, or
+ *          - an array of such strings/functions
+ *      ...
+ *  }
+ *   */
+SeLiteMisc.proxyVerifyFields= function proxyVerifyFieldsOnRead( target, definitions ) {
+    typeof target==='object' && target!==null || typeof target==='function' || SeLiteMisc.fail( 'Parameter target should be an object or a class (constructor function), but it is ' +typeof target );
+    typeof definitions==='object' || SeLiteMisc.fail( 'Parameter definitions must be an object or an array.' );
+    !(SeLiteMisc.PROXY_FIELD_DEFINITIONS in definitions) || SeLiteMisc.fail( "You can't declare field with name same as value of SeLiteMisc.PROXY_FIELD_DEFINITIONS." );
+
+    // Treat and validate definitions now, so the proxy doesn't have to.
+    if( Array.isArray(definitions) ) {
+        var newDefinitions= {};
+        for( var i=0; i<definitions.length; i++ ) {
+            newDefinitions[ definitions[i] ]= 'any';
+        }
+        definitions= newDefinitions;
+    }
+    for( var fieldName in definitions ) {
+        if( definition==='any' ) {
+            continue;
+        }
+        if( typeof definition==='string' ) {
+            definition= [definition];
+        }
+        Array.isArray(definition) || SeLiteMisc.fail( 'Definition for field ' +name+ ' on proxy of '+SeLiteMisc.typeAndClassNameOf(target)+ ' must be a string or an array.'  );
+        for( var i=0; i<definition.length; i++ ) {
+            SeLiteMisc.ensureType( definition[i], ['string', 'function'], 'field ' +fieldName+ '[' +i+ ']' );
+        }
+    }    
     
+    target[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= definitions;
+    if( typeof target==='object' ) {
+        return new Proxy( target, proxyVerifyFieldsObjectHandler );
+    }
+    
+    var result= new Proxy( target, proxyVerifyFieldsClassHandler(definitions) );
     Object.defineProperty( result, SeLiteMisc.PROXY_TARGET_CLASS, {
       enumerable: false, configurable: false, writable: false,
       value: target
