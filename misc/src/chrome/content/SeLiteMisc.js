@@ -361,16 +361,19 @@ SeLiteMisc.proxyVerifyFieldsOnRead= function proxyVerifyFieldsOnRead( target ) {
 };
 /** Like SeLiteMisc.proxyVerifyFieldsOnRead(), but this creates a proxy that verifies fields on both read and write.
  *  @param {object} target
- *  @param {(object|array)} definitions Either an array of field names, or an object {
+ *  @param {(object|array)} [definitions] Either an array of field names, or an object {
  *      fieldName: either
  *          - a string: one of SeLiteMisc.TYPE_NAMES or the name of a class, or 
  *          - a function: a constructor function of a class, or
  *          - an array of such strings/functions
  *      ...
- *  }
+ *  }. Optional: if definitions is not present, then this effectively seals the proxy (probably useful only for objects and not for classes).
  *   */
 SeLiteMisc.proxyVerifyFields= function proxyVerifyFieldsOnRead( target, definitions ) {
     typeof target==='object' && target!==null || typeof target==='function' || SeLiteMisc.fail( 'Parameter target should be an object or a class (constructor function), but it is ' +typeof target );
+    if( definitions===undefined ) {
+        definitions= [];
+    }
     typeof definitions==='object' || SeLiteMisc.fail( 'Parameter definitions must be an object or an array.' );
     !(SeLiteMisc.PROXY_FIELD_DEFINITIONS in definitions) || SeLiteMisc.fail( "You can't declare field with name same as value of SeLiteMisc.PROXY_FIELD_DEFINITIONS." );
 
@@ -383,6 +386,7 @@ SeLiteMisc.proxyVerifyFields= function proxyVerifyFieldsOnRead( target, definiti
         definitions= newDefinitions;
     }
     for( var fieldName in definitions ) {
+        var definition= definitions[fieldName];
         if( definition==='any' ) {
             continue;
         }
@@ -394,7 +398,7 @@ SeLiteMisc.proxyVerifyFields= function proxyVerifyFieldsOnRead( target, definiti
             SeLiteMisc.ensureType( definition[i], ['string', 'function'], 'field ' +fieldName+ '[' +i+ ']' );
         }
     }    
-    
+    !(SeLiteMisc.PROXY_FIELD_DEFINITIONS in target) || SeLiteMisc.fail( "Can't define multiple proxies for the same target " +typeof target+ ': ' +target );
     target[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= definitions;
     if( typeof target==='object' ) {
         return new Proxy( target, proxyVerifyFieldsObjectHandler );
@@ -1139,6 +1143,7 @@ SeLiteMisc.objectFillIn= function objectFillIn( target, keys, values, valuesFrom
     typeof target==='object' || SeLiteMisc.fail( 'target must be an object' );
     Array.isArray(keys) || SeLiteMisc.fail( 'keys must be an object' );
     typeof values==='object' || SeLiteMisc.fail( 'values must be an array or an object' );
+    !Array.isArray(values) || !valuesFromProperObject || SeLiteMisc.fail( 'values is an array, therefore valuesFromProperObject must not be true.' );
     if( !valuesFromProperObject ) {
         keys.length>=values.length || SeLiteMisc.fail( 'values.length==' +values.length+ ', which is less than keys.length==' +keys.length );
         var length= dontSetMissingOnes
@@ -1157,7 +1162,7 @@ SeLiteMisc.objectFillIn= function objectFillIn( target, keys, values, valuesFrom
             }
         }
         else {
-            for( var i=0; i<keys.length; i++ ) {
+            for( var i=0; i<keys.length; i++ ) {//@TODO for(..of..)
                 var key= keys[i];
                 target[ key ]= values[ key ];
             }

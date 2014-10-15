@@ -1270,7 +1270,7 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function getFieldsOfSet( setName
             }
         }
     }
-    return SeLiteMisc.proxyVerifyFieldsOnRead( result );
+    return SeLiteMisc.proxyVerifyFields( result );
 };
 
 /** @private
@@ -1604,6 +1604,24 @@ SeLiteSettings.closingIde= function closingIde() {
     }
 };
 
+/** @class
+ *  @param {*} entry
+ *  @param {boolean} fromPreferences
+ *  @param {string} [folderPath]
+ *  @param {string} [setName]
+ * */
+SeLiteSettings.FieldInformation= function FieldInformation( entry, fromPreferences, folderPath, setName ) {
+    SeLiteMisc.objectFillIn( this, ['entry', 'fromPreferences', 'folderPath', 'setName'], arguments, false, /*do set missing ones*/false );
+};
+SeLiteSettings.FieldInformation= SeLiteMisc.proxyVerifyFields( SeLiteSettings.FieldInformation,
+['entry', 'fromPreferences', 'folderPath', 'setName']
+/*{
+            entry: undefined,
+            fromPreferences: false,
+            folderPath: undefined,
+            setName: undefined
+        }*/  );
+
 /** Calculate a composition of field values, based on manifests, preferences and field defaults,
  *  down from filesystem root to given folderPath if set (if not set, then to the current test suite's folder, if any).
  *  @param string folderPath Full path (absolute) to the folder where your test suite is.
@@ -1642,12 +1660,9 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
     
     var result= SeLiteMisc.sortedObject(true);
     for( var fieldName in this.fields ) {
-        result[ fieldName ]= SeLiteMisc.proxyVerifyFieldsOnRead( {
-            entry: undefined,
-            fromPreferences: false,
-            folderPath: undefined,
-            setName: undefined
-        } );
+        result[ fieldName ]= new SeLiteSettings.FieldInformation( /*entry*/undefined, /*fromPreferences*/false
+            /*folderPath and setName: undefined*/
+        );
     }
     
     var manifests= manifestsDownToFolder(folderPath, dontCache);
@@ -1673,6 +1688,7 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
                     // Handle multivalued fields or Field.Choice, or undeclared multivalued fields
                     if( field && (field.multivalued || field instanceof SeLiteSettings.Field.Choice) || !field && result[manifest.fieldName] && result[manifest.fieldName].folderPath===manifestFolder ) {
                         // If the field has any values from higher folders, forget them. The field may already have values from this same folder from the previous iterations - keep those.
+                        if( !('folderPath' in result[manifest.fieldName])) debugger;
                         if( result[manifest.fieldName].folderPath!==manifestFolder ) {
                             // We list options for Field.Choice in the order of their definition. Entries of (other) multi-valued entries fields are sorted as in the field definition:
                             result[ manifest.fieldName ].entry= field && !(field instanceof SeLiteSettings.Field.Choice)
@@ -1781,12 +1797,7 @@ SeLiteSettings.Module.prototype.mergeSetsAndDefaults= function getFieldsDownToSe
                     // override any value(s) from values manifests, no matter whether from upper or lower (more local) level
                     // override any less local value(s) from default set or sets associated with upper (less local) folders
                     if( fields[fieldName].fromPreferences ) {
-                        result[ fieldName ]= SeLiteMisc.proxyVerifyFieldsOnRead( {
-                            entry: fields[fieldName].entry,
-                            fromPreferences: true,
-                            folderPath: folderOrSetName,
-                            setName: setEntry.setName
-                        } );
+                        result[ fieldName ]= new SeLiteSettings.FieldInformation( /*entry*/fields[fieldName].entry, /*fromPreferences*/true, /*folderPath*/folderOrSetName, /*setName*/setEntry.setName );
                     }
                 }
             }
