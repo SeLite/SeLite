@@ -700,12 +700,11 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
         }
     }
     else if( column===Column.NULL_UNDEFINE_DEFINITION ) {
-        // If per-folder view: show Manifest/Definition. Otherwise (i.e. per-module view): show Null/Undefine.
-        if( !showingPerFolder() ) {
+        if( !showingPerFolder() ) { //In editable view: show Null/Undefine.
             return this.nullOrUndefineLabel( this.rowLevel===RowLevel.OPTION );
         }
-        else {
-            //if( 'field' in this && /*this.valueCompound &&*/ this.field.name==='roles' ) debugger;
+        else { // In per-folder view: show manifest or field definition.
+            //if( 'field' in this  && this.field.name==='roles' /*&& this.valueCompound.folderPath*/ && this.rowLevel===RowLevel.OPTION ) debugger;
             return this.valueCompound.folderPath
                 ? OS.Path.join( this.valueCompound.folderPath, this.valueCompound.fromPreferences
                         ? SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME

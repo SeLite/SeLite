@@ -1651,7 +1651,6 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
     }
     
     var manifests= manifestsDownToFolder(folderPath, dontCache);
-    
     // First, merge values from values manifests.
     for( var manifestFolder in manifests.values ) {
         for( var i=0; i<manifests.values[manifestFolder].length; i++ ) { //@TODO for .. of..
@@ -1690,7 +1689,6 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
                             else {
                                 // @TODO If we load frameworks automatically somehow, then load them before applying the rest of the manifests. Then change the following console.warn() to SeLiteMisc.fail():
                                 field.keySet.indexOf(manifest.fixedMapKey)>=0 || includeUndeclaredEntries || console.warn( 'FixedMap ' +field.name+ " uses (yet) undefined key: " +manifest.fixedMapKey+ ' (which has value: ' +manifest.value+ ').' );
-                                //if( field.keySet.indexOf(manifest.fixedMapKey)<0 ) debugger;
                                 result[ manifest.fieldName ].entry[ manifest.fixedMapKey ]= manifest.value;
                             }    
                         }

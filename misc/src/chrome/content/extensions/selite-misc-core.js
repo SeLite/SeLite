@@ -89,9 +89,13 @@ function hostname( hostnameOrUseBaseURL ) {
     @param {mixed} hostnameOrUseBaseURL String hostname in form 'https://server-name.some.domain'. It must contain http or https. It can contain the port (if not standard),
     but no trailing slash / neither any URI (path). Optional; if not present, then this uses the current website.
     If it's true (boolean), then the function uses Selenium IDE's "Base URL" field - which may be different to the test website (e.g. single-sign-on). @TODO Once/if http://code.google.com/p/selenium/issues/detail?id=3116 is fixed, I'd need to extract the protocol+host+port from Base URL here.
-    @return {string} password if found; null otherwise
+    @param {boolean} [returnLoginInfo] Whether to return nsILoginInfo object (if any); otherwise (and by default) this returns a string password (if any).
+    @return {string} password if found; undefined otherwise
 */
-SeLiteMisc.loginManagerPassword= function loginManagerPassword( username, hostnameOrUseBaseURL ) {
+SeLiteMisc.loginManagerPassword= function loginManagerPassword( username, hostnameOrUseBaseURL, returnLoginInfo ) {
+    SeLiteMisc.ensureType( username, 'string', 'username' );
+    SeLiteMisc.ensureType( hostnameOrUseBaseURL, ['string', 'boolean', 'undefined'], 'hostnameOrUseBaseURL' );
+    SeLiteMisc.ensureType( returnLoginInfo, ['boolean', 'undefined'], 'returnLoginInfo' );
     // You could also use passwordManager.getAllLogins(); it returns an array of nsILoginInfo objects
     var hostname= hostname( hostnameOrUseBaseURL );
     console.log( 'SeLiteMisc.loginManagerPassword(): hostname is ' +hostname );
@@ -103,15 +107,20 @@ SeLiteMisc.loginManagerPassword= function loginManagerPassword( username, hostna
     
     for( var i=0; i<logins.length; i++ ) {
         if( logins[i].username==username ) {
-            return logins[i].password;
+            return returnLoginInfo
+                ? logins[i]
+                : logins[i].password;
         }
     }
-    return null;
 };
 
 /** It inserts or updates details in Firefox Login Manager.
  * */
 SeLiteMisc.setLoginManagerEntry= function setLoginManagerEntry( username, password, hostnameOrUseBaseURL, formActionOrUserBaseURL ) {
+    SeLiteMisc.ensureType( username, 'string', 'username' );
+    SeLiteMisc.ensureType( password, 'string', 'password' );
+    SeLiteMisc.ensureType( hostnameOrUseBaseURL, ['string', 'boolean', 'undefined'], 'hostnameOrUseBaseURL' );
+    SeLiteMisc.ensureType( formActionOrUserBaseURL, ['string', 'boolean', 'undefined'], 'formActionOrUserBaseURL' );
     var loginInfo= Components.classes["@mozilla.org/login-manager/loginInfo;1"]
                 .createInstance(Components.interfaces.nsILoginInfo);
     loginInfo.hostname= hostname( hostnameOrUseBaseURL );
@@ -121,7 +130,13 @@ SeLiteMisc.setLoginManagerEntry= function setLoginManagerEntry( username, passwo
     loginInfo.password= password;
     loginInfo.usernameField= SeLiteSettings.commonSettings.fields['usernameField'].getDownToFolder().entry;
     loginInfo.passwordField= SeLiteSettings.commonSettings.fields['passwordField'].getDownToFolder().entry;
+    var existingInfo= SeLiteMisc.loginManagerPassword( username, hostnameOrUseBaseURL, true );
+    if( existingInfo===undefined ) {
+        loginManagerInstance.addLogin( loginInfo );
+    }
+    else {
+        loginManagerInstance.modifyLogin( existingInfo, loginInfo );
+    }
 };
-    // @TODO detect whether the login was stored already. Insert or update.
 
 }) ();
