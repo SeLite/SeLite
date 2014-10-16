@@ -1601,6 +1601,11 @@ SeLiteSettings.FieldInformation= function FieldInformation( entry, fromPreferenc
 };
 SeLiteSettings.FieldInformation= SeLiteMisc.proxyVerifyFields( SeLiteSettings.FieldInformation, ['entry', 'fromPreferences', 'folderPath', 'setName'] );
 
+SeLiteSettings.ModuleAndSetInformation= function ModuleAndSetInformation( moduleName, setName ) {
+    SeLiteMisc.objectFillIn( this, ['moduleName', 'setName'], arguments );
+};
+SeLiteSettings.ModuleAndSetInformation= SeLiteMisc.proxyVerifyFields( SeLiteSettings.ModuleAndSetInformation, ['moduleName', 'setName'] );
+
 /** Calculate a composition of field values, based on manifests, preferences and field defaults,
  *  down from filesystem root to given folderPath if set (if not set, then to the current test suite's folder, if any).
  *  @param string folderPath Full path (absolute) to the folder where your test suite is.
@@ -1708,10 +1713,7 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
     // So I merge those into a new object - associations, which will have same structure as manifests.associations.
     var associations= SeLiteMisc.sortedObject(true);
     if( this.allowSets && this.defaultSetName()!==null ) {
-        associations['']= [{
-            moduleName: this.name,
-            setName: this.defaultSetName(),
-        }];
+        associations['']= [ new SeLiteSettings.ModuleAndSetInformation(this.name, this.defaultSetName()) ];
     }
     for( var associationFolder in manifests.associations ) {
         associations[associationFolder]= manifests.associations[associationFolder];
@@ -1732,16 +1734,10 @@ SeLiteSettings.Module.prototype.getFieldsDownToSet= function getFieldsDownToSet(
     this.allowsSets || SeLiteMisc.fail( "You can't use getFieldsDownToSet() for module " +this.name+ " since it doesn't allow sets." );
     var setEntries= SeLiteMisc.sortedObject(true);
     if( this.defaultSetName()!==null && this.defaultSetName()!==setName ) {
-        setEntries['']= [  SeLiteMisc.proxyVerifyFieldsOnRead({
-            moduleName: this.name,
-            setName: this.defaultSetName(),
-        }) ];
+        setEntries['']= [ new SeLiteSettings.ModuleAndSetInformation(this.name, this.defaultSetName()) ];
     }
     if( setName ) {
-        setEntries['']= [  SeLiteMisc.proxyVerifyFieldsOnRead({
-            moduleName: this.name,
-            setName: setName,
-        }) ];
+        setEntries['']= [ new SeLiteSettings.ModuleAndSetInformation(this.name, setName) ];
     }
     return this.mergeSetsAndDefaults( setEntries, undefined, dontCache, includeUndeclaredEntries );
 };

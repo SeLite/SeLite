@@ -114,6 +114,5 @@ var FilledIn= function FilledIn( name, job, pet ) {
 };
 FilledIn= SeLiteMisc.proxyVerifyFields( FilledIn, ['name', 'job', 'pet'] );
 var filledInInstance= new FilledIn( 'John' );
-filledInInstance.John;
-filledInInstance.job===undefined || SeLiteMisc.fail();
+'job' in filledInInstance && filledInInstance.job===undefined || SeLiteMisc.fail();
 filledInInstance.pet= 'cat';
