@@ -129,10 +129,10 @@ function RowLevelOrColumn( name, level ) {
     SeLiteMisc.Enum.call( this, name );
     this.level= level;
 }
-RowLevelOrColumn= SeLiteMisc.proxyVerifyFieldsOnRead( RowLevelOrColumn );
+RowLevelOrColumn= SeLiteMisc.proxyVerifyFields( RowLevelOrColumn, ['level', 'forLevel'] );
 RowLevelOrColumn.prototype= new SeLiteMisc.Enum( '', true );
 RowLevelOrColumn.prototype.constructor= RowLevelOrColumn;
-
+SeLiteMisc.proxyAllowFields( RowLevelOrColumn.prototype, ['forLevel'] );
 /** This is a simple translation map. It returns n-th argument (counting from 0), where n=this.level.
  * */
 RowLevelOrColumn.prototype.forLevel= function forLevel(first, second, etc ) {
@@ -147,10 +147,10 @@ function RowLevel( name, level ) {
     RowLevelOrColumn.call( this, name, level );
 }
 var unproxyfiedRowLevel= RowLevel;
-RowLevel= SeLiteMisc.proxyVerifyFieldsOnRead( RowLevel );
+RowLevel= SeLiteMisc.proxyVerifyFields( RowLevel );
 RowLevel.prototype= new RowLevelOrColumn( '', -1 );
 RowLevel.prototype.constructor= RowLevel;
-
+SeLiteMisc.proxyAllowFields( RowLevel.prototype, ['MODULE', 'SET', 'FIELD', 'OPTION'] );
 RowLevel.MODULE= new RowLevel('MODULE', 0);
 // @TODO test unit for SeLiteMisc:
 //SeLiteMisc.fail( ''+(RowLevel.SELITE_MISC_TARGET_CLASS===unproxyfiedRowLevel) );
@@ -164,10 +164,10 @@ RowLevel.OPTION= new RowLevel('OPTION', 3); // For options of Choice, for entrie
 function Column( name, level ) {
     RowLevelOrColumn.call( this, name, level );
 }
-Column= SeLiteMisc.proxyVerifyFieldsOnRead( Column );
+Column= SeLiteMisc.proxyVerifyFields( Column );
 Column.prototype= new RowLevelOrColumn( '', -1 );
 Column.prototype.constructor= Column;
-
+SeLiteMisc.proxyAllowFields( Column.prototype, ['MODULE_SET_FIELD_FIXEDMAPKEYS', 'DEFAULT', 'CHECKED', 'VALUE', 'ACTION_SET', 'NULL_UNDEFINE_DEFINITION'] );
 Column.MODULE_SET_FIELD_FIXEDMAPKEYS= new Column('MODULE_SET_FIELD_FIXEDMAPKEYS', 0);
 Column.DEFAULT= new Column('DEFAULT', 1);
 Column.CHECKED= new Column('CHECKED', 2); // Column for checkbox (if the field is boolean) or radio-like select (if the field is a choice)
@@ -364,10 +364,13 @@ function valueCompound( field, setName ) {
 /** Enum-like, instances indicate the source of value for a field. Only used in per-folder mode.
  *  @class
  * */
-function ValueSource( name ) { SeLiteMisc.Enum.call( this, name ); }
-ValueSource= SeLiteMisc.proxyVerifyFieldsOnRead( ValueSource );
+function ValueSource( name ) {
+    SeLiteMisc.Enum.call( this, name );
+}
+ValueSource= SeLiteMisc.proxyVerifyFields( ValueSource, ['name'] );
 ValueSource.prototype= new SeLiteMisc.Enum( '', true );
 ValueSource.prototype.constructor= ValueSource;
+SeLiteMisc.proxyAllowFields( ValueSource, ['ASSOCIATED_SET', 'DEFAULT_SET', 'VALUES_MANIFEST', 'FIELD_MANIFEST', 'FIELD_DEFAULT'] );
 ValueSource.ASSOCIATED_SET= new ValueSource( 'ASSOCIATED_SET' );
 ValueSource.DEFAULT_SET= new ValueSource( 'DEFAULT_SET' );
 ValueSource.VALUES_MANIFEST= new ValueSource( 'VALUES_MANIFEST' );

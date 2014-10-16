@@ -255,36 +255,40 @@ var proxyVerifyFieldsOnReadObjectHandler= {
 };
 /** For verifying on both read and write */
 var proxyVerifyFieldsObjectHandler= {
-  get: proxyVerifyFieldsOnReadObjectHandler.get,
-  /** It seems to be supposed to return boolean, but the value is not documented at MDN. */
-  set: function set(target, name, value, receiver) {
-      var definition= target[SeLiteMisc.PROXY_FIELD_DEFINITIONS][name];
-      definition!==undefined || SeLiteMisc.fail( "Can't set an undeclared field " +name+ ' on ' +SeLiteMisc.typeAndClassNameOf(target) );
-      if( definition!=='any' ) {
-        for( var i=0; i<definition.length; i++ ) { //@TODO for(..of..)
-            var definitionEntry= definition[i];
-            if( SeLiteMisc.TYPE_NAMES.indexOf(definitionEntry)>=0 ) {
-                if( SeLiteMisc.hasType(item, [definitionEntry]) ) {
-                    break;
-                }
-            }
-            else {
-                if( typeof definitionEntry==='string' ) {//@TODO handle sub-classes
-                    if( SeLiteMisc.classNameOf(value)===definitionEntry ) {
-                        break;
-                    }
-                }
-                else {
-                    if( value instanceof definitionEntry) {
-                        break;
-                    }
-                }
+    get: proxyVerifyFieldsOnReadObjectHandler.get,
+    
+    /** It seems to be supposed to return boolean, but the value is not documented at MDN. */
+    set: function set(target, name, value, receiver) {
+        // Since target[SeLiteMisc.PROXY_FIELD_DEFINITIONS] is an object, it has meta fields 'prototype' and 'constructor' by default. Therefore we don't have any validation for those. Also, we allow assigning to (update of) target[SeLiteMisc.PROXY_FIELD_DEFINITIONS] itself.
+        if( name!=='prototype' && name!=='constructor' && name!==SeLiteMisc.PROXY_FIELD_DEFINITIONS ) {
+            var definition= target[SeLiteMisc.PROXY_FIELD_DEFINITIONS][name];
+            definition!==undefined || SeLiteMisc.fail( "Can't set an undeclared field " +name+ ' on ' +SeLiteMisc.typeAndClassNameOf(target) );
+            if( definition!=='any' ) {
+              for( var i=0; i<definition.length; i++ ) { //@TODO for(..of..)
+                  var definitionEntry= definition[i];
+                  if( SeLiteMisc.TYPE_NAMES.indexOf(definitionEntry)>=0 ) {
+                      if( SeLiteMisc.hasType(item, [definitionEntry]) ) {
+                          break;
+                      }
+                  }
+                  else {
+                      if( typeof definitionEntry==='string' ) {//@TODO handle sub-classes
+                          if( SeLiteMisc.classNameOf(value)===definitionEntry ) {
+                              break;
+                          }
+                      }
+                      else {
+                          if( value instanceof definitionEntry) {
+                              break;
+                          }
+                      }
+                  }
+              }
+              i<definition.length || SeLiteMisc.fail( "Declared field " +field+ ' on ' +SeLiteMisc.typeAndClassNameOf(target)+ " doesn't accept " +typeof value+ ': ' +value );
             }
         }
-        i<definition.length || SeLiteMisc.fail( "Declared field " +field+ ' on ' +SeLiteMisc.typeAndClassNameOf(target)+ " doesn't accept " +typeof value+ ': ' +value );
-      }
-      target[name]= value;
-  }
+        target[name]= value;
+    }
 };
 
 /** @private */
@@ -311,6 +315,9 @@ function proxyVerifyFieldsClassHandler( treatedDefinitions ) {
         set: proxyVerifyFieldsObjectHandler.set,
         // Just like proxyVerifyFieldsOnReadClassHandler.construct(), but this sets field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS on the newly created object
         construct: function construct( targetConstructor, args ) {
+          if( SeLiteMisc.PROXY_FIELD_DEFINITIONS in targetConstructor.prototype ) {
+              treatedDefinitions= SeLiteMisc.objectCopyFields( targetConstructor.prototype[SeLiteMisc.PROXY_FIELD_DEFINITIONS], treatedDefinitions );
+          }
           var fNewConstr = function () {
               this[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= treatedDefinitions;
           };
@@ -360,25 +367,14 @@ SeLiteMisc.proxyVerifyFieldsOnRead= function proxyVerifyFieldsOnRead( target ) {
     });
     return result;
 };
-/** Like SeLiteMisc.proxyVerifyFieldsOnRead(), but this creates a proxy that verifies fields on both read and write.
- *  @param {object} target
- *  @param {(object|array)} [definitions] Either an array of field names, or an object {
- *      fieldName: either
- *          - a string: one of SeLiteMisc.TYPE_NAMES or the name of a class, or 
- *          - a function: a constructor function of a class, or
- *          - an array of such strings/functions
- *      ...
- *  }. Optional: if definitions is not present, then this effectively seals the proxy (probably useful only for objects and not for classes).
- *   */
-SeLiteMisc.proxyVerifyFields= function proxyVerifyFieldsOnRead( target, definitions ) {
-    typeof target==='object' && target!==null || typeof target==='function' || SeLiteMisc.fail( 'Parameter target should be an object or a class (constructor function), but it is ' +typeof target );
-    if( definitions===undefined ) {
-        definitions= [];
-    }
+/** @private Treat and validate definitions of field(s) for a proxy tht will be created, or has been created, by SeLiteMisc.proxyVerifyFields().
+ *  @param {object} definitions Like the same parameter for proxyVerifyFields()
+ *  @param {object} targetOrProxy Either an existing proxy, or a target (for a proxy that will be created). Only used when reporting an error.
+ *  @return {object} Treated definitions.
+ * */
+function treatProxyFieldDefinitions( definitions, targetOrProxy ) {
     typeof definitions==='object' || SeLiteMisc.fail( 'Parameter definitions must be an object or an array.' );
     !(SeLiteMisc.PROXY_FIELD_DEFINITIONS in definitions) || SeLiteMisc.fail( "You can't declare field with name same as value of SeLiteMisc.PROXY_FIELD_DEFINITIONS." );
-
-    // Treat and validate definitions now, so the proxy doesn't have to.
     if( Array.isArray(definitions) ) {
         var newDefinitions= {};
         for( var i=0; i<definitions.length; i++ ) {
@@ -394,13 +390,36 @@ SeLiteMisc.proxyVerifyFields= function proxyVerifyFieldsOnRead( target, definiti
         if( typeof definition==='string' ) {
             definition= [definition];
         }
-        Array.isArray(definition) || SeLiteMisc.fail( 'Definition for field ' +name+ ' on proxy of '+SeLiteMisc.typeAndClassNameOf(target)+ ' must be a string or an array.'  );
+        Array.isArray(definition) || SeLiteMisc.fail( 'Definition for field ' +fieldName+ ' on proxy of '+SeLiteMisc.typeAndClassNameOf(targetOrProxy)+ ' must be a string or an array.'  );
         for( var i=0; i<definition.length; i++ ) {
             SeLiteMisc.ensureType( definition[i], ['string', 'function'], 'field ' +fieldName+ '[' +i+ ']' );
         }
-    }    
-    !(SeLiteMisc.PROXY_FIELD_DEFINITIONS in target) || SeLiteMisc.fail( "Can't define multiple proxies for the same target " +typeof target+ ': ' +target );
-    target[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= definitions;
+    }
+    return definitions;
+}
+/** Like SeLiteMisc.proxyVerifyFieldsOnRead(), but this creates a proxy that verifies fields on both read and write. If used with a constructor function (i.e. a class), it should define any fields added by that class, and any parent constructors should declare their own fields.
+ *  @param {object} target
+ *  @param {(object|array)} [definitions] Definition of fields for the proxy object, or for instances of the proxy class (but not for the class itself). Either an array of field names, or an object {
+ *      fieldName: either
+ *          - a string: one of SeLiteMisc.TYPE_NAMES or the name of a class, or 
+ *          - a function: a constructor function of a class, or
+ *          - an array of such strings/functions
+ *      ...
+ *  }. Optional: if definitions is not present, then this effectively seals the proxy (probably useful only for objects and not for classes).
+ *   */
+SeLiteMisc.proxyVerifyFields= function proxyVerifyFieldsOnRead( target, definitions ) {
+    typeof target==='object' && target!==null || typeof target==='function' || SeLiteMisc.fail( 'Parameter target should be an object or a class (constructor function), but it is ' +typeof target );
+    definitions= definitions || [];
+    definitions= treatProxyFieldDefinitions( definitions, target ); // Treat and validate definitions now, so the proxy's set() doesn't have to.
+    if( !(SeLiteMisc.PROXY_FIELD_DEFINITIONS in target) ) {
+        target[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= definitions;
+    }
+    else {
+        Object.getOwnPropertyDescriptor( target, SeLiteMisc.PROXY_FIELD_DEFINITIONS )===undefined || SeLiteMisc.fail( "Can't define field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS multiple times on the same exact proxy for " +SeLiteMisc.typeAndClassNameOf(target) );
+        var parentDefinitions= target[SeLiteMisc.PROXY_FIELD_DEFINITIONS];
+        SeLiteMisc.hasType( parentDefinitions, 'some-object' ) && !Array.isArray(parentDefinitions) || SeLiteMisc.fail( "Parent proxy has a field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS which is not a non-array object." );
+        SeLiteMisc.objectCopyFields( definitions, parentDefinitions );
+    }
     // @TODO verify existing fields on target
     if( typeof target==='object' ) {
         return new Proxy( target, proxyVerifyFieldsObjectHandler );
@@ -412,6 +431,18 @@ SeLiteMisc.proxyVerifyFields= function proxyVerifyFieldsOnRead( target, definiti
       value: target
     });
     return result;
+};
+/** Add definitions of field(s) to an existing proxy (either an object or a constructor/class), that has been created by SeLiteMisc.proxyVerifyFields() or by a constructor processed by SeLiteMisc.proxyVerifyFields().
+ * @param {object} proxy Either an object, or a constructor (a class), that is a proxy.
+ * @param {object} definitions See the same parameter of SeLiteMisc.proxyVerifyFields().
+ * @return void
+ * */
+SeLiteMisc.proxyAllowFields= function proxyAllowFields( proxy, definitions ) {
+    SeLiteMisc.PROXY_FIELD_DEFINITIONS in proxy || SeLiteMisc.fail( "Proxy object doesn't have a field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS." );
+    var existingDefinitions= proxy[SeLiteMisc.PROXY_FIELD_DEFINITIONS];
+    SeLiteMisc.hasType( existingDefinitions, 'some-object' ) || SeLiteMisc.fail( "Proxy object has a field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS, but it's not an object." );
+    definitions= treatProxyFieldDefinitions( definitions );
+    SeLiteMisc.objectCopyFields( definitions, existingDefinitions );
 };
 
 /** Enumeration-like class.
@@ -436,7 +467,7 @@ SeLiteMisc.Enum= function Enum( name, forDirectSubclassPrototype ) {
 SeLiteMisc.Enum.prototype.toString= function toString() {
     return this.constructor.name+ '.' +this.name;
 };
-SeLiteMisc.Enum= SeLiteMisc.proxyVerifyFieldsOnRead( SeLiteMisc.Enum );
+SeLiteMisc.Enum= SeLiteMisc.proxyVerifyFields( SeLiteMisc.Enum, ['name', 'instances'] );
 
 /** @param mixed Container - object or array
  *  @param mixed Field - string field name, or integer/integer string index of the item
