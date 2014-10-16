@@ -1193,18 +1193,8 @@ SeLiteSettings.Module.prototype.setDefaultSetName= function setDefaultSetName( s
 
 /** @param {string} setName Name of the set; optional; undefined or an empty string if the module doesn't allow sets, or if you want the default set.
  * @param {boolean} [includeUndeclaredEntries] Whether to include values of undeclared fields or FixedMap entries. That won't include undeclared options for declared Field.Choice instances.
- *  @TODO Move part of the following docs to SeLiteSettings.FieldInformation
  *  @return Object with sorted keys, serving as associative array {
- *      string field name: SeLiteSettings.FieldInformation {
- *          fromPreferences: boolean, whether the value comes from preferences (otherwise it comes from a values manifest or is undefined)
- *          entry: either
- *          - string/boolean/number (its 'primitive' value), or null or undefined, for non-choice single-value fields; or
- *          - object (potentially empty) serving as an associative array, for choice field (multivalued or single valued) or for non-choice multi-valued field, if the field has a value (or multiple values) or if it's empty but present (as indicated by SeLiteSettings.VALUE_PRESENT), in format {
- *             string key => string/number ('primitive') label or value entered by user
- *          },
- *          - null, if it has no value/choice in the given set and is indicated as 'null' by SeLiteSettings.NULL
- *          - undefined otherwise (if the field has no value/choice in the given set)
- *      }
+ *      string field name: SeLiteSettings.FieldInformation with 'entry' and 'fromPreferences', but without 'folderPath' and 'setName' (since the caller passed setName).
  *  }
  *  It doesn't inject any field defaults (from the module configuration). If setName is not empty and it differs to name of the default set, this doesn't inject any values from default set. If you'd like the values of the given set to merge with values of default set (if any) or with field defaults, use getFieldsDownToSet() instead. This ignores any manifests.
  *  @private For SeLite internal use only.
@@ -1282,7 +1272,7 @@ SeLiteSettings.Module.prototype.preferenceValue= function preferenceValue( prefN
 /** @private 
  * @param {string} setName
  * @param {string} fieldName
- * @returns {object}
+ * @returns {SeLiteSettings.FieldInformation}
  */
 SeLiteSettings.Module.prototype.getFieldOfSet= function getFieldOfSet( setName, fieldName ) {
     if( !setName ) {
@@ -1590,11 +1580,20 @@ SeLiteSettings.closingIde= function closingIde() {
     }
 };
 
-/** @class
- *  @param {*} entry
- *  @param {boolean} fromPreferences
+/** @class This represents value(s) of a field, and where this value(s) come from. @TODO check/force type it there: Also known as 'valueCompound' in ovOptions.js.
+ *  @param {*} entry - the value(s) of the field, either
+ *          - string/boolean/number (its 'primitive' value), or null or undefined, for non-choice single-value fields; or
+ *          - object (potentially empty) serving as an associative array, for choice field (multivalued or single valued) or for non-choice multi-valued field, if the field has a value (or multiple values) or if it's empty but present (as indicated by SeLiteSettings.VALUE_PRESENT), in format {
+ *             string key => string/number ('primitive') label or value entered by user
+ *          },
+ *          - null, if it has no value/choice in the given set and is indicated as 'null' by SeLiteSettings.NULL
+ *          - undefined otherwise (if the field has no value/choice in the given set)
+ *  @param {(boolean|undefined)} fromPreferences - whether the value comes from preferences (otherwise it comes from a values manifest or from its module's definition, or it's undefined)
  *  @param {(string|undefined)} [folderPath]
- *  @param {(string|undefined)} [setName]
+ *          - folder path to the manifest file (either values manifest, or associations manifest)
+ *          - empty '' if the values comes from the default set- @TODO check
+ *          - null if the value comes from field default in module schema- @TODO check
+ *  @param {(string|undefined)} [setName] set name (only valid if fromPreferences==true)
  * */
 SeLiteSettings.FieldInformation= function FieldInformation( entry, fromPreferences, folderPath, setName ) {
     SeLiteMisc.objectFillIn( this, ['entry', 'fromPreferences', 'folderPath', 'setName'], arguments, false, /*do set missing ones*/false );
@@ -1615,23 +1614,10 @@ SeLiteSettings.ModuleAndSetInformation= SeLiteMisc.proxyVerifyFields( SeLiteSett
  *  previous manifests stored in the cache and it doesn't store current manifests in the cache). The actual preferences won't be cached no matter what dontCache. For use by GUI.
  *  @param {bool} [includeUndeclaredEntries] See same parameter of SeLiteSettings.Module.prototype.getFieldsOfSet().
  *  @return Object with sorted keys, serving as an associative array. A bit similar to result of getFieldsOfset(),
- *  but with more information and more structure - @TODO doc to SeLiteSettings.FieldInformation: {
- *      string field name => anonymous object (known as 'valueCompound' in ovOptions.js) {
- *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest;
- *          setName: string set name (only valid if fromPreferences is true);
- *          folderPath: string
- *          - folder path to the manifest file (either values manifest, or associations manifest)
- *          - empty '' if the values comes from the default set
- *          - null if the value comes from field default in module schema;
- *          entry: either
- *          - string/boolean/number ('primitive') value, for non-choice single-value fields, and
- *          - object serving as an associative array, for choice, or non-choice and multi-value field name, in format {
- *             string key => string/number ('primitive') label or value entered by user
- *            }
- *          - undefined or null
- *      }
+ *  but with more information. Structure is {
+ *      string field name => SeLiteSettings.FieldInformation
  *  }
- *  where each 'entry' comes from either
+ *  where 'entry' of each FieldInformation instances comes from either
  *  - a set
  *  - a values manifest
  *  - default key (value) of the field.
