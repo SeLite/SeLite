@@ -387,7 +387,7 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
  *  It must be defined for multivalued or choice field. It serves as a trailing part of field option preference name)
  *  -- for multivalued non-choice fields it should be the same as value
  *  -- if the field is of a subclass of Field.Choice or Field.FixedMap, then key and value may be different.
- *  @param {object} valueCompound Value compound for this field stored in the set being displayed (or in the sets and manifests applicable to targetFolder, if targetFolder!=null). Its entry part may be different to (the part of) valueOrPair when rowLevel===RowLevel.OPTION, since valueOrPair then indicates what to display for this row. valueCompound is an anonymous object, one of entries in result of Module.getFieldsDownToFolder(..) or Module.Module.getFieldsOfSet(), i.e. in form {
+ *  @param {SeLiteSettings.FieldInformation} valueCompound Value compound for this field stored in the set being displayed (or in the sets and manifests applicable to targetFolder, if targetFolder!=null). Its entry part may be different to (the part of) valueOrPair when rowLevel===RowLevel.OPTION, since valueOrPair then indicates what to display for this row. valueCompound is an anonymous object, one of entries in result of Module.getFieldsDownToFolder(..) or Module.Module.getFieldsOfSet(), i.e. in form @TODO move to SeLiteSettings.FieldInformation {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or from field default,
  *          setName: string set name (only valid if fromPreferences is true),
  *          folderPath: string folder path to the manifest file (either values manifest, or associations manifest);
@@ -413,8 +413,10 @@ function RowInfo( module, setName, rowLevel, field, key, valueCompound, isUndecl
     if( 'key' in this && this.key===SeLiteSettings.NEW_VALUE_ROW ) {
         this.rowLevel===RowLevel.OPTION && this.field.multivalued && !SeLiteMisc.isInstance( this.field, [SeLiteSettings.Field.FixedMap,SeLiteSettings.Field.Choice] ) || SeLiteMisc.fail( 'Only use SeLiteSettings.NEW_VALUE_ROW for multivalued freetype fields at RowLevel.OPTION.' );
         !('valueCompound' in this) || SeLiteMisc.fail( 'When using SeLiteSettings.NEW_VALUE_ROW, do not pass valueCompound.' );
-        this.valueCompound= SeLiteMisc.proxyVerifyFieldsOnRead({ entry: {} });
+        this.valueCompound= SeLiteMisc.proxyVerifyFieldsOnRead( new SeLiteSettings.FieldInformation( /*entry*/{}) );
     }
+    !('valueCompound' in this) || this.valueCompound instanceof SeLiteSettings.FieldInformation;
+    // @TODO eliminate/centralise following validation?:
     !('isUndeclaredEntry' in this) || SeLiteMisc.ensureType( this.isUndeclaredEntry, 'boolean', "isUndeclaredEntry (if defined)" );
     !('isUndeclaredEntry' in this) || !this.isUndeclaredEntry || rowLevel===RowLevel.FIELD && SeLiteMisc.hasType(this.valueCompound.entry, ['some-object', 'primitive']) || rowLevel===RowLevel.OPTION && SeLiteMisc.hasType(this.valueCompound.entry, 'some-object') || SeLiteMisc.fail();
     
