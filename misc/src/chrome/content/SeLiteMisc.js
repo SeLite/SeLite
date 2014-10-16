@@ -260,28 +260,29 @@ var proxyVerifyFieldsObjectHandler= {
   set: function set(target, name, value, receiver) {
       var definition= target[SeLiteMisc.PROXY_FIELD_DEFINITIONS][name];
       definition!==undefined || SeLiteMisc.fail( "Can't set an undeclared field " +name+ ' on ' +SeLiteMisc.typeAndClassNameOf(target) );
-      if( definition==='any' ) {
-          return;
+      if( definition!=='any' ) {
+        for( var i=0; i<definition.length; i++ ) { //@TODO for(..of..)
+            var definitionEntry= definition[i];
+            if( SeLiteMisc.TYPE_NAMES.indexOf(definitionEntry)>=0 ) {
+                if( SeLiteMisc.hasType(item, [definitionEntry]) ) {
+                    break;
+                }
+            }
+            else {
+                if( typeof definitionEntry==='string' ) {//@TODO handle sub-classes
+                    if( SeLiteMisc.classNameOf(value)===definitionEntry ) {
+                        break;
+                    }
+                }
+                else {
+                    if( value instanceof definitionEntry) {
+                        break;
+                    }
+                }
+            }
+        }
+        i<definition.length || SeLiteMisc.fail( "Declared field " +field+ ' on ' +SeLiteMisc.typeAndClassNameOf(target)+ " doesn't accept " +typeof value+ ': ' +value );
       }
-      for( var i=0; i<definition.length; i++ ) { //@TODO for(..of..)
-          var definitionEntry= definition[i];
-          if( SeLiteMisc.TYPE_NAMES.indexOf(definitionEntry)>=0 ) {
-              
-          }
-          else {
-              if( typeof definitionEntry==='string' ) {//@TODO handle sub-classes
-                  if( SeLiteMisc.classNameOf(value)===definitionEntry ) {
-                      break;
-                  }
-              }
-              else {
-                  if( value instanceof definitionEntry) {
-                      break;
-                  }
-              }
-          }
-      }
-      i<definition.length || SeLiteMisc.fail( "Declared field " +field+ ' on ' +SeLiteMisc.typeAndClassNameOf(target)+ " doesn't accept " +typeof value+ ': ' +value );
       target[name]= value;
   }
 };
