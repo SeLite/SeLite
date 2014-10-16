@@ -1419,6 +1419,14 @@ var associationLineRegex= /^([^ \t]+)[ \t]+([^ \t]+)$/;
  * */
 var cachedManifests= {};
 
+SeLiteSettings.ManifestInfo= function ManifestInfo( isValuesManifest, moduleName, setName, fieldName, fixedMapKey, value ) {
+    isValuesManifest!==undefined || SeLiteMisc.fail( "You must specify isValuesManifest." );
+    SeLiteMisc.objectFillIn( this, ['isValuesManifest', 'moduleName', 'setName', 'fieldName', 'fixedMapKey', 'value', 'setName'], arguments, false, /*don't set missing ones*/true );
+    !isValuesManifest || 'fieldName' in this && 'fixedMapKey' in this && 'value' in this || SeLiteMisc.fail( 'Values manifest info must have fieldName and value.' );
+    isValuesManifest || 'setName' in this && this.setName!==undefined || SeLiteMisc.fail( 'Associations manifest info must have setName.' );
+};
+SeLiteSettings.ManifestInfo= SeLiteMisc.proxyVerifyFields( SeLiteSettings.ManifestInfo, ['isValuesManifest', 'moduleName', 'setName', 'fieldName', 'fixedMapKey', 'value'] );
+
 /** Collect manifest files (both values and associations fo set),
  *  down from filesystem root to given folderPath. Parse them.
  *  @param string folderPath Full path (absolute) to the folder where your test suite is.
@@ -1430,11 +1438,7 @@ var cachedManifests= {};
  *      values: naturally sorted object (that lists more global folders first) {
  *          string absoluteFolderPath: array of entries from a values manifest at this path
  *               [
- *                 anonymous object {
- *                      moduleName: string,
- *                      fieldName: string,
- *                      value: string
- *                 },
+ *                 SeLiteSettings.ManifestInfo instance with isValuesManifest==true
  *                 ...
  *               ],
  *          ...
@@ -1442,10 +1446,7 @@ var cachedManifests= {};
  *      associations: naturally sorted object (that lists more global folders first) {
  *          string absoluteFolderPath: array of entries from an association manifest at this path
  *            [
- *              anonymous object {
- *                  moduleName: string,
- *                  setName: string
- *              },
+ *              SeLiteSettings.ManifestInfo instance with isValuesManifest==false
  *              ...
  *            ],
  *          ...  
@@ -1494,12 +1495,8 @@ function manifestsDownToFolder( folderPath, dontCache ) {
                 if( !(folder in values) ) {
                     values[folder]= [];
                 }
-                values[folder].push( {
-                    moduleName: parts[1],
-                    fieldName: parts[2],
-                    fixedMapKey: parts[4],
-                    value: parts[6] // This is always non-null (it can be an empty string)
-                } );
+                values[folder].push( new SeLiteSettings.ManifestInfo(true, /*moduleName*/parts[1], /*setName*/undefined, /*fieldName*/ parts[2], /*fixedMapKey*/parts[4], /*value*/parts[6] // This is always non-null (it can be an empty string)
+                ) );
             }
         }
         
@@ -1513,10 +1510,8 @@ function manifestsDownToFolder( folderPath, dontCache ) {
                 if( !(folder in associations) ) {
                     associations[folder]= [];
                 }
-                associations[folder].push( {
-                    moduleName: parts[1],
-                    setName: parts[2]
-                } );
+                associations[folder].push( new SeLiteSettings.ManifestInfo( false, /*moduleName*/parts[1],
+                    /*setName*/parts[2] ) );
             }
         }
     }
