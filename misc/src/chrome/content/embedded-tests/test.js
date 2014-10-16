@@ -72,7 +72,15 @@ var objectProxyOnRead= SeLiteMisc.proxyVerifyFieldsOnRead( {
 );
 objectProxyOnRead.i;
 objectProxyOnRead.i= 2;
-objectProxyOnRead.unsetField;
+
+var wasCaught= false;
+try {
+    objectProxyOnRead.unsetField; // @TODO This calls SeLiteMisc.fail() which adds a log message, even though I catch the exception below.
+}
+catch(e) {
+    wasCaught= true;
+}
+wasCaught || SeLiteMisc.fail();
 
 var objectProxy= SeLiteMisc.proxyVerifyFields( {
         i: 1
@@ -81,5 +89,31 @@ var objectProxy= SeLiteMisc.proxyVerifyFields( {
 );
 objectProxy.i;
 objectProxy.i= 2;
-objectProxy.unsetFieldOne= 3;
-objectProxy.unsetFieldTwo;
+
+wasCaught= false;
+try {
+    objectProxy.unsetFieldOne= 3;
+}
+catch(e) {
+    wasCaught= true;
+}
+wasCaught || SeLiteMisc.fail();
+
+wasCaught= false;
+try {
+    objectProxy.unsetFieldTwo;
+}
+catch(e) {
+    wasCaught= true;
+}
+wasCaught || SeLiteMisc.fail();
+
+/** @class */
+var FilledIn= function FilledIn( name, job, pet ) {
+    SeLiteMisc.objectFillIn( this, ['name', 'job', 'pet'], arguments, false, /*do set missing ones*/false );
+};
+FilledIn= SeLiteMisc.proxyVerifyFields( FilledIn, ['name', 'job', 'pet'] );
+var filledInInstance= new FilledIn( 'John' );
+filledInInstance.John;
+filledInInstance.job===undefined || SeLiteMisc.fail();
+filledInInstance.pet= 'cat';

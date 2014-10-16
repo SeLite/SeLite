@@ -466,12 +466,7 @@ SeLiteSettings.Field.prototype.equals= function equals( other ) {
  *  @param folderPath string, optional
  *  @param boolean dontCache, optional
  *  @param {bool} [includeUndeclaredEntries] See same parameter of SeLiteSettings.Module.prototype.getFieldsOfSet().
- *  @return object {
-            entry: mixed,
-            fromPreferences: boolean,
-            folderPath: string or undefined,
-            setName: string or undefined
-    }
+ *  @return {SeLiteSettings.FieldInformation}
     @see SeLiteSettings.Module.getFieldsDownToFolder()
  * */
 SeLiteSettings.Field.prototype.getDownToFolder= function getDownToFolder( folderPath, dontCache, includeUndeclaredEntries ) {
@@ -1198,8 +1193,9 @@ SeLiteSettings.Module.prototype.setDefaultSetName= function setDefaultSetName( s
 
 /** @param {string} setName Name of the set; optional; undefined or an empty string if the module doesn't allow sets, or if you want the default set.
  * @param {boolean} [includeUndeclaredEntries] Whether to include values of undeclared fields or FixedMap entries. That won't include undeclared options for declared Field.Choice instances.
+ *  @TODO Move part of the following docs to SeLiteSettings.FieldInformation
  *  @return Object with sorted keys, serving as associative array {
- *      string field name: anonymous object {
+ *      string field name: SeLiteSettings.FieldInformation {
  *          fromPreferences: boolean, whether the value comes from preferences (otherwise it comes from a values manifest or is undefined)
  *          entry: either
  *          - string/boolean/number (its 'primitive' value), or null or undefined, for non-choice single-value fields; or
@@ -1250,18 +1246,11 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function getFieldsOfSet( setName
             if( !field ) {
                 if( key!==undefined ) {
                     if( !result[fieldName] ) {
-                        result[fieldName]= {
-                            entry: {},
-                            fromPreferences: true
-                        };
-                    }
+                        result[fieldName]= new SeLiteSettings.FieldInformation( /*entry*/{}, /*fromPreferences*/true );             }
                     result[fieldName].entry[ key ]= value;
                 }
                 else {
-                    result[fieldName]= {
-                        entry: value,
-                        fromPreferences: true
-                    };
+                    result[fieldName]= new SeLiteSettings.FieldInformation( /*entry*/value, /*fromPreferences*/ true );
                 }
             }
             // @TODO if we allow customisable set of options for Field.Choice, handle it, too
@@ -1331,10 +1320,7 @@ SeLiteSettings.Module.prototype.getFieldOfSet= function getFieldOfSet( setName, 
         || SeLiteMisc.fail( 'SeLiteSettings.Module ' +this.name+ ', set ' + setName+
             ', field ' +fieldName+ ' is multivalued and/or a choice, but it has its own preference which is other than ' +SeLiteSettings.VALUE_PRESENT+ ' or ' +SeLiteSettings.NULL );
     }
-    var result= {
-        fromPreferences: false,
-        entry: undefined
-    };
+    var result= new SeLiteSettings.FieldInformation( /*entry*/undefined, /*fromPreferences*/false );
     if( multivaluedOrChoice && (fieldHasPreference && multivaluedOrChoiceFieldPreference===SeLiteSettings.VALUE_PRESENT || children.length>0) ) {
         // When presenting SeLiteSettings.Field.Choice, they are not sorted by stored values, but by keys from the field definition.
         // So I only use sortedObject for multivalued fields other than SeLiteSettings.Field.Choice
@@ -1607,20 +1593,13 @@ SeLiteSettings.closingIde= function closingIde() {
 /** @class
  *  @param {*} entry
  *  @param {boolean} fromPreferences
- *  @param {string} [folderPath]
- *  @param {string} [setName]
+ *  @param {(string|undefined)} [folderPath]
+ *  @param {(string|undefined)} [setName]
  * */
 SeLiteSettings.FieldInformation= function FieldInformation( entry, fromPreferences, folderPath, setName ) {
     SeLiteMisc.objectFillIn( this, ['entry', 'fromPreferences', 'folderPath', 'setName'], arguments, false, /*do set missing ones*/false );
 };
-SeLiteSettings.FieldInformation= SeLiteMisc.proxyVerifyFields( SeLiteSettings.FieldInformation,
-['entry', 'fromPreferences', 'folderPath', 'setName']
-/*{
-            entry: undefined,
-            fromPreferences: false,
-            folderPath: undefined,
-            setName: undefined
-        }*/  );
+SeLiteSettings.FieldInformation= SeLiteMisc.proxyVerifyFields( SeLiteSettings.FieldInformation, ['entry', 'fromPreferences', 'folderPath', 'setName'] );
 
 /** Calculate a composition of field values, based on manifests, preferences and field defaults,
  *  down from filesystem root to given folderPath if set (if not set, then to the current test suite's folder, if any).
@@ -1631,7 +1610,7 @@ SeLiteSettings.FieldInformation= SeLiteMisc.proxyVerifyFields( SeLiteSettings.Fi
  *  previous manifests stored in the cache and it doesn't store current manifests in the cache). The actual preferences won't be cached no matter what dontCache. For use by GUI.
  *  @param {bool} [includeUndeclaredEntries] See same parameter of SeLiteSettings.Module.prototype.getFieldsOfSet().
  *  @return Object with sorted keys, serving as an associative array. A bit similar to result of getFieldsOfset(),
- *  but with more information and more structure: {
+ *  but with more information and more structure - @TODO doc to SeLiteSettings.FieldInformation: {
  *      string field name => anonymous object (known as 'valueCompound' in ovOptions.js) {
  *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest;
  *          setName: string set name (only valid if fromPreferences is true);
@@ -1660,9 +1639,7 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
     
     var result= SeLiteMisc.sortedObject(true);
     for( var fieldName in this.fields ) {
-        result[ fieldName ]= new SeLiteSettings.FieldInformation( /*entry*/undefined, /*fromPreferences*/false
-            /*folderPath and setName: undefined*/
-        );
+        result[ fieldName ]= new SeLiteSettings.FieldInformation( /*entry*/undefined, /*fromPreferences*/false );
     }
     
     var manifests= manifestsDownToFolder(folderPath, dontCache);
