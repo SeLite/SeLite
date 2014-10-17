@@ -1603,7 +1603,11 @@ SeLiteSettings.FieldInformation= SeLiteMisc.proxyVerifyFields( SeLiteSettings.Fi
 SeLiteSettings.ModuleAndSetInformation= function ModuleAndSetInformation( moduleName, setName ) {
     SeLiteMisc.objectFillIn( this, ['moduleName', 'setName'], arguments );
 };
-SeLiteSettings.ModuleAndSetInformation= SeLiteMisc.proxyVerifyFields( SeLiteSettings.ModuleAndSetInformation, ['moduleName', 'setName'] );
+// @TODO following field definition causes problems 
+SeLiteSettings.ModuleAndSetInformation= SeLiteMisc.proxyVerifyFields( SeLiteSettings.ModuleAndSetInformation, {
+    moduleName: 'string',
+    setName: 'string'
+});
 
 /** Calculate a composition of field values, based on manifests, preferences and field defaults,
  *  down from filesystem root to given folderPath if set (if not set, then to the current test suite's folder, if any).
@@ -1719,7 +1723,7 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
 SeLiteSettings.Module.prototype.getFieldsDownToSet= function getFieldsDownToSet( setName, dontCache, includeUndeclaredEntries ) {
     this.allowsSets || SeLiteMisc.fail( "You can't use getFieldsDownToSet() for module " +this.name+ " since it doesn't allow sets." );
     var setEntries= SeLiteMisc.sortedObject(true);
-    if( this.defaultSetName()!==null && this.defaultSetName()!==setName ) {
+    if( this.defaultSetName()!==null && this.defaultSetName()!==setName ) { // if they are the same, then we add it below
         setEntries['']= [ new SeLiteSettings.ModuleAndSetInformation(this.name, this.defaultSetName()) ];
     }
     if( setName ) {
