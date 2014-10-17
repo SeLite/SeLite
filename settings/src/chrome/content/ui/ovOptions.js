@@ -367,7 +367,7 @@ function valueCompound( field, setName ) {
 function ValueSource( name ) {
     SeLiteMisc.Enum.call( this, name );
 }
-ValueSource= SeLiteMisc.proxyVerifyFields( ValueSource, {name: 'string'} );
+ValueSource= SeLiteMisc.proxyVerifyFields( ValueSource );
 ValueSource.prototype= new SeLiteMisc.Enum( '', true );
 ValueSource.prototype.constructor= ValueSource;
 SeLiteMisc.proxyAllowFields( ValueSource, ['ASSOCIATED_SET', 'DEFAULT_SET', 'VALUES_MANIFEST', 'FIELD_MANIFEST', 'FIELD_DEFAULT'] );

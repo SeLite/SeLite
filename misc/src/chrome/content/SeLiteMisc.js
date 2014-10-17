@@ -500,7 +500,10 @@ SeLiteMisc.Enum= function Enum( name, forDirectSubclassPrototype ) {
 SeLiteMisc.Enum.prototype.toString= function toString() {
     return this.constructor.name+ '.' +this.name;
 };
-SeLiteMisc.Enum= SeLiteMisc.proxyVerifyFields( SeLiteMisc.Enum, ['name', 'instances'] );
+SeLiteMisc.Enum= SeLiteMisc.proxyVerifyFields( SeLiteMisc.Enum, {
+    name: 'string',
+    instances: Array
+});
 
 /** @param mixed Container - object or array
  *  @param mixed Field - string field name, or integer/integer string index of the item
