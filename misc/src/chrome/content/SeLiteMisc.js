@@ -308,7 +308,7 @@ var proxyVerifyFieldsObjectHandler= {
                       break;
                   }
               }
-              i<definition.length || SeLiteMisc.fail( "Declared field " +field+ ' on ' +SeLiteMisc.typeAndClassNameOf(target)+ " doesn't accept " +typeof value+ ': ' +value );
+              i<definition.length || SeLiteMisc.fail( "Declared field " +name+ ' on ' +SeLiteMisc.typeAndClassNameOf(target)+ " doesn't accept " +typeof value+ ': ' +value );
             }
         }
         target[name]= value;

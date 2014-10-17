@@ -1593,7 +1593,12 @@ SeLiteSettings.closingIde= function closingIde() {
 SeLiteSettings.FieldInformation= function FieldInformation( entry, fromPreferences, folderPath, setName ) {
     SeLiteMisc.objectFillIn( this, ['entry', 'fromPreferences', 'folderPath', 'setName'], arguments, false, /*do set missing ones*/false );
 };
-SeLiteSettings.FieldInformation= SeLiteMisc.proxyVerifyFields( SeLiteSettings.FieldInformation, ['entry', 'fromPreferences', 'folderPath', 'setName'] );
+SeLiteSettings.FieldInformation= SeLiteMisc.proxyVerifyFields( SeLiteSettings.FieldInformation, {
+    entry: ['primitive', 'some-object', 'undefined', 'null'],
+    fromPreferences: ['boolean', 'undefined'],
+    folderPath: ['string', 'undefined', 'null'], //@TODO get rid of null
+    setName: ['string', 'undefined']
+} );
 
 SeLiteSettings.ModuleAndSetInformation= function ModuleAndSetInformation( moduleName, setName ) {
     SeLiteMisc.objectFillIn( this, ['moduleName', 'setName'], arguments );
