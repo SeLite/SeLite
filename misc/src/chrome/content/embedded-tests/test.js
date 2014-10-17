@@ -48,6 +48,30 @@ recordsLoop: for( var i=0; i<records.length; i++ ) {
     }
     SeLiteMisc.fail( 'by name, breed - the result doesnt contain original entry at 0-based index ' +i );
 }
+//------
+
+function GrandParent() {}
+
+function Parent() {
+  GrandParent.call( this );
+}
+Parent.prototype= Object.create(GrandParent.prototype);
+Parent.prototype.constructor= Parent;
+
+function Child() {
+  Parent.call( this );
+}
+Child.prototype= Object.create(Parent.prototype);
+Child.prototype.constructor= Child;
+
+var child= new Child();
+SeLiteMisc.ensure( SeLiteMisc.isInstance(child, Child) );
+SeLiteMisc.ensure( SeLiteMisc.isInstance(child, 'Child') );
+SeLiteMisc.ensure( SeLiteMisc.isInstance(child, Parent) );
+SeLiteMisc.ensure( SeLiteMisc.isInstance(child, 'Parent') );
+SeLiteMisc.ensure( SeLiteMisc.isInstance(child, GrandParent) );
+SeLiteMisc.ensure( SeLiteMisc.isInstance(child, 'GrandParent') );
+//--------
 
 var object= {};
 SeLiteMisc.objectFillIn( object, ['name', 'job'], ['Joe', 'painter']  /*valuesFromProperObject:false, dontSetMissingOnes: false*/ );

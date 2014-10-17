@@ -155,23 +155,42 @@ var globalClasses= ['Array', 'Boolean', 'Date', 'Function', 'Iterator', 'Number'
 
 /** Detect whether the given object is an instance of one of the given class(es).
  *  @param {object} object Object
- *  @param {function|array} classes Class (that is, a constructor function), or an array of them.
- *  @param {string} [variableName] See same parameter of ensureOneOf(). Only used on failure.
+ *  @param {function|array} classes Class (that is, a constructor function), or its name, or an array of any number of one or the other.
+ *  @param {string} [variableName] See same parameter of ensureOneOf(). Only used on failure, so that the error message is more meaningful.
  */
 SeLiteMisc.isInstance= function isInstance( object, classes, variableName ) {
-    if( typeof classes==='function' ) {
+    var classesWasArray= Array.isArray(classes);
+    if( !classesWasArray ) {
+        typeof classes==='function' || typeof classes==='string' || SeLiteMisc.fail( "Parameter clases must be a constructor method, or an array of them." ); // internal validation
         classes= [classes];
-    }
-    else {
-        SeLiteMisc.ensure( Array.isArray(classes), "Parameter clases must be a constructor method, or an array of them." ); // internal validation
     }
     SeLiteMisc.ensureType( object, 'object', variableName || 'object' ); // semi-internal validation
     for( var i=0; i<classes.length; i++ ) {//@TODO use loop for of() once NetBeans supports it
         var clazz= classes[i];
-        SeLiteMisc.ensureType( clazz, 'function', 'classes[' +i+ ']' ); // internal validation
-        if( object instanceof clazz
-            || SeLiteMisc.oneOf(clazz.name, globalClasses) && object.constructor.name===clazz.name ) {
-            return true;
+        debugger;
+        if( typeof clazz==='function' ) {
+            if( object instanceof clazz
+                || SeLiteMisc.oneOf(clazz.name, globalClasses) && object.constructor.name===clazz.name ) {
+                return true;
+            }
+        }
+        else if( typeof clazz==='string' ) {
+            // I could start with item= Object.getPrototypeOf(object). That would cover both instances of leaf grand...child classes which should have .constructor.prototype set manually, as well as instances of top-level classes that don't have .constructor.prototype set manually. If clazz is not the exact (leaf) class as the class of object, then the following loop runs one more time than it would if I set item=Object.getPrototypeOf(object). However, the following is more robust (if the programmer forgets to set child prototype's constructor manually).
+            var item= object;
+            while( item ) {
+                if( item.constructor.name===clazz ) {
+                    return true;
+                }
+                item= Object.getPrototypeOf( item );
+            }
+        }
+        else {
+            SeLiteMisc.fail( "When checking class of " +(variableName || 'object')+ ", parameter " +
+                (classesWasArray
+                    ? 'slice classes[' +i+ ']'
+                    : 'classes'
+                )+ ' is not a function (a constructor), neither a string.'
+            );
         }
     }
     return false;
@@ -248,7 +267,7 @@ SeLiteMisc.PROXY_FIELD_DEFINITIONS= 'SELITE_MISC_PROXY_FIELD_DEFINITIONS';
 /** @private */
 var proxyVerifyFieldsOnReadObjectHandler= {
   get: function get(target, name, receiver) {
-    // Check whether name is set in target. Don't use target[name]!==undefined for that, because it may be set to undefined. I allow access to 'toJSON' even if not set. That's needed when your code creates new Error(), which (in Firefox) accesses 'toJSON' for all 'this' objects on the stack.
+    // Check whether name is set in target. Don't use target[name]!==undefined for that, because it may be set to undefined. I allow access to 'toJSON' even if not set. That's needed when your code creates new Error(), which (in Firefox) accesses 'toJSON' for all 'this' objects on the stack. I don't need to check for name==='constructor' with objects, since objects have it defined normally. The same for name==='name' when target is a class (a constructor function).
     name in target || name==='toJSON' || SeLiteMisc.fail( 'Accessing an unset field "' +name+ '" in ' +SeLiteMisc.typeAndClassNameOf(target) );
     return target[name];
   }
