@@ -497,7 +497,7 @@ function CellInfo( rowInfo, column ) {
     this.editable= rowInfo.collectEditable( column );
     this.properties= rowInfo.collectProperties( column );
 }
-CellInfo= SeLiteMisc.proxyVerifyFieldsOnRead( CellInfo );
+CellInfo= SeLiteMisc.proxyVerifyFields( CellInfo, ['label', 'value', 'editable', 'properties'] );
 
 /** @param {Column} column
  * @returns {boolean} Value to use for 'editable' attribute - but convert it to a string first.
@@ -1349,7 +1349,7 @@ function preProcessEdit( row, value ) {
             delete treeRowsOrChildren[module.name][setName][field.name][SeLiteSettings.NEW_VALUE_ROW];
         }
     }
-    return RowLevelOrColumn= SeLiteMisc.proxyVerifyFieldsOnRead( {
+    return SeLiteMisc.proxyVerifyFieldsOnRead( {
         module: module,
         rowProperties: rowProperties,
         setName: setName,
