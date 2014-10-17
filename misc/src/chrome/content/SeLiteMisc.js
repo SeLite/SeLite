@@ -295,7 +295,7 @@ var proxyVerifyFieldsObjectHandler= {
         // Since target[SeLiteMisc.PROXY_FIELD_DEFINITIONS] is an object, it has meta fields 'prototype' and 'constructor' by default. Therefore we don't have any validation for those. Also, we allow assigning to (update of) target[SeLiteMisc.PROXY_FIELD_DEFINITIONS] itself.
         if( name!=='prototype' && name!=='constructor' && name!==SeLiteMisc.PROXY_FIELD_DEFINITIONS ) {
             var definition= target[SeLiteMisc.PROXY_FIELD_DEFINITIONS][name];
-            definition!==undefined || SeLiteMisc.fail( "Can't set an undeclared field " +name+ ' on ' +SeLiteMisc.typeAndClassNameOf(target) );
+            definition!==undefined || SeLiteMisc.fail( "Can't set an undeclared field '" +name+ "' on " +SeLiteMisc.typeAndClassNameOf(target) );
             if( definition!=='any' ) {
               for( var i=0; i<definition.length; i++ ) { //@TODO for(..of..)
                   var definitionEntry= definition[i];
@@ -308,7 +308,7 @@ var proxyVerifyFieldsObjectHandler= {
                       break;
                   }
               }
-              i<definition.length || SeLiteMisc.fail( "Declared field " +name+ ' on ' +SeLiteMisc.typeAndClassNameOf(target)+ " doesn't accept " +typeof value+ ': ' +value );
+              i<definition.length || SeLiteMisc.fail( "Declared field '" +name+ "' on " +SeLiteMisc.typeAndClassNameOf(target)+ " doesn't accept " +typeof value+ ': ' +value );
             }
         }
         target[name]= value;

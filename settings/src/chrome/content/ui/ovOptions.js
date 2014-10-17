@@ -497,8 +497,12 @@ function CellInfo( rowInfo, column ) {
     this.editable= rowInfo.collectEditable( column );
     this.properties= rowInfo.collectProperties( column );
 }
-CellInfo= SeLiteMisc.proxyVerifyFields( CellInfo, ['label', 'value', 'editable', 'properties'] );
-
+CellInfo= SeLiteMisc.proxyVerifyFields( CellInfo, {
+    label: ['string', 'undefined'],
+    value: 'any',
+    editable: 'boolean',
+    properties: ['string', 'undefined']
+} );
 /** @param {Column} column
  * @returns {boolean} Value to use for 'editable' attribute - but convert it to a string first.
  */
@@ -528,6 +532,7 @@ RowInfo.prototype.collectEditable= function collectEditable( column ) {
         return this.rowLevel===RowLevel.FIELD && !this.field.multivalued
             || this.rowLevel===RowLevel.OPTION && this.field.multivalued; // This includes FixedMap
     }
+    return false;
 };
 
 /** @param {Column} column
@@ -1349,7 +1354,7 @@ function preProcessEdit( row, value ) {
             delete treeRowsOrChildren[module.name][setName][field.name][SeLiteSettings.NEW_VALUE_ROW];
         }
     }
-    return SeLiteMisc.proxyVerifyFieldsOnRead( {
+    return SeLiteMisc.proxyVerifyFields( {
         module: module,
         rowProperties: rowProperties,
         setName: setName,
