@@ -379,7 +379,7 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
 /** This keeps information for a row to display (at any given RowLevel). It populates the fields from given parameters, and it collects some extra fields.
  * @class
 /** @param {SeLiteSettings.Module} module object of Module
- *  @param {string} setName set name; either '' if the module doesn't allow sets; otherwise it's a set name when at field level
+ *  @param {string} setName set name; either '' if the module doesn't allow sets (@TODO <- check that - shouldn't it be null/undefined then?); otherwise it's a set name when at field level
  *  attribute for the <treerow> nodes, so that when we handle a click event, we know what field the node is for.
  *  @param {RowLevel} rowLevel
  *  @param {SeLiteSettings.Field} field An object of a subclass of Field. If rowLevel==RowLevel.MODULE or rowLevel==RowLevel.SET,  then field is null.
@@ -401,9 +401,9 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
 function RowInfo( module, setName, rowLevel, field, key, valueCompound, isUndeclaredEntry ) {
     SeLiteMisc.objectFillIn( this, ['module', 'setName', 'rowLevel', 'field', 'key', 'valueCompound', 'isUndeclaredEntry'], arguments, false, /*dontSetMissingOnes*/true );
     
-    SeLiteMisc.ensureInstance( this.module, SeLiteSettings.Module, 'module' );
+    SeLiteMisc.ensureInstance( this.module, SeLiteSettings.Module, 'module' ); //@TODO not needed, because of the below proxy validation
     SeLiteMisc.ensureType( this.setName, ['string', 'null'], 'setName' );
-    SeLiteMisc.ensureInstance( this.rowLevel, RowLevel, 'rowLevel' );
+    SeLiteMisc.ensureInstance( this.rowLevel, RowLevel, 'rowLevel' ); //@TODO not needed
     
     SeLiteMisc.ensureType( this.field, ['object', 'undefined'], "field" );
     this.field || this.rowLevel===RowLevel.MODULE || this.rowLevel===RowLevel.SET || SeLiteMisc.fail( "Parameter field must be defined, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but rowLevel is " +this.rowLevel );
@@ -464,7 +464,18 @@ function RowInfo( module, setName, rowLevel, field, key, valueCompound, isUndecl
     }
     //         this.isUndefined= this.isNull= false;
 }
-RowInfo= SeLiteMisc.proxyVerifyFieldsOnRead( RowInfo );
+RowInfo= SeLiteMisc.proxyVerifyFields( RowInfo, {
+    module: SeLiteSettings.Module,
+    setName: ['string', 'null'],
+    rowLevel: RowLevel,
+    field: 'any',
+    key: ['string', 'undefined', 'null'],
+    valueCompound: 'any',
+    isUndeclaredEntry: ['boolean', 'undefined'],
+    value: 'any',
+    source: [ValueSource, 'undefined'],
+    optionIsSelected: ['boolean', 'undefined']
+} );
 
 /** Instantiate. Validate the parameters. Then set this.xyz to results of relevant functions collectXyz().
  *  @class

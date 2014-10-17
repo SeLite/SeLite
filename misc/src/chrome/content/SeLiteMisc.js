@@ -93,6 +93,15 @@ SeLiteMisc.ensureOneOf= function ensureOneOf( item, choices, variableName, messa
         ) );
 };
 
+/** @param {*} [valueOrFunction] Either a non-functional value, or a function that takes no parameters and returns a value. It serves for accepting closures (functions) instead of error messages (or parts of such messages, e.g. variable names/descriptions). That's useful when such a string is not constant and it needs to be generated. In such cases passing a closure (that encapsulates its scope) is more efficient, as that's what the closures are for. (Since we don't store the closure anywhere, there's no problem with scope/memory leaks.)
+ *  @return {*} The value, or undefined if none. No other treatment - e.g. if valueOrFunction is a numeric string, this returns it unchanged as a string, not as a number.
+ * */
+SeLiteMisc.valueOf= function valueOf( valueOrFunction ) {
+    return typeof valueOrFunction==='function'
+        ? valueOrFunction()
+        : valueOrFunction;
+};
+
 /** This is exported just for documentation value. Do not modify it.
  * */
 SeLiteMisc.TYPE_NAMES= ['number', 'string', 'object', 'function', 'boolean', 'undefined', 'null', 'some-object', 'primitive'];
@@ -100,12 +109,15 @@ SeLiteMisc.TYPE_NAMES= ['number', 'string', 'object', 'function', 'boolean', 'un
 /** It finds out whether the item's type is one of the given type(s).
  *  @param {*} item
  *  @param {(string|array)} typeStringOrStrings string, one of: 'number', 'string', 'object', 'function', 'boolean', 'undefined' or meta-types 'null', 'some-object' or 'primitive'. 'some-object' stands for a non-null object; 'primitive' stands for number/string/boolean.
+ *  @param {(string|function)} [itemName] Name of the item, as it makes sense in the caller's scope (e.g. name of the variable passed as parameter 'item' down here); or a function that returns such a name. Only used for error reporting.
  *  @return {boolean}
  */
-SeLiteMisc.hasType= function hasType( item, typeStringOrStrings ) {
+SeLiteMisc.hasType= function hasType( item, typeStringOrStrings, itemName ) {
     var typeStringOrStringsWasArray= Array.isArray(typeStringOrStrings);
     if( !typeStringOrStringsWasArray ) {
-        typeof typeStringOrStrings==='string' || SeLiteMisc.fail( 'typeStringOrStrings must be a string or an array, but it is ' +typeof typeStringOrStrings );
+        if( typeof typeStringOrStrings!=='string' ) {
+            SeLiteMisc.fail( (SeLiteMisc.valueOf(itemName) || 'typeStringOrStrings')+ ' must be a string or an array, but it is ' +typeof typeStringOrStrings );
+        }
         typeStringOrStrings= [typeStringOrStrings];
     }
     for( var i=0; i<typeStringOrStrings.length; i++ ) {
@@ -131,19 +143,22 @@ SeLiteMisc.hasType= function hasType( item, typeStringOrStrings ) {
 /** Validates that typeof item is one of 
  *  @param {*} item
  *  @param {(string|array)} typeStringOrStrings See same parameter of hasType().
- *  @param {string} [variableName] See same parameter of ensureOneOf().
- *  @param {string} [message] See same parameter of ensureOneOf().
+ *  @param {(string|function)} [variableName] See same parameter of ensureOneOf(). However, it has to contain a meaningful name/description, even if you provide parameter message.
+ *  @param {(string|function)} [message] See same parameter of ensureOneOf().
  * */
 SeLiteMisc.ensureType= function ensureType( item, typeStringOrStrings, variableName, message ) {
-    if( !SeLiteMisc.hasType(item, typeStringOrStrings) ) {
-        typeStringOrStrings= Array.isArray(typeStringOrStrings)
-            ? typeStringOrStrings
-            : [typeStringOrStrings];
-        SeLiteMisc.fail( message
-            || (variableName
+    if( !SeLiteMisc.hasType(item, typeStringOrStrings, variableName) ) {
+        message= SeLiteMisc.valueOf( message );
+        if( !message ) {
+            variableName= SeLiteMisc.valueOf(variableName);
+            typeStringOrStrings= Array.isArray(typeStringOrStrings)
+                ? typeStringOrStrings
+                : [typeStringOrStrings];
+            message= variableName
                 ? 'Variable ' +variableName+ ' should have type from within [' +typeStringOrStrings+ '], but the actual type of the item is ' +typeof item+ '. The item: ' +item
-                : 'Expecting an item of type from within [' +typeStringOrStrings+ '], but the actual type of the item is ' +typeof item+ '. The item: ' +item
-        ) );
+                : 'Expecting an item of type from within [' +typeStringOrStrings+ '], but the actual type of the item is ' +typeof item+ '. The item: ' +item;
+        }
+        SeLiteMisc.fail( message );
     }
 };
 
@@ -396,13 +411,21 @@ function treatProxyFieldDefinitions( definitions, targetOrProxy ) {
         if( definition==='any' ) {
             continue;
         }
-        if( typeof definition==='string' ) {
+        var definitionWasArray= Array.isArray(definition);
+        if( !definitionWasArray ) {
             definition= [definition];
             definitions[fieldName]= definition;
         }
-        Array.isArray(definition) || SeLiteMisc.fail( 'Definition for field ' +fieldName+ ' on proxy of '+SeLiteMisc.typeAndClassNameOf(targetOrProxy)+ ' must be a string or an array.'  );
         for( var i=0; i<definition.length; i++ ) {
-            SeLiteMisc.ensureType( definition[i], ['string', 'function'], 'field ' +fieldName+ '[' +i+ ']' );
+            SeLiteMisc.ensureType( definition[i], ['string', 'function'],
+                function() {
+                    return 'Definition' +
+                        (definitionWasArray
+                            ? ' slice ' +i
+                            : ''
+                        )+ ' of field ' +fieldName+ ' on proxy of ' +SeLiteMisc.typeAndClassNameOf(targetOrProxy);
+                }
+            );
         }
     }
     return definitions;
