@@ -129,7 +129,7 @@ function RowLevelOrColumn( name, level ) {
     SeLiteMisc.Enum.call( this, name );
     this.level= level;
 }
-RowLevelOrColumn= SeLiteMisc.proxyVerifyFields( RowLevelOrColumn, ['level', 'forLevel'] );
+RowLevelOrColumn= SeLiteMisc.proxyVerifyFields( RowLevelOrColumn, {level: 'number' } );
 RowLevelOrColumn.prototype= new SeLiteMisc.Enum( '', true );
 RowLevelOrColumn.prototype.constructor= RowLevelOrColumn;
 SeLiteMisc.proxyAllowFields( RowLevelOrColumn.prototype, ['forLevel'] );

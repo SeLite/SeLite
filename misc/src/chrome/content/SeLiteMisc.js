@@ -141,7 +141,7 @@ SeLiteMisc.ensureType= function ensureType( item, typeStringOrStrings, variableN
             : [typeStringOrStrings];
         SeLiteMisc.fail( message
             || (variableName
-                ? 'Variable ' +variableName+ ' should have type from within [' +typeStrings+ '], but the actual type of the item is ' +typeof item+ '. The item: ' +item
+                ? 'Variable ' +variableName+ ' should have type from within [' +typeStringOrStrings+ '], but the actual type of the item is ' +typeof item+ '. The item: ' +item
                 : 'Expecting an item of type from within [' +typeStringOrStrings+ '], but the actual type of the item is ' +typeof item+ '. The item: ' +item
         ) );
     }
@@ -285,7 +285,7 @@ var proxyVerifyFieldsObjectHandler= {
               for( var i=0; i<definition.length; i++ ) { //@TODO for(..of..)
                   var definitionEntry= definition[i];
                   if( SeLiteMisc.TYPE_NAMES.indexOf(definitionEntry)>=0 ) {
-                      if( SeLiteMisc.hasType(item, [definitionEntry]) ) {
+                      if( SeLiteMisc.hasType(value, [definitionEntry]) ) {
                           break;
                       }
                   }
@@ -398,6 +398,7 @@ function treatProxyFieldDefinitions( definitions, targetOrProxy ) {
         }
         if( typeof definition==='string' ) {
             definition= [definition];
+            definitions[fieldName]= definition;
         }
         Array.isArray(definition) || SeLiteMisc.fail( 'Definition for field ' +fieldName+ ' on proxy of '+SeLiteMisc.typeAndClassNameOf(targetOrProxy)+ ' must be a string or an array.'  );
         for( var i=0; i<definition.length; i++ ) {
