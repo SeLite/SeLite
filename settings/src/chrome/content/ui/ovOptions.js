@@ -132,7 +132,7 @@ function RowLevelOrColumn( name, level ) {
 RowLevelOrColumn= SeLiteMisc.proxyVerifyFields( RowLevelOrColumn, {level: 'number' } );
 RowLevelOrColumn.prototype= new SeLiteMisc.Enum( '', true );
 RowLevelOrColumn.prototype.constructor= RowLevelOrColumn;
-SeLiteMisc.proxyAllowFields( RowLevelOrColumn.prototype, ['forLevel'] );
+SeLiteMisc.proxyAllowFields( RowLevelOrColumn.prototype, {forLevel: 'function'} );
 /** This is a simple translation map. It returns n-th argument (counting from 0), where n=this.level.
  * */
 RowLevelOrColumn.prototype.forLevel= function forLevel(first, second, etc ) {
@@ -367,7 +367,7 @@ function valueCompound( field, setName ) {
 function ValueSource( name ) {
     SeLiteMisc.Enum.call( this, name );
 }
-ValueSource= SeLiteMisc.proxyVerifyFields( ValueSource, ['name'] );
+ValueSource= SeLiteMisc.proxyVerifyFields( ValueSource, {name: 'string'} );
 ValueSource.prototype= new SeLiteMisc.Enum( '', true );
 ValueSource.prototype.constructor= ValueSource;
 SeLiteMisc.proxyAllowFields( ValueSource, ['ASSOCIATED_SET', 'DEFAULT_SET', 'VALUES_MANIFEST', 'FIELD_MANIFEST', 'FIELD_DEFAULT'] );
@@ -413,7 +413,7 @@ function RowInfo( module, setName, rowLevel, field, key, valueCompound, isUndecl
     if( 'key' in this && this.key===SeLiteSettings.NEW_VALUE_ROW ) {
         this.rowLevel===RowLevel.OPTION && this.field.multivalued && !SeLiteMisc.isInstance( this.field, [SeLiteSettings.Field.FixedMap,SeLiteSettings.Field.Choice] ) || SeLiteMisc.fail( 'Only use SeLiteSettings.NEW_VALUE_ROW for multivalued freetype fields at RowLevel.OPTION.' );
         !('valueCompound' in this) || SeLiteMisc.fail( 'When using SeLiteSettings.NEW_VALUE_ROW, do not pass valueCompound.' );
-        this.valueCompound= SeLiteMisc.proxyVerifyFieldsOnRead( new SeLiteSettings.FieldInformation( /*entry*/{}) );
+        this.valueCompound= new SeLiteSettings.FieldInformation( /*entry*/{});
     }
     !('valueCompound' in this) || this.valueCompound instanceof SeLiteSettings.FieldInformation;
     // @TODO eliminate/centralise following validation?:
