@@ -167,14 +167,13 @@ SeLiteMisc.isInstance= function isInstance( object, classes, variableName ) {
     SeLiteMisc.ensureType( object, 'object', variableName || 'object' ); // semi-internal validation
     for( var i=0; i<classes.length; i++ ) {//@TODO use loop for of() once NetBeans supports it
         var clazz= classes[i];
-        debugger;
         if( typeof clazz==='function' ) {
             if( object instanceof clazz
                 || SeLiteMisc.oneOf(clazz.name, globalClasses) && object.constructor.name===clazz.name ) {
                 return true;
             }
         }
-        else if( typeof clazz==='string' ) {
+        else if( typeof clazz==='string' ) { // Check the object's class and any parent classes.
             // I could start with item= Object.getPrototypeOf(object). That would cover both instances of leaf grand...child classes which should have .constructor.prototype set manually, as well as instances of top-level classes that don't have .constructor.prototype set manually. If clazz is not the exact (leaf) class as the class of object, then the following loop runs one more time than it would if I set item=Object.getPrototypeOf(object). However, the following is more robust (if the programmer forgets to set child prototype's constructor manually).
             var item= object;
             while( item ) {
@@ -290,17 +289,8 @@ var proxyVerifyFieldsObjectHandler= {
                           break;
                       }
                   }
-                  else {
-                      if( typeof definitionEntry==='string' ) {//@TODO handle sub-classes
-                          if( SeLiteMisc.classNameOf(value)===definitionEntry ) {
-                              break;
-                          }
-                      }
-                      else {
-                          if( value instanceof definitionEntry) {
-                              break;
-                          }
-                      }
+                  else if( SeLiteMisc.isInstance(value, definitionEntry) ) {
+                      break;
                   }
               }
               i<definition.length || SeLiteMisc.fail( "Declared field " +field+ ' on ' +SeLiteMisc.typeAndClassNameOf(target)+ " doesn't accept " +typeof value+ ': ' +value );
