@@ -77,6 +77,9 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                 for( var dependencyPluginId in pluginInfo.optionalRequisitePlugins ) {
                     dependancyPluginNames[dependencyPluginId]= pluginInfo.optionalRequisitePlugins[dependencyPluginId];
                 }
+                for( var dependencyPluginId in pluginInfo.nonSequencedRequisitePlugins ) {
+                    dependancyPluginNames[dependencyPluginId]= pluginInfo.nonSequencedRequisitePlugins[dependencyPluginId];
+                }
             }                
             var pluginIdToName= function pluginIdToName(pluginId) {
                 return dependancyPluginNames[pluginId];
@@ -86,7 +89,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
             problems.push( '' );
             problems.push( "Plugin(s) missing at least one direct dependency:" );
             for( var pluginId in sortedPlugins.missingDirectDependancies ) {
-                problems.push( addonsById[pluginId].name+ ' depends on missing plugin(s): ' +
+                problems.push( addonsById[pluginId].name+ ' directly depends on missing plugin(s): ' +
                     sortedPlugins.missingDirectDependancies[pluginId].map(pluginIdToName).join(', ')+ '.' );
                 if( pluginId in sortedPlugins.missingIndirectDependancies ) {
                     problems.push( 'It also indirectly depends on other missing dependancies through other plugin(s): ' +
