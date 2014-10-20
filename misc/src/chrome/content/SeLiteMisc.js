@@ -475,6 +475,7 @@ SeLiteMisc.proxyAllowFields= function proxyAllowFields( proxy, definitions ) {
     var existingDefinitions= proxy[SeLiteMisc.PROXY_FIELD_DEFINITIONS];
     SeLiteMisc.hasType( existingDefinitions, 'some-object' ) || SeLiteMisc.fail( "Proxy object has a field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS, but it's not an object." );
     definitions= treatProxyFieldDefinitions( definitions );
+    //@TODO refuse re-definition of a field. The same for entries in defnitions[] in treatProxyFieldDefinitions() if definitions is an array..
     SeLiteMisc.objectCopyFields( definitions, existingDefinitions );
 };
 
@@ -504,6 +505,46 @@ SeLiteMisc.Enum= SeLiteMisc.proxyVerifyFields( SeLiteMisc.Enum, {
     name: 'string',
     instances: Array
 });
+
+var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
+
+/** @private Not to be exported. Class of 'SeLiteMisc' object which is set in global scope of files loaded via SeLiteMisc.loadVerifyScope().
+ * */
+function SeLiteMiscClassWithVerifiedScope() {
+    this.SeLiteMisc= this;
+}
+SeLiteMiscClassWithVerifiedScope.prototype= Object.create( SeLiteMisc );
+SeLiteMiscClassWithVerifiedScope.prototype.constructor= SeLiteMiscClassWithVerifiedScope;
+/** Declare any global variables (on top of already declared ones). This function is in 'SeLiteMisc' namespace object, but only in files loaded through SeLiteMisc.loadVerifyScope().
+ * @param {(object|array)} definitions See SeLiteMisc.proxyAllowFields().
+ *  */
+SeLiteMiscClassWithVerifiedScope.prototype.declareGlobals= function declareGlobals( definitions ) {
+    SeLiteMisc.proxyAllowFields( this, definitions );
+};
+SeLiteMiscClassWithVerifiedScope= SeLiteMisc.proxyVerifyFields( SeLiteMiscClassWithVerifiedScope, {SeLiteMisc: SeLiteMiscClassWithVerifiedScope} );
+
+/** Load a given file in a 'verified' global scope, which requires any global variables to be declared first. The scope will contain 'SeLiteMisc' object and any entries from initialScope. The file has to declare any other global variables with SeLiteMisc.declareGlobals().
+ * @param {string} fileURL
+ * @param {object} [initialScope] It's copied - so subsequent changes to initialScope have no effect.
+ * @param {(object|array)} [initialScopeDefinitions] See parameter definitions of SeLiteMisc.proxyVerifyFields().
+ * @param {string} [charset='UTF-8']
+ *  @return {subScriptLoader.loadSubScript
+ * */
+SeLiteMisc.loadVerifyScope= function loadVerifyScope( fileURL, initialScope, initialScopeDefinitions, charset ) {
+    initialScope= initialScope || {};
+    charset= charset || 'UTF-8';
+    
+    var scope= new SeLiteMiscClassWithVerifiedScope();
+    if( initialScopeDefinitions ) {
+        SeLiteMisc.proxyAllowFields( scope, initialScopeDefinitions );
+    }
+    else {
+        SeLiteMisc.proxyAllowFields( scope, Object.keys(initialScope) );
+    }
+    SeLiteMisc.objectCopyFields( initialScope, scope );
+    subScriptLoader.loadSubScript( fileURL, scope, charset );
+    return scope;
+};
 
 /** @param mixed Container - object or array
  *  @param mixed Field - string field name, or integer/integer string index of the item
