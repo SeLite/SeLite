@@ -40,7 +40,7 @@ SeLiteMisc.fail= function fail( errorOrMessage ) {
             : new Error(errorOrMessage)
          )
         : new Error();
-}
+};
 
 /** @return {string} Current stack (including the call to this function).
  * */
@@ -431,7 +431,7 @@ function treatProxyFieldDefinitions( definitions, targetOrProxy ) {
     return definitions;
 }
 /** Like SeLiteMisc.proxyVerifyFieldsOnRead(), but this creates a proxy that verifies fields on both read and write. If used with a constructor function (i.e. a class), it should define any fields added by that class, and any parent constructors should declare their own fields.
- *  @param {object} target
+ *  @param {(object|function)} target An object to be proxied, or a class (a constructor function).
  *  @param {(object|array)} [definitions] Definition of fields for the proxy object, or for instances of the proxy class (but not for the class itself). Either an array of field names, or an object {
  *      fieldName: either
  *          - a string: one of SeLiteMisc.TYPE_NAMES or the name of a class, or 
@@ -508,20 +508,27 @@ SeLiteMisc.Enum= SeLiteMisc.proxyVerifyFields( SeLiteMisc.Enum, {
 
 var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
 
-/** @private Not to be exported. Class of 'SeLiteMisc' object which is set in global scope of files loaded via SeLiteMisc.loadVerifyScope().
- * */
-function SeLiteMiscClassWithVerifiedScope() {
-    this.SeLiteMisc= this;
+function SeLiteMiscClassForVerifiedScope( globalScope ) {
+    globalScope instanceof VerifiedScope || SeLiteMisc.fail();
+    this.globalScope= globalScope;
 }
-SeLiteMiscClassWithVerifiedScope.prototype= Object.create( SeLiteMisc );
-SeLiteMiscClassWithVerifiedScope.prototype.constructor= SeLiteMiscClassWithVerifiedScope;
+/** @private Not to be exported.
+ *  @class Class (constructor) for special 'version' of SeLiteMisc object(s), that are passed in controlled global scope to files loaded through  SeLiteMisc.loadVerifyScope(). Those special SeLiteMisc objects have an extra method declareGlobals(). */
+SeLiteMiscClassForVerifiedScope.prototype= Object.create( SeLiteMisc );
+SeLiteMiscClassForVerifiedScope.prototype.constructor= SeLiteMiscClassForVerifiedScope;
+
 /** Declare any global variables (on top of already declared ones). This function is in 'SeLiteMisc' namespace object, but only in files loaded through SeLiteMisc.loadVerifyScope().
  * @param {(object|array)} definitions See SeLiteMisc.proxyAllowFields().
  *  */
-SeLiteMiscClassWithVerifiedScope.prototype.declareGlobals= function declareGlobals( definitions ) {
-    SeLiteMisc.proxyAllowFields( this, definitions );
+SeLiteMiscClassForVerifiedScope.prototype.declareGlobals= function declareGlobals( definitions ) {
+    SeLiteMisc.proxyAllowFields( this.globalScope, definitions );
 };
-SeLiteMiscClassWithVerifiedScope= SeLiteMisc.proxyVerifyFields( SeLiteMiscClassWithVerifiedScope, {SeLiteMisc: SeLiteMiscClassWithVerifiedScope} );
+
+/** @private Not to be exported.
+ *  @class Class for object(s) that serve as verified global scope, passed to files loaded through SeLiteMisc.loadVerifyScope().
+ * */
+function VerifiedScope() {}
+VerifiedScope= SeLiteMisc.proxyVerifyFields( VerifiedScope, {SeLiteMisc: SeLiteMiscClassForVerifiedScope} );
 
 /** Load a given file in a 'verified' global scope, which requires any global variables to be declared first. The scope will contain 'SeLiteMisc' object and any entries from initialScope. The file has to declare any other global variables with SeLiteMisc.declareGlobals().
  * @param {string} fileURL
@@ -534,16 +541,23 @@ SeLiteMisc.loadVerifyScope= function loadVerifyScope( fileURL, initialScope, ini
     initialScope= initialScope || {};
     charset= charset || 'UTF-8';
     
-    var scope= new SeLiteMiscClassWithVerifiedScope();
+    var globalScope= new VerifiedScope();
+    globalScope.SeLiteMisc= new SeLiteMiscClassForVerifiedScope( globalScope );
+    
     if( initialScopeDefinitions ) {
-        SeLiteMisc.proxyAllowFields( scope, initialScopeDefinitions );
+        SeLiteMisc.proxyAllowFields( globalScope, initialScopeDefinitions );
     }
     else {
-        SeLiteMisc.proxyAllowFields( scope, Object.keys(initialScope) );
+        SeLiteMisc.proxyAllowFields( globalScope, Object.keys(initialScope) );
     }
-    SeLiteMisc.objectCopyFields( initialScope, scope );
-    subScriptLoader.loadSubScript( fileURL, scope, charset );
+    SeLiteMisc.objectCopyFields( initialScope, globalScope );
+    
+    subScriptLoader.loadSubScript( fileURL, globalScope, charset );
     return scope;
+};
+
+SeLiteMisc.isLoadedInVerifiedScope= function isLoadedInVerifiedScope() {
+    return this instanceof SeLiteMiscClassForVerifiedScope;
 };
 
 /** @param mixed Container - object or array
