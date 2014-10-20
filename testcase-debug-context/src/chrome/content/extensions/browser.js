@@ -8,7 +8,7 @@ if( typeof window!=='undefined' ) {
         var thisAddOnID= 'testcase-debug-context@selite.googlecode.com';
         var thisAddOnChrome= 'chrome://selite-testcase-debug-context';
 
-        /** Following code should be the same across all SeLite extensions that need Extension Sequencer. */
+        /** Following code is similar, but NOT THE SAME AS the file with the same name across all SeLite extensions that need Extension Sequencer. That's because TestCase Debug Context also verifies that there is no SelBlocks or FlowControl. */
         var showAlert= function showAlert( ){
             /* I can't use window.alert(..) here. gBrowser is defined here, however gBrowser.addTab(..) failed when I called it from right here. Therefore I delay it and then I can use either window.alert() or gBrowser.
             I tried to follow https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Alerts_and_Notifications and https://bugzilla.mozilla.org/show_bug.cgi?id=324570 and I've tried to show a non-modal popup. However, none of those methods works on Windows for multiple popups at the same time: then neither popup shows up. I've tried to use different titles for the popups. I've also tried http://notifications.spec.whatwg.org/#tags-example with different tags for the popups. None of that works.
@@ -30,6 +30,12 @@ if( typeof window!=='undefined' ) {
                 gBrowser.selectedTab = gBrowser.addTab( thisAddOnChrome +'/content/extensions/extension_sequencer_missing.xul' );
             }, 3000 );
         };
+        var showAlertIncompatiblePlugins= function showAlertIncompatiblePlugins() {
+            window.setTimeout( function() {
+                gBrowser.selectedTab = gBrowser.addTab( thisAddOnChrome +'/content/extensions/incompatible_plugins.xul' );
+            }, 3000 );
+        };
+        Components.utils.import("resource://gre/modules/AddonManager.jsm");
         try {
             // Test presence of Extension Sequencer
             Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
@@ -39,7 +45,6 @@ if( typeof window!=='undefined' ) {
             var sharedScope= {};
             Components.utils.import( thisAddOnChrome+ "/content/extensions/browser.js", sharedScope );
             if( !sharedScope.Flag.alertShown ) {
-                Components.utils.import("resource://gre/modules/AddonManager.jsm");
                 AddonManager.getAllAddons(
                     function( addons ) {
                         // I sort the add-ons alphabetically by ID. I want to show only one alert even if there are multiple SeLite XPIs or other XPIs that use Extension Sequencer.So I show the alert in the add-on which is the first on the list of SeLite add-ons (when sorted by ID in the alphabetical order).
@@ -60,6 +65,19 @@ if( typeof window!=='undefined' ) {
                     }
                 );
             }
+        }
+        finally {
+            AddonManager.getAllAddons(
+                function( addons ) {
+                    for( var i=0; i<addons.length; i++ ) { //@TODO for(.. of..)
+                        var addon= addons[i];
+                        if( addon.isActive && (addon.id==='sel-blocks@chris.noe' || addon.id==='flow-control@dave.hunt') ) {
+                            showAlertIncompatiblePlugins();
+                            break;
+                        }
+                    }
+                }
+            );
         }
     } )();
 }
