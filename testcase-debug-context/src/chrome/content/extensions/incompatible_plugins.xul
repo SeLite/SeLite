@@ -1,0 +1,17 @@
+<?xml version="1.0"?><?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<window id="yourwindow" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml">
+    <vbox id="SeSettingsBox" flex="1">
+        <description >
+        SeLite TestCase Debug Context (and its <html:a href="https://code.google.com/p/selite/wiki/AddOnsDependants">dependants</html:a>) cannot work with SelBlocks or FlowControl - please, uninstall those. See also <html:a href="https://code.google.com/p/selite/wiki/SelBlocksGlobal">SelBlocksGlobal</html:a>.
+        <html:script type="text/javascript">
+            window.onbeforeunload= function onbeforeunload() {
+                window.onbeforeunload= undefined;
+                //window.removeEventListener( "beforeunload" );
+                window.close();
+            };
+            
+            //window.addEventListener( "beforeunload", onbeforeunload );
+        </html:script>
+        </description>
+    </vbox>
+</window>
