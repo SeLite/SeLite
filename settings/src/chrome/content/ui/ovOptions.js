@@ -15,6 +15,65 @@
 */
 "use strict";
 
+if( typeof SeLiteMisc==='undefined' ) {
+    Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
+    /* [ {'object': ['nsIFilePicker', ...]}, ... ] or
+     * SeLiteMisc.reverseDefinitions( {'object': ['nsIFilePicker', ...], ...}, ... ) --> that can't have class reference in it, because object keys can be only strings.
+     */
+    SeLiteMisc.loadVerifyScope( 'chrome://selite-settings/content/ui/ovOptions.js', {window: window, XULElement: XULElement}, {
+        window: 'some-object',
+        XULElement: 'function',
+        XUL_NS: 'string',
+        nsIFilePicker: 'some-object',
+        FileUtils: 'some-object',
+        promptService: 'some-object',
+        SeLiteSettings: 'some-object',
+        Services: 'some-object',
+        subScriptLoader: 'some-object',
+        nsIIOService: 'some-object',
+        nsIPrefBranch: 'some-object',
+        CREATE_NEW_SET: 'string',
+        DELETE_THE_SET: 'string',
+        ADD_NEW_VALUE: 'string',
+        DELETE_THE_VALUE: 'string',
+        chooseFileOrFolder: 'function',
+        RowLevelOrColumn: 'function',
+        RowLevel: 'function',
+        Column: 'function',
+        treeColumnElements: 'some-object',
+        treeColumn: 'function',
+        generateTreeColumns: 'function',
+        modules: 'some-object',
+        treeRowsOrChildren: 'some-object',
+        treeCell: 'function',
+        valueCompound: 'function',
+        ValueSource: 'function',
+        RowInfo: 'function',
+        CellInfo: 'function',
+        generateSets: 'function',
+        generateFields: 'function',
+        propertiesPart: 'function',
+        newValueRow: ['number', 'undefined'],
+        pastFirstBlur: 'boolean',
+        onTreeBlur: 'function',
+        treeClickHandler: 'function',
+        fieldTreeRow: 'function',
+        preProcessEdit: 'function',
+        setCellText: 'function',
+        createTreeView: 'function',
+        updateSpecial: 'function',
+        allowSets: 'boolean',
+        allowMultivaluedNonChoices: 'boolean',
+        targetFolder: ['string', 'null'],
+        showingPerFolder: 'function',
+        createTreeChildren: 'function',
+        moduleSetFields: 'some-object',
+        chooseJavascriptFile: 'function'
+    } );
+}
+else {
+    SeLiteMisc.isLoadedInVerifiedScope() || SeLiteMisc.fail();
+    
 /* This has many workarounds because of inflexibility in Mozilla XUL model. It can run in two main modes: editable (showing all sets for any modules, or for matching modules) and review (per-folder).
  * <br/>On change of fields, it doesn't reload the whole page. It updates the preferences in Firefox. Then it reloads the relevant row(s) in GUI based on the updated preferences. 
  * <br/>If you add/remove a configuration set, then it reloads the whole page, which loses the collapse/expand status.
@@ -23,7 +82,6 @@
 var XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 var nsIFilePicker = Components.interfaces.nsIFilePicker;
 Components.utils.import("resource://gre/modules/FileUtils.jsm" );
-Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
 Components.utils.import("resource://gre/modules/osfile.jsm");
 //var console = (Components.utils.import("resource://gre/modules/devtools/Console.jsm", {})).console;
 
@@ -52,7 +110,7 @@ var DELETE_THE_VALUE= "Delete the value";
     Only needed when isFolder is false, because the file/folder picker dialog always lets you create new folder (if you have access).
     @return false if nothing selected, string file/folder path if selected
  * */
-function chooseFileOrFolder( field, tree, row, column, isFolder, currentTargetFolder, saveFile ) {
+var chooseFileOrFolder= function chooseFileOrFolder( field, tree, row, column, isFolder, currentTargetFolder, saveFile ) {
     var filePicker = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
     filePicker.init(
         window,
@@ -118,17 +176,17 @@ function chooseFileOrFolder( field, tree, row, column, isFolder, currentTargetFo
         return filePicker.file.path;
     }
     return false;
-}
+};
 
 /** Enumeration-like class. Instances of subclasses indicate hierarchical levels of rows within the tree, or the column.
  * @class
  * @param {string} name
  * @param {int} level 0-based level/index
  */
-function RowLevelOrColumn( name, level ) {
+var RowLevelOrColumn= function RowLevelOrColumn( name, level ) {
     SeLiteMisc.Enum.call( this, name );
     this.level= level;
-}
+};
 RowLevelOrColumn= SeLiteMisc.proxyVerifyFields( RowLevelOrColumn, {level: 'number' } );
 RowLevelOrColumn.prototype= new SeLiteMisc.Enum( '', true );
 RowLevelOrColumn.prototype.constructor= RowLevelOrColumn;
@@ -143,10 +201,10 @@ RowLevelOrColumn.prototype.forLevel= function forLevel(first, second, etc ) {
 
 /** @class
  */
-function RowLevel( name, level ) {
+var RowLevel= function RowLevel( name, level ) {
     RowLevelOrColumn.call( this, name, level );
-}
-var unproxyfiedRowLevel= RowLevel;
+};
+//var unproxyfiedRowLevel= RowLevel;
 RowLevel= SeLiteMisc.proxyVerifyFields( RowLevel );
 RowLevel.prototype= new RowLevelOrColumn( '', -1 );
 RowLevel.prototype.constructor= RowLevel;
@@ -161,9 +219,9 @@ RowLevel.OPTION= new RowLevel('OPTION', 3); // For options of Choice, for entrie
 
 /** @class
 */
-function Column( name, level ) {
+var Column= function Column( name, level ) {
     RowLevelOrColumn.call( this, name, level );
-}
+};
 Column= SeLiteMisc.proxyVerifyFields( Column );
 Column.prototype= new RowLevelOrColumn( '', -1 );
 Column.prototype.constructor= Column;
@@ -175,7 +233,7 @@ Column.VALUE= new Column('VALUE', 3);
 Column.ACTION_SET= new Column('ACTION_SET', 4);
 Column.NULL_UNDEFINE_DEFINITION= new Column('NULL_UNDEFINE_DEFINITION', 5);
 
-/** It contains elements for <treecol> tags, as returned by document.createElementNS( XUL_NS, 'tree_col').
+/** It contains elements for <treecol> tags, as returned by window.document.createElementNS( XUL_NS, 'tree_col').
  These are not nsITreeColumn instances, but their .element fields!
  In order to get nsITreeColumn instance, use treeColumn(). See also comments near a call to getCellAt().
  */
@@ -191,8 +249,8 @@ var treeColumnElements= {
 /** @param element Element for <treecol> tag, one of those stored in treeColumnElements (as applicable).
  *  @return object Instance of nsITreeColumn, where returnedObject.element=element.
  * */
-function treeColumn( element ) {
-    var tree= document.getElementById('settingsTree');
+var treeColumn= function treeColumn( element ) {
+    var tree= window.document.getElementById('settingsTree');
     for( var i=0; i<tree.columns.length; i++ ) {
         var column= tree.columns[i];
         if( column.element===element ) {
@@ -200,7 +258,7 @@ function treeColumn( element ) {
         }
     }
     return null;
-}
+};
 
 /** @param allowModules bool Whether we show any module/s rather than just a specific one. If allowModules is true,
  *  there may be none, one or more modules to show.
@@ -208,14 +266,14 @@ function treeColumn( element ) {
  *  indicate where each field is inherited from.
  * @return node object for <treecols>
  * */
-function generateTreeColumns( allowModules, perFolder ) {
+var generateTreeColumns= function generateTreeColumns( allowModules, perFolder ) {
     if( typeof allowModules!=='boolean' || typeof allowSets!=='boolean' || typeof allowMultivaluedNonChoices!=='boolean' ) {
         throw new Error('generateTreeColumns() requires all three parameters to be boolean.');
     }
     
-    var treecols= document.createElementNS( XUL_NS, 'treecols' );
+    var treecols= window.document.createElementNS( XUL_NS, 'treecols' );
 
-    var treecol= treeColumnElements.moduleSetField= document.createElementNS( XUL_NS, 'treecol');
+    var treecol= treeColumnElements.moduleSetField= window.document.createElementNS( XUL_NS, 'treecol');
     treecol.setAttribute('label',
         allowModules
         ? (allowSets
@@ -232,12 +290,12 @@ function generateTreeColumns( allowModules, perFolder ) {
     treecol.setAttribute( 'ordinal', '1');
     treecols.appendChild(treecol);
     
-    var splitter= document.createElementNS( XUL_NS, 'splitter' );
+    var splitter= window.document.createElementNS( XUL_NS, 'splitter' );
     splitter.setAttribute( 'ordinal', '2');
     treecols.appendChild( splitter );
     
     if( allowSets ) {
-        treecol= treeColumnElements.defaultSet= document.createElementNS( XUL_NS, 'treecol');
+        treecol= treeColumnElements.defaultSet= window.document.createElementNS( XUL_NS, 'treecol');
         treecol.setAttribute('label', 'Default');
         treecol.setAttribute('type', 'checkbox');
         treecol.setAttribute('editable', 'true' );
@@ -245,12 +303,12 @@ function generateTreeColumns( allowModules, perFolder ) {
         treecol.setAttribute( 'tooltip', 'tooltipDefault');
         treecols.appendChild(treecol);
         
-        splitter= document.createElementNS( XUL_NS, 'splitter' );
+        splitter= window.document.createElementNS( XUL_NS, 'splitter' );
         splitter.setAttribute( 'ordinal', '4');
         treecols.appendChild( splitter );
     }
     
-    treecol= treeColumnElements.checked= document.createElementNS( XUL_NS, 'treecol');
+    treecol= treeColumnElements.checked= window.document.createElementNS( XUL_NS, 'treecol');
     treecol.setAttribute('label', 'True');
     treecol.setAttribute('type', 'checkbox');
     treecol.setAttribute('editable', ''+!perFolder );
@@ -260,11 +318,11 @@ function generateTreeColumns( allowModules, perFolder ) {
     }
     treecols.appendChild(treecol);
 
-    splitter= document.createElementNS( XUL_NS, 'splitter' );
+    splitter= window.document.createElementNS( XUL_NS, 'splitter' );
     splitter.setAttribute( 'ordinal', '6');
     treecols.appendChild( splitter );
     
-    treecol= treeColumnElements.value= document.createElementNS( XUL_NS, 'treecol');
+    treecol= treeColumnElements.value= window.document.createElementNS( XUL_NS, 'treecol');
     treecol.setAttribute('label', 'Value');
     treecol.setAttribute('editable', ''+!perFolder );
     treecol.setAttribute( 'flex', '1');
@@ -275,11 +333,11 @@ function generateTreeColumns( allowModules, perFolder ) {
     treecols.appendChild(treecol);
     
     if( perFolder || allowSets || allowMultivaluedNonChoices ) {
-        splitter= document.createElementNS( XUL_NS, 'splitter' );
+        splitter= window.document.createElementNS( XUL_NS, 'splitter' );
         splitter.setAttribute( 'ordinal', '8');
         treecols.appendChild( splitter );
 
-        treecol= treeColumnElements.action= document.createElementNS( XUL_NS, 'treecol');
+        treecol= treeColumnElements.action= window.document.createElementNS( XUL_NS, 'treecol');
         treecol.setAttribute('label', perFolder
             ? 'Set'
             : 'Action');
@@ -290,11 +348,11 @@ function generateTreeColumns( allowModules, perFolder ) {
     }
     
     // Per-folder view: Manifest/Definition. Per-module view: Null/Undefine
-    splitter= document.createElementNS( XUL_NS, 'splitter' );
+    splitter= window.document.createElementNS( XUL_NS, 'splitter' );
     splitter.setAttribute( 'ordinal', '10');
     treecols.appendChild( splitter );
 
-    treecol= treeColumnElements.manifest= document.createElementNS( XUL_NS, 'treecol');
+    treecol= treeColumnElements.manifest= window.document.createElementNS( XUL_NS, 'treecol');
     treecol.setAttribute('label', perFolder
         ? 'Manifest/Definition'
         : 'Null/Undefine');
@@ -307,7 +365,7 @@ function generateTreeColumns( allowModules, perFolder ) {
     );
     treecols.appendChild(treecol);
     return treecols;
-}
+};
 
 /** Sorted anonymous object serving as an associative array {
  *     string module name => Module object
@@ -343,7 +401,7 @@ var treeRowsOrChildren= SeLiteMisc.sortedObject(true);
  *  @param {Column} level It indicates which column to return <treecell> for
  *  @return object Element for <treecell>
  * */
-function treeCell( treeRow, level ) {
+var treeCell= function treeCell( treeRow, level ) {
     treeRow instanceof XULElement || SeLiteMisc.fail( 'treeCell() requires treeRow to be an XULElement object, but it received ' +treeRow );
     treeRow.tagName==='treerow' || SeLiteMisc.fail( 'treeCell() requires treeRow to be an XULElement object for <treerow>, but it received XULElement for ' +treeRow.tagName );
     SeLiteMisc.ensureInstance( level, Column, 'level' );
@@ -353,20 +411,20 @@ function treeCell( treeRow, level ) {
         ? level.forLevel(0,         1, 2, 3, 4, 5)
         : level.forLevel(0, undefined, 1, 2, 3, 4)
     ];
-}
+};
 
 /** Simple shortcut function
  * */
-function valueCompound( field, setName ) {
+var valueCompound= function valueCompound( field, setName ) {
     return moduleSetFields[field.module.name][setName][field.name];
-}
+};
 
 /** Enum-like, instances indicate the source of value for a field. Only used in per-folder mode.
  *  @class
  * */
-function ValueSource( name ) {
+var ValueSource= function ValueSource( name ) {
     SeLiteMisc.Enum.call( this, name );
-}
+};
 ValueSource= SeLiteMisc.proxyVerifyFields( ValueSource );
 ValueSource.prototype= new SeLiteMisc.Enum( '', true );
 ValueSource.prototype.constructor= ValueSource;
@@ -398,7 +456,7 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
  *  @param {boolean} [isUndeclaredEntry] Whether this is a value of an undeclared field, or a value of an undeclared key of a declared Field.FixedMap.
  *  Required if rowLevel===RowLevel.FIELD.
  * */
-function RowInfo( module, setName, rowLevel, field, key, valueCompound, isUndeclaredEntry ) {
+var RowInfo= function RowInfo( module, setName, rowLevel, field, key, valueCompound, isUndeclaredEntry ) {
     SeLiteMisc.objectFillIn( this, ['module', 'setName', 'rowLevel', 'field', 'key', 'valueCompound', 'isUndeclaredEntry'], arguments, false, /*dontSetMissingOnes*/true );
     
     SeLiteMisc.ensureInstance( this.module, SeLiteSettings.Module, 'module' ); //@TODO not needed, because of the below proxy validation
@@ -463,7 +521,7 @@ function RowInfo( module, setName, rowLevel, field, key, valueCompound, isUndecl
         this.optionIsSelected= SeLiteMisc.hasType( this.valueCompound.entry, 'some-object' ) && this.key in this.valueCompound.entry;
     }
     //         this.isUndefined= this.isNull= false;
-}
+};
 RowInfo= SeLiteMisc.proxyVerifyFields( RowInfo, {
     module: SeLiteSettings.Module,
     setName: ['string', 'null'],
@@ -482,7 +540,7 @@ RowInfo= SeLiteMisc.proxyVerifyFields( RowInfo, {
  *  @param {RowInfo} rowInfo
  *  @param {Column} column
  * */
-function CellInfo( rowInfo, column ) {
+var CellInfo= function CellInfo( rowInfo, column ) {
     column!==Column.DEFAULT || allowSets || SeLiteMisc.fail( "allowSets is false, but column is not DEFAULT: " +column );
     
     var columnMayBeActionOrNullUndefine= allowSets || allowMultivaluedNonChoices || showingPerFolder();
@@ -496,7 +554,7 @@ function CellInfo( rowInfo, column ) {
     this.value= rowInfo.collectValue( column );
     this.editable= rowInfo.collectEditable( column );
     this.properties= rowInfo.collectProperties( column );
-}
+};
 CellInfo= SeLiteMisc.proxyVerifyFields( CellInfo, {
     label: ['string', 'undefined'],
     value: 'any',
@@ -739,7 +797,7 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
     }
 };
 
-/**@param {object} treecell result of document.createElementNS( XUL_NS, 'treecell') 
+/**@param {object} treecell result of window.document.createElementNS( XUL_NS, 'treecell') 
  * @param {Column} column
  * */
 RowInfo.prototype.setCellDetails= function setCellDetails( treecell, column ) {
@@ -761,8 +819,8 @@ RowInfo.prototype.setCellDetails= function setCellDetails( treecell, column ) {
  *  @return object for a new element <treeitem> with one <treerow>
  * */
 RowInfo.prototype.generateTreeItem= function generateTreeItem() {
-    var treeitem= document.createElementNS( XUL_NS, 'treeitem');
-    var treerow= document.createElementNS( XUL_NS, 'treerow');
+    var treeitem= window.document.createElementNS( XUL_NS, 'treeitem');
+    var treerow= window.document.createElementNS( XUL_NS, 'treerow');
     treeitem.appendChild( treerow );
     // Shortcut xxxName variables prevent null exceptions, so I can pass them as parts of expressions to this.rowLevel.forLevel(..) without extra validation
     var moduleName= this.module
@@ -798,7 +856,7 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
         }
     }
     for( var i=0; i<columns.length; i++ ) { //@TODO for(..of..)
-        var treecell= document.createElementNS( XUL_NS, 'treecell');
+        var treecell= window.document.createElementNS( XUL_NS, 'treecell');
         treerow.appendChild( treecell);
         this.setCellDetails( treecell, columns[i] );
     }
@@ -826,7 +884,7 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
 /** @param node moduleChildren <treechildren>
  *  @param object module Module
  * */
-function generateSets( moduleChildren, module ) {
+var generateSets= function generateSets( moduleChildren, module ) {
     try {
         var setNames= !showingPerFolder()
             ? module.setNames()
@@ -861,11 +919,11 @@ function generateSets( moduleChildren, module ) {
         e.message= 'Module ' +module.name+ ': ' +e.message;
         throw e;
     }
-}
+};
 
 /** @param setFields Result of SeLiteSettings.Module.getFieldsOfSet() or SeLiteSettings.Module.getFieldsDownToFolder()
  * */
-function generateFields( setChildren, module, setName, setFields ) {
+var generateFields= function generateFields( setChildren, module, setName, setFields ) {
     for( var fieldName in setFields ) {
         var field= module.fields[fieldName];
         if( field ) {
@@ -907,7 +965,7 @@ function generateFields( setChildren, module, setName, setFields ) {
             //@TODO
         }
     }
-}
+};
 
 /** @param string properties <treerow> or <treecell> 'properties' attribute, which contains space-separated module/set/field/choice(option) name
  *  - as applicable. Do not use with cells for Column.DEFAULT.
@@ -917,7 +975,7 @@ function generateFields( setChildren, module, setName, setFields ) {
  *  Side note: I would have used https://developer.mozilla.org/en-US/docs/Web/API/element.dataset,
  *  but I didn't know (and still don't know) how to get it for <treerow> element where the user clicked - tree.view doesn't let me.
  * */
-function propertiesPart( properties, level ) {
+var propertiesPart= function propertiesPart( properties, level ) {
     SeLiteMisc.ensureInstance( level, RowLevel, 'level' );
     var propertiesParts= properties.split( ' ' );
     
@@ -930,7 +988,7 @@ function propertiesPart( properties, level ) {
     // Column.VALUE stands for anything in properties after the part for previous (COLUMN.MODULE...COLUMN.FIELD). That's because the part of properties that represents field 'value' (@TODO check: is it the value or the key) may contain space(s). That's why this concatenates the slices with spaces.
     propertiesParts= propertiesParts.slice( level.level );
     return propertiesParts.join( ' ');
-}
+};
 
 /** 0-based index of row beig currently edited, within the set of *visible* rows only (it skips the collapsed rows),
  *  only if the row is for a new value of a multi-valued field and that value was not saved/submitted yet. Otherwise it's undefined.
@@ -944,7 +1002,7 @@ var pastFirstBlur= false;
  *  for a multi-valued field and then they hit ESC without filling in the value. That's when onTreeBlur() performs the validation.
  *  @see setCellText()
  */
-function onTreeBlur() {
+var onTreeBlur= function onTreeBlur() {
     //console.log('onblur; newValueRow: ' +newValueRow+ '; pastFirstBlur: ' +pastFirstBlur);
     if( newValueRow!==undefined ) {
         if( pastFirstBlur ) {
@@ -957,12 +1015,12 @@ function onTreeBlur() {
             pastFirstBlur= true;
         }
     }
-}
+};
 
-function treeClickHandler( event ) {
+var treeClickHandler= function treeClickHandler( event ) {
     //console.log( 'click');
-    // FYI: event.currentTarget.tagName=='tree'. However, document.getElementById('settingsTree')!=event.currentTarget
-    var tree= document.getElementById('settingsTree');
+    // FYI: event.currentTarget.tagName=='tree'. However, window.document.getElementById('settingsTree')!=event.currentTarget
+    var tree= window.document.getElementById('settingsTree');
     var row= { value: -1 }; // value will be 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
     var column= { value: null }; // value is instance of TreeColumn. See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeColumn
             // column.value.element is one of 'treecol' nodes created above. column.value.type can be TreeColumn.TYPE_CHECKBOX etc.
@@ -1249,17 +1307,17 @@ function treeClickHandler( event ) {
             }
         }
     }
-}
+};
 
 /** @return <treerow> element for given set and field, that
  *  - for single-valued non-choice field contains the field
  *  - for multi-valued or choice field it is the collapsible/expandable row for the whole field
  * */
-function fieldTreeRow( setName, field ) {
+var fieldTreeRow= function fieldTreeRow( setName, field ) {
     return !field.multivalued && !(field instanceof SeLiteSettings.Field.Choice)
         ? treeRowsOrChildren[field.module.name][setName][field.name]
         : treeRowsOrChildren[field.module.name][setName][field.name][SeLiteSettings.FIELD_MAIN_ROW];
-}
+};
 
 /** Gather some information about the cell, the field, set and module. Validate the value, show an alert if validation fails. If there is a valid change of the field, show/hide 'Undefine' or 'Null' label and related 'properties'.
  <br>Only used after type events (setCellText, or blur other than ESC).
@@ -1287,8 +1345,8 @@ function fieldTreeRow( setName, field ) {
         }
  *  }
  * */
-function preProcessEdit( row, value ) {
-    var tree= document.getElementById( 'settingsTree' );
+var preProcessEdit= function preProcessEdit( row, value ) {
+    var tree= window.document.getElementById( 'settingsTree' );
     var rowProperties= tree.view.getRowProperties(row);
 
     var moduleName= propertiesPart( rowProperties, RowLevel.MODULE );
@@ -1366,7 +1424,7 @@ function preProcessEdit( row, value ) {
         valueChanged: valueChanged,
         parsed: parsed
     } );
-}
+};
 
 /** This - nsITreeView.setCellText() - gets triggered only for string/number fields and for File fields; not for checkboxes.
  *  @param row is 0-based index among the expanded rows, not all rows.
@@ -1374,13 +1432,13 @@ function preProcessEdit( row, value ) {
  *  @param string value new value
  *  @param object original The original TreeView
  * */
-function setCellText( row, col, value, original) {
+var setCellText= function setCellText( row, col, value, original) {
     //console.log('setCellText');
     newValueRow= undefined; // This is called before 'blur' event, so we validate here. We only leave it for onTreeBlur() if setCellText doesn't get called.
     var info= preProcessEdit( row, value );
     if( !info.validationPassed || !info.valueChanged ) {
         // If validation fails, I wanted to keep the field as being edited, but the following line didn't work here in Firefox 25.0. It could also interfere with onTreeBlur().
-        //if( !info.validationPassed ) { document.getElementById( 'settingsTree' ).startEditing( row, col ); }
+        //if( !info.validationPassed ) { window.document.getElementById( 'settingsTree' ).startEditing( row, col ); }
         return; // if validation failed, preProcessEdit() already showed an alert, and removed the tree row if the value was a newly added entry of a multi-valued field
     }
     original.setCellText( row, col, value );
@@ -1475,9 +1533,9 @@ function setCellText( row, col, value, original) {
         );/**/
     }
     return true;
-}
+};
 
-function createTreeView(original) {
+var createTreeView= function createTreeView(original) {
     return {
         get rowCount() { return original.rowCount; },
         get selection() { return original.selection; },
@@ -1516,7 +1574,7 @@ function createTreeView(original) {
         setTree: function(tree) { return original.setTree(tree); },
         toggleOpenState: function(index) { return original.toggleOpenState(index); }
     };
-}
+};
 
 /** Set/unset special value for the field in the preferences, if the change involves setting/unsetting a special value
  *  - that is, SeLiteSettings.VALUE_PRESENT or SeLiteSettings.NULL.
@@ -1533,7 +1591,7 @@ function createTreeView(original) {
  *  @param {string} [fixedKey] Only used, when setting an option (key) of SeLiteSettings.Field.FixedMap to null/undefined.
  *  But do not use when setting the whole value of a SeLiteSettings.Field.FixedMap field to undefined.
  * */
-function updateSpecial( setName, field, addOrRemove, keyOrValue, fixedKey ) {
+var updateSpecial= function updateSpecial( setName, field, addOrRemove, keyOrValue, fixedKey ) {
     !addOrRemove || field.multivalued || SeLiteMisc.fail("addOrRemove can be one of +1, -1 only if field.multivalued. addOrRemove is " +addOrRemove+ " and field.multivalued is " +field.multivalued);
     addOrRemove || keyOrValue!==null || !field.multivalued || field instanceof SeLiteSettings.Field.FixedMap
         || SeLiteMisc.fail("Field " +field.name+ " is multivalued, yet keyOrValue is null.");
@@ -1599,7 +1657,7 @@ function updateSpecial( setName, field, addOrRemove, keyOrValue, fixedKey ) {
         console.log( 'updateSpecial() Module ' +field.module.name+ ', set ' +setName+ ', field: ' +field.name+ ' has compound: ' +typeof compound );
         SeLiteMisc.fail(e);
     }
-}
+};
 
 /* @var allowSets bool Whether to show the column for selection of a set. If we're only showing one module and we're not showing fields per folder,
  * then this allowSets is same as module.allowSets.
@@ -1613,7 +1671,7 @@ var allowSets= false;
  */
 var allowMultivaluedNonChoices= false;
 
-/** @var mixed Null if we're showing configuration set(s) irrelevant of a folder. Otherwise it's 
+/** @var {(string|null)} Null if we're showing configuration set(s) irrelevant of a folder. Otherwise it's 
  *  a string, absolute path to the folder we're applying the overall configuration.
  *  This will be set depending on how this file is invoked.
  * */
@@ -1621,24 +1679,24 @@ var targetFolder= null;
 /** Shortcut function. Only valid once I set variable targetFolder.
  *  @return {bool}
  * */
-function showingPerFolder() { return targetFolder!==null; }
+var showingPerFolder= function showingPerFolder() { return targetFolder!==null; };
 
 /** Create an object for a new <treechildren>. Add it to the parent.
  *  @return XULElement for the new <treechildren>
  * */
-function createTreeChildren( parent ) {
+var createTreeChildren= function createTreeChildren( parent ) {
     if( !(parent instanceof XULElement)
     || parent.tagName!=='treeitem' && parent.tagName!=='tree' ) {
         throw new Error( 'createTreeChildren() requires parent to be an object for <treeitem> or <tree>.');
     }
-    var treeChildren= document.createElementNS( XUL_NS, 'treechildren');
+    var treeChildren= window.document.createElementNS( XUL_NS, 'treechildren');
     if( parent.tagName!=='tree' ) {
         parent.setAttribute('container', 'true');
         parent.setAttribute('open', 'false');
     }
     parent.appendChild( treeChildren);
     return treeChildren;
-}
+};
 
 /** Anonymous object serving as a multidimensional associative array {
  *      string module name: {
@@ -1653,8 +1711,8 @@ function createTreeChildren( parent ) {
 var moduleSetFields= {};
 
 window.addEventListener( "load", function(e) {
-    var params= document.location.search.substring(1);
-    if( document.location.search ) {
+    var params= window.document.location.search.substring(1);
+    if( window.document.location.search ) {
         if( /register/.exec( params ) ) {
             var result= {};
             if( promptService.select(
@@ -1727,7 +1785,7 @@ window.addEventListener( "load", function(e) {
                     newLocation+= "prefix="+prefix+ "&";
                 }
                 newLocation+= "folder=" +escape(newTargetFolder);
-                document.location= newLocation;
+                window.document.location= newLocation;
             }
         }
     }
@@ -1757,7 +1815,7 @@ window.addEventListener( "load", function(e) {
             alert( msg );
         }
     }
-    var tree= document.createElementNS( XUL_NS, 'tree' );
+    var tree= window.document.createElementNS( XUL_NS, 'tree' );
     tree.setAttribute( 'id', 'settingsTree');
     tree.setAttribute( 'editable', ''+!showingPerFolder() );
     tree.setAttribute( 'seltype', 'single' );
@@ -1766,7 +1824,7 @@ window.addEventListener( "load", function(e) {
     tree.setAttribute( 'class', 'tree');
     tree.setAttribute( 'onblur', 'onTreeBlur()' );
     tree.setAttribute( 'flex', '1');
-    var settingsBox= document.getElementById('SeSettingsBox');
+    var settingsBox= window.document.getElementById('SeSettingsBox');
     settingsBox.appendChild( tree );
     
     for( var moduleName in modules ) {
@@ -1804,7 +1862,7 @@ window.addEventListener( "load", function(e) {
         else {
             moduleChildren= topTreeChildren;
         }
-        if( document.location.search ) {
+        if( window.document.location.search ) {
             var match= /set=([a-zA-Z0-9_.-]+)/.exec( params );
             if( match ) {
                 setNameToExpand= unescape( match[1] );
@@ -1825,7 +1883,7 @@ window.addEventListener( "load", function(e) {
 
 /** @return nsIFile instance for a javascript file, if picked; null if none.
  * */
-function chooseJavascriptFile() {
+var chooseJavascriptFile= function chooseJavascriptFile() {
 	var filePicker = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
 	filePicker.init(window, "Select a Javascript file with definition of your module(s)", nsIFilePicker.modeOpen);
     filePicker.appendFilter( 'Javascript', '*.js');
@@ -1835,12 +1893,13 @@ function chooseJavascriptFile() {
 		return filePicker.file;
 	}
     return null;
-}
+};
 /*
-var seLiteSettingsMenuItem= document.createElementNS( XUL_NS, 'menuitem' );
+var seLiteSettingsMenuItem= window.document.createElementNS( XUL_NS, 'menuitem' );
 seLiteSettingsMenuItem.setAttribute( 'label', 'SeLiteSettings module(s)' );
 seLiteSettingsMenuItem.setAttribute( 'oncommand', 'window.editor.showInBrowser("chrome://selite-settings/content/tree.xul")' );
 seLiteSettingsMenuItem.setAttribute( 'accesskey', 'S' );
-var optionsPopup= document.getElementById('options-popup');
+var optionsPopup= window.document.getElementById('options-popup');
 optionsPopup.appendChild(seLiteSettingsMenuItem);
 /**/
+}

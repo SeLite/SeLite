@@ -553,7 +553,7 @@ SeLiteMisc.loadVerifyScope= function loadVerifyScope( fileURL, initialScope, ini
     SeLiteMisc.objectCopyFields( initialScope, globalScope );
     
     subScriptLoader.loadSubScript( fileURL, globalScope, charset );
-    return scope;
+    return globalScope;
 };
 
 SeLiteMisc.isLoadedInVerifiedScope= function isLoadedInVerifiedScope() {

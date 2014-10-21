@@ -1964,7 +1964,7 @@ SeLiteSettings.loadFromJavascript= function loadFromJavascript( moduleName, modu
         }
     }
     var moduleUrl;
-    // If the module has been registered, then there isa preference matching its full name to file path or url of its definition file
+    // If the module has been registered, then there is a preference matching its full name to file path or url of its definition file
     var prefsBranch= prefs.getBranch( moduleName+'.' );
     if( prefsBranch.prefHasUserValue(MODULE_DEFINITION_FILE_OR_URL) ) {
         moduleUrl= SeLiteSettings.fileNameToUrl( prefsBranch.getCharPref(MODULE_DEFINITION_FILE_OR_URL) );
