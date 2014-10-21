@@ -55,7 +55,6 @@ if( typeof SeLiteMisc==='undefined' ) {
         propertiesPart: 'function',
         newValueRow: ['number', 'undefined'],
         pastFirstBlur: 'boolean',
-        onTreeBlur: 'function',
         treeClickHandler: 'function',
         fieldTreeRow: 'function',
         preProcessEdit: 'function',
@@ -992,17 +991,17 @@ var propertiesPart= function propertiesPart( properties, level ) {
 
 /** 0-based index of row beig currently edited, within the set of *visible* rows only (it skips the collapsed rows),
  *  only if the row is for a new value of a multi-valued field and that value was not saved/submitted yet. Otherwise it's undefined.
- *  @see onTreeBlur()
+ *  @see window's onblur handler, set to 'onTreeBlur()' in this file
  *   */
 var newValueRow= undefined;
 var pastFirstBlur= false;
 
 /** When performing validation of a freetype values, most frequent use cases are handled in setCellText handler.
  *  From Firefox 25, the only relevant scenario not handled by setCellText() is when a user hits 'Add a new value'
- *  for a multi-valued field and then they hit ESC without filling in the value. That's when onTreeBlur() performs the validation.
+ *  for a multi-valued field and then they hit ESC without filling in the value. That's when window's onTreeBlur() performs the validation.
  *  @see setCellText()
  */
-var onTreeBlur= function onTreeBlur() {
+window.onTreeBlur= function onTreeBlur() {
     //console.log('onblur; newValueRow: ' +newValueRow+ '; pastFirstBlur: ' +pastFirstBlur);
     if( newValueRow!==undefined ) {
         if( pastFirstBlur ) {
@@ -1434,10 +1433,10 @@ var preProcessEdit= function preProcessEdit( row, value ) {
  * */
 var setCellText= function setCellText( row, col, value, original) {
     //console.log('setCellText');
-    newValueRow= undefined; // This is called before 'blur' event, so we validate here. We only leave it for onTreeBlur() if setCellText doesn't get called.
+    newValueRow= undefined; // This is called before 'blur' event, so we validate here. We only leave it for window's onTreeBlur() if setCellText doesn't get called.
     var info= preProcessEdit( row, value );
     if( !info.validationPassed || !info.valueChanged ) {
-        // If validation fails, I wanted to keep the field as being edited, but the following line didn't work here in Firefox 25.0. It could also interfere with onTreeBlur().
+        // If validation fails, I wanted to keep the field as being edited, but the following line didn't work here in Firefox 25.0. It could also interfere with window's onTreeBlur().
         //if( !info.validationPassed ) { window.document.getElementById( 'settingsTree' ).startEditing( row, col ); }
         return; // if validation failed, preProcessEdit() already showed an alert, and removed the tree row if the value was a newly added entry of a multi-valued field
     }
