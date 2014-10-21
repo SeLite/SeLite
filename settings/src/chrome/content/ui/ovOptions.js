@@ -212,7 +212,7 @@ RowLevel.prototype= new RowLevelOrColumn( '', -1 );
 RowLevel.prototype.constructor= RowLevel;
 SeLiteMisc.proxyAllowFields( RowLevel.prototype, ['MODULE', 'SET', 'FIELD', 'OPTION'] );
 RowLevel.MODULE= new RowLevel('MODULE', 0);
-// @TODO test unit for SeLiteMisc:
+// @TODO low importance AA test unit for SeLiteMisc:
 //SeLiteMisc.fail( ''+(RowLevel.SELITE_MISC_TARGET_CLASS===unproxyfiedRowLevel) );
 //SeLiteMisc.fail( ''+(RowLevel.MODULE.SELITE_MISC_TARGET_CONSTRUCTOR===unproxyfiedRowLevel) )
 RowLevel.SET= new RowLevel('SET', 1);
@@ -440,7 +440,7 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
 /** This keeps information for a row to display (at any given RowLevel). It populates the fields from given parameters, and it collects some extra fields.
  * @class
 /** @param {SeLiteSettings.Module} module object of Module
- *  @param {string} setName set name; either '' if the module doesn't allow sets (@TODO <- check that - shouldn't it be null/undefined then?); otherwise it's a set name when at field level
+ *  @param {(string|undefined)} setName set name (if the module allows sets and we're at set level or deeper); otherwise it's undefined
  *  attribute for the <treerow> nodes, so that when we handle a click event, we know what field the node is for.
  *  @param {RowLevel} rowLevel
  *  @param {SeLiteSettings.Field} field An object of a subclass of Field. If rowLevel==RowLevel.MODULE or rowLevel==RowLevel.SET,  then field is null.
@@ -455,10 +455,8 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
 var RowInfo= function RowInfo( module, setName, rowLevel, field, key, valueCompound, isUndeclaredEntry ) {
     SeLiteMisc.objectFillIn( this, ['module', 'setName', 'rowLevel', 'field', 'key', 'valueCompound', 'isUndeclaredEntry'], arguments, false, /*dontSetMissingOnes*/true );
     
+    showingPerFolder() || rowLevel===RowLevel.MODULE || !module.allowSets || this.setName!==undefined || SeLiteMisc.fail( "setName must not be undefined, since we are showing an editable view of module " +module.name+ " allows sets and rowLevel " +rowLevel+ " is deeper than RowLevel.MODULE." );
     SeLiteMisc.ensureInstance( this.module, SeLiteSettings.Module, 'module' ); //@TODO not needed, because of the below proxy validation
-    SeLiteMisc.ensureType( this.setName, ['string', 'null'], 'setName' );
-    SeLiteMisc.ensureInstance( this.rowLevel, RowLevel, 'rowLevel' ); //@TODO not needed
-    
     SeLiteMisc.ensureType( this.field, ['object', 'undefined'], "field" );
     this.field || this.rowLevel===RowLevel.MODULE || this.rowLevel===RowLevel.SET || SeLiteMisc.fail( "Parameter field must be defined, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but rowLevel is " +this.rowLevel );
     !this.field || SeLiteMisc.ensureInstance( this.field, SeLiteSettings.Field, 'field (if defined)' );
@@ -520,7 +518,7 @@ var RowInfo= function RowInfo( module, setName, rowLevel, field, key, valueCompo
 };
 RowInfo= SeLiteMisc.proxyVerifyFields( RowInfo, {
     module: SeLiteSettings.Module,
-    setName: ['string', 'null'],
+    setName: ['string', 'undefined'],
     rowLevel: RowLevel,
     field: 'any',
     key: ['string', 'undefined', 'null'],
@@ -884,7 +882,7 @@ var generateSets= function generateSets( moduleChildren, module ) {
     try {
         var setNames= !showingPerFolder()
             ? module.setNames()
-            : [null];
+            : [undefined];
         if( !allowSets && setNames.length!==1 ) {
             throw new Error( "allowSets should be set false only if a module has the only set." );
         }
@@ -1500,8 +1498,8 @@ var setCellText= function setCellText( row, col, value, original) {
             : '';
         info.field.setPref( setNameDot+ info.field.name+ '.' +info.oldKey, value ); //@TODO Check this for Int/Decimal - may need to treat value
     }
-    SeLiteSettings.savePrefFile(); //@TODO Do we need this line?
-    moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName, true ); // not efficient, but robust: re-load the whole lot, rather than tweak it. @TODO use valueCompound()
+    SeLiteSettings.savePrefFile(); //@TODO low importance Do we need this line?
+    moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName, true ); // not efficient, but robust: re-load the whole lot, rather than tweak it.
     
     // Now update GUI:
     var fieldRow= fieldTreeRow(info.setName, info.field);
@@ -1522,9 +1520,9 @@ var setCellText= function setCellText( row, col, value, original) {
         var optionRow= treeRowsOrChildren[info.module.name][info.setName][info.field.name][info.oldKey];
         treeCell( optionRow, Column.VALUE/*@TODO?!?!:TRUE (original FIELD)*/ ).setAttribute( 'properties', '' ); // Clear at option level, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED
         /*treeCell( optionRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
-            generateCellLabel( Column.NULL_UNDEFINE_DEFINITION, module, setName, field, undefined, value, RowLevel.OPTION, valueCompound ) );*/ //@TODO cast value to the exact type?
+            generateCellLabel( Column.NULL_UNDEFINE_DEFINITION, module, setName, field, undefined, value, RowLevel.OPTION, valueCompound ) );*/ //@TODO low importance cast value to the exact type?
         treeCell( optionRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
-            rowInfo.nullOrUndefineLabel( true ) //@TODO cast value to the exact type
+            rowInfo.nullOrUndefineLabel( true ) //@TODO low importance cast value to the exact type
         );/**/
     }
     return true;
@@ -1837,7 +1835,7 @@ window.addEventListener( "load", function(e) {
     var setNameToExpand= null;
     if( allowModules ) {
         for( var moduleName in modules ) {
-            var moduleTreeItem= new RowInfo( modules[moduleName], null, RowLevel.MODULE, null ).generateTreeItem();
+            var moduleTreeItem= new RowInfo( modules[moduleName], undefined, RowLevel.MODULE, null ).generateTreeItem();
             topTreeChildren.appendChild( moduleTreeItem );
             
             var moduleChildren= createTreeChildren( moduleTreeItem );
@@ -1850,7 +1848,7 @@ window.addEventListener( "load", function(e) {
         
         var moduleChildren;
         if( allowSets && modules[moduleName].allowSets ) {
-            var moduleTreeItem= new RowInfo( modules[moduleName], null, RowLevel.MODULE, null ).generateTreeItem();
+            var moduleTreeItem= new RowInfo( modules[moduleName], undefined, RowLevel.MODULE, null ).generateTreeItem();
             topTreeChildren.appendChild( moduleTreeItem );
             moduleChildren= createTreeChildren( moduleTreeItem );
         }
