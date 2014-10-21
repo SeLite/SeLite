@@ -456,8 +456,6 @@ var RowInfo= function RowInfo( module, setName, rowLevel, field, key, valueCompo
     SeLiteMisc.objectFillIn( this, ['module', 'setName', 'rowLevel', 'field', 'key', 'valueCompound', 'isUndeclaredEntry'], arguments, false, /*dontSetMissingOnes*/true );
     
     showingPerFolder() || rowLevel===RowLevel.MODULE || !module.allowSets || this.setName!==undefined || SeLiteMisc.fail( "setName must not be undefined, since we are showing an editable view of module " +module.name+ " allows sets and rowLevel " +rowLevel+ " is deeper than RowLevel.MODULE." );
-    SeLiteMisc.ensureInstance( this.module, SeLiteSettings.Module, 'module' ); //@TODO not needed, because of the below proxy validation
-    SeLiteMisc.ensureType( this.field, ['object', 'undefined'], "field" );
     this.field || this.rowLevel===RowLevel.MODULE || this.rowLevel===RowLevel.SET || SeLiteMisc.fail( "Parameter field must be defined, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but rowLevel is " +this.rowLevel );
     !this.field || SeLiteMisc.ensureInstance( this.field, SeLiteSettings.Field, 'field (if defined)' );
     
@@ -520,7 +518,7 @@ RowInfo= SeLiteMisc.proxyVerifyFields( RowInfo, {
     module: SeLiteSettings.Module,
     setName: ['string', 'undefined'],
     rowLevel: RowLevel,
-    field: 'any',
+    field: [SeLiteSettings.Field, 'undefined'],
     key: ['string', 'undefined', 'null'],
     valueCompound: 'any',
     isUndeclaredEntry: ['boolean', 'undefined'],
@@ -1835,7 +1833,7 @@ window.addEventListener( "load", function(e) {
     var setNameToExpand= null;
     if( allowModules ) {
         for( var moduleName in modules ) {
-            var moduleTreeItem= new RowInfo( modules[moduleName], undefined, RowLevel.MODULE, null ).generateTreeItem();
+            var moduleTreeItem= new RowInfo( modules[moduleName], undefined, RowLevel.MODULE, undefined ).generateTreeItem();
             topTreeChildren.appendChild( moduleTreeItem );
             
             var moduleChildren= createTreeChildren( moduleTreeItem );
@@ -1848,7 +1846,7 @@ window.addEventListener( "load", function(e) {
         
         var moduleChildren;
         if( allowSets && modules[moduleName].allowSets ) {
-            var moduleTreeItem= new RowInfo( modules[moduleName], undefined, RowLevel.MODULE, null ).generateTreeItem();
+            var moduleTreeItem= new RowInfo( modules[moduleName], undefined, RowLevel.MODULE, undefined ).generateTreeItem();
             topTreeChildren.appendChild( moduleTreeItem );
             moduleChildren= createTreeChildren( moduleTreeItem );
         }

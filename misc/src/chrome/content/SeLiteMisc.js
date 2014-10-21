@@ -295,18 +295,24 @@ var proxyVerifyFieldsObjectHandler= {
         // Since target[SeLiteMisc.PROXY_FIELD_DEFINITIONS] is an object, it has meta fields 'prototype' and 'constructor' by default. Therefore we don't have any validation for those. Also, we allow assigning to (update of) target[SeLiteMisc.PROXY_FIELD_DEFINITIONS] itself.
         if( name!=='prototype' && name!=='constructor' && name!==SeLiteMisc.PROXY_FIELD_DEFINITIONS ) {
             var definition= target[SeLiteMisc.PROXY_FIELD_DEFINITIONS][name];
+            //@TODO move this comment to treatProxyFieldDefinitions: If I ever allow definition to be undefined (in addition to 'undefined'), then change the following check to be: name in target[SeLiteMisc.PROXY_FIELD_DEFINITIONS]
             definition!==undefined || SeLiteMisc.fail( "Can't set an undeclared field '" +name+ "' on " +SeLiteMisc.typeAndClassNameOf(target) );
             if( definition!=='any' ) {
-              for( var i=0; i<definition.length; i++ ) { //@TODO for(..of..)
-                  var definitionEntry= definition[i];
-                  if( SeLiteMisc.TYPE_NAMES.indexOf(definitionEntry)>=0 ) {
-                      if( SeLiteMisc.hasType(value, [definitionEntry]) ) {
-                          break;
-                      }
-                  }
-                  else if( SeLiteMisc.isInstance(value, definitionEntry) ) {
-                      break;
-                  }
+              
+                var isObject= typeof value==='object';
+                for( var i=0; i<definition.length; i++ ) { //@TODO for(..of..)
+                    var definitionEntry= definition[i];
+                  
+                    if( SeLiteMisc.TYPE_NAMES.indexOf(definitionEntry)>=0 ) {
+                        if( SeLiteMisc.hasType(value, [definitionEntry]) ) {
+                            break;
+                        }
+                    }
+                    else {
+                        if( isObject && SeLiteMisc.isInstance(value, definitionEntry) ) {
+                            break;
+                        }
+                    }
               }
               i<definition.length || SeLiteMisc.fail( "Declared field '" +name+ "' on " +SeLiteMisc.typeAndClassNameOf(target)+ " doesn't accept " +typeof value+ ': ' +value );
             }
