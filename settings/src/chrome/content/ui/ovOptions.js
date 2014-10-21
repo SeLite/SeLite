@@ -217,6 +217,7 @@ RowLevel.MODULE= new RowLevel('MODULE', 0);
 //SeLiteMisc.fail( ''+(RowLevel.MODULE.SELITE_MISC_TARGET_CONSTRUCTOR===unproxyfiedRowLevel) )
 RowLevel.SET= new RowLevel('SET', 1);
 RowLevel.FIELD= new RowLevel('FIELD', 2);
+/**  RowLevel.OPTION must be the last instance of Column that refers to a part of 'properties' attribute, since its part of 'properties' represents the field's key (for SeLiteSettings.Field.Choice or SeLiteSettings.Field.FixedMap), which may contain spaces. Therefore its part of 'properties' attribute contains anything after (right of) all parts in 'properties' (RowLevel.MODULE...RowLevel.FIELD). */
 RowLevel.OPTION= new RowLevel('OPTION', 3); // For options of Choice, for entries in multi-valued String/Int/Decimal, for entries in FixedMap
 
 /** @class
@@ -957,7 +958,7 @@ var generateFields= function generateFields( setChildren, module, setName, setFi
             }
         }
         else {
-            //@TODO
+            //@TODO undeclared field
         }
     }
 };
@@ -980,7 +981,6 @@ var propertiesPart= function propertiesPart( properties, level ) {
     if( level!==RowLevel.OPTION ) {
         return propertiesParts[level.level];
     }
-    // Column.VALUE stands for anything in properties after the part for previous (COLUMN.MODULE...COLUMN.FIELD). That's because the part of properties that represents field 'value' (@TODO check: is it the value or the key) may contain space(s). That's why this concatenates the slices with spaces.
     propertiesParts= propertiesParts.slice( level.level );
     return propertiesParts.join( ' ');
 };
