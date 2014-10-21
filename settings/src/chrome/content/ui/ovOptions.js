@@ -20,7 +20,10 @@ if( typeof SeLiteMisc==='undefined' ) {
     /* [ {'object': ['nsIFilePicker', ...]}, ... ] or
      * SeLiteMisc.reverseDefinitions( {'object': ['nsIFilePicker', ...], ...}, ... ) --> that can't have class reference in it, because object keys can be only strings.
      */
-    SeLiteMisc.loadVerifyScope( 'chrome://selite-settings/content/ui/ovOptions.js', {window: window, XULElement: XULElement}, {
+    SeLiteMisc.loadVerifyScope( 'chrome://selite-settings/content/ui/ovOptions.js', {
+        window: window,
+        XULElement: XULElement
+    }, {
         window: 'some-object',
         XULElement: 'function',
         XUL_NS: 'string',
@@ -444,14 +447,7 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
  *  It must be defined for multivalued or choice field. It serves as a trailing part of field option preference name)
  *  -- for multivalued non-choice fields it should be the same as value
  *  -- if the field is of a subclass of Field.Choice or Field.FixedMap, then key and value may be different.
- *  @param {SeLiteSettings.FieldInformation} valueCompound Value compound for this field stored in the set being displayed (or in the sets and manifests applicable to targetFolder, if targetFolder!=null). Its entry part may be different to (the part of) valueOrPair when rowLevel===RowLevel.OPTION, since valueOrPair then indicates what to display for this row. valueCompound is an anonymous object, one of entries in result of Module.getFieldsDownToFolder(..) or Module.Module.getFieldsOfSet(), i.e. in form @TODO move to SeLiteSettings.FieldInformation {
- *          fromPreferences: boolean, whether the value comes from preferences; otherwise it comes from a values manifest or from field default,
- *          setName: string set name (only valid if fromPreferences is true),
- *          folderPath: string folder path to the manifest file (either values manifest, or associations manifest);
- *              empty string '' if the value(s) come from the default set;
- *              null if fromPreferences===true or if the value comes from field default (as in the module definition)
- *          entry: as described for Module.getFieldsDownToFolder(..)
- *  }
+ *  @param {SeLiteSettings.FieldInformation} valueCompound Value compound for a given field. See also {@link Module#getFieldsDownToFolder}() or {@link Module#getFieldsOfSet}().
  *  @param {boolean} [isUndeclaredEntry] Whether this is a value of an undeclared field, or a value of an undeclared key of a declared Field.FixedMap.
  *  Required if rowLevel===RowLevel.FIELD.
  * */

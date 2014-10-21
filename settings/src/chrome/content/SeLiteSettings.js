@@ -1575,7 +1575,7 @@ SeLiteSettings.closingIde= function closingIde() {
     }
 };
 
-/** @class This represents value(s) of a field, and where this value(s) come from. @TODO check/force type it there: Also known as 'valueCompound' in ovOptions.js.
+/** @class This represents value(s) of a field, and where this value(s) come from (a set/manifest/field definition). @TODO check/force type it there: Also known as 'valueCompound' in ovOptions.js.
  *  @param {*} entry - the value(s) of the field, either
  *          - string/boolean/number (its 'primitive' value), or null or undefined, for non-choice single-value fields; or
  *          - object (potentially empty) serving as an associative array, for choice field (multivalued or single valued) or for non-choice multi-valued field, if the field has a value (or multiple values) or if it's empty but present (as indicated by SeLiteSettings.VALUE_PRESENT), in format {
@@ -1583,11 +1583,11 @@ SeLiteSettings.closingIde= function closingIde() {
  *          },
  *          - null, if it has no value/choice in the given set and is indicated as 'null' by SeLiteSettings.NULL
  *          - undefined otherwise (if the field has no value/choice in the given set)
- *  @param {(boolean|undefined)} fromPreferences - whether the value comes from preferences (otherwise it comes from a values manifest or from its module's definition, or it's undefined)
+ *  @param {(boolean|undefined)} fromPreferences - whether the value comes from preferences (otherwise it comes from a values manifest or from its module's definition, or it's undefined @TODO check why undefined)
  *  @param {(string|undefined)} [folderPath]
  *          - folder path to the manifest file (either values manifest, or associations manifest)
  *          - empty '' if the values comes from the default set- @TODO check
- *          - null if the value comes from field default in module schema- @TODO check
+ *          - null if fromPreferences===true or if the value comes from field default in module schema- @TODO check
  *  @param {(string|undefined)} [setName] set name (only valid if fromPreferences==true)
  * */
 SeLiteSettings.FieldInformation= function FieldInformation( entry, fromPreferences, folderPath, setName ) {
