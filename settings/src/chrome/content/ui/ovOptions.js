@@ -456,21 +456,19 @@ var RowInfo= function RowInfo( module, setName, rowLevel, field, key, valueCompo
     SeLiteMisc.objectFillIn( this, ['module', 'setName', 'rowLevel', 'field', 'key', 'valueCompound', 'isUndeclaredEntry'], arguments, false, /*dontSetMissingOnes*/true );
     
     showingPerFolder() || rowLevel===RowLevel.MODULE || !module.allowSets || this.setName!==undefined || SeLiteMisc.fail( "setName must not be undefined, since we are showing an editable view of module " +module.name+ " allows sets and rowLevel " +rowLevel+ " is deeper than RowLevel.MODULE." );
-    this.field || this.rowLevel===RowLevel.MODULE || this.rowLevel===RowLevel.SET || SeLiteMisc.fail( "Parameter field must be defined, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but rowLevel is " +this.rowLevel );
-    !this.field || SeLiteMisc.ensureInstance( this.field, SeLiteSettings.Field, 'field (if defined)' );
     
-    !('key' in this) || SeLiteMisc.ensureType( this.key, ['string', 'undefined', 'null'], 'key' );
+    this.field || this.rowLevel===RowLevel.MODULE || this.rowLevel===RowLevel.SET || SeLiteMisc.fail( "Parameter field must be defined, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but rowLevel is " +this.rowLevel );
+    
     if( 'key' in this && this.key===SeLiteSettings.NEW_VALUE_ROW ) {
         this.rowLevel===RowLevel.OPTION && this.field.multivalued && !SeLiteMisc.isInstance( this.field, [SeLiteSettings.Field.FixedMap,SeLiteSettings.Field.Choice] ) || SeLiteMisc.fail( 'Only use SeLiteSettings.NEW_VALUE_ROW for multivalued freetype fields at RowLevel.OPTION.' );
         !('valueCompound' in this) || SeLiteMisc.fail( 'When using SeLiteSettings.NEW_VALUE_ROW, do not pass valueCompound.' );
         this.valueCompound= new SeLiteSettings.FieldInformation( /*entry*/{});
     }
     !('valueCompound' in this) || this.valueCompound instanceof SeLiteSettings.FieldInformation;
-    // @TODO eliminate/centralise following validation?:
-    !('isUndeclaredEntry' in this) || SeLiteMisc.ensureType( this.isUndeclaredEntry, 'boolean', "isUndeclaredEntry (if defined)" );
+    
     !('isUndeclaredEntry' in this) || !this.isUndeclaredEntry || rowLevel===RowLevel.FIELD && SeLiteMisc.hasType(this.valueCompound.entry, ['some-object', 'primitive']) || rowLevel===RowLevel.OPTION && SeLiteMisc.hasType(this.valueCompound.entry, 'some-object') || SeLiteMisc.fail();
     
-    rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET || 'valueCompound' in this && SeLiteMisc.ensureType( this.valueCompound, 'some-object', 'valueCompound' );
+    rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET || 'valueCompound' in this || SeLiteMisc.fail( 'valueCompound must be an instance of SeLiteSettings.FieldInformation, since rowLevel is ' +rowLevel+ ' which is other than MODULE or SET.' );
     
     // Basic collecting
     if( this.field ) {
@@ -520,8 +518,8 @@ RowInfo= SeLiteMisc.proxyVerifyFields( RowInfo, {
     rowLevel: RowLevel,
     field: [SeLiteSettings.Field, 'undefined'],
     key: ['string', 'undefined', 'null'],
-    valueCompound: 'any',
-    isUndeclaredEntry: ['boolean', 'undefined'],
+    valueCompound: SeLiteSettings.FieldInformation/* if set - it can be left undefined, if not applicable*/,
+    isUndeclaredEntry: 'boolean',
     value: 'any',
     source: [ValueSource, 'undefined'],
     optionIsSelected: ['boolean', 'undefined']
@@ -897,7 +895,7 @@ var generateSets= function generateSets( moduleChildren, module ) {
             }
             var setChildren= null;
             if( allowSets && module.allowSets ) {
-                var setItem= new RowInfo( module, setName, RowLevel.SET, null, /*key*/ null ).generateTreeItem();
+                var setItem= new RowInfo( module, setName, RowLevel.SET, undefined, /*key*/ null ).generateTreeItem();
                 moduleChildren.appendChild( setItem );
                 setChildren= createTreeChildren( setItem );
             }
