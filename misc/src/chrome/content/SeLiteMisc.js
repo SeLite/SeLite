@@ -485,6 +485,44 @@ SeLiteMisc.proxyAllowFields= function proxyAllowFields( proxy, definitions ) {
     SeLiteMisc.objectCopyFields( definitions, existingDefinitions );
 };
 
+/** An auxilliary class, that allows setting fields with names generated at runtime in one function call, or through a chain of calls.
+ * It serves to generate parameter <code>definitions</code> for SeLiteMisc.loadVerifyScope(), SeLiteMisc.proxyVerifyFields() and SeLiteMisc.proxyAllowFields().
+ * It also serves e.g. to generate object parts of 'columns' part of the parameter to SeLiteData.RecordSetFormula() constructor, if your table names are not constants, i.e. you have a configurable table prefix string, and you don't want to have a string variable for each table name itself, but you want to refer to .name property of the table object. Then your table name is not a string constant, and you can't use string runtime expressions as object keys in anonymous object construction {}. That's when you can use new SeLiteData.Settable().set( tableXYZ.name, ...).set( tablePQR.name, ...) as the value of 'columns' field of SeLiteData.RecordSetFormula()'s parameter. There its usage assumes that no table name (and no value for parameter field) is 'set'.
+*/
+SeLiteMisc.Settable= function Settable( field, value, etc ) {
+    if( arguments.length>0 ) {
+        SeLiteMisc.Settable.prototype.set.apply( this, arguments );
+    }
+};
+// I don't want method set() to show up when iterating through SeLiteMisc.Settable instances using for( .. in..), therefore I use defineProperty():
+Object.defineProperty( SeLiteMisc.Settable.prototype, 'set', {
+    /** It accepts a flexible number (even number) of parameters.
+     *  @param {(string|number|Array)} field. If it's an array, then it represents zero, one or multiple fields, and the value will be assigned to all listed fields.
+     *  @param {*} value
+     *  @return {Settable} this
+     * */
+    value: function set( field, value, etc ) {
+        arguments.length%2===0 || SeLiteMisc.fail( 'SeLiteMisc.Settable.prototype.set() only accepts an even number of arguments.' );
+        for( var i=0; i<arguments.length; i+=2 ) {
+            var field= arguments[i];
+            if( typeof field==='number' || typeof field==='string' ) {
+                this[ field ]= arguments[i+1];
+            }
+            else if( Array.isArray(field) ) {
+                for( var j=0; j<field.length; j++ ) {// TODO low: for(..of..)
+                    this[ field[j] ]= arguments[i+1];
+                }
+            }
+            else {
+                SeLiteMisc.fail( '' +i+ '-nth parameter is ' +typeof field+ ', but it should be a number, a string or an array.' );
+            }
+        }
+        return this;
+    }
+} );
+
+
+
 /** Enumeration-like class.
  * @class
  * @param {string} name

@@ -591,25 +591,7 @@ SeLiteData.Storage.prototype.quoteValues= function quoteValues( entries, fieldsT
     return result;
 };
 
-/** Used to generate object parts of 'columns' part of the parameter to SeLiteData.RecordSetFormula() constructor, if your table names are not constants,
-    i.e. you have a configurable table prefix string, and you don't want to have a string variable for each table name itself, but you want
-    to refer to .name property of the table object. Then your table name is not string constant, and you can't use string runtime expressions
-    as object keys in anonymous object construction {}. That's when you can use new SeLiteData.Settable().set( tableXYZ.name, ...).set( tablePQR.name, ...)
-    as the value of 'columns' field of SeLiteData.RecordSetFormula()'s parameter.
-    Its usage assumes that no table name (and no value for parameter field) is 'set'.
-*/
-SeLiteData.Settable= function Settable() {
-    if( arguments.length>0 ) {
-        throw new Error( "Constructor Settable() doesn't use any parameters." );
-    }
-};
-// I don't want method set() to show up when iterating using for( .. in..), therefore I use defineProperty():
-Object.defineProperty( SeLiteData.Settable.prototype, 'set', {
-        value: function set( field, value ) {
-            this[field]= value;
-            return this;
-        }
-} );
+SeLiteData.Settable= SeLiteMisc.Settable; //@TODO Remove; it's for backward compatibility only.
 
 /** @constructor Subclass of SeLiteData.Storage, that is based on SeLiteSettings.Field pointing to an SQLite source, and an optional Field indicating table prefix.
  * @private

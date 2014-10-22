@@ -17,61 +17,22 @@
 
 if( typeof SeLiteMisc==='undefined' ) {
     Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
-    /* [ {'object': ['nsIFilePicker', ...]}, ... ] or
-     * SeLiteMisc.reverseDefinitions( {'object': ['nsIFilePicker', ...], ...}, ... ) --> that can't have class reference in it, because object keys can be only strings.
-     */
-    SeLiteMisc.loadVerifyScope( 'chrome://selite-settings/content/ui/ovOptions.js', {
-        window: window,
-        XULElement: XULElement
-    }, {
-        window: 'some-object',
-        XULElement: 'function',
-        XUL_NS: 'string',
-        nsIFilePicker: 'some-object',
-        FileUtils: 'some-object',
-        promptService: 'some-object',
-        SeLiteSettings: 'some-object',
-        Services: 'some-object',
-        subScriptLoader: 'some-object',
-        nsIIOService: 'some-object',
-        nsIPrefBranch: 'some-object',
-        CREATE_NEW_SET: 'string',
-        DELETE_THE_SET: 'string',
-        ADD_NEW_VALUE: 'string',
-        DELETE_THE_VALUE: 'string',
-        chooseFileOrFolder: 'function',
-        RowLevelOrColumn: 'function',
-        RowLevel: 'function',
-        Column: 'function',
-        treeColumnElements: 'some-object',
-        treeColumn: 'function',
-        generateTreeColumns: 'function',
-        modules: 'some-object',
-        treeRowsOrChildren: 'some-object',
-        treeCell: 'function',
-        valueCompound: 'function',
-        ValueSource: 'function',
-        RowInfo: 'function',
-        CellInfo: 'function',
-        generateSets: 'function',
-        generateFields: 'function',
-        propertiesPart: 'function',
-        newValueRow: ['number', 'undefined'],
-        pastFirstBlur: 'boolean',
-        treeClickHandler: 'function',
-        fieldTreeRow: 'function',
-        preProcessEdit: 'function',
-        setCellText: 'function',
-        createTreeView: 'function',
-        updateSpecial: 'function',
-        allowSets: 'boolean',
-        allowMultivaluedNonChoices: 'boolean',
-        targetFolder: ['string', 'null'],
-        showingPerFolder: 'function',
-        createTreeChildren: 'function',
-        moduleSetFields: 'some-object',
-        chooseJavascriptFile: 'function'
-    } );
+    SeLiteMisc.loadVerifyScope( 'chrome://selite-settings/content/ui/ovOptions.js',
+        {
+            window: window,
+            XULElement: XULElement
+        },
+        new SeLiteMisc.Settable(
+            ['window', 'nsIFilePicker', 'FileUtils', 'promptService', 'SeLiteSettings', 'Services', 'subScriptLoader', 'nsIIOService', 'nsIPrefBranch', 'treeColumnElements', 'modules', 'treeRowsOrChildren', 'moduleSetFields'], 'some-object',
+
+            'newValueRow', ['number', 'undefined'],
+            ['XUL_NS', 'CREATE_NEW_SET', 'DELETE_THE_SET', 'ADD_NEW_VALUE', 'DELETE_THE_VALUE'], 'string',
+            ['pastFirstBlur', 'allowSets', 'allowMultivaluedNonChoices'], 'boolean',
+            'targetFolder', ['string', 'null'],
+
+            ['XULElement', 'chooseFileOrFolder', 'RowLevelOrColumn', 'RowLevel', 'Column', 'treeColumn', 'generateTreeColumns', 'treeCell', 'valueCompound', 'ValueSource', 'RowInfo', 'CellInfo', 'generateSets', 'generateFields', 'propertiesPart', 'treeClickHandler', 'fieldTreeRow', 'preProcessEdit', 'setCellText', 'createTreeView', 'updateSpecial', 'showingPerFolder', 'createTreeChildren', 'chooseJavascriptFile'], 'function'
+        )
+    );
 }
 else {
     SeLiteMisc.isLoadedInVerifiedScope() || SeLiteMisc.fail();
@@ -104,8 +65,7 @@ var DELETE_THE_VALUE= "Delete the value";
  *  @param field Instance of a subclass of Field.FileOrFolder (Field.File, Field.Folder or Field.SQLite), or null if no field
  *  @param tree, used only when changing a field.
  *  @param row int 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
-        var column= { value: null }; // value is instance of TreeColumn.
-    @param column instance of TreeColumn
+    @param column Probably an instance of TreeColumn
     @param bool isFolder whether it's for a folder, rather than a file
     @param string currentTargetFolder Used as the default folder, when field==null. Optional.
     @param boolean saveFile Whether we're saving/creating a file, otherwise we're opening/reading. Optional, false by default.
@@ -704,7 +664,7 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
                 : '',
             this.setName,
             this.field
-                ? this.field.name//@TODO undeclared fields
+                ? this.field.name//@TODO undeclared fields - but only if showingPerFolder()
                 : '',
             this.field instanceof SeLiteSettings.Field.FixedMap
                 ? this.key
@@ -845,7 +805,7 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
             columns.push( Column.NULL_UNDEFINE_DEFINITION );
         }
     }
-    for( var i=0; i<columns.length; i++ ) { //@TODO for(..of..)
+    for( var i=0; i<columns.length; i++ ) { //@TODO low: for(..of..)
         var treecell= window.document.createElementNS( XUL_NS, 'treecell');
         treerow.appendChild( treecell);
         this.setCellDetails( treecell, columns[i] );
@@ -925,7 +885,7 @@ var generateFields= function generateFields( setChildren, module, setName, setFi
             if( field.multivalued || isChoice ) {
                 var fieldChildren= createTreeChildren( fieldItem );
                 if( field instanceof SeLiteSettings.Field.FixedMap ) {
-                    for( var i=0; i<field.keySet.length; i++ ) { //@TODO loop for( .. of ..) once NetBeans supports it
+                    for( var i=0; i<field.keySet.length; i++ ) { //@TODO low: loop for( .. of ..) once NetBeans supports it
                         var key= field.keySet[i];
                         var optionItem= new RowInfo( module, setName, RowLevel.OPTION, field, key, valueCompound ).generateTreeItem();
                         fieldChildren.appendChild( optionItem );
@@ -942,7 +902,7 @@ var generateFields= function generateFields( setChildren, module, setName, setFi
                         ? field.choicePairs
                         : valueCompound.entry;
 
-                    for( var key in pairsToList ) {////@TODO potential IterableArray
+                    for( var key in pairsToList ) {////@TODO low: potential IterableArray
                         isChoice || valueCompound.entry===undefined || typeof(valueCompound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value of type ' +typeof valueCompound.entry+ ': ' +valueCompound.entry );
                         var optionItem= new RowInfo( module, setName, RowLevel.OPTION, field, key, valueCompound ).generateTreeItem();
                         fieldChildren.appendChild( optionItem );
@@ -1114,10 +1074,7 @@ var treeClickHandler= function treeClickHandler( event ) {
                         if( setName ) {
                             module.createSet( setName );
                             SeLiteSettings.savePrefFile(); // Must save here, before reload()
-                            window.location.reload();//@TODO ?module=...&set=...
-                            // @TODO URL param set -> selectedSet
-                            // @TODO support ?selectedModule=...&selectedSet=...
-                            // and ?module=...& selectedSet=...
+                            window.location.reload();
                         }
                     }
                     if( cellText===DELETE_THE_SET ) {
@@ -1149,7 +1106,7 @@ var treeClickHandler= function treeClickHandler( event ) {
                                 }
                             }
                             // Firefox 22.b04 and 24.0a1 doesn't handle parent.insertBefore(newItem, null), even though it should - https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore
-                            if(true) {//@TODO test in new Firefox, choose one branch
+                            if(true) {//@TODO low: test in new Firefox, choose one branch. Cleanup the above doc(?)
                                 if( previouslyFirstValueRow!==undefined ) {
                                     treeChildren.insertBefore( treeItem, previouslyFirstValueRow.parentNode );
                                 }
@@ -1358,12 +1315,12 @@ var preProcessEdit= function preProcessEdit( row, value ) {
             treeRow= moduleRowsOrChildren[setName][fieldName];
             // Can't use treeRow.constructor.name here - because it's a native object.
             treeRow instanceof XULElement && treeRow.tagName==='treerow' || SeLiteMisc.fail( 'treeRow should be an instance of XULElement for a <treerow>.');
-            var oldKey= moduleSetFields[moduleName][setName][fieldName].entry; // @TODO replace with valueCompound()
+            var oldKey= valueCompound( field, setName ).entry;
             valueChanged= value!==''+oldKey;
         }
         else {
-            //@TODO cast value to the exact type, then use strict comparison ===
-            //@TODO Check what if the whole field (.entry) is undefined. 
+            //@TODO low: cast value to the exact type, then use strict comparison ===
+            //@TODO low: Check what if the whole field (.entry) is undefined. 
             var oldValue= module.getFieldsOfSet( setName, true )[ field.name ].entry[ oldKey ];
             valueChanged= value!=oldValue;
         }
@@ -1457,7 +1414,7 @@ var setCellText= function setCellText( row, col, value, original) {
             treeChildren.removeChild( info.treeRow.parentNode );
             var treeItem= new RowInfo( info.module, info.setName, RowLevel.OPTION, info.field, /*key*/value ).generateTreeItem(); // That sets 'properties' and it adds an entry to treeRow[value] (which is same as fieldTreeRowsOrChildren[value] here).
             // Firefox 22.b04 and 24.0a1 doesn't handle parent.insertBefore(newItem, null), even though it should - https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore
-            if(true){//@TODO cleanup
+            if(true){//@TODO low: cleanup
                 if( rowAfterNewPosition ) {
                     treeChildren.insertBefore( treeItem, rowAfterNewPosition.parentNode );
                 }
@@ -1492,7 +1449,7 @@ var setCellText= function setCellText( row, col, value, original) {
         var setNameDot= info.setName!==''
             ? info.setName+'.'
             : '';
-        info.field.setPref( setNameDot+ info.field.name+ '.' +info.oldKey, value ); //@TODO Check this for Int/Decimal - may need to treat value
+        info.field.setPref( setNameDot+ info.field.name+ '.' +info.oldKey, value ); //@TODO low: Check this for Int/Decimal - may need to treat value
     }
     SeLiteSettings.savePrefFile(); //@TODO low importance Do we need this line?
     moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName, true ); // not efficient, but robust: re-load the whole lot, rather than tweak it.
@@ -1745,6 +1702,7 @@ window.addEventListener( "load", function(e) {
         if( match ) {
             targetFolder= unescape( match[1] );
         }
+        // I don't support more URL parameters (e.g. passing setName), since the URL could get longer than address bar of Firefox. Then it wouldn't be obvious that the screen filters down, and that may mislead the user.
         var match= /module=([a-zA-Z0-9_.-]+)/.exec( params );
         var moduleName= null;
         if( match ) {
