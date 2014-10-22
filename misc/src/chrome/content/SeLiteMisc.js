@@ -444,7 +444,7 @@ function treatProxyFieldDefinitions( definitions, targetOrProxy ) {
  *          - a function: a constructor function of a class, or
  *          - an array of such strings/functions
  *      ...
- *  }. Optional: if definitions is not present, then this effectively seals the proxy (probably useful only for objects and not for classes).
+ *  }. Optional: if definitions is not present, then this effectively seals the proxy (probably useful only for objects and not for classes). If you have multiple fields with same definition, you can shorten the code by using SeLiteMisc.Settable instance for <code>definitions</code>.
  *   */
 SeLiteMisc.proxyVerifyFields= function proxyVerifyFieldsOnRead( target, definitions ) {
     typeof target==='object' && target!==null || typeof target==='function' || SeLiteMisc.fail( 'Parameter target should be an object or a class (constructor function), but it is ' +typeof target );
@@ -487,7 +487,7 @@ SeLiteMisc.proxyAllowFields= function proxyAllowFields( proxy, definitions ) {
 
 /** An auxilliary class, that allows setting fields with names generated at runtime in one function call, or through a chain of calls.
  * It serves to generate parameter <code>definitions</code> for SeLiteMisc.loadVerifyScope(), SeLiteMisc.proxyVerifyFields() and SeLiteMisc.proxyAllowFields().
- * It also serves e.g. to generate object parts of 'columns' part of the parameter to SeLiteData.RecordSetFormula() constructor, if your table names are not constants, i.e. you have a configurable table prefix string, and you don't want to have a string variable for each table name itself, but you want to refer to .name property of the table object. Then your table name is not a string constant, and you can't use string runtime expressions as object keys in anonymous object construction {}. That's when you can use new SeLiteData.Settable().set( tableXYZ.name, ...).set( tablePQR.name, ...) as the value of 'columns' field of SeLiteData.RecordSetFormula()'s parameter. There its usage assumes that no table name (and no value for parameter field) is 'set'.
+ * It also serves e.g. to generate object parts of 'columns' part of the parameter to SeLiteData.RecordSetFormula() constructor, if your table names are not constants, i.e. you have a configurable table prefix string, and you don't want to have a string variable for each table name itself, but you want to refer to .name property of the table object. Then your table name is not a string constant, and you can't use string runtime expressions as object keys in anonymous object construction {}. That's when you can use new SeLiteMisc.Settable().set( tableXYZ.name, ...).set( tablePQR.name, ...) as the value of 'columns' field of SeLiteData.RecordSetFormula()'s parameter. There its usage assumes that no table name (and no value for parameter field) is 'set'.
 */
 SeLiteMisc.Settable= function Settable( field, value, etc ) {
     if( arguments.length>0 ) {

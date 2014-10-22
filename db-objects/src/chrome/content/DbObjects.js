@@ -104,7 +104,7 @@ SeLiteData.Table.prototype.insert= function insert( record ) {
 SeLiteData.Table.prototype.formula= function formula( params, prototype ) {
     var mergedParams= SeLiteMisc.objectsMerge( params, {
         table: this,
-        columns: new SeLiteData.Settable().set( this.name, SeLiteData.RecordSetFormula.ALL_FIELDS )
+        columns: new SeLiteMisc.Settable().set( this.name, SeLiteData.RecordSetFormula.ALL_FIELDS )
     } );
     return new SeLiteData.RecordSetFormula( mergedParams, prototype );
 };
@@ -277,7 +277,7 @@ RecordHolder.prototype.insert= function insert() {
         //<editor-fold defaultstate="collapsed" desc="Ensure the table has single-value primary key.">
         typeof this.recordSetHolder.formula.table.primary==='string' || SeLiteMisc.fail( "The formula or table has generateInsertKey set, but table " +this.recordSetHolder.formula.table +" uses multi-column primary key: " +this.recordSetHolder.formula.table.primary );
         //</editor-fold>
-        entries= SeLiteMisc.objectsMerge( new SeLiteData.Settable().set(
+        entries= SeLiteMisc.objectsMerge( new SeLiteMisc.Settable().set(
             this.recordSetHolder.formula.table.primary,
             new SeLiteData.SqlExpression( "(SELECT MAX(" +this.recordSetHolder.formula.table.primary+ ") FROM " +this.recordSetHolder.formula.table.nameWithPrefix()+ ")+1")
         ), entries );
@@ -541,7 +541,7 @@ SeLiteData.RecordSetFormula.prototype.columnsToAliases= function columnsToAliase
  **/
 SeLiteData.RecordSetFormula.prototype.allAliasesToSource= function allAliasesToSource() {
     // @TODO update tableByName() to be similar to this, reuse:
-    var tableNamesToTables= new SeLiteData.Settable().set( this.table.name, this.table );
+    var tableNamesToTables= new SeLiteMisc.Settable().set( this.table.name, this.table );
     this.joins.forEach( function(join) {
         tableNamesToTables[ join.table.name ]= join.table;
     } );
