@@ -63,7 +63,7 @@ new SeLiteSettings.Module( 'extensions.selite.test2',
         choiceNumbersSingle, choiceStringsSingle
     ],
     false,
-    null,
+    undefined,
     false,
     SELITE_SETTINGS_FILE_URL
 );

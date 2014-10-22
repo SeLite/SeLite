@@ -456,7 +456,7 @@ var RowInfo= function RowInfo( module, setName, rowLevel, field, key, valueCompo
     if( showingPerFolder() && 'valueCompound' in this && this.valueCompound!==undefined ) {
         if( this.valueCompound.fromPreferences ) {
             /** @var {(ValueSource|undefined)} Location of the module definition or 'values' manifest where the value comes from. Only in per-folder mode. */
-            this.source= this.valueCompound.setName!==this.module.defaultSetName()//old?!: valueCompound.folderPath!==''
+            this.source= this.valueCompound.setName!==this.module.getDefaultSetName()//old?!: valueCompound.folderPath!==''
                 ? ValueSource.ASSOCIATED_SET
                 : ValueSource.DEFAULT_SET;
         }
@@ -550,7 +550,7 @@ RowInfo.prototype.collectValue= function collectValue( column ) {
     if( column===Column.DEFAULT ) {
         if( allowSets ) { // Radio-like checkbox for (de)selecting a set
             if( this.rowLevel===RowLevel.SET && this.module.allowSets) {
-                return ''+( this.setName===this.module.defaultSetName() );
+                return ''+( this.setName===this.module.getDefaultSetName() );
             }
             else {
                 return 'false';
@@ -596,7 +596,7 @@ RowInfo.prototype.collectProperties= function collectProperties( column ) {
     else if( column===Column.ACTION_SET ) {
         if( showingPerFolder() && this.rowLevel===RowLevel.FIELD ) {
             if( this.valueCompound.fromPreferences ) {
-                return this.valueCompound.setName===this.module.defaultSetName()
+                return this.valueCompound.setName===this.module.getDefaultSetName()
                     ? SeLiteSettings.DEFAULT_SET
                     : SeLiteSettings.ASSOCIATED_SET;
             }
@@ -1079,7 +1079,7 @@ var treeClickHandler= function treeClickHandler( event ) {
                     }
                     if( cellText===DELETE_THE_SET ) {
                         if( confirm('Are you sure you want to delete this set?') ) {
-                            if( selectedSetName===module.defaultSetName() ) {
+                            if( selectedSetName===module.getDefaultSetName() ) {
                                 module.setDefaultSetName();
                             }
                             module.removeSet( selectedSetName);

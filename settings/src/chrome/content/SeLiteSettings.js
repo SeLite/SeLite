@@ -941,8 +941,8 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
  *  @param fields Array of SeLiteSettings.Field objects, in the order how they will be displayed.
  *  Beware: this.fields will not be an array, but an object serving as an associative array { string field name => SeLiteSettings.Field object}
  *  @param allowSets bool Whether to allow multiple sets of settings for this module
- *  @param defaultSetNameValue string Name of the default set. Optional, null by default; only allowed (but not required) if allowSets==true
- *  @param associatesWithFolders bool Whether the sets are to be used with folder paths (and manifest files in them)
+ *  @param {(string|undefined)} [defaultSetName] Name of the default set. Optional; only allowed (but not required) if allowSets==true
+ *  @param {boolean} [associatesWithFolders=false] Whether the sets are to be used with folder paths (and manifest files in them)
  *  @param {string} [definitionJavascriptFile] URL or filepath to the filename (including the extension) of a javascript file which contains a 
  *  definition of this module. Optional; if present, it lets SeLiteSettings to load a definition automatically
  *  by clients that only know the module name but not location of the file.
@@ -950,7 +950,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
  *  Required if you want to register a brand new module; not needed if re-registering (upgrading) an already registered module.
  *  @param {boolean} [dontRegister] Whether not to (re)register this module; by default it's false (i.e. do register).
  * */
-SeLiteSettings.Module= function Module( name, fields, allowSets, defaultSetNameValue, associatesWithFolders, definitionJavascriptFile, dontRegister ) {
+SeLiteSettings.Module= function Module( name, fields, allowSets, defaultSetName, associatesWithFolders, definitionJavascriptFile, dontRegister ) {
     this.name= name;
     if( typeof this.name!='string' ) {
         throw new Error( 'SeLiteSettings.Module() expects a string name.');
@@ -974,14 +974,10 @@ SeLiteSettings.Module= function Module( name, fields, allowSets, defaultSetNameV
     if( typeof this.allowSets!='boolean' ) {
         throw new Error( 'SeLiteSettings.Module() expects allowSets to be a boolean, if provided.');
     }
-    this.defaultSetNameValue= defaultSetNameValue || null;
-    if( this.defaultSetNameValue!=null && typeof this.defaultSetNameValue!='string' ) {
-        throw new Error( 'SeLiteSettings.Module() expects defaultSetNameValue to be a string, if provided.');
-    }
-    if( this.defaultSetName!=null && !this.allowSets ) {
-        throw new Error( 'SeLiteSettings.Module() allows optional parameter defaultSetName only if allowSets is true..');
-    }
-    defaultSetNameValue===null || ensureFieldName( defaultSetNameValue, 'defaultSetNameValue', true );
+    this.defaultSetName= defaultSetName;
+    this.defaultSetName===undefined || typeof this.defaultSetName==='string' || SeLiteMisc.fail( 'SeLiteSettings.Module() expects defaultSetName to be a string, if provided.');
+    this.defaultSetName==undefined || this.allowSets || SeLiteMisc.fail( 'SeLiteSettings.Module() allows optional parameter defaultSetName only if allowSets is true..' );
+    defaultSetName===null || ensureFieldName( defaultSetName, 'defaultSetName', true );
     
     this.associatesWithFolders= associatesWithFolders || false;
     SeLiteMisc.ensureType( this.associatesWithFolders, 'boolean', 'associatesWithFolders (if provided)' );
@@ -1161,21 +1157,21 @@ SeLiteSettings.Module.prototype.setNames= function setNames() {
     return result;
 };
 
-/** @return string name of the default set. Null if no set is default.
+/** @return {(string|undefined)} Name of the default set. Return undefined if no set is default.
  *  @throws If the module doesn't allow sets.
  * */
-SeLiteSettings.Module.prototype.defaultSetName= function defaultSetName() {
+SeLiteSettings.Module.prototype.getDefaultSetName= function getDefaultSetName() {
     if( !this.allowSets ) {
         throw new Error( "SeLiteSettings.Module '" +this.name+ "' doesn't allow sets.");
     }
     if( this.prefsBranch.prefHasUserValue(SeLiteSettings.DEFAULT_SET_NAME) ) {
         return this.prefsBranch.getCharPref( SeLiteSettings.DEFAULT_SET_NAME );
     }
-    return null;
+    return undefined;
 };
 
 /** It marks the given set as the default set for the module. It doesn't call nsIPrefService.savePrefFile().
- *  @param string name of the set to become default. If null/undefined/empty, then this deselects the default set.
+ *  @param{(string|undefined|null)} name of the set to become default. If null/undefined/empty, then this deselects the default set.
  *  @throws If the module doesn't allow sets.
  * */
 SeLiteSettings.Module.prototype.setDefaultSetName= function setDefaultSetName( setName ) {
@@ -1277,7 +1273,7 @@ SeLiteSettings.Module.prototype.preferenceValue= function preferenceValue( prefN
 SeLiteSettings.Module.prototype.getFieldOfSet= function getFieldOfSet( setName, fieldName ) {
     if( !setName ) {
         setName= this.allowSets
-            ? this.defaultSetName()
+            ? this.getDefaultSetName()
             : '';
     }
     var setNameWithDot= setName!==''
@@ -1702,8 +1698,8 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
     // I'm not modifying manifests.associations itself, because it can be cached & reused.
     // So I merge those into a new object - associations, which will have same structure as manifests.associations.
     var associations= SeLiteMisc.sortedObject(true);
-    if( this.allowSets && this.defaultSetName()!==null ) {
-        associations['']= [ new SeLiteSettings.ModuleAndSetInformation(this.name, this.defaultSetName()) ];
+    if( this.allowSets && this.getDefaultSetName()!==undefined ) {
+        associations['']= [ new SeLiteSettings.ModuleAndSetInformation(this.name, this.getDefaultSetName()) ];
     }
     for( var associationFolder in manifests.associations ) {
         associations[associationFolder]= manifests.associations[associationFolder];
@@ -1723,8 +1719,8 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
 SeLiteSettings.Module.prototype.getFieldsDownToSet= function getFieldsDownToSet( setName, dontCache, includeUndeclaredEntries ) {
     this.allowsSets || SeLiteMisc.fail( "You can't use getFieldsDownToSet() for module " +this.name+ " since it doesn't allow sets." );
     var setEntries= SeLiteMisc.sortedObject(true);
-    if( this.defaultSetName()!==null && this.defaultSetName()!==setName ) { // if they are the same, then we add it below
-        setEntries['']= [ new SeLiteSettings.ModuleAndSetInformation(this.name, this.defaultSetName()) ];
+    if( this.getDefaultSetName()!==undefined && this.getDefaultSetName()!==setName ) { // if they are the same, then we add it below
+        setEntries['']= [ new SeLiteSettings.ModuleAndSetInformation(this.name, this.getDefaultSetName()) ];
     }
     if( setName ) {
         setEntries['']= [ new SeLiteSettings.ModuleAndSetInformation(this.name, setName) ];
@@ -1810,8 +1806,8 @@ SeLiteSettings.Module.prototype.mergeSetsAndDefaults= function getFieldsDownToSe
  *    it means that the definition got updated - therefore replace the old loaded instance with this instance.
  * Either way, then set up or upgrade set(s):
  * Create the main & only set, if module was created with allowSets=false.
- * Create a default set, if module was was created with allowSets==true and defaultSetName!=null.
- * If the module was registered already, update the only set or any existing sets (depending on allowSets and defaultSetName as above).
+ * Create a default set, if module was was created with allowSets==true and getDefaultSetName()!=null.
+ * If the module was registered already, update the only set or any existing sets (depending on allowSets and getDefaultSetName() as above).
  * It calls nsIPrefService.savePrefFile().
  * @return void
  * */
@@ -1849,10 +1845,10 @@ SeLiteSettings.Module.prototype.register= function register() {
         for( var i=0; i<setNames.length; i++ ) {
             this.createSet( setNames[i] );
         }
-        if( this.defaultSetNameValue ) {
+        if( this.defaultSetName ) {
             if( !this.prefsBranch.prefHasUserValue(SeLiteSettings.DEFAULT_SET_NAME) ) { // @TODO Maybe better: prefs.getPrefType(..)
-                this.createSet( this.defaultSetNameValue );
-                this.setDefaultSetName( this.defaultSetNameValue );
+                this.createSet( this.defaultSetName );
+                this.setDefaultSetName( this.defaultSetName );
             }
         }
     }

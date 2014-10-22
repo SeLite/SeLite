@@ -23,7 +23,7 @@ var roles= new SeLiteSettings.Field.FixedMap.String( 'roles' );
 var settingsModule= new SeLiteSettings.Module( 'extensions.selite-settings.common',
     [appDB, testDB, vanillaDB, roles, webRoot, usernameField, passwordField],
     /*allowSets:*/true,
-    /*defaultSetName:*/null,
+    /*defaultSetName:*/undefined,
     /*associatesWithFolders:*/true,
     /*Location of this file - it will be set by SeLite:*/SELITE_SETTINGS_FILE_URL
 );
