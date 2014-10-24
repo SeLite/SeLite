@@ -623,7 +623,7 @@ RowInfo.prototype.collectProperties= function collectProperties( column ) {
 };
 
 /** Generate text for label for 'Null/Undefine' column. Use only in editable mode, not in per-folder mode.
- *  @return string Empty string, 'Null' or 'Undefine', as an appropriate 'label' property for Column.NULL_UNDEFINE_DEFINITION for this field with the given value.
+ *  @return string Empty string, 'Null' or 'Undefine', as an appropriate 'label' property for Column.NULL_UNDEFINE_DEFINITION for this field/entry with the given value.
  * */
 RowInfo.prototype.nullOrUndefineLabel= function nullOrUndefineLabel() {
     !showingPerFolder() || SeLiteMisc.fail( "Don't call nullOrUndefineLabel() when showing fields per folder." );
@@ -631,8 +631,9 @@ RowInfo.prototype.nullOrUndefineLabel= function nullOrUndefineLabel() {
     if( !this.field ) {
         return '';
     }
-    else if( this.rowLevel===RowLevel.OPTION && this.field instanceof SeLiteSettings.Field.FixedMap ) { // FixedMap is always multivalued, hence it doesn't allow null
-        return 'value' in this && this.value!==undefined
+    if( this.rowLevel===RowLevel.OPTION ) {
+        // FixedMap is always multivalued, hence it doesn't allow null
+        return this.field instanceof SeLiteSettings.Field.FixedMap && 'value' in this && this.value!==undefined
             ? 'Undefine'
             : '';
     }
@@ -760,7 +761,7 @@ RowInfo.prototype.setCellDetails= function setCellDetails( treecell, column ) {
     if( cellInfo.value!==undefined ) {
         treecell.setAttribute( 'value', cellInfo.value );
     }
-    if( cellInfo.label!==undefined ) {
+    if( cellInfo.label!==undefined ) { 
         treecell.setAttribute( 'label', cellInfo.label );
     }
     if( cellInfo.properties!==undefined ) {
