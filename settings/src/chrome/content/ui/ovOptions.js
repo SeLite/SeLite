@@ -30,7 +30,7 @@ if( typeof SeLiteMisc==='undefined' ) {
             ['pastFirstBlur', 'allowSets', 'allowMultivaluedNonChoices'], 'boolean',
             'targetFolder', ['string', 'null'],
 
-            ['XULElement', 'chooseFileOrFolder', 'RowLevelOrColumn', 'RowLevel', 'Column', 'treeColumn', 'generateTreeColumns', 'treeCell', 'valueCompound', 'ValueSource', 'RowInfo', 'CellInfo', 'generateSets', 'generateFields', 'propertiesPart', 'treeClickHandler', 'fieldTreeRow', 'preProcessEdit', 'setCellText', 'createTreeView', 'updateSpecial', 'showingPerFolder', 'createTreeChildren', 'chooseJavascriptFile'], 'function'
+            ['XULElement', 'chooseFileOrFolder', 'RowLevelOrColumn', 'RowLevel', 'Column', 'treeColumn', 'generateTreeColumns', 'treeCell', 'valueCompound', 'ValueSource', 'RowInfo', 'CellInfo', 'generateSets', 'generateFields', 'propertiesPart', 'treeClickHandler', 'fieldTreeRow', 'preProcessEdit', 'setCellText', 'createTreeView', 'updateSpecial', 'showingPerFolder', 'createTreeChildren', 'chooseJavascriptFile', 'updateRowCells'], 'function'
         )
     );
 }
@@ -625,16 +625,15 @@ RowInfo.prototype.collectProperties= function collectProperties( column ) {
 };
 
 /** Generate text for label for 'Null/Undefine' column. Use only in editable mode, not in per-folder mode.
- *  @param {boolean} [atOptionLevel] Whether this is called for RowLevel.OPTION level and for SeLiteSettings.Field.FixedMap. Optional; only used if field instanceof SeLiteSettings.Field.FixedMap.
  *  @return string Empty string, 'Null' or 'Undefine', as an appropriate 'label' property for Column.NULL_UNDEFINE_DEFINITION for this field with the given value.
  * */
-RowInfo.prototype.nullOrUndefineLabel= function nullOrUndefineLabel( atOptionLevel ) {
+RowInfo.prototype.nullOrUndefineLabel= function nullOrUndefineLabel() {
     !showingPerFolder() || SeLiteMisc.fail( "Don't call nullOrUndefineLabel() when showing fields per folder." );
-    !atOptionLevel || this.field instanceof SeLiteSettings.Field.Choice || this.field instanceof SeLiteSettings.Field.FixedMap || SeLiteMisc.fail( "atOptionLevel can be true only if the field is an instance of Choice or FixedMap, but it is " +this.field );
+    this.rowLevel!==RowLevel.OPTION || this.field.multivalued/*that includes FixedMap*/ || this.field instanceof SeLiteSettings.Field.Choice || SeLiteMisc.fail( "rowLevel can be RowLevel.OPTION only if field is an instance of Choice or FixedMap, but field is " +this.field );
     if( !this.field ) {
         return '';
     }
-    else if( atOptionLevel && this.field instanceof SeLiteSettings.Field.FixedMap ) { // FixedMap is always multivalued, hence it doesn't allow null
+    else if( this.rowLevel===RowLevel.OPTION && this.field instanceof SeLiteSettings.Field.FixedMap ) { // FixedMap is always multivalued, hence it doesn't allow null
         return 'value' in this && this.value!==undefined
             ? 'Undefine'
             : '';
@@ -732,7 +731,7 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
     }
     else if( column===Column.NULL_UNDEFINE_DEFINITION ) {
         if( !showingPerFolder() ) { //In editable view: show Null/Undefine.
-            return this.nullOrUndefineLabel( this.rowLevel===RowLevel.OPTION );
+            return this.nullOrUndefineLabel();
         }
         else { // In per-folder view: show manifest or field definition.
             //if( 'field' in this  && this.field.name==='roles' /*&& this.valueCompound.folderPath*/ && this.rowLevel===RowLevel.OPTION ) debugger;
@@ -767,6 +766,23 @@ RowInfo.prototype.setCellDetails= function setCellDetails( treecell, column ) {
         treecell.setAttribute( 'properties', cellInfo.properties );
     }
 };
+
+/** @return {Array} Array of Column instances applicable to the current screen/mode, in the same order as displayed. */
+RowInfo.prototype.applicableColumns= function applicableColumns() {
+    var columns= [Column.MODULE_SET_FIELD_FIXEDMAPKEYS];
+    if( allowSets ) {
+        columns.push( Column.DEFAULT );
+    }
+    columns.push( Column.CHECKED, Column.VALUE );
+    if( allowSets || allowMultivaluedNonChoices || showingPerFolder() ) {
+        columns.push( Column.ACTION_SET );
+        if( this.rowLevel===RowLevel.FIELD || !showingPerFolder() && this.rowLevel===RowLevel.OPTION && this.field instanceof SeLiteSettings.Field.FixedMap ) {
+            columns.push( Column.NULL_UNDEFINE_DEFINITION );
+        }
+    }
+    return columns;
+};
+    
 /** 
  *  @return object for a new element <treeitem> with one <treerow>
  * */
@@ -799,17 +815,7 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
         )
     );
     
-    var columns= [Column.MODULE_SET_FIELD_FIXEDMAPKEYS];
-    if( allowSets ) {
-        columns.push( Column.DEFAULT );
-    }
-    columns.push( Column.CHECKED, Column.VALUE );
-    if( allowSets || allowMultivaluedNonChoices || showingPerFolder() ) {
-        columns.push( Column.ACTION_SET );
-        if( this.rowLevel===RowLevel.FIELD || !showingPerFolder() && this.rowLevel===RowLevel.OPTION && this.field instanceof SeLiteSettings.Field.FixedMap ) {
-            columns.push( Column.NULL_UNDEFINE_DEFINITION );
-        }
-    }
+    var columns= this.applicableColumns();
     for( var i=0; i<columns.length; i++ ) { //@TODO low: for(..of..)
         var treecell= window.document.createElementNS( XUL_NS, 'treecell');
         treerow.appendChild( treecell);
@@ -834,7 +840,7 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
         SeLiteMisc.subContainer( treeRowsOrChildren, this.module.name, this.setName, fieldName )[ this.key ]= treerow;
     }
     return treeitem;
-}
+};
 
 /** @param node moduleChildren <treechildren>
  *  @param object module Module
@@ -971,6 +977,17 @@ window.onTreeBlur= function onTreeBlur() {
     }
 };
 
+/** Update all cells of the given tree row.
+ *  @param {object} treeRow <treerow> element
+ *  @param {RowInfo} rowInfo
+ * */
+var updateRowCells= function updateRowCells( treeRow, rowInfo ) {
+    var columns= rowInfo.applicableColumns();
+    for( var i=0; i<columns.length; i++ ) {//@TODO low: for(..of..)
+        rowInfo.setCellDetails( treeCell(treeRow,columns[i]), columns[i] );
+    }
+};
+
 var treeClickHandler= function treeClickHandler( event ) {
     //console.log( 'click');
     // FYI: event.currentTarget.tagName=='tree'. However, window.document.getElementById('settingsTree')!=event.currentTarget
@@ -1075,7 +1092,7 @@ var treeClickHandler= function treeClickHandler( event ) {
             if( column.value.element===treeColumnElements.action ) {
                 if( cellProperties==='' ) {
                     if( cellText===CREATE_NEW_SET ) {
-                        var setName= prompt('Enter the new set name');
+                        var setName= window.prompt('Enter the new set name');
                         if( setName ) {
                             module.createSet( setName );
                             SeLiteSettings.savePrefFile(); // Must save here, before reload()
@@ -1083,7 +1100,7 @@ var treeClickHandler= function treeClickHandler( event ) {
                         }
                     }
                     if( cellText===DELETE_THE_SET ) {
-                        if( confirm('Are you sure you want to delete this set?') ) {
+                        if( window.confirm('Are you sure you want to delete this set?') ) {
                             if( selectedSetName===module.getDefaultSetName() ) {
                                 module.setDefaultSetName();
                             }
@@ -1214,22 +1231,21 @@ var treeClickHandler= function treeClickHandler( event ) {
             if( column.value.element!==treeColumnElements.defaultSet && cellText!==DELETE_THE_VALUE ) {
                 moduleSetFields[moduleName][selectedSetName]= module.getFieldsOfSet( selectedSetName, true );
                 
-                var fieldRow= fieldTreeRow(selectedSetName, field);
-                var rowToUpdate, rowLevel;
+                //var fieldRow= fieldTreeRow(selectedSetName, field);
+                //var rowToUpdate, rowLevel;
                 
-                !clickedOptionKey || field.multivalued/*that includes FixedMap*/ || field instanceof SeLiteSettings.Field.Choice || SeLiteMisc.fail( "When clickedOptionKey is set, the field should be multivalued, or an instance of Choice or FixedMap.");
-                if( clickedOptionKey && field.multivalued ) { // The user clicked at 'undefine' for an option of a FixedMap instance
+                !clickedOptionKey || field.multivalued/*that includes FixedMap*/ || field instanceof SeLiteSettings.Field.Choice || SeLiteMisc.fail( "When clickedOptionKey is set, the field should be multivalued, or an instance of Choice or FixedMap."); //@TODO centralise this validation, remove duplicates
+                /*if( clickedOptionKey && field.multivalued ) { // The user clicked at 'undefine' for an option of a FixedMap instance
                     rowToUpdate= moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ]; // same as clickedTreeRow above
                     rowLevel= RowLevel.OPTION;//@TODO + RowLevel.FIELD
                 }
                 else {
                     rowToUpdate= fieldRow;
                     rowLevel= RowLevel.FIELD;
-                }
-                //@TODO second RowInfo, too? For FIELD and OPTION
-                var rowInfo= new RowInfo( module, selectedSetName, rowLevel, field, clickedOptionKey, valueCompound(field, selectedSetName) );
-                
-                var valueCell= treeCell( rowToUpdate, Column.CHECKED/* TODO?!?! When I tried VALUE, things were not better.*/ );
+                }*/
+                var fieldRowInfo= new RowInfo( module, selectedSetName, RowLevel.FIELD, field, clickedOptionKey, valueCompound(field, selectedSetName) );
+                /*
+                var valueCell= treeCell( rowToUpdate, Column.CHECKED );
                 valueCell.setAttribute( 'properties',
                     cellText==='Null' || cellText==='Undefine'
                         ? SeLiteSettings.FIELD_NULL_OR_UNDEFINED
@@ -1246,15 +1262,18 @@ var treeClickHandler= function treeClickHandler( event ) {
                     valueCell.setAttribute( 'label', '' );
                 }
                 
-                clickedOptionKey===undefined || SeLiteMisc.ensureInstance( field, [SeLiteSettings.Field.Choice, SeLiteSettings.Field.FixedMap], 'field (if modified preferences and clickedOptionKey is defined' );
                 treeCell( rowToUpdate, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
                     clickedOptionKey===undefined
                     ? rowInfo.nullOrUndefineLabel()
-                    : rowInfo.nullOrUndefineLabel( true ) //@TODO What if we removed the last value?
+                    : rowInfo.nullOrUndefineLabel( true ) //@TODO don't pass boolean; test
                 );
+                */
+                updateRowCells( fieldTreeRow(selectedSetName, field), fieldRowInfo );
                 //@TODO
-                if( clickedOptionKey ) {
-                    // fieldRow: 1. 'undefined' 2. Null/Undefine
+                if( clickedOptionKey && (field.multivalued || field instanceof SeLiteSettings.Field.Choice) ) {
+                    // fieldRow->***: 1. 'undefined' 2. Null/Undefine
+                    var optionRowInfo= new RowInfo( module, selectedSetName, RowLevel.FIELD, field, clickedOptionKey, valueCompound(field, selectedSetName) );
+                    updateRowCells( moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ], optionRowInfo );
                 }
             }
         }
@@ -1483,7 +1502,7 @@ var setCellText= function setCellText( row, col, value, original) {
         /*treeCell( optionRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
             generateCellLabel( Column.NULL_UNDEFINE_DEFINITION, module, setName, field, undefined, value, RowLevel.OPTION, valueCompound ) );*/ //@TODO low importance cast value to the exact type?
         treeCell( optionRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
-            rowInfo.nullOrUndefineLabel( true ) //@TODO low importance cast value to the exact type
+            rowInfo.nullOrUndefineLabel() //@TODO low importance cast value to the exact type
         );/**/
     }
     return true;
@@ -1686,7 +1705,7 @@ window.addEventListener( "load", function(e) {
                     }
                 }
                 else {
-                    var urlText= prompt( "Please enter the full URL to your Javascript file." );
+                    var urlText= window.prompt( "Please enter the full URL to your Javascript file." );
                     if( urlText ) {
                         url= nsIIOService.newURI( urlText, null, null);
                     }
