@@ -153,12 +153,14 @@ RowLevelOrColumn= SeLiteMisc.proxyVerifyFields( RowLevelOrColumn, {level: 'numbe
 RowLevelOrColumn.prototype= new SeLiteMisc.Enum( '', true );
 RowLevelOrColumn.prototype.constructor= RowLevelOrColumn;
 SeLiteMisc.proxyAllowFields( RowLevelOrColumn.prototype, {forLevel: 'function'} );
-/** This is a simple translation map. It returns n-th argument (counting from 0), where n=this.level.
+/** This is a simple translation map. It returns n-th argument (counting from 0), where n=this.level. If that argument is a function (a closure), this calls it and then it returns its result.
  * */
 RowLevelOrColumn.prototype.forLevel= function forLevel(first, second, etc ) {
     this.level<arguments.length || SeLiteMisc.fail( ''+this+ '.forLevel() was called with few arguments: only ' +arguments.length+ ' of them.' );
     this.constructor.instances.length===arguments.length || SeLiteMisc.fail( "Class " +this.constructor.name+ " has " +this.constructor.instances.length+ " instances, but forLevel() received a different number of arguments: " +arguments.length );
-    return arguments[this.level];
+    return typeof arguments[this.level]!=='function'
+        ? arguments[this.level]
+        : arguments[this.level].call();
 };
 
 /** @class
@@ -178,7 +180,7 @@ RowLevel.MODULE= new RowLevel('MODULE', 0);
 RowLevel.SET= new RowLevel('SET', 1);
 RowLevel.FIELD= new RowLevel('FIELD', 2);
 /**  RowLevel.OPTION must be the last instance of Column that refers to a part of 'properties' attribute, since its part of 'properties' represents the field's key (for SeLiteSettings.Field.Choice or SeLiteSettings.Field.FixedMap), which may contain spaces. Therefore its part of 'properties' attribute contains anything after (right of) all parts in 'properties' (RowLevel.MODULE...RowLevel.FIELD). */
-RowLevel.OPTION= new RowLevel('OPTION', 3); // For options of Choice, for entries in multi-valued String/Int/Decimal, for entries in FixedMap
+RowLevel.OPTION= new RowLevel('OPTION', 3); // For options of Choice, for entries in multi-valued String/Int/Decimal and for entries in FixedMap
 
 /** @class
 */
@@ -428,7 +430,7 @@ var RowInfo= function RowInfo( module, setName, rowLevel, field, key, valueCompo
     
     !('isUndeclaredEntry' in this) || !this.isUndeclaredEntry || rowLevel===RowLevel.FIELD && SeLiteMisc.hasType(this.valueCompound.entry, ['some-object', 'primitive']) || rowLevel===RowLevel.OPTION && SeLiteMisc.hasType(this.valueCompound.entry, 'some-object') || SeLiteMisc.fail();
     
-    rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET || 'valueCompound' in this || SeLiteMisc.fail( 'valueCompound must be an instance of SeLiteSettings.FieldInformation, since rowLevel is ' +rowLevel+ ' which is other than MODULE or SET.' );
+    rowLevel===RowLevel.MODULE || rowLevel===RowLevel.SET || 'valueCompound' in this || SeLiteMisc.fail( 'valueCompound must be an instance of SeLiteSettings.FieldInformation, since rowLevel is ' +rowLevel+ ', which is other than MODULE or SET.' );
     
     // Basic collecting
     if( this.field ) {
@@ -568,7 +570,7 @@ RowInfo.prototype.collectValue= function collectValue( column ) {
 };
 
 /** @param {Column} column
- *  @return {(string|undefined)} Value to use for 'properties' attribute, or undefined if not applicable.
+ *  @return {(string|undefined)} Value to use for 'properties' attribute of a trecell, or undefined if not applicable. Not used for 'properties' of tree row =- that is set by generateTreeItem().
  */
 RowInfo.prototype.collectProperties= function collectProperties( column ) {
     if( column===Column.DEFAULT ) {
@@ -786,12 +788,15 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
             moduleName,
             moduleName+' '+this.setName,
             moduleName+' '+this.setName+' '+fieldName,
-            moduleName+' '+this.setName+' '+fieldName
-                +(this.field instanceof SeLiteSettings.Field.Choice || this.field instanceof SeLiteSettings.Field.FixedMap
-                    ? ' ' +this.key
-                    : ''
-                )
-            )
+            (function() {
+                this.key!==undefined && this.key!==null || SeLiteMisc.fail();
+                return moduleName+' '+this.setName+' '+fieldName
+                    +(this.field.multivalued || this.field instanceof SeLiteSettings.Field.Choice || this.field instanceof SeLiteSettings.Field.FixedMap
+                        ? ' ' +this.key
+                        : ''
+                    );
+            }).bind( this )
+        )
     );
     
     var columns= [Column.MODULE_SET_FIELD_FIXEDMAPKEYS];
@@ -1206,14 +1211,14 @@ var treeClickHandler= function treeClickHandler( event ) {
         if( modifiedPreferences ) {
             SeLiteSettings.savePrefFile();
             
-            if( column.value.element!==treeColumnElements.defaultSet ) {
+            if( column.value.element!==treeColumnElements.defaultSet && cellText!==DELETE_THE_VALUE ) {
                 moduleSetFields[moduleName][selectedSetName]= module.getFieldsOfSet( selectedSetName, true );
                 
                 var fieldRow= fieldTreeRow(selectedSetName, field);
                 var rowToUpdate, rowLevel;
                 
-                !clickedOptionKey || field instanceof SeLiteSettings.Field.Choice || field instanceof SeLiteSettings.Field.FixedMap || SeLiteMisc.fail( "When clickedOptionKey is set, the field should be an instance of Choice or FixedMap.");
-                if( clickedOptionKey && field instanceof SeLiteSettings.Field.FixedMap ) { // The user clicked at 'undefine' for an option of a FixedMap instance
+                !clickedOptionKey || field.multivalued/*that includes FixedMap*/ || field instanceof SeLiteSettings.Field.Choice || SeLiteMisc.fail( "When clickedOptionKey is set, the field should be multivalued, or an instance of Choice or FixedMap.");
+                if( clickedOptionKey && field.multivalued ) { // The user clicked at 'undefine' for an option of a FixedMap instance
                     rowToUpdate= moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ]; // same as clickedTreeRow above
                     rowLevel= RowLevel.OPTION;
                 }
@@ -1315,12 +1320,13 @@ var preProcessEdit= function preProcessEdit( row, value ) {
             treeRow= moduleRowsOrChildren[setName][fieldName];
             // Can't use treeRow.constructor.name here - because it's a native object.
             treeRow instanceof XULElement && treeRow.tagName==='treerow' || SeLiteMisc.fail( 'treeRow should be an instance of XULElement for a <treerow>.');
-            var oldKey= valueCompound( field, setName ).entry;
+            oldKey= valueCompound( field, setName ).entry;
             valueChanged= value!==''+oldKey;
         }
         else {
             //@TODO low: cast value to the exact type, then use strict comparison ===
             //@TODO low: Check what if the whole field (.entry) is undefined. 
+            oldKey= propertiesPart( rowProperties, RowLevel.OPTION );
             var oldValue= module.getFieldsOfSet( setName, true )[ field.name ].entry[ oldKey ];
             valueChanged= value!=oldValue;
         }
@@ -1329,7 +1335,7 @@ var preProcessEdit= function preProcessEdit( row, value ) {
         fieldTreeRowsOrChildren= moduleRowsOrChildren[setName][fieldName];
         fieldTreeRowsOrChildren instanceof SeLiteMisc.SortedObjectTarget || SeLiteMisc.fail( "fieldTreeRowsOrChildren should be an instance of SeLiteMisc.SortedObjectTarget, but it is " +fieldTreeRowsOrChildren.constructor.name );
         oldKey= propertiesPart( rowProperties, RowLevel.OPTION );
-        oldKey!==null || SeLiteMisc.fail( 'Module ' +module.name+ ', set ' +setName+ ', field ' +field.name+ " must not be null.");
+        oldKey!==null || SeLiteMisc.fail( 'oldKey for module ' +module.name+ ', set ' +setName+ ', field ' +field.name+ " must not be null.");
         valueChanged= value!==oldKey; // oldKey is a string, so this comparison is OK
         if( valueChanged ) {
             if( trimmed in fieldTreeRowsOrChildren ) {
@@ -1388,13 +1394,14 @@ var setCellText= function setCellText( row, col, value, original) {
         return; // if validation failed, preProcessEdit() already showed an alert, and removed the tree row if the value was a newly added entry of a multi-valued field
     }
     original.setCellText( row, col, value );
+    /** @var {object} Only used when info.field.multivalued and !(info.field instanceof SeLiteSettings.Field.FixedMap). If same as info.treeRow, then the new value stays where it was typed. If undefined, then append the new row at the end. */
+    var rowAfterNewPosition;
     if( !info.field.multivalued ) {
         info.field.setValue( info.setName, info.parsed );
         // I don't need to call updateSpecial() here - if the field was SeLiteSettings.NULL, then the above setValue() replaced that
     }
     else
     if( !(info.field instanceof SeLiteSettings.Field.FixedMap) ) {
-        var rowAfterNewPosition; // If same as info.treeRow, then the new value stays where it was typed. If undefined, then append the new row at the end.
         for( var otherKey in info.fieldTreeRowsOrChildren ) {
             // Following check also excludes SeLiteSettings.NEW_VALUE_ROW, because we don't want to compare it to real values. 
             if( SeLiteSettings.reservedNames.indexOf(otherKey)<0 && info.field.compareValues(otherKey, value)>=0 ) {
@@ -1405,32 +1412,10 @@ var setCellText= function setCellText( row, col, value, original) {
         if( !rowAfterNewPosition && info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] && Object.keys(info.fieldTreeRowsOrChildren).length===3 ) {
             // fieldTreeRowsOrChildren has 3 keys: SeLiteSettings.FIELD_MAIN_ROW, SeLiteSettings.FIELD_TREECHILDREN, SeLiteSettings.NEW_VALUE_ROW.
             // So there's no other existing value, and the row being edited is a new one (it didn't have a real value set yet)
-            info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW]===info.treeRow && info.oldKey===undefined
-            || SeLiteMisc.fail( "This assumes that if fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] is set, then that's the row we're just editing." );
+            info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW]===info.treeRow && info.oldKey===SeLiteSettings.NEW_VALUE_ROW || SeLiteMisc.fail( "This assumes that if fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] is set, then that's the row we're just editing." );
             rowAfterNewPosition= info.treeRow;
         }
-        if( rowAfterNewPosition!==info.treeRow ) { // Repositioning - remove treeRow, create a new treeRow
-            var treeChildren= info.fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN];
-            treeChildren.removeChild( info.treeRow.parentNode );
-            var treeItem= new RowInfo( info.module, info.setName, RowLevel.OPTION, info.field, /*key*/value ).generateTreeItem(); // That sets 'properties' and it adds an entry to treeRow[value] (which is same as fieldTreeRowsOrChildren[value] here).
-            // Firefox 22.b04 and 24.0a1 doesn't handle parent.insertBefore(newItem, null), even though it should - https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore
-            if(true){//@TODO low: cleanup
-                if( rowAfterNewPosition ) {
-                    treeChildren.insertBefore( treeItem, rowAfterNewPosition.parentNode );
-                }
-                else {
-                    treeChildren.appendChild( treeItem );
-                }
-            }
-            else {
-                treeChildren.insertBefore( treeItem,
-                rowAfterNewPosition
-                    ? rowAfterNewPosition.parentNode
-                    : null );
-            }
-            treeItem.focus();
-        }
-        else { // No repositioning - just update 'properties' attribute
+        if( rowAfterNewPosition===info.treeRow ) {
             info.fieldTreeRowsOrChildren[value]= info.treeRow;
             var propertiesPrefix= info.rowProperties.substr(0, /*length:*/info.rowProperties.length-info.oldKey.length); // That includes a trailing space
             info.treeRow.setAttribute( 'properties', propertiesPrefix+value );
@@ -1455,10 +1440,32 @@ var setCellText= function setCellText( row, col, value, original) {
     moduleSetFields[info.module.name][info.setName]= info.module.getFieldsOfSet( info.setName, true ); // not efficient, but robust: re-load the whole lot, rather than tweak it.
     
     // Now update GUI:
+    if( info.field.multivalued && !(info.field instanceof SeLiteSettings.Field.FixedMap) && rowAfterNewPosition!==info.treeRow ) { // Repositioning - remove treeRow, create a new treeRow
+        var treeChildren= info.fieldTreeRowsOrChildren[SeLiteSettings.FIELD_TREECHILDREN];
+        treeChildren.removeChild( info.treeRow.parentNode );
+        var treeItem= new RowInfo( info.module, info.setName, RowLevel.OPTION, info.field, /*key*/value, valueCompound(info.field, info.setName) ).generateTreeItem(); // That sets 'properties' and it adds an entry to treeRow[value] (which is same as fieldTreeRowsOrChildren[value] here).
+        // Firefox 22.b04 and 24.0a1 doesn't handle parent.insertBefore(newItem, null), even though it should - https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore
+        if(true){//@TODO low: cleanup
+            if( rowAfterNewPosition ) {
+                treeChildren.insertBefore( treeItem, rowAfterNewPosition.parentNode );
+            }
+            else {
+                treeChildren.appendChild( treeItem );
+            }
+        }
+        else {
+            treeChildren.insertBefore( treeItem,
+            rowAfterNewPosition
+                ? rowAfterNewPosition.parentNode
+                : null );
+        }
+        treeItem.focus();
+    }
+        
     var fieldRow= fieldTreeRow(info.setName, info.field);
     treeCell( fieldRow, Column.VALUE/*@TODO?!?!:TRUE (originally FIELD)*/ ).setAttribute( 'properties', '' ); // Clear it, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED (which has special CSS style)
     // Clear Null/Undefine etc.
-    var rowInfo= new RowInfo( info.module, info.setName, RowLevel.FIELD, info.field, value, valueCompound(info.field, info.setName) );
+    var rowInfo= new RowInfo( info.module, info.setName, RowLevel.FIELD, info.field, /*key*/value, valueCompound(info.field, info.setName) );
     if( !(info.field instanceof SeLiteSettings.Field.FixedMap) ) {
         if( info.field.multivalued ) { //Clear label at field level, in case it was 'undefined' (if this is the first value)
             treeCell( fieldRow, Column.CHECKED/*@TODO VALUE fails?!?!:TRUE (original FIELD)*/ ).setAttribute( 'label', '' );
