@@ -679,7 +679,7 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
         }
         if( this.rowLevel===RowLevel.FIELD ) {
             if( this.valueCompound.entry===null //single-valued fields
-             || this.valueCompound.entry===undefined //single/multi valued
+             || this.valueCompound.entry===undefined //single/multi-valued
              || typeof this.valueCompound.entry!=='object' // single-valued fields
             ) {
                 return ''+this.valueCompound.entry;
@@ -1220,12 +1220,13 @@ var treeClickHandler= function treeClickHandler( event ) {
                 !clickedOptionKey || field.multivalued/*that includes FixedMap*/ || field instanceof SeLiteSettings.Field.Choice || SeLiteMisc.fail( "When clickedOptionKey is set, the field should be multivalued, or an instance of Choice or FixedMap.");
                 if( clickedOptionKey && field.multivalued ) { // The user clicked at 'undefine' for an option of a FixedMap instance
                     rowToUpdate= moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ]; // same as clickedTreeRow above
-                    rowLevel= RowLevel.OPTION;
+                    rowLevel= RowLevel.OPTION;//@TODO + RowLevel.FIELD
                 }
                 else {
                     rowToUpdate= fieldRow;
                     rowLevel= RowLevel.FIELD;
                 }
+                //@TODO second RowInfo, too? For FIELD and OPTION
                 var rowInfo= new RowInfo( module, selectedSetName, rowLevel, field, clickedOptionKey, valueCompound(field, selectedSetName) );
                 
                 var valueCell= treeCell( rowToUpdate, Column.CHECKED/* TODO?!?! When I tried VALUE, things were not better.*/ );
@@ -1249,7 +1250,7 @@ var treeClickHandler= function treeClickHandler( event ) {
                 treeCell( rowToUpdate, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
                     clickedOptionKey===undefined
                     ? rowInfo.nullOrUndefineLabel()
-                    : rowInfo.nullOrUndefineLabel( true )
+                    : rowInfo.nullOrUndefineLabel( true ) //@TODO What if we removed the last value?
                 );
                 //@TODO
                 if( clickedOptionKey ) {
@@ -1339,7 +1340,7 @@ var preProcessEdit= function preProcessEdit( row, value ) {
         valueChanged= value!==oldKey; // oldKey is a string, so this comparison is OK
         if( valueChanged ) {
             if( trimmed in fieldTreeRowsOrChildren ) {
-                alert( "Values must be unique. Another entry for field " +field.name+ " already has same (trimmed) value " +trimmed );
+                window.alert( "Values must be unique. Another entry for field " +field.name+ " already has same (trimmed) value " +trimmed );
                 validationPassed= false;
             }
         }
@@ -1351,7 +1352,7 @@ var preProcessEdit= function preProcessEdit( row, value ) {
         parsed= field.parse(trimmed);
         validationPassed= field.validateKey(parsed) && (!field.customValidate || field.customValidate.call(null, parsed) );
         if( !validationPassed ) {
-            alert('Field ' +field.name+ " can't accept "+ (
+            window.alert('Field ' +field.name+ " can't accept "+ (
                 trimmed.length>0
                     ? 'value ' +trimmed
                     : 'whitespace.'
@@ -1718,7 +1719,7 @@ window.addEventListener( "load", function(e) {
                 modules[ moduleName ]= SeLiteSettings.loadFromJavascript( moduleName, undefined, true/** Force reload, so that user's changes has an effect without restarting Firefox. */ );
             }
             catch(e) {
-                alert( "Couldn't load JS definnition of the requested module: " +e+ ':\n' +e.stack );
+                window.alert( "Couldn't load JS definnition of the requested module: " +e+ ':\n' +e.stack );
             }
             SeLiteMisc.ensure( !targetFolder || modules[moduleName].associatesWithFolders, "You're using URL with folder=" +targetFolder+
                 " and module=" +moduleName+ ", however that module doesn't allow to be associated with folders." );
@@ -1766,7 +1767,7 @@ window.addEventListener( "load", function(e) {
             for( var moduleName in exceptionDetails ) {
                 msg+= moduleName+ ': ' +exceptionDetails[moduleName]+ '\n\n';
             }
-            alert( msg );
+            window.alert( msg );
         }
     }
     var tree= window.document.createElementNS( XUL_NS, 'tree' );
