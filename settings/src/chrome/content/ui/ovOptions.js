@@ -541,7 +541,7 @@ RowInfo.prototype.collectEditable= function collectEditable( column ) {
 };
 
 /** @param {Column} column
- *  @return {(string|undefined)} Value to use for 'value' attribute, or undefined if not applicable. 'value' only controls checked/unchecked state of checbkox/radio button; it doesn't show as text, which comes from 'label' - see collectLabel().
+ *  @return {string} Value to use for 'value' attribute, potentially an empty string. 'value' only controls checked/unchecked state of checbkox/radio button; it doesn't show as text, which comes from 'label' - see collectLabel().
  */
 RowInfo.prototype.collectValue= function collectValue( column ) {
     if( column===Column.DEFAULT ) {
@@ -562,10 +562,11 @@ RowInfo.prototype.collectValue= function collectValue( column ) {
             return ''+this.optionIsSelected;
         }
     }
+    return '';
 };
 
 /** @param {Column} column
- *  @return {(string|undefined)} Value to use for 'properties' attribute of a trecell, or undefined if not applicable. Not used for 'properties' of tree row =- that is set by generateTreeItem().
+ *  @return {string} Value to use for 'properties' attribute of a trecell, potentially an empty string. Not used for 'properties' of tree row - that is set by generateTreeItem().
  */
 RowInfo.prototype.collectProperties= function collectProperties( column ) {
     if( column===Column.DEFAULT ) {
@@ -620,10 +621,11 @@ RowInfo.prototype.collectProperties= function collectProperties( column ) {
                 : '';
         }
     }
+    return '';
 };
 
 /** Generate text for label for 'Null/Undefine' column. Use only in editable mode, not in per-folder mode.
- *  @return string Empty string, 'Null' or 'Undefine', as an appropriate 'label' property for Column.NULL_UNDEFINE_DEFINITION for this field/entry with the given value.
+ *  @return {string} Empty string, 'Null' or 'Undefine', as an appropriate 'label' property for Column.NULL_UNDEFINE_DEFINITION for this field/entry with the given value.
  * */
 RowInfo.prototype.nullOrUndefineLabel= function nullOrUndefineLabel() {
     !showingPerFolder() || SeLiteMisc.fail( "Don't call nullOrUndefineLabel() when showing fields per folder." );
@@ -645,16 +647,14 @@ RowInfo.prototype.nullOrUndefineLabel= function nullOrUndefineLabel() {
                 : ''
               );
     }
-    else {
-        // We allow 'Undefine' button only once there are no value(s) for the multivalued field
-        return typeof(this.valueCompound.entry)==='object' && Object.keys(this.valueCompound.entry).length===0
-            ? 'Undefine'
-            : '';
-    }
+    // We allow 'Undefine' button only once there are no value(s) for the multivalued field
+    return typeof(this.valueCompound.entry)==='object' && Object.keys(this.valueCompound.entry).length===0
+        ? 'Undefine'
+        : '';
 };
 
 /** @param {Column} column
- *  @return {(string|undefined)} Value to use for 'label' attribute (which also shows up for editable cells other than checkbox/radio button), or undefined if not applicable.
+ *  @return {(string|undefined)} Value to use for 'label' attribute (which also shows up for editable cells other than checkbox/radio button), potentially an empty string.
  */
 RowInfo.prototype.collectLabel= function collectLabel( column ) {
     if( column===Column.MODULE_SET_FIELD_FIXEDMAPKEYS ) {
@@ -669,7 +669,7 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
             this.field instanceof SeLiteSettings.Field.FixedMap
                 ? this.key
                 : ''
-        );
+        ); 
     }
     else if( column===Column.VALUE ) {
         if( this.rowLevel===RowLevel.MODULE || this.rowLevel===RowLevel.SET ) {
@@ -689,7 +689,7 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
             }
             else {
                 if( this.key===SeLiteSettings.NEW_VALUE_ROW ) {
-                    return undefined; // nothing to show
+                    return ''; // nothing to show
                 }
                 if( this.valueCompound.entry && this.key in this.valueCompound.entry ) {
                     return '' +this.valueCompound.entry[this.key];
@@ -747,6 +747,7 @@ RowInfo.prototype.collectLabel= function collectLabel( column ) {
                 : '';
         }
     }
+    return '';
 };
 
 /**@param {object} treecell result of window.document.createElementNS( XUL_NS, 'treecell') 
@@ -757,16 +758,10 @@ RowInfo.prototype.setCellDetails= function setCellDetails( treecell, column ) {
     var cellInfo= new CellInfo( this, column );
     treecell.setAttribute( 'editable', '' +cellInfo.editable );
     // Checkbox/radio button cells use attribute 'value'. Other cells use attribute 'label'.
-    cellInfo.value===undefined || cellInfo.label===undefined || SeLiteMisc.fail( "One of 'value' or 'label' must be undefined." );
-    if( cellInfo.value!==undefined ) {
-        treecell.setAttribute( 'value', cellInfo.value );
-    }
-    if( cellInfo.label!==undefined ) { 
-        treecell.setAttribute( 'label', cellInfo.label );
-    }
-    if( cellInfo.properties!==undefined ) {
-        treecell.setAttribute( 'properties', cellInfo.properties );
-    }
+    cellInfo.value==='' || cellInfo.label==='' || SeLiteMisc.fail( "One of 'value' or 'label' must be an empty string." );
+    treecell.setAttribute( 'value', cellInfo.value );
+    treecell.setAttribute( 'label', cellInfo.label );
+    treecell.setAttribute( 'properties', cellInfo.properties );
 };
 
 /** @return {Array} Array of Column instances applicable to the current screen/mode, in the same order as displayed. */
@@ -814,13 +809,8 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
             }).bind( this )
         )
     );
-    
-    var columns= applicableColumns();
-    for( var i=0; i<columns.length; i++ ) { //@TODO low: for(..of..)
-        var treecell= window.document.createElementNS( XUL_NS, 'treecell');
-        treerow.appendChild( treecell);
-        this.setCellDetails( treecell, columns[i] );
-    }
+
+    this.setAllCellDetails( treerow, true );
 
     // Register treerow in treeRowsOrChildren[][...] if needed
     if( allowSets ) { // Radio-like checkbox for (de)selecting a set
@@ -1474,6 +1464,23 @@ var setCellText= function setCellText( row, col, value, original) {
         );/**/
     }
     return true;
+};
+
+/** Set details of all cells in a given treerow. Optional: create the cells.
+ *  @param {object} Object for &lt;treerow&gt; element.
+ *  @param {boolean} createCells Whether to create the cells.
+ * */
+RowInfo.prototype.setAllCellDetails= function updateAllCellDetails( treerow, createCells ) {
+    var columns= applicableColumns();
+    for( var i=0; i<columns.length; i++ ) { //@TODO low: for(..of..)
+        var treecell= createCells
+            ? window.document.createElementNS( XUL_NS, 'treecell')
+            : treeCell( treerow, columns[i] );
+        if( createCells ) {
+            treerow.appendChild( treecell);
+        }
+        this.setCellDetails( treecell, columns[i] );
+    }
 };
 
 var createTreeView= function createTreeView(original) {
