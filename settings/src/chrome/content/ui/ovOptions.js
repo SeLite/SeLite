@@ -20,7 +20,7 @@ if( typeof SeLiteMisc==='undefined' ) {
     SeLiteMisc.loadVerifyScope( 'chrome://selite-settings/content/ui/ovOptions.js',
         {
             window: window,
-            XULElement: XULElement
+            XULElement: XULElement//typeof XULElement==='function', therefore I don't need to declare it below
         },
         new SeLiteMisc.Settable(
             ['window', 'nsIFilePicker', 'FileUtils', 'promptService', 'SeLiteSettings', 'Services', 'subScriptLoader', 'nsIIOService', 'nsIPrefBranch', 'treeColumnElements', 'modules', 'treeRowsOrChildren', 'moduleSetFields'], 'some-object',
@@ -28,9 +28,7 @@ if( typeof SeLiteMisc==='undefined' ) {
             'newValueRow', ['number', 'undefined'],
             ['XUL_NS', 'CREATE_NEW_SET', 'DELETE_THE_SET', 'ADD_NEW_VALUE', 'DELETE_THE_VALUE'], 'string',
             ['pastFirstBlur', 'allowSets', 'allowMultivaluedNonChoices'], 'boolean',
-            'targetFolder', ['string', 'null'],
-
-            ['XULElement', 'chooseFileOrFolder', 'RowLevelOrColumn', 'RowLevel', 'Column', 'treeColumn', 'generateTreeColumns', 'treeCell', 'valueCompound', 'ValueSource', 'RowInfo', 'CellInfo', 'generateSets', 'generateFields', 'propertiesPart', 'treeClickHandler', 'fieldTreeRow', 'preProcessEdit', 'setCellText', 'createTreeView', 'updateSpecial', 'showingPerFolder', 'createTreeChildren', 'chooseJavascriptFile', 'applicableColumns'], 'function'
+            'targetFolder', ['string', 'null']
         )
     );
 }

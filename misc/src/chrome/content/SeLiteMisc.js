@@ -297,25 +297,30 @@ var proxyVerifyFieldsObjectHandler= {
         if( name!=='prototype' && name!=='constructor' && name!==SeLiteMisc.PROXY_FIELD_DEFINITIONS ) {
             var definition= target[SeLiteMisc.PROXY_FIELD_DEFINITIONS][name];
             //@TODO move this comment to treatProxyFieldDefinitions: If I ever allow definition to be undefined (in addition to 'undefined'), then change the following check to be: name in target[SeLiteMisc.PROXY_FIELD_DEFINITIONS]
-            definition!==undefined || SeLiteMisc.fail( "Can't set an undeclared field '" +name+ "' on " +SeLiteMisc.typeAndClassNameOf(target) );
-            if( definition!=='any' ) {
-              
-                var isObject= typeof value==='object';
-                for( var i=0; i<definition.length; i++ ) { //@TODO for(..of..)
-                    var definitionEntry= definition[i];
-                  
-                    if( SeLiteMisc.TYPE_NAMES.indexOf(definitionEntry)>=0 ) {
-                        if( SeLiteMisc.hasType(value, [definitionEntry]) ) {
-                            break;
+            if( definition!==undefined ) {
+                if( definition!=='any' ) {
+
+                    var isObject= typeof value==='object';
+                    for( var i=0; i<definition.length; i++ ) { //@TODO for(..of..)
+                        var definitionEntry= definition[i];
+
+                        if( SeLiteMisc.TYPE_NAMES.indexOf(definitionEntry)>=0 ) {
+                            if( SeLiteMisc.hasType(value, [definitionEntry]) ) {
+                                break;
+                            }
+                        }
+                        else {
+                            if( isObject && SeLiteMisc.isInstance(value, definitionEntry) ) {
+                                break;
+                            }
                         }
                     }
-                    else {
-                        if( isObject && SeLiteMisc.isInstance(value, definitionEntry) ) {
-                            break;
-                        }
-                    }
-              }
-              i<definition.length || SeLiteMisc.fail( "Declared field '" +name+ "' on " +SeLiteMisc.typeAndClassNameOf(target)+ " doesn't accept " +typeof value+ ': ' +value );
+                    i<definition.length || SeLiteMisc.fail( "Declared field '" +name+ "' on " +SeLiteMisc.typeAndClassNameOf(target)+ " doesn't accept " +typeof value+ ': ' +value );
+                }
+            }
+            else {
+                var catchAll= target[SeLiteMisc.PROXY_FIELD_DEFINITIONS]['*'];
+                catchAll && catchAll.call(name, value) || SeLiteMisc.fail( "Can't set an undeclared field '" +name+ "' on " +SeLiteMisc.typeAndClassNameOf(target) );                
             }
         }
         target[name]= value;
@@ -398,7 +403,7 @@ SeLiteMisc.proxyVerifyFieldsOnRead= function proxyVerifyFieldsOnRead( target ) {
     });
     return result;
 };
-/** @private Treat and validate definitions of field(s) for a proxy tht will be created, or has been created, by SeLiteMisc.proxyVerifyFields().
+/** @private Treat and validate definitions of field(s) for a proxy that will be created, or has been created, by SeLiteMisc.proxyVerifyFields().
  *  @param {object} definitions Like the same parameter for proxyVerifyFields()
  *  @param {object} targetOrProxy Either an existing proxy, or a target (for a proxy that will be created). Only used when reporting an error.
  *  @return {object} Treated definitions.
@@ -416,6 +421,10 @@ function treatProxyFieldDefinitions( definitions, targetOrProxy ) {
     for( var fieldName in definitions ) {
         var definition= definitions[fieldName];
         if( definition==='any' ) {
+            continue;
+        }
+        if( fieldName==='*' ) {
+            definition===undefined || typeof definition==='function' || SeLiteMisc.fail( "If you use catch-all handler '*', it must be a function." );
             continue;
         }
         var definitionWasArray= Array.isArray(definition);
@@ -445,6 +454,8 @@ function treatProxyFieldDefinitions( definitions, targetOrProxy ) {
  *          - a function: a constructor function of a class, or
  *          - an array of such strings/functions
  *      ...
+ *      and optionally:
+ *      '*': function( name, value ) { return boolean }. That is only called for fields that are not specifically declared. So if a field is declared as above, then '*' doesn't apply to it.
  *  }. Optional: if definitions is not present, then this effectively seals the proxy (probably useful only for objects and not for classes). If you have multiple fields with same definition, you can shorten the code by using SeLiteMisc.Settable instance for <code>definitions</code>.
  *   */
 SeLiteMisc.proxyVerifyFields= function proxyVerifyFieldsOnRead( target, definitions ) {
@@ -482,13 +493,17 @@ SeLiteMisc.proxyAllowFields= function proxyAllowFields( proxy, definitions ) {
     var existingDefinitions= proxy[SeLiteMisc.PROXY_FIELD_DEFINITIONS];
     SeLiteMisc.hasType( existingDefinitions, 'some-object' ) || SeLiteMisc.fail( "Proxy object has a field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS, but it's not an object." );
     definitions= treatProxyFieldDefinitions( definitions );
-    //@TODO refuse re-definition of a field. The same for entries in defnitions[] in treatProxyFieldDefinitions() if definitions is an array..
+    for( var field in existingDefinitions ) {
+        if( field in definitions ) debugger;
+        !( field in definitions ) || SeLiteMisc.fail( "Field '" +field+ "' has been declared previously." );
+    }
     SeLiteMisc.objectCopyFields( definitions, existingDefinitions );
 };
 
 /** An auxilliary class, that allows setting fields with names generated at runtime in one function call, or through a chain of calls.
  * It serves to generate parameter <code>definitions</code> for SeLiteMisc.loadVerifyScope(), SeLiteMisc.proxyVerifyFields() and SeLiteMisc.proxyAllowFields().
  * It also serves e.g. to generate object parts of 'columns' part of the parameter to SeLiteData.RecordSetFormula() constructor, if your table names are not constants, i.e. you have a configurable table prefix string, and you don't want to have a string variable for each table name itself, but you want to refer to .name property of the table object. Then your table name is not a string constant, and you can't use string runtime expressions as object keys in anonymous object construction {}. That's when you can use new SeLiteMisc.Settable().set( tableXYZ.name, ...).set( tablePQR.name, ...) as the value of 'columns' field of SeLiteData.RecordSetFormula()'s parameter. There its usage assumes that no table name (and no value for parameter field) is 'set'.
+ * @TODO refuse duplicate entries in definitions[].
 */
 SeLiteMisc.Settable= function Settable( field, value, etc ) {
     if( arguments.length>0 ) {
@@ -507,10 +522,12 @@ Object.defineProperty( SeLiteMisc.Settable.prototype, 'set', {
         for( var i=0; i<arguments.length; i+=2 ) {
             var field= arguments[i];
             if( typeof field==='number' || typeof field==='string' ) {
+                !( field in this ) || SeLiteMisc.fail( "Field '" +field+ "' has been set previously." );
                 this[ field ]= arguments[i+1];
             }
             else if( Array.isArray(field) ) {
                 for( var j=0; j<field.length; j++ ) {// TODO low: for(..of..)
+                    !( field[j] in this ) || SeLiteMisc.fail( "Field '" +field[j]+ "' has been set previously." );
                     this[ field[j] ]= arguments[i+1];
                 }
             }
@@ -553,6 +570,8 @@ SeLiteMisc.Enum= SeLiteMisc.proxyVerifyFields( SeLiteMisc.Enum, {
 
 var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
 
+/** This defines a catch-all declaration handler, that allows functions not to be declared through declareGlobals(). This means that you can't set up a catch-all handler yourself.
+ * */
 function SeLiteMiscClassForVerifiedScope( globalScope ) {
     globalScope instanceof VerifiedScope || SeLiteMisc.fail();
     this.globalScope= globalScope;
@@ -572,8 +591,19 @@ SeLiteMiscClassForVerifiedScope.prototype.declareGlobals= function declareGlobal
 /** @private Not to be exported.
  *  @class Class for object(s) that serve as verified global scope, passed to files loaded through SeLiteMisc.loadVerifyScope().
  * */
-function VerifiedScope() {}
-VerifiedScope= SeLiteMisc.proxyVerifyFields( VerifiedScope, {SeLiteMisc: SeLiteMiscClassForVerifiedScope} );
+function VerifiedScope() {
+    /*SeLiteMisc.proxyAllowFields( this, {
+        '*': function catchAll(name, value) {
+            return typeof value==='function';
+        }
+    });*/
+}
+VerifiedScope= SeLiteMisc.proxyVerifyFields( VerifiedScope, {
+    SeLiteMisc: SeLiteMiscClassForVerifiedScope,
+    '*': function catchAll(name, value) {
+            return typeof value==='function';
+        }
+} );
 
 /** Load a given file in a 'verified' global scope, which requires any global variables to be declared first. The scope will contain 'SeLiteMisc' object and any entries from initialScope. The file has to declare any other global variables with SeLiteMisc.declareGlobals().
  * @param {string} fileURL
