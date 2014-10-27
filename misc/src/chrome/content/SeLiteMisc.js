@@ -32,7 +32,6 @@ var SeLiteMisc= {};
  *  and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw?redirectlocale=en-US&redirectslug=JavaScript%2FReference%2FStatements%2Fthrow
 */
 SeLiteMisc.fail= function fail( errorOrMessage ) {
-    //debugger;
     console.error( errorOrMessage );
     console.error( SeLiteMisc.stack() );
     throw errorOrMessage!==undefined
@@ -320,7 +319,7 @@ var proxyVerifyFieldsObjectHandler= {
             }
             else {
                 var catchAll= target[SeLiteMisc.PROXY_FIELD_DEFINITIONS]['*'];
-                catchAll && catchAll.call(name, value) || SeLiteMisc.fail( "Can't set an undeclared field '" +name+ "' on " +SeLiteMisc.typeAndClassNameOf(target) );                
+                catchAll && catchAll.call(null, name, value) || SeLiteMisc.fail( "Can't set an undeclared field '" +name+ "' on " +SeLiteMisc.typeAndClassNameOf(target) );                
             }
         }
         target[name]= value;
@@ -494,7 +493,6 @@ SeLiteMisc.proxyAllowFields= function proxyAllowFields( proxy, definitions ) {
     SeLiteMisc.hasType( existingDefinitions, 'some-object' ) || SeLiteMisc.fail( "Proxy object has a field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS, but it's not an object." );
     definitions= treatProxyFieldDefinitions( definitions );
     for( var field in existingDefinitions ) {
-        if( field in definitions ) debugger;
         !( field in definitions ) || SeLiteMisc.fail( "Field '" +field+ "' has been declared previously." );
     }
     SeLiteMisc.objectCopyFields( definitions, existingDefinitions );
@@ -591,13 +589,7 @@ SeLiteMiscClassForVerifiedScope.prototype.declareGlobals= function declareGlobal
 /** @private Not to be exported.
  *  @class Class for object(s) that serve as verified global scope, passed to files loaded through SeLiteMisc.loadVerifyScope().
  * */
-function VerifiedScope() {
-    /*SeLiteMisc.proxyAllowFields( this, {
-        '*': function catchAll(name, value) {
-            return typeof value==='function';
-        }
-    });*/
-}
+function VerifiedScope() {}
 VerifiedScope= SeLiteMisc.proxyVerifyFields( VerifiedScope, {
     SeLiteMisc: SeLiteMiscClassForVerifiedScope,
     '*': function catchAll(name, value) {
@@ -615,7 +607,6 @@ VerifiedScope= SeLiteMisc.proxyVerifyFields( VerifiedScope, {
 SeLiteMisc.loadVerifyScope= function loadVerifyScope( fileURL, initialScope, initialScopeDefinitions, charset ) {
     initialScope= initialScope || {};
     charset= charset || 'UTF-8';
-    
     var globalScope= new VerifiedScope();
     globalScope.SeLiteMisc= new SeLiteMiscClassForVerifiedScope( globalScope );
     
