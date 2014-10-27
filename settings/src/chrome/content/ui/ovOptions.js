@@ -406,10 +406,9 @@ ValueSource.FIELD_DEFAULT= new ValueSource( 'FIELD_DEFAULT' );
  *  attribute for the <treerow> nodes, so that when we handle a click event, we know what field the node is for.
  *  @param {RowLevel} rowLevel
  *  @param {SeLiteSettings.Field} field An object of a subclass of Field. If rowLevel==RowLevel.MODULE or rowLevel==RowLevel.SET,  then field is null.
- *  @param {string} key Key for the value to display. If no such key, it should be undefined.
- *  It must be defined for multivalued or choice field. It serves as a trailing part of field option preference name)
- *  -- for multivalued non-choice fields it should be the same as value
- *  -- if the field is of a subclass of Field.Choice or Field.FixedMap, then key and value may be different.
+ *  @param {string} key Key for the value to display. If no such key, it should be undefined. It must be defined for multivalued or choice field when rowLevel===RowLevel.OPTION. It serves as a trailing part of field option preference name)
+ *  -- for multivalued non-choice fields it should be the same as value in valueCompound
+ *  -- if the field is of a subclass of Field.Choice or Field.FixedMap, then key may differ to (current value in valueCompound.
  *  @param {SeLiteSettings.FieldInformation} valueCompound Value compound for a given field. See also {@link Module#getFieldsDownToFolder}() or {@link Module#getFieldsOfSet}().
  *  @param {boolean} [isUndeclaredEntry] Whether this is a value of an undeclared field, or a value of an undeclared key of a declared Field.FixedMap.
  *  Required if rowLevel===RowLevel.FIELD.
@@ -778,6 +777,23 @@ var applicableColumns= function applicableColumns() {
     return columns;
 };
     
+/** Set details of all cells in a given treerow. Optional: create the cells.
+ *  @param {object} Object for &lt;treerow&gt; element.
+ *  @param {boolean} createCells Whether to create the cells.
+ * */
+RowInfo.prototype.setAllCellDetails= function updateAllCellDetails( treerow, createCells ) {
+    var columns= applicableColumns();
+    for( var i=0; i<columns.length; i++ ) { //@TODO low: for(..of..)
+        var treecell= createCells
+            ? window.document.createElementNS( XUL_NS, 'treecell')
+            : treeCell( treerow, columns[i] );
+        if( createCells ) {
+            treerow.appendChild( treecell);
+        }
+        this.setCellDetails( treecell, columns[i] );
+    }
+};
+
 /** 
  *  @return object for a new element <treeitem> with one <treerow>
  * */
@@ -815,19 +831,19 @@ RowInfo.prototype.generateTreeItem= function generateTreeItem() {
     // Register treerow in treeRowsOrChildren[][...] if needed
     if( allowSets ) { // Radio-like checkbox for (de)selecting a set
         if( this.rowLevel===RowLevel.SET && this.module.allowSets) {
-            SeLiteMisc.subContainer( treeRowsOrChildren, this.module.name, this.setName )[ SeLiteSettings.SET_SELECTION_ROW ]= treerow;
+            treeRowsOrChildren.subContainer( this.module.name, this.setName )[ SeLiteSettings.SET_SELECTION_ROW ]= treerow;
         }
     }
     if( this.rowLevel===RowLevel.FIELD ) {
         if( !this.field.multivalued && !(this.field instanceof SeLiteSettings.Field.Choice) ) {//single valued
-           SeLiteMisc.subContainer( treeRowsOrChildren, this.module.name, this.setName )[ fieldName ]= treerow;
+           treeRowsOrChildren.subContainer( this.module.name, this.setName )[ fieldName ]= treerow;
         }
         else {
-            SeLiteMisc.subContainer( treeRowsOrChildren, this.module.name, this.setName, fieldName )[ SeLiteSettings.FIELD_MAIN_ROW ]= treerow;
+            treeRowsOrChildren.subContainer( this.module.name, this.setName, fieldName )[ SeLiteSettings.FIELD_MAIN_ROW ]= treerow;
         }
     }
     if( this.rowLevel===RowLevel.OPTION ) {
-        SeLiteMisc.subContainer( treeRowsOrChildren, this.module.name, this.setName, fieldName )[ this.key ]= treerow;
+        treeRowsOrChildren.subContainer( this.module.name, this.setName, fieldName )[ this.key ]= treerow;
     }
     return treeitem;
 };
@@ -1107,7 +1123,8 @@ var treeClickHandler= function treeClickHandler( event ) {
                         if( cellText===ADD_NEW_VALUE ) {
                             // Add a row for a new value, right below the clicked row (i.e. at the top of all existing values)
                             // Since we're editing, it means that showingPerFolder()===false, so I don't need to generate anything for navigation from folder view here.
-                            var treeItem= new RowInfo( module, selectedSetName, RowLevel.OPTION, field, /*key*/SeLiteSettings.NEW_VALUE_ROW ).generateTreeItem();
+                            var rowInfo= new RowInfo( module, selectedSetName, RowLevel.OPTION, field, /*key*/SeLiteSettings.NEW_VALUE_ROW );
+                            var treeItem= rowInfo.generateTreeItem();
 
                             var previouslyFirstValueRow;
                             for( var key in moduleRowsOrChildren[selectedSetName][field.name] ) {
@@ -1443,7 +1460,19 @@ var setCellText= function setCellText( row, col, value, original) {
     //@TODO centralise - just like for click event:
     treeCell( fieldRow, Column.VALUE/*@TODO?!?!:TRUE (originally FIELD)*/ ).setAttribute( 'properties', '' ); // Clear it, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED (which has special CSS style)
     // Clear Null/Undefine etc.
-    var rowInfo= new RowInfo( info.module, info.setName, RowLevel.FIELD, info.field, /*key*/value, valueCompound(info.field, info.setName) );
+    var fieldRowInfo= new RowInfo( info.module, info.setName, RowLevel.FIELD, info.field,
+        /*key*/!(info.field instanceof SeLiteSettings.Field.FixedMap)
+            ? value
+            : undefined,
+        valueCompound(info.field, info.setName) );
+    fieldRowInfo.setAllCellDetails( fieldRow );
+    
+    if( info.field.multivalued || info.field instanceof SeLiteSettings.Field.FixedMap ) {
+        var optionRow= treeRowsOrChildren[info.module.name][info.setName][info.field.name][info.oldKey];
+        var optionRowInfo= new RowInfo( info.module, info.setName, RowLevel.OPTION, info.field, /*key*/value, valueCompound(info.field, info.setName) );
+        optionRowInfo.setAllCellDetails( optionRow );
+    }
+    if( false ) {
     if( !(info.field instanceof SeLiteSettings.Field.FixedMap) ) {
         if( info.field.multivalued ) { //Clear label at field level, in case it was 'undefined' (if this is the first value)
             treeCell( fieldRow, Column.CHECKED/*@TODO VALUE fails?!?!:TRUE (original FIELD)*/ ).setAttribute( 'label', '' );
@@ -1463,24 +1492,8 @@ var setCellText= function setCellText( row, col, value, original) {
             rowInfo.nullOrUndefineLabel() //@TODO low importance cast value to the exact type
         );/**/
     }
+}
     return true;
-};
-
-/** Set details of all cells in a given treerow. Optional: create the cells.
- *  @param {object} Object for &lt;treerow&gt; element.
- *  @param {boolean} createCells Whether to create the cells.
- * */
-RowInfo.prototype.setAllCellDetails= function updateAllCellDetails( treerow, createCells ) {
-    var columns= applicableColumns();
-    for( var i=0; i<columns.length; i++ ) { //@TODO low: for(..of..)
-        var treecell= createCells
-            ? window.document.createElementNS( XUL_NS, 'treecell')
-            : treeCell( treerow, columns[i] );
-        if( createCells ) {
-            treerow.appendChild( treecell);
-        }
-        this.setCellDetails( treecell, columns[i] );
-    }
 };
 
 var createTreeView= function createTreeView(original) {

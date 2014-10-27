@@ -672,27 +672,6 @@ SeLiteMisc.itemGeneric= function itemGeneric( containerAndFields, nullReplacemen
         : targetNullReplacement;
 };
 
-/** Access sub(sub...)container of given parent.
- *  If parent[field1][field2][...] is not defined, then this creates any missing chains as new anonymous naturally sorted objects.
- *  @param parent A parent container
- *  @param string field
- *  @param string another field (optional)
- *  @param string another field (optional)
- *  ....
- *  @return the target parent[field][field2][...]
- * */
-SeLiteMisc.subContainer= function subContainer( parent, fieldOrFields ) {
-    var object= parent;
-    for( var i=1; i<arguments.length; i++ ) {
-        var fieldName= arguments[i];
-        if( object[fieldName]===undefined ) {
-            object[fieldName]= SeLiteMisc.sortedObject(true);
-        }
-        object= object[fieldName];
-    }
-    return object;
-};
-
 var OBJECT_TO_STRING_INDENTATION= "  ";
 
 /** Get a simple string representation of the given object/array. Used for debugging.
@@ -1077,20 +1056,48 @@ SeLiteMisc.SortedObjectTarget= function SortedObjectTarget( sortCompare ) {
 };
 
 SeLiteMisc.SortedObjectTarget.prototype.__iterator__= function __iterator__() {
-    var i=0;
     var keys= Object.keys(this);
     if( this[SELITE_MISC_SORTED_OBJECT_COMPARE] ) {
         keys.sort( this[SELITE_MISC_SORTED_OBJECT_COMPARE] );
     }
+    var i=0;
     return {
         next: function() {
-            if(i<keys.length) {
+            if( i<keys.length ) {
                 return keys[i++];
             }
             throw StopIteration;
         }
     }
 };
+Object.defineProperty( SeLiteMisc.SortedObjectTarget.prototype, 'subContainer', {
+    enumerable: false, configurable: false, writable: false,
+    value:
+    /** Access sub(sub...)container of given parent.
+     *  If parent[field1][field2][...] is not defined, then this creates any missing chains as new anonymous naturally sorted objects.
+     *  @param string field
+     *  @param string another field (optional)
+     *  ....
+     *  @return {object} this[field][field2][...], with any missing chains created as sortedObjects
+     * */
+    function subContainer( fieldOrFields ) {
+        var object= this;
+        for( var i=0; i<arguments.length; i++ ) { //@TODO low: for(..of..)
+            var fieldName= arguments[i];
+            if( !(fieldName in object) ) {
+                object[fieldName]= SeLiteMisc.sortedObject(true);
+            }
+            object= object[fieldName];
+        }
+        return object;
+    }
+} );
+
+// For backwards compatibility only. Remove once Misc. is approved by Mozilla.
+SeLiteMisc.subContainer= function subContainer( parent, fieldOrFields ) {
+    return SeLiteMisc.SortedObjectTarget.prototype.subContainer.apply( parent, fieldOrFields.slice(1) );
+}
+
 /*
 function SortedObjectTargetIterator( target ) {
     this.target= target;
