@@ -32,6 +32,7 @@ var SeLiteMisc= {};
  *  and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw?redirectlocale=en-US&redirectslug=JavaScript%2FReference%2FStatements%2Fthrow
 */
 SeLiteMisc.fail= function fail( errorOrMessage ) {
+    //debugger;
     console.error( errorOrMessage );
     console.error( SeLiteMisc.stack() );
     throw errorOrMessage!==undefined
@@ -1093,7 +1094,7 @@ Object.defineProperty( SeLiteMisc.SortedObjectTarget.prototype, 'subContainer', 
     }
 } );
 
-// For backwards compatibility only. Remove once Misc. is approved by Mozilla.
+// For backwards compatibility only. Remove once Settings XPI is approved by Mozilla.
 SeLiteMisc.subContainer= function subContainer( parent, fieldOrFields ) {
     return SeLiteMisc.SortedObjectTarget.prototype.subContainer.apply( parent, fieldOrFields.slice(1) );
 }

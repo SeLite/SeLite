@@ -30,7 +30,7 @@ if( typeof SeLiteMisc==='undefined' ) {
             ['pastFirstBlur', 'allowSets', 'allowMultivaluedNonChoices'], 'boolean',
             'targetFolder', ['string', 'null'],
 
-            ['XULElement', 'chooseFileOrFolder', 'RowLevelOrColumn', 'RowLevel', 'Column', 'treeColumn', 'generateTreeColumns', 'treeCell', 'valueCompound', 'ValueSource', 'RowInfo', 'CellInfo', 'generateSets', 'generateFields', 'propertiesPart', 'treeClickHandler', 'fieldTreeRow', 'preProcessEdit', 'setCellText', 'createTreeView', 'updateSpecial', 'showingPerFolder', 'createTreeChildren', 'chooseJavascriptFile', 'applicableColumns', 'updateRowCells'], 'function'
+            ['XULElement', 'chooseFileOrFolder', 'RowLevelOrColumn', 'RowLevel', 'Column', 'treeColumn', 'generateTreeColumns', 'treeCell', 'valueCompound', 'ValueSource', 'RowInfo', 'CellInfo', 'generateSets', 'generateFields', 'propertiesPart', 'treeClickHandler', 'fieldTreeRow', 'preProcessEdit', 'setCellText', 'createTreeView', 'updateSpecial', 'showingPerFolder', 'createTreeChildren', 'chooseJavascriptFile', 'applicableColumns'], 'function'
         )
     );
 }
@@ -983,17 +983,6 @@ window.onTreeBlur= function onTreeBlur() {
     }
 };
 
-/** Update all cells of the given tree row.
- *  @param {object} treeRow <treerow> element
- *  @param {RowInfo} rowInfo
- * */
-var updateRowCells= function updateRowCells( treeRow, rowInfo ) {
-    var columns= applicableColumns();
-    for( var i=0; i<columns.length; i++ ) {//@TODO low: for(..of..)
-        rowInfo.setCellDetails( treeCell(treeRow, columns[i]), columns[i] );
-    }
-};
-
 var treeClickHandler= function treeClickHandler( event ) {
     //console.log( 'click');
     // FYI: event.currentTarget.tagName=='tree'. However, window.document.getElementById('settingsTree')!=event.currentTarget
@@ -1243,11 +1232,11 @@ var treeClickHandler= function treeClickHandler( event ) {
                 
                 !clickedOptionKey || field.multivalued/*that includes FixedMap*/ || field instanceof SeLiteSettings.Field.Choice || SeLiteMisc.fail( "When clickedOptionKey is set, the field should be multivalued, or an instance of Choice or FixedMap."); //@TODO centralise this validation, remove duplicates
                 var fieldRowInfo= new RowInfo( module, selectedSetName, RowLevel.FIELD, field, clickedOptionKey, valueCompound(field, selectedSetName) );
-                updateRowCells( fieldTreeRow(selectedSetName, field), fieldRowInfo );
+                fieldRowInfo.setAllCellDetails( fieldTreeRow(selectedSetName, field) );
                 
                 if( clickedOptionKey && (field.multivalued || field instanceof SeLiteSettings.Field.Choice) ) {
-                    var optionRowInfo= new RowInfo( module, selectedSetName, RowLevel.FIELD, field, clickedOptionKey, valueCompound(field, selectedSetName) );
-                    updateRowCells( moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ], optionRowInfo );
+                    var optionRowInfo= new RowInfo( module, selectedSetName, RowLevel.OPTION, field, clickedOptionKey, valueCompound(field, selectedSetName) );
+                    optionRowInfo.setAllCellDetails( moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ] );
                 }
             }
         }
@@ -1398,12 +1387,13 @@ var setCellText= function setCellText( row, col, value, original) {
     if( !(info.field instanceof SeLiteSettings.Field.FixedMap) ) {
         for( var otherKey in info.fieldTreeRowsOrChildren ) {
             // Following check also excludes SeLiteSettings.NEW_VALUE_ROW, because we don't want to compare it to real values. 
-            if( SeLiteSettings.reservedNames.indexOf(otherKey)<0 && info.field.compareValues(otherKey, value)>=0 ) {
+            if( SeLiteSettings.reservedNames.indexOf(otherKey)<0
+            && info.field.compareValues(otherKey, value)>=0 ) {
                 rowAfterNewPosition= info.fieldTreeRowsOrChildren[otherKey];
                 break;
             }
         }
-        if( !rowAfterNewPosition && info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] && Object.keys(info.fieldTreeRowsOrChildren).length===3 ) {
+        if( !rowAfterNewPosition && info.field [SeLiteSettings.NEW_VALUE_ROW] && Object.keys(info.fieldTreeRowsOrChildren).length===3 ) {
             // fieldTreeRowsOrChildren has 3 keys: SeLiteSettings.FIELD_MAIN_ROW, SeLiteSettings.FIELD_TREECHILDREN, SeLiteSettings.NEW_VALUE_ROW.
             // So there's no other existing value, and the row being edited is a new one (it didn't have a real value set yet)
             info.fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW]===info.treeRow && info.oldKey===SeLiteSettings.NEW_VALUE_ROW || SeLiteMisc.fail( "This assumes that if fieldTreeRowsOrChildren[SeLiteSettings.NEW_VALUE_ROW] is set, then that's the row we're just editing." );
@@ -1414,7 +1404,6 @@ var setCellText= function setCellText( row, col, value, original) {
             var propertiesPrefix= info.rowProperties.substr(0, /*length:*/info.rowProperties.length-info.oldKey.length); // That includes a trailing space
             info.treeRow.setAttribute( 'properties', propertiesPrefix+value );
         }
-        delete info.fieldTreeRowsOrChildren[info.oldKey];
         if( info.oldKey!==SeLiteSettings.NEW_VALUE_ROW ) {
             info.field.removeValue( info.setName, info.oldKey );
         }
@@ -1469,30 +1458,13 @@ var setCellText= function setCellText( row, col, value, original) {
     
     if( info.field.multivalued || info.field instanceof SeLiteSettings.Field.FixedMap ) {
         var optionRow= treeRowsOrChildren[info.module.name][info.setName][info.field.name][info.oldKey];
+        if( !optionRow ) debugger;
         var optionRowInfo= new RowInfo( info.module, info.setName, RowLevel.OPTION, info.field, /*key*/value, valueCompound(info.field, info.setName) );
         optionRowInfo.setAllCellDetails( optionRow );
     }
-    if( false ) {
-    if( !(info.field instanceof SeLiteSettings.Field.FixedMap) ) {
-        if( info.field.multivalued ) { //Clear label at field level, in case it was 'undefined' (if this is the first value)
-            treeCell( fieldRow, Column.CHECKED/*@TODO VALUE fails?!?!:TRUE (original FIELD)*/ ).setAttribute( 'label', '' );
-        }
-        /*treeCell( fieldRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
-            generateCellLabel( Column.NULL_UNDEFINE_DEFINITION, module, setName, field, undefined, value, RowLevel.FIELD, valueCompound ) );*/
-        treeCell( fieldRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
-            rowInfo.nullOrUndefineLabel()
-        );/**/
+    if( info.field.multivalued && !(info.field instanceof SeLiteSettings.Field.FixedMap) ) {
+        delete info.fieldTreeRowsOrChildren[info.oldKey];
     }
-    else {
-        var optionRow= treeRowsOrChildren[info.module.name][info.setName][info.field.name][info.oldKey];
-        treeCell( optionRow, Column.VALUE/*@TODO?!?!:TRUE (original FIELD)*/ ).setAttribute( 'properties', '' ); // Clear at option level, in case it was SeLiteSettings.FIELD_NULL_OR_UNDEFINED
-        /*treeCell( optionRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
-            generateCellLabel( Column.NULL_UNDEFINE_DEFINITION, module, setName, field, undefined, value, RowLevel.OPTION, valueCompound ) );*/ //@TODO low importance cast value to the exact type?
-        treeCell( optionRow, Column.NULL_UNDEFINE_DEFINITION ).setAttribute( 'label',
-            rowInfo.nullOrUndefineLabel() //@TODO low importance cast value to the exact type
-        );/**/
-    }
-}
     return true;
 };
 
