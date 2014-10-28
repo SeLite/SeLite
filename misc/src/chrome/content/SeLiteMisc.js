@@ -32,6 +32,7 @@ var SeLiteMisc= {};
  *  and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw?redirectlocale=en-US&redirectslug=JavaScript%2FReference%2FStatements%2Fthrow
 */
 SeLiteMisc.fail= function fail( errorOrMessage ) {
+    debugger;
     console.error( errorOrMessage );
     console.error( SeLiteMisc.stack() );
     throw errorOrMessage!==undefined
@@ -345,15 +346,24 @@ var proxyVerifyFieldsOnReadClassHandler= {
   }
 };
 function proxyVerifyFieldsClassHandler( treatedDefinitions ) {
+    Object.isFrozen(treatedDefinitions) || SeLiteMisc.fail( 'treatedDefinitions must be frozen' );
     return {
         get: proxyVerifyFieldsObjectHandler.get,
         set: proxyVerifyFieldsObjectHandler.set,
         // Just like proxyVerifyFieldsOnReadClassHandler.construct(), but this sets field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS on the newly created object
         construct: function construct( targetConstructor, args ) {
+          // Make a protective copy of treatedDefinitions
+          //console.error( SeLiteMisc.stack() );
+          debugger;
           if( SeLiteMisc.PROXY_FIELD_DEFINITIONS in targetConstructor.prototype ) {
-              treatedDefinitions= SeLiteMisc.objectCopyFields( targetConstructor.prototype[SeLiteMisc.PROXY_FIELD_DEFINITIONS], treatedDefinitions );
+              var parentDefinitions= targetConstructor.prototype[SeLiteMisc.PROXY_FIELD_DEFINITIONS];
+              if( Object.keys(parentDefinitions).length>0 ) {//@TODO low: replace Object.keys(..).length by a better check - see GoogleCode style on Javascript
+                treatedDefinitions= SeLiteMisc.objectClone(treatedDefinitions);
+                //@TODO low: check that the new definitions don't override the existing ones. + @TODO low: Do that check in the caller?
+                treatedDefinitions= SeLiteMisc.objectCopyFields( parentDefinitions, treatedDefinitions );
+            }
           }
-          var fNewConstr = function () {
+          var fNewConstr = function () {//@TODO low: make it non-interable:
               this[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= treatedDefinitions;
           };
           fNewConstr.prototype = targetConstructor.prototype;
@@ -447,7 +457,7 @@ function treatProxyFieldDefinitions( definitions, targetOrProxy ) {
 }
 /** Like SeLiteMisc.proxyVerifyFieldsOnRead(), but this creates a proxy that verifies fields on both read and write. If used with a constructor function (i.e. a class), it should define any fields added by that class, and any parent constructors should declare their own fields.
  *  @param {(object|function)} target An object to be proxied, or a class (a constructor function).
- *  @param {(object|array)} [definitions] Definition of fields for the proxy object, or for instances of the proxy class (but not for the class itself). Either an array of field names, or an object {
+ *  @param {(object|array)} [definitions] Definition of fields for the proxy object, or for instances of the proxy class (but not for the class itself); optional. It may be modified and/or frozen by this function, therefore don't re-use the same 'definitions' object (e.g. from variable in a closure) for different proxy objects/classes. Either an array of field names, or an object {
  *      fieldName: either
  *          - a string: one of SeLiteMisc.TYPE_NAMES or the name of a class, or 
  *          - a function: a constructor function of a class, or
@@ -455,27 +465,29 @@ function treatProxyFieldDefinitions( definitions, targetOrProxy ) {
  *      ...
  *      and optionally:
  *      '*': function( name, value ) { return boolean }. That is only called for fields that are not specifically declared. So if a field is declared as above, then '*' doesn't apply to it.
- *  }. Optional: if definitions is not present, then this effectively seals the proxy (probably useful only for objects and not for classes). If you have multiple fields with same definition, you can shorten the code by using SeLiteMisc.Settable instance for <code>definitions</code>.
+ *  }. If you have multiple fields with same definition, you can shorten the code by using SeLiteMisc.Settable instance for <code>definitions</code>.
  *   */
-SeLiteMisc.proxyVerifyFields= function proxyVerifyFieldsOnRead( target, definitions ) {
+SeLiteMisc.proxyVerifyFields= function proxyVerifyFields( target, definitions ) {
     typeof target==='object' && target!==null || typeof target==='function' || SeLiteMisc.fail( 'Parameter target should be an object or a class (constructor function), but it is ' +typeof target );
     definitions= definitions || [];
     definitions= treatProxyFieldDefinitions( definitions, target ); // Treat and validate definitions now, so the proxy's set() doesn't have to.
-    if( !(SeLiteMisc.PROXY_FIELD_DEFINITIONS in target) ) {
+    //Following handles whether target is an object or a class (constructor), because a class can also be a verified proxy.
+    if( !(SeLiteMisc.PROXY_FIELD_DEFINITIONS in target) ) {//@TODO low: make it non-iterable:
         target[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= definitions;
     }
     else {
-        Object.getOwnPropertyDescriptor( target, SeLiteMisc.PROXY_FIELD_DEFINITIONS )===undefined || SeLiteMisc.fail( "Can't define field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS multiple times on the same exact proxy for " +SeLiteMisc.typeAndClassNameOf(target) );
+        !target.hasOwnProperty(SeLiteMisc.PROXY_FIELD_DEFINITIONS) || SeLiteMisc.fail( "Can't define field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS multiple times on the same exact proxy for " +SeLiteMisc.typeAndClassNameOf(target) );
         var parentDefinitions= target[SeLiteMisc.PROXY_FIELD_DEFINITIONS];
         SeLiteMisc.hasType( parentDefinitions, 'some-object' ) && !Array.isArray(parentDefinitions) || SeLiteMisc.fail( "Parent proxy has a field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS which is not a non-array object." );
-        SeLiteMisc.objectCopyFields( definitions, parentDefinitions );
+        SeLiteMisc.objectCopyFields( parentDefinitions, definitions );
     }
-    // @TODO verify existing fields on target
-    if( typeof target==='object' ) {
+    // @TODO low: verify existing fields on target
+    
+    if( typeof target==='object' ) { // Don't freeze definitions, when it's per-object. Only freeze it per class (below).
         return new Proxy( target, proxyVerifyFieldsObjectHandler );
     }
     
-    var result= new Proxy( target, proxyVerifyFieldsClassHandler(definitions) );
+    var result= new Proxy( target, proxyVerifyFieldsClassHandler( Object.freeze(definitions) ) );
     Object.defineProperty( result, SeLiteMisc.PROXY_TARGET_CLASS, {
       enumerable: false, configurable: false, writable: false,
       value: target
@@ -488,14 +500,24 @@ SeLiteMisc.proxyVerifyFields= function proxyVerifyFieldsOnRead( target, definiti
  * @return void
  * */
 SeLiteMisc.proxyAllowFields= function proxyAllowFields( proxy, definitions ) {
+    debugger;
     SeLiteMisc.PROXY_FIELD_DEFINITIONS in proxy || SeLiteMisc.fail( "Proxy object doesn't have a field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS." );
     var existingDefinitions= proxy[SeLiteMisc.PROXY_FIELD_DEFINITIONS];
     SeLiteMisc.hasType( existingDefinitions, 'some-object' ) || SeLiteMisc.fail( "Proxy object has a field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS, but it's not an object." );
+    var wasFrozen= Object.isFrozen(existingDefinitions);
+    if( !proxy.hasOwnProperty(SeLiteMisc.PROXY_FIELD_DEFINITIONS) || wasFrozen ) {
+        // existingDefinitions comes from the parent class prototype, or it's not frozen. So make a protective copy:
+        //@TODO low: make it non-interable (first, check whether 'iterability' descends from the parent prototype)
+        proxy[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= existingDefinitions= SeLiteMisc.objectClone(existingDefinitions);
+    }
     definitions= treatProxyFieldDefinitions( definitions );
     for( var field in existingDefinitions ) {
         !( field in definitions ) || SeLiteMisc.fail( "Field '" +field+ "' has been declared previously." );
     }
     SeLiteMisc.objectCopyFields( definitions, existingDefinitions );
+    if( wasFrozen ) {
+        Object.freeze( existingDefinitions );
+    }
 };
 
 /** An auxilliary class, that allows setting fields with names generated at runtime in one function call, or through a chain of calls.
