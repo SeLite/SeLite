@@ -147,9 +147,9 @@ var RowLevelOrColumn= function RowLevelOrColumn( name, level ) {
     SeLiteMisc.Enum.call( this, name );
     this.level= level;
 };
-RowLevelOrColumn= SeLiteMisc.proxyVerifyFields( RowLevelOrColumn, {level: 'number' } );
-RowLevelOrColumn.prototype= new SeLiteMisc.Enum( '', true );
+RowLevelOrColumn.prototype= Object.create( SeLiteMisc.Enum );
 RowLevelOrColumn.prototype.constructor= RowLevelOrColumn;
+RowLevelOrColumn= SeLiteMisc.proxyVerifyFields( RowLevelOrColumn, {level: 'number' } );
 SeLiteMisc.proxyAllowFields( RowLevelOrColumn.prototype, {forLevel: 'function'} );
 /** This is a simple translation map. It returns n-th argument (counting from 0), where n=this.level. If that argument is a function (a closure), this calls it and then it returns its result.
  * */
@@ -167,9 +167,10 @@ var RowLevel= function RowLevel( name, level ) {
     RowLevelOrColumn.call( this, name, level );
 };
 //var unproxyfiedRowLevel= RowLevel;
-RowLevel= SeLiteMisc.proxyVerifyFields( RowLevel );
-RowLevel.prototype= new RowLevelOrColumn( '', -1 );
+//RowLevel.prototype= new RowLevelOrColumn( '', -1 );
+RowLevel.prototype= Object.create(RowLevelOrColumn); //@TODO use new XXX(), or pass it through SeLiteMisc.proxyVerifyFields()
 RowLevel.prototype.constructor= RowLevel;
+RowLevel= SeLiteMisc.proxyVerifyFields( RowLevel );
 SeLiteMisc.proxyAllowFields( RowLevel.prototype, ['MODULE', 'SET', 'FIELD', 'OPTION'] );
 RowLevel.MODULE= new RowLevel('MODULE', 0);
 // @TODO low importance AA test unit for SeLiteMisc:
