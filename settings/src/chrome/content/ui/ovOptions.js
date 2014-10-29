@@ -214,7 +214,7 @@ var RowLevel= function RowLevel( name, level ) {
 RowLevel.prototype= Object.create(RowLevelOrColumn.prototype); //@TODO use new XXX(), or pass it through SeLiteMisc.proxyVerifyFields()
 RowLevel.prototype.constructor= RowLevel;
 RowLevel= SeLiteMisc.proxyVerifyFields( RowLevel );
-SeLiteMisc.proxyAllowFields( RowLevel.prototype, ['MODULE', 'SET', 'FIELD', 'OPTION'] );
+SeLiteMisc.proxyAllowFields( RowLevel, ['MODULE', 'SET', 'FIELD', 'OPTION'] );
 RowLevel.MODULE= new RowLevel('MODULE', 0);
 // @TODO low importance AA test unit for SeLiteMisc:
 //SeLiteMisc.fail( ''+(RowLevel.SELITE_MISC_TARGET_CLASS===unproxyfiedRowLevel) );
@@ -229,10 +229,10 @@ RowLevel.OPTION= new RowLevel('OPTION', 3); // For options of Choice, for entrie
 var Column= function Column( name, level ) {
     RowLevelOrColumn.call( this, name, level );
 };
-Column= SeLiteMisc.proxyVerifyFields( Column );
-Column.prototype= new RowLevelOrColumn( '', -1 );
+Column.prototype= Object.create(RowLevelOrColumn.prototype);//new RowLevelOrColumn( '', -1 );
 Column.prototype.constructor= Column;
-SeLiteMisc.proxyAllowFields( Column.prototype, ['MODULE_SET_FIELD_FIXEDMAPKEYS', 'DEFAULT', 'CHECKED', 'VALUE', 'ACTION_SET', 'NULL_UNDEFINE_DEFINITION'] );
+Column= SeLiteMisc.proxyVerifyFields( Column );
+SeLiteMisc.proxyAllowFields( Column, ['MODULE_SET_FIELD_FIXEDMAPKEYS', 'DEFAULT', 'CHECKED', 'VALUE', 'ACTION_SET', 'NULL_UNDEFINE_DEFINITION'] );
 Column.MODULE_SET_FIELD_FIXEDMAPKEYS= new Column('MODULE_SET_FIELD_FIXEDMAPKEYS', 0);
 Column.DEFAULT= new Column('DEFAULT', 1);
 Column.CHECKED= new Column('CHECKED', 2); // Column for checkbox (if the field is boolean) or radio-like select (if the field is a choice)
@@ -432,9 +432,9 @@ var valueCompound= function valueCompound( field, setName ) {
 var ValueSource= function ValueSource( name ) {
     SeLiteMisc.Enum.call( this, name );
 };
-ValueSource= SeLiteMisc.proxyVerifyFields( ValueSource );
-ValueSource.prototype= new SeLiteMisc.Enum( '', true );
+ValueSource.prototype= Object.create(SeLiteMisc.Enum.prototype);//new SeLiteMisc.Enum( '', true );
 ValueSource.prototype.constructor= ValueSource;
+ValueSource= SeLiteMisc.proxyVerifyFields( ValueSource );
 SeLiteMisc.proxyAllowFields( ValueSource, ['ASSOCIATED_SET', 'DEFAULT_SET', 'VALUES_MANIFEST', 'FIELD_MANIFEST', 'FIELD_DEFAULT'] );
 ValueSource.ASSOCIATED_SET= new ValueSource( 'ASSOCIATED_SET' );
 ValueSource.DEFAULT_SET= new ValueSource( 'DEFAULT_SET' );
@@ -515,7 +515,7 @@ var RowInfo= function RowInfo( module, setName, rowLevel, field, key, valueCompo
     }
     //         this.isUndefined= this.isNull= false;
 };
-RowInfo= SeLiteMisc.proxyVerifyFields( RowInfo, {
+RowInfo= SeLiteMisc.proxyVerifyFields( RowInfo, {}, {
     module: SeLiteSettings.Module,
     setName: ['string', 'undefined'],
     rowLevel: RowLevel,
@@ -543,7 +543,7 @@ var CellInfo= function CellInfo( rowInfo, column ) {
     this.editable= rowInfo.collectEditable( column );
     this.properties= rowInfo.collectProperties( column );
 };
-CellInfo= SeLiteMisc.proxyVerifyFields( CellInfo, {
+CellInfo= SeLiteMisc.proxyVerifyFields( CellInfo, {}, {
     label: ['string', 'undefined'],
     value: 'any',
     editable: 'boolean',

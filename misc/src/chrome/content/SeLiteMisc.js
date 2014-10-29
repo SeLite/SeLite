@@ -482,7 +482,7 @@ function chainDefinitions( definitions, actualTarget ) {
  *  function ChildClass(...) {
  *      ParentClass.call( this, ... );
  *  }
- *  ChildClass.prototype= Object.create(ParentClass);
+ *  ChildClass.prototype= Object.create(ParentClass.prototype);
  *  ChildClass.prototype.constructor= ParentClass;
  *  ChildClass= SeLiteMisc.proxyVerifyFields( ChildClass, {...} );
  *  @param {(object|array)} [givenObjectOrClassDefinitions] Definition of fields for the proxy for the given target (either the given object, or given class/constructor function itself); optional. It doesn't define fields of instances of the proxy class (if target is a class) - use <code>classInstanceDefinitions</code> for that. It may be modified and/or frozen by this function, therefore don't re-use the same <code>givenObjectOrClassDefinitions</code> object (e.g. from variable in a closure) for different targets. Either an array of field names, or an object {
@@ -497,6 +497,7 @@ function chainDefinitions( definitions, actualTarget ) {
  *  @param {(object|Array)} [classInstanceDefinitions] Definitions of fields of instances of the given class. Optional; it must not be present if target is not a class/constructor function. Structure like that of <code>givenObjectOrClassDefinitions</code>. Side note: If we didn't have <code>classInstanceDefinitions</code>, the programmer could workaround by calling <code>SeLiteMisc.proxyAllowFields(this)</code> from the class's constructor. However, that could be awkward.
  *   */
 SeLiteMisc.proxyVerifyFields= function proxyVerifyFields( target, givenObjectOrClassDefinitions, classInstanceDefinitions ) {
+    !target.hasOwnProperty(SeLiteMisc.PROXY_FIELD_DEFINITIONS) || SeLiteMisc.fail( "target is already a proxy!" );
     debugger;
     // Treat and validate it now, so the proxy's set() doesn't have to.
     //@TODO low: make this field non-iterable:
@@ -507,7 +508,12 @@ SeLiteMisc.proxyVerifyFields= function proxyVerifyFields( target, givenObjectOrC
         return new Proxy( target, proxyVerifyFieldsObjectHandler );
     }
     
+    !target.prototype.hasOwnProperty(SeLiteMisc.PROXY_FIELD_DEFINITIONS) || SeLiteMisc.fail( "target.prototype is already a proxy!" );
     classInstanceDefinitions= Object.freeze( chainDefinitions(classInstanceDefinitions, target.prototype) );
+    
+    target.prototype[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= classInstanceDefinitions;
+    target.prototype= new Proxy( target.prototype, proxyVerifyFieldsObjectHandler );
+    
     var result= new Proxy( target, proxyVerifyFieldsClassHandler(classInstanceDefinitions) );
     Object.defineProperty( result, SeLiteMisc.PROXY_TARGET_CLASS, {
       enumerable: false, configurable: false, writable: false,
