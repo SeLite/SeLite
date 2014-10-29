@@ -278,6 +278,7 @@ SeLiteMisc.ensureInstance= function ensureInstance( object, classes, variableNam
 SeLiteMisc.PROXY_TARGET_CONSTRUCTOR= 'SELITE_MISC_PROXY_TARGET_CONSTRUCTOR';
 SeLiteMisc.PROXY_TARGET_CLASS= 'SELITE_MISC_PROXY_TARGET_CLASS';
 SeLiteMisc.PROXY_FIELD_DEFINITIONS= 'SELITE_MISC_PROXY_FIELD_DEFINITIONS';
+SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS= 'SELITE_MISC_PROXY_PROTOTYPE_FIELD_DEFINITIONS';
 
 /** @private */
 var proxyVerifyFieldsOnReadObjectHandler= {
@@ -287,44 +288,63 @@ var proxyVerifyFieldsOnReadObjectHandler= {
     return target[name];
   }
 };
+
+/** @param {object} definitions Definitions at a given level of protype chain. Either for SeLiteMisc.PROXY_FIELD_DEFINITIONS or for SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS (if applicable).
+ *  @return {boolean} Whether this level of definitions allows a field with given name and value.
+ * */
+function checkFieldAtLevel( definitions, name, value ) {
+    var definition= definitions[name];
+    if( definition!==undefined ) {
+        
+        if( definition==='any' ) {
+            return true;
+        }
+        var isObject= typeof value==='object';
+        for( var i=0; i<definition.length; i++ ) { //@TODO for(..of..)
+            var definitionEntry= definition[i];
+
+            if( SeLiteMisc.TYPE_NAMES.indexOf(definitionEntry)>=0 ) {
+                if( SeLiteMisc.hasType(value, [definitionEntry]) ) {
+                    return true;
+                }
+            }
+            else {
+                if( isObject && SeLiteMisc.isInstance(value, definitionEntry) ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    var catchAll= definitions['*'];
+    return catchAll && catchAll.call(null, name, value);               
+}
+
 /** For verifying on both read and write */
 var proxyVerifyFieldsObjectHandler= {
     get: proxyVerifyFieldsOnReadObjectHandler.get,
     
-    /** It seems to be supposed to return boolean, but the value is not documented at MDN. */
+    /** It seems to be supposed to return boolean, but the value is not documented at MDN. So I don't return anything. */
     set: function set(target, name, value, receiver) {
         // Since target[SeLiteMisc.PROXY_FIELD_DEFINITIONS] is an object, it has meta fields 'prototype' and 'constructor' by default. Therefore we don't have any validation for those. Also, we allow assigning to (update of) target[SeLiteMisc.PROXY_FIELD_DEFINITIONS] itself.
-        if( name!=='prototype' && name!=='constructor' && name!==SeLiteMisc.PROXY_FIELD_DEFINITIONS ) {
-            var definition= target[SeLiteMisc.PROXY_FIELD_DEFINITIONS][name];
-            //@TODO move this comment to treatProxyFieldDefinitions: If I ever allow definition to be undefined (in addition to 'undefined'), then change the following check to be: name in target[SeLiteMisc.PROXY_FIELD_DEFINITIONS]
-            if( definition!==undefined ) {
-                if( definition!=='any' ) {
-
-                    var isObject= typeof value==='object';
-                    for( var i=0; i<definition.length; i++ ) { //@TODO for(..of..)
-                        var definitionEntry= definition[i];
-
-                        if( SeLiteMisc.TYPE_NAMES.indexOf(definitionEntry)>=0 ) {
-                            if( SeLiteMisc.hasType(value, [definitionEntry]) ) {
-                                break;
-                            }
-                        }
-                        else {
-                            if( isObject && SeLiteMisc.isInstance(value, definitionEntry) ) {
-                                break;
-                            }
-                        }
+        if( name!=='prototype' && name!=='constructor' && name!==SeLiteMisc.PROXY_FIELD_DEFINITIONS && name!==SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS ) {
+            var targetOrPrototype= target;
+            while( targetOrPrototype!==null ) {
+                if( targetOrPrototype.hasOwnProperty(SeLiteMisc.PROXY_FIELD_DEFINITIONS) ) {
+                    if( checkFieldAtLevel( targetOrPrototype[SeLiteMisc.PROXY_FIELD_DEFINITIONS], name, value ) ) {
+                        break;
                     }
-                    i<definition.length || SeLiteMisc.fail( "Declared field '" +name+ "' on " +SeLiteMisc.typeAndClassNameOf(target)+ " doesn't accept " +typeof value+ ': ' +value );
                 }
+                if( typeof target==='object' && targetOrPrototype.hasOwnProperty(SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS) ) {
+                    if( checkFieldAtLevel( targetOrPrototype[SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS], name, value ) ) {
+                        break;
+                    }
+                }
+                targetOrPrototype= Object.getPrototypeOf( targetOrPrototype );
             }
-            else {
-                var catchAll= target[SeLiteMisc.PROXY_FIELD_DEFINITIONS]['*'];
-                catchAll && catchAll.call(null, name, value) || SeLiteMisc.fail( "Can't set an undeclared field '" +name+ "' on " +SeLiteMisc.typeAndClassNameOf(target) );                
-            }
-        }try{
+            targetOrPrototype!==null || SeLiteMisc.fail( "Field '" +name+ "' on " +SeLiteMisc.typeAndClassNameOf(target)+ " is not declared, or it doesn't accept " +typeof value+ ': ' +value );
+        }
         target[name]= value;
-    }catch(e){debugger;}
     }
 };
 
@@ -367,7 +387,7 @@ function proxyVerifyFieldsClassHandler( treatedDefinitions ) {
           var fNewConstr = function () {//@TODO low: make it non-interable:
               this[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= treatedDefinitions;
           };
-          fNewConstr.prototype = targetConstructor.prototype;//????
+          fNewConstr.prototype = targetConstructor.prototype;
           var proxy= new Proxy( new fNewConstr(), proxyVerifyFieldsObjectHandler );
           Object.defineProperty( proxy, SeLiteMisc.PROXY_TARGET_CONSTRUCTOR, {
             enumerable: false, configurable: false, writable: false,
@@ -530,6 +550,7 @@ SeLiteMisc.proxyVerifyFields= function proxyVerifyFields( target, givenObjectOrC
  * @return void 
  * */
 SeLiteMisc.proxyAllowFields= function proxyAllowFields( proxy, definitions ) {
+    //@TODO for objects that have SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS, set it for that, not for SeLiteMisc.PROXY_FIELD_DEFINITIONS.
     SeLiteMisc.PROXY_FIELD_DEFINITIONS in proxy || SeLiteMisc.fail( "Proxy object doesn't have a field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS." );
     var existingDefinitions= proxy[SeLiteMisc.PROXY_FIELD_DEFINITIONS];
     SeLiteMisc.hasType( existingDefinitions, 'some-object' ) || SeLiteMisc.fail( "Proxy object has a field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS, but it's not an object." );
