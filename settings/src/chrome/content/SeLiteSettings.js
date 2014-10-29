@@ -1421,7 +1421,7 @@ SeLiteSettings.ManifestInfo= function ManifestInfo( isValuesManifest, moduleName
     !isValuesManifest || 'fieldName' in this && 'fixedMapKey' in this && 'value' in this || SeLiteMisc.fail( 'Values manifest info must have fieldName and value.' );
     isValuesManifest || 'setName' in this && this.setName!==undefined || SeLiteMisc.fail( 'Associations manifest info must have setName.' );
 };
-SeLiteSettings.ManifestInfo= SeLiteMisc.proxyVerifyFields( SeLiteSettings.ManifestInfo, ['isValuesManifest', 'moduleName', 'setName', 'fieldName', 'fixedMapKey', 'value'] );
+SeLiteSettings.ManifestInfo= SeLiteMisc.proxyVerifyFields( SeLiteSettings.ManifestInfo, {}, {}, ['isValuesManifest', 'moduleName', 'setName', 'fieldName', 'fixedMapKey', 'value'] );
 
 /** Collect manifest files (both values and associations fo set),
  *  down from filesystem root to given folderPath. Parse them.
@@ -1589,7 +1589,7 @@ SeLiteSettings.closingIde= function closingIde() {
 SeLiteSettings.FieldInformation= function FieldInformation( entry, fromPreferences, folderPath, setName ) {
     SeLiteMisc.objectFillIn( this, ['entry', 'fromPreferences', 'folderPath', 'setName'], arguments, false, /*do set missing ones*/false );
 };
-SeLiteSettings.FieldInformation= SeLiteMisc.proxyVerifyFields( SeLiteSettings.FieldInformation, {
+SeLiteSettings.FieldInformation= SeLiteMisc.proxyVerifyFields( SeLiteSettings.FieldInformation, {}, {}, {
     entry: ['primitive', 'some-object', 'undefined', 'null'],
     fromPreferences: ['boolean', 'undefined'],
     folderPath: ['string', 'undefined', 'null'], //@TODO get rid of null
@@ -1600,7 +1600,7 @@ SeLiteSettings.ModuleAndSetInformation= function ModuleAndSetInformation( module
     SeLiteMisc.objectFillIn( this, ['moduleName', 'setName'], arguments );
 };
 // @TODO following field definition causes problems 
-SeLiteSettings.ModuleAndSetInformation= SeLiteMisc.proxyVerifyFields( SeLiteSettings.ModuleAndSetInformation, {
+SeLiteSettings.ModuleAndSetInformation= SeLiteMisc.proxyVerifyFields( SeLiteSettings.ModuleAndSetInformation, {}, {}, {
     moduleName: 'string',
     setName: 'string'
 });

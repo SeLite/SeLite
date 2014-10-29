@@ -419,6 +419,7 @@ SeLiteMisc.proxyVerifyFieldsOnRead= function proxyVerifyFieldsOnRead( target ) {
  *  @return {object} Treated definitions.
  * */
 function treatProxyFieldDefinitions( definitions, targetOrProxy ) {
+    definitions= definitions || [];
     typeof definitions==='object' || SeLiteMisc.fail( 'Parameter definitions must be an object or an array.' );
     !(SeLiteMisc.PROXY_FIELD_DEFINITIONS in definitions) || SeLiteMisc.fail( "You can't declare field with name same as value of SeLiteMisc.PROXY_FIELD_DEFINITIONS." );
     if( Array.isArray(definitions) ) {
@@ -465,7 +466,6 @@ function treatProxyFieldDefinitions( definitions, targetOrProxy ) {
  * */
 function chainDefinitions( definitions, actualTarget ) {
     typeof actualTarget==='object' && actualTarget!==null || typeof actualTarget==='function' || SeLiteMisc.fail( 'Parameter actualTarget should be an object or a class (constructor function), but it is ' +typeof actualTarget );
-    definitions= definitions || [];
     definitions= treatProxyFieldDefinitions( definitions, actualTarget );    
     if( !(SeLiteMisc.PROXY_FIELD_DEFINITIONS in actualTarget) ) {
         return definitions;
@@ -496,12 +496,12 @@ function chainDefinitions( definitions, actualTarget ) {
  *  }. If you have multiple fields with same definition, you can shorten the code by using SeLiteMisc.Settable instance for <code>givenObjectOrClassDefinitions</code> or <code>classInstanceDefinitions</code>.
  *  @param {(object|Array)} [classInstanceDefinitions] Definitions of fields of instances of the given class. Optional; it must not be present if target is not a class/constructor function. Structure like that of <code>givenObjectOrClassDefinitions</code>. Side note: If we didn't have <code>classInstanceDefinitions</code>, the programmer could workaround by calling <code>SeLiteMisc.proxyAllowFields(this)</code> from the class's constructor. However, that could be awkward.
  *   */
-SeLiteMisc.proxyVerifyFields= function proxyVerifyFields( target, givenObjectOrClassDefinitions, classInstanceDefinitions ) {
+SeLiteMisc.proxyVerifyFields= function proxyVerifyFields( target, givenObjectOrClassDefinitions, prototypeDefinitions, classInstanceDefinitions ) {
     !target.hasOwnProperty(SeLiteMisc.PROXY_FIELD_DEFINITIONS) || SeLiteMisc.fail( "target is already a proxy!" );
     debugger;
     // Treat and validate it now, so the proxy's set() doesn't have to.
     //@TODO low: make this field non-iterable:
-    target[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= chainDefinitions( givenObjectOrClassDefinitions, target );
+   target[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= chainDefinitions( givenObjectOrClassDefinitions, target );
     // @TODO low: verify existing fields on target
     
     if( typeof target==='object' ) { // It's more likely that a programmer calls SeLiteMisc.proxyAllowFields() on an object than on a class. So don't freeze givenObjectOrClassDefinitions, only freeze classInstanceDefinitions (below).
@@ -509,11 +509,14 @@ SeLiteMisc.proxyVerifyFields= function proxyVerifyFields( target, givenObjectOrC
     }
     
     !target.prototype.hasOwnProperty(SeLiteMisc.PROXY_FIELD_DEFINITIONS) || SeLiteMisc.fail( "target.prototype is already a proxy!" );
-    classInstanceDefinitions= Object.freeze( chainDefinitions(classInstanceDefinitions, target.prototype) );
-    
-    target.prototype[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= classInstanceDefinitions;
+    prototypeDefinitions= chainDefinitions( prototypeDefinitions, target.prototype );
+    target.prototype[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= prototypeDefinitions;
     target.prototype= new Proxy( target.prototype, proxyVerifyFieldsObjectHandler );
     
+    //@TODO replace target.prototype in the following line. OR use another hidden field on class/constructor itself, that points to default  definitions for its new instances
+    // @TODO everywhere for proxies: instead of copying objects, merge through a prototype chain.
+    // @TODO don't allow per-prototype declaerd fields to be set on instances (other than the prototype itself). That may need a separate hidden field SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS
+    classInstanceDefinitions= Object.freeze( treatProxyFieldDefinitions(classInstanceDefinitions) ); //chainDefinitions(classInstanceDefinitions, target.prototype) );
     var result= new Proxy( target, proxyVerifyFieldsClassHandler(classInstanceDefinitions) );
     Object.defineProperty( result, SeLiteMisc.PROXY_TARGET_CLASS, {
       enumerable: false, configurable: false, writable: false,
@@ -609,7 +612,7 @@ SeLiteMisc.Enum= function Enum( name, forDirectSubclassPrototype ) {
 SeLiteMisc.Enum.prototype.toString= function toString() {
     return this.constructor.name+ '.' +this.name;
 };
-SeLiteMisc.Enum= SeLiteMisc.proxyVerifyFields( SeLiteMisc.Enum, {instances: Array}, {name: 'string'} );
+SeLiteMisc.Enum= SeLiteMisc.proxyVerifyFields( SeLiteMisc.Enum, {instances: Array}, {}, {name: 'string'} );
 
 var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
 
@@ -631,15 +634,17 @@ SeLiteMiscClassForVerifiedScope.prototype.declareGlobals= function declareGlobal
     SeLiteMisc.proxyAllowFields( this.globalScope, definitions );
 };
 
+/** For use with '*' catch-all declaration through SeLiteMisc.proxyVerifyFields(), to allow any functions on an object/class, or its prototype (or its future instances - though less likely to be useful for those). */
+SeLiteMisc.catchAllFunctions= function catchAllFunctions(name, value) {
+    return typeof value==='function';
+};
 /** @private Not to be exported.
  *  @class Class for object(s) that serve as verified global scope, passed to files loaded through SeLiteMisc.loadVerifyScope().
  * */
 function VerifiedScope() {}
-VerifiedScope= SeLiteMisc.proxyVerifyFields( VerifiedScope, {}, {
+VerifiedScope= SeLiteMisc.proxyVerifyFields( VerifiedScope, {}, {}, {
     SeLiteMisc: SeLiteMiscClassForVerifiedScope,
-    '*': function catchAll(name, value) {
-            return typeof value==='function';
-        }
+    '*': SeLiteMisc.catchAllFunctions
 } );
 
 /** Load a given file in a 'verified' global scope, which requires any global variables to be declared first. The scope will contain 'SeLiteMisc' object and any entries from initialScope. The file has to declare any other global variables with SeLiteMisc.declareGlobals().

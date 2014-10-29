@@ -170,7 +170,7 @@ if( false ) {
         /*Enum.prototype.toString= function toString() {
             return this.constructor.name+ '.' +this.name;
         };*/
-        Enum= SeLiteMisc.proxyVerifyFields( Enum, {instances: Array}, {name: 'string'} );
+        Enum= SeLiteMisc.proxyVerifyFields( Enum, {instances: Array}, {}, {name: 'string'} );
         //var instance= new Enum( 'enum');
 
         var Child= function Child() {
@@ -192,8 +192,9 @@ var RowLevelOrColumn= function RowLevelOrColumn( name, level ) {
 };
 RowLevelOrColumn.prototype= Object.create( SeLiteMisc.Enum.prototype );
 RowLevelOrColumn.prototype.constructor= RowLevelOrColumn;
-RowLevelOrColumn= SeLiteMisc.proxyVerifyFields( RowLevelOrColumn, {}, {level: 'number' } );
-SeLiteMisc.proxyAllowFields( RowLevelOrColumn.prototype, {forLevel: 'function'} );
+RowLevelOrColumn= SeLiteMisc.proxyVerifyFields( RowLevelOrColumn, {}, {forLevel: 'function'}, {level: 'number' } );
+
+SeLiteMisc.proxyAllowFields( RowLevelOrColumn.prototype, {forTestOnly: 'function'} );
 /** This is a simple translation map. It returns n-th argument (counting from 0), where n=this.level. If that argument is a function (a closure), this calls it and then it returns its result.
  * */
 RowLevelOrColumn.prototype.forLevel= function forLevel(first, second, etc ) {
@@ -515,7 +516,7 @@ var RowInfo= function RowInfo( module, setName, rowLevel, field, key, valueCompo
     }
     //         this.isUndefined= this.isNull= false;
 };
-RowInfo= SeLiteMisc.proxyVerifyFields( RowInfo, {}, {
+RowInfo= SeLiteMisc.proxyVerifyFields( RowInfo, {}, {'*': SeLiteMisc.catchAllFunctions}, {
     module: SeLiteSettings.Module,
     setName: ['string', 'undefined'],
     rowLevel: RowLevel,
@@ -543,7 +544,7 @@ var CellInfo= function CellInfo( rowInfo, column ) {
     this.editable= rowInfo.collectEditable( column );
     this.properties= rowInfo.collectProperties( column );
 };
-CellInfo= SeLiteMisc.proxyVerifyFields( CellInfo, {}, {
+CellInfo= SeLiteMisc.proxyVerifyFields( CellInfo, {}, {}, {
     label: ['string', 'undefined'],
     value: 'any',
     editable: 'boolean',
