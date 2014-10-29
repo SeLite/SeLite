@@ -279,6 +279,7 @@ SeLiteMisc.PROXY_TARGET_CONSTRUCTOR= 'SELITE_MISC_PROXY_TARGET_CONSTRUCTOR';
 SeLiteMisc.PROXY_TARGET_CLASS= 'SELITE_MISC_PROXY_TARGET_CLASS';
 SeLiteMisc.PROXY_FIELD_DEFINITIONS= 'SELITE_MISC_PROXY_FIELD_DEFINITIONS';
 SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS= 'SELITE_MISC_PROXY_PROTOTYPE_FIELD_DEFINITIONS';
+SeLiteMisc.PROXY_CLASS_INSTANCE_DEFINITIONS= 'SELITE_MISC_PROXY_CLASS_INSTANCE_DEFINITIONS';
 
 /** @private */
 var proxyVerifyFieldsOnReadObjectHandler= {
@@ -327,17 +328,18 @@ var proxyVerifyFieldsObjectHandler= {
     /** It seems to be supposed to return boolean, but the value is not documented at MDN. So I don't return anything. */
     set: function set(target, name, value, receiver) {
         // Since target[SeLiteMisc.PROXY_FIELD_DEFINITIONS] is an object, it has meta fields 'prototype' and 'constructor' by default. Therefore we don't have any validation for those. Also, we allow assigning to (update of) target[SeLiteMisc.PROXY_FIELD_DEFINITIONS] itself.
-        if( name!=='prototype' && name!=='constructor' && name!==SeLiteMisc.PROXY_FIELD_DEFINITIONS && name!==SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS ) {
+        if( name!=='prototype' && name!=='constructor' && name!==SeLiteMisc.PROXY_FIELD_DEFINITIONS && name!==SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS && name!==SeLiteMisc.PROXY_CLASS_INSTANCE_DEFINITIONS ) {
             var targetOrPrototype= target;
             while( targetOrPrototype!==null ) {
-                // I perform the following validation with hasOwnProperty(), in case the programmer created a prototype chain where some link(s) don't are proxies themselves.
+                // I perform the following validation with hasOwnProperty(), in case the programmer created a prototype chain where some link(s) are not proxies themselves.
                 if( targetOrPrototype.hasOwnProperty(SeLiteMisc.PROXY_FIELD_DEFINITIONS) ) {
+                    // @TODO subclasses now use chainedTreatedFefinitions, hence I only need to use the following on target[] once, not in a loop.
                     if( checkFieldAtLevel( targetOrPrototype[SeLiteMisc.PROXY_FIELD_DEFINITIONS], name, value ) ) {
                         break;
                     }
                 }
                 if( typeof target==='object' && targetOrPrototype.hasOwnProperty(SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS) ) {
-                    //@TODO don't allow parent prototype fields to be modified on child prototypes!
+                    //@TODO don't allow parent prototype fields to be modified on child prototypes! So: only use target[SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS], outside the loop.
                     if( checkFieldAtLevel( targetOrPrototype[SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS], name, value ) ) {
                         break;
                     }
@@ -368,7 +370,7 @@ var proxyVerifyFieldsOnReadClassHandler= {
     return proxy;
   }
 };
-function proxyVerifyFieldsClassHandler( treatedDefinitions ) {
+function proxyVerifyFieldsClassHandler( chainedTreatedDefinitions ) {
     return {
         get: proxyVerifyFieldsObjectHandler.get,
         set: proxyVerifyFieldsObjectHandler.set,
@@ -386,7 +388,7 @@ function proxyVerifyFieldsClassHandler( treatedDefinitions ) {
             }
           }*/
           var fNewConstr = function () {//@TODO low: make it non-interable:
-              this[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= Object.create( treatedDefinitions );
+              this[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= Object.create( chainedTreatedDefinitions );
           };
           fNewConstr.prototype = targetConstructor.prototype;
           var proxy= new Proxy( new fNewConstr(), proxyVerifyFieldsObjectHandler );
@@ -535,10 +537,15 @@ SeLiteMisc.proxyVerifyFields= function proxyVerifyFields( target, givenObjectOrC
     target.prototype[SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS]= prototypeDefinitions;
     target.prototype= new Proxy( target.prototype, proxyVerifyFieldsObjectHandler );
     
-    //@TODO replace target.prototype in the following line. OR use another hidden field on class/constructor itself, that points to default  definitions for its new instances
-    // @TODO everywhere for proxies: instead of copying objects, merge through a prototype chain.
-    // @TODO don't allow per-prototype declaerd fields to be set on instances (other than the prototype itself). That may need a separate hidden field SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS
     classInstanceDefinitions= treatProxyFieldDefinitions(classInstanceDefinitions); //chainDefinitions(classInstanceDefinitions, target.prototype) );
+    // @TODO move doc: I don't allow per-prototype declaerd fields to be set on instances (other than the prototype itself).
+    if( SeLiteMisc.PROXY_CLASS_INSTANCE_DEFINITIONS in target.prototype ) {
+        classInstanceDefinitions= SeLiteMisc.objectCopyFields( classInstanceDefinitions, Object.create( target.prototype[SeLiteMisc.PROXY_CLASS_INSTANCE_DEFINITIONS] ) );
+    }
+    target.prototype[SeLiteMisc.PROXY_CLASS_INSTANCE_DEFINITIONS]= classInstanceDefinitions;
+    
+    // Following chains any instance definitions from parent classes. That works even if target.prototype is not a proxy itself (i.e. it doesn't contain definitions), which is the case when we use Object.create() to create child prototypes.
+    
     var result= new Proxy( target, proxyVerifyFieldsClassHandler(classInstanceDefinitions) );
     Object.defineProperty( result, SeLiteMisc.PROXY_TARGET_CLASS, {
       enumerable: false, configurable: false, writable: false,
