@@ -214,8 +214,10 @@ var RowLevel= function RowLevel( name, level ) {
 //RowLevel.prototype= new RowLevelOrColumn( '', -1 );
 RowLevel.prototype= Object.create(RowLevelOrColumn.prototype); //@TODO use new XXX(), or pass it through SeLiteMisc.proxyVerifyFields()
 RowLevel.prototype.constructor= RowLevel;
+debugger;
 RowLevel= SeLiteMisc.proxyVerifyFields( RowLevel );
 SeLiteMisc.proxyAllowFields( RowLevel, ['MODULE', 'SET', 'FIELD', 'OPTION'] );
+debugger;
 RowLevel.MODULE= new RowLevel('MODULE', 0);
 // @TODO low importance AA test unit for SeLiteMisc:
 //SeLiteMisc.fail( ''+(RowLevel.SELITE_MISC_TARGET_CLASS===unproxyfiedRowLevel) );
