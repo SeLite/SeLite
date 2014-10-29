@@ -367,7 +367,6 @@ var proxyVerifyFieldsOnReadClassHandler= {
   }
 };
 function proxyVerifyFieldsClassHandler( treatedDefinitions ) {
-    Object.isFrozen(treatedDefinitions) || SeLiteMisc.fail( 'treatedDefinitions must be frozen' );
     return {
         get: proxyVerifyFieldsObjectHandler.get,
         set: proxyVerifyFieldsObjectHandler.set,
@@ -524,19 +523,19 @@ SeLiteMisc.proxyVerifyFields= function proxyVerifyFields( target, givenObjectOrC
    target[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= chainDefinitions( givenObjectOrClassDefinitions, target );
     // @TODO low: verify existing fields on target
     
-    if( typeof target==='object' ) { // It's more likely that a programmer calls SeLiteMisc.proxyAllowFields() on an object than on a class. So don't freeze givenObjectOrClassDefinitions, only freeze classInstanceDefinitions (below).
+    if( typeof target==='object' ) {
         return new Proxy( target, proxyVerifyFieldsObjectHandler );
     }
     
-    !target.prototype.hasOwnProperty(SeLiteMisc.PROXY_FIELD_DEFINITIONS) || SeLiteMisc.fail( "target.prototype is already a proxy!" );
+    !target.prototype.hasOwnProperty(SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS) || SeLiteMisc.fail( "target.prototype is already a proxy!" );
     prototypeDefinitions= chainDefinitions( prototypeDefinitions, target.prototype );
-    target.prototype[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= prototypeDefinitions;
+    target.prototype[SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS]= prototypeDefinitions;
     target.prototype= new Proxy( target.prototype, proxyVerifyFieldsObjectHandler );
     
     //@TODO replace target.prototype in the following line. OR use another hidden field on class/constructor itself, that points to default  definitions for its new instances
     // @TODO everywhere for proxies: instead of copying objects, merge through a prototype chain.
     // @TODO don't allow per-prototype declaerd fields to be set on instances (other than the prototype itself). That may need a separate hidden field SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS
-    classInstanceDefinitions= Object.freeze( treatProxyFieldDefinitions(classInstanceDefinitions) ); //chainDefinitions(classInstanceDefinitions, target.prototype) );
+    classInstanceDefinitions= treatProxyFieldDefinitions(classInstanceDefinitions); //chainDefinitions(classInstanceDefinitions, target.prototype) );
     var result= new Proxy( target, proxyVerifyFieldsClassHandler(classInstanceDefinitions) );
     Object.defineProperty( result, SeLiteMisc.PROXY_TARGET_CLASS, {
       enumerable: false, configurable: false, writable: false,
@@ -550,24 +549,21 @@ SeLiteMisc.proxyVerifyFields= function proxyVerifyFields( target, givenObjectOrC
  * @return void 
  * */
 SeLiteMisc.proxyAllowFields= function proxyAllowFields( proxy, definitions ) {
-    //@TODO for objects that have SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS, set it for that, not for SeLiteMisc.PROXY_FIELD_DEFINITIONS.
-    SeLiteMisc.PROXY_FIELD_DEFINITIONS in proxy || SeLiteMisc.fail( "Proxy object doesn't have a field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS." );
-    var existingDefinitions= proxy[SeLiteMisc.PROXY_FIELD_DEFINITIONS];
-    SeLiteMisc.hasType( existingDefinitions, 'some-object' ) || SeLiteMisc.fail( "Proxy object has a field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS, but it's not an object." );
-    var wasFrozen= Object.isFrozen(existingDefinitions);
-    if( !proxy.hasOwnProperty(SeLiteMisc.PROXY_FIELD_DEFINITIONS) || wasFrozen ) {
-        // existingDefinitions comes from the parent class prototype, or it's not frozen. So make a protective copy:
-        //@TODO low: make it non-interable (first, check whether 'iterability' descends from the parent prototype)
-        proxy[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= existingDefinitions= SeLiteMisc.objectClone(existingDefinitions);
+    var proxyDefinitionsHolderName;
+    if( proxy.hasOwnProperty(SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS) ) {
+        proxyDefinitionsHolderName= SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS;
+        typeof proxy==='object' || SeLiteMisc.fail( 'Internal error: You can only have SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS with objects, not on classes(constructors).');
+    }
+    else {
+        proxyDefinitionsHolderName= SeLiteMisc.PROXY_FIELD_DEFINITIONS;
+        proxy.hasOwnProperty(SeLiteMisc.PROXY_FIELD_DEFINITIONS) || SeLiteMisc.fail( "Proxy object doesn't have a field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS." );
     }
     definitions= treatProxyFieldDefinitions( definitions );
+    var existingDefinitions= proxy[proxyDefinitionsHolderName];
     for( var field in existingDefinitions ) {
         !( field in definitions ) || SeLiteMisc.fail( "Field '" +field+ "' has been declared previously." );
     }
     SeLiteMisc.objectCopyFields( definitions, existingDefinitions );
-    if( wasFrozen ) {
-        Object.freeze( existingDefinitions );
-    }
 };
 
 /** An auxilliary class, that allows setting fields with names generated at runtime in one function call, or through a chain of calls.
