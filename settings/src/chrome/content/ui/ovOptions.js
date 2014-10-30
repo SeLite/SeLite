@@ -23,12 +23,16 @@ if( typeof SeLiteMisc==='undefined' ) {
             XULElement: XULElement//typeof XULElement==='function', therefore I don't need to declare it below
         },
         new SeLiteMisc.Settable(
-            ['window', 'nsIFilePicker', 'FileUtils', 'promptService', 'SeLiteSettings', 'Services', 'subScriptLoader', 'nsIIOService', 'nsIPrefBranch', 'treeColumnElements', 'modules', 'treeRowsOrChildren', 'moduleSetFields'], 'some-object',
-
-            'newValueRow', ['number', 'undefined'],
-            ['XUL_NS', 'CREATE_NEW_SET', 'DELETE_THE_SET', 'ADD_NEW_VALUE', 'DELETE_THE_VALUE'], 'string',
-            ['pastFirstBlur', 'allowSets', 'allowMultivaluedNonChoices'], 'boolean',
-            'targetFolder', ['string', 'null']
+            ['window', 'nsIFilePicker', 'FileUtils', 'promptService', 'SeLiteSettings', 'Services', 'subScriptLoader', 'nsIIOService', 'nsIPrefBranch', 'treeColumnElements', 'modules', 'treeRowsOrChildren', 'moduleSetFields'],
+                'some-object',
+            'newValueRow',
+                ['number', 'undefined'],
+            ['XUL_NS', 'CREATE_NEW_SET', 'DELETE_THE_SET', 'ADD_NEW_VALUE', 'DELETE_THE_VALUE'],
+                'string',
+            ['pastFirstBlur', 'allowSets', 'allowMultivaluedNonChoices'],
+                'boolean',
+            'targetFolder',
+                ['string', 'null']
         )
     );
 }

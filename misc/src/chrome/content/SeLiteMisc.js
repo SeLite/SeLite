@@ -626,12 +626,13 @@ VerifiedScope= SeLiteMisc.proxyVerifyFields( VerifiedScope, {}, {}, {
     '*': SeLiteMisc.catchAllFunctions
 } );
 
-/** Load a given file in a 'verified' global scope, which requires any global variables to be declared first. The scope will contain 'SeLiteMisc' object and any entries from initialScope. The file has to declare any other global variables with SeLiteMisc.declareGlobals().
+/** Load a given file in a 'verified' global scope. Such a scope requires any global variables to be declared first. The scope will contain 'SeLiteMisc' object and any entries from initialScope. The file has to declare any other global variables (other than functions) with SeLiteMisc.declareGlobals().<br/>
+ * If you'd like to control any functions in the file, then pass a definition for field '*' that is a function which always returns false.
  * @param {string} fileURL
  * @param {object} [initialScope] It's copied - so subsequent changes to initialScope have no effect.
  * @param {(object|array)} [initialScopeDefinitions] See parameter definitions of SeLiteMisc.proxyVerifyFields().
  * @param {string} [charset='UTF-8']
- *  @return {subScriptLoader.loadSubScript
+ * @return {object} Scope, in which it loads the given file through _subScriptLoader.loadSubScript()_.
  * */
 SeLiteMisc.loadVerifyScope= function loadVerifyScope( fileURL, initialScope, initialScopeDefinitions, charset ) {
     initialScope= initialScope || {};
