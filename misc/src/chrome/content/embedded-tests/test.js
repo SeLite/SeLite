@@ -37,7 +37,7 @@ for( var i=0; i<records.length; i++ ) {
 
 var fieldNames= ['name', 'breed'];
 var indexed= SeLiteMisc.collectByColumn( records, fieldNames, false );
-console.warn( SeLiteMisc.objectToString(indexed, 3) );
+
 Object.keys(indexed).length===6 || SeLiteMisc.fail( 'by name, breed - bad number of entries.');
 recordsLoop: for( var i=0; i<records.length; i++ ) {
     var items= indexed[ SeLiteMisc.compoundIndexValue(records[i], fieldNames) ];
@@ -134,9 +134,9 @@ wasCaught || SeLiteMisc.fail();
 
 /** @class */
 var FilledIn= function FilledIn( name, job, pet ) {
-    SeLiteMisc.objectFillIn( this, ['name', 'job', 'pet'], arguments, false, /*do set missing ones*/false );
+    SeLiteMisc.objectFillIn( this, ['name', 'job', 'pet'], arguments, /*valuesFromProperObject*/false, /*dontSetMissingOnes is false, so this does set missing ones*/false );
 };
-FilledIn= SeLiteMisc.proxyVerifyFields( FilledIn, ['name', 'job', 'pet'] );
+FilledIn= SeLiteMisc.proxyVerifyFields( FilledIn, {}, {}, ['name', 'job', 'pet'] );
 var filledInInstance= new FilledIn( 'John' );
 'job' in filledInInstance && filledInInstance.job===undefined || SeLiteMisc.fail();
 filledInInstance.pet= 'cat';
