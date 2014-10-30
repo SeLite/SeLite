@@ -32,7 +32,10 @@ if( typeof SeLiteMisc==='undefined' ) {
             ['pastFirstBlur', 'allowSets', 'allowMultivaluedNonChoices'],
                 'boolean',
             'targetFolder',
-                ['string', 'null']
+                ['string', 'null'],
+            // Functions assigned multiple times - i.e. proxies
+            ['RowLevelOrColumn', 'RowLevel', 'Column', 'ValueSource', 'RowInfo', 'CellInfo'],
+                'function'
         )
     );
 }

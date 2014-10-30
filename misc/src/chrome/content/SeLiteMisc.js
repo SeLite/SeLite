@@ -16,12 +16,12 @@
 */
 "use strict";
 
-var runningAsComponent= (typeof window==='undefined' || window && window.location && window.location.protocol=='chrome:');
+/*var runningAsComponent= (typeof window==='undefined' || window && window.location && window.location.protocol=='chrome:');
 // runningAsComponent is false when loaded via <script src="file://..."> or <script src="http://..."> rather than via Components.utils.import().
 // Used for debugging; limited (because when it's not loaded via Components.utils.import() it can't access other components).
 if( runningAsComponent ) {
-    //var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
-}
+    var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+}/**/
 
 var SeLiteMisc= {};
 
@@ -32,6 +32,7 @@ var SeLiteMisc= {};
  *  and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw?redirectlocale=en-US&redirectslug=JavaScript%2FReference%2FStatements%2Fthrow
 */
 SeLiteMisc.fail= function fail( errorOrMessage ) {
+    debugger;
     var error= errorOrMessage!==undefined
         ?(typeof errorOrMessage==='object' &&  errorOrMessage.constructor.name==='Error'
             ? errorOrMessage
@@ -291,7 +292,8 @@ var proxyVerifyFieldsOnReadObjectHandler= {
 /** @param {object} definitions Definitions of fields. I.e. proxy[SeLiteMisc.PROXY_FIELD_DEFINITIONS].
  *  @return {boolean} Whether the given definitions allows a field with given name and value.
  * */
-function checkField( definitions, name, value ) {
+function checkField( name, value, target ) {
+    var definitions= target[SeLiteMisc.PROXY_FIELD_DEFINITIONS];
     var definition= definitions[name];
     if( definition!==undefined ) {
         
@@ -316,7 +318,7 @@ function checkField( definitions, name, value ) {
         return false;
     }
     var catchAll= definitions['*'];
-    return catchAll && catchAll.call(null, name, value);               
+    return catchAll && catchAll.call(null, name, value, target);               
 }
 
 /** For verifying on both read and write */
@@ -325,7 +327,7 @@ var proxyVerifyFieldsObjectHandler= {
     
     /** It seems to be supposed to return boolean, but the value is not documented at MDN. So I don't return anything. */
     set: function set(target, name, value, receiver) {
-        checkField( target[SeLiteMisc.PROXY_FIELD_DEFINITIONS], name, value )
+        checkField( name, value, target )
         || SeLiteMisc.fail( "Field '" +name+ "' on " +SeLiteMisc.typeAndClassNameOf(target)+ " is not declared, or it doesn't accept " +typeof value+ ': ' +value );
         target[name]= value;
     }
@@ -612,10 +614,13 @@ SeLiteMiscClassForVerifiedScope.prototype.declareGlobals= function declareGlobal
     SeLiteMisc.proxyAllowFields( this.globalScope, definitions );
 };
 
-/** For use with '*' catch-all declaration through SeLiteMisc.proxyVerifyFields(), to allow any functions on an object/class, or its prototype (or its future instances - though less likely to be useful for those). */
-SeLiteMisc.catchAllFunctions= function catchAllFunctions(name, value) {
-    return typeof value==='function';
+/** For use with '*' catch-all declaration through SeLiteMisc.proxyVerifyFields(), to allow any functions to be defined, but not redefined. */
+SeLiteMisc.catchAllFunctions= function catchAllFunctions(name, value, target) {
+    // Do not check just with target[name], for which the proxy throws an error when target[name] is not set.
+    // For some reason, when I use this from VerifiedScope, (name in target) is true even though target[name]===undefined if name is a name of a variable being set for the first time.
+    return ( !(name in target) || target[name]===undefined) && typeof value==='function';
 };
+
 /** @private Not to be exported.
  *  @class Class for object(s) that serve as verified global scope, passed to files loaded through SeLiteMisc.loadVerifyScope().
  * */
@@ -625,7 +630,7 @@ VerifiedScope= SeLiteMisc.proxyVerifyFields( VerifiedScope, {}, {}, {
     '*': SeLiteMisc.catchAllFunctions
 } );
 
-/** Load a given file in a 'verified' global scope. Such a scope requires any global variables to be declared first. The scope will contain 'SeLiteMisc' object and any entries from initialScope. The file has to declare any other global variables (other than functions) with SeLiteMisc.declareGlobals().<br/>
+/** Load a given file in a 'verified' global scope. Such a scope requires any global variables to be declared first. The scope will contain 'SeLiteMisc' object and any entries from initialScope. The file has to declare any other global variables (other than functions) with SeLiteMisc.declareGlobals(). It allows 'unverified' functions declared/assigned once only. If you assign a function multiple times (e.g. you define a constructor and then you make a proxy of it), you need to declare it specifically.<br/>
  * If you'd like to control any functions in the file, then pass a definition for field '*' that is a function which always returns false.
  * @param {string} fileURL
  * @param {object} [initialScope] It's copied - so subsequent changes to initialScope have no effect.
@@ -646,7 +651,6 @@ SeLiteMisc.loadVerifyScope= function loadVerifyScope( fileURL, initialScope, ini
         SeLiteMisc.proxyAllowFields( globalScope, Object.keys(initialScope) );
     }
     SeLiteMisc.objectCopyFields( initialScope, globalScope );
-    
     subScriptLoader.loadSubScript( fileURL, globalScope, charset );
     return globalScope;
 };
