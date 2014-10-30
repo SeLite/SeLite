@@ -278,7 +278,6 @@ SeLiteMisc.ensureInstance= function ensureInstance( object, classes, variableNam
 SeLiteMisc.PROXY_TARGET_CONSTRUCTOR= 'SELITE_MISC_PROXY_TARGET_CONSTRUCTOR';
 SeLiteMisc.PROXY_TARGET_CLASS= 'SELITE_MISC_PROXY_TARGET_CLASS';
 SeLiteMisc.PROXY_FIELD_DEFINITIONS= 'SELITE_MISC_PROXY_FIELD_DEFINITIONS';
-SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS= 'SELITE_MISC_PROXY_PROTOTYPE_FIELD_DEFINITIONS';
 SeLiteMisc.PROXY_CLASS_INSTANCE_DEFINITIONS= 'SELITE_MISC_PROXY_CLASS_INSTANCE_DEFINITIONS';
 
 /** @private */
@@ -290,11 +289,10 @@ var proxyVerifyFieldsOnReadObjectHandler= {
   }
 };
 
-/** @param {object} definitions Definitions at a given level of protype chain. Either for SeLiteMisc.PROXY_FIELD_DEFINITIONS or for SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS (if applicable).
- *  @return {boolean} Whether this level of definitions allows a field with given name and value.
+/** @param {object} definitions Definitions of fields. I.e. proxy[SeLiteMisc.PROXY_FIELD_DEFINITIONS].
+ *  @return {boolean} Whether the given definitions allows a field with given name and value.
  * */
 function checkField( definitions, name, value ) {
-    if( !definitions ) debugger;
     var definition= definitions[name];
     if( definition!==undefined ) {
         
@@ -329,12 +327,9 @@ var proxyVerifyFieldsObjectHandler= {
     /** It seems to be supposed to return boolean, but the value is not documented at MDN. So I don't return anything. */
     set: function set(target, name, value, receiver) {
         // Since target[SeLiteMisc.PROXY_FIELD_DEFINITIONS] is an object, it has meta fields 'prototype' and 'constructor' by default. Therefore we don't have any validation for those. Also, we allow assigning to (update of) target[SeLiteMisc.PROXY_FIELD_DEFINITIONS] etc. themselves.
-        if( name!=='prototype' && name!=='constructor' && name!==SeLiteMisc.PROXY_FIELD_DEFINITIONS && name!==SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS && name!==SeLiteMisc.PROXY_CLASS_INSTANCE_DEFINITIONS ) {
+        if( name!=='prototype' && name!=='constructor' && name!==SeLiteMisc.PROXY_FIELD_DEFINITIONS && name!==SeLiteMisc.PROXY_CLASS_INSTANCE_DEFINITIONS ) {
             checkField( target[SeLiteMisc.PROXY_FIELD_DEFINITIONS], name, value )
-            /*|| typeof target==='object' && SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS in target.prototype
-               && checkField( target.prototype[SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS], name, value )*/
             || SeLiteMisc.fail( "Field '" +name+ "' on " +SeLiteMisc.typeAndClassNameOf(target)+ " is not declared, or it doesn't accept " +typeof value+ ': ' +value );
-//@TODO don't allow parent prototype fields to be modified on child prototypes! So: only use target[SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS], outside the loop.
         }
         target[name]= value;
     }
@@ -518,22 +513,17 @@ SeLiteMisc.proxyVerifyFields= function proxyVerifyFields( target, givenObjectOrC
 /** Add definitions of field(s) to an existing proxy (either an object or a constructor/class), that has been created by SeLiteMisc.proxyVerifyFields() or by a constructor processed by SeLiteMisc.proxyVerifyFields().
  * @param {object} proxy Either an object, or a constructor (a class), that is a proxy.
  * @param {object} definitions See the same parameter of SeLiteMisc.proxyVerifyFields().
+ * @param {boolean} [preventDefinitionOverride=false] Whether to prevent override of any existing definition (inherited or own).
  * @return void 
  * */
-SeLiteMisc.proxyAllowFields= function proxyAllowFields( proxy, definitions ) {
-    var proxyDefinitionsHolderName;
-    if( proxy.hasOwnProperty(SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS) ) {
-        proxyDefinitionsHolderName= SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS;
-        typeof proxy==='object' || SeLiteMisc.fail( 'Internal error: You can only have SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS with objects, not on classes(constructors).');
-    }
-    else {
-        proxyDefinitionsHolderName= SeLiteMisc.PROXY_FIELD_DEFINITIONS;
-        proxy.hasOwnProperty(SeLiteMisc.PROXY_FIELD_DEFINITIONS) || SeLiteMisc.fail( "Proxy object doesn't have a field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS." );
-    }
+SeLiteMisc.proxyAllowFields= function proxyAllowFields( proxy, definitions, preventDefinitionOverride ) {
+    proxy.hasOwnProperty(SeLiteMisc.PROXY_FIELD_DEFINITIONS) || SeLiteMisc.fail( "Proxy object doesn't have a field with name equal to value of SeLiteMisc.PROXY_FIELD_DEFINITIONS." );
     definitions= treatProxyFieldDefinitions( definitions );
-    var existingDefinitions= proxy[proxyDefinitionsHolderName];
-    for( var field in existingDefinitions ) {
-        !( field in definitions ) || SeLiteMisc.fail( "Field '" +field+ "' has been declared previously." );
+    var existingDefinitions= proxy[SeLiteMisc.PROXY_FIELD_DEFINITIONS];
+    if( preventDefinitionOverride ) {
+        for( var field in existingDefinitions ) {
+            !( field in definitions ) || SeLiteMisc.fail( "Field '" +field+ "' has been declared previously." );
+        }
     }
     SeLiteMisc.objectCopyFields( definitions, existingDefinitions );
 };
