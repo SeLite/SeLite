@@ -16,9 +16,18 @@
 */
 "use strict";
 
-var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
-Components.utils.import( 'chrome://selite-misc/content/SeLiteMisc.js' );
-
+if( typeof SeLiteMisc==='undefined' ) {
+    Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
+    var verifiedScope= SeLiteMisc.loadVerifyScope( 'chrome://selite-misc/content/embedded-tests/test.js',
+        {
+            document: document,
+            testSuccessful: undefined
+        },
+        { '*': function() {return true;} }
+    );
+    var testSuccessful= verifiedScope.testSuccessful;
+}
+else {
 var records= [
     {name: 'Elaine', breed: 'husky', age:2},
     {name: 'Roxy', breed: 'husky', age:2},
@@ -50,17 +59,17 @@ recordsLoop: for( var i=0; i<records.length; i++ ) {
 }
 //------
 
-function GrandParent() {}
+var GrandParent= function GrandParent() {};
 
-function Parent() {
+var Parent= function Parent() {
   GrandParent.call( this );
-}
+};
 Parent.prototype= Object.create(GrandParent.prototype);
 Parent.prototype.constructor= Parent;
 
-function Child() {
+var Child= function Child() {
   Parent.call( this );
-}
+};
 Child.prototype= Object.create(Parent.prototype);
 Child.prototype.constructor= Child;
 
@@ -80,14 +89,14 @@ object= {};
 SeLiteMisc.objectFillIn( object, ['name', 'job', 'pet'], ['Joe', 'painter'], /*aluesFromProperObject*/false, /*dontSetMissingOnes*/true );
 object.name==='Joe' && object.job==='painter' && object.pet===undefined || SeLiteMisc.fail();
 
-function objectFillInFromArgumentsWithMissingOnes( name, job, pet ) {
+var objectFillInFromArgumentsWithMissingOnes= function objectFillInFromArgumentsWithMissingOnes( name, job, pet ) {
     return SeLiteMisc.objectFillIn( {}, ['name', 'job', 'pet'], arguments, /*valuesFromProperObject*/false /*dontSetMissingOnes: false*/ );
-}
+};
 objectFillInFromArgumentsWithMissingOnes( 'Joe' ).job===undefined || SeLiteMisc.fail();
 
-function objectFillInFromArgumentsWithoutMissingOnes( name, job, pet ) {
+var objectFillInFromArgumentsWithoutMissingOnes= function objectFillInFromArgumentsWithoutMissingOnes( name, job, pet ) {
     return SeLiteMisc.objectFillIn( {}, ['name', 'job', 'pet'], arguments, /*valuesFromProperObject*/false, /*dontSetMissingOnes*/true );
-}
+};
 !('job' in objectFillInFromArgumentsWithoutMissingOnes('Joe') ) || SeLiteMisc.fail();
 
 var objectProxyOnRead= SeLiteMisc.proxyVerifyFieldsOnRead( {
@@ -143,5 +152,6 @@ filledInInstance.pet= 'cat';
 
 //document.write('h');
 //document.innerHTML= 'all fine';
-var testSuccessful= true;
-document.write( 'oo');
+testSuccessful= true;
+document.write( 'from ' +document.location.href );
+}
