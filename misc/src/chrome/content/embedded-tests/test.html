@@ -15,12 +15,13 @@
                 var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
                 var folderRegex= /(.+\/)[^/]+/;
                 var folderURL= folderRegex.exec( document.location.href )[ 1 ];
-                subScriptLoader.loadSubScript( folderURL+ 'test.js' );
+                // subScriptLoader.loadSubScript() caches the scripts. Therefore I add a timestamp to the file name.
+                subScriptLoader.loadSubScript( folderURL+ 'test.js?' +Date.now() );
             }
             catch( e ) {
                 error= e;
                 document.write( 'Failed<br/>' );
-                document.write( e.message.replace( '\n', '<br/>') );
+                document.write( (''+e).replace( '\n', '<br/>') );
                 if( !e.messageContainsStack ) {
                     document.write( '<br/>' +e.stack.replace( '\n', '<br/>' ) );
                 }

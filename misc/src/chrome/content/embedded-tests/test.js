@@ -19,10 +19,7 @@
 if( typeof SeLiteMisc==='undefined' ) {
     Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
     var verifiedScope= SeLiteMisc.loadVerifyScope( 'chrome://selite-misc/content/embedded-tests/test.js',
-        {
-            document: document,
-            testSuccessful: undefined
-        },
+        {},
         { '*': function() {return true;} }
     );
     var testSuccessful= verifiedScope.testSuccessful;
@@ -149,7 +146,4 @@ FilledIn= SeLiteMisc.proxyVerifyFields( FilledIn, {}, {}, ['name', 'job', 'pet']
 var filledInInstance= new FilledIn( 'John' );
 'job' in filledInInstance && filledInInstance.job===undefined || SeLiteMisc.fail();
 filledInInstance.pet= 'cat';
-
-testSuccessful= true;
-document.write( 'from ' +document.location.href );
 }

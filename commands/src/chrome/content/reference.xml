@@ -2,7 +2,7 @@
 <?xml-stylesheet type="text/xsl" href="https://selite.googlecode.com/git/selenese_reference_to_html.xsl"?>
 <!-- If you'd like to preview this reference.xml in Firefox, open it either
 - online from https://selite.googlecode.com/git/commands/src/chrome/content/reference.xml, or
-- offline from your local checkout/unzipped folder at ../../../../selenese_reference.html?selite-commands/src/chrome/content/reference.xml
+- offline from your local checkout/unzipped folder at ../../../../selenese_reference.html?commands/src/chrome/content/reference.xml
 
 Xml-stylesheet (whether remote or even local) didn't load up work when you open this in a browser locally via file://
 -->

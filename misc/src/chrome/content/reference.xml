@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml-stylesheet type="text/xsl" href="https://selite.googlecode.com/git/selenese_reference_to_html.xsl"?>
+<!-- If you'd like to preview this reference.xml in Firefox, open it either
+- online from https://selite.googlecode.com/git/misc/src/chrome/content/reference.xml, or
+- offline from your local checkout/unzipped folder at ../../../../selenese_reference.html?misc/src/chrome/content/reference.xml
+
+Xml-stylesheet (whether remote or even local) didn't load up work when you open this in a browser locally via file://
+-->
+<apidoc package-name="SeLite Miscellaneous">
+<function name="runJavascript">
+    <param name="fileURL">URL of the file to load and run. It must be a local chrome:, resource: or file: URL.</param>
+    <param name="scope">Scope object. Optional. If present, it must an object passed through SelBlocksGlobal enhanced sytax =` {...} ` (see https://code.google.com/p/selite/wiki/EnhancedSyntax). If scope is not passed, the file is loaded into Selenium Core scope.</param>
+    <comment>This loads and runs a privileged Javascript file. It doesn't cache it. This could load a Core extension, but don't use it for that. It's intended to load Javascript that tests functionality which would be too awkward to test directly from Selenese.
+    </comment>
+</function>   
+</apidoc>

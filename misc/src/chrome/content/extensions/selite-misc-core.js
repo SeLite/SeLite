@@ -22,121 +22,135 @@ Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
 ( function() {
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 
-/*  This is here, rather than in selite-misc.js component, because it needs to access global variable 'selenium'.
- *  I've tried to have it in selite-misc.js and to load the component using
- *  Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js", {selenium: selenium} );
- *  above, but that failed, because variable selenium is not yet defined when selite-misc-core.js is processed.
- *  @TODO Document that in JavascriptAdvanced.wiki
- */
- /**  This returns value of given parameter (if present) from current URL;
- *  if parameter name is not given, then it returns value of the last parameter in the URL.
- *  @param string paramName optional
- *  @return string value of the parameter; null if there are no parameters at all, or if the requested parameter is not present.
- *  I've tried to have this as a Selenium command, using
- *  Selenium.prototype.getUrlParam= function( locator, unused ) {...};
- *  That auto-generated Selenium command storeUrlParam, but the parameters were not passed to it!
- */
-SeLiteMisc.getUrlParam= function getUrlParam( paramName ) {
-    var search= selenium.browserbot.getCurrentWindow().location.search; // If the URL has no parameters, then this is an empty string
-    if( search!=='' ) {
-        search= search.substr( 1 ); // removing leading '?'
-    }
-    var pairs= search.split( '&' );
-    if( paramName ) {
-        var paramNameEquals= paramName+'=';
-        for( var i=0; i<pairs.length; i++ ) {
-            var pair= pairs[i];
-            if( pair.indexOf(paramNameEquals)==0 ) {
-                return pair.substr( paramNameEquals.length );
+    /*  This is here, rather than in selite-misc.js component, because it needs to access global variable 'selenium'.
+     *  I've tried to have it in selite-misc.js and to load the component using
+     *  Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js", {selenium: selenium} );
+     *  above, but that failed, because variable selenium is not yet defined when selite-misc-core.js is processed.
+     *  @TODO Document that in JavascriptAdvanced.wiki
+     */
+     /**  This returns value of given parameter (if present) from current URL;
+     *  if parameter name is not given, then it returns value of the last parameter in the URL.
+     *  @param string paramName optional
+     *  @return string value of the parameter; null if there are no parameters at all, or if the requested parameter is not present.
+     *  I've tried to have this as a Selenium command, using
+     *  Selenium.prototype.getUrlParam= function( locator, unused ) {...};
+     *  That auto-generated Selenium command storeUrlParam, but the parameters were not passed to it!
+     */
+    SeLiteMisc.getUrlParam= function getUrlParam( paramName ) {
+        var search= selenium.browserbot.getCurrentWindow().location.search; // If the URL has no parameters, then this is an empty string
+        if( search!=='' ) {
+            search= search.substr( 1 ); // removing leading '?'
+        }
+        var pairs= search.split( '&' );
+        if( paramName ) {
+            var paramNameEquals= paramName+'=';
+            for( var i=0; i<pairs.length; i++ ) {
+                var pair= pairs[i];
+                if( pair.indexOf(paramNameEquals)==0 ) {
+                    return pair.substr( paramNameEquals.length );
+                }
             }
         }
-    }
-    else
-    if( pairs.length>0 ) {
-        var pair= pairs[ pairs.length-1 ];
-        var equalsIndex= pair.indexOf('=');
-        if( equalsIndex>=0 ) {
-            return pair.substr( equalsIndex+1 );
+        else
+        if( pairs.length>0 ) {
+            var pair= pairs[ pairs.length-1 ];
+            var equalsIndex= pair.indexOf('=');
+            if( equalsIndex>=0 ) {
+                return pair.substr( equalsIndex+1 );
+            }
         }
+        return null;
+    };
+
+        var loginManagerInstance = Components.classes["@mozilla.org/login-manager;1"].
+            getService(Components.interfaces.nsILoginManager);
+
+    function hostname( hostnameOrUseBaseURL ) {
+        var testLocation= selenium.browserbot.getCurrentWindow().location;
+        SeLiteMisc.ensureType( hostnameOrUseBaseURL, ['undefined', 'string', 'boolean'], 'hostnameOrUseBaseURL' );
+        return hostnameOrUseBaseURL
+            ? (typeof hostnameOrUseBaseURL==='string'
+                ? hostnameOrUseBaseURL
+                : selenium.browserbot.baseUrl
+              )
+            : testLocation.protocol+ '//' +testLocation.hostname+
+                (testLocation.port
+                ? ':' +testLocation.port
+                : '');
     }
-    return null;
-};
 
-    var loginManagerInstance = Components.classes["@mozilla.org/login-manager;1"].
-        getService(Components.interfaces.nsILoginManager);
+    /** This retrieves a web form password for a user. It doesn't work with .htaccess/HTTP authentication,
+        but that can be retrieved too, see
+        <br> https://developer.mozilla.org/En/Using_nsILoginManager
+        <br> https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsILoginManager
+        <br> https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsILoginInfo
 
-function hostname( hostnameOrUseBaseURL ) {
-    var testLocation= selenium.browserbot.getCurrentWindow().location;
-    SeLiteMisc.ensureType( hostnameOrUseBaseURL, ['undefined', 'string', 'boolean'], 'hostnameOrUseBaseURL' );
-    return hostnameOrUseBaseURL
-        ? (typeof hostnameOrUseBaseURL==='string'
-            ? hostnameOrUseBaseURL
-            : selenium.browserbot.baseUrl
-          )
-        : testLocation.protocol+ '//' +testLocation.hostname+
-            (testLocation.port
-            ? ':' +testLocation.port
-            : '');
-}
+        @param {string} username Case-sensitive username.
+        @param {mixed} hostnameOrUseBaseURL String hostname in form 'https://server-name.some.domain'. It must contain http or https. It can contain the port (if not standard),
+        but no trailing slash / neither any URI (path). Optional; if not present, then this uses the current website.
+        If it's true (boolean), then the function uses Selenium IDE's "Base URL" field - which may be different to the test website (e.g. single-sign-on). @TODO Once/if http://code.google.com/p/selenium/issues/detail?id=3116 is fixed, I'd need to extract the protocol+host+port from Base URL here.
+        @param {boolean} [returnLoginInfo] Whether to return nsILoginInfo object (if any); otherwise (and by default) this returns a string password (if any).
+        @return {string} password if found; undefined otherwise
+    */
+    SeLiteMisc.loginManagerPassword= function loginManagerPassword( username, hostnameOrUseBaseURL, returnLoginInfo ) {
+        SeLiteMisc.ensureType( username, 'string', 'username' );
+        SeLiteMisc.ensureType( hostnameOrUseBaseURL, ['string', 'boolean', 'undefined'], 'hostnameOrUseBaseURL' );
+        SeLiteMisc.ensureType( returnLoginInfo, ['boolean', 'undefined'], 'returnLoginInfo' );
+        // You could also use passwordManager.getAllLogins(); it returns an array of nsILoginInfo objects
+        var hostname= hostname( hostnameOrUseBaseURL );
+        console.log( 'SeLiteMisc.loginManagerPassword(): hostname is ' +hostname );
+        var logins = loginManagerInstance.findLogins(
+            {}, hostname,
+            '', // null doesn't work here. See https://developer.mozilla.org/En/Using_nsILoginManager: it says to use blank for web form auth.
+            null
+        );
 
-/** This retrieves a web form password for a user. It doesn't work with .htaccess/HTTP authentication,
-    but that can be retrieved too, see
-    <br> https://developer.mozilla.org/En/Using_nsILoginManager
-    <br> https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsILoginManager
-    <br> https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsILoginInfo
+        for( var i=0; i<logins.length; i++ ) {
+            if( logins[i].username==username ) {
+                return returnLoginInfo
+                    ? logins[i]
+                    : logins[i].password;
+            }
+        }
+    };
 
-    @param {string} username Case-sensitive username.
-    @param {mixed} hostnameOrUseBaseURL String hostname in form 'https://server-name.some.domain'. It must contain http or https. It can contain the port (if not standard),
-    but no trailing slash / neither any URI (path). Optional; if not present, then this uses the current website.
-    If it's true (boolean), then the function uses Selenium IDE's "Base URL" field - which may be different to the test website (e.g. single-sign-on). @TODO Once/if http://code.google.com/p/selenium/issues/detail?id=3116 is fixed, I'd need to extract the protocol+host+port from Base URL here.
-    @param {boolean} [returnLoginInfo] Whether to return nsILoginInfo object (if any); otherwise (and by default) this returns a string password (if any).
-    @return {string} password if found; undefined otherwise
-*/
-SeLiteMisc.loginManagerPassword= function loginManagerPassword( username, hostnameOrUseBaseURL, returnLoginInfo ) {
-    SeLiteMisc.ensureType( username, 'string', 'username' );
-    SeLiteMisc.ensureType( hostnameOrUseBaseURL, ['string', 'boolean', 'undefined'], 'hostnameOrUseBaseURL' );
-    SeLiteMisc.ensureType( returnLoginInfo, ['boolean', 'undefined'], 'returnLoginInfo' );
-    // You could also use passwordManager.getAllLogins(); it returns an array of nsILoginInfo objects
-    var hostname= hostname( hostnameOrUseBaseURL );
-    console.log( 'SeLiteMisc.loginManagerPassword(): hostname is ' +hostname );
-    var logins = loginManagerInstance.findLogins(
-        {}, hostname,
-        '', // null doesn't work here. See https://developer.mozilla.org/En/Using_nsILoginManager: it says to use blank for web form auth.
-        null
-    );
+    /** It inserts or updates details in Firefox Login Manager.
+     * */
+    SeLiteMisc.setLoginManagerEntry= function setLoginManagerEntry( username, password, hostnameOrUseBaseURL, formActionOrUserBaseURL ) {
+        SeLiteMisc.ensureType( username, 'string', 'username' );
+        SeLiteMisc.ensureType( password, 'string', 'password' );
+        SeLiteMisc.ensureType( hostnameOrUseBaseURL, ['string', 'boolean', 'undefined'], 'hostnameOrUseBaseURL' );
+        SeLiteMisc.ensureType( formActionOrUserBaseURL, ['string', 'boolean', 'undefined'], 'formActionOrUserBaseURL' );
+        var loginInfo= Components.classes["@mozilla.org/login-manager/loginInfo;1"]
+                    .createInstance(Components.interfaces.nsILoginInfo);
+        loginInfo.hostname= hostname( hostnameOrUseBaseURL );
+        loginInfo.formSubmitURL= hostname( formActionOrUserBaseURL );
+        loginInfo.httpRealm= null;
+        loginInfo.username= username;
+        loginInfo.password= password;
+        loginInfo.usernameField= SeLiteSettings.commonSettings.fields['usernameField'].getDownToFolder().entry;
+        loginInfo.passwordField= SeLiteSettings.commonSettings.fields['passwordField'].getDownToFolder().entry;
+        var existingInfo= SeLiteMisc.loginManagerPassword( username, hostnameOrUseBaseURL, true );
+        if( existingInfo===undefined ) {
+            loginManagerInstance.addLogin( loginInfo );
+        }
+        else {
+            loginManagerInstance.modifyLogin( existingInfo, loginInfo );
+        }
+    };
+
+    var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
     
-    for( var i=0; i<logins.length; i++ ) {
-        if( logins[i].username==username ) {
-            return returnLoginInfo
-                ? logins[i]
-                : logins[i].password;
+    Selenium.prototype.doRunJavascript= function doRunJavascript( fileURL, scope ) {
+        fileURL+= fileURL.indexOf('?')<0
+            ? '?'
+            : '&';
+        fileURL+= Date.now();
+        if( scope ) {
+            subScriptLoader.loadSubScript( fileURL, scope );
         }
-    }
-};
-
-/** It inserts or updates details in Firefox Login Manager.
- * */
-SeLiteMisc.setLoginManagerEntry= function setLoginManagerEntry( username, password, hostnameOrUseBaseURL, formActionOrUserBaseURL ) {
-    SeLiteMisc.ensureType( username, 'string', 'username' );
-    SeLiteMisc.ensureType( password, 'string', 'password' );
-    SeLiteMisc.ensureType( hostnameOrUseBaseURL, ['string', 'boolean', 'undefined'], 'hostnameOrUseBaseURL' );
-    SeLiteMisc.ensureType( formActionOrUserBaseURL, ['string', 'boolean', 'undefined'], 'formActionOrUserBaseURL' );
-    var loginInfo= Components.classes["@mozilla.org/login-manager/loginInfo;1"]
-                .createInstance(Components.interfaces.nsILoginInfo);
-    loginInfo.hostname= hostname( hostnameOrUseBaseURL );
-    loginInfo.formSubmitURL= hostname( formActionOrUserBaseURL );
-    loginInfo.httpRealm= null;
-    loginInfo.username= username;
-    loginInfo.password= password;
-    loginInfo.usernameField= SeLiteSettings.commonSettings.fields['usernameField'].getDownToFolder().entry;
-    loginInfo.passwordField= SeLiteSettings.commonSettings.fields['passwordField'].getDownToFolder().entry;
-    var existingInfo= SeLiteMisc.loginManagerPassword( username, hostnameOrUseBaseURL, true );
-    if( existingInfo===undefined ) {
-        loginManagerInstance.addLogin( loginInfo );
-    }
-    else {
-        loginManagerInstance.modifyLogin( existingInfo, loginInfo );
-    }
-};
-
+        else {
+            subScriptLoader.loadSubScript( fileURL );
+        }
+    };
 }) ();
