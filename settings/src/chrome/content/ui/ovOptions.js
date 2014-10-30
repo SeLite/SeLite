@@ -137,50 +137,7 @@ var chooseFileOrFolder= function chooseFileOrFolder( field, tree, row, column, i
     }
     return false;
 };
-if( false ) {
-    ( function(){
-        var Enum= function Enum( name, forDirectSubclassPrototype ) {
-             var console = (Components.utils.import("resource://gre/modules/devtools/Console.jsm", {})).console;
-             console.error( 'hasOwnProperty("name"): ' +this.hasOwnProperty('name') );
-             console.error( 'Object.getPrototypeOf(this).hasOwnProperty("name"): ' +Object.getPrototypeOf(this).hasOwnProperty('name') );
-             console.error( '"name" in this: ' +('name' in this) );
-             console.error( this.name );
-             console.error( 'Object.getPrototypeOf(Object.getPrototypeOf(this) ).hasOwnProperty("name"): ' +Object.getPrototypeOf( Object.getPrototypeOf(this) ).hasOwnProperty('name') ); //-> true
-             console.error( Object.getPrototypeOf(this) ); // Object { constructor: Child() }
-             console.error( Object.getPrototypeOf(this)===Enum.prototype ); // false!
 
-             console.error( Object.getPrototypeOf( Object.getPrototypeOf(this) ) );
-             console.error( Object.getPrototypeOf( Object.getPrototypeOf(this) )===Enum ); // false
-             console.error( Object.getPrototypeOf( Object.getPrototypeOf(this) )===Enum.prototype ); // false
-             console.error( Object.getPrototypeOf( Object.getPrototypeOf(this) ).name );
-            debugger;
-            try{this.name= name;}catch(e) {; console.error( ''+e+ '\n name: ' +this.name+ '\n' +e.stack); }
-            /*if( this.hasOwnProperty(SeLiteMisc.PROXY_TARGET_CONSTRUCTOR) && this[SeLiteMisc.PROXY_TARGET_CONSTRUCTOR]===SeLiteMisc.Enum[SeLiteMisc.PROXY_TARGET_CLASS] ) {
-                forDirectSubclassPrototype || SeLiteMisc.fail( "Don't instantiate SeLiteMisc.Enum() directly, unless it's for a prototype of its direct subclass." );
-                return;
-            }*/
-
-            // this.constructor is the actual leaf constructor (class) - instances[] is therefore separate between subclasses of SeLiteMisc.Enum
-            if( !('instances' in this.constructor) ) { // this check is instead of: this.constructor.instances= this.constructor.instances, to make this class compatible with SeLiteMisc.proxyVerifyFieldsOnRead()
-                /** Array of instances for the particular leaf subclass. */
-                this.constructor.instances= [];
-            }
-            this.constructor.instances.push( this );
-        };
-        /*Enum.prototype.toString= function toString() {
-            return this.constructor.name+ '.' +this.name;
-        };*/
-        Enum= SeLiteMisc.proxyVerifyFields( Enum, {instances: Array}, {}, {name: 'string'} );
-        //var instance= new Enum( 'enum');
-
-        var Child= function Child() {
-            Enum.call( this, 'child');
-        };
-        Child.prototype= Object.create(Enum.prototype);
-        Child.prototype.constructor= Child;
-        var child= new Child();
-    } )();
-}
 /** Enumeration-like class. Instances of subclasses indicate hierarchical levels of rows within the tree, or the column.
  * @class
  * @param {string} name

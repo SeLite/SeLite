@@ -326,11 +326,8 @@ var proxyVerifyFieldsObjectHandler= {
     
     /** It seems to be supposed to return boolean, but the value is not documented at MDN. So I don't return anything. */
     set: function set(target, name, value, receiver) {
-        // Since target[SeLiteMisc.PROXY_FIELD_DEFINITIONS] is an object, it has meta fields 'prototype' and 'constructor' by default. Therefore we don't have any validation for those. Also, we allow assigning to (update of) target[SeLiteMisc.PROXY_FIELD_DEFINITIONS] etc. themselves.
-        if( name!=='prototype' && name!=='constructor' && name!==SeLiteMisc.PROXY_FIELD_DEFINITIONS && name!==SeLiteMisc.PROXY_CLASS_INSTANCE_DEFINITIONS ) {
-            checkField( target[SeLiteMisc.PROXY_FIELD_DEFINITIONS], name, value )
-            || SeLiteMisc.fail( "Field '" +name+ "' on " +SeLiteMisc.typeAndClassNameOf(target)+ " is not declared, or it doesn't accept " +typeof value+ ': ' +value );
-        }
+        checkField( target[SeLiteMisc.PROXY_FIELD_DEFINITIONS], name, value )
+        || SeLiteMisc.fail( "Field '" +name+ "' on " +SeLiteMisc.typeAndClassNameOf(target)+ " is not declared, or it doesn't accept " +typeof value+ ': ' +value );
         target[name]= value;
     }
 };
@@ -359,8 +356,12 @@ function proxyVerifyFieldsClassHandler( chainedTreatedDefinitions ) {
         set: proxyVerifyFieldsObjectHandler.set,
         // Just like proxyVerifyFieldsOnReadClassHandler.construct(), but this sets field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS on the newly created object
         construct: function construct( targetConstructor, args ) {
-          var fNewConstr = function () {//@TODO low: make it non-interable:
-              this[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= Object.create( chainedTreatedDefinitions );
+          var fNewConstr = function () {
+              // Following works, even if Object.getPrototypeOf(this) has SeLiteMisc.PROXY_FIELD_DEFINITIONS (which is then non-configurable).
+              Object.defineProperty( this, SeLiteMisc.PROXY_FIELD_DEFINITIONS, {
+                  enumerable: false, configurable: false, writable: false,
+                  value: chainedTreatedDefinitions
+              });
           };
           fNewConstr.prototype = targetConstructor.prototype;
           var proxy= new Proxy( new fNewConstr(), proxyVerifyFieldsObjectHandler );
@@ -476,8 +477,11 @@ function treatProxyFieldDefinitions( definitions, targetOrProxy ) {
 SeLiteMisc.proxyVerifyFields= function proxyVerifyFields( target, givenObjectOrClassDefinitions, prototypeDefinitions, classInstanceDefinitions ) {
     !(SeLiteMisc.PROXY_FIELD_DEFINITIONS in target) || SeLiteMisc.fail( "target or its [grand..]prototype is already a proxy!" );
     // I treat and validate definitions now, so the proxy's set() doesn't have to.
-    //@TODO low: make this field non-iterable:
-   target[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= treatProxyFieldDefinitions(givenObjectOrClassDefinitions);
+    
+    Object.defineProperty( target, SeLiteMisc.PROXY_FIELD_DEFINITIONS, {
+      enumerable: false, configurable: false, writable: false,
+      value: treatProxyFieldDefinitions(givenObjectOrClassDefinitions)
+    });
     // @TODO low: verify existing fields on target?
     
     if( typeof target==='object' ) {
@@ -485,23 +489,25 @@ SeLiteMisc.proxyVerifyFields= function proxyVerifyFields( target, givenObjectOrC
     }
     
     typeof target.prototype==='object' || SeLiteMisc.fail();
-    //!(SeLiteMisc.PROXY_FIELD_DEFINITIONS in target.prototype) || SeLiteMisc.fail( "target.prototype is already a proxy!" );
     !target.prototype.hasOwnProperty(SeLiteMisc.PROXY_FIELD_DEFINITIONS) || SeLiteMisc.fail( "target.prototype is already a proxy." );
     prototypeDefinitions= treatProxyFieldDefinitions(prototypeDefinitions);
     if( SeLiteMisc.PROXY_FIELD_DEFINITIONS in target.prototype ) {
         prototypeDefinitions= SeLiteMisc.objectCopyFields( prototypeDefinitions, Object.create( target.prototype[SeLiteMisc.PROXY_FIELD_DEFINITIONS] ) );
     }
-    target.prototype[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= prototypeDefinitions;
-    target.prototype= new Proxy( target.prototype, proxyVerifyFieldsObjectHandler );
+    Object.defineProperty( target.prototype, SeLiteMisc.PROXY_FIELD_DEFINITIONS, {
+      enumerable: false, configurable: false, writable: false,
+      value: prototypeDefinitions
+    });
     
     classInstanceDefinitions= treatProxyFieldDefinitions(classInstanceDefinitions);
     // @TODO move doc: I don't allow per-prototype declared fields to be set on instances (other than the prototype itself).
     if( SeLiteMisc.PROXY_CLASS_INSTANCE_DEFINITIONS in target.prototype ) {
         classInstanceDefinitions= SeLiteMisc.objectCopyFields( classInstanceDefinitions, Object.create( target.prototype[SeLiteMisc.PROXY_CLASS_INSTANCE_DEFINITIONS] ) );
     }
-    target.prototype[SeLiteMisc.PROXY_CLASS_INSTANCE_DEFINITIONS]= classInstanceDefinitions;
-    
-    // Following chains any instance definitions from parent classes. That works even if target.prototype is not a proxy itself (i.e. it doesn't contain definitions), which is the case when we use Object.create() to create child prototypes.
+    Object.defineProperty( target.prototype, SeLiteMisc.PROXY_CLASS_INSTANCE_DEFINITIONS, {
+      enumerable: false, configurable: false, writable: false,
+      value: classInstanceDefinitions
+    });
     
     var result= new Proxy( target, proxyVerifyFieldsClassHandler(classInstanceDefinitions) );
     Object.defineProperty( result, SeLiteMisc.PROXY_TARGET_CLASS, {
@@ -530,8 +536,7 @@ SeLiteMisc.proxyAllowFields= function proxyAllowFields( proxy, definitions, prev
 
 /** An auxilliary class, that allows setting fields with names generated at runtime in one function call, or through a chain of calls.
  * It serves to generate parameter <code>definitions</code> for SeLiteMisc.loadVerifyScope(), SeLiteMisc.proxyVerifyFields() and SeLiteMisc.proxyAllowFields().
- * It also serves e.g. to generate object parts of 'columns' part of the parameter to SeLiteData.RecordSetFormula() constructor, if your table names are not constants, i.e. you have a configurable table prefix string, and you don't want to have a string variable for each table name itself, but you want to refer to .name property of the table object. Then your table name is not a string constant, and you can't use string runtime expressions as object keys in anonymous object construction {}. That's when you can use new SeLiteMisc.Settable().set( tableXYZ.name, ...).set( tablePQR.name, ...) as the value of 'columns' field of SeLiteData.RecordSetFormula()'s parameter. There its usage assumes that no table name (and no value for parameter field) is 'set'.
- * @TODO refuse duplicate entries in definitions[].
+ * It also serves e.g. to generate object parts of 'columns' part of the parameter to SeLiteData.RecordSetFormula() constructor, if your table names are not constants, i.e. you have a configurable table prefix string, and you don't want to have a string variable for each table name itself, but you want to refer to .name property of the table object. Then your table name is not a string constant, and you can't use string runtime expressions as object keys in anonymous object construction {}. That's when you can use new SeLiteMisc.Settable().set( tableXYZ.name, ...).set( tablePQR.name, ...) as the value of 'columns' field of SeLiteData.RecordSetFormula()'s parameter. There its usage assumes that no table name (and no value for parameter field) is 'set'. It refuses duplicate entries (field names) and it also refuses to override an already set field.
 */
 SeLiteMisc.Settable= function Settable( field, value, etc ) {
     if( arguments.length>0 ) {
@@ -540,7 +545,7 @@ SeLiteMisc.Settable= function Settable( field, value, etc ) {
 };
 // I don't want method set() to show up when iterating through SeLiteMisc.Settable instances using for( .. in..), therefore I use defineProperty():
 Object.defineProperty( SeLiteMisc.Settable.prototype, 'set', {
-    /** It accepts a flexible number (even number) of parameters.
+    /** It sets fields with given names to given values (on <code>this</code> object). It accepts a flexible number (even number) of parameters. It refuses to override an already set field (and hence it refuses the same field name passed in multiple times).
      *  @param {(string|number|Array)} field. If it's an array, then it represents zero, one or multiple fields, and the value will be assigned to all listed fields.
      *  @param {*} value
      *  @return {Settable} this
