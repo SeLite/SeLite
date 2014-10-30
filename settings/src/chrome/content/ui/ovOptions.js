@@ -169,12 +169,10 @@ var RowLevel= function RowLevel( name, level ) {
 };
 //var unproxyfiedRowLevel= RowLevel;
 //RowLevel.prototype= new RowLevelOrColumn( '', -1 );
-RowLevel.prototype= Object.create(RowLevelOrColumn.prototype); //@TODO use new XXX(), or pass it through SeLiteMisc.proxyVerifyFields()
+RowLevel.prototype= Object.create(RowLevelOrColumn.prototype);
 RowLevel.prototype.constructor= RowLevel;
-debugger;
 RowLevel= SeLiteMisc.proxyVerifyFields( RowLevel );
 SeLiteMisc.proxyAllowFields( RowLevel, ['MODULE', 'SET', 'FIELD', 'OPTION'] );
-debugger;
 RowLevel.MODULE= new RowLevel('MODULE', 0);
 // @TODO low importance AA test unit for SeLiteMisc:
 //SeLiteMisc.fail( ''+(RowLevel.SELITE_MISC_TARGET_CLASS===unproxyfiedRowLevel) );
@@ -189,7 +187,7 @@ RowLevel.OPTION= new RowLevel('OPTION', 3); // For options of Choice, for entrie
 var Column= function Column( name, level ) {
     RowLevelOrColumn.call( this, name, level );
 };
-Column.prototype= Object.create(RowLevelOrColumn.prototype);//new RowLevelOrColumn( '', -1 );
+Column.prototype= Object.create(RowLevelOrColumn.prototype);
 Column.prototype.constructor= Column;
 Column= SeLiteMisc.proxyVerifyFields( Column );
 SeLiteMisc.proxyAllowFields( Column, ['MODULE_SET_FIELD_FIXEDMAPKEYS', 'DEFAULT', 'CHECKED', 'VALUE', 'ACTION_SET', 'NULL_UNDEFINE_DEFINITION'] );
@@ -392,7 +390,7 @@ var valueCompound= function valueCompound( field, setName ) {
 var ValueSource= function ValueSource( name ) {
     SeLiteMisc.Enum.call( this, name );
 };
-ValueSource.prototype= Object.create(SeLiteMisc.Enum.prototype);//new SeLiteMisc.Enum( '', true );
+ValueSource.prototype= Object.create(SeLiteMisc.Enum.prototype);
 ValueSource.prototype.constructor= ValueSource;
 ValueSource= SeLiteMisc.proxyVerifyFields( ValueSource );
 SeLiteMisc.proxyAllowFields( ValueSource, ['ASSOCIATED_SET', 'DEFAULT_SET', 'VALUES_MANIFEST', 'FIELD_MANIFEST', 'FIELD_DEFAULT'] );

@@ -181,7 +181,7 @@ SeLiteMisc.isInstance= function isInstance( object, classes, variableName ) {
         classes= [classes];
     }
     SeLiteMisc.ensureType( object, 'object', variableName || 'object' ); // semi-internal validation
-    for( var i=0; i<classes.length; i++ ) {//@TODO use loop for of() once NetBeans supports it
+    for( var i=0; i<classes.length; i++ ) {//@TODO low: use loop for of() once NetBeans supports it
         var clazz= classes[i];
         if( typeof clazz==='function' ) {
             if( object instanceof clazz
@@ -300,7 +300,7 @@ function checkField( definitions, name, value ) {
             return true;
         }
         var isObject= typeof value==='object';
-        for( var i=0; i<definition.length; i++ ) { //@TODO for(..of..)
+        for( var i=0; i<definition.length; i++ ) { //@TODO low: for(..of..)
             var definitionEntry= definition[i];
 
             if( SeLiteMisc.TYPE_NAMES.indexOf(definitionEntry)>=0 ) {
@@ -357,10 +357,11 @@ function proxyVerifyFieldsClassHandler( chainedTreatedDefinitions ) {
         // Just like proxyVerifyFieldsOnReadClassHandler.construct(), but this sets field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS on the newly created object
         construct: function construct( targetConstructor, args ) {
           var fNewConstr = function () {
-              // Following works, even if Object.getPrototypeOf(this) has SeLiteMisc.PROXY_FIELD_DEFINITIONS (which is then non-configurable).
+              // Following Object.defineProperty() works, even if 'this' already has field with name equal to SeLiteMisc.PROXY_FIELD_DEFINITIONS (coming from fNewConstr.protype as set below).
               Object.defineProperty( this, SeLiteMisc.PROXY_FIELD_DEFINITIONS, {
                   enumerable: false, configurable: false, writable: false,
-                  value: chainedTreatedDefinitions
+                  // I create a protective prototype-chained object, so that each instance keeps its own modifications
+                  value: Object.create( chainedTreatedDefinitions )
               });
           };
           fNewConstr.prototype = targetConstructor.prototype;
@@ -472,7 +473,8 @@ function treatProxyFieldDefinitions( definitions, targetOrProxy ) {
  *      and optionally:
  *      '*': function( name, value ) { return boolean }. That is only called for fields that are not specifically declared. So if a field is declared as above, then '*' doesn't apply to it.
  *  }. If you have multiple fields with same definition, you can shorten the code by using SeLiteMisc.Settable instance for <code>givenObjectOrClassDefinitions</code> or <code>classInstanceDefinitions</code>.
- *  @param {(object|Array)} [classInstanceDefinitions] Definitions of fields of instances of the given class. Optional; it must not be present if target is not a class/constructor function. Structure like that of <code>givenObjectOrClassDefinitions</code>. Side note: If we didn't have <code>classInstanceDefinitions</code>, the programmer could workaround by calling <code>SeLiteMisc.proxyAllowFields(this)</code> from the class's constructor. However, that could be awkward.
+ *  @param {(object|Array)} [prototypeDefinitions] Definitions of fields of 'prototype' field of the given class to be proxied. Optional; it must not be present if target is not a class (a constructor function). Structure like that of <code>givenObjectOrClassDefinitions</code>. The actual instances of the class won't inherit thise definition set - so if you need to modify such fields per instance, include definition of those fields in <code>classInstanceDefinitions</code>.
+ *  @param {(object|Array)} [classInstanceDefinitions] Definitions of fields of instances of the given class. Optional; it must not be present if target is not a class (a constructor function). Structure like that of <code>givenObjectOrClassDefinitions</code>. Side note: If we didn't have <code>classInstanceDefinitions</code>, the programmer could workaround by calling <code>SeLiteMisc.proxyAllowFields(this)</code> from the constructor function. However, that could be awkward.
  *   */
 SeLiteMisc.proxyVerifyFields= function proxyVerifyFields( target, givenObjectOrClassDefinitions, prototypeDefinitions, classInstanceDefinitions ) {
     !(SeLiteMisc.PROXY_FIELD_DEFINITIONS in target) || SeLiteMisc.fail( "target or its [grand..]prototype is already a proxy!" );
@@ -500,7 +502,6 @@ SeLiteMisc.proxyVerifyFields= function proxyVerifyFields( target, givenObjectOrC
     });
     
     classInstanceDefinitions= treatProxyFieldDefinitions(classInstanceDefinitions);
-    // @TODO move doc: I don't allow per-prototype declared fields to be set on instances (other than the prototype itself).
     if( SeLiteMisc.PROXY_CLASS_INSTANCE_DEFINITIONS in target.prototype ) {
         classInstanceDefinitions= SeLiteMisc.objectCopyFields( classInstanceDefinitions, Object.create( target.prototype[SeLiteMisc.PROXY_CLASS_INSTANCE_DEFINITIONS] ) );
     }
@@ -578,15 +579,9 @@ Object.defineProperty( SeLiteMisc.Settable.prototype, 'set', {
  * @class
  * @param {string} name
  */
-SeLiteMisc.Enum= function Enum( name, forDirectSubclassPrototype ) {
+SeLiteMisc.Enum= function Enum( name ) {
     this.name= name;
-    // Following checks whether this is a direct instance of SeLiteMisc.Enum - after SeLiteMisc.Enum was passed through SeLiteMisc.proxyVerifyFieldsOnRead(). The first part of the check handles instances of unproxfied subclasses of SeLiteMisc.Enum. object.hasOwnProperty() works the same on target and proxy.
-    if( this.hasOwnProperty(SeLiteMisc.PROXY_TARGET_CONSTRUCTOR) && this[SeLiteMisc.PROXY_TARGET_CONSTRUCTOR]===SeLiteMisc.Enum[SeLiteMisc.PROXY_TARGET_CLASS] ) {
-        forDirectSubclassPrototype || SeLiteMisc.fail( "Don't instantiate SeLiteMisc.Enum() directly, unless it's for a prototype of its direct subclass." );
-        return;
-    }
-    
-    // this.constructor is the actual leaf constructor (class) - instances[] is therefore separate between subclasses of SeLiteMisc.Enum
+    // this.constructor is the actual leaf constructor (class). Therefore instances[] is separate between all subclasses of SeLiteMisc.Enum.
     if( !('instances' in this.constructor) ) { // this check is instead of: this.constructor.instances= this.constructor.instances, to make this class compatible with SeLiteMisc.proxyVerifyFieldsOnRead()
         /** Array of instances for the particular leaf subclass. */
         this.constructor.instances= [];
@@ -757,7 +752,7 @@ higherObjects, includeNonEnumerable ) {
         var fields= includeNonEnumerable
             ? Object.getOwnPropertyNames(object)
             : Object.keys(object); // This handles both Array and non-array objects
-        for( var j=0; j<fields.length; j++ ) {//@TODO replace with for(.. of ..) once NetBeans support it
+        for( var j=0; j<fields.length; j++ ) {//@TODO low: replace with for(.. of ..) once NetBeans support it
             result+= objectFieldToString( object, fields[j], recursionDepth, includeFunctions, leafClassNames, higherObjects, includeNonEnumerable, result=='' );
         }
     }
@@ -1217,14 +1212,14 @@ IterableArray.prototype.__iterator__= function __iterator__() {
  *  @param object object serving as an associative array
  *  @param function compareFunction Function that compares two keys. Optional; by default case-sensitive string comparison.
  *  @return new anonymous object serving as an associative array, with all fields and values from object, but in the sorted order
- *  @TODO remove, replace by SeLiteMisc.sortedObject()
+ *  @TODO low: remove, replace by SeLiteMisc.sortedObject()
  * */
 SeLiteMisc.sortByKeys= function sortByKeys( object, compareFunction ) {
     if( !compareFunction ) {
         compareFunction= undefined;
     }
     var fieldNames= [];
-    for( var name in object ) {//@TODO name is a string, even if the value were integer
+    for( var name in object ) {//Note: name is a string, even if the value were integer
         fieldNames.push(name);
     }
     fieldNames.sort( compareFunction );
@@ -1394,7 +1389,7 @@ SeLiteMisc.objectFillIn= function objectFillIn( target, keys, values, valuesFrom
             }
         }
         else {
-            for( var i=0; i<keys.length; i++ ) {//@TODO for(..of..)
+            for( var i=0; i<keys.length; i++ ) {//@TODO low: for(..of..)
                 var key= keys[i];
                 target[ key ]= values[ key ];
             }
@@ -1536,7 +1531,7 @@ SeLiteMisc.compoundIndexValue= function compoundIndexValue( record, fieldNames )
     }
     var result= ''; // Concatenation of index values, separated with '-'. In case there are any '-' in any index values, those are doubled - so that the result can be transformed back to the group of index values. An alternative way would be to use JSON.stringify().
     // Side note: I've used null character '\0' instead of '-'. That caused debugging problems, since '\0' doesn't show up in strings on Firefox console or GUI.
-    for( var i=0; i<fieldNames.length; i++ ) { //@TODO for(.. of.. ) once NetBeans likes it
+    for( var i=0; i<fieldNames.length; i++ ) { //@TODO low: for(.. of.. ) once NetBeans likes it
         result+= ( '' + SeLiteMisc.getField(record, fieldNames[i]) ).replace( '-', '--' )+ '-';
     }
     return result;
@@ -1741,7 +1736,6 @@ SeLiteMisc.PrototypedObject= function PrototypedObject( prototype ) {
     }
 };
 
-//@TODO Move these to SeLiteData functions
 /** @param mixed recordSet A SeLiteData.RecordSet instance
  *  or some other object serving as an associative array,
  *  potentially a result of SeLiteMisc.collectByColumn(), even if it used sub-indexing
