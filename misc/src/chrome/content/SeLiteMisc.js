@@ -20,27 +20,26 @@ var runningAsComponent= (typeof window==='undefined' || window && window.locatio
 // runningAsComponent is false when loaded via <script src="file://..."> or <script src="http://..."> rather than via Components.utils.import().
 // Used for debugging; limited (because when it's not loaded via Components.utils.import() it can't access other components).
 if( runningAsComponent ) {
-    var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+    //var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 }
 
 var SeLiteMisc= {};
 
-/** This throws the given error or a new error (containg the given message, if any). It also logs the current stack trace to console as a warning.
+/** This throws the given error or a new error (containg the given message, if any). It also appends the stack trace to the message, which is useful since both Firefox Browser Console and Selenium IDE log don't report error stack trace.
  *  @param {*} [errorOrMessage] An underlying Error, or a message for a new error.
  *  @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
  *  - as it mentions, the rethrown exception will have incorreect stack information: Note that the thrown MyError will report incorrect lineNumber and fileName at least in Firefox.
  *  and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw?redirectlocale=en-US&redirectslug=JavaScript%2FReference%2FStatements%2Fthrow
 */
 SeLiteMisc.fail= function fail( errorOrMessage ) {
-    debugger;
-    console.error( errorOrMessage );
-    console.error( SeLiteMisc.stack() );
-    throw errorOrMessage!==undefined
+    var error= errorOrMessage!==undefined
         ?(typeof errorOrMessage==='object' &&  errorOrMessage.constructor.name==='Error'
             ? errorOrMessage
             : new Error(errorOrMessage)
          )
         : new Error();
+    error.message+= '\n' +error.stack;
+    throw error;
 };
 
 /** @return {string} Current stack (including the call to this function).
