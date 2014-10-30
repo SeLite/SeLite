@@ -25,7 +25,7 @@ if( runningAsComponent ) {
 
 var SeLiteMisc= {};
 
-/** This throws the given error or a new error (containg the given message, if any). It also appends the stack trace to the message, which is useful since both Firefox Browser Console and Selenium IDE log don't report error stack trace.
+/** This throws the given error or a new error (containg the given message, if any). It also appends the stack trace to the message, which is useful since both Firefox Browser Console and Selenium IDE log don't report error stack trace. I do not log here to Browser Console, since that would polute logs when doing negative testing - when using try/catch to validate that incorrect invocation of functionality calls SeLiteMisc.fail().
  *  @param {*} [errorOrMessage] An underlying Error, or a message for a new error.
  *  @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
  *  - as it mentions, the rethrown exception will have incorreect stack information: Note that the thrown MyError will report incorrect lineNumber and fileName at least in Firefox.
