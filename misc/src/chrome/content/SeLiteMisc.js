@@ -293,7 +293,8 @@ var proxyVerifyFieldsOnReadObjectHandler= {
 /** @param {object} definitions Definitions at a given level of protype chain. Either for SeLiteMisc.PROXY_FIELD_DEFINITIONS or for SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS (if applicable).
  *  @return {boolean} Whether this level of definitions allows a field with given name and value.
  * */
-function checkFieldAtLevel( definitions, name, value ) {
+function checkField( definitions, name, value ) {
+    if( !definitions ) debugger;
     var definition= definitions[name];
     if( definition!==undefined ) {
         
@@ -329,24 +330,11 @@ var proxyVerifyFieldsObjectHandler= {
     set: function set(target, name, value, receiver) {
         // Since target[SeLiteMisc.PROXY_FIELD_DEFINITIONS] is an object, it has meta fields 'prototype' and 'constructor' by default. Therefore we don't have any validation for those. Also, we allow assigning to (update of) target[SeLiteMisc.PROXY_FIELD_DEFINITIONS] etc. themselves.
         if( name!=='prototype' && name!=='constructor' && name!==SeLiteMisc.PROXY_FIELD_DEFINITIONS && name!==SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS && name!==SeLiteMisc.PROXY_CLASS_INSTANCE_DEFINITIONS ) {
-            var targetOrPrototype= target;
-            while( targetOrPrototype!==null ) {
-                // I perform the following validation with hasOwnProperty(), in case the programmer created a prototype chain where some link(s) are not proxies themselves.
-                if( targetOrPrototype.hasOwnProperty(SeLiteMisc.PROXY_FIELD_DEFINITIONS) ) {
-                    // @TODO subclasses now use chainedTreatedFefinitions, hence I only need to use the following on target[] once, not in a loop.
-                    if( checkFieldAtLevel( targetOrPrototype[SeLiteMisc.PROXY_FIELD_DEFINITIONS], name, value ) ) {
-                        break;
-                    }
-                }
-                if( typeof target==='object' && targetOrPrototype.hasOwnProperty(SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS) ) {
-                    //@TODO don't allow parent prototype fields to be modified on child prototypes! So: only use target[SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS], outside the loop.
-                    if( checkFieldAtLevel( targetOrPrototype[SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS], name, value ) ) {
-                        break;
-                    }
-                }
-                targetOrPrototype= Object.getPrototypeOf( targetOrPrototype );
-            }
-            targetOrPrototype!==null || SeLiteMisc.fail( "Field '" +name+ "' on " +SeLiteMisc.typeAndClassNameOf(target)+ " is not declared, or it doesn't accept " +typeof value+ ': ' +value );
+            checkField( target[SeLiteMisc.PROXY_FIELD_DEFINITIONS], name, value )
+            /*|| typeof target==='object' && SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS in target.prototype
+               && checkField( target.prototype[SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS], name, value )*/
+            || SeLiteMisc.fail( "Field '" +name+ "' on " +SeLiteMisc.typeAndClassNameOf(target)+ " is not declared, or it doesn't accept " +typeof value+ ': ' +value );
+//@TODO don't allow parent prototype fields to be modified on child prototypes! So: only use target[SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS], outside the loop.
         }
         target[name]= value;
     }
@@ -491,7 +479,7 @@ function treatProxyFieldDefinitions( definitions, targetOrProxy ) {
  *  @param {(object|Array)} [classInstanceDefinitions] Definitions of fields of instances of the given class. Optional; it must not be present if target is not a class/constructor function. Structure like that of <code>givenObjectOrClassDefinitions</code>. Side note: If we didn't have <code>classInstanceDefinitions</code>, the programmer could workaround by calling <code>SeLiteMisc.proxyAllowFields(this)</code> from the class's constructor. However, that could be awkward.
  *   */
 SeLiteMisc.proxyVerifyFields= function proxyVerifyFields( target, givenObjectOrClassDefinitions, prototypeDefinitions, classInstanceDefinitions ) {
-    !target.hasOwnProperty(SeLiteMisc.PROXY_FIELD_DEFINITIONS) || SeLiteMisc.fail( "target is already a proxy!" );
+    !(SeLiteMisc.PROXY_FIELD_DEFINITIONS in target) || SeLiteMisc.fail( "target or its [grand..]prototype is already a proxy!" );
     // I treat and validate definitions now, so the proxy's set() doesn't have to.
     //@TODO low: make this field non-iterable:
    target[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= treatProxyFieldDefinitions(givenObjectOrClassDefinitions);
@@ -502,10 +490,13 @@ SeLiteMisc.proxyVerifyFields= function proxyVerifyFields( target, givenObjectOrC
     }
     
     typeof target.prototype==='object' || SeLiteMisc.fail();
-    !target.prototype.hasOwnProperty(SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS) || SeLiteMisc.fail( "target.prototype is already a proxy!" );
+    //!(SeLiteMisc.PROXY_FIELD_DEFINITIONS in target.prototype) || SeLiteMisc.fail( "target.prototype is already a proxy!" );
+    !target.prototype.hasOwnProperty(SeLiteMisc.PROXY_FIELD_DEFINITIONS) || SeLiteMisc.fail( "target.prototype is already a proxy." );
     prototypeDefinitions= treatProxyFieldDefinitions(prototypeDefinitions);
-    debugger;
-    target.prototype[SeLiteMisc.PROXY_PROTOTYPE_FIELD_DEFINITIONS]= prototypeDefinitions;
+    if( SeLiteMisc.PROXY_FIELD_DEFINITIONS in target.prototype ) {
+        prototypeDefinitions= SeLiteMisc.objectCopyFields( prototypeDefinitions, Object.create( target.prototype[SeLiteMisc.PROXY_FIELD_DEFINITIONS] ) );
+    }
+    target.prototype[SeLiteMisc.PROXY_FIELD_DEFINITIONS]= prototypeDefinitions;
     target.prototype= new Proxy( target.prototype, proxyVerifyFieldsObjectHandler );
     
     classInstanceDefinitions= treatProxyFieldDefinitions(classInstanceDefinitions);
