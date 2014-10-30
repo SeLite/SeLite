@@ -40,6 +40,7 @@ SeLiteMisc.fail= function fail( errorOrMessage ) {
          )
         : new Error();
     error.message+= '\n' +error.stack;
+    error.messageContainsStack= true;
     throw error;
 };
 

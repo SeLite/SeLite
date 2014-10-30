@@ -150,8 +150,6 @@ var filledInInstance= new FilledIn( 'John' );
 'job' in filledInInstance && filledInInstance.job===undefined || SeLiteMisc.fail();
 filledInInstance.pet= 'cat';
 
-//document.write('h');
-//document.innerHTML= 'all fine';
 testSuccessful= true;
 document.write( 'from ' +document.location.href );
 }
