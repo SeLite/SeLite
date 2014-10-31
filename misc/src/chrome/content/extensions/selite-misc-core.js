@@ -146,11 +146,17 @@ Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
             ? '?'
             : '&';
         fileURL+= Date.now();
-        if( scope ) {
-            subScriptLoader.loadSubScript( fileURL, scope );
+        try {
+            if( scope ) {
+                subScriptLoader.loadSubScript( fileURL, scope );
+            }
+            else {
+                subScriptLoader.loadSubScript( fileURL );
+            }
         }
-        else {
-            subScriptLoader.loadSubScript( fileURL );
+        catch( e ) {
+            throw SeLiteMisc.addStackToMessage( e, true );
+            // doRunJavascript@chrome://selite-misc/content/extensions/selite-misc-core.js
         }
     };
 }) ();

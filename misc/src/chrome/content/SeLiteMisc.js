@@ -39,20 +39,49 @@ SeLiteMisc.fail= function fail( errorOrMessage ) {
             : new Error(errorOrMessage)
          )
         : new Error();
-    error.message+= '\n' +error.stack;
-    error.messageContainsStack= true;
-    throw error;
+    throw SeLiteMisc.addStackToMessage( error );
 };
 
-/** @return {string} Current stack (including the call to this function).
+/** Add error's stack trace to its message.
+ *  @param {Error} error
+ *  @param {boolean} [excludeCommonBase] Whether to exclude any stack trace (base) that is common between error's stack and current stack. This serves to eliminate upper call levels that are of little interest to the end user.
+ *  @param {Error} error, with a modified message if applicable
  * */
-SeLiteMisc.stack= function stack() {
-    try {
-        throw new Error();
+SeLiteMisc.addStackToMessage= function addStackToMessage( error, excludeCommonBase ) {
+    if( !error.messageContainsStack ) {
+        var stack= '';
+        if( excludeCommonBase ) {
+            var currentStack;
+            try { throw new Error(); }
+            catch( e ) { currentStack= e.stack; }
+            
+            var givenLevels= error.stack.split( '\n' );
+            var currentLevels= currentStack.split( '\n' );
+            // Error stack starts with the deepest call levels, and ends with the root call. So I iterate from the last to first.
+            for( var i=1; i<=givenLevels.length; i++ ) { // variable i is an index starting at 1 into givenLevels[] from its end to the front
+                 if( i>currentLevels.length || givenLevels[givenLevels.length-i]!==currentLevels[currentLevels.length-i] ) {
+                     break;
+                 }
+            }
+            for( ; i<=givenLevels.length; i++ ) {
+                // Concatenate in reverse, so that the result stack section has levels in the same direction as givenLevels[]
+                if( stack ) {
+                    stack= '\n' + stack;
+                }
+                stack= givenLevels[givenLevels.length-i] + stack;
+            }
+        }
+        else {
+            stack= error.stack;
+        }
+        error.message+= '\n' +stack;
+        // I make error.messageContainsStack non-enumerable, otherwise Selenium IDE shows it in the log.
+        Object.defineProperty( error, 'messageContainsStack', {
+          enumerable: false, configurable: true, writable: true,
+          value: true
+        });
     }
-    catch( e ) {
-        return e.stack;
-    }
+    return error;
 };
 
 /** This asserts the condition to be true (compared non-strictly). If false, it fails with an error (containg the given message, if any).
