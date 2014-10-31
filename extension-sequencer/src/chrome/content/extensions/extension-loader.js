@@ -29,10 +29,22 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
     // Register itself - so that it shows up in Selenium IDE > Options > Options > Plugins
     ide_api.addPluginProvidedUserExtension( 'chrome://selite-extension-sequencer/content/extensions/core.js' );
     ide_api.addPlugin( 'extension-sequencer@selite.googlecode.com' );
-
+    
     // For some reasons I couldn't use console (from resource://gre/modules/devtools/Console.jsm) here (in Firefox 26.0, Selenium IDE 2.5.0). Using it generated a log: can't start debugging: a debuggee script is on the stack webconsole.js:68. I could use console in the handler function passed to AddonManager.getAllAddons():
     AddonManager.getAllAddons(
     function( addons ) {
+        var SeLiteMiscModule;
+        // Lazy quiet loader, if SeLiteMisc is present.
+        var SeLiteMisc= function SeLiteMisc() {
+            try {
+                if( !SeLiteMiscModule ) {
+                    SeLiteMiscModule= Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js", {} ).SeLiteMisc;
+                }
+                return SeLiteMiscModule;
+            }
+            catch( e ) {}
+        };
+        
         var problems= []; // Chunks of message. This will add new lines after each chunk.
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
@@ -60,8 +72,16 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                              : 'to its author (but not to SeLite project).'
                             )
                         );
-                        problems.push( ''+e );
-                        problems.push( e.stack );
+                        if( !e.messageContainsStackAddedBySeLiteMisc || !error.messageContainsStackWithExcludedCommonBaseBySeLiteMisc ) {
+                            if( SeLiteMisc() ) {
+                                SeLiteMisc().addStackToMessage( e, true );
+                            }
+                            else {
+                                e.message+= '\n' +e.stack;
+                            }
+                        }
+                        var errorLines= ( ''+e ).split('\n'); 
+                        Array.prototype.push.apply( problems, errorLines );
                     }
                 }
             }
@@ -147,8 +167,13 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                     problems.push( '' );
                 }
                 problems.push( 'Failure when initialising Selenium IDE plugin ' +pluginId+ ': ' );
-                if( !e.messageContainsStackAddedBySeLiteMisc ) {
-                    e.message+= '\n' +e.stack;
+                if( !e.messageContainsStackAddedBySeLiteMisc || !error.messageContainsStackWithExcludedCommonBaseBySeLiteMisc ) {
+                    if( SeLiteMisc() ) {
+                        SeLiteMisc().addStackToMessage( e, true );
+                    }
+                    else {
+                        e.message+= '\n' +e.stack;
+                    }
                 }
                 var errorLines= ( ''+e ).split('\n'); 
                 Array.prototype.push.apply( problems, errorLines );
