@@ -65,7 +65,7 @@ Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
         var loginManagerInstance = Components.classes["@mozilla.org/login-manager;1"].
             getService(Components.interfaces.nsILoginManager);
 
-    function hostname( hostnameOrUseBaseURL ) {
+    var extractHostname= function extractHostname( hostnameOrUseBaseURL ) {
         var testLocation= selenium.browserbot.getCurrentWindow().location;
         SeLiteMisc.ensureType( hostnameOrUseBaseURL, ['undefined', 'string', 'boolean'], 'hostnameOrUseBaseURL' );
         return hostnameOrUseBaseURL
@@ -77,7 +77,7 @@ Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
                 (testLocation.port
                 ? ':' +testLocation.port
                 : '');
-    }
+    };
 
     /** This retrieves a web form password for a user. It doesn't work with .htaccess/HTTP authentication,
         but that can be retrieved too, see
@@ -97,7 +97,7 @@ Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
         SeLiteMisc.ensureType( hostnameOrUseBaseURL, ['string', 'boolean', 'undefined'], 'hostnameOrUseBaseURL' );
         SeLiteMisc.ensureType( returnLoginInfo, ['boolean', 'undefined'], 'returnLoginInfo' );
         // You could also use passwordManager.getAllLogins(); it returns an array of nsILoginInfo objects
-        var hostname= hostname( hostnameOrUseBaseURL );
+        var hostname= extractHostname( hostnameOrUseBaseURL );
         console.log( 'SeLiteMisc.loginManagerPassword(): hostname is ' +hostname );
         var logins = loginManagerInstance.findLogins(
             {}, hostname,
@@ -123,8 +123,8 @@ Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
         SeLiteMisc.ensureType( formActionOrUserBaseURL, ['string', 'boolean', 'undefined'], 'formActionOrUserBaseURL' );
         var loginInfo= Components.classes["@mozilla.org/login-manager/loginInfo;1"]
                     .createInstance(Components.interfaces.nsILoginInfo);
-        loginInfo.hostname= hostname( hostnameOrUseBaseURL );
-        loginInfo.formSubmitURL= hostname( formActionOrUserBaseURL );
+        loginInfo.hostname= extractHostname( hostnameOrUseBaseURL );
+        loginInfo.formSubmitURL= extractHostname( formActionOrUserBaseURL );
         loginInfo.httpRealm= null;
         loginInfo.username= username;
         loginInfo.password= password;
