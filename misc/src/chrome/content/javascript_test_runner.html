@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head profile="http://selenium-ide.openqa.org/profiles/test-case">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Embedded tests for SeLite Misc</title>
+    </head>
+    <body onload="invoke()">
+        <script type="text/javascript">
+        //<![CDATA[
+            "use strict";
+            function invoke() {
+                document.open();
+                var fileURL= '';
+                var error;
+                try {
+                    var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
+                    fileURL= (''+window.location.search).substring(1);
+                    // subScriptLoader.loadSubScript() caches the scripts. Therefore I add a timestamp to the file name.
+                    subScriptLoader.loadSubScript( fileURL+ '?' +Date.now() );
+                }
+                catch( e ) {
+                    error= e;
+                    document.write( 'Failed when loading or running ' +fileURL+ '<br/>' );
+                    document.write( (''+e).replace( '\n', '<br/>') );
+                    if( !e.messageContainsStackAddedBySeLiteMisc ) {
+                        document.write( '<br/>' +e.stack.replace( '\n', '<br/>' ) );
+                    }
+                }
+                if( !error ) {
+                    document.write( 'OK' );
+                }
+                document.close();
+            }
+        //]]>
+        </script>
+    </body>
+</html>
