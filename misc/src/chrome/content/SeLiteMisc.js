@@ -48,7 +48,7 @@ SeLiteMisc.fail= function fail( errorOrMessage ) {
  *  @param {Error} error, with a modified message if applicable
  * */
 SeLiteMisc.addStackToMessage= function addStackToMessage( error, excludeCommonBase ) {
-    if( !error.messageContainsStack ) {
+    if( !error.messageContainsStackAddedBySeLiteMisc ) {
         var stack= '';
         if( excludeCommonBase ) {
             var currentStack;
@@ -76,7 +76,7 @@ SeLiteMisc.addStackToMessage= function addStackToMessage( error, excludeCommonBa
         }
         error.message+= '\n' +stack;
         // I make error.messageContainsStack non-enumerable, otherwise Selenium IDE shows it in the log.
-        Object.defineProperty( error, 'messageContainsStack', {
+        Object.defineProperty( error, 'messageContainsStackAddedBySeLiteMisc', {
           enumerable: false, configurable: true, writable: true,
           value: true
         });

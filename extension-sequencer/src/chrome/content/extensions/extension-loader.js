@@ -106,7 +106,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
             }
         }
         if( problems.length>0 ) {
-            console.error( "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
+            console.error( "Problem(s) with add-on(s) for Firefox and Selenium IDE:\n" +problems.join('\n') );
             SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
         }
         
@@ -146,7 +146,12 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                 if( problems.length ) {
                     problems.push( '' );
                 }
-                problems.push( 'Failure when initialising Selenium IDE plugin ' +pluginId+ ': ' +e+ '\n' +e.stack );
+                problems.push( 'Failure when initialising Selenium IDE plugin ' +pluginId+ ': ' );
+                if( !e.messageContainsStackAddedBySeLiteMisc ) {
+                    e.message+= '\n' +e.stack;
+                }
+                var errorLines= ( ''+e ).split('\n'); 
+                Array.prototype.push.apply( problems, errorLines );
                 var isSeLiteAddon= addon.id.indexOf('selite.googlecode.com');
                 problems.push( 'Please get its newest version (if available)' +(
                         isSeLiteAddon
@@ -166,6 +171,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
             }
         }
         if( problems.length>0 ) {
+            console.error( "Problem(s) with add-on(s) for Firefox and Selenium IDE:\n" +problems.join('\n') );
             SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
         }
     });
