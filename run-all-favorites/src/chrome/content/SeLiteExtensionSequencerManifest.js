@@ -1,3 +1,4 @@
+"use strict";
 SeLiteExtensionSequencer.registerPlugin( {
     pluginId: 'run-all-favorites@selite.googlecode.com',
     ideUrl: [

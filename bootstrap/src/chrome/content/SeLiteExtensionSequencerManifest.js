@@ -1,3 +1,4 @@
+"use strict";
 SeLiteExtensionSequencer.registerPlugin( {
     pluginId: 'bootstrap@selite.googlecode.com',
     coreUrl: 'chrome://selite-bootstrap/content/extensions/se_bootstrap.js',

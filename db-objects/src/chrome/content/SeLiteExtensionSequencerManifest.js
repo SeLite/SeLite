@@ -1,3 +1,4 @@
+"use strict";
 SeLiteExtensionSequencer.registerPlugin( {
     pluginId: 'db-objects@selite.googlecode.com',
     requisitePlugins: {
