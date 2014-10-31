@@ -1178,7 +1178,7 @@ var treeClickHandler= function treeClickHandler( event ) {
                             window.open( 'file://' +OS.Path.join(folder, SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME), '_blank' );
                         }
                         else {
-                            SeLiteMisc.ensure( cellProperties.startsWith(SeLiteSettings.VALUES_MANIFEST) );
+                            cellProperties.startsWith(SeLiteSettings.VALUES_MANIFEST) || SeLiteMisc.fail();
                             var folder= cellProperties.substring( SeLiteSettings.VALUES_MANIFEST.length+1 );
                             window.open( 'file://' +OS.Path.join(folder, SeLiteSettings.VALUES_MANIFEST_FILENAME), '_blank' );
                         }
@@ -1707,8 +1707,7 @@ window.addEventListener( "load", function(e) {
             catch(e) {
                 window.alert( "Couldn't load JS definnition of the requested module: " +e+ ':\n' +e.stack );
             }
-            SeLiteMisc.ensure( !targetFolder || modules[moduleName].associatesWithFolders, "You're using URL with folder=" +targetFolder+
-                " and module=" +moduleName+ ", however that module doesn't allow to be associated with folders." );
+            !targetFolder || modules[moduleName].associatesWithFolders || SeLiteMisc.fail( "You're using URL with folder=" +targetFolder+ " and module=" +moduleName+ ", however that module doesn't allow to be associated with folders." );
         }
         match= /prefix=([a-zA-Z0-9_.-]+)/.exec( params );
         var prefix= '';

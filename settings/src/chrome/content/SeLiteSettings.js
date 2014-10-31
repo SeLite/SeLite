@@ -1464,8 +1464,8 @@ function manifestsDownToFolder( folderPath, dontCache ) {
         catch(e) {
             throw new Error( "Can't locate folder associated with configuration sets: " +folderPath );
         }
-        SeLiteMisc.ensure( folder!=null && folder.exists, 'Given folder does not exist.' );
-        SeLiteMisc.ensure( folder.isDirectory(), 'Configuration sets can only be associated with folders, not with files.' );
+        folder!=null && folder.exists || SeLiteMisc.fail( 'Given folder does not exist.' );
+        folder.isDirectory() || SeLiteMisc.fail( 'Configuration sets can only be associated with folders, not with files.' );
 
         // Array of string, each a full path of a folder on the path down to folderPath, including folderPath itself
         var breadCrumb= folder;

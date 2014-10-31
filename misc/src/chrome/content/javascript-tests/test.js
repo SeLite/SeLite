@@ -71,12 +71,12 @@ Child.prototype= Object.create(Parent.prototype);
 Child.prototype.constructor= Child;
 
 var child= new Child();
-SeLiteMisc.ensure( SeLiteMisc.isInstance(child, Child) );
-SeLiteMisc.ensure( SeLiteMisc.isInstance(child, 'Child') );
-SeLiteMisc.ensure( SeLiteMisc.isInstance(child, Parent) );
-SeLiteMisc.ensure( SeLiteMisc.isInstance(child, 'Parent') );
-SeLiteMisc.ensure( SeLiteMisc.isInstance(child, GrandParent) );
-SeLiteMisc.ensure( SeLiteMisc.isInstance(child, 'GrandParent') );
+SeLiteMisc.isInstance(child, Child) || SeLiteMisc.fail();
+SeLiteMisc.isInstance(child, 'Child') || SeLiteMisc.fail();
+SeLiteMisc.isInstance(child, Parent)  || SeLiteMisc.fail();
+SeLiteMisc.isInstance(child, 'Parent') || SeLiteMisc.fail();
+SeLiteMisc.isInstance(child, GrandParent) || SeLiteMisc.fail();
+SeLiteMisc.isInstance(child, 'GrandParent') || SeLiteMisc.fail();
 //--------
 
 var object= {};

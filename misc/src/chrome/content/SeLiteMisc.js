@@ -131,12 +131,13 @@ SeLiteMisc.oneOf= function oneOf( item, choices ) {
  * @param {string} [message] Message for the error, if validation fails. Otherwise this generates a message containing item and choices.
  * */
 SeLiteMisc.ensureOneOf= function ensureOneOf( item, choices, variableName, message ) {
-    SeLiteMisc.ensure( SeLiteMisc.oneOf(item, choices),
+    SeLiteMisc.oneOf(item, choices) || SeLiteMisc.fail(
         message
         || (variableName
             ? 'Variable ' +variableName+ ' should be one of [' +choices.join(',')+ '], but got ' +item
             : 'Expecting one of [' +choices.join(',')+ '], but got ' +item
-        ) );
+            )
+    );
 };
 
 /** @param {*} [valueOrFunction] Either a non-functional value, or a function that takes no parameters and returns a value. It serves for accepting closures (functions) instead of error messages (or parts of such messages, e.g. variable names/descriptions). That's useful when such a string is not constant and it needs to be generated. In such cases passing a closure (that encapsulates its scope) is more efficient, as that's what the closures are for. (Since we don't store the closure anywhere, there's no problem with scope/memory leaks.)
