@@ -357,7 +357,7 @@
         if( type && 
             (typeof type!=='string' || ['email', 'name', 'word', 'number', 'text', 'html', 'password', 'ugly'].indexOf(type)<0)
         ) {
-            LOW.error( "randomText(): params.type='" +type+ "' is not recognised." );
+            LOG.error( "randomText(): params.type='" +type+ "' is not recognised." );
             throw new Error();
         }
         !( params.characters && params.type ) || SeLiteMisc.fail("Can't use both parameter subfields 'characters' and 'type'.");

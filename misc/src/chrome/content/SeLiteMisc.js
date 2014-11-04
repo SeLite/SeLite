@@ -215,7 +215,12 @@ SeLiteMisc.ensureType= function ensureType( item, typeStringOrStrings, variableN
  * */
 var globalClasses= ['Array', 'Boolean', 'Date', 'Function', 'Iterator', 'Number', 'RegExp', 'String', 'Proxy', 'Error'];
 
-/** Detect whether the given object is an instance of one of the given class(es).
+/** Detect whether the given object is an instance of one of the given class(es). It works mostly even if the object is an instance of one of Javascript 'global' classes ('objects') from a different Javascript code module, its class/constructor is different to this scope. That wouldn't work only if the other scope had a custom class/constructor with function name same as one of the global objects, which is a bad practice, e.g.
+ * <code>
+ *    var MyError= function Error() {... };
+ *    var myErrorInstance= new MyError();
+ *    SeLiteMisc.isInstance( myErrorInstance, Error ) returns true
+ * </code>
  *  @param {object} object Object
  *  @param {function|array} classes Class (that is, a constructor function), or its name, or an array of any number of one or the other.
  *  @param {string} [variableName] See same parameter of ensureOneOf(). Only used on failure, so that the error message is more meaningful.
