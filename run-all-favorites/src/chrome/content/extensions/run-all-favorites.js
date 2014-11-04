@@ -139,8 +139,8 @@ window.setTimeout( function() {
                 label: (this.isCurSuiteFavorite() ? "Remove" : "Add" ) + " favorite",
                 id: "menu-favorite-button"
             });
+            menu.appendChild(document.createElement("menuseparator"));
             if( this.favorites.length > 0 ) {
-                menu.appendChild(document.createElement("menuseparator"));
                   for (var i = 0; i < this.favorites.length; i++) {
                     XulUtils.appendMenuItem(menu, {
                       label: this.favorites[i].name,
@@ -152,7 +152,15 @@ window.setTimeout( function() {
                   label: "Clear all",
                   id: "menu-favorite-clear"
                 });
+                XulUtils.appendMenuItem(menu, {
+                  label: "Export",
+                  id: "menu-favorite-export"
+                });
             }
+            XulUtils.appendMenuItem(menu, {
+              label: "Import",
+              id: "menu-favorite-import"
+            });
         };
 
         // Copied from original Favorites + transforming absolute file path to relative
@@ -197,6 +205,14 @@ window.setTimeout( function() {
             else
             if( evt.target.id==="menu-favorite-run-all" ) {
                 this.runAllFavorites();
+            }
+            else
+            if( evt.target.id==="menu-favorite-export" ) {
+                this.exportFavorites();
+            }
+            else
+            if( evt.target.id==="menu-favorite-import" ) {
+                this.importFavorites();
             }
           }
           else {
@@ -269,6 +285,46 @@ window.setTimeout( function() {
             loadAndPlayTestSuite.call();
         };
         
+        /* I thought I could make Favorites.prototype.save() call JSON.stringify( this.favorites, undefined, ' ') and I would point users to use about:config for preference extensions.selenium-ide.plugin.favorites.favorites to import/export the favorites. However, Mozilla's preferences API transforms multi-lined string values. It would still work, but it would be difficult to read the 'exported' JSON and to maintain it in GIT/SVN. */
+        Favorites.prototype.exportFavorites = function() {
+            var data = this.prefBranch.getCharPref("favorites");
+            var obj = JSON.parse(data);
+            var indentedData= JSON.stringify( obj, undefined, ' ' );
+            // I don't generate content type 'text/json', since that causes Firefox to show 'Save file as' dialog, but it gives the file an ugly/random-like default filename.
+            var data = JSON.stringify(this.favorites, undefined, ' ');
+            openTabOrWindow( 'data:text/plain;charset=utf-8,' +escape(data) );
+        };
+
+        var nsIFilePicker = Components.interfaces.nsIFilePicker;
+        
+        Favorites.prototype.importFavorites = function() {
+            var filePicker = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
+            filePicker.init( window, "Select an exported list of all Favorites", nsIFilePicker.modeOpen );
+            filePicker.appendFilter( 'JSON', '*.json' );
+            filePicker.appendFilter( 'Text', '*.txt' );
+            filePicker.appendFilters( nsIFilePicker.filterAll );
+            var result= filePicker.show();
+            if (result===nsIFilePicker.returnOK ) {
+                var file = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
+                file.initWithPath( filePicker.file.path );
+                var fstream = Components.classes["@mozilla.org/network/file-input-stream;1"].createInstance(Components.interfaces.nsIFileInputStream);
+                var cstream = Components.classes["@mozilla.org/intl/converter-input-stream;1"].createInstance(Components.interfaces.nsIConverterInputStream);
+                fstream.init(file, -1, 0, 0);
+                cstream.init(fstream, "UTF-8", 0, 0); // you can use another encoding here if you wish
+                var data= '';
+                var read = 0;
+                do {
+                    str= {};
+                    read = cstream.readString(0xffffffff, str); // read as much as we can and put it in str.value
+                    data += str.value;
+                } while( read );
+                cstream.close(); // this closes fstream
+                data= JSON.stringify( JSON.parse(data) ); // Remove any extra whitespace possibly added by exportFavorites(). Mozilla Preferences API would strip new lines anyway.
+                this.prefBranch.setCharPref("favorites", data);
+                this.load( this.prefBranch );
+            }
+        };
+        
         var oldPause= Debugger.prototype.pause;
         /** A minor issue: 
          *  1. click 'Run all' favorites
@@ -336,9 +392,13 @@ window.setTimeout( function() {
                 // Temporary override of TestSuiteProgress.prototype -> reset() from Selenium's chrome/content/testSuiteProgress.js
                 TestSuiteProgress.prototype.reset= function reset() {};
             }
-            oldPlayTestSuite.call( this, startIndex );
-            if( dontReset ) {
-                TestSuiteProgress.prototype.reset= oldReset;
+            try {
+                oldPlayTestSuite.call( this, startIndex );
+            }
+            finally {
+                if( dontReset ) {
+                    TestSuiteProgress.prototype.reset= oldReset;
+                }
             }
         };
         // 'editor' is an instance of either StandaloneEditor or SidebarEditor. Those classes don't refer to Editor.prototype, but they have copies of all functions from Editor.prototype (copied via objectExtend()).
