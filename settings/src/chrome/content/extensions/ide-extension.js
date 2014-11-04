@@ -45,7 +45,7 @@
     
     var seLiteSettingsMenuItem= document.createElementNS( XUL_NS, 'menuitem' );
     seLiteSettingsMenuItem.setAttribute( 'label', 'SeLite Settings for this test suite' );
-    seLiteSettingsMenuItem.setAttribute( 'oncommand', 'window.editor.showInBrowser("chrome://selite-settings/content/tree.xul" + (SeLiteSettings.testSuiteFolder ? "?folder="+escape(SeLiteSettings.testSuiteFolder) : ""), true/*in a new window*/)' );
+    seLiteSettingsMenuItem.setAttribute( 'oncommand', 'openTabOrWindow("chrome://selite-settings/content/tree.xul" + (SeLiteSettings.testSuiteFolder ? "?folder="+escape(SeLiteSettings.testSuiteFolder) : "") )' );
     optionsPopup.appendChild(seLiteSettingsMenuItem);
     
     /** Reload the database file(s). It copies the files.
