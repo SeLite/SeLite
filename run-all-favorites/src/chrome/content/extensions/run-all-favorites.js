@@ -11,11 +11,6 @@ window.setTimeout( function() {
     if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
         Favorites.interceptedBySeLiteRunAllFavorites= true;
 
-        var SBDialogs = {}; // copied from original Favories
-        SBDialogs.alert = function(message, title) {
-            Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService).alert(null, title, message);
-        };
-
         /** Get path parts (all parent folders and the leaf) of the given file/folder.
             @param nsIFile file File or folder
             @return array Array of strings, all folder parts of the path to file, starting with the root/volume, ending with the leaf
@@ -135,7 +130,7 @@ window.setTimeout( function() {
                   id: "menu-favorite-run-all"
                 });
             }
-            XulUtils.appendMenuItem(menu, {
+            XulUtils.appendMenuItem(menu, {// Original Favorites only put it into menu with id 'menu_popup_favorite', but I like it in both the menu and context menu
                 label: (this.isCurSuiteFavorite() ? "Remove" : "Add" ) + " favorite",
                 id: "menu-favorite-button"
             });
@@ -185,9 +180,10 @@ window.setTimeout( function() {
               this.addFavorite( suiteRelativePath, suiteName );
             }
             this.save(this.prefBranch);
+            this.suiteStateChanged(curSuite);
           } else {
             //Suite must be saved first
-            SBDialogs.alert("Please save the suite first.", "SeLite Run All Favorites");
+            Favorites.alert("Please save the suite first.", "SeLite Run All Favorites");
           }
         };
 
@@ -199,8 +195,11 @@ window.setTimeout( function() {
             }
             else
             if( evt.target.id==="menu-favorite-clear" ) {
-              this.clearFavorites();
-              this.save(this.prefBranch);
+                if (this.favorites.length > 0 && Favorites.confirm("Are you sure you want to clear all favourites?", "SeLite Run All Favorites")) {
+                  this.clearFavorites();
+                  this.save(this.prefBranch);
+                  document.getElementById('favorite-button').classList.remove('fav');
+                }
             }
             else
             if( evt.target.id==="menu-favorite-run-all" ) {
@@ -217,12 +216,22 @@ window.setTimeout( function() {
           }
           else {
             try {
-              this.editor.loadRecentSuite( applyRelativePathToHome(evt.target.value).path );
-              if (evt.ctrlKey) {
-                this.editor.playTestSuite();
-              }
+                var path = evt.target.value || evt.target.getAttribute('value');
+                path= applyRelativePathToHome(path).path;
+                if (FileUtils.fileExists(path)) {
+                  this.editor.loadRecentSuite(path);
+                  if (evt.ctrlKey || evt.metaKey || this.meta) {
+                    this.editor.playTestSuite();
+                  }
+                } else {
+                  if (Favorites.confirm("This favorite could not be found!\n" + path + "\nWould you like to clear this favourites?", "Favorites (Selenium IDE)")) {
+                    if (this.removeFavorite(path)) {
+                      this.save(this.prefBranch);
+                    }
+                  }
+                }
             } catch(err) {
-              SBDialogs.alert("Error: Could not load test suite.", "Favorites (Selenium IDE)");
+              Favorites.alert("Error: Could not load test suite.", "SeLite Run All Favorites");
             }
           }
         };
@@ -314,13 +323,14 @@ window.setTimeout( function() {
                 var data= '';
                 var read = 0;
                 do {
-                    str= {};
+                    var str= {};
                     read = cstream.readString(0xffffffff, str); // read as much as we can and put it in str.value
                     data += str.value;
                 } while( read );
                 cstream.close(); // this closes fstream
                 data= JSON.stringify( JSON.parse(data) ); // Remove any extra whitespace possibly added by exportFavorites(). Mozilla Preferences API would strip new lines anyway.
                 this.prefBranch.setCharPref("favorites", data);
+                this.clearFavorites();
                 this.load( this.prefBranch );
             }
         };
