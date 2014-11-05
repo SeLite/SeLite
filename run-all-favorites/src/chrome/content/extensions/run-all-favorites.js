@@ -286,6 +286,7 @@ window.setTimeout( function() {
                     console.debug( 'SeLite Run All Favorites: processing testSuitePlayDoneHandler');
                     testSuiteIndex++;
                     if( testSuiteIndex<self.favorites.length ) {
+                        self.editor.getUserLog().info( 'Playing test suite ' +self.favorites[testSuiteIndex].path );
                         loadAndPlayTestSuite.call( undefined, true );
                     }
                     else {
@@ -293,11 +294,14 @@ window.setTimeout( function() {
                         testSuitePlayDoneObserver= undefined;
                         TestSuiteProgress.prototype.update= oldTestSuiteProgressUpdate;
                         testSuiteFromLastUpdate= undefined;
+                        self.editor.getUserLog().info( 'Finished playing all favorites' );
                     }
                 }
             };
 
             self.editor.app.addObserver( testSuitePlayDoneObserver );
+            self.editor.getUserLog().info( 'Starting to play all favorites' );
+            self.editor.getUserLog().info( 'Playing test suite ' +self.favorites[testSuiteIndex].path );
             loadAndPlayTestSuite.call();
         };
         
