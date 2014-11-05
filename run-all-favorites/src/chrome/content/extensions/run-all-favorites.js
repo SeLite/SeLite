@@ -148,8 +148,12 @@ window.setTimeout( function() {
                   id: "menu-favorite-clear"
                 });
                 XulUtils.appendMenuItem(menu, {
-                  label: "Export",
-                  id: "menu-favorite-export"
+                  label: "Export - save",
+                  id: "menu-favorite-export-save"
+                });
+                XulUtils.appendMenuItem(menu, {
+                  label: "Export - display",
+                  id: "menu-favorite-export-display"
                 });
             }
             XulUtils.appendMenuItem(menu, {
@@ -206,10 +210,13 @@ window.setTimeout( function() {
                 this.runAllFavorites();
             }
             else
-            if( evt.target.id==="menu-favorite-export" ) {
-                this.exportFavorites();
+            if( evt.target.id==="menu-favorite-export-save" ) {
+                this.exportFavoritesSave();
             }
             else
+            if( evt.target.id==="menu-favorite-export-display" ) {
+                this.exportFavoritesDisplay();
+            }
             if( evt.target.id==="menu-favorite-import" ) {
                 this.importFavorites();
             }
@@ -294,21 +301,44 @@ window.setTimeout( function() {
             loadAndPlayTestSuite.call();
         };
         
-        /* I thought I could make Favorites.prototype.save() call JSON.stringify( this.favorites, undefined, ' ') and I would point users to use about:config for preference extensions.selenium-ide.plugin.favorites.favorites to import/export the favorites. However, Mozilla's preferences API transforms multi-lined string values. It would still work, but it would be difficult to read the 'exported' JSON and to maintain it in GIT/SVN. */
-        Favorites.prototype.exportFavorites = function() {
-            var data = this.prefBranch.getCharPref("favorites");
-            var obj = JSON.parse(data);
-            var indentedData= JSON.stringify( obj, undefined, ' ' );
+        Favorites.prototype.exportFavoritesDisplay = function exportFavoritesDisplay() {
+            var indentedData= JSON.stringify( this.favorites, undefined, ' ' );
             // I don't generate content type 'text/json', since that causes Firefox to show 'Save file as' dialog, but it gives the file an ugly/random-like default filename.
+            // I can't generate the file for direct download (i.e. forcing 'Save file' popup). If I follow http://stackoverflow.com/questions/283956/is-there-any-way-to-specify-a-suggested-filename-when-using-data-uri > see 'answered Sep 8', then link.download is empty.
             var data = JSON.stringify(this.favorites, undefined, ' ');
-            openTabOrWindow( 'data:text/plain;charset=utf-8,' +escape(data) );
+            var uri= 'data:text/plain;charset=utf-8,' +escape(data);
+            openTabOrWindow( uri );
         };
-
+        
         var nsIFilePicker = Components.interfaces.nsIFilePicker;
         
-        Favorites.prototype.importFavorites = function() {
+        Favorites.prototype.exportFavoritesSave = function exportFavoritesSave() {
             var filePicker = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
-            filePicker.init( window, "Select an exported list of all Favorites", nsIFilePicker.modeOpen );
+            filePicker.init( window, "Export the list of all Favorites", nsIFilePicker.modeSave );
+            filePicker.appendFilter( 'JSON', '*.json' );
+            filePicker.appendFilter( 'Text', '*.txt' );
+            filePicker.appendFilters( nsIFilePicker.filterAll );
+            var result= filePicker.show();
+            if( result===nsIFilePicker.returnOK || result===nsIFilePicker.returnReplace ) {
+                var file = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
+                file.initWithPath( filePicker.file.path );
+            
+                var foStream = Components.classes["@mozilla.org/network/file-output-stream;1"].
+                       createInstance(Components.interfaces.nsIFileOutputStream);
+
+                foStream.init(file, 0x02 | 0x08 | 0x20, 438/*===0666, but strict mode refuses octal literals*/, 0); 
+                var converter = Components.classes["@mozilla.org/intl/converter-output-stream;1"].
+                                createInstance(Components.interfaces.nsIConverterOutputStream);
+                converter.init(foStream, "UTF-8", 0, 0);
+                var data = JSON.stringify(this.favorites, undefined, ' ');
+                converter.writeString(data);
+                converter.close(); // this closes foStream
+            }
+        };
+        
+        Favorites.prototype.importFavorites = function importFavorites() {
+            var filePicker = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
+            filePicker.init( window, "Import a list of all Favorites", nsIFilePicker.modeOpen );
             filePicker.appendFilter( 'JSON', '*.json' );
             filePicker.appendFilter( 'Text', '*.txt' );
             filePicker.appendFilters( nsIFilePicker.filterAll );
