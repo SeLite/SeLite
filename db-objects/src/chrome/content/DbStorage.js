@@ -402,7 +402,7 @@ SeLiteData.Storage.prototype.updateRecords= function updateRecords( params ) {
         setPairs.push( field+ '=' +entries[field] );
     }
     if( !setPairs.length ) {
-        LOG.error( 'updateRecords() requires params.entries not to be empty.' );
+        console.error( 'updateRecords() requires params.entries not to be empty.' );
     }
     var query= "UPDATE " +params.table+ " SET " +setPairs.join(', ');
 
