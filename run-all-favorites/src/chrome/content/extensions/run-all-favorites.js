@@ -413,5 +413,8 @@ window.setTimeout( function() {
         };
         // 'editor' is an instance of either StandaloneEditor or SidebarEditor. Those classes don't refer to Editor.prototype, but they have copies of all functions from Editor.prototype (copied via objectExtend()).
         SidebarEditor.prototype.playTestSuite= StandaloneEditor.prototype.playTestSuite= Editor.prototype.playTestSuite;
+        
+        // Selenium IDE sometimes auto-loads the last test suite when it starts. Following ensures the star for it to be correct:
+        this.editor.favorites.suiteStateChanged( editor.app.testSuite );
     }
 }, 3000 );
