@@ -51,9 +51,9 @@ if( SeLiteExitConfirmationChecker===undefined ) {
         for( var classField in oldBrowserBot ) {
             BrowserBot[classField]= oldBrowserBot[classField];
         }
-
-        SeLiteExitConfirmationChecker.overrideOnBeforeUnload= function overrideOnBeforeUnload() {
-            console.debug( "SeLiteExitConfirmationChecker.overrideOnBeforeUnload()" );
+        
+        /** @private */
+        SeLiteExitConfirmationChecker.reset= function reset() {
             /** @var object {number index of the input in SeLiteExitConfirmationChecker.inputs => (string|boolean) original value } */
             SeLiteExitConfirmationChecker.originalInputValues= {}; // It could be an array. But SeLiteExitConfirmationChecker.modifiedInputValues can't be an array and therefore both are objects serving as associative arrays.
             /** @var object {number index of the input in SeLiteExitConfirmationChecker.inputs => (string|boolean) modified value } */
@@ -62,7 +62,12 @@ if( SeLiteExitConfirmationChecker===undefined ) {
             SeLiteExitConfirmationChecker.inputs= [];
             /** @var Array of strings, each being the first used locator for the respective input. Used only for reporting the inputs to the user. */
             SeLiteExitConfirmationChecker.inputLocators= [];
-
+        };
+        
+        SeLiteExitConfirmationChecker.overrideOnBeforeUnload= function overrideOnBeforeUnload() {
+            console.debug( "SeLiteExitConfirmationChecker.overrideOnBeforeUnload()" );
+            SeLiteExitConfirmationChecker.reset();
+            
             var window= selenium.browserbot.getCurrentWindow(true);
             var originalOnBeforeUnload= window.onbeforeunload;
             if( originalOnBeforeUnload && originalOnBeforeUnload.overridenBySeLite ) {

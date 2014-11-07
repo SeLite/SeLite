@@ -9,7 +9,7 @@ if defined p (
     )
     
     REM Now set up the actual extensions, unless they are already installed from XPI    
-    REM Do not use: echo %CD%.>target-file. Use: cd >target-file. For some reason %CD% doesn't get updated after I change directory.
+    REM Do not use: echo %CD% >target-file. Use: cd >target-file. For some reason %CD% doesn't get updated after I change directory.
     if not exist %e%\auto-check@selite.googlecode.com.xpi (
       cd auto-check\src
       cd > %e%\auto-check@selite.googlecode.com
@@ -81,6 +81,6 @@ if defined p (
       cd > %e%\run-all-favorites@selite.googlecode.com
       cd ..\..
     )
-)) else (
+) else (
    echo Could not find a default Firefox profile
 )
