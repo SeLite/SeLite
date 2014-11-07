@@ -17,7 +17,7 @@
                     var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
                     fileURL= (''+window.location.search).substring(1);
                     // subScriptLoader.loadSubScript() caches the scripts. Therefore I add a timestamp to the file name.
-                    subScriptLoader.loadSubScript( fileURL+ '?' +Date.now() );
+                    subScriptLoader.loadSubScript( fileURL+'?' +Date.now(), {}, 'utf-8' );
                 }
                 catch( e ) {
                     error= e;

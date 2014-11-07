@@ -15,10 +15,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 "use strict";
+// Note: if you move/rename this file, change SeLiteMisc.loadVerifyScope() below
 
 if( typeof SeLiteMisc==='undefined' ) {
     Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
-    var verifiedScope= SeLiteMisc.loadVerifyScope( 'chrome://selite-misc/content/embedded-tests/test.js',
+    var verifiedScope= SeLiteMisc.loadVerifyScope( 'chrome://selite-misc/content/javascript-tests/test.js',
         {},
         { '*': function() {return true;} }
     );
