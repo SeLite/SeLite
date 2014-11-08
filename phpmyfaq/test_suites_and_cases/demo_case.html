@@ -12,14 +12,65 @@
 <tr><td rowspan="1" colspan="3">demo_case</td></tr>
 </thead><tbody>
 <tr>
-	<td>getEval</td>
-	<td>true</td>
+	<td>call</td>
+	<td>ensureUnderWebRoot</td>
+	<td>forceReload=true</td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>logOut</td>
 	<td></td>
 </tr>
 <tr>
 	<td>call</td>
 	<td>logIn</td>
 	<td>loginOrAmpRole='&amp;admin'</td>
+</tr>
+<!---->
+<tr>
+	<td>call</td>
+	<td>goToAdministration</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ @href='index.php?action=user' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ @href='?action=user&amp;user_action=add' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>user_name</td>
+	<td>user_name</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>user_realname</td>
+	<td>user_realname</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>user_email</td>
+	<td>=`{type:'email', store:'email' }`</td>
+</tr>
+<tr>
+	<td>typeRandom</td>
+	<td>password</td>
+	<td>=`{type: 'password', store: 'password'}`</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>password_confirm</td>
+	<td>${password_confirm}</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//button[ @type='submit' ]</td>
+	<td></td>
 </tr>
 </tbody></table>
 </body>

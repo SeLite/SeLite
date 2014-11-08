@@ -11,45 +11,6 @@
 <thead>
 <tr><td rowspan="1" colspan="3">common_case</td></tr>
 </thead><tbody>
-<!--@param 'loginOrAmpRole' is a user login, or user role prefixed with &.-->
-<tr>
-	<td>function</td>
-	<td>logIn</td>
-	<td>loginOrAmpRole</td>
-</tr>
-<!---->
-<tr>
-	<td>storeEval</td>
-	<td>SeLiteSettings.roleToUser( '${loginOrAmpRole}' )</td>
-	<td>login</td>
-</tr>
-<tr>
-	<td>getEval</td>
-	<td>phpMyFAQ.selectUserByLogin( storedVars.login )</td>
-	<td></td>
-</tr>
-<!---->
-<tr>
-	<td>clickAndWait</td>
-	<td>//a[ @href='?action=login' ]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>type</td>
-	<td>id=faqusername</td>
-	<td>${login}</td>
-</tr>
-<tr>
-	<td>type</td>
-	<td>id=faqpassword</td>
-	<td>`phpMyFAQ.selectedUser.pass`</td>
-</tr>
-<tr>
-	<td>endFunction</td>
-	<td></td>
-	<td></td>
-</tr>
-<!------------------->
 <tr>
 	<td>function</td>
 	<td>ensureUnderWebRoot</td>
@@ -81,24 +42,56 @@
 	<td></td>
 </tr>
 <!---------------------->
+<!--@param 'loginOrAmpRole' is a user login, or user role prefixed with &.-->
+<tr>
+	<td>function</td>
+	<td>logIn</td>
+	<td>loginOrAmpRole</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>SeLiteSettings.roleToUser( '${loginOrAmpRole}' )</td>
+	<td>login</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>phpMyFAQ.selectUserByLogin( storedVars.login )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ @href='?action=login' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=faqusername</td>
+	<td>${login}</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>id=faqpassword</td>
+	<td>`phpMyFAQ.selectedUser.pass`</td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//form//div[ @class=&quot;form-actions&quot; ]//button[ @type=&quot;submit&quot; ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!------------------->
 <tr>
 	<td>function</td>
 	<td>logOut</td>
 	<td></td>
 </tr>
 <tr>
-	<td>call</td>
-	<td>ensureUnderWebRoot</td>
-	<td>forceReload=true</td>
-</tr>
-<tr>
-	<td>clickAndWait</td>
-	<td>//a[ contains(@href, '`Serendipity.config('indexFile')`?/admin' ) ]</td>
-	<td></td>
-</tr>
-<tr>
 	<td>storeElementPresent</td>
-	<td>//a[ contains(@href, 'serendipity[adminModule]=logout' ) ]</td>
+	<td>//a[ @class=&quot;dropdown-toggle&quot; ]//span[ contains(@title, 'Logged in as') ]</td>
 	<td>userLoggedIn</td>
 </tr>
 <tr>
@@ -107,8 +100,13 @@
 	<td></td>
 </tr>
 <tr>
+	<td>click</td>
+	<td>//a[ @class=&quot;dropdown-toggle&quot; ]//span[ contains(@title, 'Logged in as') ]/..</td>
+	<td></td>
+</tr>
+<tr>
 	<td>clickAndWait</td>
-	<td>//a[ contains(@href, 'serendipity[adminModule]=logout' ) ]</td>
+	<td>//a[ @href='?action=logout' ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -122,7 +120,7 @@
 	<td></td>
 </tr>
 <!----------------->
-<!--This requires the password to be stored in the test DB in plain text. Like for accounts created by script createUser.-->
+<!--This requires the password to be stored in the test DB in plain text. Like for accounts created by function createUser.-->
 <tr>
 	<td>function</td>
 	<td>logInAsStoredUser</td>
@@ -137,6 +135,27 @@
 	<td>call</td>
 	<td>logIn</td>
 	<td>loginOrAmpRole=$login, passwd=$user.password</td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!----------------->
+<tr>
+	<td>function</td>
+	<td>goToAdministration</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>//a[ @class=&quot;dropdown-toggle&quot; ]//span[ contains(@title, 'Logged in as') ]/..</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>//a[ @href='` SeLiteSettings.webRoot() `admin/index.php' ]</td>
+	<td></td>
 </tr>
 <tr>
 	<td>endFunction</td>
