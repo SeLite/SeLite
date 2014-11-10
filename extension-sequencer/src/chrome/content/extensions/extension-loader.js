@@ -160,7 +160,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
         SeLiteExtensionSequencer.Loader.registerAndPreActivate= function registerAndPreActivate( sortedPlugins ) {
             // The actual registration
             var failed= {}; // Object { string failed pluginId => exception }
-            for( var i=0; i<sortedPlugins.sortedPluginIds.length; i++ ) {
+            for( var i=0; i<sortedPlugins.sortedPluginIds.length; i++ ) {//@TODO low: for(..of..)
                 var pluginId= sortedPlugins.sortedPluginIds[i];
                 var pluginInfo= SeLiteExtensionSequencer.pluginInfos[pluginId];
                 var ide_api = new API();
@@ -168,10 +168,10 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                     // I register the plugin even if it has no core/ide extension url. That way it
                     // will be listed in Selenium IDE > Options > Options > Plugins.
                     ide_api.addPlugin(pluginId);
-                    for( var j=0; j<pluginInfo.ideUrl.length; j++ ) {
+                    for( var j=0; j<pluginInfo.ideUrl.length; j++ ) {//@TODO low: for(..of..)
                         ide_api.addPluginProvidedIdeExtension( pluginInfo.ideUrl[j] );
                     }
-                    for( var j=0; j<pluginInfo.coreUrl.length; j++ ) {
+                    for( var j=0; j<pluginInfo.coreUrl.length; j++ ) {//@TODO low: for(..of..)
                         if( j<pluginInfo.xmlUrl.length ) {
                             ide_api.addPluginProvidedUserExtension( pluginInfo.coreUrl[j], pluginInfo.xmlUrl[j] );
                         }
@@ -205,7 +205,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                     }
                     var errorLines= ( ''+e ).split('\n'); 
                     Array.prototype.push.apply( problems, errorLines );
-                    var isSeLiteAddon= addon.id.indexOf('selite.googlecode.com');
+                    var isSeLiteAddon= pluginId.indexOf('selite.googlecode.com');
                     problems.push( 'Please get its newest version (if available)' +(
                             isSeLiteAddon
                                 ? ' from <a href="https://code.google.com/p/selite/wiki/AddOns">https://code.google.com/p/selite/wiki/AddOns</a>'
@@ -221,6 +221,22 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                                 : ' to its author.'
                         )
                     );
+                    // Collect all directly and indirectly dependant add-ons:
+                    var dependantIds= [pluginId];
+                    // dependantIds.length amy increase during the inner loop, which adds any new dependants to its end. That's OK with the outer loop.
+                    for( var i=0; i<dependantIds.length; i++ ) {//@TODO low: for(..of..)
+                        var dependantId= dependantIds[i]; // We're collecting add-ons for which dependantIds[i] is a provider - they are its dependants.
+                        for( var subDependantId in SeLiteExtensionSequencer.pluginInfos ) {
+                            var subDependantInfo= SeLiteExtensionSequencer.pluginInfos[subDependantId];
+                            if( dependantId in subDependantInfo.requisitePlugins && dependantIds.indexOf(subDependantId)<0 ) {
+                                dependantIds.push( subDependantId );
+                            }
+                        }
+                    }
+                    dependantIds.splice( 0, 1 );
+                    if( dependantIds.length ) {
+                        problems.push( 'It may also break add-on(s) that depend on it directly or indirectly:' +dependantIds.join(', ')+ '.' );
+                    }
                 }
             }
             if( problems.length>0 ) {
