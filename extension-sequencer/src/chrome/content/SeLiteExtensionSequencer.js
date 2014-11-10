@@ -58,7 +58,6 @@ SeLiteExtensionSequencer.pluginInfos= {};
  *  @return void
 **/
 SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
-    //console.log( 'SeLiteExtensionSequencer.registerPlugin() called with a plugin that has pluginId: ' +prototype.pluginId );
     var pluginInfo= {
         pluginId: prototype.pluginId,
         coreUrl: prototype.coreUrl || [],
@@ -103,15 +102,10 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
  *          string pluginId: [string missing direct dependency plugin id, ...],
  *          ...
  *      },
- *      missingIndirectDependancies: {
- *          string pluginId: [string missing indirect dependency plugin id, ...],
- *          ...
- *      },
  *      brokenDirectDependancies: {
- *          string pluginId: [string missing indirect dependency plugin id, ...],
+ *          string pluginId: [string broken direct dependency plugin id, ...] // direct dependancies of pluginId that are present, but that miss some of their own own dependancies (directly or indirectly)
  *          ...
- *          // dependancies that are present, but that miss some of their own own dependancies (directly or indirectly)
- *      } where both missingDirectDependancies and missingIndirectDependancies dependencies can be a mixture of sequenced or non-sequenced add-on IDs
+ *      }
  *  }
  * */
 SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
@@ -133,8 +127,8 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
             }
         }
         for( var nonSequencedPluginId in pluginInfo.nonSequencedRequisitePlugins ) {
-            if( nonSequencedPluginId in addonsById ) {// add nonSequencedPluginId to nonSequencedDependencies[]:
-                nonSequencedDependencies.indexOf(nonSequencedPluginId)>=0 || nonSequencedDependencies.push( nonSequencedPluginId );
+            if( nonSequencedPluginId in addonsById && nonSequencedDependencies.indexOf(nonSequencedPluginId)<0 ) {
+                nonSequencedDependencies.push( nonSequencedPluginId );
             }
             else {
                 missingNonSequencedDependencies[dependantId]= true;
@@ -145,13 +139,11 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
     !Object.keys(missingNonSequencedDependencies).length || console.error( 'SeLiteExtensionSequencer: following add-on(s) are missing non sequenced dependencies: ' +Object.keys(missingNonSequencedDependencies).join(', ') );
     var sortedPluginIds= []; // [pluginId...] sorted, starting with ones with no dependencies, to the dependant ones
     
+    // Check all dependancies from bottom up. Clear them (i.e. remove them from pluginUnprocessedRequisites[]). Imagine a dependancy tree up side down. Start at the bottom, with leaf add-ons that have no dependancies, and clear them first. Then continue upwards.
     // I believe this has computational cost between O(N^2) and O(N^3), which is fine with me. This should report cyclic dependancies as as missing.
     outer: while( true ) {
         for( var pluginId in pluginUnprocessedRequisites ) {
-            if( missingNonSequencedDependencies[pluginId] ) {
-                continue; // I won't load this plugin; therefore no need to do further processing for it.
-            }
-            if( !pluginUnprocessedRequisites[pluginId].length ) { // The plugin's dependencies were all removed in previous run(s) of the following inner loop, when it procesed those dependencies. Now clear this plugin as OK and remove it as a dependancy for other plugins that depend on it.
+            if( !pluginUnprocessedRequisites[pluginId].length ) { // The plugin has no dependancies, or they were all cleared in previous run(s) of the following inner loop. Now clear this plugin as OK and remove it as a dependancy for other plugins that depend on it.
                 // sortedPluginIds[] contains all dependencies of pluginId, so pluginId can be loaded after them:
                 sortedPluginIds.push( pluginId );
                 delete pluginUnprocessedRequisites[pluginId];
@@ -171,24 +163,19 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
         break;
     }
     var missingDirectDependancies= {};
-    var missingIndirectDependancies= {};
     var brokenDirectDependancies= {};
     !Object.keys(pluginUnprocessedRequisites).length || console.error( 'pluginUnprocessedRequisites ' +Object.keys(pluginUnprocessedRequisites) );
     for( var pluginId in pluginUnprocessedRequisites ) { // pluginId is of the dependant
         var pluginInfo= SeLiteExtensionSequencer.pluginInfos[ pluginId ];
-        var brokenDirect=[], direct= [], indirect= [];
+        var brokenDirect=[], direct= [];
         
-        for( var j=0; j<pluginUnprocessedRequisites[pluginId].length; j++ ) {//@TODO instead of the following: for( var requisiteId of pluginUnprocessedRequisites[pluginId] )
+        for( var j=0; j<pluginUnprocessedRequisites[pluginId].length; j++ ) {//@TODO low: for( var requisiteId of pluginUnprocessedRequisites[pluginId] )
             var requisiteId= pluginUnprocessedRequisites[pluginId][j];
             if( requisiteId in SeLiteExtensionSequencer.pluginInfos ) {
                 brokenDirect.push( requisiteId );
             }
-            else
-            if( requisiteId in pluginInfo.requisitePlugins || requisiteId in pluginInfo.nonSequencedRequisitePlugins ) {
-                direct.push(requisiteId);
-            }
             else {
-                indirect.push(requisiteId);
+                direct.push(requisiteId);
             }
         }
         if( brokenDirect.length ) {
@@ -197,14 +184,10 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
         if( direct.length ) {
             missingDirectDependancies[pluginId]= direct;
         }
-        if( indirect.length ) {
-            missingIndirectDependancies[pluginId]= indirect;
-        }
     }
     !Object.keys(missingDirectDependancies).length || console.log( 'SeLiteExtensionSequencer: Following add-ons are missing direct dependancies: ' +Object.keys(missingDirectDependancies) );
     return {
         missingDirectDependancies: missingDirectDependancies,
-        missingIndirectDependancies: missingIndirectDependancies,
         brokenDirectDependancies: brokenDirectDependancies,
         sortedPluginIds: sortedPluginIds
     };
