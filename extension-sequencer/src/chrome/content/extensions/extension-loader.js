@@ -100,7 +100,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
          * */
         SeLiteExtensionSequencer.Loader.reportMissingDependancies= function reportMissingDependancies( addonsById, sortedPlugins ) {
             var problems= [];
-            if( Object.keys(sortedPlugins.missingDirectDependancies).length || Object.keys(sortedPlugins.brokenDirectDependancies).length ) {
+            if( Object.keys(sortedPlugins.missingDirectDependancies).length ) {
                 var dependancyPluginNames= {}; // { pluginId => pluginName } - for dependancies only
                 for( var dependantId in SeLiteExtensionSequencer.pluginInfos ) {
                     var pluginInfo= SeLiteExtensionSequencer.pluginInfos[dependantId];
@@ -113,14 +113,29 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                     for( var dependencyPluginId in pluginInfo.nonSequencedRequisitePlugins ) {
                         dependancyPluginNames[dependencyPluginId]= pluginInfo.nonSequencedRequisitePlugins[dependencyPluginId];
                     }
-                }                
+                }
+                
+                var numberOfBrokenSeLiteAddOns= 0; // Number of add-ons directly or indirectly broken. An add-on broken in both ways will be there twice.
+                var brokenDependantIds= Object.keys(sortedPlugins.missingDirectDependancies).concat( Object.keys(sortedPlugins.brokenDirectDependancies) );
+                for( var i=0; i<brokenDependantIds.length; i++ ) {//TODO low: (for pluginId of ..)
+                    if( brokenDependantIds[i].indexOf('selite.googlecode.com')>0 ) {
+                        numberOfBrokenSeLiteAddOns++;
+                    }
+                }
+                problems.push( 'Following Selenium IDE plugin(s) are missing their dependancy plugin(s). They are therefore inactive. Please, install (or enable) any missing dependancies. Please follow documentation of the plugin.'
+                    +(numberOfBrokenSeLiteAddOns
+                        ? (numberOfBrokenSeLiteAddOns===brokenDependantIds.length
+                            ? ' See also'
+                            : ' For those of them which are SeLite add-on(s), see also'
+                          )+ ' <a href="https://code.google.com/p/selite/wiki/AddOnsDependencies">https://code.google.com/p/selite/wiki/AddOnsDependants</a>.'
+                        : ''
+                    )
+                );
+                problems.push( '' );
+                problems.push( "Plugin(s) missing at least one direct dependency:" );
                 var pluginIdToName= function pluginIdToName(pluginId) {
                     return dependancyPluginNames[pluginId];
                 };
-
-                problems.push( 'Following Selenium IDE plugin(s) are missing their dependancy plugin(s). They are therefore inactive. Please, install (or enable) any missing dependancies. Please follow documentation of the plugin; if it is an SeLite add-on, see <a href="https://code.google.com/p/selite/wiki/AddOnsDependencies">https://code.google.com/p/selite/wiki/AddOnsDependants</a>.' );
-                problems.push( '' );
-                problems.push( "Plugin(s) missing at least one direct dependency:" );
                 for( var pluginId in sortedPlugins.missingDirectDependancies ) {
                     problems.push( addonsById[pluginId].name+ ' directly depends on missing plugin(s): ' +
                         sortedPlugins.missingDirectDependancies[pluginId].map(pluginIdToName).join(', ')+ '.' );
@@ -149,9 +164,9 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                 //@TODO brokenDirectDependancies
             }
             if( problems.length>0 ) {
-                console.error( "Problem(s) with add-on(s) for Firefox and Selenium IDE:\n" +problems.join('\n') );
-                SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
-            }            
+                console.error( "Problem(s) with dependant add-on(s) for Firefox and Selenium IDE:\n" +problems.join('\n') );
+                SeLiteExtensionSequencer.popup( window, "Problem(s) with dependant add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
+            }
         };
         
         /** Register add-ons (that have all dependancies) with Selenium IDE. Run their preaActivate() where present.
@@ -242,7 +257,8 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
             if( problems.length>0 ) {
                 console.error( "Problem(s) with add-on(s) for Firefox and Selenium IDE:\n" +problems.join('\n') );
                 SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
-            }        };
+            }
+        };
         
         Components.utils.import("resource://gre/modules/AddonManager.jsm");
         // For some reasons I couldn't use console (from resource://gre/modules/devtools/Console.jsm) here (in Firefox 26.0, Selenium IDE 2.5.0). Using it generated a log: can't start debugging: a debuggee script is on the stack webconsole.js:68. I could use console in the handler function passed to AddonManager.getAllAddons():
