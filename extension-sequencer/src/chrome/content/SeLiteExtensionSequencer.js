@@ -106,11 +106,16 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
  *      missingIndirectDependancies: {
  *          string pluginId: [string missing indirect dependency plugin id, ...],
  *          ...
- *      } where both direct and indirect dependencies can be a mixture of sequenced or non-sequenced
+ *      },
+ *      brokenDirectDependances: {
+ *          string pluginId: [string missing indirect dependency plugin id, ...],
+ *          ...
+ *          // dependancies that are present, but that miss some of their own own dependancies (directly or indirectly)
+ *      } where both missingDirectDependancies and missingIndirectDependancies dependencies can be a mixture of sequenced or non-sequenced add-on IDs
  *  }
  * */
 SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
-    // pluginUnprocessedRequisites contains plugins with their required dependencies (sequenced or not).
+    // pluginUnprocessedRequisites initially contains all sequenced plugins with their required dependencies (sequenced or not).
     // I add in any optional plugin IDs, if they are installed, so they get loaded in correct order, before the plugins that use them.
     var pluginUnprocessedRequisites= {}; // { dependant plugin id => [requisite plugin id...], ... }
     // Object { dependant plugin id => true } containing plugins that are missing any non-sequenced dependencies
@@ -121,14 +126,14 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
         var pluginInfo= SeLiteExtensionSequencer.pluginInfos[dependantId];
         pluginUnprocessedRequisites[dependantId]= Object.keys( pluginInfo.requisitePlugins ).slice(0); // protective copy //@TODO no need for slice(0)
         
-        // Any optional dependencies, that are present, are treated as required dependencies:
+        // Any optional dependencies, that are present, are now treated as required dependencies:
         for( var optionalPluginId in pluginInfo.optionalRequisitePlugins ) {
             if( optionalPluginId in SeLiteExtensionSequencer.pluginInfos ) {
                 pluginUnprocessedRequisites[dependantId].push( optionalPluginId );
             }
         }
         for( var nonSequencedPluginId in pluginInfo.nonSequencedRequisitePlugins ) {
-            if( nonSequencedPluginId in addonsById ) {
+            if( nonSequencedPluginId in addonsById ) {// add nonSequencedPluginId to nonSequencedDependencies[]:
                 nonSequencedDependencies.indexOf(nonSequencedPluginId)>=0 || nonSequencedDependencies.push( nonSequencedPluginId );
             }
             else {
@@ -167,20 +172,27 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
     }
     var missingDirectDependancies= {};
     var missingIndirectDependancies= {};
+    var brokenDirectDependances= {};
     !Object.keys(pluginUnprocessedRequisites).length || console.error( 'pluginUnprocessedRequisites ' +Object.keys(pluginUnprocessedRequisites) );
     for( var pluginId in pluginUnprocessedRequisites ) { // pluginId is of the dependant
         var pluginInfo= SeLiteExtensionSequencer.pluginInfos[ pluginId ];
-        var direct= [], indirect= [];
+        var brokenDirect=[], direct= [], indirect= [];
         
         for( var j=0; j<pluginUnprocessedRequisites[pluginId].length; j++ ) {//@TODO instead of the following: for( var requisiteId of pluginUnprocessedRequisites[pluginId] )
             var requisiteId= pluginUnprocessedRequisites[pluginId][j];
-            console.error( 'requisiteId ' +requisiteId);
+            if( requisiteId in SeLiteExtensionSequencer.pluginInfos ) {
+                brokenDirect.push( requisiteId );
+            }
+            else
             if( requisiteId in pluginInfo.requisitePlugins || requisiteId in pluginInfo.nonSequencedRequisitePlugins ) {
                 direct.push(requisiteId);
             }
             else {
                 indirect.push(requisiteId);
             }
+        }
+        if( brokenDirect.length ) {
+            brokenDirectDependances[pluginId]= brokenDirectDependances;
         }
         if( direct.length ) {
             missingDirectDependancies[pluginId]= direct;
@@ -193,6 +205,7 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
     return {
         missingDirectDependancies: missingDirectDependancies,
         missingIndirectDependancies: missingIndirectDependancies,
+        brokenDirectDependances: brokenDirectDependances,
         sortedPluginIds: sortedPluginIds
     };
 };
@@ -259,4 +272,5 @@ var Flag= {
     alertShown: false // Whether I've already shown the alert (potentially in another window). It helps me to ensure that I don't show the same message again if the user opens a new window.
 };
 
+SeLiteExtensionSequencer.Loader= {};
 var EXPORTED_SYMBOLS= ['SeLiteExtensionSequencer', 'Flag'];
