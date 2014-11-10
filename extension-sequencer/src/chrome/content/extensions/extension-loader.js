@@ -39,7 +39,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
             catch( e ) {}
         };
         
-        /* Following functions exist in SeLiteExtensionSequencer.Loader, so that I can invoke this file from extension-loader-debug.xul for debugging. It's difficult to debug otherwise: if you start firefox binary with parameter -jsdebugger, this file gets processed before the debugger shows up. Also, following is stored within JS code module object, which is ugly. It's because Selenium IDE loads this file twice. Maybe related to http://code.google.com/p/selenium/issues/detail?id=6697 */
+        /* Following functions exist in SeLiteExtensionSequencer.Loader, so that I can invoke this file from test.xul for debugging. It's difficult to debug otherwise: if you start firefox binary with parameter -jsdebugger, this file gets processed before the debugger shows up. Also, following is stored within JS code module object, which is ugly. It's because Selenium IDE loads this file twice. Maybe related to http://code.google.com/p/selenium/issues/detail?id=6697 */
         
         /** Get all add-ons that have sequencer manifest. Store them in SeLiteExtensionSequencer.Loader.addonsById.
          *  @param {Array} addons As passed from AddonManager.getAllAddons().
@@ -145,6 +145,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                         }
                     }
                 }
+                //@TODO brokenDirectDependancies
             }
             if( problems.length>0 ) {
                 console.error( "Problem(s) with add-on(s) for Firefox and Selenium IDE:\n" +problems.join('\n') );
@@ -193,7 +194,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                         problems.push( '' );
                     }
                     problems.push( 'Failure when initialising Selenium IDE plugin ' +pluginId+ ': ' );
-                    if( !e.messageContainsStackAddedBySeLiteMisc || !error.messageContainsStackWithExcludedCommonBaseBySeLiteMisc ) {
+                    if( !e.messageContainsStackAddedBySeLiteMisc || !e.messageContainsStackWithExcludedCommonBaseBySeLiteMisc ) {
                         if( SeLiteMisc() ) {
                             SeLiteMisc().addStackToMessage( e, true );
                         }

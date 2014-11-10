@@ -107,7 +107,7 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
  *          string pluginId: [string missing indirect dependency plugin id, ...],
  *          ...
  *      },
- *      brokenDirectDependances: {
+ *      brokenDirectDependancies: {
  *          string pluginId: [string missing indirect dependency plugin id, ...],
  *          ...
  *          // dependancies that are present, but that miss some of their own own dependancies (directly or indirectly)
@@ -172,7 +172,7 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
     }
     var missingDirectDependancies= {};
     var missingIndirectDependancies= {};
-    var brokenDirectDependances= {};
+    var brokenDirectDependancies= {};
     !Object.keys(pluginUnprocessedRequisites).length || console.error( 'pluginUnprocessedRequisites ' +Object.keys(pluginUnprocessedRequisites) );
     for( var pluginId in pluginUnprocessedRequisites ) { // pluginId is of the dependant
         var pluginInfo= SeLiteExtensionSequencer.pluginInfos[ pluginId ];
@@ -192,7 +192,7 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
             }
         }
         if( brokenDirect.length ) {
-            brokenDirectDependances[pluginId]= brokenDirectDependances;
+            brokenDirectDependancies[pluginId]= brokenDirect;
         }
         if( direct.length ) {
             missingDirectDependancies[pluginId]= direct;
@@ -205,7 +205,7 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
     return {
         missingDirectDependancies: missingDirectDependancies,
         missingIndirectDependancies: missingIndirectDependancies,
-        brokenDirectDependances: brokenDirectDependances,
+        brokenDirectDependancies: brokenDirectDependancies,
         sortedPluginIds: sortedPluginIds
     };
 };
