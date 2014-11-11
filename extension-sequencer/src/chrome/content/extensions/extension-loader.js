@@ -209,7 +209,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                     if( problems.length ) {
                         problems.push( '' );
                     }
-                    problems.push( 'Failure when initialising Selenium IDE plugin ' +pluginId+ ': ' );
+                    problems.push( 'Failure when initialising Selenium IDE plugin ' +pluginId+ ': ' ); //@TODO show plugin name instead
                     if( !e.messageContainsStackAddedBySeLiteMisc || !e.messageContainsStackWithExcludedCommonBaseBySeLiteMisc ) {
                         if( SeLiteMisc() ) {
                             SeLiteMisc().addStackToMessage( e, true );

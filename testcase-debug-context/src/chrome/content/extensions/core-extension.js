@@ -80,18 +80,18 @@
     else {
         // This is so that SelBlocksGlobal can intercept TestCaseDebugContext.
         // I set it here when Se IDE loads this file for the second time.
-        global.TestCaseDebugContext= TestCase.TestCaseDebugContext;
+        global.TestCaseDebugContext= TestCase.TestCaseDebugContext;debugger;
         
         /** This will be inserted before standard _executeCurrentCommand() through a head override.
          * */
-        global.seLiteBeforeCurrentCommand= function seLiteBeforeCurrentCommand() {};
+        global.Selenium.seLiteBeforeCurrentCommand= function seLiteBeforeCurrentCommand() {};
         /** This will be appended after standard _executeCurrentCommand() through a tail override.
          * */
-        global.seLiteAfterCurrentCommand= function seLiteAfterCurrentCommand() {};
+        global.Selenium.seLiteAfterCurrentCommand= function seLiteAfterCurrentCommand() {};
 
         // I need the following on the 2nd load, since TestLoop is not defined on the 1st load.
         // Set up override of TestLoop.prototype.resume(), which splits it into SeLite-custom functions. SeLite needs that, so that both AutoCheck, ExitConfirmationChecker and SelBlocksGlobal's try..catch can generate errors logged and counted in Selenium IDE 2.8.0.
-        var originalResume= TestLoop.prototype.resume;
+        /*var originalResume= TestLoop.prototype.resume;
         TestLoop.prototype.resume= function resume() {
             // this.prototype._executeCurrentCommand() comes from IDETestLoop.prototype in chrome/content/selenium-runner.js, which gets set only after debugger.js loads core extensions. Also, IDETestLoop is not in scope here, so I have to use this.
             // I thought that this.prototype should come from IDETestLoop, but this.prototype is not defined here. No idea why.
@@ -105,6 +105,6 @@
                 this._executeCurrentCommand.isExtendedBySeLite= true;
             }
             originalResume.call( this );
-        };
+        };/**/
     }
 } )( this );

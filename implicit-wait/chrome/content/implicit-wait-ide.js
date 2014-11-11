@@ -79,9 +79,13 @@ ImplicitWait.prototype = {
             browserbot = selenium.browserbot,
             LOG = runner.LOG;
         
+        // From TestLoop's resume() in selenium-executionloop.js:
         LOG.debug("currentTest.resume() - actually execute modified");
         browserbot.runScheduledPollers();
         
+        runner.Selenium.seLiteBeforeCurrentCommand.call();
+        
+        // Following is from TestLoop's _executeCurrentCommand() in selenium-runner.js
         var command = base.currentCommand;
         LOG.info("Executing: |" + command.command + " | " + command.target + " | " + command.value + " |");
 
@@ -94,14 +98,16 @@ ImplicitWait.prototype = {
         LOG.debug("Command found, going to execute " + command.command);
         
         runner.updateStats(command.command);
+        // end of code based on _executeCurrentCommand() - except for its last two lines, which are handled in loopFindElement() below
         
+        // Following replaces a call to this.continueTestWhenConditionIsTrue(); and error handling from TestLoop's resume() in selenium-executionloop.js:
         var locator_endtime = this.wait_timeout && new Date().getTime() + this.wait_timeout;
         var self = this;
-        (function loopFindElement(){
+        var loopFindElement= function loopFindElement() {
             try{
-                base.result = handler.execute(selenium, command);
-                base.waitForCondition = base.result.terminationCondition;
-                (function loopCommandCondition(){    //handles the andWait condition in replacement of continueTestWhenConditionIsTrue
+                base.result = handler.execute(selenium, command); // from _executeCurrentCommand()
+                base.waitForCondition = base.result.terminationCondition; // from _executeCurrentCommand()
+                var loopCommandCondition= function loopCommandCondition() {    //handles the andWait condition in replacement of continueTestWhenConditionIsTrue
                     try{
                         browserbot.runScheduledPollers();
                         if(base.waitForCondition && !base.waitForCondition())
@@ -109,7 +115,7 @@ ImplicitWait.prototype = {
                         base.waitForCondition = null;
                         var postcondition_endtime = self.postcondition_run && new Date().getTime() + self.postcondition_timeout;
                         self.postcondition_run = self.postcondition_func;
-                        (function loopPostCondition(){    //handles the customized postcondition
+                        var loopPostCondition= function loopPostCondition() {    //handles the customized postcondition
                             if(postcondition_endtime){
                                 try{
                                     if(new Date().getTime() > postcondition_endtime)
@@ -120,16 +126,19 @@ ImplicitWait.prototype = {
                                      base.result = {failed: true, failureMessage: 'Exception on postcondition ' + self.postcondition_func.__string__ + '  Exception:' + extractExceptionMessage(e)};
                                 }
                             }
+                            runner.Selenium.seLiteAfterCurrentCommand.call( base );
                             base.commandComplete(base.result);
                             base.continueTest();
-                        })();
+                        };
+                        loopPostCondition();
                     }catch(e){
                         base.result = {failed: true, failureMessage: extractExceptionMessage(e)};
                         base.commandComplete(base.result);
                         base.continueTest();
                     }
-                })();
-            }catch(e){
+                };
+                loopCommandCondition();
+            } catch(e){
                 if(e.isElementNotFoundError && locator_endtime && new Date().getTime() < locator_endtime)
                     return selDebugger.state !== 2/*PAUSE_REQUESTED*/ && window.setTimeout(loopFindElement, 20);
                 if(base._handleCommandError(e))
@@ -137,7 +146,8 @@ ImplicitWait.prototype = {
                 else
                     base.testComplete();
             }
-        })();
+        };
+        loopFindElement();
     }
 };
 

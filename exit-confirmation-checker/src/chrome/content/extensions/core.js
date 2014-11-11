@@ -104,8 +104,8 @@ if( SeLiteExitConfirmationChecker===undefined ) {
             window.onbeforeunload.overridenBySeLite= true;
         };
         
-        var originalSeLiteBeforeCurrentCommand= global.seLiteBeforeCurrentCommand;
-        global.seLiteBeforeCurrentCommand= function seLiteBeforeCurrentCommand() {
+        var originalSeLiteBeforeCurrentCommand= global.Selenium.seLiteBeforeCurrentCommand;
+        global.Selenium.seLiteBeforeCurrentCommand= function seLiteBeforeCurrentCommand() {
             // BrowserBot's recordPageLoad() overloaded above sets SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload *after* a command opened a new page. If the next command modifies an input, I need to perform the following *before* that next command - hence global.seLiteBeforeCurrentCommand. But I also need to raise an error (if appropriate) *after* that next command - hence global.seLiteAfterCurrentCommand.
             if( SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload ) {
                 SeLiteExitConfirmationChecker.overrideOnBeforeUnload();
@@ -114,8 +114,8 @@ if( SeLiteExitConfirmationChecker===undefined ) {
             originalSeLiteBeforeCurrentCommand.call( this );
         };
         
-        var originalSeLiteAfterCurrentCommand= global.seLiteAfterCurrentCommand;
-        global.seLiteAfterCurrentCommand= function seLiteAfterCurrentCommand() {
+        var originalSeLiteAfterCurrentCommand= global.Selenium.seLiteAfterCurrentCommand;//@TODO use
+        global.Selenium.seLiteAfterCurrentCommand= function seLiteAfterCurrentCommand() {
             console.debug('SeLite ExitConfirmationChecker: seLiteAfterCurrentCommand');
             if( !this.result.failed ) { // See also comments in auto-check.js
                 if( SeLiteExitConfirmationChecker.modifiedInputValues!==undefined && SeLiteExitConfirmationChecker.appAskedToConfirm!==undefined ) {
