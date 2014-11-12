@@ -80,7 +80,7 @@
     else {
         // This is so that SelBlocksGlobal can intercept TestCaseDebugContext.
         // I set it here when Se IDE loads this file for the second time.
-        global.TestCaseDebugContext= TestCase.TestCaseDebugContext;debugger;
+        global.TestCaseDebugContext= TestCase.TestCaseDebugContext;
         
         /** This will be inserted before standard _executeCurrentCommand() through a head override.
          * */

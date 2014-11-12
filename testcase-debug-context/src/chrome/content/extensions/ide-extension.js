@@ -62,59 +62,59 @@ editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHa
     
     //@TODO editor.implicitwait:
     var locator_endtime = editor.implicitwait.wait_timeout && new Date().getTime() + editor.implicitwait.wait_timeout;
-    var self = editor.implicitwait;
+    var self = this;
     var loopFindElement= function loopFindElement() {
         try{
-            //@TODO change most or all: selDebugger -> this
-            selDebugger.result = handler.execute(selenium, command); // from _executeCurrentCommand()
-            selDebugger.waitForCondition = selDebugger.result.terminationCondition; // from _executeCurrentCommand()
+            self.result = handler.execute(selenium, command); // from _executeCurrentCommand()
+            //debugger;
+            self.waitForCondition = self.result.terminationCondition; // from _executeCurrentCommand()
             var loopCommandCondition= function loopCommandCondition() {    //handles the andWait condition in replacement of continueTestWhenConditionIsTrue
                 try{
                     browserbot.runScheduledPollers();
-                    if( selDebugger.waitForCondition && !selDebugger.waitForCondition() ) {
+                    if( self.waitForCondition && !self.waitForCondition() ) {
                         return selDebugger.state !== 2/*PAUSE_REQUESTED*/ && window.setTimeout(loopCommandCondition, 15);
                     }
-                    selDebugger.waitForCondition = null;
+                    self.waitForCondition = null;
                     var postcondition_endtime = self.postcondition_run && new Date().getTime() + self.postcondition_timeout;
                     self.postcondition_run = self.postcondition_func;
                     var loopPostCondition= function loopPostCondition() {    //handles the customized postcondition
                         if(postcondition_endtime){
                             try{
                                 if( new Date().getTime() > postcondition_endtime ) {
-                                    selDebugger.result = {failed: true, failureMessage: 'Timed out on postcondition ' + self.postcondition_func.__string__};
+                                    self.result = {failed: true, failureMessage: 'Timed out on postcondition ' + self.postcondition_func.__string__};
                                 }
                                 else if( !self.postcondition_func.call(selenium) ) {
                                     return selDebugger.state !== 2/*PAUSE_REQUESTED*/ && window.setTimeout(loopPostCondition, 15);
                                 }
                             }catch(e){
-                                 selDebugger.result = {failed: true, failureMessage: 'Exception on postcondition ' + self.postcondition_func.__string__ + '  Exception:' + extractExceptionMessage(e)};
+                                 self.result = {failed: true, failureMessage: 'Exception on postcondition ' + self.postcondition_func.__string__ + '  Exception:' + extractExceptionMessage(e)};
                             }
                         }
-                        runner.Selenium.seLiteAfterCurrentCommand.call( selDebugger );
-                        selDebugger.commandComplete(selDebugger.result);
-                        selDebugger.continueTest();
+                        runner.Selenium.seLiteAfterCurrentCommand.call( self );
+                        self.commandComplete(self.result);
+                        self.continueTest();
                     };
                     loopPostCondition();
                 }catch(e){
-                    selDebugger.result = {failed: true, failureMessage: extractExceptionMessage(e)};
-                    selDebugger.commandComplete(selDebugger.result);
-                    selDebugger.continueTest();
+                    self.result = {failed: true, failureMessage: extractExceptionMessage(e)};
+                    self.commandComplete(self.result);
+                    self.continueTest();
                 }
             };
             loopCommandCondition();
         } catch(e){
             if(e.isElementNotFoundError && locator_endtime && new Date().getTime() < locator_endtime)
                 return selDebugger.state !== 2/*PAUSE_REQUESTED*/ && window.setTimeout(loopFindElement, 20);
-            if(selDebugger._handleCommandError(e))
-                selDebugger.continueTest();
+            if(self._handleCommandError(e))
+                self.continueTest();
             else
-                selDebugger.testComplete();
+                self.testComplete();
         }
     };
     loopFindElement();
 };
 
-editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHandleErrors( command, handler ) {
+/*editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHandleErrors( command, handler ) {
     var selenium = editor.selDebugger.runner.selenium;
     try{
         this.result = handler.execute(selenium, command); // from _executeCurrentCommand()
@@ -128,7 +128,7 @@ editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHa
             this.continueTest();
         }
     }
-};
+};/**/
 
 setTimeout( //waits until all the sub-scripts are loaded to overload selDebugger.init
     function() {
