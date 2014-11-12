@@ -15,6 +15,8 @@
  */
 "use strict";
 
+// Functions set on 'editor' object here are not to be run on 'editor' object, but on TestLoop instance. These functions are set on 'editor' object only because there seems no better place to set them, where they could be intercepted from both Core and IDE extensions.
+
 editor.testLoopResume= function testLoopResume() {
     var runner = editor.selDebugger.runner;
     var selenium = runner.selenium;
@@ -33,7 +35,7 @@ editor.testLoopResume= function testLoopResume() {
 
     var command = this.currentCommand;
     var handler = this.commandFactory.getCommandHandler(command.command);
-    if( handler===undefined ) {//@TODO error handling as per resume()?
+    if( handler===undefined ) {
         this._handleCommandError( SeleniumError("Unknown command: '" + command.command + "'") );
         this.testComplete(); // Simplified version of error handling in resume(), since this._handleCommandError() returns true for this error
         return;
@@ -48,11 +50,25 @@ editor.testLoopResume= function testLoopResume() {
     
     editor.testLoopResumeExecuteAndHandleErrors.call( this, command, handler );
 };
+
+/** This is called when this.result.failed is true in editor.testLoopResumeExecuteAndHandleErrors() - i.e. after a verification failure.
+ * */
+editor.testLoopResumeHandleFailedResult= function testLoopResumeHandleFailedResult() {};
+
+/** This is called when there's an error caught in editor.testLoopResumeExecuteAndHandleErrors() - i.e. after a command failure or an assertion failure. */
+editor.testLoopResumeHandleError= function testLoopResumeHandleError(e) {
+    if (!this._handleCommandError(e)) {
+        this.testComplete();
+    } else {
+        this.continueTest();
+    }
+};
+
 /**
-    It's based on:
+    It's based on three functions in TestLoop from selenium-executionloop.js:
     - the rest of _executeCurrentCommand() that wasn't processed by testLoopResume() itself above, and
     - a call to continueTestWhenConditionIsTrue() and
-    - error handling from TestLoop's resume() in selenium-executionloop.js:
+    - error handling from resume()
  * */
 editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHandleErrors( command, handler ) {
     var selDebugger = editor.selDebugger;
@@ -60,14 +76,14 @@ editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHa
     var selenium = runner.selenium;
     var browserbot = selenium.browserbot;
     
-    //@TODO editor.implicitwait:
     var locator_endtime = editor.implicitwait.wait_timeout && new Date().getTime() + editor.implicitwait.wait_timeout;
     var self = this;
+    
     var loopFindElement= function loopFindElement() {
         try{
             self.result = handler.execute(selenium, command); // from _executeCurrentCommand()
-            //debugger;
             self.waitForCondition = self.result.terminationCondition; // from _executeCurrentCommand()
+            
             var loopCommandCondition= function loopCommandCondition() {    //handles the andWait condition in replacement of continueTestWhenConditionIsTrue
                 try{
                     browserbot.runScheduledPollers();
@@ -91,44 +107,49 @@ editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHa
                             }
                         }
                         runner.Selenium.seLiteAfterCurrentCommand.call( self );
+                        if( self.result.failed ) {
+                            editor.editor.testLoopResumeHandleFailedResult.call( self );
+                        }
                         self.commandComplete(self.result);
                         self.continueTest();
                     };
                     loopPostCondition();
                 }catch(e){
                     self.result = {failed: true, failureMessage: extractExceptionMessage(e)};
+                    runner.Selenium.seLiteAfterCurrentCommand.call( self );
+                    editor.testLoopResumeHandleFailedResult.call( self );
                     self.commandComplete(self.result);
                     self.continueTest();
                 }
             };
             loopCommandCondition();
         } catch(e){
-            if(e.isElementNotFoundError && locator_endtime && new Date().getTime() < locator_endtime)
+            if(e.isElementNotFoundError && locator_endtime && new Date().getTime() < locator_endtime) {
                 return selDebugger.state !== 2/*PAUSE_REQUESTED*/ && window.setTimeout(loopFindElement, 20);
-            if(self._handleCommandError(e))
-                self.continueTest();
-            else
-                self.testComplete();
+            }
+            editor.testLoopResumeHandleError.call( self, e );
         }
     };
     loopFindElement();
 };
 
-/*editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHandleErrors( command, handler ) {
+if( true ) {
+editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHandleErrors( command, handler ) {
     var selenium = editor.selDebugger.runner.selenium;
     try{
         this.result = handler.execute(selenium, command); // from _executeCurrentCommand()
         this.waitForCondition = this.result.terminationCondition; // from _executeCurrentCommand()
+        editor.selDebugger.runner.Selenium.seLiteAfterCurrentCommand.call( this );
+        if( this.result.failed ) {
+            editor.testLoopResumeHandleFailedResult.call( this );
+        }
         this.continueTestWhenConditionIsTrue(); // from resume()
     }
     catch( e ) {
-        if (!this._handleCommandError(e)) {
-            this.testComplete();
-        } else {
-            this.continueTest();
-        }
+        editor.testLoopResumeHandleError.call( this, e );
     }
-};/**/
+};
+}
 
 setTimeout( //waits until all the sub-scripts are loaded to overload selDebugger.init
     function() {
