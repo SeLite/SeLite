@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 "use strict";
-debugger;
-//alert( typeof editor.selDebugger.runner );
-// editor.testLoopResume replaces resume() from selenium-executionloop.js.
+
 editor.testLoopResume= function testLoopResume() {
     var runner = editor.selDebugger.runner;
     var selenium = runner.selenium;
@@ -35,8 +33,10 @@ editor.testLoopResume= function testLoopResume() {
 
     var command = this.currentCommand;
     var handler = this.commandFactory.getCommandHandler(command.command);
-    if (handler === null) {//@TODO error handling as per resume()?
-        throw new SeleniumError("Unknown command: '" + command.command + "'");
+    if( handler===undefined ) {//@TODO error handling as per resume()?
+        this._handleCommandError( SeleniumError("Unknown command: '" + command.command + "'") );
+        this.testComplete(); // Simplified version of error handling in resume(), since this._handleCommandError() returns true for this error
+        return;
     }
     
     command.target = selenium.preprocessParameter(command.target);
