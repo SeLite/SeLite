@@ -73,7 +73,7 @@ ImplicitWait.prototype = {
         fn.apply(base, args);   //calls the original method
         base.runner.MozillaBrowserBot.prototype.findElement = BrowserBot_findElement;
         base.runner.MozillaBrowserBot.prototype.locateElementByXPath= BrowserBot_locateElementByXPath;
-        // Implicit Wait 1.0.13 (before integrating with SeLite) used to call: wrap(base.runner.IDETestLoop.prototype, 'resume', this, this.wrap_IDETestLoop_resume); That is now refactored into SeLite Test Case Debug Context.
+        // Implicit Wait 1.0.13 (before integrating with SeLite) used to call: wrap(base.runner.IDETestLoop.prototype, 'resume', this, this.wrap_IDETestLoop_resume); That is now refactored into SeLite Test Case Debug Context > ide-extension.js -> editor.testLoopResume
         this.wait_timeout = (this.wait_forced && this.DEFAULT_TIMEOUT) || 0;
         this.postcondition_timeout = 0;
         this.postcondition_func = this.postcondition_run = null;

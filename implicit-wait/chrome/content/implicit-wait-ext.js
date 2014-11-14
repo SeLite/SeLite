@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+"use strict";
+
 /**
  * Specifies the amount of time it should wait when searching for an element if it is not immediately present.
  * @param {Integer} timeout Timeout in millisecond, set 0 to disable it

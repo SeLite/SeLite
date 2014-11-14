@@ -157,9 +157,7 @@ setTimeout( //waits until all the sub-scripts are loaded to overload selDebugger
         var originalInit= editor.selDebugger.init;
         editor.selDebugger.init= function init() {
             originalInit.call( this );
-            if( this.runner.IDETestLoop.prototype.resume!==editor.testLoopResume ) {
-                this.runner.IDETestLoop.prototype.resume= editor.testLoopResume;
-            }
+            this.runner.IDETestLoop.prototype.resume= editor.testLoopResume;
         }
     },
     0
