@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-(function(){
-
+(function(){ // closure keeps the local variables out of global scope
 /**
  * Class: Adds the implicit wait feature to SeleniumIDE.
  * @param {Object} editor
@@ -24,6 +23,7 @@ function ImplicitWait(editor){
     this.editor = editor;
     
     setTimeout(function(){      //waits all the sub-scripts are loaded to wrap selDebugger.init 
+        //this===editor.implicitwait
         wrap(editor.selDebugger, 'init', this, this.wrap_selDebugger_init);
     }.bind(this), 0);
 }
@@ -63,9 +63,12 @@ ImplicitWait.prototype = {
     
     /** Overrides Debugger.init: function() in debugger.js line 23 */
     wrap_selDebugger_init: function(base, fn, args/*[]*/){
+        // base===editor.selDebugger
+        // this===editor.implicitwait
         fn.apply(base, args);   //calls the original method
         base.runner.MozillaBrowserBot.prototype.findElement = BrowserBot_findElement;
-        wrap(base.runner.IDETestLoop.prototype, 'resume', this, this.wrap_IDETestLoop_resume);
+        base.runner.MozillaBrowserBot.prototype.locateElementByXPath= BrowserBot_locateElementByXPath;
+        // Implicit Wait 1.0.13 (before integrating with SeLite) used to call: wrap(base.runner.IDETestLoop.prototype, 'resume', this, this.wrap_IDETestLoop_resume); That is now refactored into SeLite Test Case Debug Context.
         this.wait_timeout = (this.wait_forced && this.DEFAULT_TIMEOUT) || 0;
         this.postcondition_timeout = 0;
         this.postcondition_func = this.postcondition_run = null;
@@ -73,6 +76,8 @@ ImplicitWait.prototype = {
     
     /** Overrides TestLoop.prototype.resume: function() in selenium-executionloop.js line 71 */
     wrap_IDETestLoop_resume: function(base, fn, args/*[]*/){
+        // this===editor.implicitwait
+        // base: instance of IDETestLoop
         var selDebugger = this.editor.selDebugger,
             runner = selDebugger.runner,
             selenium = runner.selenium,
@@ -100,7 +105,10 @@ ImplicitWait.prototype = {
         runner.updateStats(command.command);
         // end of code based on _executeCurrentCommand() - except for its last two lines, which are handled in loopFindElement() below
         
-        // Following replaces a call to this.continueTestWhenConditionIsTrue(); and error handling from TestLoop's resume() in selenium-executionloop.js:
+        // Following replaces:
+        // - two lines from _executeCurrentCommand() and
+        // - a call to this.continueTestWhenConditionIsTrue() and
+        // - error handling from TestLoop's resume() in selenium-executionloop.js:
         var locator_endtime = this.wait_timeout && new Date().getTime() + this.wait_timeout;
         var self = this;
         var loopFindElement= function loopFindElement() {
@@ -162,6 +170,21 @@ var BrowserBot_findElement = function (locator, win){
     if(element === null)
         throw new ElementNotFountError(locator);
     return window.core.firefox.unwrap(element);
+};
+
+var BrowserBot_locateElementByXPath= function locateElementByXPath(xpath, inDocument, inWindow) {
+    try {
+        return this.xpathEvaluator.selectSingleNode(inDocument, xpath, null,
+            inDocument.createNSResolver
+              ? inDocument.createNSResolver(inDocument.documentElement)
+              : this._namespaceResolver);
+    }
+    catch(e) {
+      if( e.name==='NS_ERROR_ILLEGAL_VALUE' ) { // for https://code.google.com/p/selenium-implicit-wait/issues/detail?id=3
+          return null;
+      }
+      throw e;
+    }
 };
 
 

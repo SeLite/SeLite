@@ -50,8 +50,8 @@ if( typeof window!=='undefined' ) {
                         // I sort the add-ons alphabetically by ID. I want to show only one alert even if there are multiple SeLite XPIs or other XPIs that use Extension Sequencer.So I show the alert in the add-on which is the first on the list of SeLite add-ons (when sorted by ID in the alphabetical order).
                         var seliteAddOnIDs= [];
                         // Following are IDs of SeLite add-ons that can be (easily) used without Extension Sequencer. Those add-ons don't report whether Extension Sequencer is missing, so I don't add them to seliteAddOnsIDs.
-                        var addOnIDsNotNeedingSequencer= ['misc@selite.googlecode.com', 'settings@selite.googlecode.com', 'sqlite-connection-manager@selite.googlecode.com']; // @TODO use: const
-                        for( var i=0; i<addons.length; i++ ) { //@TODO for(.. of..)
+                        var addOnIDsNotNeedingSequencer= ['misc@selite.googlecode.com', 'settings@selite.googlecode.com', 'sqlite-connection-manager@selite.googlecode.com']; // @TODO low: use const
+                        for( var i=0; i<addons.length; i++ ) { //@TODO low: for(.. of..)
                             var addon= addons[i];
                             if( addon.isActive && addon.id.indexOf('@selite.googlecode.com')>0 && addOnIDsNotNeedingSequencer.indexOf(addon.id)<0 ) {
                                 seliteAddOnIDs.push( addon.id );
@@ -69,7 +69,7 @@ if( typeof window!=='undefined' ) {
         finally {
             AddonManager.getAllAddons(
                 function( addons ) {
-                    for( var i=0; i<addons.length; i++ ) { //@TODO for(.. of..)
+                    for( var i=0; i<addons.length; i++ ) { //@TODO low: for(.. of..)
                         var addon= addons[i];
                         if( addon.isActive && (addon.id==='sel-blocks@chris.noe' || addon.id==='flow-control@dave.hunt') ) {
                             showAlertIncompatiblePlugins();

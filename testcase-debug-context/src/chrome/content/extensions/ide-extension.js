@@ -133,7 +133,7 @@ editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHa
     loopFindElement();
 };
 
-if( true ) {
+if( false ) {
 editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHandleErrors( command, handler ) {
     var selenium = editor.selDebugger.runner.selenium;
     try{
