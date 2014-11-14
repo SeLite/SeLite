@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+"use strict";
+
 (function(){ // closure keeps the local variables out of global scope
 /**
  * Class: Adds the implicit wait feature to SeleniumIDE.
@@ -27,6 +29,7 @@ function ImplicitWait(editor){
         wrap(editor.selDebugger, 'init', this, this.wrap_selDebugger_init);
     }.bind(this), 0);
 }
+
 ImplicitWait.prototype = {
     
     DEFAULT_TIMEOUT: 5000,
@@ -39,10 +42,12 @@ ImplicitWait.prototype = {
     
     /** Callback for the click on the  hourglass button*/
     toggleButton: function(button) {
-        if((this.wait_forced = (button.checked ^= true)))
+        if( (this.wait_forced = (button.checked ^= true)) ) {
             this.wait_timeout = this.DEFAULT_TIMEOUT;
-        else
+        }
+        else {
             this.wait_timeout = 0;
+        }
     },
     
     /** Call from the setImplicitWait command*/
@@ -221,6 +226,6 @@ function wrap(obj, key, context, func){
 
 
 //Instantiates the plug-in
-this.editor.implicitwait = new ImplicitWait(this.editor);
+editor.implicitwait = new ImplicitWait(editor);
 
 })();
