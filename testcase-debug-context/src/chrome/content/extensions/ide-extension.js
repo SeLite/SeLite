@@ -106,7 +106,13 @@ editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHa
                                  self.result = {failed: true, failureMessage: 'Exception on postcondition ' + self.postcondition_func.__string__ + '  Exception:' + extractExceptionMessage(e)};
                             }
                         }
-                        runner.Selenium.seLiteAfterCurrentCommand.call( self );
+                        try { // If the following fails, I don't let the exception bubble up, because the nearest enclosing try..catch in loopCommandCondition() would suppress this error. That would work against the expectations of e.g. Exit Confirmation Checker in assert mode.
+                            runner.Selenium.seLiteAfterCurrentCommand.call( self );
+                        }
+                        catch( e ) {
+                            editor.testLoopResumeHandleError.call( self, e );
+                            return;
+                        }
                         if( self.result.failed ) {
                             editor.editor.testLoopResumeHandleFailedResult.call( self );
                         }
@@ -116,7 +122,7 @@ editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHa
                     loopPostCondition();
                 }catch(e){
                     self.result = {failed: true, failureMessage: extractExceptionMessage(e)};
-                    //runner.Selenium.seLiteAfterCurrentCommand.call( self ); //This doesn't matter. @TODO check
+                    // I don't need to call runner.Selenium.seLiteAfterCurrentCommand.call( self ); here.
                     editor.testLoopResumeHandleFailedResult.call( self );
                     self.commandComplete(self.result);
                     self.continueTest();
