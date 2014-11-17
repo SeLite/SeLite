@@ -88,23 +88,5 @@
         /** This will be appended after standard _executeCurrentCommand() through a tail override.
          * */
         global.Selenium.seLiteAfterCurrentCommand= function seLiteAfterCurrentCommand() {};
-
-        // I need the following on the 2nd load, since TestLoop is not defined on the 1st load.
-        // Set up override of TestLoop.prototype.resume(), which splits it into SeLite-custom functions. SeLite needs that, so that both AutoCheck, ExitConfirmationChecker and SelBlocksGlobal's try..catch can generate errors logged and counted in Selenium IDE 2.8.0.
-        /*var originalResume= TestLoop.prototype.resume;
-        TestLoop.prototype.resume= function resume() {
-            // this.prototype._executeCurrentCommand() comes from IDETestLoop.prototype in chrome/content/selenium-runner.js, which gets set only after debugger.js loads core extensions. Also, IDETestLoop is not in scope here, so I have to use this.
-            // I thought that this.prototype should come from IDETestLoop, but this.prototype is not defined here. No idea why.
-            if( !this._executeCurrentCommand.isExtendedBySeLite ) {
-                var original_executeCurrentCommand= this._executeCurrentCommand;
-                this._executeCurrentCommand= function _executeCurrentCommand() {
-                    global.seLiteBeforeCurrentCommand.call( this );
-                    original_executeCurrentCommand.call( this );
-                    global.seLiteAfterCurrentCommand.call( this );
-                };
-                this._executeCurrentCommand.isExtendedBySeLite= true;
-            }
-            originalResume.call( this );
-        };/**/
     }
 } )( this );

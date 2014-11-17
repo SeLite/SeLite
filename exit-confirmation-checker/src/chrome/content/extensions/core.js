@@ -152,6 +152,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
                     }
                 }
             }
+            originalSeLiteAfterCurrentCommand.call( this );
         };
         
         /** Get a numeric index of the given element in SeLiteExitConfirmationChecker.inputs[]. If the element is already in SeLiteExitConfirmationChecker.inputs, returns its index. Otherwise put it there and return its (new) index. Only use it when current window.onbeforeunload was overriden by ExitConfirmationChecker.

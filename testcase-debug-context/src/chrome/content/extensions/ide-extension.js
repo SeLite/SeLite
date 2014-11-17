@@ -116,7 +116,7 @@ editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHa
                     loopPostCondition();
                 }catch(e){
                     self.result = {failed: true, failureMessage: extractExceptionMessage(e)};
-                    runner.Selenium.seLiteAfterCurrentCommand.call( self );
+                    //runner.Selenium.seLiteAfterCurrentCommand.call( self ); //This doesn't matter. @TODO check
                     editor.testLoopResumeHandleFailedResult.call( self );
                     self.commandComplete(self.result);
                     self.continueTest();
