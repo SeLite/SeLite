@@ -36,7 +36,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
           console.debug( 'BrowserBot() called as overriden by SeLite Exit Confirmation Checker.' );
           oldBrowserBot.call( this, topLevelApplicationWindow );
           
-          //var self= this; // @TODO Doc: If you need to set fields on the current object, for some reason you can't set them on 'this', but you have to use 'self' instead. See chrome://selenium-ide/content/selenium-core/scripts/selenium-browserbot.js -> definition of function recordPageLoad.
+          //var self= this; // If you need to set fields on the current object in recordPageLoad(), you can't set them on 'this' - when it's called it's not bound to the same 'this' as here. So use 'self' instead. See chrome://selenium-ide/content/selenium-core/scripts/selenium-browserbot.js.
           var oldRecordPageLoad= this.recordPageLoad;
           this.recordPageLoad = function recordPageLoad(elementOrWindow) {
               // This gets registered as a handler & called only for any page that is a direct result of Selenese actions but not a result of a redirect.
@@ -114,7 +114,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
             originalSeLiteBeforeCurrentCommand.call( this );
         };
         
-        var originalSeLiteAfterCurrentCommand= global.Selenium.seLiteAfterCurrentCommand;//@TODO use
+        var originalSeLiteAfterCurrentCommand= global.Selenium.seLiteAfterCurrentCommand;
         global.Selenium.seLiteAfterCurrentCommand= function seLiteAfterCurrentCommand() {
             console.debug('SeLite ExitConfirmationChecker: seLiteAfterCurrentCommand');
             if( !this.result.failed ) { // See also comments in auto-check.js
@@ -190,7 +190,6 @@ if( SeLiteExitConfirmationChecker===undefined ) {
          * @returns {void}
          */
         SeLiteExitConfirmationChecker.inputBeforeChange= function inputBeforeChange( locator, elementValueField, ignoreIfNotOverriden ) {
-            // @TODO Consider: if( !selenium.browserbot.getCurrentWindow(true).overridenBySeLite )
             if( SeLiteExitConfirmationChecker.window!==selenium.browserbot.getCurrentWindow(true) ) {
                 SeLiteExitConfirmationChecker.window= undefined; // To assist garbage collector
                 if( !ignoreIfNotOverriden ) {

@@ -21,14 +21,14 @@
  * Class: Adds the implicit wait feature to SeleniumIDE.
  * @param {Object} editor
  */
-function ImplicitWait(editor){
+var ImplicitWait= function ImplicitWait(editor){
     this.editor = editor;
     
     setTimeout(function(){      //waits all the sub-scripts are loaded to wrap selDebugger.init 
         //this===editor.implicitwait
         wrap(editor.selDebugger, 'init', this, this.wrap_selDebugger_init);
     }.bind(this), 0);
-}
+};
 
 ImplicitWait.prototype = {
     
@@ -86,14 +86,14 @@ ImplicitWait.prototype = {
  * @param {String} locator
  * @param {Object} win
  */
-var BrowserBot_findElement = function (locator, win){
+function BrowserBot_findElement(locator, win){
     var element = this.findElementOrNull(locator, win);
     if(element === null)
         throw new ElementNotFountError(locator);
     return window.core.firefox.unwrap(element);
-};
+}
 
-var BrowserBot_locateElementByXPath= function locateElementByXPath(xpath, inDocument, inWindow) {
+function BrowserBot_locateElementByXPath(xpath, inDocument, inWindow) {
     try {
         return this.xpathEvaluator.selectSingleNode(inDocument, xpath, null,
             inDocument.createNSResolver
@@ -106,7 +106,7 @@ var BrowserBot_locateElementByXPath= function locateElementByXPath(xpath, inDocu
       }
       throw e;
     }
-};
+}
 
 
 /**
