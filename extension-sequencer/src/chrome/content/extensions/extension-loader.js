@@ -238,7 +238,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                     );
                     // Collect all directly and indirectly dependant add-ons:
                     var dependantIds= [pluginId];
-                    // dependantIds.length amy increase during the inner loop, which adds any new dependants to its end. That's OK with the outer loop.
+                    // dependantIds.length may increase during the inner loop, which adds any new dependants to its end. That's OK with the outer loop.
                     for( var i=0; i<dependantIds.length; i++ ) {//@TODO low: for(..of..)
                         var dependantId= dependantIds[i]; // We're collecting add-ons for which dependantIds[i] is a provider - they are its dependants.
                         for( var subDependantId in SeLiteExtensionSequencer.pluginInfos ) {

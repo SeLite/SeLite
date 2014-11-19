@@ -37,7 +37,7 @@ SeLiteExtensionSequencer.pluginInfos= {};
 /** Register a Firefox plugin which is a Selenium IDE core extension. It will be
  *  initiated by SeLiteExtensionSequencer later, in a proper sequence - after any dependencies.
  *  @param prototype Anonymous object in form {
- *      pluginId: string, unique id of the Firefox plugin (often in a format of an email address)
+ *      pluginId: string, unique id of the Firefox plugin (often in a format of an email address),
  *      coreURL: string, or array of strings, optional - for Core extensions only; usually a chrome:// URL,
  *      xmlURL: string, or array of strings, optional - for Core extensions only, used only if coreURL is also set; usually a chrome:// URL;
  *          if it's an array, then it must have the same number of entries as coreURL (but the mey be null/false), and they will be treated in the respective order;
@@ -64,6 +64,7 @@ SeLiteExtensionSequencer.pluginInfos= {};
 SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
     var pluginInfo= {
         pluginId: prototype.pluginId,
+        //@TODO low: remove backward compatiblity for xxxUrl on the following lines, and for non-object values in *requisite*Plugins
         coreURL: prototype.coreURL || prototype.coreUrl || [],
         xmlURL: prototype.xmlURL || prototype.xmlUrl || [],
         ideURL: prototype.ideURL || prototype.ideUrl || [],
