@@ -68,7 +68,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                         }
                         catch( e ) {
                             problems.push( 'Add-on ' +addon.name+ ' has an error in its SeLiteExtensionSequencerManifest.js. Please report this issue '+
-                                (addon.id.indexOf('selite.googlecode.com')>0
+                                (addon.id.indexOf('@selite.googlecode.com')>0
                                  ? 'at <a href="https://code.google.com/p/selite/wiki/ReportingIssues/">https://code.google.com/p/selite/wiki/ReportingIssues/</a>'
                                  : 'to its author (but not to SeLite project).'
                                 )

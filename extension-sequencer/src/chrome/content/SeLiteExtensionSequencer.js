@@ -45,7 +45,7 @@ SeLiteExtensionSequencer.pluginInfos= {};
  *      - if neither coreURL not ideURL are set, then this plugin is only registered for the purpose of being a dependency of other plugins, but it's not added via Selenium API class;
  *      oldestCompatibleVersion: string, optional, the oldest previous version of this plugin that this current version is compatible with;
  *      requisitePlugins: Object (optional) {
- *          string pluginId: string pluginName, or
+ *          string pluginId: string pluginName (for backwards compatiblity only), or
  *          string pluginId: {
  *              name: string,
  *              infoURL: string,
@@ -55,8 +55,8 @@ SeLiteExtensionSequencer.pluginInfos= {};
  *          }
  *      },
  *        of plugins that are required dependencies. Those are plugins that have to be loaded before given pluginId. All those plugins must be installed in Firefox and they must also call SeLiteExtensionSequencer.registerPlugin() - otherwise pluginId won't get loaded.
-        optionalRequisitePlugins: Object (optional) { string pluginId: string pluginName } of pluginIds that are optional dependencies.
-        nonSequencedRequisitePlugins: Object (optional) { string pluginId: string pluginName },
+        optionalRequisitePlugins: Object (optional) { string pluginId: like entries in requisitePlugins } of pluginIds that are optional dependencies.
+        nonSequencedRequisitePlugins: Object (optional) { string pluginId: like entries in requisitePlugins },
  *        of plugins that are required dependencies and that don't use SeLiteExtensionSequencer to register themselves.
  *  }
  *  @return void
@@ -68,6 +68,7 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
         coreURL: prototype.coreURL || prototype.coreUrl || [],
         xmlURL: prototype.xmlURL || prototype.xmlUrl || [],
         ideURL: prototype.ideURL || prototype.ideUrl || [],
+        oldestCompatibleVersion: prototype.oldestCompatibleVersion,
         requisitePlugins: prototype.requisitePlugins || {},
         optionalRequisitePlugins: prototype.optionalRequisitePlugins || {},
         nonSequencedRequisitePlugins: prototype.nonSequencedRequisitePlugins || {},
@@ -114,7 +115,7 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
  *  }
  * */
 SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
-    // pluginUnprocessedRequisites initially contains all sequenced plugins with their required dependencies (sequenced or not).
+    // pluginUnprocessedRequisites initially contains all sequenced plugins with their required direct dependencies (sequenced or not).
     // I add in any optional plugin IDs, if they are installed, so they get loaded in correct order, before the plugins that use them.
     var pluginUnprocessedRequisites= {}; // { dependant plugin id => [requisite plugin id...], ... }
     // Object { dependant plugin id => true } containing plugins that are missing any non-sequenced dependencies
@@ -172,7 +173,8 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
     !Object.keys(pluginUnprocessedRequisites).length || console.error( 'pluginUnprocessedRequisites ' +Object.keys(pluginUnprocessedRequisites) );
     for( var pluginId in pluginUnprocessedRequisites ) { // pluginId is of the dependant
         var pluginInfo= SeLiteExtensionSequencer.pluginInfos[ pluginId ];
-        var brokenDirect=[], direct= [];
+        var brokenDirect=[];
+        var direct= [];
         
         for( var j=0; j<pluginUnprocessedRequisites[pluginId].length; j++ ) {//@TODO low: for( var requisiteId of pluginUnprocessedRequisites[pluginId] )
             var requisiteId= pluginUnprocessedRequisites[pluginId][j];
