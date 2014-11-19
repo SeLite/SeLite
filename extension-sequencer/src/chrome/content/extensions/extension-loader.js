@@ -57,10 +57,10 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                     // On Windows some addon objects don't have function 'hasResource'
                     if( addon.hasResource && addon.hasResource( 'chrome/content/SeLiteExtensionSequencerManifest.js') ) {
                         console.log( 'SeLiteExtensionSequencer is registering addon with ID ' +addon.id );
-                        var fileUrl= addon.getResourceURI('chrome/content/SeLiteExtensionSequencerManifest.js').spec;
+                        var fileURL= addon.getResourceURI('chrome/content/SeLiteExtensionSequencerManifest.js').spec;
                         try {
                             subScriptLoader.loadSubScript(
-                                fileUrl,
+                                fileURL,
                                 { SeLiteExtensionSequencer: SeLiteExtensionSequencer
                                 },
                                 'UTF-8'
@@ -180,18 +180,18 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                 var pluginInfo= SeLiteExtensionSequencer.pluginInfos[pluginId];
                 var ide_api = new API();
                 try {
-                    // I register the plugin even if it has no core/ide extension url. That way it
+                    // I register the plugin even if it has no core/ide extension URL. That way it
                     // will be listed in Selenium IDE > Options > Options > Plugins.
                     ide_api.addPlugin(pluginId);
-                    for( var j=0; j<pluginInfo.ideUrl.length; j++ ) {//@TODO low: for(..of..)
-                        ide_api.addPluginProvidedIdeExtension( pluginInfo.ideUrl[j] );
+                    for( var j=0; j<pluginInfo.ideURL.length; j++ ) {//@TODO low: for(..of..)
+                        ide_api.addPluginProvidedIdeExtension( pluginInfo.ideURL[j] );
                     }
-                    for( var j=0; j<pluginInfo.coreUrl.length; j++ ) {//@TODO low: for(..of..)
-                        if( j<pluginInfo.xmlUrl.length ) {
-                            ide_api.addPluginProvidedUserExtension( pluginInfo.coreUrl[j], pluginInfo.xmlUrl[j] );
+                    for( var j=0; j<pluginInfo.coreURL.length; j++ ) {//@TODO low: for(..of..)
+                        if( j<pluginInfo.xmlURL.length ) {
+                            ide_api.addPluginProvidedUserExtension( pluginInfo.coreURL[j], pluginInfo.xmlURL[j] );
                         }
                         else {
-                            ide_api.addPluginProvidedUserExtension( pluginInfo.coreUrl[j] );
+                            ide_api.addPluginProvidedUserExtension( pluginInfo.coreURL[j] );
                         }
                     }
                     if( pluginInfo.preActivate ) {

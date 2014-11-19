@@ -38,19 +38,23 @@ SeLiteExtensionSequencer.pluginInfos= {};
  *  initiated by SeLiteExtensionSequencer later, in a proper sequence - after any dependencies.
  *  @param prototype Anonymous object in form {
  *      pluginId: string, unique id of the Firefox plugin (often in a format of an email address)
- *      coreUrl: string, or array of strings, optional - for Core extensions only; usually a chrome:// url,
- *      xmlUrl: string, or array of strings, optional - for Core extensions only, used only if coreUrl is also set; usually a chrome:// url;
- *          if it's an array, then it must have the same number of entries as coreUrl (but the mey be null/false), and they will be
- *          treated in the respective order;
- *      ideUrl: string, or array of strings, optional - for IDE extensions only; usually a chrome:// url,
- *      - if neither coreUrl not ideUrl are set, then this plugin is only
- *        registered for the purpose of being a dependency of other plugins,
- *        but it's not added via Selenium API class.
- *      requisitePlugins: Object (optional) { string pluginId: string pluginName },
- *        of plugins that are required dependencies.
- *        Those are plugins that have to be loaded before given pluginId. All
- *        those plugins must be installed in Firefox and they must also call
- *        SeLiteExtensionSequencer.registerPlugin() - otherwise pluginId won't get loaded.
+ *      coreURL: string, or array of strings, optional - for Core extensions only; usually a chrome:// URL,
+ *      xmlURL: string, or array of strings, optional - for Core extensions only, used only if coreURL is also set; usually a chrome:// URL;
+ *          if it's an array, then it must have the same number of entries as coreURL (but the mey be null/false), and they will be treated in the respective order;
+ *      ideURL: string, or array of strings, optional - for IDE extensions only; usually a chrome:// URL,
+ *      - if neither coreURL not ideURL are set, then this plugin is only registered for the purpose of being a dependency of other plugins, but it's not added via Selenium API class;
+ *      oldestCompatibleVersion: string, optional, the oldest previous version of this plugin that this current version is compatible with;
+ *      requisitePlugins: Object (optional) {
+ *          string pluginId: string pluginName, or
+ *          string pluginId: {
+ *              name: string,
+ *              infoURL: string,
+ *              downloadURL: string optional (auto-generated if not present and infoURL is at addons.mozilla.org),
+ *              minVersion: string optional,
+ *              compatibleVersion: string optional
+ *          }
+ *      },
+ *        of plugins that are required dependencies. Those are plugins that have to be loaded before given pluginId. All those plugins must be installed in Firefox and they must also call SeLiteExtensionSequencer.registerPlugin() - otherwise pluginId won't get loaded.
         optionalRequisitePlugins: Object (optional) { string pluginId: string pluginName } of pluginIds that are optional dependencies.
         nonSequencedRequisitePlugins: Object (optional) { string pluginId: string pluginName },
  *        of plugins that are required dependencies and that don't use SeLiteExtensionSequencer to register themselves.
@@ -60,22 +64,22 @@ SeLiteExtensionSequencer.pluginInfos= {};
 SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
     var pluginInfo= {
         pluginId: prototype.pluginId,
-        coreUrl: prototype.coreUrl || [],
-        xmlUrl: prototype.xmlUrl || [],
-        ideUrl: prototype.ideUrl || [],
+        coreURL: prototype.coreURL || prototype.coreUrl || [],
+        xmlURL: prototype.xmlURL || prototype.xmlUrl || [],
+        ideURL: prototype.ideURL || prototype.ideUrl || [],
         requisitePlugins: prototype.requisitePlugins || {},
         optionalRequisitePlugins: prototype.optionalRequisitePlugins || {},
         nonSequencedRequisitePlugins: prototype.nonSequencedRequisitePlugins || {},
         preActivate: prototype.preActivate || false
     };
-    if( !Array.isArray(pluginInfo.coreUrl) ) {
-        pluginInfo.coreUrl= [pluginInfo.coreUrl];
+    if( !Array.isArray(pluginInfo.coreURL) ) {
+        pluginInfo.coreURL= [pluginInfo.coreURL];
     }
-    if( !Array.isArray(pluginInfo.xmlUrl) ) {
-        pluginInfo.xmlUrl= [pluginInfo.xmlUrl];
+    if( !Array.isArray(pluginInfo.xmlURL) ) {
+        pluginInfo.xmlURL= [pluginInfo.xmlURL];
     }
-    if( !Array.isArray(pluginInfo.ideUrl) ) {
-        pluginInfo.ideUrl= [pluginInfo.ideUrl];
+    if( !Array.isArray(pluginInfo.ideURL) ) {
+        pluginInfo.ideURL= [pluginInfo.ideURL];
     }
     if( pluginInfo.pluginId in SeLiteExtensionSequencer.pluginInfos ) {
         throw new Error("Plugin " +pluginInfo.pluginId+ " was already registered with SeLite Extension Sequencer.");
@@ -213,7 +217,7 @@ SeLiteExtensionSequencer.popup= function popup( window, title, message ) {
     }/**/
             /* I can't use window.alert(..) here. gBrowser is defined here, however gBrowser.addTab(..) failed when I called it from right here. Therefore I delay it and then I can use either window.alert() or gBrowser.
             I tried to follow https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Alerts_and_Notifications and https://bugzilla.mozilla.org/show_bug.cgi?id=324570 and I've tried to show a non-modal popup. However, none of those methods works on Windows for multiple popups at the same time: then neither popup shows up. I've tried to use different titles for the popups. I've also tried http://notifications.spec.whatwg.org/#tags-example with different tags for the popups. None of that works.
-            It can happen that another XPI also wants to show up a popup. Therefore I use gBrowser.selectedTab = gBrowser.addTab( url ).
+            It can happen that another XPI also wants to show up a popup. Therefore I use gBrowser.selectedTab = gBrowser.addTab( URL ).
             */
             window.setTimeout( function() {
                 /*
