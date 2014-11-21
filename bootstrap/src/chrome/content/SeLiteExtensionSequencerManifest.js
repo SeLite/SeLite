@@ -1,12 +1,26 @@
 "use strict";
 SeLiteExtensionSequencer.registerPlugin( {
+    name: 'SeLite Bootstrap',
     pluginId: 'bootstrap@selite.googlecode.com',
     coreUrl: 'chrome://selite-bootstrap/content/extensions/se_bootstrap.js',
+    infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-bootstrap/',
     requisitePlugins: {
-        'misc@selite.googlecode.com': 'SeLite Miscellaneous',
-        'testcase-debug-context@selite.googlecode.com': 'SeLite TestCase Debug Context',
-        'selblocks-global@selite.googlecode.com': 'SeLite SelBlocksGlobal',
-        'settings@selite.googlecode.com': 'SeLite Settings'
+        'selblocks-global@selite.googlecode.com': {
+            name: 'SeLite SelBlocksGlobal',
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-selblocks-global/'
+        },
+        'misc@selite.googlecode.com': {
+            name: 'SeLite Miscellaneous',
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-miscellaneous/'
+        },
+        'settings@selite.googlecode.com': {
+            name: 'SeLite Settings',
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-settings/'
+        },
+        'testcase-debug-context@selite.googlecode.com': {
+            name: 'SeLite TestCase Debug Context',
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-testcase-debug-conte/'
+        }
     },
     preActivate: function(api) {
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );

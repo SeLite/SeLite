@@ -1,12 +1,20 @@
 "use strict";
 
 SeLiteExtensionSequencer.registerPlugin( {
+    name: 'SeLite Commands',
     pluginId: 'commands@selite.googlecode.com',
     coreUrl: 'chrome://selite-commands/content/extensions/commands.js',
     xmlUrl: 'chrome://selite-commands/content/reference.xml',
+    infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-commands/',
     requisitePlugins: {
-        'misc@selite.googlecode.com': 'SeLite Miscellaneous',
-        'settings@selite.googlecode.com': 'SeLite Settings'
+        'misc@selite.googlecode.com': {
+            name: 'SeLite Miscellaneous',
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-miscellaneous/'
+        },
+        'settings@selite.googlecode.com': {
+            name: 'SeLite Settings',
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-settings/'
+        }
     },
     preActivate: function(api) {
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );

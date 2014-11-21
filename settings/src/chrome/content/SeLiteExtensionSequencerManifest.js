@@ -1,12 +1,17 @@
 "use strict";
 
 SeLiteExtensionSequencer.registerPlugin({
-    pluginId: 'settings@selite.googlecode.com',
+    name: 'SeLite Settings',
+    id: 'settings@selite.googlecode.com',
     coreUrl: 'chrome://selite-settings/content/extensions/core-extension.js',
     // There is no xmlUrl field, because this doesn't add any new Selenese
     ideUrl: 'chrome://selite-settings/content/extensions/ide-extension.js',
+    infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-settings/',
     requisitePlugins: {
-        'misc@selite.googlecode.com': 'SeLite Miscellaneous'
+        'misc@selite.googlecode.com': {
+            name: 'SeLite Miscellaneous',
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-miscellaneous/'
+        }
     },
     preActivate: function(api) {
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );

@@ -1,10 +1,16 @@
 "use strict";
 SeLiteExtensionSequencer.registerPlugin( {
+    name: 'SeLite Run All Favorites',
     pluginId: 'run-all-favorites@selite.googlecode.com',
     ideUrl: [
         'chrome://selite-run-all-favorites/content/extensions/run-all-favorites.js'
     ],
+    infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-run-all-favorites/',
     nonSequencedRequisitePlugins: {
-        'favorites_selenium-ide@Samit.Badle': 'Favorites (Selenium IDE)'
+        'favorites_selenium-ide@Samit.Badle': {
+            name: 'Favorites (Selenium IDE)',
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/favorites-selenium-ide/',
+            minVersion: '2.0'
+        }
     }
 } );

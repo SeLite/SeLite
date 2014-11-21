@@ -39,7 +39,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
             catch( e ) {}
         };
         
-        /* Following functions exist in SeLiteExtensionSequencer.Loader, so that I can invoke this file from test.xul for debugging. It's difficult to debug otherwise: if you start firefox binary with parameter -jsdebugger, this file gets processed before the debugger shows up. Also, following is stored within JS code module object, which is ugly. It's because Selenium IDE loads this file twice. Maybe related to http://code.google.com/p/selenium/issues/detail?id=6697 */
+        /* Following functions exist in SeLiteExtensionSequencer.Loader, so that I can debug this through chrome://selite-extension-sequencer/content/extensions/test.xul. It's difficult to debug otherwise: if you start firefox binary with parameter -jsdebugger, this file gets processed before the debugger shows up. Also, following is stored within JS code module object, which is ugly. It's because Selenium IDE loads this file twice. Maybe related to http://code.google.com/p/selenium/issues/detail?id=6697 */
         
         /** Get all add-ons that have sequencer manifest. Store them in SeLiteExtensionSequencer.Loader.addonsById.
          *  @param {Array} addons As passed from AddonManager.getAllAddons().
@@ -94,6 +94,21 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
             return result;
         };
         
+        /** @param {Object} object
+         *  @return {Array} Array of any value entries in object. I.e. Array [x..], where object[someField]===x. Just like SeLiteMisc.objectValues( object, false );
+         * */
+        function values(object) {
+            var result= [];
+            for( var field in object ) {
+                result.push( object[field] );
+            }
+            return result;
+        }
+        
+        function pluginNameAndLinks( pluginInfo ) {
+            return pluginInfo.name+ ' ' +pluginInfo.downloadURL;//@TODO link to info and download
+        }
+        
         /** Report any missing dependancies.
          * @param {Object} addonsById Result of SeLiteExtensionSequencer.Loader.getAddonsById().
          * @param {Object} sortedPlugins Result of SeLiteExtensionSequencer.sortedPlugins().
@@ -101,24 +116,10 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
         SeLiteExtensionSequencer.Loader.reportMissingDependancies= function reportMissingDependancies( addonsById, sortedPlugins ) {
             var problems= [];
             if( Object.keys(sortedPlugins.missingDirectDependancies).length ) {
-                var dependancyPluginNames= {}; // { pluginId => pluginName } - for dependancies only
-                for( var dependantId in SeLiteExtensionSequencer.pluginInfos ) {
-                    var pluginInfo= SeLiteExtensionSequencer.pluginInfos[dependantId];
-                    for( var dependencyPluginId in pluginInfo.requisitePlugins ) {
-                        dependancyPluginNames[dependencyPluginId]= pluginInfo.requisitePlugins[dependencyPluginId];
-                    }
-                    for( var dependencyPluginId in pluginInfo.optionalRequisitePlugins ) {
-                        dependancyPluginNames[dependencyPluginId]= pluginInfo.optionalRequisitePlugins[dependencyPluginId];
-                    }
-                    for( var dependencyPluginId in pluginInfo.nonSequencedRequisitePlugins ) {
-                        dependancyPluginNames[dependencyPluginId]= pluginInfo.nonSequencedRequisitePlugins[dependencyPluginId];
-                    }
-                }
-                
                 var numberOfBrokenSeLiteAddOns= 0; // Number of add-ons directly or indirectly broken. An add-on broken in both ways will be there twice.
                 var brokenDependantIds= Object.keys(sortedPlugins.missingDirectDependancies).concat( Object.keys(sortedPlugins.brokenDirectDependancies) );
                 for( var i=0; i<brokenDependantIds.length; i++ ) {//TODO low: (for pluginId of ..)
-                    if( brokenDependantIds[i].indexOf('selite.googlecode.com')>0 ) {
+                    if( brokenDependantIds[i].indexOf('@selite.googlecode.com')>0 ) {
                         numberOfBrokenSeLiteAddOns++;
                     }
                 }
@@ -132,16 +133,27 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                     )
                 );
                 problems.push( '' );
+                
                 problems.push( "Plugin(s) missing at least one direct dependency:" );
-                var pluginIdToName= function pluginIdToName(pluginId) {
-                    return dependancyPluginNames[pluginId];
-                };
                 for( var pluginId in sortedPlugins.missingDirectDependancies ) {
-                    problems.push( addonsById[pluginId].name+ ' directly depends on missing plugin(s): ' +
-                        sortedPlugins.missingDirectDependancies[pluginId].map(pluginIdToName).join(', ')+ '.' );
+                    var missingDirectDependancies= sortedPlugins.missingDirectDependancies[pluginId];
+                    var pluginDetailsHTML= pluginNameAndLinks( SeLiteExtensionSequencer.pluginInfos[pluginId] );
+                    if( Object.keys( missingDirectDependancies[SeLiteExtensionSequencer.DIRECT_DEPENDANCY_MISSING] ).length ) {
+                        // @TODO addonsById contains AddOn object, not my info
+                        problems.push( pluginDetailsHTML+ ' directly depends on missing plugin(s), so get them: ' +
+                            values( missingDirectDependancies[SeLiteExtensionSequencer.DIRECT_DEPENDANCY_MISSING] ).map(pluginNameAndLinks).join(', ')+ '.' );
+                    }
+                    if( Object.keys( missingDirectDependancies[SeLiteExtensionSequencer.DIRECT_DEPENDANCY_TOO_OLD] ).length ) {
+                        problems.push( pluginDetailsHTML+ ' directly depends on plugin(s) that are too old, so upgrade them: ' +
+                            values( missingDirectDependancies[SeLiteExtensionSequencer.DIRECT_DEPENDANCY_TOO_OLD] ).map(pluginNameAndLinks).join(', ')+ '.' );
+                    }
+                    if( Object.keys( missingDirectDependancies[SeLiteExtensionSequencer.DIRECT_DEPENDANCY_TOO_NEW] ).length ) {
+                        problems.push( pluginDetailsHTML+ ' is too old, so upgrade it. It directly depends on plugin(s) that are too new, so alternatively get older versions of: ' +
+                            values( missingDirectDependancies[SeLiteExtensionSequencer.DIRECT_DEPENDANCY_TOO_NEW] ).map(pluginNameAndLinks).join(', ')+ '.' );
+                    }
                     if( pluginId in sortedPlugins.brokenDirectDependancies ) {
-                        problems.push( 'It also indirectly depends on other missing plugin(s) through following plugin(s): ' +
-                            sortedPlugins.brokenDirectDependancies[pluginId].map(pluginIdToName).join(', ')+ '.' );
+                        problems.push( pluginDetailsHTML+ ' also indirectly depends on other missing or incompatible plugin(s) through following plugin(s): ' +
+                            values( sortedPlugins.brokenDirectDependancies[pluginId] ).map(pluginNameAndLinks).join(', ')+ '.' );
                     }
                 }
                 if( Object.keys(sortedPlugins.brokenDirectDependancies).length ) {
@@ -156,12 +168,11 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                         problems.push( "\nPlugin(s) missing indirect dependencies only:" );
                         for( var i=0; i<pluginIdsMissingIndirectDependanciesOnly.length; i++ ) {//@TODO low: for(..of..)
                             var pluginId= pluginIdsMissingIndirectDependanciesOnly[i];
-                            problems.push( addonsById[pluginId].name+ ' indirectly depends on missing plugin(s) through following plugin(s): ' +
-                                sortedPlugins.brokenDirectDependancies[pluginId].map(pluginIdToName).join(', ')+ '.' );
+                            problems.push( pluginNameAndLinks( SeLiteExtensionSequencer.pluginInfos[pluginId] )+ ' indirectly depends on missing or incompatible plugin(s) through following plugin(s): ' +
+                                values( sortedPlugins.brokenDirectDependancies[pluginId] ).map(pluginNameAndLinks).join(', ')+ '.' );
                         }
                     }
                 }
-                //@TODO brokenDirectDependancies
             }
             if( problems.length>0 ) {
                 console.error( "Problem(s) with dependant add-on(s) for Firefox and Selenium IDE:\n" +problems.join('\n') );

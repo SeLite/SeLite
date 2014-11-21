@@ -1,0 +1,1 @@
+extensions.selite-settings.common.exitConfirmationCheckerMode ignored

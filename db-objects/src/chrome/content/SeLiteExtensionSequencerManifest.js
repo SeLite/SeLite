@@ -1,11 +1,25 @@
 "use strict";
 SeLiteExtensionSequencer.registerPlugin( {
+    name: 'SeLite DB Objects',
     pluginId: 'db-objects@selite.googlecode.com',
+    infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-db-objects/',
     requisitePlugins: {
-        'misc@selite.googlecode.com': 'SeLite Miscellaneous',
-        'commands@selite.googlecode.com': 'SeLite Commands',
-        'sqlite-connection-manager@selite.googlecode.com': 'SQLite Connection Manager',
-        'settings@selite.googlecode.com': 'SeLite Settings'
+        'commands@selite.googlecode.com': {
+            name: 'SeLite Commands',
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-commands/'
+        },
+        'sqlite-connection-manager@selite.googlecode.com': {
+            name: 'SeLite SQLite Connection Manager',
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-sqlite-connection-mg/'
+        },
+        'misc@selite.googlecode.com': {
+            name: 'SeLite Miscellaneous',
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-miscellaneous/'
+        },
+        'settings@selite.googlecode.com': {
+            name: 'SeLite Settings',
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-settings/'
+        },
     },
     coreUrl: 'chrome://selite-db-objects/content/extensions/selite-db-objects-core.js',
     xmlUrl: 'chrome://selite-db-objects/content/reference.xml',

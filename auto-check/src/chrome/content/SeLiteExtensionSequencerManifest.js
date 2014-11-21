@@ -1,13 +1,28 @@
 "use strict";
 
 SeLiteExtensionSequencer.registerPlugin( {
-    pluginId: 'auto-check@selite.googlecode.com',
+    id: 'auto-check@selite.googlecode.com',
+    name: 'SeLite Auto Check',
     coreUrl: ['chrome://selite-auto-check/content/extensions/auto-check.js'],
+    infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-auto-check/',
     requisitePlugins: {
-        'misc@selite.googlecode.com': 'SeLite Miscellaneous',
-        'bootstrap@selite.googlecode.com': 'SeLite Bootstrap',
-        'settings@selite.googlecode.com': 'SeLite Settings',
-        'testcase-debug-context@selite.googlecode.com': 'SeLite TestCase Debug Context'
+        'misc@selite.googlecode.com': {
+            name: 'SeLite Miscellaneous',
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-miscellaneous/'
+        },
+        'bootstrap@selite.googlecode.com': {
+            name: 'SeLite Bootstrap',
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-bootstrap/'
+        },
+        'settings@selite.googlecode.com': {
+            name: 'SeLite Settings',
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-settings/'
+        },
+        'testcase-debug-context@selite.googlecode.com': {
+            name: 'SeLite TestCase Debug Context',
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-testcase-debug-conte/',
+            compatibleVersion: '0.76'
+        }
     },
     preActivate: function(api) {
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
