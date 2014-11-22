@@ -16,17 +16,18 @@
 "use strict";
 Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
 
-// Therefore here I make sure to register this plugin itself and I load sequencer manifests of target plugins and register them with Selenium only once.
 if( !SeLiteExtensionSequencer.processedAlready ) {
     (function() { // closure to make the variables local
         // I must reset SeLiteExtensionSequencer.coreExtensionsLoadedTimes. I can't expect that extensions will have an even number of loads - because if the user closes Selenium IDE before running any Selenese, the extensions don't get loaded for the 2nd time during that run of Selenium IDE, and the odd-even sequence would not apply.
         SeLiteExtensionSequencer.coreExtensionsLoadedTimes= {};
-
-        var ide_api= new API(); // API comes from chrome://selenium-ide/content/api.js - referenced through ./extension-loader.xul
-        // Register itself - so that it shows up in Selenium IDE > Options > Options > Plugins
-        ide_api.addPluginProvidedUserExtension( 'chrome://selite-extension-sequencer/content/extensions/core.js' );
-        ide_api.addPlugin( 'extension-sequencer@selite.googlecode.com' );
-
+        // When I start 'firefox -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul', it loads this file extension-loader.js without 'API' class. 'API' class is only defined when this is loaded from extension-loader.xul.
+        var runAsCheck= typeof API==='undefined';
+        if( !runAsCheck ) {
+            var ide_api= new API(); // API comes from chrome://selenium-ide/content/api.js - referenced through ./extension-loader.xul
+            // Register itself - so that it shows up in Selenium IDE > Options > Options > Plugins
+            ide_api.addPluginProvidedUserExtension( 'chrome://selite-extension-sequencer/content/extensions/core.js' );
+            ide_api.addPlugin( 'extension-sequencer@selite.googlecode.com' );
+        }
         var SeLiteMiscModule;
         // Lazy quiet loader of SeLiteMisc.
         var SeLiteMisc= function SeLiteMisc() {
@@ -39,13 +40,14 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
             catch( e ) {}
         };
         
-        /* Following functions exist in SeLiteExtensionSequencer.Loader, so that I can debug this through chrome://selite-extension-sequencer/content/extensions/test.xul. It's difficult to debug otherwise: if you start firefox binary with parameter -jsdebugger, this file gets processed before the debugger shows up. Also, following is stored within JS code module object, which is ugly. It's because Selenium IDE loads this file twice. Maybe related to http://code.google.com/p/selenium/issues/detail?id=6697 */
+        /* Following functions exist in SeLiteExtensionSequencer.Loader, so that I can debug this through chrome://selite-extension-sequencer/content/extensions/invoke.xul. It's difficult to debug otherwise: if you start firefox binary with parameter -jsdebugger, this file gets processed before the debugger shows up. Also, following is stored within JS code module object, which is ugly. It's because Selenium IDE loads this file twice. Maybe related to http://code.google.com/p/selenium/issues/detail?id=6697 */
         
         /** Get all add-ons that have sequencer manifest. Store them in SeLiteExtensionSequencer.Loader.addonsById.
          *  @param {Array} addons As passed from AddonManager.getAllAddons().
+         *  @param {boolean} [dontShowPopups=false] Whether not to show popups. Used when testing with Firefox profile called SeLiteExtensionSequencerTest.
          *  @return {Object} Information about all add-ons. Object { string addOnId => Addon object }. This includes all active (enabled) add-ons, not just ones with SeLiteExtensionSequencerManifest.js. I need those other add-ons later when calling SeLiteExtensionSequencer.sortedPlugins( SeLiteExtensionSequencer.Loader.addonsById ), which checks for non-sequenced dependencies.
          **/
-        SeLiteExtensionSequencer.Loader.getAddonsById= function getAddonsById( addons ) {
+        SeLiteExtensionSequencer.Loader.getAddonsById= function getAddonsById( addons, dontShowPopups ) {
             var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
             var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
             var result= {};
@@ -89,7 +91,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
             }
             if( problems.length>0 ) {
                 console.error( "Problem(s) in SeLiteExtensionSequencerManifest.js in add-on(s) for Firefox and Selenium IDE:\n" +problems.join('\n') );
-                SeLiteExtensionSequencer.popup( window, "Problem(s) in SeLiteExtensionSequencerManifest.js in add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
+                dontShowPopups || SeLiteExtensionSequencer.popup( window, "Problem(s) in SeLiteExtensionSequencerManifest.js in add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
             }            
             return result;
         };
@@ -112,8 +114,9 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
         /** Report any missing dependancies.
          * @param {Object} addonsById Result of SeLiteExtensionSequencer.Loader.getAddonsById().
          * @param {Object} sortedPlugins Result of SeLiteExtensionSequencer.sortedPlugins().
+         *  @param {boolean} [dontShowPopups=false] Whether not to show popups. Used when testing with Firefox profile called SeLiteExtensionSequencerTest.
          * */
-        SeLiteExtensionSequencer.Loader.reportMissingDependancies= function reportMissingDependancies( addonsById, sortedPlugins ) {
+        SeLiteExtensionSequencer.Loader.reportMissingDependancies= function reportMissingDependancies( addonsById, sortedPlugins, dontShowPopups ) {
             var problems= [];
             if( Object.keys(sortedPlugins.missingDirectDependancies).length ) {
                 var numberOfBrokenSeLiteAddOns= 0; // Number of add-ons directly or indirectly broken. An add-on broken in both ways will be there twice.
@@ -176,14 +179,15 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
             }
             if( problems.length>0 ) {
                 console.error( "Problem(s) with dependant add-on(s) for Firefox and Selenium IDE:\n" +problems.join('\n') );
-                SeLiteExtensionSequencer.popup( window, "Problem(s) with dependant add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
+                dontShowPopups || SeLiteExtensionSequencer.popup( window, "Problem(s) with dependant add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
             }
         };
         
         /** Register add-ons (that have all dependancies) with Selenium IDE. Run their preaActivate() where present.
          * @param {Object} sortedPlugins Result of SeLiteExtensionSequencer.sortedPlugins().
+         *  @param {boolean} [dontShowPopups=false] Whether not to show popups. Used when testing with Firefox profile called SeLiteExtensionSequencerTest.
          * */
-        SeLiteExtensionSequencer.Loader.registerAndPreActivate= function registerAndPreActivate( sortedPlugins ) {
+        SeLiteExtensionSequencer.Loader.registerAndPreActivate= function registerAndPreActivate( sortedPlugins, dontShowPopups ) {
             // The actual registration
             var failed= {}; // Object { string failed pluginId => exception }
             for( var i=0; i<sortedPlugins.sortedPluginIds.length; i++ ) {//@TODO low: for(..of..)
@@ -231,7 +235,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                     }
                     var errorLines= ( ''+e ).split('\n'); 
                     Array.prototype.push.apply( problems, errorLines );
-                    var isSeLiteAddon= pluginId.indexOf('selite.googlecode.com');
+                    var isSeLiteAddon= pluginId.indexOf('@selite.googlecode.com');
                     problems.push( 'Please get its newest version (if available)' +(
                             isSeLiteAddon
                                 ? ' from <a href="https://code.google.com/p/selite/wiki/AddOns">https://code.google.com/p/selite/wiki/AddOns</a>'
@@ -267,17 +271,21 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
             }
             if( problems.length>0 ) {
                 console.error( "Problem(s) with add-on(s) for Firefox and Selenium IDE:\n" +problems.join('\n') );
-                SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
+                dontShowPopups || SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
             }
         };
         
         Components.utils.import("resource://gre/modules/AddonManager.jsm");
         // For some reasons I couldn't use console (from resource://gre/modules/devtools/Console.jsm) here (in Firefox 26.0, Selenium IDE 2.5.0). Using it generated a log: can't start debugging: a debuggee script is on the stack webconsole.js:68. I could use console in the handler function passed to AddonManager.getAllAddons():
         AddonManager.getAllAddons( function(addons) {
-            SeLiteExtensionSequencer.Loader.addonsById= SeLiteExtensionSequencer.Loader.getAddonsById( addons );
+            /*var dontShowPopups= Components.classes["@mozilla.org/file/directory_service;1"].getService( Components.interfaces.nsIProperties).get("ProfD", Components.interfaces.nsIFile).leafName.endsWith( '.SeLiteExtensionSequencerTest' );*/
+            SeLiteExtensionSequencer.Loader.addonsById= SeLiteExtensionSequencer.Loader.getAddonsById( addons, runAsCheck );
+            
             var sortedPlugins= SeLiteExtensionSequencer.sortedPlugins( SeLiteExtensionSequencer.Loader.addonsById );
-            SeLiteExtensionSequencer.Loader.reportMissingDependancies( SeLiteExtensionSequencer.Loader.addonsById, sortedPlugins );
-            SeLiteExtensionSequencer.Loader.registerAndPreActivate( sortedPlugins );
+            SeLiteExtensionSequencer.Loader.reportMissingDependancies( SeLiteExtensionSequencer.Loader.addonsById, sortedPlugins, runAsCheck );
+            if( typeof API!=='undefined' ) { // See a similar check above
+                SeLiteExtensionSequencer.Loader.registerAndPreActivate( sortedPlugins, dontShowPopups );
+            }
         } );
     } )();
    SeLiteExtensionSequencer.processedAlready= true;

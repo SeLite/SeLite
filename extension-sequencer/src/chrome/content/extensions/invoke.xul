@@ -3,8 +3,7 @@
     <script type="application/x-javascript">
         "use strict";
         Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
-        debugger;
         var sortedPlugins= SeLiteExtensionSequencer.sortedPlugins( SeLiteExtensionSequencer.Loader.addonsById );
-        SeLiteExtensionSequencer.Loader.reportMissingDependancies( SeLiteExtensionSequencer.Loader.addonsById, sortedPlugins );
+        SeLiteExtensionSequencer.Loader.reportMissingDependancies( SeLiteExtensionSequencer.Loader.addonsById, sortedPlugins, );
     </script>
 </window>

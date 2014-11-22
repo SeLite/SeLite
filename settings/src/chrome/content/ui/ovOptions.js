@@ -126,9 +126,7 @@ var chooseFileOrFolder= function chooseFileOrFolder( field, tree, row, column, i
         }
         if( !filePickerDirectoryIsSet ) {
             // Based on https://developer.mozilla.org/en-US/Add-ons/Code_snippets/File_I_O
-            var profileDir= Components.classes["@mozilla.org/file/directory_service;1"].getService( Components.interfaces.nsIProperties)
-                .get("Home", Components.interfaces.nsIFile);
-            filePicker.displayDirectory= profileDir;
+            filePicker.displayDirectory= Components.classes["@mozilla.org/file/directory_service;1"].getService( Components.interfaces.nsIProperties).get("Home", Components.interfaces.nsIFile);
         }
     }
     else
