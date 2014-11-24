@@ -2,10 +2,18 @@
 <window id="yourwindow" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml">
     <script type="application/x-javascript">
         "use strict";
-        Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader).loadSubScript( 'chrome://selite-extension-sequencer/content/extensions/extension-loader.js', {}, 'UTF-8' );
-        
-        // If I don't set 'console' in the following, the console won't show up any messages from above.
+        // If I don't set 'console', the console and stderr won't show up any messages from extension-loader.js below.
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+        if( !window.location.search ) {
+            console.error( 'Invoke as: firefox -no-remote -P <testProfileName> -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul ~/selite/extension-sequencer/shell-tests/xxx/expectedOutput.txt' );
+        }
+        else {
+            var scopeForExtensionLoader= {
+            };
+
+            Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader).loadSubScript( 'chrome://selite-extension-sequencer/content/extensions/extension-loader.js', scopeForExtensionLoader, 'UTF-8' );
+            sort();
+        }        
         Components.classes['@mozilla.org/toolkit/app-startup;1'].getService( Components.interfaces.nsIAppStartup ).quit( Components.interfaces.nsIAppStartup.eForceQuit );
     </script>
 </window>

@@ -44,14 +44,13 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
         
         /** Get all add-ons that have sequencer manifest. Store them in SeLiteExtensionSequencer.Loader.addonsById.
          *  @param {Array} addons As passed from AddonManager.getAllAddons().
-         *  @param {boolean} [dontShowPopups=false] Whether not to show popups. Used when testing with Firefox profile called SeLiteExtensionSequencerTest.
+         *  @param {Array} problems Array, where this adds any problem messages as strings.
          *  @return {Object} Information about all add-ons. Object { string addOnId => Addon object }. This includes all active (enabled) add-ons, not just ones with SeLiteExtensionSequencerManifest.js. I need those other add-ons later when calling SeLiteExtensionSequencer.sortedPlugins( SeLiteExtensionSequencer.Loader.addonsById ), which checks for non-sequenced dependencies.
          **/
-        SeLiteExtensionSequencer.Loader.getAddonsById= function getAddonsById( addons, dontShowPopups ) {
+        SeLiteExtensionSequencer.Loader.getAddonsById= function getAddonsById( addons, problems ) {
             var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
             var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
             var result= {};
-            var problems= [];
             for( var i=0; i<addons.length; i++ ) { //@TODO for(.. of ..) once NetBeans supports it
                 var addon= addons[i];
                 if( addon.isActive ) {
@@ -89,10 +88,6 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                     }
                 }
             }
-            if( problems.length>0 ) {
-                console.error( "Problem(s) in SeLiteExtensionSequencerManifest.js in add-on(s) for Firefox and Selenium IDE:\n" +problems.join('\n') );
-                dontShowPopups || SeLiteExtensionSequencer.popup( window, "Problem(s) in SeLiteExtensionSequencerManifest.js in add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
-            }            
             return result;
         };
         
@@ -114,10 +109,9 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
         /** Report any missing dependancies.
          * @param {Object} addonsById Result of SeLiteExtensionSequencer.Loader.getAddonsById().
          * @param {Object} sortedPlugins Result of SeLiteExtensionSequencer.sortedPlugins().
-         *  @param {boolean} [dontShowPopups=false] Whether not to show popups. Used when testing with Firefox profile called SeLiteExtensionSequencerTest.
+         *  @param {Array} problems Array, where this adds any problem messages as strings.
          * */
-        SeLiteExtensionSequencer.Loader.reportMissingDependancies= function reportMissingDependancies( addonsById, sortedPlugins, dontShowPopups ) {
-            var problems= [];
+        SeLiteExtensionSequencer.Loader.reportMissingDependancies= function reportMissingDependancies( addonsById, sortedPlugins, problems ) {
             if( Object.keys(sortedPlugins.missingDirectDependancies).length ) {
                 var numberOfBrokenSeLiteAddOns= 0; // Number of add-ons directly or indirectly broken. An add-on broken in both ways will be there twice.
                 var brokenDependantIds= Object.keys(sortedPlugins.missingDirectDependancies).concat( Object.keys(sortedPlugins.brokenDirectDependancies) );
@@ -177,17 +171,13 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                     }
                 }
             }
-            if( problems.length>0 ) {
-                console.error( "Problem(s) with dependant add-on(s) for Firefox and Selenium IDE:\n" +problems.join('\n') );
-                dontShowPopups || SeLiteExtensionSequencer.popup( window, "Problem(s) with dependant add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
-            }
         };
         
         /** Register add-ons (that have all dependancies) with Selenium IDE. Run their preaActivate() where present.
          * @param {Object} sortedPlugins Result of SeLiteExtensionSequencer.sortedPlugins().
-         *  @param {boolean} [dontShowPopups=false] Whether not to show popups. Used when testing with Firefox profile called SeLiteExtensionSequencerTest.
+         * @param {Array} problems Array, where this adds any problem messages as strings.
          * */
-        SeLiteExtensionSequencer.Loader.registerAndPreActivate= function registerAndPreActivate( sortedPlugins, dontShowPopups ) {
+        SeLiteExtensionSequencer.Loader.registerAndPreActivate= function registerAndPreActivate( sortedPlugins, problems ) {
             // The actual registration
             var failed= {}; // Object { string failed pluginId => exception }
             for( var i=0; i<sortedPlugins.sortedPluginIds.length; i++ ) {//@TODO low: for(..of..)
@@ -217,7 +207,6 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                     failed[pluginId]= e;
                 }
             }
-            var problems= [];
             if( Object.keys(failed).length ) {
                 for( var pluginId in failed ) {
                     var e= failed[pluginId];
@@ -269,22 +258,25 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                     }
                 }
             }
-            if( problems.length>0 ) {
-                console.error( "Problem(s) with add-on(s) for Firefox and Selenium IDE:\n" +problems.join('\n') );
-                dontShowPopups || SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
-            }
         };
         
         Components.utils.import("resource://gre/modules/AddonManager.jsm");
         // For some reasons I couldn't use console (from resource://gre/modules/devtools/Console.jsm) here (in Firefox 26.0, Selenium IDE 2.5.0). Using it generated a log: can't start debugging: a debuggee script is on the stack webconsole.js:68. I could use console in the handler function passed to AddonManager.getAllAddons():
         AddonManager.getAllAddons( function(addons) {
-            /*var dontShowPopups= Components.classes["@mozilla.org/file/directory_service;1"].getService( Components.interfaces.nsIProperties).get("ProfD", Components.interfaces.nsIFile).leafName.endsWith( '.SeLiteExtensionSequencerTest' );*/
-            SeLiteExtensionSequencer.Loader.addonsById= SeLiteExtensionSequencer.Loader.getAddonsById( addons, runAsCheck );
+            /*How to get the current Firefox profile: var dontShowPopups= Components.classes["@mozilla.org/file/directory_service;1"].getService( Components.interfaces.nsIProperties).get("ProfD", Components.interfaces.nsIFile).leafName.endsWith( '.SeLiteExtensionSequencerTest' );*/
+            var problems= [];
+            SeLiteExtensionSequencer.Loader.addonsById= SeLiteExtensionSequencer.Loader.getAddonsById( addons, problems );
             
-            var sortedPlugins= SeLiteExtensionSequencer.sortedPlugins( SeLiteExtensionSequencer.Loader.addonsById );
-            SeLiteExtensionSequencer.Loader.reportMissingDependancies( SeLiteExtensionSequencer.Loader.addonsById, sortedPlugins, runAsCheck );
-            if( typeof API!=='undefined' ) { // See a similar check above
-                SeLiteExtensionSequencer.Loader.registerAndPreActivate( sortedPlugins, dontShowPopups );
+            var sortedPlugins= SeLiteExtensionSequencer.sortedPlugins( SeLiteExtensionSequencer.Loader.addonsById, problems );
+            SeLiteExtensionSequencer.Loader.reportMissingDependancies( SeLiteExtensionSequencer.Loader.addonsById, sortedPlugins, problems );
+            if( !runAsCheck ) { // See a similar check above
+                SeLiteExtensionSequencer.Loader.registerAndPreActivate( sortedPlugins );
+            }
+            if( problems.length>0 ) {
+                console.error( "Problem(s) with add-on(s) for Firefox and Selenium IDE:\n" +problems.join('\n') );
+                if( !runAsCheck ) {
+                    SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
+                }
             }
         } );
     } )();
