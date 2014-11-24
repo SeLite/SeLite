@@ -24,7 +24,7 @@ var loadingPackageDefinition= true;
 if( runningAsComponent ) {
     var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService); // -> instance of nsIPrefBranch
     Components.utils.import("resource://gre/modules/Services.jsm");
-    Components.utils.import("resource://gre/modules/FileUtils.jsm");
+    Components.utils.import( "resource://gre/modules/FileUtils.jsm", {} ).FileUtils;
     Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
     var nsIPrefBranch= Components.interfaces.nsIPrefBranch;
     var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);

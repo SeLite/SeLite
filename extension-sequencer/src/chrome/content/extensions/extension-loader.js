@@ -17,7 +17,7 @@
 Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
 
 if( !SeLiteExtensionSequencer.processedAlready ) {
-    (function() { // closure to make the variables local
+    (function( global ) { // closure to make the variables local
         // I must reset SeLiteExtensionSequencer.coreExtensionsLoadedTimes. I can't expect that extensions will have an even number of loads - because if the user closes Selenium IDE before running any Selenese, the extensions don't get loaded for the 2nd time during that run of Selenium IDE, and the odd-even sequence would not apply.
         SeLiteExtensionSequencer.coreExtensionsLoadedTimes= {};
         // When I start 'firefox -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul', it loads this file extension-loader.js without 'API' class. 'API' class is only defined when this is loaded from extension-loader.xul.
@@ -263,7 +263,7 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
         Components.utils.import("resource://gre/modules/AddonManager.jsm");
         // For some reasons I couldn't use console (from resource://gre/modules/devtools/Console.jsm) here (in Firefox 26.0, Selenium IDE 2.5.0). Using it generated a log: can't start debugging: a debuggee script is on the stack webconsole.js:68. I could use console in the handler function passed to AddonManager.getAllAddons():
         AddonManager.getAllAddons( function(addons) {
-            /*How to get the current Firefox profile: var dontShowPopups= Components.classes["@mozilla.org/file/directory_service;1"].getService( Components.interfaces.nsIProperties).get("ProfD", Components.interfaces.nsIFile).leafName.endsWith( '.SeLiteExtensionSequencerTest' );*/
+            /*@TODO remove: How to get the current Firefox profile: var dontShowPopups= Components.classes["@mozilla.org/file/directory_service;1"].getService( Components.interfaces.nsIProperties).get("ProfD", Components.interfaces.nsIFile).leafName.endsWith( '.SeLiteExtensionSequencerTest' );*/
             var problems= [];
             SeLiteExtensionSequencer.Loader.addonsById= SeLiteExtensionSequencer.Loader.getAddonsById( addons, problems );
             
@@ -273,12 +273,15 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
                 SeLiteExtensionSequencer.Loader.registerAndPreActivate( sortedPlugins );
             }
             if( problems.length>0 ) {
-                console.error( "Problem(s) with add-on(s) for Firefox and Selenium IDE:\n" +problems.join('\n') );
-                if( !runAsCheck ) {
+                if( runAsCheck ) {
+                    global.problems= problems;
+                }
+                else {
+                    console.error( "Problem(s) with add-on(s) for Firefox and Selenium IDE:\n" +problems.join('\n') );
                     SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
                 }
             }
         } );
-    } )();
+    } )( this );
    SeLiteExtensionSequencer.processedAlready= true;
-} 
+}
