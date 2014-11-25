@@ -39,8 +39,14 @@ cd ../../extension-sequencer/src
 pwd > "$EXTENSION_FOLDER"/extension-sequencer@selite.googlecode.com
 cd - >/dev/null
 
-wget -O /tmp/selenium.xpi --quiet http://release.seleniumhq.org/selenium-ide/2.8.0/selenium-ide-2.8.0.xpi
 rm -rf /tmp/selenium-ide.xpi
+wget -O /tmp/selenium.xpi --quiet http://release.seleniumhq.org/selenium-ide/2.8.0/selenium-ide-2.8.0.xpi
 unzip -q /tmp/selenium.xpi selenium-ide.xpi -d /tmp
-
 cp /tmp/selenium-ide.xpi "$EXTENSION_FOLDER"/\{a6fd85ed-e919-4a43-a5af-8da18bda539f\}.xpi
+
+cd extensions/rail
+pwd >"$EXTENSION_FOLDER"/test-rail@selite.googlecode.com
+cd ../train
+pwd >"$EXTENSION_FOLDER"/test-train@selite.googlecode.com
+cd ../journey
+pwd >"$EXTENSION_FOLDER"/test-journey@selite.googlecode.com
