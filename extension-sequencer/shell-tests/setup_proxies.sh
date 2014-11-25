@@ -18,7 +18,7 @@ fi
 PROFILE_FOLDER="$( echo "$FIREFOX_FOLDER/"*.SeLiteExtensionSequencerTest )"
 
 if [ ! -e "$PROFILE_FOLDER" ]; then
-    firefox -CreateProfile SeLiteExtensionSequencerTest
+    firefox -no-remote -CreateProfile SeLiteExtensionSequencerTest
     
     PROFILE_FOLDER="$( echo "$FIREFOX_FOLDER/"*.SeLiteExtensionSequencerTest )"
     if [ ! -e "$PROFILE_FOLDER" ]; then
