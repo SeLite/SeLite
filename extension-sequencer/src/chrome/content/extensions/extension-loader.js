@@ -265,7 +265,9 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof checkAndQuit==='functio
         AddonManager.getAllAddons( function(addons) {
             /*@TODO remove: How to get the current Firefox profile: var dontShowPopups= Components.classes["@mozilla.org/file/directory_service;1"].getService( Components.interfaces.nsIProperties).get("ProfD", Components.interfaces.nsIFile).leafName.endsWith( '.SeLiteExtensionSequencerTest' );*/
             var problems= [];
-            SeLiteExtensionSequencer.Loader.addonsById= SeLiteExtensionSequencer.Loader.getAddonsById( addons, problems );
+            if( !runAsCheck ) {
+                SeLiteExtensionSequencer.Loader.addonsById= SeLiteExtensionSequencer.Loader.getAddonsById( addons, problems );
+            }
             
             var sortedPlugins= SeLiteExtensionSequencer.sortedPlugins( SeLiteExtensionSequencer.Loader.addonsById, problems );
             SeLiteExtensionSequencer.Loader.reportMissingDependancies( SeLiteExtensionSequencer.Loader.addonsById, sortedPlugins, problems );
