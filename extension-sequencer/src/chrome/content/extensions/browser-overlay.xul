@@ -19,7 +19,7 @@
                 var sharedScope= {};
                 Components.utils.import( "chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js", sharedScope );
                 if( !sharedScope.Flag.alertShown ) {
-                    SeLiteExtensionSequencer.popup( window, "Firefox add-on SeLite Extension Sequencer is missing Selenium IDE",
+                    sharedScope.SeLiteExtensionSequencer.popup( window, "Firefox add-on SeLite Extension Sequencer is missing Selenium IDE",
                     'Selenium IDE is not installed (or it is disabled). SeLite Extension Sequencer is present, but it cannot load any Selenium extensions without Selenium IDE. Please install Selenium IDE from <a href="http://docs.seleniumhq.org/download/">http://docs.seleniumhq.org/download/</a> (or enable it if disabled).' );
                     sharedScope.Flag.alertShown= true;
                 }

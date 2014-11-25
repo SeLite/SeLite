@@ -16,7 +16,7 @@
 "use strict";
 Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
 
-if( !SeLiteExtensionSequencer.processedAlready ) {
+if( !SeLiteExtensionSequencer.processedAlready || typeof checkAndQuit==='function' ) {
     (function( global ) { // closure to make the variables local
         // I must reset SeLiteExtensionSequencer.coreExtensionsLoadedTimes. I can't expect that extensions will have an even number of loads - because if the user closes Selenium IDE before running any Selenese, the extensions don't get loaded for the 2nd time during that run of Selenium IDE, and the odd-even sequence would not apply.
         SeLiteExtensionSequencer.coreExtensionsLoadedTimes= {};
@@ -271,15 +271,13 @@ if( !SeLiteExtensionSequencer.processedAlready ) {
             SeLiteExtensionSequencer.Loader.reportMissingDependancies( SeLiteExtensionSequencer.Loader.addonsById, sortedPlugins, problems );
             if( !runAsCheck ) { // See a similar check above
                 SeLiteExtensionSequencer.Loader.registerAndPreActivate( sortedPlugins );
-            }
-            if( problems.length>0 ) {
-                if( runAsCheck ) {
-                    global.problems= problems;
-                }
-                else {
+                if( problems.length>0 ) {
                     console.error( "Problem(s) with add-on(s) for Firefox and Selenium IDE:\n" +problems.join('\n') );
                     SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
                 }
+            }
+            else {
+                global.checkAndQuit( problems );
             }
         } );
     } )( this );
