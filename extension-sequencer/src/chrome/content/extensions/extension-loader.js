@@ -68,10 +68,10 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                             );
                         }
                         catch( e ) {
-                            problems.push( 'Add-on ' +addon.name+ ' has an error in its SeLiteExtensionSequencerManifest.js. Please report this issue '+
-                                (addon.id.indexOf('@selite.googlecode.com')>0
-                                 ? 'at <a href="https://code.google.com/p/selite/wiki/ReportingIssues/">https://code.google.com/p/selite/wiki/ReportingIssues/</a>'
-                                 : 'to its author (but not to SeLite project).'
+                            problems.push( 'Add-on ' +addon.name+ ' has an error in its SeLiteExtensionSequencerManifest.js. Please, '+
+                                (addon.supportURL
+                                 ? '<a href="' +addon.supportURL+ '">report this issue</a>.'
+                                 : 'report this issue to its author (but not to SeLite project).'
                                 )
                             );
                             if( !e.messageContainsStackAddedBySeLiteMisc || !error.messageContainsStackWithExcludedCommonBaseBySeLiteMisc ) {
@@ -120,7 +120,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                         numberOfBrokenSeLiteAddOns++;
                     }
                 }
-                problems.push( 'Following Selenium IDE plugin(s) are missing their dependancy plugin(s). They are therefore inactive. Please, install (or enable) any missing dependancies. Please follow documentation of the plugin.'
+                problems.push( 'Following Selenium IDE plugin(s) are missing their dependancy plugin(s). They are therefore inactive. Install (or enable) any missing dependancies. Follow also documentation of the plugin.'
                     +(numberOfBrokenSeLiteAddOns
                         ? (numberOfBrokenSeLiteAddOns===brokenDependantIds.length
                             ? ' See also'
@@ -172,6 +172,10 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
             }
         };
         
+        function pluginIdToNameAndLinks( pluginId ) {
+            return pluginNameAndLinks( SeLiteExtensionSequencer.pluginInfos[pluginId] );
+        }
+        
         /** Register add-ons (that have all dependancies) with Selenium IDE. Run their preaActivate() where present.
          * @param {Object} sortedPlugins Result of SeLiteExtensionSequencer.sortedPlugins().
          * @param {Array} problems Array, where this adds any problem messages as strings.
@@ -212,7 +216,8 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                     if( problems.length ) {
                         problems.push( '' );
                     }
-                    problems.push( 'Failure when initialising Selenium IDE plugin ' +pluginNameAndLinks(SeLiteExtensionSequencer.pluginInfos[pluginId])+ ':' );
+                    var pluginInfo= SeLiteExtensionSequencer.pluginInfos[pluginId];
+                    problems.push( 'Failure when initialising Selenium IDE plugin ' +pluginNameAndLinks(pluginInfo)+ ':' ); //@TODO show plugin name instead
                     if( !e.messageContainsStackAddedBySeLiteMisc || !e.messageContainsStackWithExcludedCommonBaseBySeLiteMisc ) {
                         if( SeLiteMisc() ) {
                             SeLiteMisc().addStackToMessage( e, true );
@@ -223,20 +228,17 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                     }
                     var errorLines= ( ''+e ).split('\n'); 
                     Array.prototype.push.apply( problems, errorLines );
-                    var isSeLiteAddon= pluginId.indexOf('@selite.googlecode.com');
-                    problems.push( 'Please get its newest version (if available)' +(
-                            isSeLiteAddon
-                                ? ' from <a href="https://code.google.com/p/selite/wiki/AddOns">https://code.google.com/p/selite/wiki/AddOns</a>'
-                                : ' from its website'
+                    var hasSeparateDownloadPage= pluginInfo.downloadURL!==pluginInfo.infoURL;
+                    problems.push( (
+                            hasSeparateDownloadPage
+                                ? '<a href="' +pluginInfo.downloadURL+ '">Get its newest version</a>'
+                                : 'Get its newest version'
                         )
-                        + ', check its documentation' +(
-                            isSeLiteAddon
-                                ? ' at <a href="https://code.google.com/p/selite/wiki/ProjectHome">https://code.google.com/p/selite/wiki/ProjectHome</a>'
-                                : '' )
-                        + " and if that doesn't help, report the issue" +(
-                            isSeLiteAddon
-                                ? ' at <a href="https://code.google.com/p/selite/wiki/ReportingIssues">https://code.google.com/p/selite/wiki/ReportingIssues</a>.'
-                                : ' to its author.'
+                        + ' (if available) and check its <a href="' +pluginInfo.infoURL+ '">documentation</a>.'
+                        + " If that doesn't help, " +(
+                            SeLiteExtensionSequencer.Loader.addonsById[pluginId].supportURL
+                                ? '<a href="' +SeLiteExtensionSequencer.Loader.addonsById[pluginId].supportURL+ '">report the issue</a>.'
+                                : 'report the issue to its author.'
                         )
                     );
                     // Collect all directly and indirectly dependant add-ons:
@@ -253,7 +255,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                     }
                     dependantIds.splice( 0, 1 );
                     if( dependantIds.length ) {
-                        problems.push( 'It may also break add-on(s) that depend on it directly or indirectly:' +dependantIds.join(', ')+ '.' );
+                        problems.push( 'It may also break add-on(s) that depend on it directly or indirectly: ' +dependantIds.map(pluginIdToNameAndLinks).join(', ')+ '.' );
                     }
                 }
             }

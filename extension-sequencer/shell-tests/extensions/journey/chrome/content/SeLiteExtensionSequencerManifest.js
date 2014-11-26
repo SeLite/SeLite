@@ -9,7 +9,7 @@ SeLiteExtensionSequencer.registerPlugin({
         'test-train@selite.googlecode.com': {
             name: 'SeLite Test Train',
             infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/dummy-test-train/'
-            ,compatibleVersion: "0.10"
+            //,compatibleVersion: "0.10"
             //,minVersion: "0.10"
         }
     }
