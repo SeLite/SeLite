@@ -255,7 +255,7 @@ SeLiteExtensionSequencer.sortedPlugins= function sortedPlugins( addonsById ) {
     }
     var missingDirectDependancies= {};
     var brokenDirectDependancies= {};
-    !Object.keys(pluginUnprocessedRequisites).length || console.error( 'pluginUnprocessedRequisites ' +Object.keys(pluginUnprocessedRequisites) );
+    !Object.keys(pluginUnprocessedRequisites).length || console.log( 'pluginUnprocessedRequisites ' +Object.keys(pluginUnprocessedRequisites) );
     for( var pluginId in pluginUnprocessedRequisites ) { // pluginId is of the dependant
         var pluginInfo= SeLiteExtensionSequencer.pluginInfos[ pluginId ];
         var brokenDirect= {};

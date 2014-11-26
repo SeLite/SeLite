@@ -78,8 +78,9 @@ reset_versions
 setup_versions extension=train version=0.05
 #run_against expected_outputs/02_train_low_version.txt
 
+reset_versions
 setup_versions extension=train version=0.10 oldestCompatibleVersion=0.05
 setup_versions extension=journey compatibleVersion=0.10
 run_against expected_outputs/02_train_low_version.txt
 
-#reset_versions
+reset_versions
