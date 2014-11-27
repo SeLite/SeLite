@@ -66,17 +66,23 @@ function setup_versions() {
     change_or_comment_out extension=$extension field=preActivate value=$preActivate
 }
 
+function run {
+    # In addition to filtering out console.(log|info|warning), I filter out 'console.error:', too. That's because console.error is special: somehow, a string passed to console.error() is printed on a separate line. It's also prefixed by two spaces - hence those spaces in expected_outputs/*.html
+    firefox -P SeLiteExtensionSequencerTest -no-remote -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul?registerAndPreActivate 2>/dev/null | egrep --invert-match 'console.(log|info|warning|error):|@(chrome|resource)://' | grep --invert-match "Problem(s) with add-on(s) for Firefox and Selenium IDE"
+}
+
 # It expects two parameters: a file path of the expected output relative to shell-tests/, and a test name (that will be printed out on failure)
 function run_against {
     # Firefox Browser Console goes to stdout, not to stderr. I remove Browser Console messages other than errors.
     # I remove stack traces, since those change with implementation. Hence don't have any stack traces in expected output files either.
     # I have to sort the expected and the actual output before I compare them, because some plugins can be processed in random order.
-    firefox -P SeLiteExtensionSequencerTest -no-remote -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul?registerAndPreActivate 2>/dev/null | egrep --invert-match 'console.(log|info|warning):' | grep --invert-match @chrome:// | sort > /tmp/selite.actual-output
+    run | sort > /tmp/selite.actual-output
     sort $1 | diff - /tmp/selite.actual-output >/tmp/selite.diff
     if [ -s /tmp/selite.diff ]
     then
-        echo "Test $2 failed. Difference between the expected (<) and the actual (>) output (after those were sorted alphabetically):" >/dev/stderr
+        echo "Test \"$2\" failed. Difference between the expected (<) and the actual (>) output (after those were sorted alphabetically):" >/dev/stderr
         cat /tmp/selite.diff >/dev/stderr
+        echo
     fi
 }
 
@@ -90,28 +96,29 @@ function reset_versions() {
 }
 
 reset_versions
-run_against expected_outputs/blank.txt "01 Default"
+run_against expected_outputs/blank.html "01 Default"
 
 # The following test occasionally randomly fails
 setup_versions extension=train version=0.05
 setup_versions extension=journey minVersion=0.10
-run_against expected_outputs/train_low_version.txt "02 Train low version"
+run_against expected_outputs/train_low_version.html "02 Train low version"
 
 reset_versions
 setup_versions extension=train oldestCompatibleVersion=0.05
 setup_versions extension=journey compatibleVersion=0.05
-run_against expected_outputs/blank.txt "03 compatibleVersion and oldestCompatibleVersion the same"
+run_against expected_outputs/blank.html "03 compatibleVersion = oldestCompatibleVersion"
 
 reset_versions
 setup_versions extension=train oldestCompatibleVersion=0.10
 setup_versions extension=journey compatibleVersion=0.05
-run_against expected_outputs/blank.txt "04 compatibleVersion lower than oldestCompatibleVersion"
+run_against expected_outputs/blank.html "04 compatibleVersion < oldestCompatibleVersion"
 
 reset_versions
 setup_versions extension=train oldestCompatibleVersion=0.05
 setup_versions extension=journey compatibleVersion=0.10
-run_against expected_outputs/train_low_oldestCompatibleVersion.txt "05 compatibleVersion greater than oldestCompatibleVersion"
+run_against expected_outputs/train_low_oldestCompatibleVersion.html "05 Journey compatibleVersion > Train oldestCompatibleVersion"
 
 reset_versions
 setup_versions extension=journey preActivate=true
-run_against expected_outputs/journey_preActivate_fails.txt "06 journey preActivate fails"
+run_against expected_outputs/journey_preActivate_fails.html "06 Journey preActivate fails"
+

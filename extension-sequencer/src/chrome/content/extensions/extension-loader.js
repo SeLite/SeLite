@@ -82,7 +82,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                                 }
                             }
                             var errorLines= ( ''+e ).split('\n'); 
-                            Array.prototype.push.apply( problems, errorLines );
+                            Array.prototype.push.apply( problems, errorLines ); // Push items of errorLines[] one by one - different to problems.push(errorLines), which pushes whole errorLines as one item.
                         }
                     }
                 }
@@ -160,7 +160,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                     }
                     if( pluginIdsMissingIndirectDependanciesOnly.length ) {
                         problems.push( '' );
-                        problems.push( "\nPlugin(s) missing indirect dependencies only:" );
+                        problems.push( "Plugin(s) missing indirect dependencies only:" );
                         for( var i=0; i<pluginIdsMissingIndirectDependanciesOnly.length; i++ ) {//@TODO low: for(..of..)
                             var pluginId= pluginIdsMissingIndirectDependanciesOnly[i];
                             problems.push( pluginNameAndLinks( SeLiteExtensionSequencer.pluginInfos[pluginId] )+ ' indirectly depends on missing or incompatible plugin(s) through following plugin(s): ' +
@@ -226,7 +226,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                         }
                     }
                     var errorLines= ( ''+e ).split('\n'); 
-                    Array.prototype.push.apply( problems, errorLines );
+                    Array.prototype.push.apply( problems, errorLines ); // See a comment for the same call above
                     var hasSeparateDownloadPage= pluginInfo.downloadURL!==pluginInfo.infoURL;
                     problems.push( (
                             hasSeparateDownloadPage
@@ -289,9 +289,12 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                 SeLiteExtensionSequencer.Loader.registerAndPreActivate( sortedPlugins, problems );
             }
             if( problems.length>0 ) {
-                console.error( "Problem(s) with add-on(s) for Firefox and Selenium IDE:\n" +problems.join('\n') );
+                var title= "Problem(s) with add-on(s) for Firefox and Selenium IDE";
+                var message= problems.join('<br/>\n');
+                console.error( title );
+                console.error( message );
                 if( !global.runAsCheck ) {
-                    SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
+                    SeLiteExtensionSequencer.popup( window, title, message );
                 }
             }
             if( global.runAsCheck ) {

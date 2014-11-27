@@ -11,10 +11,13 @@ and open the template in the editor.
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style type="text/css">
             table {border: 0; border-spacing: 0;}
-            .addon {font-weight: bold;}
+            td { padding: 3px}
+            .addon, .default {font-weight: bold;}
             .highlight {font-weight: bold;}
             .version {background-color: darkgray; }
             .alternate {background-color: lightgray; }
+            .positive {color: green;}
+            .negative {color: red}
         </style>
     </head>
     <body>
@@ -136,22 +139,22 @@ and open the template in the editor.
                     <td>&#160;</td>
                     <td class="alternate">&#160;</td>
                     <td>&#160;</td>
-                    <td class="alternate"><span class="highlight">Test</span> (and output excluding stack trace)</td>
+                    <td class="alternate"><span class="highlight">Test</span>: <span class="positive">positive</span> or <span class="negative">negative</span>. (Negative tests link to the expected output excluding stack trace.)</td>
                 </tr>
                 <tr>
-                    <td class="version">0.10</td>
+                    <td class="version default">0.10</td>
                     <td>&#160;</td>
                     <td class="alternate">&#160;</td>
-                    <td class="version">0.10</td>
-                    <td>&#160;</td>
-                    <td class="alternate">&#160;</td>
-                    <td>&#160;</td>
-                    <td class="alternate">&#160;</td>
-                    <td class="version">0.10</td>
+                    <td class="version default">0.10</td>
                     <td>&#160;</td>
                     <td class="alternate">&#160;</td>
                     <td>&#160;</td>
-                    <td class="alternate">01 <a href="expected_outputs/blank.txt">Default</a> <i>(all tests below have versions only if other than default)</i></td>
+                    <td class="alternate">&#160;</td>
+                    <td class="version default">0.10</td>
+                    <td>&#160;</td>
+                    <td class="alternate">&#160;</td>
+                    <td>&#160;</td>
+                    <td class="alternate"><span class="positive">01</span> Default <i>(all tests below list versions only if other than default)</i></td>
                 </tr>
                 <tr>
                     <td class="version">&#160;</td>
@@ -166,7 +169,7 @@ and open the template in the editor.
                     <td>0.10</td>
                     <td class="alternate">&#160;</td>
                     <td>&#160;</td>
-                    <td class="alternate">02 Train low version</td>
+                    <td class="alternate"><span class="negative"><a href="expected_outputs/train_low_version.html">02</a></span> Train low version</td>
                 </tr>
                 <tr>
                     <td class="version">&#160;</td>
@@ -181,7 +184,7 @@ and open the template in the editor.
                     <td>&#160;</td>
                     <td class="alternate">0.05</td>
                     <td>&#160;</td>
-                    <td class="alternate">03 compatibleVersion and oldestCompatibleVersion the same</td>
+                    <td class="alternate"><span class="positive">03</span> compatibleVersion and oldestCompatibleVersion the same</td>
                 </tr>
                 <tr>
                     <td class="version">&#160;</td>
@@ -196,7 +199,7 @@ and open the template in the editor.
                     <td>&#160;</td>
                     <td class="alternate">0.05</td>
                     <td>&#160;</td>
-                    <td class="alternate">04 compatibleVersion lower than oldestCompatibleVersion</td>
+                    <td class="alternate"><span class="positive">04</span> compatibleVersion lower than oldestCompatibleVersion</td>
                 </tr>
                 <tr>
                     <td class="version">&#160;</td>
@@ -211,7 +214,7 @@ and open the template in the editor.
                     <td>&#160;</td>
                     <td class="alternate">0.10</td>
                     <td>&#160;</td>
-                    <td class="alternate">05 compatibleVersion greater than oldestCompatibleVersion</td>
+                    <td class="alternate"><span class="negative"><a href="expected_outputs/train_low_oldestCompatibleVersion.html">05</a></span> compatibleVersion greater than oldestCompatibleVersion</td>
                 </tr>
                 <tr>
                     <td class="version">&#160;</td>
@@ -226,7 +229,7 @@ and open the template in the editor.
                     <td>&#160;</td>
                     <td class="alternate">&#160;</td>
                     <td>yes</td>
-                    <td class="alternate">06 journey preActivate fails</td>
+                    <td class="alternate"><span class="negative"><a href="expected_outputs/journey_preActivate_fails.html">06</a></span> journey preActivate fails</td>
                 </tr>
             </table>
             
