@@ -44,6 +44,11 @@ wget -O /tmp/selenium.xpi --quiet http://release.seleniumhq.org/selenium-ide/2.8
 unzip -q /tmp/selenium.xpi selenium-ide.xpi -d /tmp
 cp /tmp/selenium-ide.xpi "$EXTENSION_FOLDER"/\{a6fd85ed-e919-4a43-a5af-8da18bda539f\}.xpi
 
+# The following enables Extension Sequencer to call SeLiteMisc.addStackToMessage(), which shortens the stack trace. That makes the stack trace comparable, since it removes the stack trace from Firefox itself (which can change).
+cd ../../misc/src
+pwd > "$EXTENSION_FOLDER"/misc@selite.googlecode.com
+cd - >/dev/null
+
 cd extensions/rail
 pwd >"$EXTENSION_FOLDER"/test-rail@selite.googlecode.com
 cd ../train

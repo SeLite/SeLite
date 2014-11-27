@@ -1,5 +1,9 @@
 <?xml version="1.0"?>
 <window id="yourwindow" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml">
+    <!-- I can't have <script type="application/x-javascript" src="chrome://selenium-ide/content/api.js"/> - it freezes when I open this file as a part of Firefox startup (through run_tests.sh). -->
+    <!-- Perform validation of dependencies between add-ons.
+        Only if you open this file as a part of Firefox startup (through run_tests.sh), then you can invoke this with ?registerAndPreActivate in its URL, and it will also call any preActivate() in SeLiteExtensionSequencerManifest.js of add-ons. Do not pass ?registerAndPreActivate when you open this after you've started Firefox, since that would try to re-register add-ons and it would fail.
+    -->
     <script type="application/x-javascript">
         //<![CDATA[
         "use strict";
@@ -45,7 +49,8 @@
                         console.error( '\n\nSeLite ExtensionSequencer Test: expected problems:\n' +expectedProblems.join('\nSeLite ExtensionSequencer Test:') );
                     }*/
                     Components.classes['@mozilla.org/toolkit/app-startup;1'].getService( Components.interfaces.nsIAppStartup ).quit( Components.interfaces.nsIAppStartup.eForceQuit );
-                }
+                },
+                registerAndPreActivate: window.location.search.indexOf('registerAndPreActivate')>0
             };
             Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader).loadSubScript( 'chrome://selite-extension-sequencer/content/extensions/extension-loader.js', extensionLoaderScope, 'UTF-8' );
         //}

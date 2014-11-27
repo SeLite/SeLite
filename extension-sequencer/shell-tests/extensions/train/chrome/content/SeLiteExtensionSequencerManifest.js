@@ -13,4 +13,5 @@ SeLiteExtensionSequencer.registerPlugin({
             //,minVersion: 0.15
         }
     }
+    //,preActivate: function preActivate() { throw new Error("Intentional error in preActivate() of Train."); }
 });

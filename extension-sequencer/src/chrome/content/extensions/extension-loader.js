@@ -22,8 +22,10 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
         SeLiteExtensionSequencer.coreExtensionsLoadedTimes= {};
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         // When I start 'firefox -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul', it loads this file extension-loader.js without 'API' class. 'API' class is only defined when this is loaded from extension-loader.xul.
+        //@TODO replace with global.runAsCheck; pass that  from checkAndQuit.xul
         var runAsCheck= typeof API==='undefined';
         if( !runAsCheck ) {
+        //if( !global.runAsCheck ) {
             var ide_api= new API(); // API comes from chrome://selenium-ide/content/api.js - referenced through ./extension-loader.xul
             // Register itself - so that it shows up in Selenium IDE > Options > Options > Plugins
             ide_api.addPluginProvidedUserExtension( 'chrome://selite-extension-sequencer/content/extensions/core.js' );
@@ -277,7 +279,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
             
             var sortedPlugins= SeLiteExtensionSequencer.sortedPlugins( SeLiteExtensionSequencer.Loader.addonsById, problems );
             SeLiteExtensionSequencer.Loader.reportMissingDependancies( SeLiteExtensionSequencer.Loader.addonsById, sortedPlugins, problems );
-            if( !runAsCheck ) { // See a similar check above
+            if( !runAsCheck || global.registerAndPreActivate ) { // See a similar check above
                 SeLiteExtensionSequencer.Loader.registerAndPreActivate( sortedPlugins, problems );
             }
             if( problems.length>0 ) {

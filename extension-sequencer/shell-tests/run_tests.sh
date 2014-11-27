@@ -18,19 +18,32 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 function change_or_comment_out() {
     local from to    # reset first
     local "${@}"
-    if [ "$value" ]
+    if [ "$field" != "preActivate" ]
     then
-        # uncomment the line (if commented out), and change the value
-        sed -i -r "s/(\/\/)?(,\s*$field:)\s*['\"]?[0-9.]*['\"]?/\2 \"$value\"/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
+        if [ "$value" ]
+        then
+            # uncomment the line (if commented out), and change the value
+            sed -i -r "s/(\/\/)?(,\s*$field:)\s*['\"]?[0-9.]*['\"]?/\2 \"$value\"/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
+        else
+            # comment out the line
+            sed -i -r "s/(\/\/)?(,\s*$field:\s*['\"]?[0-9.]*['\"]?)/\/\/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
+        fi
     else
-        # comment out the line
-        sed -i -r "s/(\/\/)?(,\s*$field:\s*['\"]?[0-9.]*['\"]?)/\/\/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
+        if [ "$value" ]
+        then
+            # uncomment the line (if commented out)
+            sed -i -r "s/(\/\/)?(,\s*$field:.*)/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
+        else
+            # comment out the line
+            sed -i -r "s/(\/\/)?(,\s*$field:.*)/\/\/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
+        fi
     fi
 }
 
 # (re)set:
 # - 'version' in of install.rdf and/or
 # - 'minVersion', 'compatibleVersion' and 'oldestCompatibleVersion' in SeLiteExtensionSequencerManifest.js. If any of those are not set, they will be commented out in SeLiteExtensionSequencerManifest.js.
+# - uncomment or comment out 'preActivate' in SeLiteExtensionSequencerManifest.js, depending on whether you set preActivate variable or not
 # Pass any of the above quoted words as variables (see calls below).
 # Pass variable 'extension', the folder name directly under extensions/ for the extension to be modified (the dependent extension).
 # Variables minVersion and compatibleVersion apply to all requisites - therefore use this only with extensions that have max. one direct requisite.
@@ -50,13 +63,14 @@ function setup_versions() {
     change_or_comment_out extension=$extension field=minVersion value=$minVersion
     change_or_comment_out extension=$extension field=compatibleVersion value=$compatibleVersion
     change_or_comment_out extension=$extension field=oldestCompatibleVersion value=$oldestCompatibleVersion
+    change_or_comment_out extension=$extension field=preActivate value=$preActivate
 }
 
 # It expects two parameters: a file path of the expected output relative to shell-tests/, and a test name (that will be printed out on failure)
 function run_against {
     # Firefox Browser Console goes to stdout, not to stderr
     # I have to sort the expected and the actual output before I compare them, because some plugins can be processed in random order.
-    firefox -P SeLiteExtensionSequencerTest -no-remote -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul 2>/dev/null | egrep --invert-match 'console.(log|info|warning):' | sort > /tmp/selite.actual-output
+    firefox -P SeLiteExtensionSequencerTest -no-remote -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul?registerAndPreActivate 2>/dev/null | egrep --invert-match 'console.(log|info|warning):' | sort > /tmp/selite.actual-output
     sort $1 | diff - /tmp/selite.actual-output >/tmp/selite.diff
     if [ -s /tmp/selite.diff ]
     then
@@ -77,6 +91,7 @@ function reset_versions() {
 reset_versions
 run_against expected_outputs/blank.txt "01 Default"
 
+# The following test occasionally randomly fails
 setup_versions extension=train version=0.05
 setup_versions extension=journey minVersion=0.10
 run_against expected_outputs/train_low_version.txt "02 Train low version"
@@ -96,3 +111,6 @@ setup_versions extension=train oldestCompatibleVersion=0.05
 setup_versions extension=journey compatibleVersion=0.10
 run_against expected_outputs/train_low_oldestCompatibleVersion.txt "05 compatibleVersion greater than oldestCompatibleVersion"
 
+reset_versions
+setup_versions extension=journey preActivate=true
+run_against expected_outputs/journey_preActivate_fails.txt "06 journey preActivate fails"
