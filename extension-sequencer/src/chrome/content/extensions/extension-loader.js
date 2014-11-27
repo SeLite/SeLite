@@ -22,10 +22,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
         SeLiteExtensionSequencer.coreExtensionsLoadedTimes= {};
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         // When I start 'firefox -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul', it loads this file extension-loader.js without 'API' class. 'API' class is only defined when this is loaded from extension-loader.xul.
-        //@TODO replace with global.runAsCheck; pass that  from checkAndQuit.xul
-        var runAsCheck= typeof API==='undefined';
-        if( !runAsCheck ) {
-        //if( !global.runAsCheck ) {
+        if( !global.runAsCheck ) {
             var ide_api= new API(); // API comes from chrome://selenium-ide/content/api.js - referenced through ./extension-loader.xul
             // Register itself - so that it shows up in Selenium IDE > Options > Options > Plugins
             ide_api.addPluginProvidedUserExtension( 'chrome://selite-extension-sequencer/content/extensions/core.js' );
@@ -219,7 +216,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                         problems.push( '' );
                     }
                     var pluginInfo= SeLiteExtensionSequencer.pluginInfos[pluginId];
-                    problems.push( 'Failure when initialising Selenium IDE plugin ' +pluginNameAndLinks(pluginInfo)+ ':' ); //@TODO show plugin name instead
+                    problems.push( 'Failure when initialising Selenium IDE plugin ' +pluginNameAndLinks(pluginInfo)+ ':' );
                     if( !e.messageContainsStackAddedBySeLiteMisc || !e.messageContainsStackWithExcludedCommonBaseBySeLiteMisc ) {
                         if( SeLiteMisc() ) {
                             SeLiteMisc().addStackToMessage( e, true );
@@ -271,7 +268,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
             // 1. At normal Firefox startup, Firefox loads this file automatically
             // 2. and 3. from chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul:
             // - 2. after a normal Firefox startup by visiting chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul
-            // - 3. when starting firefox -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul - then Firefox doesn't load this file automatically as per 1. That's why the following if() can't have !runAsCheck as a condition.
+            // - 3. when starting firefox -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul - then Firefox doesn't load this file automatically as per 1. That's why the following if() can't have !global.runAsCheck as a condition.
 
             if( !SeLiteExtensionSequencer.Loader.addonsById ) {
                 SeLiteExtensionSequencer.Loader.addonsById= SeLiteExtensionSequencer.Loader.getAddonsById( addons, problems );
@@ -279,16 +276,25 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
             
             var sortedPlugins= SeLiteExtensionSequencer.sortedPlugins( SeLiteExtensionSequencer.Loader.addonsById, problems );
             SeLiteExtensionSequencer.Loader.reportMissingDependancies( SeLiteExtensionSequencer.Loader.addonsById, sortedPlugins, problems );
-            if( !runAsCheck || global.registerAndPreActivate ) { // See a similar check above
+            if( !global.runAsCheck || global.registerAndPreActivate ) { // See a similar check above
+                if( global.runAsCheck ) {
+                    // This file was invoked from checkAndQuit.xul?registerAndPreActivate, which doesn't have API class defined and it can't access load chrome://selenium-ide/content/api.js when it was open as a part of Firefox startup (by running firefox -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul?registerAndPreActivate from run_tests.sh). Even if I loaded api.js here through mozIJSSubScriptLoader, I'd still have to load other Selenium IDE files - and they probably depend on Firefox internals for browser.xul that is not active. I've also tried to load all .js files referenced from chrome://selenium-ide/content/selenium-ide-overlay.xul, but that didn't help. So I just create a dummy API class.
+                    global.API= function API() {};
+                    global.API.prototype= {
+                        addPlugin: function() {},
+                        addPluginProvidedIdeExtension: function() {},
+                        addPluginProvidedUserExtension: function() {}
+                    };
+                }
                 SeLiteExtensionSequencer.Loader.registerAndPreActivate( sortedPlugins, problems );
             }
             if( problems.length>0 ) {
                 console.error( "Problem(s) with add-on(s) for Firefox and Selenium IDE:\n" +problems.join('\n') );
-                if( !runAsCheck ) {
+                if( !global.runAsCheck ) {
                     SeLiteExtensionSequencer.popup( window, "Problem(s) with add-on(s) for Firefox and Selenium IDE", problems.join('\n<br/>\n') );
                 }
             }
-            if( runAsCheck ) {
+            if( global.runAsCheck ) {
                 global.afterChecks( problems );
             }
         } );

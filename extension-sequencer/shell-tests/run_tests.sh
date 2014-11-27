@@ -68,9 +68,10 @@ function setup_versions() {
 
 # It expects two parameters: a file path of the expected output relative to shell-tests/, and a test name (that will be printed out on failure)
 function run_against {
-    # Firefox Browser Console goes to stdout, not to stderr
+    # Firefox Browser Console goes to stdout, not to stderr. I remove Browser Console messages other than errors.
+    # I remove stack traces, since those change with implementation. Hence don't have any stack traces in expected output files either.
     # I have to sort the expected and the actual output before I compare them, because some plugins can be processed in random order.
-    firefox -P SeLiteExtensionSequencerTest -no-remote -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul?registerAndPreActivate 2>/dev/null | egrep --invert-match 'console.(log|info|warning):' | sort > /tmp/selite.actual-output
+    firefox -P SeLiteExtensionSequencerTest -no-remote -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul?registerAndPreActivate 2>/dev/null | egrep --invert-match 'console.(log|info|warning):' | grep --invert-match @chrome:// | sort > /tmp/selite.actual-output
     sort $1 | diff - /tmp/selite.actual-output >/tmp/selite.diff
     if [ -s /tmp/selite.diff ]
     then

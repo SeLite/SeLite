@@ -2,6 +2,4 @@ console.error:
   Problem(s) with add-on(s) for Firefox and Selenium IDE:
 Failure when initialising Selenium IDE plugin <a href="https://addons.mozilla.org/en-US/firefox/addon/dummy-test-journey/">SeLite Test Journey</a> (<a href="https://addons.mozilla.org/en-US/firefox/addon/dummy-test-journey/versions/">download</a>):
 Error: Intentional error in preActivate() of Journey.
-preActivate@chrome://selite-extension-sequencer/content/extensions/extension-loader.js -> file:///home/pkehl/selite/extension-sequencer/shell-tests/extensions/journey/chrome/content/SeLiteExtensionSequencerManifest.js:16:50
-registerAndPreActivate@chrome://selite-extension-sequencer/content/extensions/extension-loader.js:206:25
 <a href="https://addons.mozilla.org/en-US/firefox/addon/dummy-test-journey/versions/">Get its newest version</a> (if available) and check its <a href="https://addons.mozilla.org/en-US/firefox/addon/dummy-test-journey/">documentation</a>. If that doesn't help, report the issue to its author.
