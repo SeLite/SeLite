@@ -1,4 +1,6 @@
 #!/bin/bash
+# On Fedora 20x63, Firefox 33.1 I had false errors, when Firefox didn't pick up a degrade (lowering down) of an extension version.
+
 #change dir to where this script is located:
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
@@ -53,18 +55,18 @@ function setup_versions() {
 # It expects one parameter, a file path of the expected output, relative to shell-tests/
 function run_against {
     # Firefox Browser Console goes to stdout, not to stderr
+    # I have to sort the expected and the actual output before I compare them, because some plugins can be processed in random order.
     firefox -P SeLiteExtensionSequencerTest -no-remote -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul 2>/dev/null | egrep --invert-match 'console.(log|info|warning):' | sort > /tmp/selite.actual-output
     sort $1 | diff - /tmp/selite.actual-output >/tmp/selite.diff
     if [ -s /tmp/selite.diff ]
     then
-        echo "Test $1 failed. Difference between the expected (<) and the actual (>) output:" >/dev/stderr
+        echo "Test $1 failed. Difference between the expected (<) and the actual (>) output (after those were sorted alphabetically):" >/dev/stderr
         cat /tmp/selite.diff >/dev/stderr
     fi
 }
 
 # see tests.html
 # don't enclose minVersion, compatibleVersion, oldestCompatibleVersion in "..", since setup_versions() -> change_or_comment_out() does it
-# On Fedora 20x63, Firefox 33.1 I had false errors, when Firefox didn't pick up a degrade (lowering down) of an extension version.
 
 function reset_versions() {
     setup_versions extension=rail version=0.10
@@ -73,14 +75,15 @@ function reset_versions() {
 }
 
 reset_versions
-#run_against expected_outputs/01_default.txt
+run_against expected_outputs/01_default.txt
 
 setup_versions extension=train version=0.05
-#run_against expected_outputs/02_train_low_version.txt
-
-reset_versions
-setup_versions extension=train version=0.10 oldestCompatibleVersion=0.05
-setup_versions extension=journey compatibleVersion=0.10
+setup_versions extension=journey minVersion=0.10
 run_against expected_outputs/02_train_low_version.txt
 
 reset_versions
+setup_versions extension=train oldestCompatibleVersion=0.05
+setup_versions extension=journey compatibleVersion=0.10
+run_against expected_outputs/03_train_low_oldestCompatibleVersion.txt
+
+#reset_versions

@@ -1,0 +1,6 @@
+console.error: 
+  Problem(s) with add-on(s) for Firefox and Selenium IDE:
+Following Selenium IDE plugin(s) are missing their dependancy plugin(s). They are therefore inactive. Install (or enable) any missing dependancies. Follow also documentation of the plugin. See also <a href="https://code.google.com/p/selite/wiki/AddOnsDependencies">https://code.google.com/p/selite/wiki/AddOnsDependants</a>.
+
+Plugin(s) missing at least one direct dependency:
+<a href="https://addons.mozilla.org/en-US/firefox/addon/dummy-test-journey/">SeLite Test Journey</a> (<a href="https://addons.mozilla.org/en-US/firefox/addon/dummy-test-journey/versions/">download</a>) is too old, so upgrade it. It directly depends on plugin(s) that are too new, so alternatively get older versions of: <a href="https://addons.mozilla.org/en-US/firefox/addon/dummy-test-train/">SeLite Test Train</a> (<a href="https://addons.mozilla.org/en-US/firefox/addon/dummy-test-train/versions/">download</a>).
