@@ -52,7 +52,7 @@ function setup_versions() {
     change_or_comment_out extension=$extension field=oldestCompatibleVersion value=$oldestCompatibleVersion
 }
 
-# It expects one parameter, a file path of the expected output, relative to shell-tests/
+# It expects two parameters: a file path of the expected output relative to shell-tests/, and a test name (that will be printed out on failure)
 function run_against {
     # Firefox Browser Console goes to stdout, not to stderr
     # I have to sort the expected and the actual output before I compare them, because some plugins can be processed in random order.
@@ -60,7 +60,7 @@ function run_against {
     sort $1 | diff - /tmp/selite.actual-output >/tmp/selite.diff
     if [ -s /tmp/selite.diff ]
     then
-        echo "Test $1 failed. Difference between the expected (<) and the actual (>) output (after those were sorted alphabetically):" >/dev/stderr
+        echo "Test $2 failed. Difference between the expected (<) and the actual (>) output (after those were sorted alphabetically):" >/dev/stderr
         cat /tmp/selite.diff >/dev/stderr
     fi
 }
@@ -75,15 +75,24 @@ function reset_versions() {
 }
 
 reset_versions
-run_against expected_outputs/01_default.txt
+run_against expected_outputs/blank.txt "01 Default"
 
 setup_versions extension=train version=0.05
 setup_versions extension=journey minVersion=0.10
-run_against expected_outputs/02_train_low_version.txt
+run_against expected_outputs/train_low_version.txt "02 Train low version"
+
+reset_versions
+setup_versions extension=train oldestCompatibleVersion=0.05
+setup_versions extension=journey compatibleVersion=0.05
+run_against expected_outputs/blank.txt "03 compatibleVersion and oldestCompatibleVersion the same"
+
+reset_versions
+setup_versions extension=train oldestCompatibleVersion=0.10
+setup_versions extension=journey compatibleVersion=0.05
+run_against expected_outputs/blank.txt "04 compatibleVersion lower than oldestCompatibleVersion"
 
 reset_versions
 setup_versions extension=train oldestCompatibleVersion=0.05
 setup_versions extension=journey compatibleVersion=0.10
-run_against expected_outputs/03_train_low_oldestCompatibleVersion.txt
+run_against expected_outputs/train_low_oldestCompatibleVersion.txt "05 compatibleVersion greater than oldestCompatibleVersion"
 
-#reset_versions
