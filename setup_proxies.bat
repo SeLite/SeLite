@@ -4,7 +4,7 @@ setlocal EnableDelayedExpansion
 SET script_folder=%~dp0
 cd %script_folder:~0,-1%
 
-for /f "tokens=*" %%a in ('dir  %APPDATA%\Mozilla\Firefox\Profiles\*.default /b') do set p=%APPDATA%\Mozilla\Firefox\Profiles\%%a
+for /f "tokens=*" %%a in ('dir  "%APPDATA%\Mozilla\Firefox\Profiles\*.default" /b') do set p=%APPDATA%\Mozilla\Firefox\Profiles\%%a
 if defined p (
     set e="%p%\extensions"
     REM If you have not got any extensions in Firefox profile yet, there is no 'extensions' folder. So create it.
