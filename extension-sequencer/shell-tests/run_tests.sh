@@ -1,4 +1,8 @@
 #!/bin/bash
+# Optional parameters:
+# - whether to show the whole actual output (after pre-filtering), rather than just a difference between the expected output and the actual output, and it prints it to stdout rather than stderr. If not set or 'false' or 'no', then it only prints the difference.
+# - number of test to run; otherwise it runs all tests
+
 # On Fedora 20x63, Firefox 33.1 I had false errors, when Firefox didn't pick up a degrade (lowering down) of an extension version.
 
 #change dir to where this script is located:
@@ -71,16 +75,33 @@ function run {
     firefox -P SeLiteExtensionSequencerTest -no-remote -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul?registerAndPreActivate 2>/dev/null | egrep --invert-match 'console.(log|info|warning|error):|@(chrome|resource)://' | grep --invert-match "Problem(s) with add-on(s) for Firefox and Selenium IDE"
 }
 
-# It expects two parameters: a file path of the expected output relative to shell-tests/, and a test name (that will be printed out on failure)
+# It expects positional parameters:
+#- $1 a file path of the expected output relative to shell-tests/
+#- $2 number of this test
+#- $3 a test description (which will be printed out on failure)
+#- $4 whether to show the whole error output (after pre-filtering), rather than just the difference to the expected output; then it prints to stdout rather than to stderr. Useful when you add a new test and you want to generate its output; optional
+#- $5 number of the selected test to run; if present, this will run the test only if this number is same as the above number; optional
 function run_against {
+    if [[ "$5" && "$5" -ne "$2" ]]
+    then
+        return
+    fi
     # Firefox Browser Console goes to stdout, not to stderr. I remove Browser Console messages other than errors.
     # I remove stack traces, since those change with implementation. Hence don't have any stack traces in expected output files either.
     # I have to sort the expected and the actual output before I compare them, because some plugins can be processed in random order.
-    run | sort > /tmp/selite.actual-output
-    sort $1 | diff - /tmp/selite.actual-output >/tmp/selite.diff
+    run > /tmp/selite.actual-output
+    if [[ "$4" && "$4" != "false" && "$4" != "no" ]]
+    then
+        echo "Output of test #$2 \"$3\":"
+        cat /tmp/selite.actual-output # to /dev/stdout, not to stderr
+        echo
+        return
+    fi
+    sort /tmp/selite.actual-output >/tmp/selite.sorted-output
+    sort $1 | diff - /tmp/selite.sorted-output >/tmp/selite.diff
     if [ -s /tmp/selite.diff ]
     then
-        echo "Test \"$2\" failed. Difference between the expected (<) and the actual (>) output (after those were sorted alphabetically):" >/dev/stderr
+        echo "Test #$2 \"$3\" failed. Difference between the expected (<) and the actual (>) output (after those were sorted alphabetically):" >/dev/stderr
         cat /tmp/selite.diff >/dev/stderr
         echo
     fi
@@ -96,29 +117,31 @@ function reset_versions() {
 }
 
 reset_versions
-run_against expected_outputs/blank.html "01 Default"
+run_against expected_outputs/blank.html 01 "Default"
 
-# The following test occasionally randomly fails
 setup_versions extension=train version=0.05
 setup_versions extension=journey minVersion=0.10
-run_against expected_outputs/02_train_low_version.html "02 Train low version"
+run_against expected_outputs/02_train_low_version.html 02 "Train low version. This test occasionally fails, so re-run on failure." "$1" "$2"
 
 reset_versions
 setup_versions extension=train oldestCompatibleVersion=0.05
 setup_versions extension=journey compatibleVersion=0.05
-run_against expected_outputs/blank.html "03 compatibleVersion = oldestCompatibleVersion"
+run_against expected_outputs/blank.html 03 "compatibleVersion = oldestCompatibleVersion" "$1" "$2"
 
 reset_versions
 setup_versions extension=train oldestCompatibleVersion=0.10
 setup_versions extension=journey compatibleVersion=0.05
-run_against expected_outputs/blank.html "04 compatibleVersion < oldestCompatibleVersion"
+run_against expected_outputs/blank.html 04 "compatibleVersion < oldestCompatibleVersion" "$1" "$2"
 
 reset_versions
 setup_versions extension=train oldestCompatibleVersion=0.05
 setup_versions extension=journey compatibleVersion=0.10
-run_against expected_outputs/05_train_low_oldestCompatibleVersion.html "05 Journey compatibleVersion > Train oldestCompatibleVersion"
+run_against expected_outputs/05_train_low_oldestCompatibleVersion.html 05 "Journey compatibleVersion > Train oldestCompatibleVersion" "$1" "$2"
 
 reset_versions
 setup_versions extension=journey preActivate=true
-run_against expected_outputs/06_journey_preActivate_fails.html "06 Journey preActivate fails"
+run_against expected_outputs/06_journey_preActivate_fails.html 06 "Journey preActivate fails" "$1" "$2"
 
+reset_versions
+setup_versions extension=train preActivate=true
+run_against expected_outputs/07_train_preActivate_fails.html 07 "Train preActivate fails" "$1" "$2"
