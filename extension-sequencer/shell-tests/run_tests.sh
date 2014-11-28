@@ -101,7 +101,7 @@ run_against expected_outputs/blank.html "01 Default"
 # The following test occasionally randomly fails
 setup_versions extension=train version=0.05
 setup_versions extension=journey minVersion=0.10
-run_against expected_outputs/train_low_version.html "02 Train low version"
+run_against expected_outputs/02_train_low_version.html "02 Train low version"
 
 reset_versions
 setup_versions extension=train oldestCompatibleVersion=0.05
@@ -116,9 +116,9 @@ run_against expected_outputs/blank.html "04 compatibleVersion < oldestCompatible
 reset_versions
 setup_versions extension=train oldestCompatibleVersion=0.05
 setup_versions extension=journey compatibleVersion=0.10
-run_against expected_outputs/train_low_oldestCompatibleVersion.html "05 Journey compatibleVersion > Train oldestCompatibleVersion"
+run_against expected_outputs/05_train_low_oldestCompatibleVersion.html "05 Journey compatibleVersion > Train oldestCompatibleVersion"
 
 reset_versions
 setup_versions extension=journey preActivate=true
-run_against expected_outputs/journey_preActivate_fails.html "06 Journey preActivate fails"
+run_against expected_outputs/06_journey_preActivate_fails.html "06 Journey preActivate fails"
 
