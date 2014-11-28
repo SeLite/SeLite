@@ -1,1 +1,1 @@
-extensions.selite-settings.common.exitConfirmationCheckerMode ignored
+extensions.selite-settings.common.autoCheckDetector SeLiteAutoCheck.DetectorPHP
