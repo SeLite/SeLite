@@ -1,7 +1,7 @@
 #!/bin/bash
 # Optional parameters:
 # - whether to show the whole actual output (after pre-filtering), rather than just a difference between the expected output and the actual output, and it prints it to stdout rather than stderr. If not set or 'false' or 'no', then it only prints the difference.
-# - number of test to run; otherwise it runs all tests
+# - number of test to run (without any leading zero); otherwise it runs all tests
 
 # On Fedora 20x63, Firefox 33.1 I had false errors, when Firefox didn't pick up a degrade (lowering down) of an extension version.
 
@@ -77,10 +77,10 @@ function run {
 
 # It expects positional parameters:
 #- $1 a file path of the expected output relative to shell-tests/
-#- $2 number of this test
+#- $2 number of this test. Pass it without any leading zero (otherwise it's treated as octal).
 #- $3 a test description (which will be printed out on failure)
 #- $4 whether to show the whole error output (after pre-filtering), rather than just the difference to the expected output; then it prints to stdout rather than to stderr. Useful when you add a new test and you want to generate its output; optional
-#- $5 number of the selected test to run; if present, this will run the test only if this number is same as the above number; optional
+#- $5 number of the selected test to run; if present, this will run the test only if this number is same as the above number. Pass it without any leading zero; optional
 function run_against {
     if [[ "$5" && "$5" -ne "$2" ]]
     then
@@ -117,31 +117,35 @@ function reset_versions() {
 }
 
 reset_versions
-run_against expected_outputs/blank.html 01 "Default"
+run_against expected_outputs/blank.html 1 "Default"
 
 setup_versions extension=train version=0.05
 setup_versions extension=journey minVersion=0.10
-run_against expected_outputs/02_train_low_version.html 02 "Train low version. This test occasionally fails, so re-run on failure." "$1" "$2"
+run_against expected_outputs/02_train_low_version.html 2 "Train low version. This test occasionally fails, so re-run on failure." "$1" "$2"
 
 reset_versions
 setup_versions extension=train oldestCompatibleVersion=0.05
 setup_versions extension=journey compatibleVersion=0.05
-run_against expected_outputs/blank.html 03 "compatibleVersion = oldestCompatibleVersion" "$1" "$2"
+run_against expected_outputs/blank.html 3 "compatibleVersion = oldestCompatibleVersion" "$1" "$2"
 
 reset_versions
 setup_versions extension=train oldestCompatibleVersion=0.10
 setup_versions extension=journey compatibleVersion=0.05
-run_against expected_outputs/blank.html 04 "compatibleVersion < oldestCompatibleVersion" "$1" "$2"
+run_against expected_outputs/blank.html 4 "compatibleVersion < oldestCompatibleVersion" "$1" "$2"
 
 reset_versions
 setup_versions extension=train oldestCompatibleVersion=0.05
 setup_versions extension=journey compatibleVersion=0.10
-run_against expected_outputs/05_train_low_oldestCompatibleVersion.html 05 "Journey compatibleVersion > Train oldestCompatibleVersion" "$1" "$2"
+run_against expected_outputs/05_train_low_oldestCompatibleVersion.html 5 "Journey compatibleVersion > Train oldestCompatibleVersion" "$1" "$2"
 
 reset_versions
 setup_versions extension=journey preActivate=true
-run_against expected_outputs/06_journey_preActivate_fails.html 06 "Journey preActivate fails" "$1" "$2"
+run_against expected_outputs/06_journey_preActivate_fails.html 6 "Journey preActivate fails" "$1" "$2"
 
 reset_versions
 setup_versions extension=train preActivate=true
-run_against expected_outputs/07_train_preActivate_fails.html 07 "Train preActivate fails" "$1" "$2"
+run_against expected_outputs/07_train_preActivate_fails.html 7 "Train preActivate fails" "$1" "$2"
+
+reset_versions
+setup_versions extension=rail preActivate=true
+run_against expected_outputs/08_rail_preActivate_fails.html 8 "Rail preActivate fails" "$1" "$2"
