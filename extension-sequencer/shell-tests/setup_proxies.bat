@@ -1,11 +1,13 @@
 @echo off
 REM Following is for expansion of variables at runtime - e.g. !e! instead of %e%
 setlocal EnableDelayedExpansion
+
 SET script_folder=%~dp0
 cd %script_folder:~0,-1%
 
 set FIREFOX_FOLDER=%APPDATA%\Mozilla\Firefox
 if not exist "%FIREFOX_FOLDER%\Profiles\*.SeLiteExtensionSequencerTest" (
+    REM Watchout for false errors: This has once created a profile folder, but firefox -no-remote -P (v. 32.0.3, Windows 7 SP1) didn't recognise the profile later. 
     firefox -no-remote -CreateProfile SeLiteExtensionSequencerTest
 )
 for /D %%c in ("!FIREFOX_FOLDER!\Profiles\*.SeLiteExtensionSequencerTest") do set PROFILE_FOLDER=%%c
