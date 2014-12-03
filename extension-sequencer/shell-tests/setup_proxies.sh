@@ -35,7 +35,7 @@ then
   mkdir "$EXTENSION_FOLDER"
 fi
 
-cd ../../extension-sequencer/src
+cd ../src
 pwd > "$EXTENSION_FOLDER"/extension-sequencer@selite.googlecode.com
 cd - >/dev/null
 

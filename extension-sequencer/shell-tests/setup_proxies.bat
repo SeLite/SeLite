@@ -19,6 +19,10 @@ if defined PROFILE_FOLDER (
       mkdir "!EXTENSION_FOLDER!"
     )
     
+    cd ..\src
+    cd >"!EXTENSION_FOLDER!\extension-sequencer@selite.googlecode.com"
+    cd ..\shell-tests
+
     REM Do not use: echo %CD% >target-file. Use: cd >target-file. For some reason %CD% doesn't get updated after I change directory.
     cd extensions\rail
     cd >"!EXTENSION_FOLDER!\test-rail@selite.googlecode.com"
@@ -26,8 +30,9 @@ if defined PROFILE_FOLDER (
     cd >"!EXTENSION_FOLDER!\test-train@selite.googlecode.com"
     cd ..\journey
     cd >"!EXTENSION_FOLDER!"\test-journey@selite.googlecode.com"
-    if not exist "!EXTENSION_FOLDER!\{a6fd85ed-e919-4a43-a5af-8da18bda539f\}.xpi" if not exist "!EXTENSION_FOLDER!\{a6fd85ed-e919-4a43-a5af-8da18bda539f\}" (
-        echo Starting up firefox -P SeLiteExtensionSequencerTest. You need to download Selenium IDE from http://docs.seleniumhq.org/download/ and install it.   close Firefox.After that you can use run_tests.bat.
+    REM Windows commandline doesn't have logical operators, hence if.. if.. to simulate AND
+    if not exist "!EXTENSION_FOLDER!\{a6fd85ed-e919-4a43-a5af-8da18bda539f}.xpi" if not exist "!EXTENSION_FOLDER!{a6fd85ed-e919-4a43-a5af-8da18bda539f}" (
+        echo Starting up firefox -P SeLiteExtensionSequencerTest. You need to download Selenium IDE from http://docs.seleniumhq.org/download/ and install it.  Close Firefox. After that you can use run_tests.ps1.
         firefox -no-remote -P SeLiteExtensionSequencerTest http://docs.seleniumhq.org/download/
     )
 ) else (
