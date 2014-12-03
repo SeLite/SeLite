@@ -20,7 +20,7 @@ function change_or_comment_out( $extension, $field, $value='') {
             # This and other calls to (get-content path\to\inputFile) | % -replace ... | Out-File path\to\inputFile must have get-content in parenthesis (...). Otherwise it wipes the file.
             # Using get-content without parenthesis and piping to Set-Content -Path same-file failed: it wiped out the file.
             # Don't use Out-File without -Encoding, that generates UTF-16. Don't use Out-File -Encoding "UTF8" since that adds a BOM byte at the beginning.
-            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js') ) | %{$_ -replace ( '(//)?(,\s*' +$field+ ':)\s*?[''"]?[0-9.]*[''"]?' ), ('$2 '+'"' +$value+ '"') } | Out-File -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
+            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js') ) | %{$_ -replace ( '(//)?(,?\s*' +$field+ ':)\s*[''"]?[0-9.]*[''"]?' ), ('$2 '+'"' +$value+ '"') } | Out-File -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
         }
         else {
             # comment out the line
@@ -28,19 +28,19 @@ function change_or_comment_out( $extension, $field, $value='') {
             # TODO simplify here and in .sh, as per the commands below (for preActivate)
             
             #sed -i -r 's/(\/\/)?(,\s*$field:\s*['\"]?[0-9.]*['\"]?)/\/\/\2/' extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
-            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js' ) ) | %{$_ -replace ( '(//)?(,\s*' +$field+ ':\s*?[''"]?[0-9.]*[''"]?)' ), '//$2' } | Out-File -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
+            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js' ) ) | %{$_ -replace ( '(//)?(,?\s*' +$field+ ':\s*[''"]?[0-9.]*[''"]?)' ), '//$2' } | Out-File -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
         }
     }
     else {
         if( $value -ne '' ) {
             # uncomment the line (if commented out)
             #sed -i -r "s/(\/\/)?(,\s*$field:.*)/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
-            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js' ) ) | %{$_ -replace ( '(//)?(,\s*' +$field+ ':.*)' ), '$2' } | Out-File -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
+            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js' ) ) | %{$_ -replace ( '(//)?(,?\s*' +$field+ ':.*)' ), '$2' } | Out-File -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
         }
         else {
             # comment out the line
             #sed -i -r "s/(\/\/)?(,\s*$field:.*)/\/\/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
-            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js' ) ) | %{$_ -replace ( '(//)?(,\s*' +$field+ ':.*)' ), '//$2' } | Out-File  -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
+            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js' ) ) | %{$_ -replace ( '(//)?(,?\s*' +$field+ ':.*)' ), '//$2' } | Out-File  -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
         }
     }
 }
@@ -68,7 +68,7 @@ function run {
     # In addition to filtering out console.(log|info|warning), I filter out 'console.error:', too. That's because console.error is special: somehow, a string passed to console.error() is printed on a separate line. It's also prefixed by two spaces - hence those spaces in expected_outputs/*.html
     # For some reason Console Redirector needs a full path to firefox.exe, or it has to be in C:\Program Files (x86)\Mozilla Firefox\. It doesn't use PATH.
     # The last filter removes 'Searching for Gecko runtime', which comes from Console Redirector.exe
-    & 'Console Redirector.exe' "E:\SW\Mozilla Firefox 32.0.3\firefox.exe" -P SeLiteExtensionSequencerTest -no-remote -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul?registerAndPreActivate 2>$null | Select-String -notMatch -pattern 'console.(log|info|warning|error):|@(chrome|resource)://' | Select-String -notMatch -pattern 'Problem(s) with add-on(s) for Firefox and Selenium IDE' | Select-String -notMatch -pattern 'Searching for Gecko runtime'
+    & 'Console Redirector.exe' "E:\SW\Mozilla Firefox 32.0.3\firefox.exe" -P SeLiteExtensionSequencerTest -no-remote -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul?registerAndPreActivate 2>$null | Select-String -notMatch -pattern 'console.(log|info|warning|error):|@(chrome|resource)://' | Select-String -SimpleMatch -notMatch -pattern 'Problem(s) with add-on(s) for Firefox and Selenium IDE' | Select-String -notMatch -pattern 'Searching for Gecko runtime'
 }
 
 # It expects parameters:
