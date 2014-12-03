@@ -64,11 +64,19 @@ function setup_versions( $extension, $version='', $minVersion='', $compatibleVer
     change_or_comment_out $extension 'preActivate' $preActivate
 }
 
-function run {
+function run( $output, $outputSorted ) {
+    # For some reason Console Redirector needs a full path to firefox.exe, or it has to be in C:\Program Files (x86)\Mozilla Firefox\ - it doesn't use PATH.
+    & 'Console Redirector.exe' "E:\SW\Mozilla Firefox 32.0.3\firefox.exe" -P SeLiteExtensionSequencerTest -no-remote -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul?registerAndPreActivate 2>$null >$output
+    
+    # Different to run_tests.sh: I save the output from Mozilla and then I sort it via sort.exe. Only then I filter using Select-String. Filtering out before sorting works in powershell.exe when it runs a script. But when I filtered before sorting with piping on powershell side and I run the commands from an unsaved window in Windows PowerShell ISE, its piping split any lines longer than 172 characters into chunks...
+    $outputSortedUnfiltered= [System.IO.Path]::GetTempFileName()
+    sort.exe $output >$outputSortedUnfiltered
+    
     # In addition to filtering out console.(log|info|warning), I filter out 'console.error:', too. That's because console.error is special: somehow, a string passed to console.error() is printed on a separate line. It's also prefixed by two spaces - hence those spaces in expected_outputs/*.html
-    # For some reason Console Redirector needs a full path to firefox.exe, or it has to be in C:\Program Files (x86)\Mozilla Firefox\. It doesn't use PATH.
-    # The last filter removes 'Searching for Gecko runtime', which comes from Console Redirector.exe
-    & 'Console Redirector.exe' "E:\SW\Mozilla Firefox 32.0.3\firefox.exe" -P SeLiteExtensionSequencerTest -no-remote -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul?registerAndPreActivate 2>$null | Select-String -notMatch -pattern 'console.(log|info|warning|error):|@(chrome|resource)://' | Select-String -SimpleMatch -notMatch -pattern 'Problem(s) with add-on(s) for Firefox and Selenium IDE' | Select-String -notMatch -pattern 'Searching for Gecko runtime'
+    # The filter removes 'Searching for Gecko runtime', which comes from Console Redirector.exe.
+    # Different to run_tests.sh: I sort here, rather than in function run_against 
+    # I use where {$_ -ne ''}, since powershell (or maybe my Select-String filters) leaves empty lines in.
+    get-content $outputSortedUnfiltered | Select-String -notMatch -pattern 'console.(log|info|warning|error):|@(chrome|resource)://' | Select-String -SimpleMatch -notMatch -pattern 'Problem(s) with add-on(s) for Firefox and Selenium IDE' | Select-String -notMatch -pattern 'Searching for Gecko runtime' | where {$_ -ne ''} | Out-File  -Encoding "ascii" $outputSorted
 }
 
 # It expects parameters:
@@ -81,16 +89,15 @@ function run_against( $expectedOutput, $testNumber, $description ) {
     # I have to sort the expected and the actual output before I compare them, because some plugins can be processed in random order.
     $output= [System.IO.Path]::GetTempFileName()
     $outputSorted= [System.IO.Path]::GetTempFileName()
-    run | Out-File  -Encoding "ascii" $output
-    # I use where {$_ -ne ""}, since powershell (maybe my Select-String filters) leaves empty lines in.
-    get-content $output | sort-object | where {$_ -ne ""} | Out-File  -Encoding "ascii" $outputSorted
+    
+    #run | Out-File  -Encoding "ascii" $output
+    run $output $outputSorted
     
     $expectedOutputSorted= [System.IO.Path]::GetTempFileName()
-    
-    get-content $expectedOutput | sort-object | where {$_ -ne ""} | Out-File  -Encoding "ascii" $expectedOutputSorted
+    get-content $expectedOutput | sort-object | Select-String -SimpleMatch -notMatch -pattern 'Non-matching-pattern, so that when run in PowerShell ISE, it splits lines longer than 171 characters. Otherwise $expectedOutputSorted differed to $outputSorted if there were lines over 171 characters.' | where {$_ -ne ''} | Out-File  -Encoding "ascii" $expectedOutputSorted
     
     $difference= [System.IO.Path]::GetTempFileName()
-    # compare-object compares the lines regardless of the order. E.g. it deems the following to be equal: compare-object (echo alpha betta) (echo betta alpha). That's OK
+    # Side note: compare-object compares the lines regardless of the order. E.g. it deems the following to be equal: compare-object (echo alpha betta) (echo betta alpha). However, I still need sort.exe in function run, in case there are lines over 171 characters.
     compare-object $(get-content $expectedOutputSorted) $(get-content $outputSorted) | Out-File  -Encoding "ascii" $difference
     # I don't use fc.exe, since that generates a line for equal files, too.
     if( (get-childitem $difference).length -ne 0 ) {
@@ -100,7 +107,8 @@ function run_against( $expectedOutput, $testNumber, $description ) {
         echo 'The actual output:'
         cat $output
     }
-    rm $output, $outputSorted, $expectedOutputSorted, $difference
+    echo ('output file ' +$output+ ', outputSorted ' +$outputSorted+ ', expectedOutputSorted ' +$expectedOutputSorted+ ', difference' +$difference )
+    #rm $output, $outputSorted, $expectedOutputSorted, $difference
 }
 
 # see tests.html
