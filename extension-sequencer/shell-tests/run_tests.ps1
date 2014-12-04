@@ -1,4 +1,5 @@
 # This script is simplified just to run all tests. For full functionality (i.e. running a selected test etc.) use run_tests.sh on Unix.
+# You'll need to install Gecko Console Redirector as per https://developer.mozilla.org/en-US/docs/Mozilla/Command_Line_Options#-console. Put it on PATH.
 $script_dir = [System.IO.Directory]::GetCurrentDirectory()
 $script_dir= 'E:\selite\extension-sequencer\shell-tests'
 cd $script_dir
@@ -76,7 +77,13 @@ function run( $output, $outputSorted ) {
     # The filter removes 'Searching for Gecko runtime', which comes from Console Redirector.exe.
     # Different to run_tests.sh: I sort here, rather than in function run_against 
     # I use where {$_ -ne ''}, since powershell (or maybe my Select-String filters) leaves empty lines in.
-    get-content $outputSortedUnfiltered | Select-String -notMatch -pattern 'console.(log|info|warning|error):|@(chrome|resource)://' | Select-String -SimpleMatch -notMatch -pattern 'Problem(s) with add-on(s) for Firefox and Selenium IDE' | Select-String -notMatch -pattern 'Searching for Gecko runtime' | where {$_ -ne ''} | Out-File  -Encoding "ascii" $outputSorted
+    get-content $outputSortedUnfiltered | Select-String -notMatch -pattern 'console.(log|info|warning|error):|@(chrome|resource)://' | Select-String -SimpleMatch -notMatch -pattern 'Problem(s) with add-on(s) for Firefox and Selenium IDE' | Select-String -notMatch -pattern 'Searching for Gecko runtime' | where {$_ -ne ''} | Select-String -SimpleMatch -notMatch -pattern '`r|`n' | Out-File  -Encoding "ascii" $outputSorted
+    
+    TODO
+    $content= [string]::Join( "`n", (get-content
+    $content= [regex]::Replace( $content, "(`n|`r)+", "`n", "Singleline" )
+    $content= [regex]::Replace( $content, "^(`n|`r)|(`n|`r)$", "" )
+    rm $outputSortedUnfiltered
 }
 
 # It expects parameters:
@@ -108,6 +115,7 @@ function run_against( $expectedOutput, $testNumber, $description ) {
         cat $output
     }
     echo ('output file ' +$output+ ', outputSorted ' +$outputSorted+ ', expectedOutputSorted ' +$expectedOutputSorted+ ', difference' +$difference )
+    ECHO todo: Remove temp files
     #rm $output, $outputSorted, $expectedOutputSorted, $difference
 }
 
