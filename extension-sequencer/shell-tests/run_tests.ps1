@@ -21,23 +21,23 @@ function change_or_comment_out( $extension, $field, $value='') {
             # This and other calls to (get-content path\to\inputFile) | % -replace ... | Out-File path\to\inputFile must have get-content in parenthesis (...). Otherwise it wipes the file.
             # Using get-content without parenthesis and piping to Set-Content -Path same-file failed: it wiped out the file.
             # Don't use Out-File without -Encoding, that generates UTF-16. Don't use Out-File -Encoding "UTF8" since that adds a BOM byte at the beginning.
-            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js') ) | %{$_ -replace ( '(//)?(,?\s*(?<![a-zA-Z_])' +$field+ '\s*:)\s*[''"]?[0-9.]*[''"]?' ), ('$2 '+'"' +$value+ '"') } | Out-File -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
+            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js') ) | %{$_ -replace ( '(//)?(,\s*' +$field+ '\s*:)\s*[''"]?[0-9.]*[''"]?' ), ('$2 '+'"' +$value+ '"') } | Out-File -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
         }
         else {
             # comment out the line
-            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js' ) ) | %{$_ -replace ( '(//)?(,?\s*(?<![a-zA-Z_])' +$field+ '\s*:.*)' ), '//$2' } | Out-File -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
+            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js' ) ) | %{$_ -replace ( '(//)?(,\s*' +$field+ '\s*:.*)' ), '//$2' } | Out-File -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
         }
     }
     else {
         if( $value -ne '' ) {
             # uncomment the line (if commented out)
             #sed -i -r "s/(\/\/)?(,\s*$field:.*)/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
-            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js' ) ) | %{$_ -replace ( '(//)?(,?\s*(?<![a-zA-Z_])' +$field+ '\s*:.*)' ), '$2' } | Out-File -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
+            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js' ) ) | %{$_ -replace ( '(//)?(,\s*' +$field+ '\s*:.*)' ), '$2' } | Out-File -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
         }
         else {
             # comment out the line
             #sed -i -r "s/(\/\/)?(,\s*$field:.*)/\/\/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
-            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js' ) ) | %{$_ -replace ( '(//)?(,?\s*(?<![a-zA-Z_])' +$field+ '\s*:.*)' ), '//$2' } | Out-File  -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
+            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js' ) ) | %{$_ -replace ( '(//)?(,\s*' +$field+ '\s*:.*)' ), '//$2' } | Out-File  -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
         }
     }
 }
