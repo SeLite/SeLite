@@ -21,27 +21,23 @@ function change_or_comment_out( $extension, $field, $value='') {
             # This and other calls to (get-content path\to\inputFile) | % -replace ... | Out-File path\to\inputFile must have get-content in parenthesis (...). Otherwise it wipes the file.
             # Using get-content without parenthesis and piping to Set-Content -Path same-file failed: it wiped out the file.
             # Don't use Out-File without -Encoding, that generates UTF-16. Don't use Out-File -Encoding "UTF8" since that adds a BOM byte at the beginning.
-            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js') ) | %{$_ -replace ( '(//)?(,?\s*' +$field+ ':)\s*[''"]?[0-9.]*[''"]?' ), ('$2 '+'"' +$value+ '"') } | Out-File -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
+            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js') ) | %{$_ -replace ( '(//)?(,?\s*(?<![a-zA-Z_])' +$field+ '\s*:)\s*[''"]?[0-9.]*[''"]?' ), ('$2 '+'"' +$value+ '"') } | Out-File -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
         }
         else {
             # comment out the line
-            
-            # TODO simplify here and in .sh, as per the commands below (for preActivate)
-            
-            #sed -i -r 's/(\/\/)?(,\s*$field:\s*['\"]?[0-9.]*['\"]?)/\/\/\2/' extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
-            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js' ) ) | %{$_ -replace ( '(//)?(,?\s*' +$field+ ':\s*[''"]?[0-9.]*[''"]?)' ), '//$2' } | Out-File -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
+            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js' ) ) | %{$_ -replace ( '(//)?(,?\s*(?<![a-zA-Z_])' +$field+ '\s*:.*)' ), '//$2' } | Out-File -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
         }
     }
     else {
         if( $value -ne '' ) {
             # uncomment the line (if commented out)
             #sed -i -r "s/(\/\/)?(,\s*$field:.*)/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
-            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js' ) ) | %{$_ -replace ( '(//)?(,?\s*' +$field+ ':.*)' ), '$2' } | Out-File -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
+            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js' ) ) | %{$_ -replace ( '(//)?(,?\s*(?<![a-zA-Z_])' +$field+ '\s*:.*)' ), '$2' } | Out-File -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
         }
         else {
             # comment out the line
             #sed -i -r "s/(\/\/)?(,\s*$field:.*)/\/\/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
-            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js' ) ) | %{$_ -replace ( '(//)?(,?\s*' +$field+ ':.*)' ), '//$2' } | Out-File  -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
+            (get-content ('extensions\' +$extension+ '\chrome\content\SeLiteExtensionSequencerManifest.js' ) ) | %{$_ -replace ( '(//)?(,?\s*(?<![a-zA-Z_])' +$field+ '\s*:.*)' ), '//$2' } | Out-File  -Encoding "ascii" extensions\$extension\chrome\content\SeLiteExtensionSequencerManifest.js
         }
     }
 }
@@ -49,7 +45,6 @@ function change_or_comment_out( $extension, $field, $value='') {
 #change_or_comment_out 'journey' 'preActivate'
 
 function setup_versions( $extension, $version='', $minVersion='', $compatibleVersion='', $oldestCompatibleVersion='', $preActivate='' ) {
-    #Param( $extension, $version='', $minVersion='', $compatibleVersion='', $oldestCompatibleVersion='', $preActivate='' )
     if( $extension -eq '' ) {
         echo Pass at least parameter/variable extension
         #exit
@@ -102,7 +97,13 @@ function run_against( $expectedOutput, $testNumber, $description ) {
     
     $expectedOutputSorted= [System.IO.Path]::GetTempFileName()
     get-content $expectedOutput | sort-object | Select-String -SimpleMatch -notMatch -pattern 'Non-matching-pattern, so that when run in PowerShell ISE, it splits lines longer than 171 characters. Otherwise $expectedOutputSorted differed to $outputSorted if there were lines over 171 characters.' | where {$_ -ne ''} | Out-File  -Encoding "ascii" $expectedOutputSorted
-    $content= [string]::Join( "`n", (get-content $expectedOutputSorted) )
+    $lines= get-content $expectedOutputSorted
+    if( $lines ) {
+        $content= [string]::Join( "`n", $lines )
+    }
+    else { #For an empty file...
+        $content= ''
+    }
     $content= [regex]::Replace( $content, "(`n|`r)+", "`n", "Singleline" )
     $content= [regex]::Replace( $content, "^(`n|`r)|(`n|`r)$", "" )
     echo $content | Out-File  -Encoding "ascii" $expectedOutputSorted
@@ -118,9 +119,8 @@ function run_against( $expectedOutput, $testNumber, $description ) {
         echo 'The actual output:'
         cat $output
     }
-    echo ('output file ' +$output+ ', outputSorted ' +$outputSorted+ ', expectedOutputSorted ' +$expectedOutputSorted+ ', difference' +$difference )
-    ECHO todo: Remove temp files
-    #rm $output, $outputSorted, $expectedOutputSorted, $difference
+    #echo ('output file ' +$output+ ', outputSorted ' +$outputSorted+ ', expectedOutputSorted ' +$expectedOutputSorted+ ', difference' +$difference )
+    rm $output, $outputSorted, $expectedOutputSorted, $difference
 }
 
 # see tests.html
@@ -133,36 +133,36 @@ function reset_versions() {
     setup_versions -extension 'journey' -version '0.10'
 }
 
-#reset_versions
-#run_against 'expected_outputs\blank.html' 1 'Default'
+reset_versions
+run_against 'expected_outputs\blank.html' 1 'Default'
 
 setup_versions -extension 'train' -version '0.05'
 setup_versions -extension 'journey' -minVersion '0.10'
 run_against 'expected_outputs\02_train_low_version.html' 2 'Train low version. This test occasionally fails, so re-run on failure.'
 
-#reset_versions
-#setup_versions -extension 'train' -oldestCompatibleVersion '0.05'
-#setup_versions -extension 'journey' -compatibleVersion '0.05'
-#run_against( 'expected_outputs\blank.html', 3, 'compatibleVersion = oldestCompatibleVersion' )
+reset_versions
+setup_versions -extension 'train' -oldestCompatibleVersion '0.05'
+setup_versions -extension 'journey' -compatibleVersion '0.05'
+run_against 'expected_outputs\blank.html' 3 'compatibleVersion = oldestCompatibleVersion'
 
-#reset_versions
-#setup_versions -extension 'train' -oldestCompatibleVersion '0.10'
-#setup_versions -extension 'journey' -compatibleVersion '0.05'
-#run_against( 'expected_outputs\blank.html', 4, 'compatibleVersion < oldestCompatibleVersion' )
+reset_versions
+setup_versions -extension 'train' -oldestCompatibleVersion '0.10'
+setup_versions -extension 'journey' -compatibleVersion '0.05'
+run_against 'expected_outputs\blank.html' 4 'compatibleVersion < oldestCompatibleVersion'
 
-#reset_versions
-#setup_versions -extension 'train' -oldestCompatibleVersion '0.05'
-#setup_versions -extension 'journey' -compatibleVersion '0.10'
-#run_against( 'expected_outputs\05_train_low_oldestCompatibleVersion.html', 5, 'Journey compatibleVersion > Train oldestCompatibleVersion' )
+reset_versions
+setup_versions -extension 'train' -oldestCompatibleVersion '0.05'
+setup_versions -extension 'journey' -compatibleVersion '0.10'
+run_against 'expected_outputs\05_train_low_oldestCompatibleVersion.html' 5 'Journey compatibleVersion > Train oldestCompatibleVersion'
 
-#reset_versions
-#setup_versions -extension 'journey' -preActivate 'true'
-#run_against( 'expected_outputs\06_journey_preActivate_fails.html', 6, 'Journey preActivate fails' )
+reset_versions
+setup_versions -extension 'journey' -preActivate 'true'
+run_against 'expected_outputs\06_journey_preActivate_fails.html' 6 'Journey preActivate fails'
 
-#reset_versions
-#setup_versions -extension 'train' -preActivate 'true'
-#run_against( 'expected_outputs\07_train_preActivate_fails.html', 7, 'Train preActivate fails' )
+reset_versions
+setup_versions -extension 'train' -preActivate 'true'
+run_against 'expected_outputs\07_train_preActivate_fails.html' 7 'Train preActivate fails'
 
-#reset_versions
-#setup_versions -extension 'rail' -preActivate 'true'
-#run_against( 'expected_outputs\08_rail_preActivate_fails.html', 8, 'Rail preActivate fails' )
+reset_versions
+setup_versions -extension 'rail' -preActivate 'true'
+run_against 'expected_outputs\08_rail_preActivate_fails.html' 8 'Rail preActivate fails'

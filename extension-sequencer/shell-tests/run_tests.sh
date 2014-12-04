@@ -27,19 +27,19 @@ function change_or_comment_out() {
         if [ "$value" ]
         then
             # uncomment the line (if commented out), and change the value
-            sed -i -r "s/(\/\/)?(,\s*$field:)\s*['\"]?[0-9.]*['\"]?/\2 \"$value\"/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
+            sed -i -r "s/(\/\/)?(,?\s*(?<![a-zA-Z_])$field" +"\s*:)\s*['\"]?[0-9.]*['\"]?/\2 \"$value\"/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
         else
             # comment out the line
-            sed -i -r "s/(\/\/)?(,\s*$field:\s*['\"]?[0-9.]*['\"]?)/\/\/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
+            sed -i -r "s/(\/\/)?(,?\s*(?<![a-zA-Z_])$field" +"\s*:.*)/\/\/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
         fi
     else
         if [ "$value" ]
         then
             # uncomment the line (if commented out)
-            sed -i -r "s/(\/\/)?(,\s*$field:.*)/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
+            sed -i -r "s/(\/\/)?(,?\s*(?<![a-zA-Z_])$field" +"\s*:.*)/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
         else
             # comment out the line
-            sed -i -r "s/(\/\/)?(,\s*$field:.*)/\/\/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
+            sed -i -r "s/(\/\/)?(,?\s*(?<![a-zA-Z_])$field" +"\s*:.*)/\/\/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
         fi
     fi
 }
