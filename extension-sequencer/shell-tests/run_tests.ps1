@@ -70,20 +70,20 @@ function run( $output, $outputSorted ) {
     & 'Console Redirector.exe' "E:\SW\Mozilla Firefox 32.0.3\firefox.exe" -P SeLiteExtensionSequencerTest -no-remote -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul?registerAndPreActivate 2>$null >$output
     
     # Different to run_tests.sh: I save the output from Mozilla and then I sort it via sort.exe. Only then I filter using Select-String. Filtering out before sorting works in powershell.exe when it runs a script. But when I filtered before sorting with piping on powershell side and I run the commands from an unsaved window in Windows PowerShell ISE, its piping split any lines longer than 172 characters into chunks...
-    $outputSortedUnfiltered= [System.IO.Path]::GetTempFileName()
-    sort.exe $output >$outputSortedUnfiltered
+    $outputSortedPartiallyFiltered= [System.IO.Path]::GetTempFileName()
+    sort.exe $output >$outputSortedPartiallyFiltered
     
     # In addition to filtering out console.(log|info|warning), I filter out 'console.error:', too. That's because console.error is special: somehow, a string passed to console.error() is printed on a separate line. It's also prefixed by two spaces - hence those spaces in expected_outputs/*.html
     # The filter removes 'Searching for Gecko runtime', which comes from Console Redirector.exe.
     # Different to run_tests.sh: I sort here, rather than in function run_against 
-    # I use where {$_ -ne ''}, since powershell (or maybe my Select-String filters) leaves empty lines in.
-    get-content $outputSortedUnfiltered | Select-String -notMatch -pattern 'console.(log|info|warning|error):|@(chrome|resource)://' | Select-String -SimpleMatch -notMatch -pattern 'Problem(s) with add-on(s) for Firefox and Selenium IDE' | Select-String -notMatch -pattern 'Searching for Gecko runtime' | where {$_ -ne ''} | Select-String -SimpleMatch -notMatch -pattern '`r|`n' | Out-File  -Encoding "ascii" $outputSorted
-    
-    TODO
-    $content= [string]::Join( "`n", (get-content
+    (get-content $outputSortedPartiallyFiltered) | Select-String -notMatch -pattern 'console.(log|info|warning|error):|@(chrome|resource)://' | Select-String -SimpleMatch -notMatch -pattern 'Problem(s) with add-on(s) for Firefox and Selenium IDE' | Select-String -notMatch -pattern 'Searching for Gecko runtime' | Out-File  -Encoding "ascii" $outputSortedPartiallyFiltered
+
+    # Powershell (or maybe my Select-String filters) leaves empty lines in. I've tried to remove them with  | where {$_ -ne ''}, or with | Select-String -SimpleMatch -notMatch -pattern '`r|`n', but both failed.
+    $content= [string]::Join( "`n", (get-content $outputSortedPartiallyFiltered) )
     $content= [regex]::Replace( $content, "(`n|`r)+", "`n", "Singleline" )
     $content= [regex]::Replace( $content, "^(`n|`r)|(`n|`r)$", "" )
-    rm $outputSortedUnfiltered
+    echo $content | Out-File  -Encoding "ascii" $outputSorted
+    rm $outputSortedPartiallyFiltered
 }
 
 # It expects parameters:
@@ -102,6 +102,10 @@ function run_against( $expectedOutput, $testNumber, $description ) {
     
     $expectedOutputSorted= [System.IO.Path]::GetTempFileName()
     get-content $expectedOutput | sort-object | Select-String -SimpleMatch -notMatch -pattern 'Non-matching-pattern, so that when run in PowerShell ISE, it splits lines longer than 171 characters. Otherwise $expectedOutputSorted differed to $outputSorted if there were lines over 171 characters.' | where {$_ -ne ''} | Out-File  -Encoding "ascii" $expectedOutputSorted
+    $content= [string]::Join( "`n", (get-content $expectedOutputSorted) )
+    $content= [regex]::Replace( $content, "(`n|`r)+", "`n", "Singleline" )
+    $content= [regex]::Replace( $content, "^(`n|`r)|(`n|`r)$", "" )
+    echo $content | Out-File  -Encoding "ascii" $expectedOutputSorted
     
     $difference= [System.IO.Path]::GetTempFileName()
     # Side note: compare-object compares the lines regardless of the order. E.g. it deems the following to be equal: compare-object (echo alpha betta) (echo betta alpha). However, I still need sort.exe in function run, in case there are lines over 171 characters.
