@@ -6,7 +6,7 @@ SeLiteExtensionSequencer.registerPlugin( {
     infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-bootstrap/',
     requisitePlugins: {
         'selblocks-global@selite.googlecode.com': {
-            name: 'SeLite SelBlocksGlobal',
+            name: 'SeLite SelBlocks Global',
             infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-selblocks-global/'
         },
         'misc@selite.googlecode.com': {
