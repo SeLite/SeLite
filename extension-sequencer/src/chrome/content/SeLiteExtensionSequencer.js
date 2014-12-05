@@ -64,8 +64,8 @@ function infoURLtoDownloadURL( infoURL ) {
  *          string pluginId: string pluginName (for backwards compatiblity only), or
  *          string pluginId: {
  *              name: string human-friendly name,
- *              infoURL: string,
- *              downloadURL: string optional (auto-generated if not present and infoURL is at addons.mozilla.org),
+ *              infoURL: string, required; optional only while this is backwards compatible
+ *              downloadURL: string required; optional only while this is backwards compatible or if infoURL is at addons.mozilla.org,
  *              minVersion: string optional,
  *              compatibleVersion: string optional
  *          }
@@ -80,7 +80,7 @@ function infoURLtoDownloadURL( infoURL ) {
 SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
     var pluginInfo= {
         id: prototype.id || prototype.pluginId,
-        name: prototype.name || '{' +(prototype.id || prototype.pluginId)+ '}', //@TODO low: cleanup
+        name: prototype.name || '{' +(prototype.id || prototype.pluginId)+ '}', //@TODO low: cleanup - for backwards compatibility only
         //@TODO low: remove backward compatiblity for xxxUrl on the following lines, and for non-object values in *requisite*Plugins
         coreURL: prototype.coreURL || prototype.coreUrl || [],
         xmlURL: prototype.xmlURL || prototype.xmlUrl || [],
@@ -105,12 +105,25 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
     if( pluginInfo.id in SeLiteExtensionSequencer.pluginInfos ) {
         throw new Error("Plugin " +pluginInfo.id+ " was already registered with SeLite Extension Sequencer.");
     }
+
+    //@TODO low: remove the following variable and the loop - it's for backwards compatibility only
+    var requisiteFieldNames= ['requisitePlugins', 'optionalRequisitePlugins', 'nonSequencedRequisitePlugins' ];
+    for( var i=0; i<requisiteFieldNames.length; i++ ) {
+        var requisiteFieldName= requisiteFieldNames[i];
+        for( var requisiteId in pluginInfo[requisiteFieldName] ) {
+            var requisiteDetails= pluginInfo[requisiteFieldName][requisiteId];
+            if( typeof requisiteDetails==='string' ) {
+                pluginInfo[requisiteFieldName][requisiteId]= {
+                    name: requisiteDetails
+                };
+            }
+        }
+    }
+    
     for( var requisiteId in pluginInfo.requisitePlugins ) {
         var requisiteDetails= pluginInfo.requisitePlugins[requisiteId];
-        if( typeof requisiteDetails==='object' ) {//@TODO low: remove this check - backwards compatibility only
-            if( !requisiteDetails.downloadURL && requisiteDetails.infoURL ) {
-                requisiteDetails.downloadURL= infoURLtoDownloadURL(requisiteDetails.infoURL);
-            }
+        if( !requisiteDetails.downloadURL && requisiteDetails.infoURL ) {
+            requisiteDetails.downloadURL= infoURLtoDownloadURL(requisiteDetails.infoURL);
         }
     }
     var mergedPluginIds= Object.keys(pluginInfo.requisitePlugins).concat( Object.keys(pluginInfo.optionalRequisitePlugins) ).concat( Object.keys(pluginInfo.nonSequencedRequisitePlugins) );
