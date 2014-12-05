@@ -1,8 +1,8 @@
 "use strict";
 SeLiteExtensionSequencer.registerPlugin( {
     name: 'SeLite Exit Confirmation Checker',
-    pluginId: 'exit-confirmation-checker@selite.googlecode.com',
-    coreUrl: 'chrome://selite-exit-confirmation-checker/content/extensions/core.js',
+    id: 'exit-confirmation-checker@selite.googlecode.com',
+    coreURL: 'chrome://selite-exit-confirmation-checker/content/extensions/core.js',
     infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-exit-confirmation-check/',
     requisitePlugins: {
         'testcase-debug-context@selite.googlecode.com': {

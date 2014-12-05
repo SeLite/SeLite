@@ -3,7 +3,7 @@
 SeLiteExtensionSequencer.registerPlugin( {
     id: 'auto-check@selite.googlecode.com',
     name: 'SeLite Auto Check',
-    coreUrl: ['chrome://selite-auto-check/content/extensions/auto-check.js'],
+    coreURL: ['chrome://selite-auto-check/content/extensions/auto-check.js'],
     infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-auto-check/',
     requisitePlugins: {
         'misc@selite.googlecode.com': {

@@ -3,9 +3,9 @@
 SeLiteExtensionSequencer.registerPlugin({
     name: 'SeLite Settings',
     id: 'settings@selite.googlecode.com',
-    coreUrl: 'chrome://selite-settings/content/extensions/core-extension.js',
-    // There is no xmlUrl field, because this doesn't add any new Selenese
-    ideUrl: 'chrome://selite-settings/content/extensions/ide-extension.js',
+    coreURL: 'chrome://selite-settings/content/extensions/core-extension.js',
+    // There is no xmlURL field, because this doesn't add any new Selenese
+    ideURL: 'chrome://selite-settings/content/extensions/ide-extension.js',
     infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-settings/',
     requisitePlugins: {
         'misc@selite.googlecode.com': {

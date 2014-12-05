@@ -1,8 +1,8 @@
 "use strict";
 SeLiteExtensionSequencer.registerPlugin( {
     name: 'SeLite Bootstrap',
-    pluginId: 'bootstrap@selite.googlecode.com',
-    coreUrl: 'chrome://selite-bootstrap/content/extensions/se_bootstrap.js',
+    id: 'bootstrap@selite.googlecode.com',
+    coreURl: 'chrome://selite-bootstrap/content/extensions/se_bootstrap.js',
     infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-bootstrap/',
     requisitePlugins: {
         'selblocks-global@selite.googlecode.com': {

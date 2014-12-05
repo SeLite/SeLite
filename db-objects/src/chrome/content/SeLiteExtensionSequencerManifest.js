@@ -1,7 +1,7 @@
 "use strict";
 SeLiteExtensionSequencer.registerPlugin( {
     name: 'SeLite DB Objects',
-    pluginId: 'db-objects@selite.googlecode.com',
+    id: 'db-objects@selite.googlecode.com',
     infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-db-objects/',
     requisitePlugins: {
         'commands@selite.googlecode.com': {
@@ -21,8 +21,8 @@ SeLiteExtensionSequencer.registerPlugin( {
             infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-settings/'
         },
     },
-    coreUrl: 'chrome://selite-db-objects/content/extensions/selite-db-objects-core.js',
-    xmlUrl: 'chrome://selite-db-objects/content/reference.xml',
+    coreURl: 'chrome://selite-db-objects/content/extensions/selite-db-objects-core.js',
+    xmlURl: 'chrome://selite-db-objects/content/reference.xml',
     preActivate: function(api) {
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
         var settingsModule= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );

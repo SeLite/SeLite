@@ -2,9 +2,9 @@
 
 SeLiteExtensionSequencer.registerPlugin( {
     name: 'SeLite Commands',
-    pluginId: 'commands@selite.googlecode.com',
-    coreUrl: 'chrome://selite-commands/content/extensions/commands.js',
-    xmlUrl: 'chrome://selite-commands/content/reference.xml',
+    id: 'commands@selite.googlecode.com',
+    coreURL: 'chrome://selite-commands/content/extensions/commands.js',
+    xmlURL: 'chrome://selite-commands/content/reference.xml',
     infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-commands/',
     requisitePlugins: {
         'misc@selite.googlecode.com': {
