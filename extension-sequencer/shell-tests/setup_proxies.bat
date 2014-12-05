@@ -2,6 +2,7 @@
 REM Following is for expansion of variables at runtime - e.g. !e! instead of %e%
 setlocal EnableDelayedExpansion
 
+REM do not enclose strings in "..", as those quotes would become a part of the variable's value
 SET script_folder=%~dp0
 cd %script_folder:~0,-1%
 
