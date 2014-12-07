@@ -1463,7 +1463,7 @@ var setCellText= function setCellText( row, col, value, original) {
     
     if( info.field.multivalued || info.field instanceof SeLiteSettings.Field.FixedMap ) {
         var optionRow= treeRowsOrChildren[info.module.name][info.setName][info.field.name][info.oldKey];
-        if( !optionRow ) debugger;
+        if( !optionRow ) debugger; //@TODO why?
         var optionRowInfo= new RowInfo( info.module, info.setName, RowLevel.OPTION, info.field, /*key*/value, valueCompound(info.field, info.setName) );
         optionRowInfo.setAllCellDetails( optionRow );
     }
@@ -1520,7 +1520,7 @@ var createTreeView= function createTreeView(original) {
  *  Call this function before we set/add/remove the new value in preferences.
  *  @param setName string Name of the set; empty if the module doesn't allow multiple sets
  *  @param field Field instance
- *  @param int addOrRemove +1 if adding entry; -1 if removing it; any of 0/null/undefined if replacing or setting the whole field to null/undefined. It can be one of +1, -1 only if field.multivalued. If the field is an instance of SeLiteSettings.Field.FixedMap, then addOrRemove should be 0 when setting an *option* (value for fixedKey) of the field to null/undefined. Therefore you usually need 2 calls to this function when handling SeLiteSettings.Field.FixedMap - that keeps this function simple.
+ *  @param int addOrRemove +1 if adding entry; -1 if removing it; any of 0/null/undefined if replacing the value or setting the whole field to null/undefined. It can be +1 or -1 only if field.multivalued. If the field is an instance of SeLiteSettings.Field.FixedMap, then addOrRemove should be 0 when setting an *option* (value for fixedKey) of the field to null/undefined. Therefore you usually need 2 calls to this function when handling SeLiteSettings.Field.FixedMap - that keeps this function simple.
  *  @param {*} keyOrValue The new value to store, or (for Choice) the key for the new value to check.
  *  It can be anything (and is not used) if addOrRemove is +1 or -1, unless the field is an instance of SeLiteSettings.Field.FixedMap. Otherwise
  *  It should have been validated - this function doesn't validate keyOrValue.
@@ -1553,15 +1553,15 @@ var updateSpecial= function updateSpecial( setName, field, addOrRemove, keyOrVal
         }
     }
     else {
+        if( field instanceof SeLiteSettings.Field.Choice && compound.entry!==undefined && Object.keys(compound.entry).length>0 ) {
+            !field.multivalued || Object.keys(compound.entry).length===0 || SeLiteMisc.fail( "The Undefine/Null button should only show up for multi-valued Choice field if it has no choices selected." );
+            field.module.prefsBranch.clearUserPref( setNameDot+field.name+ '.' +Object.keys(compound.entry)[0] );
+        }
         if( keyOrValue===null ) {
             if( fixedKey!==undefined && field instanceof SeLiteSettings.Field.FixedMap ) {
                 field.module.prefsBranch.setCharPref( setNameDot+field.name+ '.' +fixedKey, SeLiteSettings.NULL );
             }
             else {
-                if( field instanceof SeLiteSettings.Field.Choice && compound.entry!==undefined && Object.keys(compound.entry).length>0 ) {
-                    !field.multivalued && Object.keys(compound.entry).length===1 || SeLiteMisc.fail();
-                    field.module.prefsBranch.clearUserPref( setNameDot+field.name+ '.' +Object.keys(compound.entry)[0] );
-                }
                 if( field.module.prefsBranch.prefHasUserValue(setNameDot+field.name) && field.prefType()!==nsIPrefBranch.PREF_STRING ) {
                     field.module.prefsBranch.clearUserPref( setNameDot+field.name);
                 }
