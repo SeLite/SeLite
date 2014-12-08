@@ -21,7 +21,7 @@ SeLiteExtensionSequencer.registerPlugin( {
             infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-settings/'
         },
     },
-    coreURl: 'chrome://selite-db-objects/content/extensions/selite-db-objects-core.js',
+    coreURL: 'chrome://selite-db-objects/content/extensions/selite-db-objects-core.js',
     xmlURl: 'chrome://selite-db-objects/content/reference.xml',
     preActivate: function(api) {
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
