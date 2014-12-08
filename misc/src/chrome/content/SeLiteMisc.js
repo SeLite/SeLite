@@ -48,6 +48,7 @@ SeLiteMisc.treatError= function treatError( errorOrMessage ) {
 /** Add error's stack trace to its message.
  *  @param {Error} error
  *  @param {boolean} [excludeCommonBase] Essentially, this makes it shorten the stack trace by removing parts that come from Firefox code. That makes the stack trace usually more relevant. excludeCommonBase indicates whether to exclude any stack trace (base) that is the same for error's stack and the current stack. This serves to eliminate upper call levels that are of little interest to the end user. If error was already processed by SeLiteMisc.addStackToMessage() with excludeCommonBase==true, then this function doesn't modify error at all (regardless of what excludeCommonBase is now). That previous call (which would normally be at a deeper level) indicated that the shorter stack trace is meaningful, so there is no need to replace it with a longer trace. However, if error was processed by call(s) to SeLiteMisc.addStackToMessage() only with excludeCommonBase being false or undefined, then the first call of SeLiteMisc.addStackToMessage() with excludeCommonBase replaces and shortens the stack trace that is in error.message. This function doesn't modify error.stack itself. 
+ *  <br/>If you call this function multiple times (regardless of what <code>excludeCommonBase</code>), any successive call will replace any stack added to the message in the previous call.
  *  @param {Error} error, with a modified message if applicable
  * */
 SeLiteMisc.addStackToMessage= function addStackToMessage( error, excludeCommonBase ) {

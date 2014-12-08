@@ -46,7 +46,38 @@ function infoURLtoDownloadURL( infoURL ) {
             )+ '/versions/';
     }
 }
+
+/** SeLiteMisc object, if available. */
+var SeLiteMisc;
+try {
+    SeLiteMisc= Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js", {} ).SeLiteMisc;
+}
+catch(e) {}
+
+var PluginDetails;
+if( SeLiteMisc ) {
+    /** This serves in SeLiteExtensionSequencer.registerPlugin() to validate the plugin.
+     * @param {object} [source] The same as parameter passed to SeLiteExtensionSequencer.registerPlugin().
+     * */
+    PluginDetails= function PluginDetails( source ) {
+        !source || SeLiteMisc.objectCopyFields( source, this );
+    };
     
+    PluginDetails= SeLiteMisc.proxyVerifyFields( PluginDetails, undefined, undefined, {
+        id: 'string',
+        name: 'string',
+        coreURL: ['string', Array],
+        xmlURL: ['string', Array],
+        ideURL: ['string', Array],
+        infoURL: 'string',
+        downloadURL: 'string',
+        oldestCompatibleVersion: 'string',
+        requisitePlugins: 'object',
+        optionalRequisitePlugins: 'object',
+        nonSequencedRequisitePlugins: 'object'
+    } );
+}
+
 /** Register a Firefox plugin which is a Selenium IDE core extension. It will be
  *  initiated by SeLiteExtensionSequencer later, in a proper sequence - after any dependencies.
  *  @param prototype Anonymous object in form {
@@ -72,12 +103,14 @@ function infoURLtoDownloadURL( infoURL ) {
  *      },
  *        of plugins that are required dependencies. Those are plugins that have to be loaded before given pluginId. All those plugins must be installed in Firefox and they must also call SeLiteExtensionSequencer.registerPlugin() - otherwise pluginId won't get loaded.
         optionalRequisitePlugins: Object (optional) { string pluginId: like entries in requisitePlugins } of pluginIds that are optional dependencies.
-        nonSequencedRequisitePlugins: Object (optional) { string pluginId: like entries in requisitePlugins },
- *        of plugins that are required dependencies and that don't use SeLiteExtensionSequencer to register themselves.
+        nonSequencedRequisitePlugins: Object (optional) { string pluginId: like entries in requisitePlugins } of plugins that are required dependencies and that don't use SeLiteExtensionSequencer to register themselves.
  *  }
  *  @return void
 **/
 SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
+    if( SeLiteMisc ) {
+        var prototype= new PluginDetails( prototype );
+    }
     var pluginInfo= {
         id: prototype.id || prototype.pluginId,
         name: prototype.name || '{' +(prototype.id || prototype.pluginId)+ '}', //@TODO low: cleanup - for backwards compatibility only

@@ -28,16 +28,20 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
             ide_api.addPluginProvidedUserExtension( 'chrome://selite-extension-sequencer/content/extensions/core.js' );
             ide_api.addPlugin( 'extension-sequencer@selite.googlecode.com' );
         }
+        
         var SeLiteMiscModule;
         // Lazy quiet loader of SeLiteMisc.
+        // @return SeLiteMisc object, or null if not available
         var SeLiteMisc= function SeLiteMisc() {
-            try {
-                if( !SeLiteMiscModule ) {
+            if( SeLiteMiscModule===undefined ) {
+                try {
                     SeLiteMiscModule= Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js", {} ).SeLiteMisc;
                 }
-                return SeLiteMiscModule;
+                catch( e ) {
+                    SeLiteMiscModule= null;
+                }
             }
-            catch( e ) {}
+            return SeLiteMiscModule;
         };
         
         /* Following functions exist in SeLiteExtensionSequencer.Loader, so that I can debug this through chrome://selite-extension-sequencer/content/extensions/invoke.xul. It's difficult to debug otherwise: if you start firefox binary with parameter -jsdebugger, this file gets processed before the debugger shows up. Also, following is stored within JS code module object, which is ugly. It's because Selenium IDE loads this file twice. Maybe related to http://code.google.com/p/selenium/issues/detail?id=6697 */
@@ -73,7 +77,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                                  : 'report this issue to its author (but not to SeLite project).'
                                 )
                             );
-                            if( !e.messageContainsStackAddedBySeLiteMisc || !error.messageContainsStackWithExcludedCommonBaseBySeLiteMisc ) {
+                            if( !e.messageContainsStackAddedBySeLiteMisc || !e.messageContainsStackWithExcludedCommonBaseBySeLiteMisc ) {
                                 if( SeLiteMisc() ) {
                                     SeLiteMisc().addStackToMessage( e, true );
                                 }
