@@ -1207,41 +1207,19 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function getFieldsOfSet( setName
         var children= this.prefsBranch.getChildList( setNameWithDot, {} );
         for( var i=0; i<children.length; i++ ) {//@TODO for(..of..)
             var prefName= children[i];
-            var fieldKeyValue= prefName.substring( setNameWithDot.length );
-            var fieldName= fieldKeyValue.indexOf( '.' )>=0
-                ? fieldKeyValue.substring( 0, fieldKeyValue.indexOf('.') )
-                : fieldKeyValue;
-            var keyValue= fieldName && fieldKeyValue.length>fieldName.length+1
-                ? fieldKeyValue.substring( fieldName.length+1 )
-                : undefined;
-            var key= keyValue && keyValue.indexOf('.')>=0
-                ? keyValue.substring( 0, keyValue.indexOf('.') )
-                : undefined;
-            /*var valueString= key!==undefined && keyValue.length>key.length+1
-                ? keyValue.substring( key.length+1 )
-                : undefined;*/
-            var value= this.preferenceValue( setNameWithDot+fieldName+
-                (key!==undefined
-                    ? '.' +key
-                    : ''
-                )
-            );
-            var field= fieldName
-                ? this.fields[fieldName]
-                : undefined;
-            if( !field ) {
-                if( key!==undefined ) {
-                    if( !result[fieldName] ) {
-                        result[fieldName]= new SeLiteSettings.FieldInformation( /*entry*/{}, /*fromPreferences*/true );             }
-                    result[fieldName].entry[ key ]= value;
+            var fieldNameAndKey= prefName.substring( setNameWithDot.length );
+            
+            var fieldNameAndKeyIndexOfDot= fieldNameAndKey.indexOf( '.' );
+            if( fieldNameAndKeyIndexOfDot>0 ) {
+                var fieldName= fieldNameAndKey.substring( 0, fieldNameAndKeyIndexOfDot );
+                if( fieldNameAndKey.length>fieldName.length+1 ) {
+                    var key= fieldNameAndKey.substring( fieldName.length+1 );
+                    var field= this.fields[fieldName];
+                    if( field instanceof SeLiteSettings.Field.FixedMap && !(key in field.keySet) ) {
+                        // @TODO if we allow customisable set of options for Field.Choice, handle it, too
+                        result[fieldName].entry[ key ]= this.preferenceValue( prefName );
+                    }
                 }
-                else {
-                    result[fieldName]= new SeLiteSettings.FieldInformation( /*entry*/value, /*fromPreferences*/ true );
-                }
-            }
-            // @TODO if we allow customisable set of options for Field.Choice, handle it, too
-            else if( field instanceof SeLiteSettings.Field.FixedMap && !(key in field.keySet) ) {
-                result[fieldName].entry[ key ]= value;
             }
         }
     }

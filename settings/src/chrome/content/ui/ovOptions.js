@@ -862,12 +862,11 @@ else {
                 ? module.setNames()
                 : [undefined];
             if( !allowSets && setNames.length!==1 ) {
-                throw new Error( "allowSets should be set false only if a module has the only set." );
+                throw new Error( "allowSets should be false only if a module has the only set." );
             }
             for( var i=0; i<setNames.length; i++ ) {
                 var setName= setNames[i];
                 // setFields includes all fields from Preferences DB for the module name, even if they are not in the module definition
-
                 var setFields= !showingPerFolder()
                     ? module.getFieldsOfSet( setName, true )
                     : module.getFieldsDownToFolder( targetFolder, true );
