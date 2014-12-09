@@ -625,7 +625,30 @@ Object.defineProperty( SeLiteMisc.Settable.prototype, 'set', {
     }
 } );
 
+/** Used to streamline the code when accessing optional fields on objects that are a result of SeLiteMisc.proxyVerifyFieldsOnRead() or SeLiteMisc.proxyVerifyFields(). That's instead of object.fieldName || defaultValue, which fails for such objects.
+ * @param {object} object
+ * @param {string} fieldName
+ * @param {*} defaultValue
+ * @return {*} object[fieldName] if it's present (even if it equals to undefined); defaultValue otherwise
+ * */
+SeLiteMisc.field= function field( object, fieldName, defaultValue ) {
+    return fieldName in object
+        ? object[fieldName]
+        : defaultValue;
+};
 
+/** @param {(object|Array)} [arrayOrItem]
+ *  @param {boolean} [encloseInArrayEvenIfUndefined]
+ *  @return {Array} arrayOrItem if it's an array; [arrayOrItem] if arrayOrItem is defined but not an array, or it's undefined but encloseInArrayEvenIfUndefined is true; an empty array otherwise.
+ * */
+SeLiteMisc.asArray= function asArray( arrayOrItem, encloseInArrayEvenIfUndefined ) {
+    return arrayOrItem!==undefined || encloseInArrayEvenIfUndefined
+        ? (Array.isArray(arrayOrItem)
+            ? arrayOrItem
+            : [arrayOrItem]
+          )
+        : [];
+};
 
 /** Enumeration-like class.
  * @class

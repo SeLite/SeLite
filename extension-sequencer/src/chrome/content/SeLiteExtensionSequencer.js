@@ -65,8 +65,11 @@ if( SeLiteMisc ) {
     
     PluginDetails= SeLiteMisc.proxyVerifyFields( PluginDetails, undefined, undefined, {
         id: 'string',
+        pluginId: 'string', ///@TODO low: cleanup - for backwards compatibility only
         name: 'string',
         coreURL: ['string', Array],
+        coreUrl: ['string', Array],////@TODO low: cleanup - for backwards compatibility only
+        ideUrl: ['string', Array],////@TODO low: cleanup - for backwards compatibility only
         xmlURL: ['string', Array],
         ideURL: ['string', Array],
         infoURL: 'string',
@@ -74,7 +77,8 @@ if( SeLiteMisc ) {
         oldestCompatibleVersion: 'string',
         requisitePlugins: 'object',
         optionalRequisitePlugins: 'object',
-        nonSequencedRequisitePlugins: 'object'
+        nonSequencedRequisitePlugins: 'object',
+        preActivate: 'function'
     } );
 }
 
@@ -108,32 +112,50 @@ if( SeLiteMisc ) {
  *  @return void
 **/
 SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
+    var pluginInfo;
     if( SeLiteMisc ) {
-        var prototype= new PluginDetails( prototype );
+        prototype= new PluginDetails( prototype );
+        pluginInfo= {
+            id: SeLiteMisc.field(prototype, 'id') || SeLiteMisc.field(prototype, 'pluginId'), //@TODO low: cleanup - for backwards compatibility only
+            name: SeLiteMisc.field(prototype, 'name') || '{' +( SeLiteMisc.field(prototype, 'id') || SeLiteMisc.field(prototype, 'pluginId') )+ '}', //@TODO low: cleanup - for backwards compatibility only
+            //@TODO low: remove backward compatiblity for xxxUrl on the following lines, and for non-object values in *requisite*Plugins
+            coreURL: SeLiteMisc.asArray( SeLiteMisc.field(prototype, 'coreURL') || SeLiteMisc.field(prototype, 'coreUrl') ),
+            xmlURL: SeLiteMisc.asArray( SeLiteMisc.field(prototype, 'xmlURL') || SeLiteMisc.field(prototype, 'xmlUrl') ),
+            ideURL: SeLiteMisc.asArray( SeLiteMisc.field(prototype, 'ideURL') || SeLiteMisc.field(prototype, 'ideUrl') ),
+            oldestCompatibleVersion: SeLiteMisc.field(prototype, 'oldestCompatibleVersion'),
+            infoURL: SeLiteMisc.field(prototype, 'infoURL'),
+            downloadURL: SeLiteMisc.field(prototype, 'downloadURL') || infoURLtoDownloadURL( SeLiteMisc.field(prototype, 'infoURL') ),
+            requisitePlugins: SeLiteMisc.field(prototype, 'requisitePlugins') || {},
+            optionalRequisitePlugins: SeLiteMisc.field(prototype, 'optionalRequisitePlugins') || {},
+            nonSequencedRequisitePlugins: SeLiteMisc.field(prototype, 'nonSequencedRequisitePlugins') || {},
+            preActivate: SeLiteMisc.field(prototype, 'preActivate')
+        };
     }
-    var pluginInfo= {
-        id: prototype.id || prototype.pluginId,
-        name: prototype.name || '{' +(prototype.id || prototype.pluginId)+ '}', //@TODO low: cleanup - for backwards compatibility only
-        //@TODO low: remove backward compatiblity for xxxUrl on the following lines, and for non-object values in *requisite*Plugins
-        coreURL: prototype.coreURL || prototype.coreUrl || [],
-        xmlURL: prototype.xmlURL || prototype.xmlUrl || [],
-        ideURL: prototype.ideURL || prototype.ideUrl || [],
-        oldestCompatibleVersion: prototype.oldestCompatibleVersion,
-        infoURL: prototype.infoURL,
-        downloadURL: prototype.downloadURL || infoURLtoDownloadURL(prototype.infoURL),
-        requisitePlugins: prototype.requisitePlugins || {},
-        optionalRequisitePlugins: prototype.optionalRequisitePlugins || {},
-        nonSequencedRequisitePlugins: prototype.nonSequencedRequisitePlugins || {},
-        preActivate: prototype.preActivate || false
-    };
-    if( !Array.isArray(pluginInfo.coreURL) ) {
-        pluginInfo.coreURL= [pluginInfo.coreURL];
-    }
-    if( !Array.isArray(pluginInfo.xmlURL) ) {
-        pluginInfo.xmlURL= [pluginInfo.xmlURL];
-    }
-    if( !Array.isArray(pluginInfo.ideURL) ) {
-        pluginInfo.ideURL= [pluginInfo.ideURL];
+    else {
+        pluginInfo= {
+            id: prototype.id || prototype.pluginId, //@TODO low: cleanup - for backwards compatibility only
+            name: prototype.name || '{' +(prototype.id || prototype.pluginId)+ '}', //@TODO low: cleanup - for backwards compatibility only
+            //@TODO low: remove backward compatiblity for xxxUrl on the following lines, and for non-object values in *requisite*Plugins
+            coreURL: prototype.coreURL || prototype.coreUrl || [],
+            xmlURL: prototype.xmlURL || prototype.xmlUrl || [],
+            ideURL: prototype.ideURL || prototype.ideUrl || [],
+            oldestCompatibleVersion: prototype.oldestCompatibleVersion,
+            infoURL: prototype.infoURL,
+            downloadURL: prototype.downloadURL || infoURLtoDownloadURL(prototype.infoURL),
+            requisitePlugins: prototype.requisitePlugins || {},
+            optionalRequisitePlugins: prototype.optionalRequisitePlugins || {},
+            nonSequencedRequisitePlugins: prototype.nonSequencedRequisitePlugins || {},
+            preActivate: prototype.preActivate
+        };
+        if( !Array.isArray(pluginInfo.coreURL) ) {
+            pluginInfo.coreURL= [pluginInfo.coreURL];
+        }
+        if( !Array.isArray(pluginInfo.xmlURL) ) {
+            pluginInfo.xmlURL= [pluginInfo.xmlURL];
+        }
+        if( !Array.isArray(pluginInfo.ideURL) ) {
+            pluginInfo.ideURL= [pluginInfo.ideURL];
+        }
     }
     if( pluginInfo.id in SeLiteExtensionSequencer.pluginInfos ) {
         throw new Error("Plugin " +pluginInfo.id+ " was already registered with SeLite Extension Sequencer.");
