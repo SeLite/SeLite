@@ -1464,8 +1464,12 @@ else {
 
         if( info.field.multivalued || info.field instanceof SeLiteSettings.Field.FixedMap ) {
             var optionRow= treeRowsOrChildren[info.module.name][info.setName][info.field.name][info.oldKey];
-            if( !optionRow ) debugger; //@TODO why?
-            var optionRowInfo= new RowInfo( info.module, info.setName, RowLevel.OPTION, info.field, /*key*/value, valueCompound(info.field, info.setName) );
+            var optionRowInfo= new RowInfo( info.module, info.setName, RowLevel.OPTION, info.field,
+                /*key:*/info.field instanceof SeLiteSettings.Field.FixedMap
+                    ? info.oldKey
+                    : value,
+                valueCompound(info.field, info.setName)
+            );
             optionRowInfo.setAllCellDetails( optionRow );
         }
         if( info.field.multivalued && !(info.field instanceof SeLiteSettings.Field.FixedMap) ) {
