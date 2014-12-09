@@ -1328,7 +1328,7 @@ else {
             valueChanged= value!==oldKey; // oldKey is a string, so this comparison is OK
             if( valueChanged ) {
                 if( trimmed in fieldTreeRowsOrChildren ) {
-                    window.alert( "Values must be unique. Another entry for field " +field.name+ " already has same (trimmed) value " +trimmed );
+                    window.alert( "Values must be unique. Another entry for field " +field.name+ " already has the same value: " +trimmed );
                     validationPassed= false;
                 }
             }

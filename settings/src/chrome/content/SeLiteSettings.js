@@ -667,7 +667,6 @@ SeLiteSettings.Field.Choice.Int= function Int( name, multivalued, defaultKey, ch
 };
 SeLiteSettings.Field.Choice.Int.prototype= new SeLiteSettings.Field.Choice('ChoiceInt.prototype');
 SeLiteSettings.Field.Choice.Int.prototype.constructor= SeLiteSettings.Field.Choice.Int;
-SeLiteSettings.Field.Choice.Int.prototype.trim= SeLiteSettings.Field.Int.prototype.trim;
 SeLiteSettings.Field.Choice.Int.prototype.parse= SeLiteSettings.Field.Int.prototype.parse;
 SeLiteSettings.Field.Choice.Int.prototype.prefType= SeLiteSettings.Field.Int.prototype.prefType;
 SeLiteSettings.Field.Choice.Int.prototype.validateValue= function validateValue( value ) {
@@ -679,7 +678,6 @@ SeLiteSettings.Field.Choice.Decimal= function Decimal( name, multivalued, defaul
 };
 SeLiteSettings.Field.Choice.Decimal.prototype= new SeLiteSettings.Field.Choice('ChoiceDecimal.prototype');
 SeLiteSettings.Field.Choice.Decimal.prototype.constructor= SeLiteSettings.Field.Choice.Decimal;
-SeLiteSettings.Field.Choice.Decimal.prototype.trim= SeLiteSettings.Field.Decimal.prototype.trim;
 SeLiteSettings.Field.Choice.Decimal.prototype.parse= SeLiteSettings.Field.Decimal.prototype.parse;
 SeLiteSettings.Field.Choice.Decimal.prototype.prefType= SeLiteSettings.Field.Decimal.prototype.prefType;
 SeLiteSettings.Field.Choice.Decimal.prototype.validateValue= function validateValue( value ) {
