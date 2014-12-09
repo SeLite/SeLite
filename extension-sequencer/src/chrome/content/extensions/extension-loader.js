@@ -70,14 +70,14 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                                 'UTF-8'
                             );
                         }
-                        catch( e ) {
+                        catch( e ) {debugger;
                             problems.push( 'Add-on ' +addon.name+ ' has an error in its SeLiteExtensionSequencerManifest.js. Please, '+
                                 (addon.supportURL
                                  ? '<a href="' +addon.supportURL+ '">report this issue</a>.'
                                  : 'report this issue to its author (but not to SeLite project).'
                                 )
                             );
-                            if( !e.messageContainsStackAddedBySeLiteMisc || !e.messageContainsStackWithExcludedCommonBaseBySeLiteMisc ) {
+                            if( !e.messageContainsStackWithExcludedCommonBaseBySeLiteMisc ) {
                                 if( SeLiteMisc() ) {
                                     SeLiteMisc().addStackToMessage( e, true );
                                 }
@@ -226,7 +226,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                     }
                     var pluginInfo= SeLiteExtensionSequencer.pluginInfos[pluginId];
                     problems.push( 'Failure when initialising Selenium IDE plugin ' +pluginNameAndLinks(pluginInfo)+ ':' );
-                    if( !e.messageContainsStackAddedBySeLiteMisc || !e.messageContainsStackWithExcludedCommonBaseBySeLiteMisc ) {
+                    if( !e.messageContainsStackWithExcludedCommonBaseBySeLiteMisc ) {
                         if( SeLiteMisc() ) {
                             SeLiteMisc().addStackToMessage( e, true );
                         }

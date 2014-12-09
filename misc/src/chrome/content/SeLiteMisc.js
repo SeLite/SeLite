@@ -33,7 +33,7 @@ var SeLiteMisc= {};
  *  and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw?redirectlocale=en-US&redirectslug=JavaScript%2FReference%2FStatements%2Fthrow
 */
 SeLiteMisc.fail= function fail( errorOrMessage, excludeCommonBase ) {
-    throw SeLiteMisc.addStackToMessage( SeLiteMisc.treatError(error), excludeCommonBase );
+    throw SeLiteMisc.addStackToMessage( errorOrMessage, excludeCommonBase );
 };
 
 SeLiteMisc.treatError= function treatError( errorOrMessage ) {
