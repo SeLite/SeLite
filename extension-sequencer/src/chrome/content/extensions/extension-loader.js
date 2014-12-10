@@ -44,8 +44,6 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
             return SeLiteMiscModule;
         };
         
-        /* Following functions exist in SeLiteExtensionSequencer.Loader, so that I can debug this through chrome://selite-extension-sequencer/content/extensions/invoke.xul. It's difficult to debug otherwise: if you start firefox binary with parameter -jsdebugger, this file gets processed before the debugger shows up. Also, following is stored within JS code module object, which is ugly. It's because Selenium IDE loads this file twice. Maybe related to http://code.google.com/p/selenium/issues/detail?id=6697 */
-        
         /** Get all add-ons that have sequencer manifest. Store them in SeLiteExtensionSequencer.Loader.addonsById.
          *  @param {Array} addons As passed from AddonManager.getAllAddons(): an array of AddOn objects.
          *  @param {Array} problems Array, where this adds any problem messages as strings.
@@ -280,6 +278,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
             // - 3. when starting firefox -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul - then Firefox doesn't load this file automatically as per 1. That's why the following if() can't have !global.runAsCheck as a condition.
 
             if( !SeLiteExtensionSequencer.Loader.addonsById ) {
+                /** Following is saved in SeLiteExtensionSequencer.Loader (i.e. accessible from JS code module), which is not elegant. It's so that I can re-use it, when debugging extension-loader.js from chrome://selite-extension-sequencer/content/extensions/invoke.xul after Firefox startup. */
                 SeLiteExtensionSequencer.Loader.addonsById= SeLiteExtensionSequencer.Loader.getAddonsById( addons, problems );
             }
             
@@ -287,7 +286,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
             SeLiteExtensionSequencer.Loader.reportMissingDependancies( SeLiteExtensionSequencer.Loader.addonsById, sortedPlugins, problems );
             if( !global.runAsCheck || global.registerAndPreActivate ) { // See a similar check above
                 if( global.runAsCheck ) {
-                    // This file was invoked from checkAndQuit.xul?registerAndPreActivate, which doesn't have API class defined and it can't access load chrome://selenium-ide/content/api.js when it was open as a part of Firefox startup (by running firefox -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul?registerAndPreActivate from run_tests.sh). Even if I loaded api.js here through mozIJSSubScriptLoader, I'd still have to load other Selenium IDE files - and they probably depend on Firefox internals for browser.xul that is not active. I've also tried to load all .js files referenced from chrome://selenium-ide/content/selenium-ide-overlay.xul, but that didn't help. So I just create a dummy API class.
+                    // This file was invoked from checkAndQuit.xul?registerAndPreActivate, which doesn't have API class defined and it can't access load chrome://selenium-ide/content/api.js when checkAndQuit.xul serves instead of Firefox's default browser.xul (i.e. when running firefox -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul?registerAndPreActivate from run_tests.sh). Even if I loaded api.js here through mozIJSSubScriptLoader, I'd still have to load other Selenium IDE files - and they probably depend on Firefox internals for browser.xul that is not active. I've also tried to load all .js files referenced from chrome://selenium-ide/content/selenium-ide-overlay.xul, but that didn't help. So I just create a dummy API class.
                     global.API= function API() {};
                     global.API.prototype= {
                         addPlugin: function() {},

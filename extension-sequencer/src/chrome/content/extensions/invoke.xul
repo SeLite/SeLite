@@ -1,9 +1,13 @@
 <?xml version="1.0"?>
 <window id="yourwindow" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml">
     <script type="application/x-javascript">
+    //<![CDATA[
         "use strict";
+        /** This allows you to debug some parts of SeLiteExtensionSequencer.js and extension-loader.js in Firefox's Browser Toolbox. It's difficult to debug otherwise: if you start firefox binary with parameter -jsdebugger, extension-loader.js gets processed before the debugger shows up.
+         */
         Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
         var sortedPlugins= SeLiteExtensionSequencer.sortedPlugins( SeLiteExtensionSequencer.Loader.addonsById );
-        SeLiteExtensionSequencer.Loader.reportMissingDependancies( SeLiteExtensionSequencer.Loader.addonsById, sortedPlugins, );
+        SeLiteExtensionSequencer.Loader.reportMissingDependancies( SeLiteExtensionSequencer.Loader.addonsById, sortedPlugins, [] );
+    //]]>
     </script>
 </window>
