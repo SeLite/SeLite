@@ -149,3 +149,16 @@ run_against expected_outputs/07_train_preActivate_fails.html 7 "Train preActivat
 reset_versions
 setup_versions extension=rail preActivate=true
 run_against expected_outputs/08_rail_preActivate_fails.html 8 "Rail preActivate fails" "$1" "$2"
+
+reset_versions
+setup_versions extension=rail oldestCompatibleVersion=0.12
+setup_versions extension=train compatibleVersion=0.12
+run_against expected_outputs/blank.html 9 "Rail oldestCompatibleVersion = Train compatibleVersion (even though it's higher than Rail version)" "$1" "$2"
+
+reset_versions
+setup_versions extension=rail oldestCompatibleVersion=0.11
+setup_versions extension=train compatibleVersion=0.13
+run_against expected_outputs/10_rail_low_oldestCompatibleVersion.html 10 "Rail oldestCompatibleVersion < Train compatibleVersion" "$1" "$2"
+
+
+# minVersion

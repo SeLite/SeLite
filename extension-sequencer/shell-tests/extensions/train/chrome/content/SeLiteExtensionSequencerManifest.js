@@ -9,7 +9,7 @@ SeLiteExtensionSequencer.registerPlugin({
         'test-rail@selite.googlecode.com': {
             name: 'SeLite Test Rail',
             infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/dummy-test-rail/'
-            //,compatibleVersion: 0.15
+            ,compatibleVersion: "0.13"
             //,minVersion: 0.15
         }
     }
