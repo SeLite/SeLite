@@ -163,4 +163,4 @@ run_against expected_outputs/10_rail_low_oldestCompatibleVersion.html 10 "Rail o
 reset_versions
 setup_versions extension=rail version=0.14
 setup_versions extension=train minVersion=0.15
-run_against expected_outputs/02_train_low_version.html 11 "Rail low version. This test occasionally fails, so re-run on failure." "$1" "$2"
+run_against expected_outputs/11_rail_low_version.html 11 "Rail low version. This test occasionally fails, so re-run on failure." "$1" "$2"
