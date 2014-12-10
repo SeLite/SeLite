@@ -126,18 +126,18 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                         numberOfBrokenSeLiteAddOns++;
                     }
                 }
-                problems.push( 'Following Selenium IDE plugin(s) are missing their dependancy plugin(s). They are therefore inactive. Install (or enable) any missing dependancies. Follow also documentation of the plugin.'
+                problems.push( 'Following Selenium IDE plugin(s) are not activated, because they are incompatible, or they depend on plugins that are out of date or missing. Upgrade or install them.'
                     +(numberOfBrokenSeLiteAddOns
                         ? (numberOfBrokenSeLiteAddOns===brokenDependantIds.length
                             ? ' See also'
                             : ' For those of them which are SeLite add-on(s), see also'
-                          )+ ' <a href="https://code.google.com/p/selite/wiki/AddOnsDependencies">https://code.google.com/p/selite/wiki/AddOnsDependants</a>.'
+                          )+ ' <a href="https://code.google.com/p/selite/wiki/AddOnsDependants">https://code.google.com/p/selite/wiki/AddOnsDependants</a>.'
                         : ''
                     )
                 );
                 problems.push( '' );
                 
-                problems.push( "Plugin(s) missing at least one direct dependency:" );
+                problems.push( "Add-on(s) having problems with plugin(s) that they directly depend on:" );
                 for( var pluginId in sortedPlugins.missingDirectDependancies ) {
                     var missingDirectDependancies= sortedPlugins.missingDirectDependancies[pluginId];
                     var pluginDetailsHTML= pluginNameAndLinks( SeLiteExtensionSequencer.pluginInfos[pluginId] );
@@ -150,7 +150,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                             values( missingDirectDependancies[SeLiteExtensionSequencer.DIRECT_DEPENDANCY_TOO_OLD] ).map(pluginNameAndLinks).join(', ')+ '.' );
                     }
                     if( Object.keys( missingDirectDependancies[SeLiteExtensionSequencer.DIRECT_DEPENDANCY_TOO_NEW] ).length ) {
-                        problems.push( pluginDetailsHTML+ ' is too old, so upgrade it. It directly depends on plugin(s) that are too new, so alternatively get older versions of: ' +
+                        problems.push( pluginDetailsHTML+ ' is too old, so upgrade it. Its old version is not compatible with new versions of plugin(s) that it depends on: ' +
                             values( missingDirectDependancies[SeLiteExtensionSequencer.DIRECT_DEPENDANCY_TOO_NEW] ).map(pluginNameAndLinks).join(', ')+ '.' );
                     }
                     if( pluginId in sortedPlugins.brokenDirectDependancies ) {
@@ -167,7 +167,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                     }
                     if( pluginIdsMissingIndirectDependanciesOnly.length ) {
                         problems.push( '' );
-                        problems.push( "Plugin(s) missing indirect dependencies only:" );
+                        problems.push( "Add-on(s) having problems with plugin(s) that they indirectly depend on:" );
                         for( var i=0; i<pluginIdsMissingIndirectDependanciesOnly.length; i++ ) {//@TODO low: for(..of..)
                             var pluginId= pluginIdsMissingIndirectDependanciesOnly[i];
                             problems.push( pluginNameAndLinks( SeLiteExtensionSequencer.pluginInfos[pluginId] )+ ' indirectly depends on missing or incompatible plugin(s) through following plugin(s): ' +

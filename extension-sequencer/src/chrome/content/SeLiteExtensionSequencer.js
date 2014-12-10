@@ -185,7 +185,7 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
     for( var i=0; i<mergedPluginIds.length; i++ ) {
         if( mergedPluginIds.indexOf(mergedPluginIds[i])!=i ) {
             // This doesn't need to show human-friendly plugin names, because it should be caught by developer
-            throw new Error( "SeLite Extension Sequencer: plugin " +pluginInfo.name+ " lists a dependancy package " +mergedPluginIds[i]+ " two or more times." );
+            throw new Error( "SeLite Extension Sequencer: plugin " +pluginInfo.name+ " depends on package " +mergedPluginIds[i]+ " two or more times." );
         }
     }
     SeLiteExtensionSequencer.pluginInfos[pluginInfo.id]= pluginInfo;

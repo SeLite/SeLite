@@ -160,5 +160,7 @@ setup_versions extension=rail oldestCompatibleVersion=0.11
 setup_versions extension=train compatibleVersion=0.13
 run_against expected_outputs/10_rail_low_oldestCompatibleVersion.html 10 "Rail oldestCompatibleVersion < Train compatibleVersion" "$1" "$2"
 
-
-# minVersion
+reset_versions
+setup_versions extension=rail version=0.14
+setup_versions extension=train minVersion=0.15
+run_against expected_outputs/02_train_low_version.html 11 "Rail low version. This test occasionally fails, so re-run on failure." "$1" "$2"
