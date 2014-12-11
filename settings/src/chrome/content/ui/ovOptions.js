@@ -644,10 +644,10 @@ else {
                 : '';
         }
         else if( this.field && !this.field.multivalued ) {
-            return this.valueCompound.entry!==undefined
-                ? 'Undefine'
-                : (this.valueCompound.entry!==null && this.field.allowNull
-                    ? 'Null'
+            return this.valueCompound.entry!==null && this.field.allowNull
+                ? 'Null'
+                : (this.valueCompound.entry!==undefined
+                    ? 'Undefine'
                     : ''
                   );
         }
