@@ -440,7 +440,7 @@ else {
         if( this.field ) {
             if( !this.field.multivalued && !(this.field instanceof SeLiteSettings.Field.Choice) ) {
                 this.rowLevel===RowLevel.FIELD || SeLiteMisc.fail();
-                this.value= typeof this.valueCompound.entry!=='object' // I only pass the single value or undefined as 'value' parameter
+                this.value= typeof this.valueCompound.entry!=='object' // I only pass a single value or undefined as 'value' parameter
                     ? this.valueCompound.entry
                     : undefined;
             }
@@ -585,7 +585,7 @@ else {
         }
         else if( column===Column.VALUE ) {
             if( 'key' in this && this.key!==SeLiteSettings.NEW_VALUE_ROW ) {
-                if( this.rowLevel===RowLevel.FIELD && this.valueCompound.entry===undefined ) {
+                if( this.rowLevel===RowLevel.FIELD && (this.valueCompound.entry===null || this.valueCompound.entry===undefined) ) {
                     return SeLiteSettings.FIELD_NULL_OR_UNDEFINED;
                 }
                 if( this.rowLevel===RowLevel.OPTION ) {
@@ -899,7 +899,8 @@ else {
             var field= module.fields[fieldName];
             if( field ) {
                 var valueCompound= setFields[fieldName];
-                var fieldItem= new RowInfo( module, setName, RowLevel.FIELD, field, /*key*/undefined, valueCompound ).generateTreeItem();
+                var rowInfo= new RowInfo( module, setName, RowLevel.FIELD, field, /*key*/undefined, valueCompound );
+                var fieldItem= rowInfo.generateTreeItem();
                 setChildren.appendChild( fieldItem );
 
                 var isChoice= field instanceof SeLiteSettings.Field.Choice;
@@ -908,7 +909,7 @@ else {
                     if( field instanceof SeLiteSettings.Field.FixedMap ) {
                         for( var i=0; i<field.keySet.length; i++ ) { //@TODO low: loop for( .. of ..) once NetBeans supports it
                             var key= field.keySet[i];
-                            var rowInfo= new RowInfo( module, setName, RowLevel.OPTION, field, key, valueCompound );
+                            rowInfo= new RowInfo( module, setName, RowLevel.OPTION, field, key, valueCompound );
                             var optionItem= rowInfo.generateTreeItem();
                             fieldChildren.appendChild( optionItem );
                         }
