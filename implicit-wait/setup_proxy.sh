@@ -25,6 +25,7 @@ fi
 
 if [ ! -e "$EXTENSION_FOLDER"/implicit-wait\@florent.breheret.xpi ]
 then
+  cd src
   pwd > "$EXTENSION_FOLDER"/implicit-wait\@florent.breheret
 fi
 
