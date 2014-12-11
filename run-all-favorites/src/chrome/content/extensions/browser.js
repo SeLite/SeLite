@@ -48,7 +48,10 @@ if( typeof window!=='undefined' ) {
                         var addOnIDsNotNeedingSequencer= ['misc@selite.googlecode.com', 'settings@selite.googlecode.com', 'sqlite-connection-manager@selite.googlecode.com']; // @TODO use: const
                         for( var i=0; i<addons.length; i++ ) { //@TODO for(.. of..)
                             var addon= addons[i];
-                            if( addon.isActive && addon.id.indexOf('@selite.googlecode.com')>0 && addOnIDsNotNeedingSequencer.indexOf(addon.id)<0 ) {
+                            if( addon.isActive
+                                && ( addon.id.indexOf('@selite.googlecode.com')>0 || addon.id===thisAddOnID ) // addon.id===thisAddOnID serves if this addon is not an SeLite add-on.
+                                && addOnIDsNotNeedingSequencer.indexOf(addon.id)<0
+                            ) {
                                 seliteAddOnIDs.push( addon.id );
                             }
                         }
