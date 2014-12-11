@@ -69,9 +69,10 @@ if( SeLiteMisc ) {
         name: 'string',
         coreURL: ['string', Array],
         coreUrl: ['string', Array],////@TODO low: cleanup - for backwards compatibility only
+        ideURL: ['string', Array],
         ideUrl: ['string', Array],////@TODO low: cleanup - for backwards compatibility only
         xmlURL: ['string', Array],
-        ideURL: ['string', Array],
+        xmlUrl: ['string', Array],////@TODO low: cleanup - for backwards compatibility only
         infoURL: 'string',
         downloadURL: 'string',
         oldestCompatibleVersion: 'string',
