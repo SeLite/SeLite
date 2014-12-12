@@ -107,7 +107,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
             return (pluginInfo.infoURL
                 ? '<a href="' +pluginInfo.infoURL+ '">' +pluginInfo.name+ '</a>'
                 : pluginInfo.name
-            ) +(pluginInfo.infoURL
+            ) +(pluginInfo.downloadURL
                 ? ' (<a href="' +pluginInfo.downloadURL+ '">download</a>)'
                 : '' );
         }

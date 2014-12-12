@@ -162,26 +162,25 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
         throw new Error("Plugin " +pluginInfo.id+ " was already registered with SeLite Extension Sequencer.");
     }
 
-    //@TODO low: remove the following variable and the loop - it's for backwards compatibility only
     var requisiteFieldNames= ['requisitePlugins', 'optionalRequisitePlugins', 'nonSequencedRequisitePlugins' ];
     for( var i=0; i<requisiteFieldNames.length; i++ ) {
         var requisiteFieldName= requisiteFieldNames[i];
         for( var requisiteId in pluginInfo[requisiteFieldName] ) {
+            //@TODO low: remove the following - it's for backwards compatibility only
             var requisiteDetails= pluginInfo[requisiteFieldName][requisiteId];
             if( typeof requisiteDetails==='string' ) {
                 pluginInfo[requisiteFieldName][requisiteId]= {
                     name: requisiteDetails
                 };
             }
+            //@TODO keep the following
+            var requisiteDetails= pluginInfo[requisiteFieldName][requisiteId];
+            if( !requisiteDetails.downloadURL && requisiteDetails.infoURL ) {
+                requisiteDetails.downloadURL= infoURLtoDownloadURL(requisiteDetails.infoURL);
+            }
         }
     }
     
-    for( var requisiteId in pluginInfo.requisitePlugins ) {
-        var requisiteDetails= pluginInfo.requisitePlugins[requisiteId];
-        if( !requisiteDetails.downloadURL && requisiteDetails.infoURL ) {
-            requisiteDetails.downloadURL= infoURLtoDownloadURL(requisiteDetails.infoURL);
-        }
-    }
     var mergedPluginIds= Object.keys(pluginInfo.requisitePlugins).concat( Object.keys(pluginInfo.optionalRequisitePlugins) ).concat( Object.keys(pluginInfo.nonSequencedRequisitePlugins) );
     for( var i=0; i<mergedPluginIds.length; i++ ) {
         if( mergedPluginIds.indexOf(mergedPluginIds[i])!=i ) {
