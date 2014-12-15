@@ -27,19 +27,19 @@ function change_or_comment_out() {
         if [ "$value" ]
         then
             # uncomment the line (if commented out), and change the value
-            sed -i -r "s/(\/\/)?(, *$field *:) *['\"]?[0-9.]*['\"]?/\2 \"$value\"/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
+            sed -i '' -E "s/(\/\/)?(, *$field *:) *['\"]?[0-9.]*['\"]?/\2 \"$value\"/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
         else
             # comment out the line
-            sed -i -r "s/(\/\/)?(, *$field *:.*)/\/\/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
+            sed -i '' -E "s/(\/\/)?(, *$field *:.*)/\/\/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
         fi
     else
         if [ "$value" ]
         then
             # uncomment the line (if commented out)
-            sed -i -r "s/(\/\/)?(, *$field *:.*)/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
+            sed -i '' -E "s/(\/\/)?(, *$field *:.*)/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
         else
             # comment out the line
-            sed -i -r "s/(\/\/)?(, *$field *:.*)/\/\/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
+            sed -i '' -E "s/(\/\/)?(, *$field *:.*)/\/\/\2/" extensions/$extension/chrome/content/SeLiteExtensionSequencerManifest.js
         fi
     fi
 }
@@ -61,7 +61,7 @@ function setup_versions() {
     fi
     if [ "$version" ]
     then
-        sed -i -r "s/<em:version>[0-9.]+<\/em:version>/<em:version>$version<\/em:version>/" extensions/$extension/install.rdf
+        sed -i '' -E "s/<em:version>[0-9.]+<\/em:version>/<em:version>$version<\/em:version>/" extensions/$extension/install.rdf
     fi
     
     change_or_comment_out extension=$extension field=minVersion value=$minVersion

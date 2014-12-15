@@ -10,15 +10,17 @@ if [ "$(uname)" == "Darwin" ]; then
    # ~/Library/Mozilla/Firefox/Profiles/<profile folder> or ~/Library/Application Support/Firefox/Profiles/<profile folder> 
    # But on Mac OS 10.5.8 and 10.9.1 I could see the second folder only. If you can test both, please update this/send this to me.
    FIREFOX_FOLDER="$( echo "$HOME_FOLDER/Library/Application Support/Firefox/Profiles" )"
+   FIREFOX_BINARY=/Applications/Firefox.app/Contents/MacOS/firefox
 else
    FIREFOX_FOLDER="$( echo "$HOME_FOLDER/.mozilla/firefox" )"
+   FIREFOX_BINARY=firefox
 fi
 
 PROFILE_FOLDER="$( echo "$FIREFOX_FOLDER/"*.SeLiteExtensionSequencerTest )"
 # I couldn't have this for the following if condition: [ ! -e "$FIREFOX_FOLDER/*.SeLiteExtensionSequencerTest" ]
 # If you know why that failed to detect the profile folder, please contact me.
 if [ ! -e "$PROFILE_FOLDER" ]; then
-    firefox -no-remote -CreateProfile SeLiteExtensionSequencerTest
+    $FIREFOX_BINARY -no-remote -CreateProfile SeLiteExtensionSequencerTest
     
     PROFILE_FOLDER="$( echo "$FIREFOX_FOLDER/"*.SeLiteExtensionSequencerTest )"
     if [ ! -e "$PROFILE_FOLDER" ]; then
