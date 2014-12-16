@@ -17,13 +17,15 @@
 
 if( typeof SeLiteMisc==='undefined' ) {
     Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
+    var exportedSymbols= {};
     SeLiteMisc.loadVerifyScope( 'chrome://selite-settings/content/ui/ovOptions.js',
         {
             window: window,
-            XULElement: XULElement//typeof XULElement==='function', therefore I don't need to declare it below
+            XULElement: XULElement,//typeof XULElement==='function', therefore I don't need to declare it below
+            exportedSymbols: exportedSymbols
         },
         new SeLiteMisc.Settable(
-            ['window', 'nsIFilePicker', 'FileUtils', 'promptService', 'SeLiteSettings', 'Services', 'subScriptLoader', 'nsIIOService', 'nsIPrefBranch', 'treeColumnElements', 'modules', 'treeRowsOrChildren', 'moduleSetFields'],
+            ['window', 'exportedSymbols', 'tree', 'nsIFilePicker', 'FileUtils', 'promptService', 'SeLiteSettings', 'Services', 'subScriptLoader', 'nsIIOService', 'nsIPrefBranch', 'treeColumnElements', 'modules', 'treeRowsOrChildren', 'moduleSetFields'],
                 'some-object',
             'newValueRow',
                 ['number', 'undefined'],
@@ -38,6 +40,10 @@ if( typeof SeLiteMisc==='undefined' ) {
                 'function'
         )
     );
+    // @TODO schedule this after loadVerifyScope?:
+    for( var field in exportedSymbols ) {
+        this[field]= exportedSymbols[field];
+    }
 }
 else {
     SeLiteMisc.isLoadedInVerifiedScope() || SeLiteMisc.fail();
@@ -65,7 +71,9 @@ else {
     var DELETE_THE_SET= "Delete the set";
     var ADD_NEW_VALUE= "Add a new value";
     var DELETE_THE_VALUE= "Delete the value";
-
+    
+    var tree;
+    
     /** Select a file/folder for a field or a folder for which to load the configuration (via manifests).
      *  @param field Instance of a subclass of Field.FileOrFolder (Field.File, Field.Folder or Field.SQLite), or null if no field
      *  @param tree, used only when changing a field.
@@ -220,7 +228,6 @@ else {
      *  @return object Instance of nsITreeColumn, where returnedObject.element=element.
      * */
     var treeColumn= function treeColumn( element ) {
-        var tree= window.document.getElementById('settingsTree');
         for( var i=0; i<tree.columns.length; i++ ) {
             var column= tree.columns[i];
             if( column.element===element ) {
@@ -941,7 +948,7 @@ else {
         }
     };
 
-    /** @param string properties <treerow> or <treecell> 'properties' attribute, which contains space-separated module/set/field/choice(option) name
+    /** @param string properties 'properties' attribute of <treerow> or <treecell>, which contains space-separated module/set/field/choice(option) name
      *  - as applicable. Do not use with cells for Column.DEFAULT.
      *  @param {RowLevel} level It indicates which level we want the name for. Not all levels
      *  may apply. For level===RowLevel.OPTION this may return a string with space(s) in it.
@@ -989,11 +996,18 @@ else {
             }
         }
     };
-
+    
+    exportedSymbols.onTooltipContentsShowing= function onTooltipContentsShowing( tooltip, event ) {
+        var row= { value: -1 }; // value will be 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
+        var column= { value: null }; // value is instance of TreeColumn. See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeColumn
+        tree.boxObject.getCellAt(event.clientX, event.clientY, row, column, {}/*unused, but needed*/ );
+        var cellProperties= tree.view.getCellProperties( row.value, column.value ); // Space-separated properties
+        tooltip.label= cellProperties;
+    };
+    
     var treeClickHandler= function treeClickHandler( event ) {
         //console.log( 'click');
         // FYI: event.currentTarget.tagName=='tree'. However, window.document.getElementById('settingsTree')!=event.currentTarget
-        var tree= window.document.getElementById('settingsTree');
         var row= { value: -1 }; // value will be 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
         var column= { value: null }; // value is instance of TreeColumn. See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeColumn
                 // column.value.element is one of 'treecol' nodes created above. column.value.type can be TreeColumn.TYPE_CHECKBOX etc.
@@ -1287,7 +1301,6 @@ else {
      *  }
      * */
     var preProcessEdit= function preProcessEdit( row, value ) {
-        var tree= window.document.getElementById( 'settingsTree' );
         var rowProperties= tree.view.getRowProperties(row);
 
         var moduleName= propertiesPart( rowProperties, RowLevel.MODULE );
@@ -1759,7 +1772,7 @@ else {
                 window.alert( msg );
             }
         }
-        var tree= window.document.createElementNS( XUL_NS, 'tree' );
+        tree= window.document.createElementNS( XUL_NS, 'tree' );
         tree.setAttribute( 'id', 'settingsTree');
         tree.setAttribute( 'editable', ''+!showingPerFolder() );
         tree.setAttribute( 'seltype', 'single' );
@@ -1782,6 +1795,7 @@ else {
         }
         tree.appendChild( generateTreeColumns(allowModules, showingPerFolder()) );
         var topTreeChildren= createTreeChildren( tree );
+        topTreeChildren.setAttribute( 'tooltip', 'tooltipContents' );
 
         var setNameToExpand= null;
         if( allowModules ) {
