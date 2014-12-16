@@ -72,7 +72,7 @@ function setup_versions() {
 
 function run {
     # In addition to filtering out console.(log|info|warning), I filter out 'console.error:', too. That's because console.error is special: somehow, a string passed to console.error() is printed on a separate line. It's also prefixed by two spaces - hence those spaces in expected_outputs/*.html
-    firefox -P SeLiteExtensionSequencerTest -no-remote -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul?registerAndPreActivate 2>/dev/null | egrep --invert-match 'console.(log|info|warning|error):|@(chrome|resource)://' | grep --invert-match "Problem(s) with add-on(s) for Firefox and Selenium IDE"
+    /Applications/Firefox.app/Contents/MacOS/firefox -P SeLiteExtensionSequencerTest -no-remote -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul?registerAndPreActivate 2>/dev/null | egrep --invert-match 'console.(log|info|warning|error):|@(chrome|resource)://' | grep --invert-match "Problem(s) with add-on(s) for Firefox and Selenium IDE"
 }
 
 # It expects positional parameters:
