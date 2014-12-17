@@ -263,6 +263,7 @@ else {
                 : 'Field'
               )
         );
+        treecol.setAttribute( 'tooltip', 'tooltipModuleSetField' );
         treecol.setAttribute( 'flex', '2');
         treecol.setAttribute('primary', 'true'); // without this we don't get expand/collapse triangles
         treecol.setAttribute( 'ordinal', '1');
@@ -291,9 +292,7 @@ else {
         treecol.setAttribute('type', 'checkbox');
         treecol.setAttribute('editable', ''+!perFolder );
         treecol.setAttribute( 'ordinal', '5');
-        if( !perFolder ) {
-            treecol.setAttribute( 'tooltip', 'tooltipChoice' );
-        }
+        treecol.setAttribute( 'tooltip', 'tooltipChoice' );
         treecols.appendChild(treecol);
 
         splitter= window.document.createElementNS( XUL_NS, 'splitter' );
@@ -305,9 +304,7 @@ else {
         treecol.setAttribute('editable', ''+!perFolder );
         treecol.setAttribute( 'flex', '1');
         treecol.setAttribute( 'ordinal', '7');
-        if( !perFolder ) {
-            treecol.setAttribute( 'tooltip', 'tooltipValue');
-        }
+        treecol.setAttribute( 'tooltip', 'tooltipValue');
         treecols.appendChild(treecol);
 
         if( perFolder || allowSets || allowMultivaluedNonChoices ) {
@@ -319,6 +316,9 @@ else {
             treecol.setAttribute('label', perFolder
                 ? 'Set'
                 : 'Action');
+            treecol.setAttribute( 'tooltip', perFolder
+                ? 'tooltipSet'
+                : 'tooltipAction' );
             treecol.setAttribute('editable', 'false');
             treecol.setAttribute( 'flex', '1');
             treecol.setAttribute( 'ordinal', '9');

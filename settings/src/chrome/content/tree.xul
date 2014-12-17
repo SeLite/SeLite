@@ -46,10 +46,13 @@ treechildren::-moz-tree-cell-text(SELITE_FIELD_NULL_OR_UNDEFINED) {
     <!-- Can't have tooltip per cell. See http://forums.mozillazine.org/viewtopic.php?f=19&p=6445785
     and https://developer.mozilla.org/en-US/docs/XUL/PopupGuide/Tooltips#Tooltips_in_Trees
     -->
-    <tooltip id="tooltipActive" label="Click at cells to make a set default"/>
-    <tooltip id="tooltipChoice" label="Click at cells to toggle checked/unchecked or to select/deselect a choice (where applicable)"/>
-    <tooltip id="tooltipValue" label="Click at cells to edit the value (where applicable)"/>
-    <tooltip id="tooltipNull" label="Click at cells to make the value null/undefined"/>
+    <tooltip id="tooltipModuleSetField" label="Name of a module, set (where applicable) and field. Expand/collapse modules and sets by double-clicking."/>
+    <tooltip id="tooltipDefault" label="Whether the set is the default set for the module. Click at a cell to make a set default."/>
+    <tooltip id="tooltipChoice" label="Whether the field is set to true, or the choice is selected. Click at cells to set/unset, or to select/deselect a choice (where applicable)."/>
+    <tooltip id="tooltipValue" label="A freetype value, or a choice, or a special value. Click at cells to edit the value (where applicable)."/>
+    <tooltip id="tooltipNull" label="Click at cells to make the value null/undefined. For multivalued field or choices you must remove/deselect all values first."/>
+    <tooltip id="tooltipSet" label="What set the value comes from (if any), or whether it's a default value from its module definition."/>
+    <tooltip id="tooltipAction" label="Apply this action to the value/choice, field, set or module." />
     <tooltip id="tooltipManifest" label="Manifest (values or associations), or module definition, where the value(s) comes from"/>
     <tooltip id="tooltipContents" label="" onpopupshowing="return onTooltipContentsShowing( this, event );" />
     <script type="application/x-javascript" src="chrome://selite-settings/content/ui/ovOptions.js"/>
