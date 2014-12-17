@@ -41,7 +41,6 @@ treechildren::-moz-tree-cell-text(SELITE_FIELD_NULL_OR_UNDEFINED) {
     color: brown;
     font-style: italic;
 }
-
 " type="text/css"?>
 <window id="yourwindow" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml">
     <!-- Can't have tooltip per cell. See http://forums.mozillazine.org/viewtopic.php?f=19&p=6445785
@@ -52,7 +51,7 @@ treechildren::-moz-tree-cell-text(SELITE_FIELD_NULL_OR_UNDEFINED) {
     <tooltip id="tooltipValue" label="Click at cells to edit the value (where applicable)"/>
     <tooltip id="tooltipNull" label="Click at cells to make the value null/undefined"/>
     <tooltip id="tooltipManifest" label="Manifest (values or associations), or module definition, where the value(s) comes from"/>
-    <tooltip id="tooltipContents" label="hola" onpopupshowing="onTooltipContentsShowing( this, event );"/>
+    <tooltip id="tooltipContents" label="" onpopupshowing="return onTooltipContentsShowing( this, event );" />
     <script type="application/x-javascript" src="chrome://selite-settings/content/ui/ovOptions.js"/>
 				<vbox id="SeSettingsBox" flex="1">
                     <!--

@@ -25,7 +25,7 @@ if( typeof SeLiteMisc==='undefined' ) {
             exportedSymbols: exportedSymbols
         },
         new SeLiteMisc.Settable(
-            ['window', 'exportedSymbols', 'tree', 'nsIFilePicker', 'FileUtils', 'promptService', 'SeLiteSettings', 'Services', 'subScriptLoader', 'nsIIOService', 'nsIPrefBranch', 'treeColumnElements', 'modules', 'treeRowsOrChildren', 'moduleSetFields'],
+            ['window', 'exportedSymbols', 'tree', 'treeBoxObject', 'nsIFilePicker', 'FileUtils', 'promptService', 'SeLiteSettings', 'Services', 'subScriptLoader', 'nsIIOService', 'nsIPrefBranch', 'treeColumnElements', 'modules', 'treeRowsOrChildren', 'moduleSetFields'],
                 'some-object',
             'newValueRow',
                 ['number', 'undefined'],
@@ -73,6 +73,7 @@ else {
     var DELETE_THE_VALUE= "Delete the value";
     
     var tree;
+    var treeBoxObject; // A shortcut to tree.boxObject. I keep this, otherwise I occasionally got: 'tree.boxObject.getCellAt is not a function' in onTooltipContentsShowing()
     
     /** Select a file/folder for a field or a folder for which to load the configuration (via manifests).
      *  @param field Instance of a subclass of Field.FileOrFolder (Field.File, Field.Folder or Field.SQLite), or null if no field
@@ -997,12 +998,25 @@ else {
         }
     };
     
+    /** @return {boolean} I have to return a value, so that I can hide the popup if it doesn't apply. I've tried to use .className nad 'style' attribute. Setting those worked, however, unsetting them didn't work. See comments below.
+     * */
     exportedSymbols.onTooltipContentsShowing= function onTooltipContentsShowing( tooltip, event ) {
         var row= { value: -1 }; // value will be 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
         var column= { value: null }; // value is instance of TreeColumn. See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeColumn
-        tree.boxObject.getCellAt(event.clientX, event.clientY, row, column, {}/*unused, but needed*/ );
-        var cellProperties= tree.view.getCellProperties( row.value, column.value ); // Space-separated properties
-        tooltip.label= cellProperties;
+        treeBoxObject.getCellAt(event.clientX, event.clientY, row, column, {}/*unused, but needed*/ );
+        var rowProperties= tree.view.getRowProperties(row.value);
+        var module= modules[ propertiesPart( rowProperties, RowLevel.MODULE ) ];
+        var field= module && module.fields[ propertiesPart( rowProperties, RowLevel.FIELD ) ];
+        if( field ) {
+            tooltip.label= field.name;
+            //tooltip.className= ''; // This has no effect. Once I set .className, it stays!
+            //tooltip.setAttribute( 'style', "" ); // This, or .removeAttribute(), seems to have no effect after it was set.
+            //@TODO in per-folder mode, on mouseover for Set or Module/Definition, show a hint that it opens the target in a new tab.
+            return true;
+        }
+        else {
+            return false;
+        }
     };
     
     var treeClickHandler= function treeClickHandler( event ) {
@@ -1011,7 +1025,7 @@ else {
         var row= { value: -1 }; // value will be 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
         var column= { value: null }; // value is instance of TreeColumn. See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeColumn
                 // column.value.element is one of 'treecol' nodes created above. column.value.type can be TreeColumn.TYPE_CHECKBOX etc.
-        tree.boxObject.getCellAt(event.clientX, event.clientY, row, column, {}/*unused, but needed*/ );
+        treeBoxObject.getCellAt(event.clientX, event.clientY, row, column, {}/*unused, but needed*/ );
 
         if( row.value>=0 && column.value ) {
             var modifiedPreferences= false;
@@ -1162,7 +1176,7 @@ else {
                                 if( treeChildren.parentNode.getAttribute('open')!=='true' ) {
                                     treeChildren.parentNode.setAttribute('open', 'true');
                                 }
-                                tree.boxObject.ensureRowIsVisible( row.value+1 );
+                                treeBoxObject.ensureRowIsVisible( row.value+1 );
                                 if( field instanceof SeLiteSettings.Field.FileOrFolder ) {
                                     chooseFileOrFolder( field, tree, row.value+1, treeColumn(treeColumnElements.value), field.isFolder, undefined, field.saveFile ); // On change that will trigger my custom setCellText()
                                 }
@@ -1773,6 +1787,7 @@ else {
             }
         }
         tree= window.document.createElementNS( XUL_NS, 'tree' );
+        treeBoxObject= tree.boxObject;
         tree.setAttribute( 'id', 'settingsTree');
         tree.setAttribute( 'editable', ''+!showingPerFolder() );
         tree.setAttribute( 'seltype', 'single' );
