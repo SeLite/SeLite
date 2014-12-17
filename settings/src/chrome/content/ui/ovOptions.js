@@ -29,7 +29,7 @@ if( typeof SeLiteMisc==='undefined' ) {
                 'some-object',
             'newValueRow',
                 ['number', 'undefined'],
-            ['XUL_NS', 'CREATE_NEW_SET', 'DELETE_THE_SET', 'ADD_NEW_VALUE', 'DELETE_THE_VALUE'],
+            ['XUL_NS', 'ADD_NEW_SET', 'DELETE_THE_SET', 'ADD_NEW_VALUE', 'DELETE_THE_VALUE'],
                 'string',
             ['pastFirstBlur', 'allowSets', 'allowMultivaluedNonChoices'],
                 'boolean',
@@ -51,7 +51,7 @@ else {
     /* This has many workarounds because of inflexibility in Mozilla XUL model. It can run in two main modes: editable (showing all sets for any modules, or for matching modules) and review (per-folder).
      * <br/>On change of fields, it doesn't reload the whole page. It updates the preferences in Firefox. Then it reloads the relevant row(s) in GUI based on the updated preferences. 
      * <br/>If you add/remove a configuration set, then it reloads the whole page, which loses the collapse/expand status.
-     * <br/>It needs to show two separate columns Action and Null/Undefine, because if you have a multi-valued Field.String that allows null, and the field has null value, then this needs to show both 'Add a new value' and 'Undefine' - hence two columns.
+     * <br/>It needs to show two separate columns Add/Delete and Null/Undefine, because if you have a multi-valued Field.String that allows null, and the field has null value, then this needs to show both 'Add a new value' and 'Undefine' - hence two columns.
      * */
     var XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
     var nsIFilePicker = Components.interfaces.nsIFilePicker;
@@ -67,7 +67,7 @@ else {
     var nsIIOService= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);    
     var nsIPrefBranch= Components.interfaces.nsIPrefBranch;
 
-    var CREATE_NEW_SET= "Create a new set";
+    var ADD_NEW_SET= "Add a new set";
     var DELETE_THE_SET= "Delete the set";
     var ADD_NEW_VALUE= "Add a new value";
     var DELETE_THE_VALUE= "Delete the value";
@@ -204,12 +204,12 @@ else {
     Column.prototype= Object.create(RowLevelOrColumn.prototype);
     Column.prototype.constructor= Column;
     Column= SeLiteMisc.proxyVerifyFields( Column );
-    SeLiteMisc.proxyAllowFields( Column, ['MODULE_SET_FIELD_FIXEDMAPKEYS', 'DEFAULT', 'CHECKED', 'VALUE', 'ACTION_SET', 'NULL_UNDEFINE_DEFINITION'] );
+    SeLiteMisc.proxyAllowFields( Column, ['MODULE_SET_FIELD_FIXEDMAPKEYS', 'DEFAULT', 'CHECKED', 'VALUE', 'ADD_DELETE_SET', 'NULL_UNDEFINE_DEFINITION'] );
     Column.MODULE_SET_FIELD_FIXEDMAPKEYS= new Column('MODULE_SET_FIELD_FIXEDMAPKEYS', 0);
     Column.DEFAULT= new Column('DEFAULT', 1);
     Column.CHECKED= new Column('CHECKED', 2); // Column for checkbox (if the field is boolean) or radio-like select (if the field is a choice)
     Column.VALUE= new Column('VALUE', 3);
-    Column.ACTION_SET= new Column('ACTION_SET', 4);
+    Column.ADD_DELETE_SET= new Column('ADD_DELETE_SET', 4); // Column for Add/Delete (in edit mode), or for Set (in per-folder mode)
     Column.NULL_UNDEFINE_DEFINITION= new Column('NULL_UNDEFINE_DEFINITION', 5);
 
     /** It contains elements for <treecol> tags, as returned by window.document.createElementNS( XUL_NS, 'tree_col').
@@ -315,10 +315,10 @@ else {
             treecol= treeColumnElements.action= window.document.createElementNS( XUL_NS, 'treecol');
             treecol.setAttribute('label', perFolder
                 ? 'Set'
-                : 'Action');
+                : 'Add/Delete');
             treecol.setAttribute( 'tooltip', perFolder
                 ? 'tooltipSet'
-                : 'tooltipAction' );
+                : 'tooltipAddDelete' );
             treecol.setAttribute('editable', 'false');
             treecol.setAttribute( 'flex', '1');
             treecol.setAttribute( 'ordinal', '9');
@@ -507,7 +507,7 @@ else {
     var CellInfo= function CellInfo( rowInfo, column ) {
         column instanceof Column || SeLiteMisc.fail();
         column!==Column.DEFAULT || allowSets || SeLiteMisc.fail( "allowSets is false, but column is not DEFAULT: " +column );
-        column!==Column.ACTION_SET && column!==Column.NULL_UNDEFINE_DEFINITION || allowSets || allowMultivaluedNonChoices || showingPerFolder() || SeLiteMisc.fail( "Can't use Column.ACTION_SET nor Column.NULL_UNDEFINE_DEFINITION." );
+        column!==Column.ADD_DELETE_SET && column!==Column.NULL_UNDEFINE_DEFINITION || allowSets || allowMultivaluedNonChoices || showingPerFolder() || SeLiteMisc.fail( "Can't use Column.ADD_DELETE_SET nor Column.NULL_UNDEFINE_DEFINITION." );
 
         this.label= rowInfo.collectLabel( column );
         this.value= rowInfo.collectValue( column );
@@ -603,7 +603,7 @@ else {
                 }
             }
         }
-        else if( column===Column.ACTION_SET ) {
+        else if( column===Column.ADD_DELETE_SET ) {
             if( showingPerFolder() && this.rowLevel===RowLevel.FIELD ) {
                 debugger;
                 if( this.valueCompound.fromPreferences ) {
@@ -712,11 +712,11 @@ else {
                 }
             }
         }
-        else if( column===Column.ACTION_SET ) {
+        else if( column===Column.ADD_DELETE_SET ) {
             if( this.rowLevel===RowLevel.MODULE || this.rowLevel===RowLevel.SET ) {
                 return !this.setName
                         ? (allowSets && this.module.allowSets
-                            ? CREATE_NEW_SET
+                            ? ADD_NEW_SET
                             : ''
                           )
                         : DELETE_THE_SET;
@@ -785,7 +785,7 @@ else {
         }
         columns.push( Column.CHECKED, Column.VALUE );
         if( allowSets || allowMultivaluedNonChoices || showingPerFolder() ) {
-            columns.push( Column.ACTION_SET );
+            columns.push( Column.ADD_DELETE_SET );
             columns.push( Column.NULL_UNDEFINE_DEFINITION );
         }
         return columns;
@@ -1130,7 +1130,7 @@ else {
                 }
                 if( column.value.element===treeColumnElements.action ) {
                     if( cellProperties==='' ) {
-                        if( cellText===CREATE_NEW_SET ) {
+                        if( cellText===ADD_NEW_SET ) {
                             var setName= window.prompt('Enter the new set name');
                             if( setName ) {
                                 module.createSet( setName );
@@ -1646,7 +1646,7 @@ else {
     */
     var allowSets= false;
     /** @var allowMultivaluedNonChoices bool Whether we allow multivalued non-choice (free text) fields.
-     *  If allowMultivaluedNonChoices or allowSets, then we show 'Action' column.
+     *  If allowMultivaluedNonChoices or allowSets, then we show 'Add/Delete' column.
      *  This will be set depending on the definition of module(s).
      */
     var allowMultivaluedNonChoices= false;
