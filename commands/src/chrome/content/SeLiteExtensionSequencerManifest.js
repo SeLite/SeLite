@@ -20,7 +20,7 @@ SeLiteExtensionSequencer.registerPlugin( {
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
         var settingsModule= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
         /** Max. time difference between the web app and the test. */
-        var maxTimeDifference= new SeLiteSettings.Field.Int('maxTimeDifference', /*multivalued:*/false, 0);
+        var maxTimeDifference= new SeLiteSettings.Field.Int('maxTimeDifference', /*multivalued:*/false, 0, false, "Max. acceptable time difference/clock variation between the tested system and Selenium (in milliseconds). This is for the global (UTC) clock - don't include timezone difference here." );
         settingsModule.addField( maxTimeDifference );
     }
 } );

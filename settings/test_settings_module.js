@@ -1,8 +1,8 @@
 "use strict";
 if( false ) {
     var appDB= new SeLiteSettings.Field.SQLite('appDB');
-    var testDB= new SeLiteSettings.Field.SQLite('testDB',  /*defaultKey*/undefined, /*allowNull*/false, /*customValidate*/undefined, /*saveFile*/true);
-    var vanillaDB= new SeLiteSettings.Field.SQLite('vanillaDB', /*defaultKey*/undefined, /*allowNull*/false, /*customValidate*/undefined, /*saveFile*/true );
+    var testDB= new SeLiteSettings.Field.SQLite('testDB',  /*defaultKey*/undefined, /*allowNull*/false, 'Test DB', /*customValidate*/undefined, /*saveFile*/true);
+    var vanillaDB= new SeLiteSettings.Field.SQLite('vanillaDB', /*defaultKey*/undefined, /*allowNull*/false, 'Vanilla DB', /*customValidate*/undefined, /*saveFile*/true );
     var appWebroot= new SeLiteSettings.Field.String('appWebroot', false, 'http://localhost/app');
     var maxNumberOfRuns= new SeLiteSettings.Field.Int('maxNumberOfRuns', false, 20);
 

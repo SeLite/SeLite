@@ -30,9 +30,11 @@ SeLiteExtensionSequencer.registerPlugin( {
                     ignored:"Ignore (no validation, don't show any confirmation popups)",
                     includeRevertedChanges:"Include reverted changes (validate confirmation, expect confirmation for reverted changes, don't show any confirmation popups)",
                     skipRevertedChanges:"Exclude reverted changes (validate confirmation, expect no confirmation for reverted changes, don't show any confirmation popups)"
-                }
+                },
+                false,
+                "How to handle exit confirmation popups."
         );
-        var exitConfirmationCheckerAssert= new SeLiteSettings.Field.Bool( 'exitConfirmationCheckerAssert', false, false );
+        var exitConfirmationCheckerAssert= new SeLiteSettings.Field.Bool( 'exitConfirmationCheckerAssert', false, false, "Whether exit confirmation popups should be checked as assert. Otherwise they're checked as validation only." );
         settingsModule.addFields( [exitConfirmationCheckerMode, exitConfirmationCheckerAssert] );
     }
     

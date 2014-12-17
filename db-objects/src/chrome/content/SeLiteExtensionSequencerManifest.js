@@ -27,7 +27,7 @@ SeLiteExtensionSequencer.registerPlugin( {
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
         var settingsModule= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
         /** SeLiteData.getStorageFromSettings() depends on name tablePrefix. */
-        var tablePrefix= new SeLiteSettings.Field.String( 'tablePrefix', /*multivalued:*/false, /*defaultKey*/'' );
+        var tablePrefix= new SeLiteSettings.Field.String( 'tablePrefix', /*multivalued:*/false, /*defaultKey*/'', false, "Prefix for names of all test database tables." );
         settingsModule.addField( tablePrefix );
     }
 } );

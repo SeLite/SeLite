@@ -1016,11 +1016,11 @@ else {
             }
             else {
                 // @TODO hints for 'True' and 'Default' and 'Value', Action and Null/Undefine
-                tooltip.label= field.name;
+                tooltip.label= field.description;
             }
             //tooltip.className= ''; // This has no effect. Once I set .className, it stays!
             //tooltip.setAttribute( 'style', "" ); // This, or .removeAttribute(), seems to have no effect after it was set.
-            //@TODO in per-folder mode, on mouseover for Set or Module/Definition, show a hint that it opens the target in a new tab.
+            //@TODO in per-folder mode, on mouseover for Set or Module/Definition, show a hint that it opens the target in a new tab. Maybe reuse existing tooltips, e.g. tooltipManifest
             return true;
         }
         else {
