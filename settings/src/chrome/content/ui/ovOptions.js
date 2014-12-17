@@ -542,7 +542,7 @@ else {
             && ( this.rowLevel!==RowLevel.FIELD || !isChoice )
             && ( this.rowLevel!==RowLevel.OPTION || !this.optionIsSelected || this.field.multivalued );
         }
-        if( isChoice ) {
+        if( this.field instanceof SeLiteSettings.Field.Bool || isChoice ) {
             return false;
         }
         if( column===Column.VALUE ) {
