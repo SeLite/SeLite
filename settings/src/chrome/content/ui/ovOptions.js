@@ -605,14 +605,15 @@ else {
         }
         else if( column===Column.ACTION_SET ) {
             if( showingPerFolder() && this.rowLevel===RowLevel.FIELD ) {
+                debugger;
                 if( this.valueCompound.fromPreferences ) {
                     return this.valueCompound.setName===this.module.getDefaultSetName()
                         ? SeLiteSettings.DEFAULT_SET
                         : SeLiteSettings.ASSOCIATED_SET;
                 }
                 else {
-                    return this.valueCompound.folderPath===null
-                        ? SeLiteSettings.VALUES_MANIFEST
+                    return this.valueCompound.folderPath!==null
+                        ? ''
                         : SeLiteSettings.FIELD_DEFAULT;
                 }
             }
@@ -628,7 +629,7 @@ else {
                                   ) + ' ' +this.valueCompound.folderPath
                                 : ''
                           )
-                        : SeLiteSettings.FIELD_DEFAULT // For the click handler
+                        : SeLiteSettings.FIELD_DEFAULT_LINK // For the click handler
                       )
                     : '';
             }
@@ -1008,7 +1009,15 @@ else {
         var module= modules[ propertiesPart( rowProperties, RowLevel.MODULE ) ];
         var field= module && module.fields[ propertiesPart( rowProperties, RowLevel.FIELD ) ];
         if( field ) {
-            tooltip.label= field.name;
+            if( showingPerFolder() && (column.value.element===treeColumnElements.action || column.value.element===treeColumnElements.manifest)) {
+                tooltip.label= column.value.element===treeColumnElements.action
+                    ? 'Edit the set (in a new tab)'
+                    : 'View the manifest or module definition (in a new tab)';
+            }
+            else {
+                // @TODO hints for 'True' and 'Default' and 'Value', Action and Null/Undefine
+                tooltip.label= field.name;
+            }
             //tooltip.className= ''; // This has no effect. Once I set .className, it stays!
             //tooltip.setAttribute( 'style', "" ); // This, or .removeAttribute(), seems to have no effect after it was set.
             //@TODO in per-folder mode, on mouseover for Set or Module/Definition, show a hint that it opens the target in a new tab.
@@ -1194,13 +1203,14 @@ else {
                             }
                         }
                     }
-                    else {
+                    else
+                    if( cellText!=='module default' ) {
                         window.open( '?module=' +escape(module.name)+ '&set=' +escape(cellText), '_blank');
                     }
                 }
                 if( column.value.element===treeColumnElements.manifest ) { // Manifest, or Null/Undefine
                     if( showingPerFolder() ) {
-                        if( cellProperties!==SeLiteSettings.FIELD_DEFAULT ) {
+                        if( cellProperties!==SeLiteSettings.FIELD_DEFAULT_LINK ) {
                             if( cellProperties.startsWith(SeLiteSettings.ASSOCIATED_SET) ) {
                                 var folder= cellProperties.substring( SeLiteSettings.ASSOCIATED_SET.length+1 );
                                 window.open( 'file://' +OS.Path.join(folder, SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME), '_blank' );
@@ -1211,8 +1221,7 @@ else {
                                 window.open( 'file://' +OS.Path.join(folder, SeLiteSettings.VALUES_MANIFEST_FILENAME), '_blank' );
                             }
                         }
-                        else
-                        if( cellProperties!=='' ) {
+                        else {
                             window.open( SeLiteSettings.fileNameToUrl(module.definitionJavascriptFile), '_blank' );
                         }
                     }

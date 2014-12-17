@@ -27,13 +27,13 @@ treechildren::-moz-tree-cell-text(SELITE_VALUES_MANIFEST) {
     color: brown;
 }
 
-treechildren::-moz-tree-cell-text(SELITE_FIELD_DEFAULT) { cursor: pointer}
 treechildren::-moz-tree-cell-text(SELITE_VALUES_MANIFEST) { cursor: pointer}
 treechildren::-moz-tree-cell-text(SELITE_DEFAULT_SET) { cursor: pointer}
 treechildren::-moz-tree-cell-text(SELITE_ASSOCIATED_SET) { cursor: pointer}
+treechildren::-moz-tree-cell-text(SELITE_FIELD_DEFAULT_LINK) { cursor: pointer}
 
-
-treechildren::-moz-tree-cell-text(SELITE_FIELD_DEFAULT) {
+treechildren::-moz-tree-cell-text(SELITE_FIELD_DEFAULT),
+treechildren::-moz-tree-cell-text(SELITE_FIELD_DEFAULT_LINK) {
     color: green;
     font-style: italic;
 }
