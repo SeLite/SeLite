@@ -1250,8 +1250,7 @@ else {
                                 if( field instanceof SeLiteSettings.Field.Bool && compound.entry ) {
                                     treeCell( fieldTreeRow(selectedSetName, field), Column.CHECKED ).setAttribute( 'value', 'false' );
                                 }
-                                if( !( !field.multivalued || !(field instanceof SeLiteSettings.Field.Choice) )) debugger;
-                                !field.multivalued || !(field instanceof SeLiteSettings.Field.Choice) || SeLiteMisc.fail('There should be no Null button for multivalued choices.' );
+                                !field.multivalued || !(field instanceof SeLiteSettings.Field.Choice) || cellText!=='Null' || SeLiteMisc.fail('There should be no Null button for multivalued choices.' );
                                 if( !field.multivalued && field instanceof SeLiteSettings.Field.Choice && compound.entry ) {
                                     var keys= Object.keys(compound.entry);
                                     keys.length===1 || SeLiteMisc.fail();
