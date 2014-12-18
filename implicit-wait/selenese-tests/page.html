@@ -22,7 +22,7 @@ and open the template in the editor.
                     ? Number( location.search.substr(1) ) +1
                     : Date.now();
                 var url= 'page.html?' +nextQueryNumber;
-                document.write( '<a id="link" class="link-' +queryNumber+ '" href="' +url+ '">' +url+ '<a>. ' );
+                document.write( '<a id="link" class="link-' +nextQueryNumber+ '" href="' +url+ '">' +url+ '<a>. ' );
                 document.write( 'That page will have query number <span id="nextQueryNumber">' +nextQueryNumber+ '</span>. ')
                 document.write( 'The page after it (i.e. the page after the one linked to) will have query number ' +(nextQueryNumber+1)+ '.' );
                 //]]>
