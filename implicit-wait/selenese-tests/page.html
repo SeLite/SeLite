@@ -18,13 +18,13 @@ and open the template in the editor.
                 //<![CDATA[
                 "use strict";
                 // Generate a link based on the given number, increased by one. - Selenium script captures the link with that increased number and runs 'click' for it. That ensures every click has to wait for the server - and that lets us test Implicit Wait.
-                var queryNumber= location.search.length>0
+                var nextQueryNumber= location.search.length>0
                     ? Number( location.search.substr(1) ) +1
                     : Date.now();
-                var url= 'page.html?' +queryNumber;
+                var url= 'page.html?' +nextQueryNumber;
                 document.write( '<a id="link" class="link-' +queryNumber+ '" href="' +url+ '">' +url+ '<a>. ' );
-                document.write( 'That page will have query number <span id="queryNumber">' +queryNumber+ '</span>. ')
-                document.write( 'The page after it (i.e. the page after the one linked to) will have query number ' +(queryNumber+1)+ '.' );
+                document.write( 'That page will have query number <span id="nextQueryNumber">' +nextQueryNumber+ '</span>. ')
+                document.write( 'The page after it (i.e. the page after the one linked to) will have query number ' +(nextQueryNumber+1)+ '.' );
                 //]]>
             </script>
         </div>
