@@ -181,8 +181,6 @@ else {
     var RowLevel= function RowLevel( name, level ) {
         RowLevelOrColumn.call( this, name, level );
     };
-    //var unproxyfiedRowLevel= RowLevel;
-    //RowLevel.prototype= new RowLevelOrColumn( '', -1 );
     RowLevel.prototype= Object.create(RowLevelOrColumn.prototype);
     RowLevel.prototype.constructor= RowLevel;
     RowLevel= SeLiteMisc.proxyVerifyFields( RowLevel );

@@ -282,7 +282,7 @@ SeLiteSettings.Field.NonChoice= function NonChoice( name, multivalued, defaultKe
     SeLiteSettings.Field.call( this, name, multivalued, defaultKey, allowNull, description, customValidate );
 };
 
-SeLiteSettings.Field.NonChoice.prototype= new SeLiteSettings.Field('NonChoice.prototype');
+SeLiteSettings.Field.NonChoice.prototype= Object.create( SeLiteSettings.Field.prototype );
 SeLiteSettings.Field.NonChoice.prototype.constructor= SeLiteSettings.Field.NonChoice;
 
 SeLiteSettings.Field.NonChoice.prototype.customValidateDefault= function customValidateDefault( key ) {
@@ -483,7 +483,7 @@ SeLiteSettings.Field.prototype.getDownToFolder= function getDownToFolder( folder
 SeLiteSettings.Field.Bool= function Bool( name, defaultKey, allowNull, description ) {
     SeLiteSettings.Field.NonChoice.call( this, name, false, defaultKey, allowNull, description );
 };
-SeLiteSettings.Field.Bool.prototype= new SeLiteSettings.Field.NonChoice('Bool.prototype');
+SeLiteSettings.Field.Bool.prototype= Object.create( SeLiteSettings.Field.NonChoice.prototype );
 SeLiteSettings.Field.Bool.prototype.constructor= SeLiteSettings.Field.Bool;
 SeLiteSettings.Field.Bool.prototype.parse= function parse( key ) {
     return key==='true'; // Do not use Boolean(key), because Boolean('false')===true!
@@ -498,7 +498,7 @@ SeLiteSettings.Field.Bool.prototype.prefType= function prefType() {
 SeLiteSettings.Field.Int= function Int( name, multivalued, defaultKey, allowNull, description, customValidate ) {
     SeLiteSettings.Field.NonChoice.call( this, name, multivalued, defaultKey, allowNull, description, customValidate );
 };
-SeLiteSettings.Field.Int.prototype= new SeLiteSettings.Field.NonChoice('Int.prototype');
+SeLiteSettings.Field.Int.prototype= Object.create( SeLiteSettings.Field.NonChoice.prototype );
 SeLiteSettings.Field.Int.prototype.constructor= SeLiteSettings.Field.Int;
 SeLiteSettings.Field.Int.prototype.trim= function trim( key ) { return key.trim(); };
 SeLiteSettings.Field.Int.prototype.parse= function parse( key ) {
@@ -522,7 +522,7 @@ SeLiteSettings.Field.Int.prototype.compareValues= function compareValues( firstV
 SeLiteSettings.Field.Decimal= function Decimal( name, multivalued, defaultKey, allowNull, description, customValidate ) {
     SeLiteSettings.Field.NonChoice.call( this, name, multivalued, defaultKey, allowNull, description, customValidate );
 };
-SeLiteSettings.Field.Decimal.prototype= new SeLiteSettings.Field.NonChoice('Decimal.prototype');
+SeLiteSettings.Field.Decimal.prototype= Object.create( SeLiteSettings.Field.NonChoice.prototype );
 SeLiteSettings.Field.Decimal.prototype.constructor= SeLiteSettings.Field.Decimal;
 SeLiteSettings.Field.Decimal.prototype.trim= SeLiteSettings.Field.Int.prototype.trim;
 SeLiteSettings.Field.Decimal.prototype.parse= SeLiteSettings.Field.Int.prototype.parse;
@@ -542,7 +542,7 @@ SeLiteSettings.Field.Decimal.prototype.compareValues= function compareValues( fi
 SeLiteSettings.Field.String= function String( name, multivalued, defaultKey, allowNull, description, customValidate ) {
     SeLiteSettings.Field.NonChoice.call( this, name, multivalued, defaultKey, allowNull, description, customValidate );
 };
-SeLiteSettings.Field.String.prototype= new SeLiteSettings.Field.NonChoice('String.prototype');
+SeLiteSettings.Field.String.prototype= Object.create( SeLiteSettings.Field.NonChoice.prototype );
 SeLiteSettings.Field.String.prototype.constructor= SeLiteSettings.Field.String;
 
 /** @param string name
@@ -565,7 +565,7 @@ SeLiteSettings.Field.FileOrFolder= function FileOrFolder( name, filters, multiva
     this.saveFile= saveFile || false;
     SeLiteMisc.ensureType( this.saveFile, 'boolean', "saveFile (if provided)" );
 }
-SeLiteSettings.Field.FileOrFolder.prototype= new SeLiteSettings.Field.NonChoice('FileOrFolder.prototype');
+SeLiteSettings.Field.FileOrFolder.prototype= Object.create( SeLiteSettings.Field.NonChoice.prototype );
 SeLiteSettings.Field.FileOrFolder.prototype.constructor= SeLiteSettings.Field.FileOrFolder;
 
 SeLiteSettings.Field.FileOrFolder.prototype.parentEquals= SeLiteSettings.Field.prototype.equals;
@@ -586,7 +586,7 @@ SeLiteSettings.Field.FileOrFolder.prototype.equals= function equals( other ) {
 SeLiteSettings.Field.File= function File( name, filters, multivalued, defaultKey, allowNull, description, customValidate, saveFile ) {
     SeLiteSettings.Field.FileOrFolder.call( this, name, filters, multivalued, defaultKey, false, allowNull, description, customValidate, saveFile );
 };
-SeLiteSettings.Field.File.prototype= new SeLiteSettings.Field.FileOrFolder('File.prototype');
+SeLiteSettings.Field.File.prototype= Object.create( SeLiteSettings.Field.FileOrFolder.prototype );
 SeLiteSettings.Field.File.prototype.constructor= SeLiteSettings.Field.File;
 
 /** @param string name
@@ -595,7 +595,7 @@ SeLiteSettings.Field.File.prototype.constructor= SeLiteSettings.Field.File;
 SeLiteSettings.Field.Folder= function Folder( name, filters, multivalued, defaultKey, allowNull, description, customValidate ) {
     SeLiteSettings.Field.FileOrFolder.call( this, name, filters, multivalued, defaultKey, true, allowNull, description, customValidate, false );
 };
-SeLiteSettings.Field.Folder.prototype= new SeLiteSettings.Field.FileOrFolder('Folder.prototype');
+SeLiteSettings.Field.Folder.prototype= Object.create( SeLiteSettings.Field.FileOrFolder.prototype );
 SeLiteSettings.Field.Folder.prototype.constructor= SeLiteSettings.Field.Folder;
 
 /** It can only be single-valued. An SQLite DB cannot span across multiple files (or if it can, I'm not supporting that).
@@ -604,7 +604,7 @@ SeLiteSettings.Field.SQLite= function SQLite( name, defaultKey, allowNull, descr
     // I match '*.sqlite*' rather than just '*.sqlite', because Drupal 7 adds DB prefix name to the end of the file name
     SeLiteSettings.Field.File.call( this, name, { 'SQLite': '*.sqlite*', 'Any': null}, false, defaultKey, allowNull, description, customValidate, saveFile );
 };
-SeLiteSettings.Field.SQLite.prototype= new SeLiteSettings.Field.File('SQLite.prototype', {}, false, '' );
+SeLiteSettings.Field.SQLite.prototype= Object.create( SeLiteSettings.Field.File.prototype );
 SeLiteSettings.Field.SQLite.prototype.constructor= SeLiteSettings.Field.SQLite;
 
 /** @param defaultKey It's actually a key, not the visible integer/string value.
@@ -641,7 +641,7 @@ SeLiteSettings.Field.Choice= function Choice( name, multivalued, defaultKey, cho
         }
     }
 };
-SeLiteSettings.Field.Choice.prototype= new SeLiteSettings.Field('Choice.prototype');
+SeLiteSettings.Field.Choice.prototype= Object.create( SeLiteSettings.Field.prototype );
 SeLiteSettings.Field.Choice.prototype.constructor= SeLiteSettings.Field.Choice;
 SeLiteSettings.Field.Choice.prototype.compareValues= function compareValues() {
     throw new Error( 'Do not use SeLiteSettings.Field.Choice.compareValues(). Sort choicePairs yourself.');
@@ -669,7 +669,7 @@ SeLiteSettings.Field.Choice.prototype.validateValue= function validateValue( val
 SeLiteSettings.Field.Choice.Int= function Int( name, multivalued, defaultKey, choicePairs, allowNull, description, customValidate ) {
     SeLiteSettings.Field.Choice.call( this, name, multivalued, defaultKey, choicePairs, allowNull, description, customValidate );
 };
-SeLiteSettings.Field.Choice.Int.prototype= new SeLiteSettings.Field.Choice('ChoiceInt.prototype');
+SeLiteSettings.Field.Choice.Int.prototype= Object.create( SeLiteSettings.Field.Choice.prototype );
 SeLiteSettings.Field.Choice.Int.prototype.constructor= SeLiteSettings.Field.Choice.Int;
 SeLiteSettings.Field.Choice.Int.prototype.parse= SeLiteSettings.Field.Int.prototype.parse;
 SeLiteSettings.Field.Choice.Int.prototype.prefType= SeLiteSettings.Field.Int.prototype.prefType;
@@ -680,7 +680,7 @@ SeLiteSettings.Field.Choice.Int.prototype.validateValue= function validateValue(
 SeLiteSettings.Field.Choice.Decimal= function Decimal( name, multivalued, defaultKey, choicePairs, allowNull, description, customValidate ) {
     SeLiteSettings.Field.Choice.call( this, name, multivalued, defaultKey, choicePairs, allowNull, description, customValidate );
 };
-SeLiteSettings.Field.Choice.Decimal.prototype= new SeLiteSettings.Field.Choice('ChoiceDecimal.prototype');
+SeLiteSettings.Field.Choice.Decimal.prototype= Object.create( SeLiteSettings.Field.Choice.prototype );
 SeLiteSettings.Field.Choice.Decimal.prototype.constructor= SeLiteSettings.Field.Choice.Decimal;
 SeLiteSettings.Field.Choice.Decimal.prototype.parse= SeLiteSettings.Field.Decimal.prototype.parse;
 SeLiteSettings.Field.Choice.Decimal.prototype.prefType= SeLiteSettings.Field.Decimal.prototype.prefType;
@@ -700,7 +700,7 @@ SeLiteSettings.Field.Choice.String= function String( name, multivalued, defaultK
         }
     }
 };
-SeLiteSettings.Field.Choice.String.prototype= new SeLiteSettings.Field.Choice('ChoiceString.prototype');
+SeLiteSettings.Field.Choice.String.prototype= Object.create( SeLiteSettings.Field.Choice.prototype );
 SeLiteSettings.Field.Choice.String.prototype.constructor= SeLiteSettings.Field.Choice.String;
 
 /** This represents a freetype map with a fixed keyset. This is an abstract class, serving as a parent.
@@ -734,7 +734,7 @@ SeLiteSettings.Field.FixedMap= function FixedMap( name, keySet, defaultMappings,
         }
     }
 };
-SeLiteSettings.Field.FixedMap.prototype= new SeLiteSettings.Field.NonChoice('FixedMap.prototype');
+SeLiteSettings.Field.FixedMap.prototype= Object.create( SeLiteSettings.Field.NonChoice.prototype );
 SeLiteSettings.Field.FixedMap.prototype.constructor= SeLiteSettings.Field.FixedMap;
 /** Add a key to an existing field 'on the fly'. All such added keys will be re-added when you call SeLiteSettings.loadFromJavascript( moduleName, moduleFileOrUrl, forceReload ) with forceReload=true (but the source code/definition of those added keys won't be re-read automatically). Do not call this from the file that defines this configuration module, otherwise this addKey() fails if the file is re-loaded.
  *  @param {(string|number)} key
@@ -781,7 +781,7 @@ SeLiteSettings.Field.FixedMap.prototype.addKeys= function addKeys( keys, dontReR
 SeLiteSettings.Field.FixedMap.String= function String( name, keySet, defaultMappings, description, customValidate ) {
     SeLiteSettings.Field.FixedMap.call( this, name, keySet, defaultMappings, description, customValidate );
 };
-SeLiteSettings.Field.FixedMap.String.prototype= new SeLiteSettings.Field.FixedMap('FixedMapString.prototype', [], {});
+SeLiteSettings.Field.FixedMap.String.prototype= Object.create( SeLiteSettings.Field.FixedMap.prototype );
 SeLiteSettings.Field.FixedMap.String.prototype.constructor= SeLiteSettings.Field.FixedMap.String;
 
 /** @constructor It loads to memory and then inserts/updates what should be preserved in the test DB when it gets reloaded.
@@ -833,7 +833,7 @@ SeLiteSettings.TestDbKeeper.Columns= function Columns( description ) {
     this.data= {};
 };
 
-SeLiteSettings.TestDbKeeper.Columns.prototype= new SeLiteSettings.TestDbKeeper();
+SeLiteSettings.TestDbKeeper.Columns.prototype= Object.create( SeLiteSettings.TestDbKeeper.prototype );
 SeLiteSettings.TestDbKeeper.Columns.prototype.constructor= SeLiteSettings.TestDbKeeper.Columns;
 
 /**  @param {SeLiteData.Storage} testStorage

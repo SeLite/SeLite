@@ -1797,7 +1797,7 @@ SeLiteMisc.unescape_xml= function unescape_xml( param ) {
  *  Any later changes to prototype object won't be reflected. To inherit from this class
  *  - the subclass constructor should: SeLiteMisc.PrototypedObject.call( this, prototype );
  *  - after defining the subclass constructor (e.g. MyClass) set:
- *  -- MyClass.prototype= new ParentClass(); // or: new SeLiteMisc.PrototypedObject() for 1st level children
+ *  -- MyClass.prototype= Object.create( ParentClass.prototype ); // or: Object.create( SeLiteMisc.PrototypedObject.prototype ) for 1st level children
  *  -- MyClass.prototype.constructor= MyClass;
  *  See https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
  *  and also https://developer.mozilla.org/en/JavaScript/Guide/Inheritance_Revisited

@@ -610,7 +610,7 @@ function StorageFromSettings( dbField, tablePrefixField ) {
     // I don't call this.open() here, because the test suite folder may not be known yet - and it can override any default configuration set
 }
 
-StorageFromSettings.prototype= new SeLiteData.Storage();
+StorageFromSettings.prototype= Object.create( SeLiteData.Storage.prototype );
 StorageFromSettings.prototype.constructor= StorageFromSettings;
 
 /** @private Object serving as an associative array {

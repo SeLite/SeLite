@@ -176,7 +176,7 @@ function RecordHolder( recordSetHolderOrFormula, plainRecord ) {
         this.setOriginalAndWatchEntries();
     }
 }
-RecordHolder.prototype= new RecordOrSetHolder();
+RecordHolder.prototype= Object.create( RecordOrSetHolder.prototype );
 RecordHolder.prototype.constructor= RecordHolder;
 
 /*** Constructor used for object that represents a record in a DB.
@@ -636,7 +636,7 @@ function RecordSetHolder( formula, parametersOrCondition ) {
     this.recordSet= new SeLiteData.RecordSet( this );
     this.originals= {}; // This will be set to object { primary-key-value: original object... }
 }
-RecordSetHolder.prototype= new RecordOrSetHolder();
+RecordSetHolder.prototype= Object.create( RecordOrSetHolder.prototype );
 RecordSetHolder.prototype.constructor= RecordSetHolder;
 
 RecordSetHolder.prototype.storage= function storage() {

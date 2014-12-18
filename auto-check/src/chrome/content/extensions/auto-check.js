@@ -133,7 +133,7 @@ var SeLiteAutoCheck= {};
     SeLiteAutoCheck.DetectorPHP= function DetectorPHP( required, refused, ignored, assert ) {
         SeLiteAutoCheck.Detector.call( this, required, refused, ignored, assert );
     };
-    SeLiteAutoCheck.DetectorPHP.prototype= new SeLiteAutoCheck.Detector();
+    SeLiteAutoCheck.DetectorPHP.prototype= Object.create( SeLiteAutoCheck.Detector.prototype );
     SeLiteAutoCheck.DetectorPHP.prototype.constructor= SeLiteAutoCheck.DetectorPHP;
 
     SeLiteAutoCheck.DetectorPHP.prototype.failedNotIgnored= function failedNotIgnored( document ) {
