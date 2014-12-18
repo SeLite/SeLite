@@ -15,7 +15,18 @@ and open the template in the editor.
             When testing, access this online at https://selite.googlecode.com/git/implicit-wait/selenese-tests/page.html.
         </div>
         <div>
-            View <a id="link" href="#" onclick="this.href='page.html?' +Date.now();">this file reloaded</a>
+            View this file reloaded at
+            <script type="text/javascript">
+                //<![CDATA[
+                "use strict";
+                // Generate a link based on the given number, increased by one. - Selenium script captures the link with that increased number and runs 'click' for it. That ensures every click has to wait for the server - and that lets us test Implicit Wait.
+                var query= location.search.length>0
+                    ? Number( location.search.substr(1) ) +1
+                    : '' +Date.now();
+                var url= 'page.html?' +query;
+                document.write( '<a id="link" href="' +url+ '">' +url+ '<a>' );
+                //]]>
+            </script>
         </div>
     </body>
 </html>
