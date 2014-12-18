@@ -259,14 +259,12 @@ SeLiteSettings.Field= function Field( name, multivalued, defaultKey, allowNull, 
         }
     }    
     
-    if( !this.name.endsWith('.prototype') ) {
-        if( this.constructor===SeLiteSettings.Field ) {
-            throw new Error( "Can't instantiate SeLiteSettings.Field directly, except for prototype instances. name: " +this.name );
-        }
-        SeLiteMisc.ensureInstance(this, 
-            [SeLiteSettings.Field.Bool, SeLiteSettings.Field.Int, SeLiteSettings.Field.Decimal, SeLiteSettings.Field.String, SeLiteSettings.Field.File, SeLiteSettings.Field.Folder, SeLiteSettings.Field.SQLite, SeLiteSettings.Field.Choice.Int, SeLiteSettings.Field.Choice.Decimal, SeLiteSettings.Field.Choice.String, SeLiteSettings.Field.FixedMap.String],
-            "Instance being created, of non-standard direct subclass of SeLiteSettings.Field, with name '" +this.name );
+    if( this.constructor===SeLiteSettings.Field ) {
+        throw new Error( "Can't instantiate SeLiteSettings.Field directly (name: " +this.name+ ').' );
     }
+    SeLiteMisc.ensureInstance(this, 
+        [SeLiteSettings.Field.Bool, SeLiteSettings.Field.Int, SeLiteSettings.Field.Decimal, SeLiteSettings.Field.String, SeLiteSettings.Field.File, SeLiteSettings.Field.Folder, SeLiteSettings.Field.SQLite, SeLiteSettings.Field.Choice.Int, SeLiteSettings.Field.Choice.Decimal, SeLiteSettings.Field.Choice.String, SeLiteSettings.Field.FixedMap.String],
+        "Instance being created, of non-standard direct subclass of SeLiteSettings.Field, with name '" +this.name );
     loadingPackageDefinition || this.name.indexOf('.')<0 || SeLiteMisc.fail( 'SeLiteSettings.Field() expects name not to contain a dot, but it received: ' +this.name);
     this.module= null; // instance of Module that this belongs to (once registered)
 };
