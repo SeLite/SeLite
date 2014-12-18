@@ -1636,7 +1636,6 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
                     // Handle multivalued fields or Field.Choice, or undeclared multivalued fields
                     if( field && (field.multivalued || field instanceof SeLiteSettings.Field.Choice) || !field && result[manifest.fieldName] && result[manifest.fieldName].folderPath===manifestFolder ) {
                         // If the field has any values from higher folders, forget them. The field may already have values from this same folder from the previous iterations - keep those.
-                        if( !('folderPath' in result[manifest.fieldName])) debugger;
                         if( result[manifest.fieldName].folderPath!==manifestFolder ) {
                             // We list options for Field.Choice in the order of their definition. Entries of (other) multi-valued entries fields are sorted as in the field definition:
                             result[ manifest.fieldName ].entry= field && !(field instanceof SeLiteSettings.Field.Choice)

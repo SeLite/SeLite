@@ -221,7 +221,7 @@ else {
         defaultSet: null,
         checked: null,
         value: null,
-        action: null, // This is 'Set' in folder-based view
+        addDelete: null, // This is Set' in folder-based view
         manifest: null
     };
 
@@ -312,7 +312,7 @@ else {
             splitter.setAttribute( 'ordinal', '8');
             treecols.appendChild( splitter );
 
-            treecol= treeColumnElements.action= window.document.createElementNS( XUL_NS, 'treecol');
+            treecol= treeColumnElements.addDelete= window.document.createElementNS( XUL_NS, 'treecol');
             treecol.setAttribute('label', perFolder
                 ? 'Set'
                 : 'Add/Delete');
@@ -605,7 +605,6 @@ else {
         }
         else if( column===Column.ADD_DELETE_SET ) {
             if( showingPerFolder() && this.rowLevel===RowLevel.FIELD ) {
-                debugger;
                 if( this.valueCompound.fromPreferences ) {
                     return this.valueCompound.setName===this.module.getDefaultSetName()
                         ? SeLiteSettings.DEFAULT_SET
@@ -795,7 +794,7 @@ else {
      *  @param {object} Object for &lt;treerow&gt; element.
      *  @param {boolean} createCells Whether to create the cells.
      * */
-    RowInfo.prototype.setAllCellDetails= function updateAllCellDetails( treerow, createCells ) {
+    RowInfo.prototype.setAllCellDetails= function setAllCellDetails( treerow, createCells ) {
         var columns= applicableColumns();
         for( var i=0; i<columns.length; i++ ) { //@TODO low: for(..of..)
             var treecell= createCells
@@ -1009,8 +1008,8 @@ else {
         var module= modules[ propertiesPart( rowProperties, RowLevel.MODULE ) ];
         var field= module && module.fields[ propertiesPart( rowProperties, RowLevel.FIELD ) ];
         if( field ) {
-            if( showingPerFolder() && (column.value.element===treeColumnElements.action || column.value.element===treeColumnElements.manifest)) {
-                tooltip.label= column.value.element===treeColumnElements.action
+            if( showingPerFolder() && (column.value.element===treeColumnElements.addDelete || column.value.element===treeColumnElements.manifest)) {
+                tooltip.label= column.value.element===treeColumnElements.addDelete
                     ? 'Edit the set (in a new tab)'
                     : 'View the manifest or module definition (in a new tab)';
             }
@@ -1128,7 +1127,7 @@ else {
                         }
                     }
                 }
-                if( column.value.element===treeColumnElements.action ) {
+                if( column.value.element===treeColumnElements.addDelete ) {
                     if( cellProperties==='' ) {
                         if( cellText===ADD_NEW_SET ) {
                             var setName= window.prompt('Enter the new set name');
@@ -1193,7 +1192,7 @@ else {
                                     tree.startEditing( row.value+1, treeColumn(treeColumnElements.value) );
                                 }
                             }
-                            if( cellText===DELETE_THE_VALUE ) {
+                            else {
                                 var clickedTreeRow= moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ]; // same as above
                                 delete moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ];
                                 treeChildren.removeChild( clickedTreeRow.parentNode );
@@ -1251,6 +1250,7 @@ else {
                                 if( field instanceof SeLiteSettings.Field.Bool && compound.entry ) {
                                     treeCell( fieldTreeRow(selectedSetName, field), Column.CHECKED ).setAttribute( 'value', 'false' );
                                 }
+                                if( !( !field.multivalued || !(field instanceof SeLiteSettings.Field.Choice) )) debugger;
                                 !field.multivalued || !(field instanceof SeLiteSettings.Field.Choice) || SeLiteMisc.fail('There should be no Null button for multivalued choices.' );
                                 if( !field.multivalued && field instanceof SeLiteSettings.Field.Choice && compound.entry ) {
                                     var keys= Object.keys(compound.entry);
@@ -1267,8 +1267,8 @@ else {
             }
             if( modifiedPreferences ) {
                 SeLiteSettings.savePrefFile();
-
-                if( column.value.element!==treeColumnElements.defaultSet && cellText!==DELETE_THE_VALUE ) {
+                // Reload the preferences into my structures, unless the user only selected the default set:
+                if( column.value.element!==treeColumnElements.defaultSet ) {
                     moduleSetFields[moduleName][selectedSetName]= module.getFieldsOfSet( selectedSetName, true );
 
                     //var fieldRow= fieldTreeRow(selectedSetName, field);
@@ -1278,7 +1278,7 @@ else {
                     var fieldRowInfo= new RowInfo( module, selectedSetName, RowLevel.FIELD, field, clickedOptionKey, valueCompound(field, selectedSetName) );
                     fieldRowInfo.setAllCellDetails( fieldTreeRow(selectedSetName, field) );
 
-                    if( clickedOptionKey && (field.multivalued || field instanceof SeLiteSettings.Field.Choice) ) {
+                    if( cellText!==DELETE_THE_VALUE && clickedOptionKey && (field.multivalued || field instanceof SeLiteSettings.Field.Choice) ) {
                         var optionRowInfo= new RowInfo( module, selectedSetName, RowLevel.OPTION, field, clickedOptionKey, valueCompound(field, selectedSetName) );
                         optionRowInfo.setAllCellDetails( moduleRowsOrChildren[selectedSetName][field.name][ clickedOptionKey ] );
                     }
