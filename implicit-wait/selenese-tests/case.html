@@ -27,11 +27,13 @@
 	<td>LOG.info( 'nextQueryNumber: ' +storedVars.nextQueryNumber )</td>
 	<td></td>
 </tr>
+<!--The following link is guaranteed to open a new, uncached page (unless your UTC clock is sick)-->
 <tr>
 	<td>click</td>
 	<td>css=a.link-`$nextQueryNumber`</td>
 	<td></td>
 </tr>
+<!--If ImplicitWait is off, then the following fails, since that link issues a server request-->
 <tr>
 	<td>click</td>
 	<td>css=a.link-`$nextQueryNumber+1`</td>
@@ -65,9 +67,40 @@
 	<td></td>
 </tr>
 <tr>
+	<td>storeEval</td>
+	<td>false</td>
+	<td>hasFailed</td>
+</tr>
+<tr>
+	<td>try</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
 	<td>call</td>
 	<td>captureAndFollowTwice</td>
 	<td></td>
+</tr>
+<tr>
+	<td>catch</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>true</td>
+	<td>hasFailed</td>
+</tr>
+<tr>
+	<td>endTry</td>
+	<td></td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>assertEval</td>
+	<td>storedVars.hasFailed</td>
+	<td>true</td>
 </tr>
 </tbody></table>
 </body>
