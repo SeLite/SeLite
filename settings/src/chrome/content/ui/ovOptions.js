@@ -536,11 +536,11 @@ else {
         if( column===Column.CHECKED ) {
             return !showingPerFolder()
             && (this.rowLevel===RowLevel.FIELD || this.rowLevel===RowLevel.OPTION)
-            && (this.field instanceof SeLiteSettings.Field.Bool || isChoice)
+            && (this.field instanceof SeLiteSettings.Field.Boolean || isChoice)
             && ( this.rowLevel!==RowLevel.FIELD || !isChoice )
             && ( this.rowLevel!==RowLevel.OPTION || !this.optionIsSelected || this.field.multivalued );
         }
-        if( this.field instanceof SeLiteSettings.Field.Bool || isChoice ) {
+        if( this.field instanceof SeLiteSettings.Field.Boolean || isChoice ) {
             return false;
         }
         if( column===Column.VALUE ) {
@@ -565,7 +565,7 @@ else {
             }
         }
         else if( column===Column.CHECKED ) {
-            if( this.field instanceof SeLiteSettings.Field.Bool ) {
+            if( this.field instanceof SeLiteSettings.Field.Boolean ) {
                 return ''+this.valueCompound.entry;
             }
             else if( this.rowLevel===RowLevel.OPTION && this.field instanceof SeLiteSettings.Field.Choice ) {
@@ -1069,7 +1069,7 @@ else {
                     var isSingleNonChoice= !(field.multivalued || field instanceof SeLiteSettings.Field.Choice);
 
                     if( isSingleNonChoice  ) {
-                        field instanceof SeLiteSettings.Field.Bool || SeLiteMisc.fail('field ' +field.name+ ' should be Field.Bool');
+                        field instanceof SeLiteSettings.Field.Boolean || SeLiteMisc.fail('field ' +field.name+ ' should be Field.Bool');
                         var clickedCell= treeCell( moduleRowsOrChildren[selectedSetName][field.name], Column.CHECKED );
                         field.setValue( selectedSetName, clickedCell.getAttribute( 'value')==='true' );
                         // I don't need to call updateSpecial() here - if the field was SeLiteSettings.NULL, then the above setValue() replaced that
@@ -1245,7 +1245,7 @@ else {
                                         ? null
                                         : undefined );
                                 var compound= valueCompound(field, selectedSetName);
-                                if( field instanceof SeLiteSettings.Field.Bool && compound.entry ) {
+                                if( field instanceof SeLiteSettings.Field.Boolean && compound.entry ) {
                                     treeCell( fieldTreeRow(selectedSetName, field), Column.CHECKED ).setAttribute( 'value', 'false' );
                                 }
                                 !field.multivalued || !(field instanceof SeLiteSettings.Field.Choice) || cellText!=='Null' || SeLiteMisc.fail('There should be no Null button for multivalued choices.' );

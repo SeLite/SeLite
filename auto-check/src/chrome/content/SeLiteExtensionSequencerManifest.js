@@ -30,7 +30,7 @@ SeLiteExtensionSequencer.registerPlugin( {
         var autoCheckDetector= new SeLiteSettings.Field.Choice.String('autoCheckDetector', false, undefined, {"SeLiteAutoCheck.DetectorPHP":"SeLiteAutoCheck.DetectorPHP"}, false, "Out-of-the-box detection logic." );
         var autoCheckDetectorCustom= new SeLiteSettings.Field.String( 'autoCheckDetectorCustom', false, undefined, false, "Name of a custom Javascript class that defines detection logic." );
         var autoCheckDetectorCustomURL= new SeLiteSettings.Field.String( 'autoCheckDetectorCustomURL', false, undefined, false );
-        var autoCheckAssert= new SeLiteSettings.Field.Bool( 'autoCheckAssert', false, false, "Whether to run the checks as assertions; otherwise they are run as validation only." );
+        var autoCheckAssert= new SeLiteSettings.Field.Boolean( 'autoCheckAssert', false, false, "Whether to run the checks as assertions; otherwise they are run as validation only." );
         var autoCheckRequired= new SeLiteSettings.Field.String( 'autoCheckRequired', true, [], false, "Entries matching any required contents. In default implementation an entry can be any Selenese locator." );
         var autoCheckRefused= new SeLiteSettings.Field.String( 'autoCheckRefused', true, [], false, "Entries matching any refused contents. In default implementation an entry can be any Selenese locator." );
         var autoCheckIgnored= new SeLiteSettings.Field.String( 'autoCheckIgnored', true, [], false, "Entries matching any ignored notices/warnings/errors. The detail on using these entries is up to the implementation of failedNotIgnored(document) in the actual subclass. In default implementation an entry can be any Selenese locator." );

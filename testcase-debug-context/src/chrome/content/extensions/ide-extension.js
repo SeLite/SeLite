@@ -47,7 +47,6 @@ editor.testLoopResume= function testLoopResume() {
 
     runner.updateStats(command.command);
     // end of code based on _executeCurrentCommand() - except for a few lines, which are handled in testLoopResumeExecuteAndHandleErrors() below
-    
     editor.testLoopResumeExecuteAndHandleErrors.call( this, command, handler );
 };
 

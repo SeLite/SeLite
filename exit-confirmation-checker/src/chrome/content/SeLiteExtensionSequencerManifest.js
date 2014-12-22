@@ -34,7 +34,7 @@ SeLiteExtensionSequencer.registerPlugin( {
                 false,
                 "How to handle exit confirmation popups."
         );
-        var exitConfirmationCheckerAssert= new SeLiteSettings.Field.Bool( 'exitConfirmationCheckerAssert', false, false, "Whether exit confirmation popups should be checked as assert. Otherwise they're checked as validation only." );
+        var exitConfirmationCheckerAssert= new SeLiteSettings.Field.Boolean( 'exitConfirmationCheckerAssert', false, false, "Whether exit confirmation popups should be checked as assert. Otherwise they're checked as validation only." );
         settingsModule.addFields( [exitConfirmationCheckerMode, exitConfirmationCheckerAssert] );
     }
     

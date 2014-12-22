@@ -18,7 +18,7 @@ if( false ) {
     var oneFolder= new SeLiteSettings.Field.Folder( 'oneFolder' );
     var files= new SeLiteSettings.Field.File( 'files', false, true, [] );
     var folders= new SeLiteSettings.Field.Folder( 'folders', false, true, [] );
-    var bool= new SeLiteSettings.Field.Bool('aBooleanField', false);
+    var bool= new SeLiteSettings.Field.Boolean('aBooleanField', false);
     var appWebroot= new SeLiteSettings.Field.String('appWebroot', false, 'http://localhost/app');
     var maxNumberOfRuns= new SeLiteSettings.Field.Int('maxNumberOfRuns', false, 20);
     var multiNumbers= new SeLiteSettings.Field.Int('multiNumbers', true, [8,9] );
@@ -46,7 +46,7 @@ module= new SeLiteSettings.Module( 'extensions.selite.test',
 /**/
 
 var mainDb2= new SeLiteSettings.Field.SQLite('mainDb2');
-var bool2= new SeLiteSettings.Field.Bool('aBooleanField2', false);
+var bool2= new SeLiteSettings.Field.Boolean('aBooleanField2', false);
 var appWebroot2= new SeLiteSettings.Field.String('appWebroot2', false, 'http://localhost/app');
 var maxNumberOfRuns2= new SeLiteSettings.Field.Int('maxNumberOfRuns2', false, 20);
 var multiNumbers= new SeLiteSettings.Field.Int('multiNumbers', true, [13,14]);
@@ -74,7 +74,7 @@ if( false ) {
     var oneFolder= new SeLiteSettings.Field.Folder( 'oneFolder' );
     var files= new SeLiteSettings.Field.File( 'files', false, true, [] );
     var folders= new SeLiteSettings.Field.Folder( 'folders', false, true, [] );
-    var bool= new SeLiteSettings.Field.Bool('bool', null);
+    var bool= new SeLiteSettings.Field.Boolean('bool', null);
     var appWebroot= new SeLiteSettings.Field.String('appWebroot', false, 'http://localhost/app');
     var maxNumberOfRuns= new SeLiteSettings.Field.Int('maxNumberOfRuns', false, 20);
     var singleNumber= new SeLiteSettings.Field.Int('singleNumber' );
@@ -101,7 +101,7 @@ if( false ) {
     var oneFolder= new SeLiteSettings.Field.Folder( 'oneFolder' );
     var files= new SeLiteSettings.Field.File( 'files', false, true, []);
     var folders= new SeLiteSettings.Field.Folder( 'folders', false, true, [] );
-    var bool= new SeLiteSettings.Field.Bool('bool', false);
+    var bool= new SeLiteSettings.Field.Boolean('bool', false);
     var appWebroot= new SeLiteSettings.Field.String('appWebroot', false, 'http://localhost/app');
     var maxNumberOfRuns= new SeLiteSettings.Field.Int('maxNumberOfRuns', false, 20);
     var multiNumbers= new SeLiteSettings.Field.Int('multiNumbers', true, []);

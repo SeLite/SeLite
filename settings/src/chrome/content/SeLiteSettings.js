@@ -263,7 +263,7 @@ SeLiteSettings.Field= function Field( name, multivalued, defaultKey, allowNull, 
         throw new Error( "Can't instantiate SeLiteSettings.Field directly (name: " +this.name+ ').' );
     }
     SeLiteMisc.ensureInstance(this, 
-        [SeLiteSettings.Field.Bool, SeLiteSettings.Field.Int, SeLiteSettings.Field.Decimal, SeLiteSettings.Field.String, SeLiteSettings.Field.File, SeLiteSettings.Field.Folder, SeLiteSettings.Field.SQLite, SeLiteSettings.Field.Choice.Int, SeLiteSettings.Field.Choice.Decimal, SeLiteSettings.Field.Choice.String, SeLiteSettings.Field.FixedMap.String],
+        [SeLiteSettings.Field.Boolean, SeLiteSettings.Field.Int, SeLiteSettings.Field.Decimal, SeLiteSettings.Field.String, SeLiteSettings.Field.File, SeLiteSettings.Field.Folder, SeLiteSettings.Field.SQLite, SeLiteSettings.Field.Choice.Int, SeLiteSettings.Field.Choice.Decimal, SeLiteSettings.Field.Choice.String, SeLiteSettings.Field.FixedMap.String],
         "Instance being created, of non-standard direct subclass of SeLiteSettings.Field, with name '" +this.name );
     loadingPackageDefinition || this.name.indexOf('.')<0 || SeLiteMisc.fail( 'SeLiteSettings.Field() expects name not to contain a dot, but it received: ' +this.name);
     this.module= null; // instance of Module that this belongs to (once registered)
@@ -478,18 +478,18 @@ SeLiteSettings.Field.prototype.getDownToFolder= function getDownToFolder( folder
 // @TODO Move this line to Javascript.wiki?: See also https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
 /** There's no parameter 'customValidate' for Bool.
  * */
-SeLiteSettings.Field.Bool= function Bool( name, defaultKey, allowNull, description ) {
+SeLiteSettings.Field.Boolean= function Bool( name, defaultKey, allowNull, description ) {
     SeLiteSettings.Field.NonChoice.call( this, name, false, defaultKey, allowNull, description );
 };
-SeLiteSettings.Field.Bool.prototype= Object.create( SeLiteSettings.Field.NonChoice.prototype );
-SeLiteSettings.Field.Bool.prototype.constructor= SeLiteSettings.Field.Bool;
-SeLiteSettings.Field.Bool.prototype.parse= function parse( key ) {
+SeLiteSettings.Field.Boolean.prototype= Object.create( SeLiteSettings.Field.NonChoice.prototype );
+SeLiteSettings.Field.Boolean.prototype.constructor= SeLiteSettings.Field.Boolean;
+SeLiteSettings.Field.Boolean.prototype.parse= function parse( key ) {
     return key==='true'; // Do not use Boolean(key), because Boolean('false')===true!
 }
-SeLiteSettings.Field.Bool.prototype.validateKey= function validateKey( key ) {
+SeLiteSettings.Field.Boolean.prototype.validateKey= function validateKey( key ) {
     return typeof key==='boolean';
 };
-SeLiteSettings.Field.Bool.prototype.prefType= function prefType() {
+SeLiteSettings.Field.Boolean.prototype.prefType= function prefType() {
     return nsIPrefBranch.PREF_BOOL;
 };
 
