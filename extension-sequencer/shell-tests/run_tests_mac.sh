@@ -131,12 +131,12 @@ run_against expected_outputs/blank.html 3 "highestApiRevision = apiRevision" "$1
 reset_versions
 setup_versions extension=train apiRevision=0.10
 setup_versions extension=journey highestApiRevision=0.05
-run_against expected_outputs/blank.html 4 "highestApiRevision < apiRevision" "$1" "$2"
+run_against expected_outputs/04_journey_low_highestApiRevision.html 4 "Train apiRevision > Journey highestApiRevision" "$1" "$2"
 
 reset_versions
 setup_versions extension=train apiRevision=0.05
 setup_versions extension=journey highestApiRevision=0.10
-run_against expected_outputs/05_train_low_apiRevision.html 5 "Journey highestApiRevision > Train apiRevision" "$1" "$2"
+run_against expected_outputs/blank.html 5 "Train apiRevision < Journey highestApiRevision" "$1" "$2"
 
 reset_versions
 setup_versions extension=journey preActivate=true
@@ -156,9 +156,9 @@ setup_versions extension=train highestApiRevision=0.12
 run_against expected_outputs/blank.html 9 "Rail apiRevision = Train highestApiRevision (even though it's higher than Rail version)" "$1" "$2"
 
 reset_versions
-setup_versions extension=rail apiRevision=0.11
-setup_versions extension=train highestApiRevision=0.13
-run_against expected_outputs/10_rail_low_apiRevision.html 10 "Rail apiRevision < Train highestApiRevision" "$1" "$2"
+setup_versions extension=rail apiRevision=0.13
+setup_versions extension=train highestApiRevision=0.10
+run_against expected_outputs/10_train_low_highestApiRevision.html 10 "Rail apiRevision > Train highestApiRevision" "$1" "$2"
 
 reset_versions
 setup_versions extension=rail version=0.14
