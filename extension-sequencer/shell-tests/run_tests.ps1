@@ -44,7 +44,7 @@ function change_or_comment_out( $extension, $field, $value='') {
 #change_or_comment_out 'journey' 'preActivate' 'true'
 #change_or_comment_out 'journey' 'preActivate'
 
-function setup_versions( $extension, $version='', $minVersion='', $compatibleVersion='', $oldestCompatibleVersion='', $preActivate='' ) {
+function setup_versions( $extension, $version='', $minVersion='', $highestApiRevision='', $apiRevision='', $preActivate='' ) {
     if( $extension -eq '' ) {
         echo Pass at least parameter/variable extension
         #exit
@@ -55,8 +55,8 @@ function setup_versions( $extension, $version='', $minVersion='', $compatibleVer
     }
     
     change_or_comment_out $extension 'minVersion' $minVersion
-    change_or_comment_out $extension 'compatibleVersion' $compatibleVersion
-    change_or_comment_out $extension 'oldestCompatibleVersion' $oldestCompatibleVersion
+    change_or_comment_out $extension 'highestApiRevision' $highestApiRevision
+    change_or_comment_out $extension 'apiRevision' $apiRevision
     change_or_comment_out $extension 'preActivate' $preActivate
 }
 
@@ -124,7 +124,7 @@ function run_against( $expectedOutput, $testNumber, $description ) {
 }
 
 # see tests.html
-# don't enclose minVersion, compatibleVersion, oldestCompatibleVersion in "..", since setup_versions() -> change_or_comment_out() does it
+# don't enclose minVersion, highestApiRevision, apiRevision in "..", since setup_versions() -> change_or_comment_out() does it
 
 function reset_versions() {
     #setup_versions 'rail' '0.10' '' '' '' ''
@@ -141,19 +141,19 @@ setup_versions -extension 'journey' -minVersion '0.10'
 run_against 'expected_outputs\02_train_low_version.html' 2 'Train low version. This test occasionally fails, so re-run on failure.'
 
 reset_versions
-setup_versions -extension 'train' -oldestCompatibleVersion '0.05'
-setup_versions -extension 'journey' -compatibleVersion '0.05'
-run_against 'expected_outputs\blank.html' 3 'compatibleVersion = oldestCompatibleVersion'
+setup_versions -extension 'train' -apiRevision '0.05'
+setup_versions -extension 'journey' -highestApiRevision '0.05'
+run_against 'expected_outputs\blank.html' 3 'highestApiRevision = apiRevision'
 
 reset_versions
-setup_versions -extension 'train' -oldestCompatibleVersion '0.10'
-setup_versions -extension 'journey' -compatibleVersion '0.05'
-run_against 'expected_outputs\blank.html' 4 'compatibleVersion < oldestCompatibleVersion'
+setup_versions -extension 'train' -apiRevision '0.10'
+setup_versions -extension 'journey' -highestApiRevision '0.05'
+run_against 'expected_outputs\blank.html' 4 'highestApiRevision < apiRevision'
 
 reset_versions
-setup_versions -extension 'train' -oldestCompatibleVersion '0.05'
-setup_versions -extension 'journey' -compatibleVersion '0.10'
-run_against 'expected_outputs\05_train_low_oldestCompatibleVersion.html' 5 'Journey compatibleVersion > Train oldestCompatibleVersion'
+setup_versions -extension 'train' -apiRevision '0.05'
+setup_versions -extension 'journey' -highestApiRevision '0.10'
+run_against 'expected_outputs\05_train_low_apiRevision.html' 5 'Journey highestApiRevision > Train apiRevision'
 
 reset_versions
 setup_versions -extension 'journey' -preActivate 'true'
@@ -168,14 +168,14 @@ setup_versions -extension 'rail' -preActivate 'true'
 run_against 'expected_outputs\08_rail_preActivate_fails.html' 8 'Rail preActivate fails'
 
 reset_versions
-setup_versions -extension 'rail' -oldestCompatibleVersion '0.12'
-setup_versions -extension 'train' -compatibleVersion '0.12'
-run_against 'expected_outputs\blank.html' 9 "Rail oldestCompatibleVersion = Train compatibleVersion (even though it's higher than Rail version)"
+setup_versions -extension 'rail' -apiRevision '0.12'
+setup_versions -extension 'train' -highestApiRevision '0.12'
+run_against 'expected_outputs\blank.html' 9 "Rail apiRevision = Train highestApiRevision (even though it's higher than Rail version)"
 
 reset_versions
-setup_versions -extension 'rail' -oldestCompatibleVersion '0.11'
-setup_versions -extension 'train' -compatibleVersion '0.13'
-run_against 'expected_outputs\10_rail_low_oldestCompatibleVersion.html' 10 "Rail oldestCompatibleVersion < Train compatibleVersion"
+setup_versions -extension 'rail' -apiRevision '0.11'
+setup_versions -extension 'train' -highestApiRevision '0.13'
+run_against 'expected_outputs\10_rail_low_apiRevision.html' 10 "Rail apiRevision < Train highestApiRevision"
 
 reset_versions
 setup_versions -extension 'rail' -version '0.14'

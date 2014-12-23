@@ -75,7 +75,7 @@ if( SeLiteMisc ) {
         xmlUrl: ['string', Array],////@TODO low: cleanup - for backwards compatibility only
         infoURL: 'string',
         downloadURL: 'string',
-        oldestCompatibleVersion: 'string',
+        apiRevision: 'string',
         requisitePlugins: 'object',
         optionalRequisitePlugins: 'object',
         nonSequencedRequisitePlugins: 'object',
@@ -95,7 +95,7 @@ if( SeLiteMisc ) {
  *      - if neither coreURL not ideURL are set, then this plugin is only registered for the purpose of being a dependency of other plugins, but it's not added via Selenium API class;
  *      infoURL: string, optional, the info URL of the add-on, e.g. https://addons.mozilla.org/en-US/firefox/addon/XXXX/.
  *      downloadURL: string, optional, the URL to get current and any recent versions, which may be needed by older plugins that depend on it. It should be a link to list (e.g. to https://addons.mozilla.org/en-US/firefox/addon/XXX/versions/) and not a direct link to an .xpi file. If not present and if infoURL is present and in format https://addons.mozilla.org/en-US/firefox/addon/XXX or https://addons.mozilla.org/firefox/addon/XXX, then this is auto-generated from it.
- *      oldestCompatibleVersion: string, optional, the oldest previous version of this plugin that this current version is compatible with; if present, then it's compared to compatibleVersion in an entry in requisitePlugins of its dependancy if present there. However, it doesn't get compared to minVersion (in requisitePlugins).
+ *      apiRevision: string, optional, set on dependancy side. See highestApiRevision. Not related to version of this add-ons, but as good practice when setting/modifying apiRevision set it to the addon's version (which is to be published). Then if apiRevision is lower than add-on's version, apiRevision would indicate the first version ever with that apiRevision.
  *      requisitePlugins: Object (optional) {
  *          string pluginId: string pluginName (for backwards compatiblity only), or
  *          string pluginId: {
@@ -103,7 +103,7 @@ if( SeLiteMisc ) {
  *              infoURL: string, required; optional only while this is backwards compatible
  *              downloadURL: string required; optional only while this is backwards compatible or if infoURL is at addons.mozilla.org,
  *              minVersion: string optional,
- *              compatibleVersion: string optional
+ *              highestApiRevision: string, optional, set on dependent side. Together with apiRevision it serves the reverse idea of minVersion. If both are specified, then highestApiRevision must not be higher than apiRevision. If highestApiRevision is set but apiRevision is not set, then they are deemed compatible. That is a fall-back/workaround if (for any reason) the authors of a dependancy decide so.
  *          }
  *      },
  *        of plugins that are required dependencies. Those are plugins that have to be loaded before given pluginId. All those plugins must be installed in Firefox and they must also call SeLiteExtensionSequencer.registerPlugin() - otherwise pluginId won't get loaded.
@@ -123,7 +123,7 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
             coreURL: SeLiteMisc.asArray( SeLiteMisc.field(prototype, 'coreURL') || SeLiteMisc.field(prototype, 'coreUrl') ),
             xmlURL: SeLiteMisc.asArray( SeLiteMisc.field(prototype, 'xmlURL') || SeLiteMisc.field(prototype, 'xmlUrl') ),
             ideURL: SeLiteMisc.asArray( SeLiteMisc.field(prototype, 'ideURL') || SeLiteMisc.field(prototype, 'ideUrl') ),
-            oldestCompatibleVersion: SeLiteMisc.field(prototype, 'oldestCompatibleVersion'),
+            apiRevision: SeLiteMisc.field(prototype, 'apiRevision'),
             infoURL: SeLiteMisc.field(prototype, 'infoURL'),
             downloadURL: SeLiteMisc.field(prototype, 'downloadURL') || infoURLtoDownloadURL( SeLiteMisc.field(prototype, 'infoURL') ),
             requisitePlugins: SeLiteMisc.field(prototype, 'requisitePlugins') || {},
@@ -140,7 +140,7 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
             coreURL: prototype.coreURL || prototype.coreUrl || [],
             xmlURL: prototype.xmlURL || prototype.xmlUrl || [],
             ideURL: prototype.ideURL || prototype.ideUrl || [],
-            oldestCompatibleVersion: prototype.oldestCompatibleVersion,
+            apiRevision: prototype.apiRevision,
             infoURL: prototype.infoURL,
             downloadURL: prototype.downloadURL || infoURLtoDownloadURL(prototype.infoURL),
             requisitePlugins: prototype.requisitePlugins || {},
@@ -211,7 +211,7 @@ function directRequisiteIncompatible( requisiteId, dependantId ) {
         return SeLiteExtensionSequencer.DIRECT_DEPENDANCY_TOO_OLD;
     }
     var requisiteInfo= SeLiteExtensionSequencer.pluginInfos[ requisiteId ];
-    if( dependancyInfo.compatibleVersion && requisiteInfo.oldestCompatibleVersion && versionComparator.compare(requisiteInfo.oldestCompatibleVersion, dependancyInfo.compatibleVersion)<0 ) {
+    if( dependancyInfo.highestApiRevision && requisiteInfo.apiRevision && versionComparator.compare(requisiteInfo.apiRevision, dependancyInfo.highestApiRevision)>0 ) {
         return SeLiteExtensionSequencer.DIRECT_DEPENDANCY_TOO_NEW;
     }
     return false;

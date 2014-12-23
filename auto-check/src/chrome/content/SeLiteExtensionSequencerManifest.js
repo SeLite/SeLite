@@ -8,7 +8,8 @@ SeLiteExtensionSequencer.registerPlugin( {
     requisitePlugins: {
         'misc@selite.googlecode.com': {
             name: 'SeLite Miscellaneous',
-            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-miscellaneous/'
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-miscellaneous/',
+            minVersion: '0.87'
         },
         'bootstrap@selite.googlecode.com': {
             name: 'SeLite Bootstrap',
@@ -21,7 +22,7 @@ SeLiteExtensionSequencer.registerPlugin( {
         'testcase-debug-context@selite.googlecode.com': {
             name: 'SeLite TestCase Debug Context',
             infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-testcase-debug-conte/',
-            compatibleVersion: '0.76'
+            minVersion: '0.76'
         }
     },
     preActivate: function(api) {

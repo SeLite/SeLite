@@ -10,7 +10,7 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 
 # decrease the version
 #sed -i '' -r 's/0\.[0-9]+/0.05/' install.rdf
-# uncomment/comment minVersion, compatibleVersion
+# uncomment/comment minVersion, highestApiRevision
 #sed -i '' -r "s/minVersion: '0\.[0-9]+'/minVersion: '0.05'/" SeLiteExtensionSequencerManifest.js
 #echo "<!-- 0.10 -->" | sed  "s/<!--\(.*\)-->/\1/"
 
@@ -46,11 +46,11 @@ function change_or_comment_out() {
 
 # (re)set:
 # - 'version' in of install.rdf and/or
-# - 'minVersion', 'compatibleVersion' and 'oldestCompatibleVersion' in SeLiteExtensionSequencerManifest.js. If any of those are not set, they will be commented out in SeLiteExtensionSequencerManifest.js.
+# - 'minVersion', 'highestApiRevision' and 'apiRevision' in SeLiteExtensionSequencerManifest.js. If any of those are not set, they will be commented out in SeLiteExtensionSequencerManifest.js.
 # - uncomment or comment out 'preActivate' in SeLiteExtensionSequencerManifest.js, depending on whether you set preActivate variable or not
 # Pass any of the above quoted words as variables (see calls below).
 # Pass variable 'extension', the folder name directly under extensions/ for the extension to be modified (the dependent extension).
-# Variables minVersion and compatibleVersion apply to all requisites - therefore use this only with extensions that have max. one direct requisite.
+# Variables minVersion and highestApiRevision apply to all requisites - therefore use this only with extensions that have max. one direct requisite.
 function setup_versions() {
     local from to    # reset first
     local "${@}"
@@ -65,8 +65,8 @@ function setup_versions() {
     fi
     
     change_or_comment_out extension=$extension field=minVersion value=$minVersion
-    change_or_comment_out extension=$extension field=compatibleVersion value=$compatibleVersion
-    change_or_comment_out extension=$extension field=oldestCompatibleVersion value=$oldestCompatibleVersion
+    change_or_comment_out extension=$extension field=highestApiRevision value=$highestApiRevision
+    change_or_comment_out extension=$extension field=apiRevision value=$apiRevision
     change_or_comment_out extension=$extension field=preActivate value=$preActivate
 }
 
@@ -108,7 +108,7 @@ function run_against {
 }
 
 # see tests.html
-# don't enclose minVersion, compatibleVersion, oldestCompatibleVersion in "..", since setup_versions() -> change_or_comment_out() does it
+# don't enclose minVersion, highestApiRevision, apiRevision in "..", since setup_versions() -> change_or_comment_out() does it
 
 function reset_versions() {
     setup_versions extension=rail version=0.10
@@ -124,19 +124,19 @@ setup_versions extension=journey minVersion=0.10
 run_against expected_outputs/02_train_low_version.html 2 "Train low version. This test occasionally fails, so re-run on failure." "$1" "$2"
 
 reset_versions
-setup_versions extension=train oldestCompatibleVersion=0.05
-setup_versions extension=journey compatibleVersion=0.05
-run_against expected_outputs/blank.html 3 "compatibleVersion = oldestCompatibleVersion" "$1" "$2"
+setup_versions extension=train apiRevision=0.05
+setup_versions extension=journey highestApiRevision=0.05
+run_against expected_outputs/blank.html 3 "highestApiRevision = apiRevision" "$1" "$2"
 
 reset_versions
-setup_versions extension=train oldestCompatibleVersion=0.10
-setup_versions extension=journey compatibleVersion=0.05
-run_against expected_outputs/blank.html 4 "compatibleVersion < oldestCompatibleVersion" "$1" "$2"
+setup_versions extension=train apiRevision=0.10
+setup_versions extension=journey highestApiRevision=0.05
+run_against expected_outputs/04_journey_low_highestApiRevision.html 4 "Train apiRevision > Journey highestApiRevision" "$1" "$2"
 
 reset_versions
-setup_versions extension=train oldestCompatibleVersion=0.05
-setup_versions extension=journey compatibleVersion=0.10
-run_against expected_outputs/05_train_low_oldestCompatibleVersion.html 5 "Journey compatibleVersion > Train oldestCompatibleVersion" "$1" "$2"
+setup_versions extension=train apiRevision=0.05
+setup_versions extension=journey highestApiRevision=0.10
+run_against expected_outputs/blank.html 5 "Train apiRevision < Journey highestApiRevision" "$1" "$2"
 
 reset_versions
 setup_versions extension=journey preActivate=true
@@ -151,14 +151,14 @@ setup_versions extension=rail preActivate=true
 run_against expected_outputs/08_rail_preActivate_fails.html 8 "Rail preActivate fails" "$1" "$2"
 
 reset_versions
-setup_versions extension=rail oldestCompatibleVersion=0.12
-setup_versions extension=train compatibleVersion=0.12
-run_against expected_outputs/blank.html 9 "Rail oldestCompatibleVersion = Train compatibleVersion (even though it's higher than Rail version)" "$1" "$2"
+setup_versions extension=rail apiRevision=0.12
+setup_versions extension=train highestApiRevision=0.12
+run_against expected_outputs/blank.html 9 "Rail apiRevision = Train highestApiRevision (even though it's higher than Rail version)" "$1" "$2"
 
 reset_versions
-setup_versions extension=rail oldestCompatibleVersion=0.11
-setup_versions extension=train compatibleVersion=0.13
-run_against expected_outputs/10_rail_low_oldestCompatibleVersion.html 10 "Rail oldestCompatibleVersion < Train compatibleVersion" "$1" "$2"
+setup_versions extension=rail apiRevision=0.13
+setup_versions extension=train highestApiRevision=0.10
+run_against expected_outputs/10_train_low_highestApiRevision.html 10 "Rail apiRevision > Train highestApiRevision" "$1" "$2"
 
 reset_versions
 setup_versions extension=rail version=0.14
