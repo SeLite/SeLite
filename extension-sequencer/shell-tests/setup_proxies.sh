@@ -54,3 +54,7 @@ cd ../train
 pwd >"$EXTENSION_FOLDER"/test-train@selite.googlecode.com
 cd ../journey
 pwd >"$EXTENSION_FOLDER"/test-journey@selite.googlecode.com
+
+echo Now starting firefox -P SeLiteExtensionSequencerTest. You may need to accept the test add-ons.
+
+$FIREFOX_BINARY -no-remote -CreateProfile SeLiteExtensionSequencerTest
