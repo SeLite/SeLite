@@ -1,7 +1,10 @@
 # This script is simplified just to run all tests. For full functionality (i.e. running a selected test etc.) use run_tests.sh on Unix.
+# You'll need to have Firefox on PATH.
 # You'll need to install Gecko Console Redirector as per https://developer.mozilla.org/en-US/docs/Mozilla/Command_Line_Options#-console. Put it on PATH.
+# If there's a Firefox popup for a short moment when this starts, then the popup disappears and running this stalls, SeLiteExtensionSequencerTest profile needs recovery. Stop Powershell. Kill Firefox using Windows Task Manager. Then start 'firefox -P SeLiteExtensionSequencerTest', open a new blank tab, close all other tabs and close Firefox. Then re-run this script.
 $script_dir = [System.IO.Directory]::GetCurrentDirectory()
-$script_dir= 'E:\selite\extension-sequencer\shell-tests'
+# If you can't run files in PowerShell ISE/Powershell because of local permissions but you can run scripts typed in PowerShell ISE, then open this file in a text editor, copy all this to clipboard, paste in PowerShell ISE and enable the following line.  
+#$script_dir= $env:userprofile +'\selite\extension-sequencer\shell-tests'
 cd $script_dir
 
 # get-content somefile.txt | where { $_ -match "expression"}
@@ -61,8 +64,9 @@ function setup_versions( $extension, $version='', $minVersion='', $highestApiRev
 }
 
 function run( $output, $outputSorted ) {
-    # For some reason Console Redirector needs a full path to firefox.exe, or it has to be in C:\Program Files (x86)\Mozilla Firefox\ - it doesn't use PATH.
-    & 'Console Redirector.exe' "E:\SW\Mozilla Firefox 32.0.3\firefox.exe" -P SeLiteExtensionSequencerTest -no-remote -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul?registerAndPreActivate 2>$null >$output
+    # For some reason Console Redirector needs a full path to firefox.exe, or it has to be in C:\Program Files (x86)\Mozilla Firefox\ - it doesn't use PATH. So I get path to firefox:
+    $firefoxPath= (where.exe firefox)
+    & 'Console Redirector.exe' $firefoxPath -P SeLiteExtensionSequencerTest -no-remote -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul?registerAndPreActivate 2>$null >$output
     
     # Different to run_tests.sh: I save the output from Mozilla and then I sort it via sort.exe. Only then I filter using Select-String. Filtering out before sorting works in powershell.exe when it runs a script. But when I filtered before sorting with piping on powershell side and I run the commands from an unsaved window in Windows PowerShell ISE, its piping split any lines longer than 172 characters into chunks...
     $outputSortedPartiallyFiltered= [System.IO.Path]::GetTempFileName()
