@@ -9,8 +9,8 @@ SeLiteExtensionSequencer.registerPlugin({
         'test-rail@selite.googlecode.com': {
             name: 'SeLite Test Rail',
             infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/dummy-test-rail/'
-            //,highestApiRevision: "0.13"
-            //,minVersion: 0.15
+            //,highestApiRevision: "0.10"
+            ,minVersion: "0.15"
         }
     }
     //,preActivate: function preActivate() { throw new Error("Intentional error in preActivate() of Train."); }

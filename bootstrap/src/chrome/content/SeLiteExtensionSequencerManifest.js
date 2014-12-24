@@ -19,7 +19,8 @@ SeLiteExtensionSequencer.registerPlugin( {
         },
         'testcase-debug-context@selite.googlecode.com': {
             name: 'SeLite TestCase Debug Context',
-            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-testcase-debug-conte/'
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-testcase-debug-conte/',
+            minVersion: '0.76'
         }
     },
     preActivate: function(api) {

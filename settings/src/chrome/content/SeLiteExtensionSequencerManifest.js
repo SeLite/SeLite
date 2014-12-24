@@ -10,7 +10,8 @@ SeLiteExtensionSequencer.registerPlugin({
     requisitePlugins: {
         'misc@selite.googlecode.com': {
             name: 'SeLite Miscellaneous',
-            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-miscellaneous/'
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-miscellaneous/',
+            minVersion: '0.87'
         }
     },
     preActivate: function(api) {

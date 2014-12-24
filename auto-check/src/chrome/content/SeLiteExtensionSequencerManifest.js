@@ -17,7 +17,8 @@ SeLiteExtensionSequencer.registerPlugin( {
         },
         'settings@selite.googlecode.com': {
             name: 'SeLite Settings',
-            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-settings/'
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-settings/',
+            minVersion: '0.49'
         },
         'testcase-debug-context@selite.googlecode.com': {
             name: 'SeLite TestCase Debug Context',
