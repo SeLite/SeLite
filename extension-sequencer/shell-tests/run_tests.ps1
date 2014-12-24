@@ -177,8 +177,8 @@ setup_versions -extension 'train' -highestApiRevision '0.12'
 run_against 'expected_outputs\blank.html' 9 "Rail apiRevision = Train highestApiRevision (even though it's higher than Rail version)"
 
 reset_versions
-setup_versions -extension 'rail' -apiRevision '0.11'
-setup_versions -extension 'train' -highestApiRevision '0.13'
+setup_versions -extension 'rail' -apiRevision '0.13'
+setup_versions -extension 'train' -highestApiRevision '0.10'
 run_against 'expected_outputs\10_train_low_highestApiRevision.html' 10 "Rail apiRevision > Train highestApiRevision"
 
 reset_versions
