@@ -793,8 +793,9 @@ RecordSetHolder.prototype.select= function select() {
             delete parameters[param];
         }
     }
-    var conditions= unnamedParamFilters; // @TODO use .slice() protective copy, once we factor the above into constructor
-    conditions.splice( 0, formula.fetchCondition, condition );
+    var conditions= unnamedParamFilters; // @TODO use unnamedParamFilters.slice() as a protective copy, once we factor the above into constructor
+    formula.fetchCondition===null || conditions.splice( 0, 0, formula.fetchCondition );
+    condition===null || conditions.splice( 0, 0, condition );
     var data= this.storage().getRecords( {
         table: formula.table.nameWithPrefix()+
             (formula.alias
