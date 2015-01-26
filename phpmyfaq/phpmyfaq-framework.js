@@ -92,4 +92,114 @@ if( phpMyFAQ===undefined ) {
         userlogin: phpMyFAQ.tables.userlogin.formula()
     };
     console.warn('phpMyFaq framework loaded');
+    
+    phpMyFAQ.uiMap= new UIMap();
+    
+    phpMyFAQ.uiMap.addPageset({
+        name: 'allPages',
+        description: 'all phpMyFAQ pages',
+        pathRegexp: '.*'
+    });
+    phpMyFAQ.uiMap.addElement('allPages', {
+        name: 'currentUserDropdown',
+        description: '<li> with menu for the currently logged in user (if any). For ordinary pages only, not for pages under "admin/".',
+        locator: '//a[ @class="dropdown-toggle" ]//b[ contains(@class, "caret") ]/preceding-sibling::span/../..',
+        testcase1: {
+            xhtml:
+            '<li class="dropdown">\
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">\
+                    <b class="fa fa-user"></b>\
+                    <span title="Logged in as pkehl">\
+                        Pete                    </span>\
+                    <b class="fa fa-caret-down"></b>\
+                </a>\
+                <ul class="dropdown-menu">\
+                    <li>...</li>\
+                </ul>\
+            </li>'
+        }
+    });
+
+    phpMyFAQ.uiMap.addPageset({
+        name: 'adminPages',
+        description: 'Admin pages of  phpMyFAQ',
+        pathRegexp: 'admin/'
+    });
+    phpMyFAQ.uiMap.addElement('adminPages', {
+        name: 'currentUserDropdown',
+        description: '<li> with menu for the currently logged in admin user; only for pages under "admin/".',
+        locator: '//a[ @class="dropdown-toggle" ]//b[ contains(@class, "fa-user") ]/following-sibling::span/../..',
+        testcase1: {
+            xhtml:
+            '<li class="dropdown">\
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">\
+                    <b class="fa fa-user"></b>\
+                    <span title="Logged in as louise">\
+                        Louise                    </span>\
+                    <b class="fa fa-caret-down"></b>\
+                </a>\
+                <ul class="dropdown-menu">\
+                    <li>\
+                        <a href="index.php?action=passwd">\
+                            <i class="fa fa-lock"></i> Change Password                        </a>\
+                    </li>\
+                    <li class="divider"></li>\
+                    <li>\
+                        <a href="index.php?action=logout">\
+                            <i class="fa fa-power-off"></i> Logout                        </a>\
+                    </li>\
+                </ul>\
+            </li>'
+        }
+    });
+    
+    /** Assumptions:
+     *  - top level items have URLs starting with 'index.php'
+     *  - second level items have URLs starting with '?action='
+     *  */
+    phpMyFAQ.uiMap.addElement('adminPages', {
+        name: 'topNavigation',
+        description: 'Top level navigation entry.',
+        getLocator: function(args) {
+            return '//ul[ @id="side-menu" ]/li/a[ @href="' +this._URLs[ args.section ]+ '" ]';
+        },
+        _URLs: {
+            Dashboard: 'index.php',
+            Users: 'index.php?action=user',
+            Content: 'index.php?action=content',
+            Statistics: 'index.php?action=statistics',
+            Exports: 'index.php?action=export',
+            Backup: 'index.php?action=backup',
+            Configuration: 'index.php?action=config'
+        }/*,
+        testcase1: {
+            xhtml:
+            '<li class="dropdown">\
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">\
+                    <b class="fa fa-user"></b>\
+                    <span title="Logged in as louise">\
+                        Louise                    </span>\
+                    <b class="fa fa-caret-down"></b>\
+                </a>\
+                <ul class="dropdown-menu">\
+                    <li>\
+                        <a href="index.php?action=passwd">\
+                            <i class="fa fa-lock"></i> Change Password                        </a>\
+                    </li>\
+                    <li class="divider"></li>\
+                    <li>\
+                        <a href="index.php?action=logout">\
+                            <i class="fa fa-power-off"></i> Logout                        </a>\
+                    </li>\
+                </ul>\
+            </li>'
+        }/**/
+    });
+    phpMyFAQ.uiMap.pagesets.adminPages.uiElements.topNavigation.args.push( {
+        name: 'section',
+        description: 'Name of the section',
+        required: true,
+        defaultValues: Object.keys( phpMyFAQ.uiMap.pagesets.adminPages.uiElements.topNavigation._URLs )
+    });
+    
 })();

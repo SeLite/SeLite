@@ -72,6 +72,33 @@
 	<td>//button[ @type='submit' ]</td>
 	<td></td>
 </tr>
+<!---->
+<tr>
+	<td>click</td>
+	<td>ui=allPages::currentUserDropdown()</td>
+	<td></td>
+</tr>
+<!--When definition of UI element fails to be loaded, Selenium IDE highlighs the command in red, but it doesn't increase Failures!-->
+<tr>
+	<td>assertElementPresent</td>
+	<td>ui=adminPages::currentUserDropdown()-&gt;xpath=/a/span[ contains(., 'Pete') ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>ui=adminPages::currentUserDropdown()-&gt;//a[ contains(@href, 'action=passwd') ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>alert( SeLiteMisc.objectToString(phpMyFAQ.uiMap.pagesets.adminPages.uiElements.topNavigation, 3) )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertElementPresent</td>
+	<td>ui=adminPages::topNavigation(section=Dashboard)</td>
+	<td></td>
+</tr>
 </tbody></table>
 </body>
 </html>
