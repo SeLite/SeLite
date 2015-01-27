@@ -1,4 +1,4 @@
-/*  Copyright 2011, 2012, 2013, 2014 Peter Kehl
+/*  Copyright 2011, 2012, 2013, 2014, 2015 Peter Kehl
     This file is part of SeLite Db Objects.
 
     This program is free software: you can redistribute it and/or modify
