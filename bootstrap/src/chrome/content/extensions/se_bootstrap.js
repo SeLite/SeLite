@@ -1,4 +1,4 @@
-/*  Copyright 2012, 2013, 2014 Peter Kehl
+/*  Copyright 2012, 2013, 2014, 2015 Peter Kehl
     This file is part of SeLite Bootstrap.
 
     This program is free software: you can redistribute it and/or modify
@@ -48,7 +48,7 @@
 
         var bootstrappedListChanged= false;
         var bootstrappedCoreExtensions= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' ).getField( 'bootstrappedCoreExtensions' );
-        var bootstrappedCoreExtensionsRecord;
+        var bootstrappedCoreExtensionsRecord; // This will be a result of bootstrappedCoreExtensions.getDownToFolder(..). It will be cached, and re-loaded when bootstrappedListChanged is true.
         /*** This (re)loads and processes any updated custom .js file(s) - either if they were not loaded yet,
          *   or if they were modified since then. It also reloads them if their timestamp changed, but the contents didn't
          *   - no harm in that.
@@ -61,38 +61,41 @@
                 bootstrappedCoreExtensionsRecord= bootstrappedCoreExtensions.getDownToFolder( /*folderPath*/undefined, /*dontCache*/true );
                 bootstrappedListChanged= false;
             }
-
+            
+            var files= {}; // { string filePath: nsIFile object } for all bootstrapped files
+            var anyFileNewOrModified= false;
             for( var filePath in bootstrappedCoreExtensionsRecord.entry ) {
                 try {
-                    var file= new FileUtils.File(filePath); // Object of class nsIFile
+                    files[filePath]= new FileUtils.File(filePath); // Object of class nsIFile
                 }
                 catch( exception ) {
                     LOG.warn( "SeBootstrap tried to (re)load a non-existing file " +filePath );
-                    return;
+                    continue;
                 }
+                anyFileNewOrModified= !(filePath in Selenium.bootstrapScriptLoadTimestamps) || Selenium.bootstrapScriptLoadTimestamps[filePath]!==files[filePath].lastModifiedTime;
+            }
+            if( anyFileNewOrModified ) {
+                for( var filePath in files ) { // Reload all files, not just the modified one(s). That allows dependant files to maintain their book keeping.
+                    // Let's set the timestamp before loading & executing the file. This ensures that if something goes wrong in that file, it won't be re-run
+                    // until it's updated (or until you reload Selenium IDE).
+                    Selenium.bootstrapScriptLoadTimestamps[filePath]= files[filePath].lastModifiedTime;
 
-                if( filePath in Selenium.bootstrapScriptLoadTimestamps && Selenium.bootstrapScriptLoadTimestamps[filePath]===file.lastModifiedTime ) {
-                    return;
-                }
-                // Let's set the timestamp before loading & executing the file. This ensures that if something goes wrong in that file, it won't be re-run
-                // until it's updated (or until you reload Selenium IDE).
-                Selenium.bootstrapScriptLoadTimestamps[filePath]= file.lastModifiedTime;
+                    var tmpFile= FileUtils.getFile( "TmpD", [ files[filePath].leafName+'-'+Date.now() ] ); //  The second parameter is just a suggested name. FileUtils ensures I get a unique file.
+                    tmpFile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, FileUtils.PERMS_FILE); // This creates an empty file
+                    tmpFile.remove( false ); // Need to remove it, otherwise copyTo(..) wouldn't copy over an existing file
+                    files[filePath].copyTo( tmpFile.parent, tmpFile.leafName );
 
-                var tmpFile= FileUtils.getFile( "TmpD", [file.leafName+'-'+Date.now()] ); //  The second parameter is just a suggested name. FileUtils ensures I get a unique file.
-                tmpFile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, FileUtils.PERMS_FILE); // This creates an empty file
-                tmpFile.remove( false ); // Need to remove it, otherwise copyTo(..) wouldn't copy over an existing file
-                file.copyTo( tmpFile.parent, tmpFile.leafName );
-
-                var tmpFileUrl= Services.io.newFileURI( tmpFile ); // object of type nsIURI
-                try {
-                    // When I passed editor.seleniumAPI, then bootstrapped extension must have defined global variables (without _var_ keyword) and therefore it couldn't use Javascript strict mode.
-                    subScriptLoader.loadSubScript( tmpFileUrl.spec, global, 'UTF-8' );
-                    // This could also be done via Components.utils.import( tmpFileUrl.spec, scope ) and Components.utils.unload(url). However, the .js file would have to define var EXPORTED_SYMBOLS= ['symbol1', 'symbol2', ...];
-                }
-                catch(error ) {
-                    var msg= "SeBootstrap tried to evaluate " +filePath+ " and it failed with "
-                        +error+ '. Following stack excludes the location(s) in that loaded file:\n' +error.stack;
-                    LOG.error( msg );
+                    var tmpFileUrl= Services.io.newFileURI( tmpFile ); // object of type nsIURI
+                    try {
+                        // When I passed editor.seleniumAPI, then bootstrapped extension must have defined global variables (without _var_ keyword) and therefore it couldn't use Javascript strict mode.
+                        subScriptLoader.loadSubScript( tmpFileUrl.spec, global, 'UTF-8' );
+                        // This could also be done via Components.utils.import( tmpFileUrl.spec, scope ) and Components.utils.unload(url). However, the .js file would have to define var EXPORTED_SYMBOLS= ['symbol1', 'symbol2', ...];
+                    }
+                    catch(error ) {
+                        var msg= "SeBootstrap tried to evaluate " +filePath+ " and it failed with "
+                            +error+ '. Following stack excludes the location(s) in that loaded file:\n' +error.stack;
+                        LOG.error( msg );
+                    }
                 }
             }
         };

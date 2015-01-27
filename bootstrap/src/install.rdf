@@ -4,7 +4,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>bootstrap@selite.googlecode.com</em:id>
     <em:name>SeLite Bootstrap</em:name>
-    <em:version>0.88</em:version>
+    <em:version>0.89</em:version>
     <em:creator>Peter Kehl</em:creator>
     <em:description>It reloads your Selenium Core extension (JS) automatically, whenever changed. You don't need to restart Selenium IDE everytime you change a Core extension that you develop.
     </em:description>
@@ -15,7 +15,7 @@
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id> <!-- Firefox -->
         <em:minVersion>27.0</em:minVersion>
-        <em:maxVersion>34.*</em:maxVersion>
+        <em:maxVersion>35.*</em:maxVersion>
       </Description>
     </em:targetApplication>
   </Description>
