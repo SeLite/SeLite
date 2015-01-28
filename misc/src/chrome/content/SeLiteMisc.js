@@ -1708,7 +1708,7 @@ SeLiteMisc.cascadeField= function cascadeField( object, fieldNameDotEtc, doNotTh
  *    }
  * }
  * @param {(Array|string)} fieldNameDotEtcByLevel A (non-empty) array of field names or dot-separated field names (each entry in the array being a breadcrumb-like path), or a (non-empty) string: a field name or dot-separated field names. For any breadcrumbs that contain two or more field names, the result will contain subindexes based on the values of those breadcrumb fields (except for the last field) at each level.
- * @param {number} depth 0-based depth from which this is collecting. If more than 0, then fieldNameDotEtcByLevel[ 0..depth-1 ] are skipped (they're processed at the higher level).
+ * @param {number} depth 1-based depth down to which this is collecting. If more than 1, then fieldNameDotEtcByLevel[ 0..depth-1 ] are skipped (they're processed at the higher level).
  * @param {boolean} [doNotThrow=false] If true then it throws any appropriate errors (e.g. when object is not an object, or fieldNameDotEtc contains dot(s) but some intermediate objects are not present).
  * @param {object} [result] The result object; if not provided, this creates a new one.
  * @return An object with deep entries from records, indexed by a compound key based on key, deeperKey etc. from each level (but not indexed by the breadcrumb path values).
@@ -1724,8 +1724,7 @@ SeLiteMisc.collectByColumnFromDeep= function collectByColumnFromDeep( records, f
         ? fieldNameDotEtcByLevel
         : [ fieldNameDotEtcByLevel ];
     fieldNameDotEtcByLevel.length>0 || SeLiteMisc.fail( 'Parameter fieldNameDotEtcByLevel must not be an empty array.' );
-    depth= depth || 0;
-    typeof depth==='number' && depth>=0 && depth<fieldNameDotEtcByLevel.length || SeLiteMisc.fail( 'SeLiteMisc.collectByColumnFromDeep() requires parameter depth to be a non-negative number and less than fieldNameDotEtcByLevel.length, if provided.' );
+    typeof depth==='number' && depth>0 && depth<=fieldNameDotEtcByLevel.length || SeLiteMisc.fail( 'SeLiteMisc.collectByColumnFromDeep() requires parameter depth to be a positive number and no more than fieldNameDotEtcByLevel.length, if provided.' );
     doNotThrow= doNotThrow || false;
     typeof doNotThrow==='boolean' || SeLiteMisc.fail( 'Parameter doNotThrow must be a boolean, if provided.' );
     result= result || {};
@@ -1733,11 +1732,11 @@ SeLiteMisc.collectByColumnFromDeep= function collectByColumnFromDeep( records, f
     
     // Iterate by keys of records. This generats 'key-' part of the result index.
     for( var index in records ) {
-        var subRecord= SeLiteMisc.cascadeField( records[index], fieldNameDotEtcByLevel[depth], doNotThrow, SeLiteMisc.collectByColumnFromDeep/*serving as a token if field(s) are missing*/ );
+        var subRecord= SeLiteMisc.cascadeField( records[index], fieldNameDotEtcByLevel[fieldNameDotEtcByLevel.length-depth], doNotThrow, SeLiteMisc.collectByColumnFromDeep/*serving as a token if field(s) are missing*/ );
         if( subRecord!==SeLiteMisc.collectByColumnFromDeep ) {
             
-            if( fieldNameDotEtcByLevel.length>depth+1 ) {
-                var subResult= SeLiteMisc.collectByColumnFromDeep( subRecord, fieldNameDotEtcByLevel, depth+1, doNotThrow, result );
+            if( depth>1 ) {
+                var subResult= SeLiteMisc.collectByColumnFromDeep( subRecord, fieldNameDotEtcByLevel, depth-1, doNotThrow, result );
                 
                 var indexStringPart= (''+index/*in case index is a number (when records is an array)*/).replace( '-', '--' ) +'-'; //See SeLiteMisc.compoundIndexValue()
                 for( var subIndexPart in subResult ) {
@@ -1765,12 +1764,74 @@ SeLiteMisc.testCollectByColumnFromDeep= function testCollectByColumnFromDeep() {
         'firstLevelKeyTwo': {
             details: {
                 address: {
-                    city: 'Tokio'
+                    city: 'New York'
                 }
             }
         }
     };
-    var collectedOneLevel= SeLiteMisc.collectByColumnFromDeep( recordsOneLevel, 'details.address', 0 );
+    var collectedOneLevelDownToCity= SeLiteMisc.collectByColumnFromDeep( recordsOneLevel, 'details.address.city', 1 );
+    collectedOneLevelDownToCity['firstLevelKeyOne']==='Peking' || SeLiteMisc.fail();
+    collectedOneLevelDownToCity['firstLevelKeyTwo']==='New York' || SeLiteMisc.fail();
+    
+    var collectedOneLevelDownToAddress= SeLiteMisc.collectByColumnFromDeep( recordsOneLevel, 'details.address', 1 );
+    collectedOneLevelDownToAddress['firstLevelKeyOne'].city==='Peking' || SeLiteMisc.fail();
+    collectedOneLevelDownToAddress['firstLevelKeyTwo'].city==='New York' || SeLiteMisc.fail();
+    
+    var recordsTwoLevels= {
+        'firstLevelKeyOne': {
+            details: {
+                addresses: {
+                    'firstLevelKeyOneSecondLevelKeyOne': {
+                        city: 'Peking',
+                        phone: {
+                            home: 1234,
+                            work: 5678
+                        }
+                    },
+                    'firstLevelKeyOneSecondLevelKeyTwo': {
+                        city: 'Hong Kong',
+                        phone: {}
+                    }
+                }
+            }
+        },
+        'firstLevelKeyTwo': {
+            details: {
+                addresses: {
+                    'firstLevelKeyTwoSecondLevelKeyOne': {
+                        city: 'New York',
+                        phone: {
+                            cell: 4321
+                        }
+                    },
+                    'firstLevelKeyTwoSecondLevelKeyTwo': {
+                        city: 'Singapore',
+                        phone: {
+                            work: 6789
+                        }
+                    }
+                }
+            }
+        }
+    };
+    var collectedTwoLevelsDownToCity= SeLiteMisc.collectByColumnFromDeep( recordsTwoLevels, ['details.addresses', 'city'], 2 );
+    collectedTwoLevelsDownToCity['firstLevelKeyOne-firstLevelKeyOneSecondLevelKeyOne']==='Peking' || SeLiteMisc.fail();
+    collectedTwoLevelsDownToCity['firstLevelKeyOne-firstLevelKeyOneSecondLevelKeyTwo']==='Hong Kong' || SeLiteMisc.fail();
+    collectedTwoLevelsDownToCity['firstLevelKeyTwo-firstLevelKeyTwoSecondLevelKeyOne']==='New York' || SeLiteMisc.fail();
+    collectedTwoLevelsDownToCity['firstLevelKeyTwo-firstLevelKeyTwoSecondLevelKeyTwo']==='Singapore' || SeLiteMisc.fail();
+    
+    var collectedTwoLevelsDownToPhone= SeLiteMisc.collectByColumnFromDeep( recordsTwoLevels, ['details.addresses', 'phone'], 2 );
+                 collectedTwoLevelsDownToPhone['firstLevelKeyOne-firstLevelKeyOneSecondLevelKeyOne'].home===1234 || SeLiteMisc.fail();
+    Object.keys( collectedTwoLevelsDownToPhone['firstLevelKeyOne-firstLevelKeyOneSecondLevelKeyTwo'] ).length===0 || SeLiteMisc.fail();
+                 collectedTwoLevelsDownToPhone['firstLevelKeyTwo-firstLevelKeyTwoSecondLevelKeyOne'].cell===4321 || SeLiteMisc.fail();
+                 collectedTwoLevelsDownToPhone['firstLevelKeyTwo-firstLevelKeyTwoSecondLevelKeyTwo'].work===6789 || SeLiteMisc.fail();
+                 
+    var collectedTwoLevelsDownToPhoneWork= SeLiteMisc.collectByColumnFromDeep( recordsTwoLevels, ['details.addresses', 'phone.work'], 2 );
+    collectedTwoLevelsDownToPhoneWork['firstLevelKeyOne-firstLevelKeyOneSecondLevelKeyOne']===5678 || SeLiteMisc.fail();
+    collectedTwoLevelsDownToPhoneWork['firstLevelKeyOne-firstLevelKeyOneSecondLevelKeyTwo']===undefined || SeLiteMisc.fail();
+    collectedTwoLevelsDownToPhoneWork['firstLevelKeyTwo-firstLevelKeyTwoSecondLevelKeyOne']===undefined || SeLiteMisc.fail();
+    collectedTwoLevelsDownToPhoneWork['firstLevelKeyTwo-firstLevelKeyTwoSecondLevelKeyTwo']===6789 || SeLiteMisc.fail();
+                 
 };
 SeLiteMisc.testCollectByColumnFromDeep();
 

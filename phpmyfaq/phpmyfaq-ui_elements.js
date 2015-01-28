@@ -265,7 +265,7 @@
                 name: 'item',
                 description: 'Name of the second level item',
                 required: true,
-                defaultValues: SeLiteMisc.collectFromDepth( SeLiteMisc.collectByColumnFromDeep(adminNavigation, ['secondLevel'], 0), 1)
+                defaultValues: SeLiteMisc.collectFromDepth( SeLiteMisc.collectByColumnFromDeep(adminNavigation, ['secondLevel'], 1), 1)
             }
         ],
         testcase1: {
@@ -346,3 +346,4 @@
     });
     phpMyFAQ.uiMap.pagesets.adminPages.uiElements.secondNavigation.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
 })();
+
