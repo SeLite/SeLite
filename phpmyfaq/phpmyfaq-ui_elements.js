@@ -68,14 +68,72 @@
     });
     phpMyFAQ.uiMap.pagesets.adminPages.uiElements.currentUserDropdown.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
     
-    var topNavigationURLs= {
-        Dashboard: 'index.php',
-        Users: 'index.php?action=user',
-        Content: 'index.php?action=content',
-        Statistics: 'index.php?action=statistics',
-        Exports: 'index.php?action=export',
-        Backup: 'index.php?action=backup',
-        Configuration: 'index.php?action=config'
+    /** object {
+     *    string sectionName: object {
+     *        topLevel: string URL,
+     *        secondLevel: object {
+     *          string itemName: string URL,
+     *          ...
+     *        }
+     *    },
+     *    ...
+     * }
+     * */
+    var adminNavigation= {
+        Dashboard: {
+            topLevel: 'index.php',
+            secondLevel: {}
+        },
+        Users: {
+            topLevel: 'index.php?action=user',
+            secondLevel: {
+                'Users': '?action=user',
+                'Change Password': '?action=passwd'
+            }
+        },
+        Content: {
+            topLevel: 'index.php?action=content',
+            secondLevel: {
+                'FAQ Categories': '?action=category',
+                'Add new FAQ': '?action=editentry',
+                'Edit existing FAQs': '?action=view',
+                'Search for FAQs': '?action=searchfaqs',
+                'Comments': '?action=comments',
+                'Open questions': '?action=question',
+                'FAQ Glossary': '?action=glossary',
+                'FAQ News': '?action=news',
+                'FAQ Attachments': '?action=attachments',
+                'Tags': '?action=tags'
+            }
+        },
+        Statistics: {
+            topLevel: 'index.php?action=statistics',
+            secondLevel: {
+                'Rating Statistics': '?action=statistics',
+                'View Sessions': '?action=viewsessions',
+                'View Adminlog': '?action=adminlog',
+                'Search Statistics': '?action=searchstats',
+                'Reports': '?action=reports'
+            }
+        },
+        Exports: {
+            topLevel: 'index.php?action=export',
+            secondLevel: {}
+        },
+        Backup: {
+            topLevel: 'index.php?action=backup',
+            secondLevel: {}
+        },
+        Configuration: {
+            topLevel: 'index.php?action=config',
+            secondLevel: {
+                'Edit configuration': '?action=config',
+                'System Information': '?action=system',
+                'FAQ Multi-sites': '?action=instances',
+                'Stop Words': '?action=stopwordsconfig',
+                'Interface Translation': '?action=translist'
+            }
+        }
     };
     /** Assumptions:
      *  - top level items have URLs starting with 'index.php'
@@ -83,17 +141,19 @@
      *  */
     phpMyFAQ.uiMap.addElement('adminPages', {
         name: 'topNavigation',
-        description: 'Top level navigation entry.',
+        description: 'Link to top level navigation entry.',
         getLocator: function(args) {
-            return '//ul[ @id="side-menu" ]/li/a[ @href="' +this._URLs[ args.section ]+ '" ]';
+            // I could set a 'local variable', as per chrome://selenium-ide/content/selenium-core/scripts/ui-doc.html > UI-Element Shorthand > _*, but it could make this less clear
+            return '//ul[ @id="side-menu" ]/li/a[ @href="' +adminNavigation[ args.section ].topLevel+ '" ]';
         },
-        _URLs: topNavigationURLs,
-        args: {
-            name: 'section',
-            description: 'Name of the section',
-            required: true,
-            defaultValues: Object.keys( topNavigationURLs )
-        },
+        args: [
+            {
+                name: 'section',
+                description: 'Name of the section',
+                required: true,
+                defaultValues: Object.keys( adminNavigation )
+            }
+        ],
         testcase1: {
             args: { section: 'Users' },
             xhtml:
@@ -187,4 +247,102 @@
         }
     });
     phpMyFAQ.uiMap.pagesets.adminPages.uiElements.topNavigation.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
+    
+    phpMyFAQ.uiMap.addElement('adminPages', {
+        name: 'secondNavigation',
+        description: 'Link to second level navigation entry.',
+        getLocator: function(args) {
+            return '//ul[ @id="side-menu" ]/li/a[ @href="' +adminNavigation[ args.section ].topLevel+ '" ]/following-sibling::ul/li/a[ @href="' +adminNavigation[ args.section ].secondLevel[ args.item ]+ '" ]';
+        },
+        args: [
+            {
+                name: 'section',
+                description: 'Name of the section',
+                required: true,
+                defaultValues: Object.keys( adminNavigation )
+            },
+            {
+                name: 'item',
+                description: 'Name of the second level item',
+                required: true,
+                defaultValues: SeLiteMisc.collectFromDepth( SeLiteMisc.collectByColumnFromDeep(adminNavigation, ['secondLevel'], true), 1)
+            }
+        ],
+        testcase1: {
+            args: { section: 'Users', item:'Change Password' },
+            xhtml: '<ul class="nav" id="side-menu">\
+                <li class="sidebar-userinfo">\
+                    <div class="userpanel">\
+                        <small>Logged in as </small><br/>\
+                        Pete                    </div>\
+                </li>\
+                <li>\
+                    <a href="index.php">\
+                        <i class="fa fa-dashboard fa-fw"></i> Dashboard                    </a>\
+                </li>\
+                <li class="active">\
+                    <a href="index.php?action=user">\
+                        <i class="fa fa-users"></i> Users                        <span class="fa arrow"></span></a>\
+                    \
+                    <ul class="nav nav-second-level collapse in">\
+                        <li class="active"><a href="?action=user">Users</a></li>\
+<li><a href="?action=passwd" expected-result="1">Change Password</a></li>\
+                    </ul>\
+                </li>\
+                <li>\
+                    <a href="index.php?action=content">\
+                        <i class="fa fa-edit fa-fw"></i> Content                        <span class="fa arrow"></span></a>\
+                    \
+                    <ul class="nav nav-second-level collapse ">\
+                        <li class="active"><a href="?action=user">Users</a></li>\
+<li><a href="?action=passwd">Change Password</a></li>\
+                    </ul>\
+                </li>\
+                <li>\
+                    <a href="index.php?action=statistics">\
+                        <i class="fa fa-tasks fa-fw"></i> Statistics                        <span class="fa arrow"></span></a>\
+                    \
+                    <ul class="nav nav-second-level collapse ">\
+                        <li class="active"><a href="?action=user">Users</a></li>\
+<li><a href="?action=passwd">Change Password</a></li>\
+                    </ul>\
+                </li>\
+                <li>\
+                    <a href="index.php?action=export">\
+                        <i class="fa fa-book fa-fw"></i> Exports                    </a>\
+                </li>\
+                <li>\
+                    <a href="index.php?action=backup">\
+                        <i class="fa fa-download fa-fw"></i> Backup                    </a>\
+                    <ul class="nav nav-second-level collapse">\
+                        <li class="active"><a href="?action=user">Users</a></li>\
+<li><a href="?action=passwd">Change Password</a></li>\
+                    </ul>\
+                </li>\
+                <li>\
+                    <a href="index.php?action=config">\
+                        <i class="fa fa-wrench fa-fw"></i> Configuration                        <span class="fa arrow"></span></a>\
+                    \
+                    <ul class="nav nav-second-level collapse ">\
+                        <li class="active"><a href="?action=user">Users</a></li>\
+<li><a href="?action=passwd">Change Password</a></li>\
+                    </ul>\
+                </li>\
+\
+                <li class="sidebar-adminlog">\
+                    <div>\
+                        <b class="fa fa-info-circle fa-fw"></b> Admin worklog<br/>\
+                        <span id="saving_data_indicator"></span>\
+                    </div>\
+                </li>\
+                <li class="sidebar-sessioninfo">\
+                    <div>\
+                        <b class="fa fa-clock-o fa-fw"></b> Session expires in:\
+                        <span id="sessioncounter">00:29:41</span>\
+                    </div>\
+                </li>\
+            </ul>'
+        }
+    });
+    phpMyFAQ.uiMap.pagesets.adminPages.uiElements.secondNavigation.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
 })();
