@@ -1541,7 +1541,7 @@ SeLiteMisc.objectValueToField= function objectValueToField( obj, value, strict )
     return null;
 };
 
-/** This collects entries - (sub(sub...))objects - from an array of objects (serving as associative arrays), by given breadcrumb of field/column.
+/** This collects entries (objects) - from an array (or an object serving as an associative array) of objects (serving as associative arrays), indexed by value(s) of given field/column name(s) in those objects.
  *  It returns those entries indexed by value of that given column/field, which becomes a key in the result
  *  array/matrix. If indicated that the
  *  chosen column (field) values may not be unique, then it returns the entries (objects/row) within
@@ -1551,9 +1551,9 @@ SeLiteMisc.objectValueToField= function objectValueToField( obj, value, strict )
  *  Therefore any actual values must not be arrays themselves, because then you and
  *  existing consumers of result from this function couldn't tell them from the subindexed arrays.
  *  @param {(array|string)} fieldNames String name of the index key or object field, or function to retrieve a field off an object, that we'll index by; or an array of them. If it's a function  or an array containing function(s) then such function accepts one argument which is the object to be sub-indexed.
- *  @param {boolean} valuesUnique whether the compound index (based on given fieldNames) is guaranteed to have unique values. Otherwise only the last record (for any compound index - breadcrumb of index/field values) will be kept here.
+ *  @param {boolean} valuesUnique whether the compound index (based on given fieldNames) is guaranteed to have unique values. Otherwise it generates an array for each (set of index) value(s) present. If valuesUnique is true but there are multiple records with the same (set of) index value(s), then only the last record (for any compound index - breadcrumb of index/field values) will be kept here.
  *  @param {Object} result The result object, see description of the return value; optional - if not present, then a new anonymous object is used.
- *  Don't use same object as records.
+ *  Don't use the same object for records and result.
  *  @return An object serving as an associative array of various structure and depth, depending on the parameters.
  *  In the following, 'entry' means an original entry from records.
  *  If valuesUnique==true:
@@ -1585,7 +1585,7 @@ SeLiteMisc.collectByColumn= function collectByColumn( records, fieldNames, value
     else {
         for( var existingIndex in records ) {
             var recordOrGroup= records[existingIndex];
-            if( Array.isArray(recordOrGroup) ) { // records was previously indexed with valuesUnique=false
+            if( Array.isArray(recordOrGroup) ) { // records was previously indexed with valuesUnique=false. So we're re-indexing it.
                 for( var j=0; j<recordOrGroup.length; j++ ) {
                     SeLiteMisc.collectByColumnRecord( recordOrGroup[j], result, fieldNames, valuesUnique );
                 }
@@ -1616,11 +1616,10 @@ SeLiteMisc.compoundIndexValue= function compoundIndexValue( record, fieldNames )
 }
 
 /** Internal only. Worker function called by SeLiteMisc.collectByColumn().
- *  @param {array} fieldNames This is like the same named parameter of SeLiteMisc.collectByColumn(), but here it must be an array. It can't be a string neither a function.
+ *  @param {array} fieldNames This is like the same named parameter of SeLiteMisc.collectByColumn(), but here it must be an array (of strings or functions).
  *  @param {object} result Object (serving as an associative array) for results of indexing at the level of this function.
  **/
-SeLiteMisc.collectByColumnRecord= function collectByColumnRecord( record, result, fieldNames, valuesUnique,
-fieldNameIndex ) {
+SeLiteMisc.collectByColumnRecord= function collectByColumnRecord( record, result, fieldNames, valuesUnique ) {
     var compoundIndexValue= SeLiteMisc.compoundIndexValue( record, fieldNames );
     if( valuesUnique ) {
         result[compoundIndexValue]= record;
@@ -1641,27 +1640,126 @@ SeLiteMisc.getField= function getField( record, columnFieldNameOrFunction ) {
         : record[columnFieldNameOrFunction];
 };
 
+/** It serves to access (potentially deeper) fields of objects, collecting all entries on the way. Used e.g. when dynamically accessing user-provided class (for its given name), which may be a sub(sub...)field of a namespace object (i.e. having dots in the name).
+ * @param {object} object
+ * @param {string} fieldNameDotEtc Field name, or multiple field names separated by dot.
+ * @param {boolean} [doNotThrow=false] If true then it throws any appropriate errors (e.g. when object is not an object, or fieldNameDotEtc contains dot(s) but some intermediate objects are not present).
+ * @param valueInsteadOfThrow
+ * @return {(Array|undefined)} [field1Value, field2Value...]; undefined if no such field(s) and if doNotThrow equals to true.
+ * @throws If there are no such field(s); not thrown if you set doNotThrow
+ * */
+SeLiteMisc.cascadeFieldEntries= function cascadeFieldEntries( object, fieldNameDotEtc, doNotThrow, valueInsteadOfThrow ) {
+    var result= [];
+    // If fieldNameDotEtc contains multiple field names, then after each iteration variable object is one level deeper entry.
+    while( true ) {
+        if( (typeof object!=='object' || object===null) && doNotThrow ) {
+            return valueInsteadOfThrow;
+        }
+        var indexOfDot= fieldNameDotEtc.indexOf('.');
+        if( indexOfDot>=0 ) {
+            object= object[ fieldNameDotEtc.substring(0, indexOfDot ) ];
+            result.push( object );
+            fieldNameDotEtc= fieldNameDotEtc.substring( indexOfDot+1 );
+        }
+        else {
+            result.push( object[fieldNameDotEtc] );
+            return result;
+        }
+    }
+};
+
 /** It serves to access (potentially deeper) fields of objects. Used e.g. when dynamically accessing user-provided class (for its given name), which may be a sub(sub...)field of a namespace object (i.e. having dots in the name).
  * @param {object} object
  * @param {string} fieldNameDotEtc Field name, or multiple field names separated by dot.
  * @param {boolean} [doNotThrow=false] If true then it throws any appropriate errors (e.g. when object is not an object, or fieldNameDotEtc contains dot(s) but some intermediate objects are not present).
- * @return {*} (sub..)field of object. Return undefined on failure if doNotThrow equals to true.
- * @throws Various, unless you set doNotThrow
+ * @param {*} valueInsteadOfThrow What to return if a field is an intermediary entry (when evaluating the breadcrumb path) is null/undefined.
+ * @return {object} {
+ *      keys: [string 
+ *      value: (sub..)field of object; undefined if no such field(s) and if doNotThrow equals to true.
+ * @throws If there are no such field(s); not thrown if you set doNotThrow
  * */
-SeLiteMisc.cascadeField= function( object, fieldNameDotEtc, doNotThrow ) {
-    while( true ) {
-        var indexOfDot= fieldNameDotEtc.indexOf('.');
-        if( (typeof object!=='object' || object===null) && doNotThrow ) {
-            return undefined;
-        }
-        if( indexOfDot>=0 ) {
-            object= object[ fieldNameDotEtc.substring(0, indexOfDot ) ];
-            fieldNameDotEtc= fieldNameDotEtc.substring( indexOfDot+1 );
-        }
-        else {
-            return object[fieldNameDotEtc];
+SeLiteMisc.cascadeField= function cascadeField( object, fieldNameDotEtc, doNotThrow, valueInsteadOfThrow ) {
+    var path= SeLiteMisc.cascadeFieldEntries( object, fieldNameDotEtc, doNotThrow, valueInsteadOfThrow );
+    return !doNotThrow || path!==valueInsteadOfThrow
+        ? path[ path.length-1 ]
+        : valueInsteadOfThrow;
+};
+    
+/** Alternate: any - givenField1 - any - givenField2 - ...
+ * @param {object|Array} records {
+ *    key: {
+ *      givenField1: {
+ *         deeperKey: {
+ *            givenField2: target of any type or deeper object
+ *         },
+ *         anotherDeeperKey: {
+ *            givenField2: target of any type or deeper object
+ *         }
+ *         ...
+ *      }
+ *    },
+ *    anotherKey: {
+ *      ...
+ *    }
+ * }
+ * @param {(Array|string)} fieldNameDotEtcByLevel A (non-empty) array of field names or dot-separated field names (each entry in the array being a breadcrumb-like path), or a (non-empty) string: a field name or dot-separated field names. For any breadcrumbs that contain two or more field names, the result will contain subindexes based on the values of those breadcrumb fields (except for the last field) at each level.
+ * @param {number} depth 0-based depth from which this is collecting. If more than 0, then fieldNameDotEtcByLevel[ 0..depth-1 ] are skipped (they're processed at the higher level).
+ * @return Have fieldNameDotEtcByLevel with N levels [0..N-1]; then if valuesUnique==true return {
+ *    topLevelKey-keyAfterFirstBreadcrumb-...-keyAfterN-2thBreadcrumb: target,
+ *    ...
+ * }
+ * If valuesUnique==false it returns {
+ *    topLevelKey-keyAfterFirstBreadcrumb-...-keyAfterN-2thBreadcrumb: [target, ...]
+ *    ...
+ * }
+ * */
+SeLiteMisc.collectByColumnFromDeep= function collectByColumnFromDeep( records, fieldNameDotEtcByLevel, valuesUnique, doNotThrow, result, depth ) {
+    typeof fieldNameDotEtcByLevel==='object' || typeof fieldNameDotEtcByLevel==='string' || SeLiteMisc.fail( 'Parameter fieldNameDotEtcByLevel must be an object or a string.' );
+    fieldNameDotEtcByLevel= Array.isArray(fieldNameDotEtcByLevel)
+        ? fieldNameDotEtcByLevel
+        : [ fieldNameDotEtcByLevel ];
+    fieldNameDotEtcByLevel.length>0 || SeLiteMisc.fail( 'Parameter fieldNameDotEtcByLevel must not be an empty array.' );
+    result= result || {};
+    result!==records || SeLiteMisc.fail( 'SeLiteMisc.collectByColumnFromDeep() requires parameter result not to be the same object as records, if provided.' );
+    depth= depth || 0;
+    
+    // Iterate by keys of records. This generats 'key-' part of the result index.
+    for( var index in records ) {
+        var subRecord= SeLiteMisc.cascadeField( records[index], fieldNameDotEtcByLevel[depth], doNotThrow, SeLiteMisc.collectByColumnFromDeep );
+        if( subRecord!==SeLiteMisc.collectByColumnFromDeep ) {
+            
+            if( fieldNameDotEtcByLevel.length>depth+1 ) {
+                var subResult= SeLiteMisc.collectByColumnFromDeep( subRecord, fieldNameDotEtcByLevel, valuesUnique, doNotThrow, result, depth+1 );
+                
+                var indexStringPart= (''+index/*in case index is a number (when records is an array)*/).replace( '-', '--' ) +'-'; //See SeLiteMisc.compoundIndexValue()
+                for( var subIndexPart in subResult ) {
+                    // Any value of index is iterated over only once, so the following key has no previous subResult assigned
+                    result[ indexStringPart+subIndexPart ]= subResult[subIndexPart];
+                }
+            }
+            else {
+                result[index]= subRecord;
+            }
         }
     }
+    return result;
+};
+
+/** @param {number} depth Non-negative; If 0, then this returns a shallow copy of records.
+ * */
+SeLiteMisc.collectFromDepth= function collectFromDepth( records, depth, result ) {
+    typeof depth==='number' && depth>=0 || SeLiteMisc.fail( 'Parameter depth must be a non-negative number.' );
+    result= result || {};
+    typeof result==='object' || SeLiteMisc.fail( 'Parameter result must a an object, if provided.' );
+    for( var index in records ) {
+        if( depth>0 ) {
+            SeLiteMisc.collectFromDepth( records[index], depth-1, result );
+        }
+        else {
+            result[index]= records[index];
+        }
+    }
+    return result;
 };
 
 /** Get all ASCII characters that match the given regex.
