@@ -1644,8 +1644,8 @@ SeLiteMisc.getField= function getField( record, columnFieldNameOrFunction ) {
  * @param {object} object
  * @param {string} fieldNameDotEtc Field name, or multiple field names separated by dot.
  * @param {boolean} [doNotThrow=false] If true then it throws any appropriate errors (e.g. when object is not an object, or fieldNameDotEtc contains dot(s) but some intermediate objects are not present).
- * @param valueInsteadOfThrow
- * @return {(Array|undefined)} [field1Value, field2Value...]; undefined if no such field(s) and if doNotThrow equals to true.
+ * @param {*} [valueInsteadOfThrow=undefined] What to return if a field is an intermediary entry (when evaluating the breadcrumb path) is null/undefined.
+ * @return {(Array|undefined)} [field1Value, field2Value...]; valueInsteadOfThrow if no such field(s) and if doNotThrow equals to true.
  * @throws If there are no such field(s); not thrown if you set doNotThrow
  * */
 SeLiteMisc.cascadeFieldEntries= function cascadeFieldEntries( object, fieldNameDotEtc, doNotThrow, valueInsteadOfThrow ) {
@@ -1668,15 +1668,15 @@ SeLiteMisc.cascadeFieldEntries= function cascadeFieldEntries( object, fieldNameD
     }
 };
 
-/** It serves to access (potentially deeper) fields of objects. Used e.g. when dynamically accessing user-provided class (for its given name), which may be a sub(sub...)field of a namespace object (i.e. having dots in the name).
+/** It serves to access (potentially deeper) fields of objects. Used e.g. when dynamically accessing user-provided class (for its given name), which may be a sub(sub...)field of a namespace object (i.e. having dots in the name). See also SeLiteMisc.cascadeFieldEntries().
  * @param {object} object
- * @param {string} fieldNameDotEtc Field name, or multiple field names separated by dot.
- * @param {boolean} [doNotThrow=false] If true then it throws any appropriate errors (e.g. when object is not an object, or fieldNameDotEtc contains dot(s) but some intermediate objects are not present).
- * @param {*} valueInsteadOfThrow What to return if a field is an intermediary entry (when evaluating the breadcrumb path) is null/undefined.
+ * @param {string} fieldNameDotEtc See the same parameter in SeLiteMisc.cascadeFieldEntries().
+ * @param {boolean} [doNotThrow=false] See the same parameter in SeLiteMisc.cascadeFieldEntries().
+ * @param {*} [valueInsteadOfThrow=undefined] See the same parameter in SeLiteMisc.cascadeFieldEntries().
  * @return {object} {
  *      keys: [string 
  *      value: (sub..)field of object; undefined if no such field(s) and if doNotThrow equals to true.
- * @throws If there are no such field(s); not thrown if you set doNotThrow
+ * @throws See SeLiteMisc.cascadeFieldEntries().
  * */
 SeLiteMisc.cascadeField= function cascadeField( object, fieldNameDotEtc, doNotThrow, valueInsteadOfThrow ) {
     var path= SeLiteMisc.cascadeFieldEntries( object, fieldNameDotEtc, doNotThrow, valueInsteadOfThrow );
@@ -1685,51 +1685,59 @@ SeLiteMisc.cascadeField= function cascadeField( object, fieldNameDotEtc, doNotTh
         : valueInsteadOfThrow;
 };
     
-/** Alternate: any - givenField1 - any - givenField2 - ...
+/** Collect deep entries from an object tree. It alternates: it collects any entries directly under given 'records' object; for each entry it evaluates its sub(sub...) field according to given fieldNameDotEtcByLevel[0]. If there's more levels in fieldNameDotEtcByLevel[], it repeats the process.
  * @param {object|Array} records {
- *    key: {
- *      givenField1: {
- *         deeperKey: {
- *            givenField2: target of any type or deeper object
- *         },
- *         anotherDeeperKey: {
- *            givenField2: target of any type or deeper object
- *         }
- *         ...
- *      }
- *    },
+ *    key: { // 1:N
+ *      fieldNameDotEtcByLevel[0]'s first breadcrumb: {
+ *          fieldNameDotEtcByLevel[0]'s second breadcrumb (if any): {
+ *              ...: { // 1:1
+ *                   deeperKey: { // 1:N
+ *                      fieldNameDotEtcByLevel[1]'s first breadcrumb: {
+ *                          ...: { // 1:1
+ *                              fieldNameDotEtcByLevel[N]'s last breadcrumb: target of any type or deeper object
+ *                          }
+ *                      }
+ *                   },
+ *                   anotherDeeperKey:...
+ *          }
+ *       
+ *      },
+ *    }
  *    anotherKey: {
  *      ...
  *    }
  * }
  * @param {(Array|string)} fieldNameDotEtcByLevel A (non-empty) array of field names or dot-separated field names (each entry in the array being a breadcrumb-like path), or a (non-empty) string: a field name or dot-separated field names. For any breadcrumbs that contain two or more field names, the result will contain subindexes based on the values of those breadcrumb fields (except for the last field) at each level.
  * @param {number} depth 0-based depth from which this is collecting. If more than 0, then fieldNameDotEtcByLevel[ 0..depth-1 ] are skipped (they're processed at the higher level).
- * @return Have fieldNameDotEtcByLevel with N levels [0..N-1]; then if valuesUnique==true return {
+ * @param {boolean} [doNotThrow=false] If true then it throws any appropriate errors (e.g. when object is not an object, or fieldNameDotEtc contains dot(s) but some intermediate objects are not present).
+ * @param {object} [result] The result object; if not provided, this creates a new one.
+ * @return An object with deep entries from records, indexed by a compound key based on key, deeperKey etc. from each level (but not indexed by the breadcrumb path values).
+ * Have fieldNameDotEtcByLevel with N levels [0..N-1]; then this returns {
  *    topLevelKey-keyAfterFirstBreadcrumb-...-keyAfterN-2thBreadcrumb: target,
  *    ...
  * }
- * If valuesUnique==false it returns {
- *    topLevelKey-keyAfterFirstBreadcrumb-...-keyAfterN-2thBreadcrumb: [target, ...]
- *    ...
- * }
  * */
-SeLiteMisc.collectByColumnFromDeep= function collectByColumnFromDeep( records, fieldNameDotEtcByLevel, valuesUnique, doNotThrow, result, depth ) {
+SeLiteMisc.collectByColumnFromDeep= function collectByColumnFromDeep( records, fieldNameDotEtcByLevel, depth, doNotThrow, result ) {
+    typeof records==='object' || SeLiteMisc.fail( 'Parameter records must be an object.' );
     typeof fieldNameDotEtcByLevel==='object' || typeof fieldNameDotEtcByLevel==='string' || SeLiteMisc.fail( 'Parameter fieldNameDotEtcByLevel must be an object or a string.' );
     fieldNameDotEtcByLevel= Array.isArray(fieldNameDotEtcByLevel)
         ? fieldNameDotEtcByLevel
         : [ fieldNameDotEtcByLevel ];
     fieldNameDotEtcByLevel.length>0 || SeLiteMisc.fail( 'Parameter fieldNameDotEtcByLevel must not be an empty array.' );
+    depth= depth || 0;
+    typeof depth==='number' && depth>=0 && depth<fieldNameDotEtcByLevel.length || SeLiteMisc.fail( 'SeLiteMisc.collectByColumnFromDeep() requires parameter depth to be a non-negative number and less than fieldNameDotEtcByLevel.length, if provided.' );
+    doNotThrow= doNotThrow || false;
+    typeof doNotThrow==='boolean' || SeLiteMisc.fail( 'Parameter doNotThrow must be a boolean, if provided.' );
     result= result || {};
     result!==records || SeLiteMisc.fail( 'SeLiteMisc.collectByColumnFromDeep() requires parameter result not to be the same object as records, if provided.' );
-    depth= depth || 0;
     
     // Iterate by keys of records. This generats 'key-' part of the result index.
     for( var index in records ) {
-        var subRecord= SeLiteMisc.cascadeField( records[index], fieldNameDotEtcByLevel[depth], doNotThrow, SeLiteMisc.collectByColumnFromDeep );
+        var subRecord= SeLiteMisc.cascadeField( records[index], fieldNameDotEtcByLevel[depth], doNotThrow, SeLiteMisc.collectByColumnFromDeep/*serving as a token if field(s) are missing*/ );
         if( subRecord!==SeLiteMisc.collectByColumnFromDeep ) {
             
             if( fieldNameDotEtcByLevel.length>depth+1 ) {
-                var subResult= SeLiteMisc.collectByColumnFromDeep( subRecord, fieldNameDotEtcByLevel, valuesUnique, doNotThrow, result, depth+1 );
+                var subResult= SeLiteMisc.collectByColumnFromDeep( subRecord, fieldNameDotEtcByLevel, depth+1, doNotThrow, result );
                 
                 var indexStringPart= (''+index/*in case index is a number (when records is an array)*/).replace( '-', '--' ) +'-'; //See SeLiteMisc.compoundIndexValue()
                 for( var subIndexPart in subResult ) {
@@ -1745,18 +1753,44 @@ SeLiteMisc.collectByColumnFromDeep= function collectByColumnFromDeep( records, f
     return result;
 };
 
-/** @param {number} depth Non-negative; If 0, then this returns a shallow copy of records.
+SeLiteMisc.testCollectByColumnFromDeep= function testCollectByColumnFromDeep() {
+    var recordsOneLevel= {
+        'firstLevelKeyOne': {
+            details: {
+                address: {
+                    city: 'Peking'
+                }
+            }
+        },
+        'firstLevelKeyTwo': {
+            details: {
+                address: {
+                    city: 'Tokio'
+                }
+            }
+        }
+    };
+    var collectedOneLevel= SeLiteMisc.collectByColumnFromDeep( recordsOneLevel, 'details.address', 0 );
+};
+SeLiteMisc.testCollectByColumnFromDeep();
+
+/** Collect entries from 'records' object/array at given depth.
+ *  @param {object} records
+ *  @param {number} depth The depth to collect from; non-negative. 0 means to collect items directly under records object.
+ *  @param {Array} [result] Array to put the entries to. Otherwise this creates a new array.
+ *  @return {Array} The result array.
  * */
 SeLiteMisc.collectFromDepth= function collectFromDepth( records, depth, result ) {
+    typeof records==='object' || SeLiteMisc.fail( 'Parameter depth must be an object.' );
     typeof depth==='number' && depth>=0 || SeLiteMisc.fail( 'Parameter depth must be a non-negative number.' );
-    result= result || {};
-    typeof result==='object' || SeLiteMisc.fail( 'Parameter result must a an object, if provided.' );
+    result= result || [];
+    Array.isArray( result ) || SeLiteMisc.fail( 'Parameter result must a an array, if provided.' );
     for( var index in records ) {
         if( depth>0 ) {
             SeLiteMisc.collectFromDepth( records[index], depth-1, result );
         }
         else {
-            result[index]= records[index];
+            result.push( records[index] );
         }
     }
     return result;

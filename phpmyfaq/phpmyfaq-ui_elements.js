@@ -265,7 +265,7 @@
                 name: 'item',
                 description: 'Name of the second level item',
                 required: true,
-                defaultValues: SeLiteMisc.collectFromDepth( SeLiteMisc.collectByColumnFromDeep(adminNavigation, ['secondLevel'], true), 1)
+                defaultValues: SeLiteMisc.collectFromDepth( SeLiteMisc.collectByColumnFromDeep(adminNavigation, ['secondLevel'], 0), 1)
             }
         ],
         testcase1: {
