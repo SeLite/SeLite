@@ -251,4 +251,11 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
         It selects the top frame. Then it waits for any specified frames to become present. However, it doesn't wait for the top frame. For that you should use 'andWait' postifx for the last command that loaded the current page. Don't use <b>selectTopFrameAndAndWait</b>.
     </comment>
 </function>
+<function name="ensureUnderWebRoot">
+    <param name="forceReload">Whether to reload the webroot, even when the current URL is under webroot. Boolean, optional, false by default.
+    </param>
+    <comment>
+        It ensures that the location of the current window will be under <i>webroot</i> (defined in webRoot config field - see https://code.google.com/p/selite/wiki/SettingsOverview). If it is not so, or if you pass forceReload equal to true, then it opens <i>webRoot</i> in the current window.
+    </comment>
+</function>
 </apidoc>

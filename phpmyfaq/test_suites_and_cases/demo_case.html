@@ -12,9 +12,9 @@
 <tr><td rowspan="1" colspan="3">demo_case</td></tr>
 </thead><tbody>
 <tr>
-	<td>call</td>
 	<td>ensureUnderWebRoot</td>
-	<td>forceReload=true</td>
+	<td>` true `</td>
+	<td></td>
 </tr>
 <tr>
 	<td>call</td>
@@ -87,11 +87,6 @@
 <tr>
 	<td>click</td>
 	<td>ui=adminPages::currentUserDropdown()-&gt;//a[ contains(@href, 'action=passwd') ]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>getEval</td>
-	<td>alert( SeLiteMisc.objectToString(phpMyFAQ.uiMap.pagesets.adminPages.uiElements.topNavigation, 3) )</td>
 	<td></td>
 </tr>
 <tr>

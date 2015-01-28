@@ -685,5 +685,12 @@
     Selenium.prototype.doEnableJavascript= function doEnableJavascript() {
         this.setJavascriptPref(true);
     };
+    
+    Selenium.prototype.doEnsureUnderWebRoot= function doEnsureUnderWebRoot( forceReload ) {
+        this.browserbot.selectWindow( null );
+        if( !this.browserbot.getCurrentWindow().location.href.startsWith( SeLiteSettings.webRoot() ) || forceReload ) {
+            return this.doOpen( SeLiteSettings.webRoot() );
+        }
+    };
   }
 )();
