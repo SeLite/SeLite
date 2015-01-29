@@ -31,7 +31,7 @@ if defined PROFILE_FOLDER (
     cd >"!EXTENSION_FOLDER!\test-train@selite.googlecode.com"
     cd ..\journey
     cd >"!EXTENSION_FOLDER!"\test-journey@selite.googlecode.com"
-    echo Now starting firefox -P SeLiteExtensionSequencerTest. You may need to accept the test add-ons. Then close Firefox. After that you can use run_tests.ps1.
+    echo Now starting firefox -P SeLiteExtensionSequencerTest. You may need to accept the test add-ons. Verify that all SeLite add-ons are enabled at Firefox menu > Tools > Add-ons > Extensions. Then close Firefox. After that you can use run_tests.ps1.
     REM Windows commandline doesn't have logical operators, hence if.. if.. to simulate AND (to check for Selenium IDE installed either via an .xpi, or through a proxy file) 
     if not exist "!EXTENSION_FOLDER!\{a6fd85ed-e919-4a43-a5af-8da18bda539f}.xpi" (
         if not exist "!EXTENSION_FOLDER!{a6fd85ed-e919-4a43-a5af-8da18bda539f}" (

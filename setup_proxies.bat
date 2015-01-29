@@ -90,3 +90,4 @@ if defined p (
 ) else (
    echo Could not find Firefox profile "%profile%"
 )
+echo Start Firefox with that profile. You may need to accept add-ons. Verify that all SeLite add-ons are enabled at Firefox menu > Tools > Add-ons > Extensions.
