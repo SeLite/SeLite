@@ -7,9 +7,9 @@ cd %script_folder:~0,-1%
 REM Based on https://developer.mozilla.org/en/Setting_up_extension_development_environment and http://kb.mozillazine.org/Profile_folder_-_Firefox
 REM This script accepts an optional parameter, which is a name of Firefox profile. Otherwise it uses 'default' profile. Either way, the profile must have been created by Firefox (i.e. its folder name must be in standard format).
 if not "%1"=="" (
-    set profile="%1"
+    set profile=%1
 ) else (
-    set profile="default"
+    set profile=default
 )
 
 for /D %%c in ("%APPDATA%\Mozilla\Firefox\Profiles\*.%profile%") do set p=%%c
@@ -88,5 +88,5 @@ if defined p (
       cd ..\..
     )
 ) else (
-   echo Could not find a Firefox profile "%profile%"
+   echo Could not find Firefox profile "%profile%"
 )
