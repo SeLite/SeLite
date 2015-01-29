@@ -3,7 +3,13 @@
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
 # Based on https://developer.mozilla.org/en/Setting_up_extension_development_environment and http://kb.mozillazine.org/Profile_folder_-_Firefox
-# TODO: Make this script accept an optional parameter, which is a name of Firefox profile`
+# This script accepts an optional parameter, which is a name of Firefox profile. Otherwise it uses 'default' profile. Either way, the profile must have been created by Firefox (i.e. its folder name must be in standard format).
+if [[ "$1" ]]
+then
+    PROFILE="$1"
+else
+    PROFILE=default
+fi
 HOME_FOLDER=~
 
 if [ "$(uname)" == "Darwin" ]; then
@@ -11,9 +17,9 @@ if [ "$(uname)" == "Darwin" ]; then
    # ~/Library/Mozilla/Firefox/Profiles/<profile folder> or ~/Library/Application Support/Firefox/Profiles/<profile folder> 
    # But on Mac OS 10.5.8 and 10.9.1 I could see the second folder only. If you can test both, please update this/send this to me.
    
-   EXTENSION_FOLDER="$( echo "$HOME_FOLDER/Library/Application Support/Firefox/Profiles"/*.default )"
+   EXTENSION_FOLDER="$( echo "$HOME_FOLDER/Library/Application Support/Firefox/Profiles"/*.$PROFILE )"
 else
-   EXTENSION_FOLDER="$( echo "$HOME_FOLDER/.mozilla/firefox/"*.default )"
+   EXTENSION_FOLDER="$( echo "$HOME_FOLDER/.mozilla/firefox/"*.$PROFILE )"
 fi
 
 if [ -e "$EXTENSION_FOLDER" ]
@@ -103,5 +109,5 @@ then
       cd ../..
     fi
 else
-   echo Could not find a default Firefox profile
+   echo Could not find Firefox profile "$PROFILE"
 fi
