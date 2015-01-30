@@ -4,7 +4,7 @@ SeLiteExtensionSequencer.registerPlugin( {
     id: 'implicit-wait@florent.breheret',
     coreURL: "chrome://implicit-wait/content/extensions/implicit-wait-ext.js",
     ideURL: 'chrome://implicit-wait/content/extensions/implicit-wait-ide.js',
-    xmlURL: "chrome://implicit-wait/content/extensions/implicit-wait-ide.xml",
+    xmlURL: "chrome://implicit-wait/content/reference.xml",
     infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selenium-ide-implicit-wait/',
     requisitePlugins: {
         /*'settings@selite.googlecode.com': {
