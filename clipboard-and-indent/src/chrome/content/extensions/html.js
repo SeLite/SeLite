@@ -323,6 +323,7 @@ function defaultExtension() {
   return this.options.defaultExtension;
 }
 
+// Following changes commandLoadPattern setting from the original. That fixes https://code.google.com/p/selenium/issues/detail?id=6903 and https://code.google.com/p/selenium/issues/detail?id=6901. This change of default settings has effect, even if the user used Selenium IDE before she installed this SeLite extension (as far as didn't modify these settings in Selenium IDE menu Options > Options... > Formats).
 /*
  * Optional: The customizable option that can be used in format/parse functions.
  */
@@ -330,9 +331,9 @@ this.options = {
 	commandLoadPattern:
 	"<tr\s*[^>]*>" +
 	"\\s*(<!--[\\d\\D]*?-->)?" +
-	"\\s*<td\s*[^>]*>\\s*([\\w]*?)\\s*</td>" +
-	"\\s*<td\s*[^>]*>([\\d\\D]*?)</td>" +
-	"\\s*(<td\s*/>|<td\s*[^>]*>([\\d\\D]*?)</td>)" +
+	"\\s*<td\\s*[^>]*>\\s*((?:&nbsp;)*[\\w]*?)\\s*</td>" +
+	"\\s*<td\\s*[^>]*>([\\d\\D]*?)</td>" +
+	"\\s*(<td\\s*/>|<td\\s*[^>]*>([\\d\\D]*?)</td>)" +
 	"\\s*</tr>\\s*",
 	
 	commandLoadScript:
