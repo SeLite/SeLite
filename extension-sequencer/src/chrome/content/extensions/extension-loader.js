@@ -16,10 +16,12 @@
 "use strict";
 Components.utils.import("chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js");
 
-if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function' ) {
-    (function( global ) { // closure to make the variables local
+if( typeof afterChecks!=='function' ) {
         // I must reset SeLiteExtensionSequencer.coreExtensionsLoadedTimes. I can't expect that extensions will have an even number of loads - because if the user closes Selenium IDE before running any Selenese, the extensions don't get loaded for the 2nd time during that run of Selenium IDE, and the odd-even sequence would not apply.
         SeLiteExtensionSequencer.coreExtensionsLoadedTimes= {};
+}
+if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function' ) {
+    (function( global ) { // closure to make the variables local
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         // When I start 'firefox -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul', it loads this file extension-loader.js without 'API' class. 'API' class is only defined when this is loaded from extension-loader.xul.
         if( !global.runAsCheck ) {

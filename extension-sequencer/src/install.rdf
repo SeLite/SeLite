@@ -4,7 +4,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>extension-sequencer@selite.googlecode.com</em:id>
     <em:name>SeLite Extension Sequencer</em:name>
-    <em:version>0.47</em:version>
+    <em:version>0.48</em:version>
     <em:creator>Peter Kehl</em:creator>
     <em:homepageURL>https://code.google.com/p/selite/</em:homepageURL>
     <em:description>SeLite Extension Sequencer - it loads user Core or IDE extensions to Selenium IDE in a order reflecting dependancies </em:description>
@@ -13,7 +13,7 @@
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id> <!-- Firefox -->
         <em:minVersion>27.0</em:minVersion>
-        <em:maxVersion>34.*</em:maxVersion>
+        <em:maxVersion>36.*</em:maxVersion>
       </Description>
     </em:targetApplication>
   </Description>
