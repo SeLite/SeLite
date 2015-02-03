@@ -59,27 +59,27 @@
 	<td></td>
 </tr>
 <tr>
-	<td>storeElementPresent</td>
+	<td>&nbsp;&nbsp;storeElementPresent</td>
 	<td>//a[ @class=&quot;dropdown-toggle&quot; ]//span[ contains(@title, 'Logged in as') ]</td>
 	<td>userLoggedIn</td>
 </tr>
 <tr>
-	<td>if</td>
+	<td>&nbsp;&nbsp;if</td>
 	<td>$userLoggedIn</td>
 	<td></td>
 </tr>
 <tr>
-	<td>click</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;click</td>
 	<td>//a[ @class=&quot;dropdown-toggle&quot; ]//span[ contains(@title, 'Logged in as') ]/..</td>
 	<td></td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
 	<td>//a[ @href='?action=logout' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>endIf</td>
+	<td>&nbsp;&nbsp;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
@@ -96,12 +96,12 @@
 	<td>login</td>
 </tr>
 <tr>
-	<td>readRecord</td>
+	<td>&nbsp;&nbsp;readRecord</td>
 	<td>=`{ formula: Serendipity.formulas.authors, username: $login }`</td>
 	<td>user</td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>logIn</td>
 	<td>loginOrAmpRole=$login, passwd=$user.password</td>
 </tr>
@@ -117,12 +117,12 @@
 	<td></td>
 </tr>
 <tr>
-	<td>click</td>
+	<td>&nbsp;&nbsp;click</td>
 	<td>//a[ @class=&quot;dropdown-toggle&quot; ]//span[ contains(@title, 'Logged in as') ]/..</td>
 	<td></td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;clickAndWait</td>
 	<td>//a[ @href='` SeLiteSettings.webRoot() `admin/index.php' ]</td>
 	<td></td>
 </tr>
