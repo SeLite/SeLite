@@ -1,0 +1,4 @@
+content selite-clipboard-and-indent chrome/content/
+
+# An XPI can override chrome:// URI from another XPI. Also, 'override' works even if the overriden URI (the first parameter) is not registered at all. So, overriding between XPIs works, no matter in what order the XPIs are loaded (as far as there is maximum of one override per URI).
+override chrome://selenium-ide/content/formats/html.js chrome://selite-clipboard-and-indent/content/extensions/html.js

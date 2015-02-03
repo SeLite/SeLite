@@ -46,6 +46,13 @@ then
       cd ../..
     fi
 
+    if [ ! -e "$EXTENSION_FOLDER"/clipboard-and-indent\@selite.googlecode.com.xpi ]
+    then
+      cd clipboard-and-indent/src
+      pwd > "$EXTENSION_FOLDER"/clipboard-and-indent@selite.googlecode.com
+      cd ../..
+    fi
+
     if [ ! -e "$EXTENSION_FOLDER"/\extension-sequencer@selite.googlecode.com.xpi ]
     then
       cd extension-sequencer/src

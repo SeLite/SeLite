@@ -34,6 +34,12 @@ if defined p (
       cd ..\..
     )
 
+    if not exist "!e!\clipboard-and-indent@selite.googlecode.com.xpi" (
+      cd clipboard-and-indent\src
+      cd > "!e!\clipboard-and-indent@selite.googlecode.com"
+      cd ..\..
+    )
+
     if not exist "!e!\extension-sequencer@selite.googlecode.com.xpi" (
       cd extension-sequencer\src
       cd > "!e!\extension-sequencer@selite.googlecode.com"

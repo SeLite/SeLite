@@ -15,6 +15,9 @@ zip -r ../../xpi/bootstrap.xpi *
 cd ../../commands/src
 zip -r ../../xpi/commands.xpi *
 
+cd ../../clipboard-and-indent/src
+zip -r ../../xpi/clipboard-and-indent.xpi *
+
 cd ../../extension-sequencer/src
 zip -r ../../xpi/extension-sequencer.xpi *
 
@@ -41,3 +44,6 @@ zip -r ../../xpi/exit-confirmation-checker.xpi *
 
 cd ../../run-all-favorites/src
 zip -r ../../xpi/run-all-favorites.xpi *
+
+#cd ../../implicit-wait/src
+#zip -r ../../xpi/implicit-wait.xpi *
