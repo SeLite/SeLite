@@ -18,32 +18,32 @@
 	<td>loginOrAmpRole</td>
 </tr>
 <tr>
-	<td>storeEval</td>
+	<td>&nbsp;&nbsp;storeEval</td>
 	<td>SeLiteSettings.roleToUser( '${loginOrAmpRole}' )</td>
 	<td>login</td>
 </tr>
 <tr>
-	<td>getEval</td>
+	<td>&nbsp;&nbsp;getEval</td>
 	<td>phpMyFAQ.selectUserByLogin( storedVars.login )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;clickAndWait</td>
 	<td>//a[ @href='?action=login' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>type</td>
+	<td>&nbsp;&nbsp;type</td>
 	<td>id=faqusername</td>
 	<td>${login}</td>
 </tr>
 <tr>
-	<td>type</td>
+	<td>&nbsp;&nbsp;type</td>
 	<td>id=faqpassword</td>
 	<td>`phpMyFAQ.selectedUser.pass`</td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;clickAndWait</td>
 	<td>//form//div[ @class=&quot;form-actions&quot; ]//button[ @type=&quot;submit&quot; ]</td>
 	<td></td>
 </tr>

@@ -1,4 +1,23 @@
-// Modified...
+/*
+ * Copyright 2005 Shinya Kasatani and/or Selenium IDE team
+ * Copyright 2015 Peter Kehl
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ * Based on Selenium code of chrome/content/formats/html.js. This adds parseCommandsAndHeader(), it adjusts parse() respectively, and it changes option 'commandLoadPattern'.
+ * parseCommandsAndHeader() and related code in ide-extension.js, makes Selenium IDE accept HTML from native clipboard, regardless of its souce (potentially another Selenium IDE instance, or a file), as far as it fits the format.
+ * Changes to 'commandLoadPattern' fix https://code.google.com/p/selenium/issues/detail?id=6903 and https://code.google.com/p/selenium/issues/detail?id=6901
+ */
 // Characters that should be escaped when saving.
 var EncodeToXhtmlEntity = ["amp", "gt", "lt", "quot", "nbsp"];
 
@@ -85,7 +104,7 @@ function convertText(command, converter) {
 	}
 }
 
-/** Parse & extract any header, command(s) and/or comment(s). Used to parse test case .html files, and also to parse from HTML fro mnative clipboard. Factored out from original parse().
+/** Parse & extract any header, command(s) and/or comment(s). Used to parse test case .html files, and also to parse from HTML from native clipboard. Factored out from original parse().
  * @param {string} doc HTML source to parse.
  * @returns {object} {commands: Array commands, header: string or undefined header, lastIndex: number }
  */

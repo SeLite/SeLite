@@ -1,19 +1,23 @@
-/* Copyright 2015 Peter Kehl
-    This file is part of SeLite Clipboard And Indent.
-    
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/*
+ * Copyright 2005 Shinya Kasatani
+ * Copyright 2015 Peter Kehl
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ * Based on Selenium code of ide/main/src/content/testCase.js
+ *
+ * This, and related code in html.js, makes Selenium IDE accept HTML from native clipboard, regardless of its souce (potentially another Selenium IDE instance, or a file), as far as it fits the format.
+ * */
 "use strict";
 
 (function() { // Anonymous function to make the variables local
@@ -29,17 +33,12 @@
             originalTreeViewInitialize.call( this, editor, document, tree );
             this.clipboard= [];
         };
-    /*}
-    else {*/
+        
         TreeView.prototype.getCommandsFromClipboard= function getCommandsFromClipboard() {
             var formatter= this.editor.app.getClipboardFormat().getFormatter();
             if( formatter.parseCommandsAndHeader ) {
                 var trans = this._createTransferable();
-                //var str = this._createClipboardString();
                 trans.addDataFlavor("text/unicode");
-                //var text = this.editor.app.getClipboardFormat().getSourceForCommands(commands); // That returns format's getFormatter().formatCommands(commands)
-                //str.data = text;
-                //trans.setTransferData("text/unicode", str, text.length * 2);
                 var clipboard = Components.classes["@mozilla.org/widget/clipboard;1"].
                     getService(Components.interfaces.nsIClipboard);
                 clipboard.getData(trans, Components.interfaces.nsIClipboard.kGlobalClipboard);
