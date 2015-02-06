@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * Based on Selenium code of ide/main/src/content/testCase.js
+ * Based on Selenium code of ide/main/src/content/treeView.js and ide/main/src/content/testCase.js
  *
  * This, and related code in html.js, makes Selenium IDE accept HTML from native clipboard, regardless of its souce (potentially another Selenium IDE instance, or a file), as far as it fits the format.
  * */
@@ -67,6 +67,34 @@
                 }
                 this.executeAction(new TreeView.PasteCommandAction(this, currentIndex, commands));
             }
+        };
+        
+        /** The body is identical to original getDefinition(), but this adds trimLeft() for indented commands. */
+        Command.prototype.getDefinition = function getDefinition() {
+                if (this.command == null) return null;
+                var commandName = this.command.trimLeft().replace(/AndWait$/, '');
+                var api = Command.loadAPI();
+                var r = /^(assert|verify|store|waitFor)(.*)$/.exec(commandName);
+                if (r) {
+                        var suffix = r[2];
+                        var prefix = "";
+                        if ((r = /^(.*)NotPresent$/.exec(suffix)) != null) {
+                                suffix = r[1] + "Present";
+                                prefix = "!";
+                        } else if ((r = /^Not(.*)$/.exec(suffix)) != null) {
+                                suffix = r[1];
+                                prefix = "!";
+                        }
+                        var booleanAccessor = api[prefix + "is" + suffix];
+                        if (booleanAccessor) {
+                                return booleanAccessor;
+                        }
+                        var accessor = api[prefix + "get" + suffix];
+                        if (accessor) {
+                                return accessor;
+                        }
+                }
+                return api[commandName];
         };
     }
     SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteClipboardAndIndent']= loadedTimes+1;
