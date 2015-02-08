@@ -42,7 +42,7 @@ SeleniumIDEGenericAutoCompleteSearch.prototype = {
     }
 };
 
-function AutoCompleteResult(search, candidates) {debugger;
+function AutoCompleteResult(search, candidates) {
 	this.search = search;
 	this.result = [];
         
