@@ -4,3 +4,18 @@ overlay chrome://browser/content/browser.xul chrome://selite-clipboard-and-inden
 
 # An XPI can override chrome:// URI from another XPI. Also, 'override' works even if the overriden URI (the first parameter) is not registered at all (e.g. chrome://non-existing-package/content/non-existing-file). So, overriding between XPIs works, no matter in what order the XPIs are loaded (as far as there is maximum of one override per URI).
 override chrome://selenium-ide/content/formats/html.js chrome://selite-clipboard-and-indent/content/extensions/html.js
+
+overlay chrome://selenium-ide/content/selenium-ide.xul chrome://selite-clipboard-and-indent/content/ui/ovIDE.xul
+
+overlay chrome://selenium-ide/content/selenium-ide-sidebar.xul chrome://selite-clipboard-and-indent/content/ui/ovSidebar.xul
+
+# Following lines are for a modified version of original SeleniumIDEGenericAutoCompleteSearch - to support indentation. I don't need to have 'interface' line here, so I don't need to duplicate components/SeleniumIDEGenericAutoCompleteSearch.xpt from Selenium IDE
+
+# My unique class ID (it must be different to that of original SeleniumIDEGenericAutoCompleteSearch).
+
+component {3d2a8f40-ac09-11e4-ab27-0800200c9a66} components/SeleniumIDEGenericAutoCompleteSearch.js
+
+# My contract (its URL) can be the same or different to that of original SeleniumIDEGenericAutoCompleteSearch). But if the same, then I can't call registerFactory() for it again. So I use my own contract URL.
+#I tried to call registerFactory() with my factory for the original contract URL in ide-extension.js, but that didn't work.
+
+contract @mozilla.org/autocomplete/search;1?name=selite-generic {3d2a8f40-ac09-11e4-ab27-0800200c9a66}

@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<overlay id="clipboard-ovIDE" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <textbox id="commandAction" autocompletesearch="selite-generic"/>
+</overlay>

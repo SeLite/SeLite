@@ -97,5 +97,7 @@
                 return api[commandName];
         };
     }
-    SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteClipboardAndIndent']= loadedTimes+1;
+    SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteClipboardAndIndent']= loadedTimes+1;   
 })();
+
+Editor.GENERIC_AUTOCOMPLETE = Components.classes["@mozilla.org/autocomplete/search;1?name=selite-generic"].getService(Components.interfaces.nsISeleniumIDEGenericAutoCompleteSearch);
