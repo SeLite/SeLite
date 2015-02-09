@@ -24,6 +24,8 @@
     Components.utils.import( "chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js" );
     var loadedTimes= SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteClipboardAndIndent'] || 0;
     if( !loadedTimes ) {
+        // For clipboard:
+        
         // Ideally, I would change behaviour of isCommandEnabled() so that it allows cmd_paste even if self.clipboard==null. However, isCommandEnabled() is out of easy reach outside of original constructor of TreeView (and I don't want to replace the whole TreeView constructor just for that). Therefore, I
         // - leave original isCommandEnabled untouched
         // - change initialize() to set this.clipboard to non-null
@@ -69,6 +71,8 @@
             }
         };
         
+        // For indentation:
+        
         /** The body is identical to original getDefinition(), but this adds trimLeft() for indented commands. */
         Command.prototype.getDefinition = function getDefinition() {
                 if (this.command == null) return null;
@@ -96,6 +100,22 @@
                 }
                 return api[commandName];
         };
+        
+        TreeView.prototype.insertCommand= function insertCommand() {
+            if (this.tree.currentIndex >= 0) {
+                var currentIndex = this.tree.currentIndex;
+                this.insertAt(this.tree.currentIndex, new Command('  '));
+                this.selection.select(currentIndex);
+            }
+        };
+        TreeView.prototype.insertComment= function insertComment() {
+            if (this.tree.currentIndex >= 0) {
+                var currentIndex = this.tree.currentIndex;
+                this.insertAt(this.tree.currentIndex, new Comment('  '));
+                this.selection.select(currentIndex);
+            }
+        };
+
     }
     SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteClipboardAndIndent']= loadedTimes+1;   
 })();

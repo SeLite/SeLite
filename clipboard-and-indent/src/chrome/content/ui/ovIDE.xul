@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<overlay id="clipboard-ovIDE" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-    <textbox id="commandAction" autocompletesearch="selite-generic"/>
-    <window id="selenium-ide">
-        <script type="application/x-javascript">
-            Editor.GENERIC_AUTOCOMPLETE = Components.classes["@mozilla.org/autocomplete/search;1?name=selite-generic"].getService(Components.interfaces.nsISeleniumIDEGenericAutoCompleteSearch);
-        </script>
-    </window>
-</overlay>
