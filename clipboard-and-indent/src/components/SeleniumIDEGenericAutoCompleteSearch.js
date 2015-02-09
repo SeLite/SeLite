@@ -60,6 +60,9 @@ SeleniumIDEGenericAutoCompleteSearch.prototype = {
     }
 };
 
+// Commands (other than ones starting with 'end') that suggest indentation to the left: decrease of indentation as compared to the previous command. Some of them are also 'opening' commands - see ide-extension.js
+var closingCommands= ['else', 'elseIf', 'catch', 'finally'];
+
 function AutoCompleteResult(search, candidates) {
         this.search = search;
 	this.result = [];
@@ -96,7 +99,7 @@ function AutoCompleteResult(search, candidates) {
         }
     }
     if( indentationPrefix ) {
-        if( indentationPrefix.length>=2 && (search.startsWith('end') || search==="catch" || search==="finally") ) {
+        if( indentationPrefix.length>=2 && (search.startsWith('end') || closingCommands.indexOf(search)>=0 ) ) {
             indentationPrefix= indentationPrefix.substr( 2 );
         }
         for( var i=0; i<this.result.length; i++ ) {

@@ -101,17 +101,42 @@
                 return api[commandName];
         };
         
+        var indentedText= /^(\s+)(.*)/;
+        // Opening commands, which indent the next new commands/comments to the right:
+        var openingCommands= ['if', 'elseIf', 'else', 'while', 'for', 'foreach', 'forXml', 'forJson', 'function', 'try', 'catch', 'finally'];
+        var newCommandOrCommentIndentation= function newCommandOrCommentIndentation( currentIndex, testCase ) {
+            if( currentIndex>0 ) {
+                var previousCommand= testCase.commands[currentIndex-1];
+                var previousCommandText= previousCommand.command
+                    ? previousCommand.command
+                    : previousCommand.comment;
+                var match= indentedText.exec( previousCommandText );
+                var indentation= '';
+                if( match ) {
+                    indentation= match[1];
+                }
+                var commandItself= match
+                    ? match[2]
+                    : previousCommandText;
+                if( previousCommand.command && openingCommands.indexOf(commandItself)>=0 ) {
+                    indentation+= '  ';
+                }
+                return indentation;
+            }
+            return '';
+        };
+        
         TreeView.prototype.insertCommand= function insertCommand() {
             if (this.tree.currentIndex >= 0) {
                 var currentIndex = this.tree.currentIndex;
-                this.insertAt(this.tree.currentIndex, new Command('  '));
+                this.insertAt(this.tree.currentIndex, new Command( newCommandOrCommentIndentation(currentIndex, this.testCase) ) );
                 this.selection.select(currentIndex);
             }
         };
         TreeView.prototype.insertComment= function insertComment() {
             if (this.tree.currentIndex >= 0) {
                 var currentIndex = this.tree.currentIndex;
-                this.insertAt(this.tree.currentIndex, new Comment('  '));
+                this.insertAt(this.tree.currentIndex, new Comment( newCommandOrCommentIndentation(currentIndex, this.testCase) ) );
                 this.selection.select(currentIndex);
             }
         };
@@ -119,5 +144,3 @@
     }
     SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteClipboardAndIndent']= loadedTimes+1;   
 })();
-
-//Editor.GENERIC_AUTOCOMPLETE = Components.classes["@mozilla.org/autocomplete/search;1?name=selite-generic"].getService(Components.interfaces.nsISeleniumIDEGenericAutoCompleteSearch);
