@@ -71,7 +71,7 @@
             }
         };
         
-        // For indentation:
+        // For indentation - https://code.google.com/p/selenium/issues/detail?id=6903:
         
         /** The body is identical to original getDefinition(), but this adds trimLeft() for indented commands. */
         Command.prototype.getDefinition = function getDefinition() {
@@ -140,7 +140,8 @@
                 this.selection.select(currentIndex);
             }
         };
-
+        //XulUtils.TreeViewHelper.prototype.isEditable= TreeView.prototype.isEditable= function isEditable( row, col ) { throw new Error('isEditable'); return true;};
+        
     }
     SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteClipboardAndIndent']= loadedTimes+1;   
 })();

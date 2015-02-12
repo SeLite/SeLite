@@ -1,0 +1,7 @@
+tree#commands  {
+    -moz-binding: url( 'chrome://selite-clipboard-and-indent/content/ui/bindings.xml#commands' );
+}
+
+textbox#commandTarget  {
+    -moz-binding: url( 'chrome://selite-clipboard-and-indent/content/ui/bindings.xml#commandTarget' );
+}

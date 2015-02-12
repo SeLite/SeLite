@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<bindings xmlns="http://www.mozilla.org/xbl"
+         xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <!-- I have the function in handlers.js. I load handlers.js. through ovIDEorSidebar.xul. -->
+  <binding id="commands" extends="chrome://global/content/bindings/tree.xml#tree">
+      <handlers>
+          <handler event="keypress" action="onCommandsKeyPress( event );" />
+      </handlers>
+  </binding>
+  <binding id="commandTarget" extends="chrome://global/content/bindings/autocomplete.xml#autocomplete">
+      <handlers>
+          <handler event="keypress" action="onCommandTargetKeyPress( event );" />
+      </handlers>
+  </binding>
+</bindings>

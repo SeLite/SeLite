@@ -1,30 +1,11 @@
 <?xml version="1.0"?>
+<?xml-stylesheet href="chrome://selite-clipboard-and-indent/content/ui/bindings.css" type="text/css"?>
 <overlay id="clipboard-ovIDE" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
     <textbox id="commandAction" autocompletesearch="selite-generic"/>
     <window id="selenium-ide">
         <script type="application/x-javascript">
             Editor.GENERIC_AUTOCOMPLETE = Components.classes["@mozilla.org/autocomplete/search;1?name=selite-generic"].getService(Components.interfaces.nsISeleniumIDEGenericAutoCompleteSearch);
         </script>
+        <script type="application/x-javascript" src="chrome://selite-clipboard-and-indent/content/ui/handlers.js"/>
     </window>
-    
-    <script type="application/x-javascript">
-        <![CDATA[
-            /** ide-extension.js ensure that 'Insert New Command' or 'Insert New Comment' inserts any spaces based on indenation of the previous command. However, on pressing TAB Firefox would select the whole field; when user would start typing the name of the new command, it would replace those leading spaces. Following prevents that: it moves the editing cursor to the end of 'Command' (or 'Comment') field.
-            If there is an existing command/comment with indentation, pressing TAB moves the editing cursor to the end space prefix, and it selects the rest of the command or comment. That facilitates replacing the command/comment when user starts typing, while keeping the existing indentation.
-            */
-            var indentedText= /^(\s+)/;
-            function onCommandActionKeyPress(event) {
-                var action=document.getElementById('commandAction');
-                if( event.keyCode===KeyEvent.DOM_VK_TAB ) {
-                    var match= indentedText.exec( action.value );
-                    if( match ) {
-                        event.preventDefault();
-                        action.focus();
-                        action.setSelectionRange( match[1].length, action.value.length );
-                    }
-                }
-            }
-        ]]>
-    </script>
-    <tree id="commands" onkeypress="onCommandActionKeyPress(event);"/>
 </overlay>
