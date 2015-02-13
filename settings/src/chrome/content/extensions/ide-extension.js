@@ -34,6 +34,7 @@
         //console.log( 'Editor.proto.confirmClose passed');
         return result;
     };
+    // 'editor' is an instance of either StandaloneEditor or SidebarEditor. Those classes don't refer to Editor.prototype, but they have copies of all functions from Editor.prototype (copied via objectExtend()).
     StandaloneEditor.prototype.confirmClose= Editor.prototype.confirmClose;
     SidebarEditor.prototype.confirmClose= Editor.prototype.confirmClose;
     //console.log( 'Editor.prototype.confirmClose intercept set up' );
