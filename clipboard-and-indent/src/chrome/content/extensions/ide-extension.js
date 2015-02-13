@@ -104,7 +104,7 @@
         var indentedText= /^(\s+)(.*)/;
         // Opening commands, which indent the next new commands/comments to the right:
         var openingCommands= ['if', 'elseIf', 'else', 'while', 'for', 'foreach', 'forXml', 'forJson', 'function', 'try', 'catch', 'finally'];
-        var newCommandOrCommentIndentation= function newCommandOrCommentIndentation( currentIndex, testCase ) {
+        var newCommandOrCommentIndentation= function newCommandOrCommentIndentation( testCase, currentIndex ) {
             if( currentIndex>0 ) {
                 var previousCommand= testCase.commands[currentIndex-1];
                 var previousCommandText= previousCommand.command
@@ -129,7 +129,7 @@
         var insertCommandOrComment= function insertCommandOrComment( treeView, insertComment ) {
             if (treeView.tree.currentIndex >= 0) {
                 var currentIndex = treeView.tree.currentIndex;
-                var indentation= newCommandOrCommentIndentation(currentIndex, treeView.testCase);
+                var indentation= newCommandOrCommentIndentation( treeView.testCase, currentIndex );
                 treeView.insertAt( currentIndex,
                     insertComment
                         ? new Comment(indentation)
@@ -151,6 +151,90 @@
         TreeView.prototype.insertComment= function insertComment() {
             insertCommandOrComment( this, true );
         };
+        
+        /** This handles indentation for commands generated via Firefox context menu (right click on the tested webpage) or in Selenium IDE recording mode.
+         *  In some situations (either the very first command in the test case, or after a change of window) the original addCommand() calls itself recursively, so that it adds two or more extra command(s) before the actual given command. However, we want to indent them all.
+         *  There's no easy workaround, so I just duplicate the original addCommand(), modified to support indentation and refactored the related part.
+         * */
+Editor.prototype.addCommand = function (command, target, value, window, insertBeforeLastCommand) {debugger;
+  this.log.debug("addCommand: command=" + command + ", target=" + target + ", value=" + value + " window.name=" + window.name);
+  if (command != 'open' &&
+      command != 'selectWindow' &&
+      command != 'selectFrame') {
+    if (this.getTestCase().commands.length == 0) {
+      var top = this._getTopWindow(window);
+      this.log.debug("top=" + top);
+      var path = this.getPathAndUpdateBaseURL(top)[0];
+      this.addCommand("open", path, '', top);
+      this.recordTitle(top);
     }
+    if (!this.safeLastWindow.isSameWindow(window)) {
+      if (this.safeLastWindow.isSameTopWindow(window)) {
+        // frame
+        var destPath = this.safeLastWindow.createPath(window);
+        var srcPath = this.safeLastWindow.getPath();
+        this.log.debug("selectFrame: srcPath.length=" + srcPath.length + ", destPath.length=" + destPath.length);
+        var branch = 0;
+        var i;
+        for (i = 0; ; i++) {
+          if (i >= destPath.length || i >= srcPath.length) {
+            break;
+          }
+          if (destPath[i] == srcPath[i]) {
+            branch = i;
+          }
+        }
+        this.log.debug("branch=" + branch);
+        if (branch == 0 && srcPath.size > 1) {
+          // go to root
+          this.addCommand('selectFrame', 'relative=top', '', window);
+        } else {
+          for (i = srcPath.length - 1; i > branch; i--) {
+            this.addCommand('selectFrame', 'relative=up', '', window);
+          }
+        }
+        for (i = branch + 1; i < destPath.length; i++) {
+          this.addCommand('selectFrame', destPath[i].name, '', window);
+        }
+      } else {
+        // popup
+        var windowName = window.name;
+        if (windowName == '') {
+          this.addCommand('selectWindow', 'null', '', window);
+        } else {
+          this.addCommand('selectWindow', "name=" + windowName, '', window);
+        }
+      }
+    }
+  }
+  //resultBox.inputField.scrollTop = resultBox.inputField.scrollHeight - resultBox.inputField.clientHeight;
+  this.clearLastCommand();
+  this.safeLastWindow.setWindow(window);
+  
+  if (insertBeforeLastCommand && this.view.getRecordIndex() > 0) {
+    var index = this.view.getRecordIndex() - 1;
+  }
+  else {
+    var index= this.view.getRecordIndex();
+  }
+  var indentation= newCommandOrCommentIndentation( this.getTestCase(), index );
+  
+  var command = new Command( indentation+command, target, value);
+  // bind to the href attribute instead of to window.document.location, which
+  // is an object reference
+  command.lastURL = window.document.location.href;
+  this.getTestCase().commands.splice(index, 0, command);
+  this.view.rowInserted(index);
+
+  if( !( insertBeforeLastCommand && this.view.getRecordIndex() > 0 ) ) {
+    //this.lastCommandIndex = this.getTestCase().commands.length;
+    this.lastCommandIndex = index; //Samit: Revert patch for issue 419 as it disables recording in the middle of a test script
+    this.timeoutID = setTimeout("editor.clearLastCommand()", 300);
+  }
+};
+// 'editor' is an instance of either StandaloneEditor or SidebarEditor. Those classes don't refer to Editor.prototype, but they have copies of all functions from Editor.prototype (copied via objectExtend()).
+        SidebarEditor.prototype.addCommand= StandaloneEditor.prototype.addCommand= Editor.prototype.addCommand;
+// end of addCommand()
+   }
     SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteClipboardAndIndent']= loadedTimes+1;   
 })();
