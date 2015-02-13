@@ -4,26 +4,24 @@ Similarly when the user clicks Shift+TAB at command's Target (textbox), which mo
 */
 var indentedText= /^(\s+)/;
 
-function onCommandsKeyPress(event) {
+function selectRightFromIndent( event ) {
     var action=document.getElementById('commandAction');
-    if( event.keyCode===KeyEvent.DOM_VK_TAB ) {
-        var match= indentedText.exec( action.value );
-        if( match ) {
-            event.preventDefault();
-            action.focus();
-            action.setSelectionRange( match[1].length, action.value.length );
-        }
+    var match= indentedText.exec( action.value );
+    if( match ) {
+        event.preventDefault();
+        action.focus();
+        action.setSelectionRange( match[1].length, action.value.length );
     }
 }
 
-function onCommandTargetKeyPress(event) {
-    var action=document.getElementById('commandAction');
+function onKeyPress(event) {
+    if( event.keyCode===KeyEvent.DOM_VK_TAB ) {
+        selectRightFromIndent( event );
+    }
+}
+
+function onKeyPressWithTab(event) {
     if( event.keyCode===KeyEvent.DOM_VK_TAB && event.shiftKey ) {
-        var match= indentedText.exec( action.value );
-        if( match ) {
-            event.preventDefault();
-            action.focus();
-            action.setSelectionRange( match[1].length, action.value.length );
-        }
+        selectRightFromIndent( event );
     }
 }

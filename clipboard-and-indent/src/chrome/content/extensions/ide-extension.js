@@ -126,22 +126,31 @@
             return '';
         };
         
-        TreeView.prototype.insertCommand= function insertCommand() {
-            if (this.tree.currentIndex >= 0) {
-                var currentIndex = this.tree.currentIndex;
-                this.insertAt(this.tree.currentIndex, new Command( newCommandOrCommentIndentation(currentIndex, this.testCase) ) );
-                this.selection.select(currentIndex);
+        var insertCommandOrComment= function insertCommandOrComment( treeView, insertComment ) {
+            if (treeView.tree.currentIndex >= 0) {
+                var currentIndex = treeView.tree.currentIndex;
+                var indentation= newCommandOrCommentIndentation(currentIndex, treeView.testCase);
+                treeView.insertAt( currentIndex,
+                    insertComment
+                        ? new Comment(indentation)
+                        : new Command(indentation)
+                );
+                treeView.selection.select(currentIndex);
+                
+                var action=document.getElementById('commandAction');
+                action.focus();
+                if( indentation ) {
+                    action.setSelectionRange( indentation.length, indentation.length );
+                }
             }
+        };
+        
+        TreeView.prototype.insertCommand= function insertCommand() {
+            insertCommandOrComment( this, false );
         };
         TreeView.prototype.insertComment= function insertComment() {
-            if (this.tree.currentIndex >= 0) {
-                var currentIndex = this.tree.currentIndex;
-                this.insertAt(this.tree.currentIndex, new Comment( newCommandOrCommentIndentation(currentIndex, this.testCase) ) );
-                this.selection.select(currentIndex);
-            }
+            insertCommandOrComment( this, true );
         };
-        //XulUtils.TreeViewHelper.prototype.isEditable= TreeView.prototype.isEditable= function isEditable( row, col ) { throw new Error('isEditable'); return true;};
-        
     }
     SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteClipboardAndIndent']= loadedTimes+1;   
 })();

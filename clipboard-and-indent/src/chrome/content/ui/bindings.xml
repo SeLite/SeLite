@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <bindings xmlns="http://www.mozilla.org/xbl"
          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <!-- I have the function in handlers.js. I load handlers.js. through ovIDEorSidebar.xul. -->
+  <!-- I have the functions in handlers.js, loaded through ovIDEorSidebar.xul. I can't load that file here through <script> (see also http://mb.eschew.org/15). A less structured alternative is to have the code here in CDATA between <handler>...</handler> as per http://books.mozdev.org/html/mozilla-chp-7-sect-6.html. -->
   <binding id="commands" extends="chrome://global/content/bindings/tree.xml#tree">
       <handlers>
-          <handler event="keypress" action="onCommandsKeyPress( event );" />
+          <handler event="keypress" action="onKeyPress( event );" />
       </handlers>
   </binding>
   <binding id="commandTarget" extends="chrome://global/content/bindings/autocomplete.xml#autocomplete">
       <handlers>
-          <handler event="keypress" action="onCommandTargetKeyPress( event );" />
+          <handler event="keypress" action="onKeyPressWithTab( event );" />
       </handlers>
   </binding>
 </bindings>
