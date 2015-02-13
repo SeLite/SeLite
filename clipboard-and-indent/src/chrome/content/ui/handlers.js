@@ -2,6 +2,7 @@
 So, if there is an existing command/comment with indentation, pressing TAB moves the editing cursor to the end space prefix, and it selects the rest of the command or comment. That facilitates replacing the command/comment when user starts typing, while keeping the existing indentation.
 Similarly when the user clicks Shift+TAB at command's Target (textbox), which moves focus to Command.
 */
+"use strict";
 var indentedText= /^(\s+)/;
 
 function selectRightFromIndent( event ) {
