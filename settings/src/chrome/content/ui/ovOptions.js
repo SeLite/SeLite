@@ -999,7 +999,7 @@ else {
     /** @return {boolean} I have to return a value, so that I can hide the popup if it doesn't apply. I've tried to use .className nad 'style' attribute. Setting those worked, however, unsetting them didn't work. See comments below.
      * */
     exportedSymbols.onTooltipContentsShowing= function onTooltipContentsShowing( tooltip, event ) {
-        var row= { value: -1 }; // value will be 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
+        var row= { value: -1 }; // value will be 0-based row index, within the set of rows other than collapsed (whether displayed within the current view, or scrollable to up/down). It skips any collapsed rows.
         var column= { value: null }; // value is instance of TreeColumn. See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeColumn
         treeBoxObject.getCellAt(event.clientX, event.clientY, row, column, {}/*unused, but needed*/ );
         var rowProperties= tree.view.getRowProperties(row.value);
@@ -1028,7 +1028,7 @@ else {
     var treeClickHandler= function treeClickHandler( event ) {
         //console.log( 'click');
         // FYI: event.currentTarget.tagName=='tree'. However, window.document.getElementById('settingsTree')!=event.currentTarget
-        var row= { value: -1 }; // value will be 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
+        var row= { value: -1 }; // value will be 0-based row index, within the set of *visible* rows only (whether shown or scrollable to up/down); it skips the collapsed rows)
         var column= { value: null }; // value is instance of TreeColumn. See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeColumn
                 // column.value.element is one of 'treecol' nodes created above. column.value.type can be TreeColumn.TYPE_CHECKBOX etc.
         treeBoxObject.getCellAt(event.clientX, event.clientY, row, column, {}/*unused, but needed*/ );
@@ -1513,6 +1513,7 @@ else {
     };
 
     var createTreeView= function createTreeView(original) {
+        //@TODO consider making an object-based prototype chain:
         return {
             get rowCount() { return original.rowCount; },
             get selection() { return original.selection; },
@@ -1524,7 +1525,7 @@ else {
             getCellProperties: function(row, col) { return original.getCellProperties(row, col); },
             getCellText: function(row, col) { return original.getCellText(row, col); },
             getCellValue: function(row, col) { return original.getCellValue(row, col); },
-            getColumnProperties: function(col, properties ) { return original.getColumnProperties(col, properties); },
+            getColumnProperties: function(col) { return original.getColumnProperties(col); },
             getImageSrc: function(row, col) { return original.getImageSrc(row, col); },
             getLevel: function(index) { return original.getLevel(index); },
             getParentIndex: function(rowIndex) { return original.getParentIndex(rowIndex); },
@@ -1794,6 +1795,7 @@ else {
         }
         tree= window.document.createElementNS( XUL_NS, 'tree' );
         treeBoxObject= tree.boxObject;
+        treeBoxObject.QueryInterface(Components.interfaces.nsITreeBoxObject); // As per https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XUL/Tutorial/Tree_Box_Objects
         tree.setAttribute( 'id', 'settingsTree');
         tree.setAttribute( 'editable', ''+!showingPerFolder() );
         tree.setAttribute( 'seltype', 'single' );
