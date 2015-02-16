@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://selite-clipboard-and-indent/content/ui/bindings.css" type="text/css"?>
+<overlay id="clipboard-ovIDE" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <window id="selenium-ide">
+        <script type="application/x-javascript" src="chrome://selite-better-gui/content/ui/handlers.js"/>
+    </window>
+    <!-- Adding to Selenium IDE's onclick: -->
+    <tree id="commands" editable="true"
+        onclick="window.editor.treeView.selectCommand(); onTreeClick(event);"
+    />
+    <treecol id="command" editable="false"/>
+    <treecol id="target" editable="true"/>
+    <treecol id="value" editable="true"/>
+</overlay>

@@ -1,0 +1,12 @@
+tree#commands treechildren {
+    -moz-binding: url( 'chrome://selite-clipboard-and-indent/content/ui/bindings.xml#treechildren' );
+}
+
+tree#commands {
+    -moz-binding: url( 'chrome://selite-clipboard-and-indent/content/ui/bindings.xml#commands' );
+}
+
+textbox {
+    -moz-binding: url( 'chrome://selite-clipboard-and-indent/content/ui/bindings.xml#textbox' );
+    
+}
