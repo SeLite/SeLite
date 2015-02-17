@@ -13,78 +13,27 @@ function onTreeClick( event ) {
     treeBoxObject.QueryInterface(Components.interfaces.nsITreeBoxObject);
     treeBoxObject.getCellAt(event.clientX, event.clientY, row, column, {}/*unused, but needed*/ );
     
-    // Only allow edit-in-place for 'target' and 'value'. That allows us to still execute the command by double-clicking at the command name itself
-    if( column.value===tree.columns[1] || column.value===tree.columns[2] ) {
-       if( true ) {
-            tree.startEditing( row.value, column.value ); //tree.columns[1]
-
-            // The above call to startEditing() calls setTimeout(), which puts a callback function in the execution queue. That callback function focuses and selects the tree.inputField. The following puts another code in the queue, which simulates a click at tree.inputField, so that the user can start typing where she clicked. See also chrome://global/content/bindings/tree.xml#tree -> startEditing
-            window.setTimeout( function() {
-                var range= document.caretPositionFromPoint(event.clientX, event.clientY);
-                tree.inputField.setSelectionRange( range.offset, range.offset );
-                //treeBoxObject.invalidateScrollbar(); This doesn't help
-            }, 0 );
-       }       
-       
-       if( false ) {
-           // Based on chrome://global/content/bindings/tree.xml#tree -> startEditing:
-            // Beyond this point, we are going to edit the cell.
-            if (tree._editingColumn)
-              tree.stopEditing();
-
-            var input = tree.inputField;
-
-            treeBoxObject.ensureCellIsVisible(row.value, column.value);// this doesn't caluse the problem
-
-            // Get the coordinates of the text inside the cell.
-            var textx = {}, texty = {}, textwidth = {}, textheight = {};
-            treeBoxObject.getCoordsForCellItem(row.value, column.value, "text",
-                                                  textx, texty, textwidth, textheight);
-
-            // Get the coordinates of the cell itself.
-            var cellx = {}, cellwidth = {};
-            treeBoxObject.getCoordsForCellItem(row.value, column.value, "cell",
-                                              cellx, {}, cellwidth, {});
-
-            // Calculate the top offset of the textbox.
-            var style = window.getComputedStyle(input, "");
-            var topadj = parseInt(style.borderTopWidth) + parseInt(style.paddingTop);
-            input.top = texty.value - topadj;
-
-            // The leftside of the textbox is aligned to the left side of the text
-            // in LTR mode, and left side of the cell in RTL mode.
-            var left, widthdiff;
-            if (style.direction == "rtl") {
-              left = cellx.value;
-              widthdiff = cellx.value + cellwidth.value - textx.value - textwidth.value;
-            } else {
-              left = textx.value;
-              widthdiff = textx.value - cellx.value;
-            }
-
-            input.left = left;
-            input.height = textheight.value + topadj +
-                           parseInt(style.borderBottomWidth) +
-                           parseInt(style.paddingBottom);
-            input.width = cellwidth.value - widthdiff;
-            input.hidden = false;
-
-            input.value = tree.view.getCellText(row.value, column.value);
-            var selectText = function selectText() {
-              input.select(); // this doesn't caluse the problem
-              input.inputField.focus(); // this doesn't caluse the problem
-            }
-            setTimeout(selectText, 0);
-
-            tree._editingRow = row.value;
-            tree._editingColumn = column.value;
-
-            tree.setAttribute("editing", "true");
+    // The clicked row has already been selected as the current command/comment.
+    // For commands, only allow edit-in-place for 'target' and 'value' columns. That allows us to still execute the command by double-clicking at the command name itself.
+    // For comments, only allow edit-in-place for 'command' column, and do it no matter what column was clicked.
+    if( editor.treeView.currentCommand.type==='command' && (column.value===tree.columns[1] || column.value===tree.columns[2])
+    ||  editor.treeView.currentCommand.type==='comment'
+    ) {
+        if( editor.treeView.currentCommand.type==='comment' ) {
+            column.value= tree.columns[0];
+            //@TODO temporarily disable overflow?!
         }
+        tree.startEditing( row.value, column.value );
+
+        // The above call to startEditing() calls setTimeout(), which puts a callback function in the execution queue. That callback function focuses and selects the tree.inputField. The following puts another code in the queue, which simulates a click at tree.inputField, so that the user can start typing where she clicked. See also chrome://global/content/bindings/tree.xml#tree -> startEditing
+        window.setTimeout( function() {
+            if( editor.treeView.currentCommand.type==='comment' ) {
+                //@TODO If the user clicked at a long comment (that overflew to target/value column), we focus at the last visible character in the editable area.
+                // I.e. if event.X is past the tree.inputField (i.e. past 'command' column), then use tree.inputField's right coordinate
+            }
+            var range= document.caretPositionFromPoint(event.clientX, event.clientY);
+            tree.inputField.setSelectionRange( range.offset, range.offset );
+            //treeBoxObject.invalidateScrollbar(); This doesn't help
+        }, 0 );
    }
-   else {
-       //window.editor.treeView.selectCommand();
-   }
-   //event.preventDefault();
-   //event.stopPropagation();
 }

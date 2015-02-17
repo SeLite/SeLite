@@ -9,12 +9,19 @@
   </binding>
   <binding id="commands" extends="chrome://global/content/bindings/tree.xml#tree">
       <handlers>
-          <handler event="click" action="/*onTreeClick(event);*/"/>
+          <handler event="click" action="alert('tree click');"/>
       </handlers>
   </binding>
   <binding id="textbox" extends="chrome://global/content/bindings/textbox.xml#textbox">
       <handlers>
           <handler event="click" action="/*onTextboxClick(event);*/"/>
       </handlers>
+  </binding>
+  <binding id="commandRow" extends="xul:row">
+      <content>
+            <children/>
+            <!-- When the user went from editing a comment to a command -->
+            <xul:textbox type="autocomplete" autocompletesearch="selenium-ide-generic" autofill="true" completedefaultindex="true" completeselectedindex="true" enablehistory="true" tabscrolling="false" sizetopopup="pref" autocompletesearchparam="commandAction_w8bw697f4u" width="0" style="visibility: hidden;"/>
+      </content>
   </binding>
 </bindings>

@@ -1,12 +1,19 @@
-tree#commands treechildren {
+/*tree#commands treechildren {
     -moz-binding: url( 'chrome://selite-clipboard-and-indent/content/ui/bindings.xml#treechildren' );
-}
-
+}*/
+/*
 tree#commands {
-    -moz-binding: url( 'chrome://selite-clipboard-and-indent/content/ui/bindings.xml#commands' );
-}
-
+    -moz-binding: url( 'chrome://selite-better-gui/content/ui/bindings.xml#commands' );
+}*/
+/*
 textbox {
-    -moz-binding: url( 'chrome://selite-clipboard-and-indent/content/ui/bindings.xml#textbox' );
+    -moz-binding: url( 'chrome://selite-better-gui/content/ui/bindings.xml#textbox' );
     
-}
+}*/
+
+/* Something from the following CSS selectors made the binding not apply*/
+/*vbox#commandDetail grid rows row:nth-child(1), vbox#commandDetail row:nth-child(1), vbox#commandDetail xul:row, vbox#commandDetail row, row[align="center"], row, xul:row,*/
+/*
+vbox#commandDetail row:nth-child(1) {
+    -moz-binding: url( 'chrome://selite-better-gui/content/ui/bindings.xml#commandRow' );
+}*/

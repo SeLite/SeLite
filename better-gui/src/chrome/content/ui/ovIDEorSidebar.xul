@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<?xml-stylesheet href="chrome://selite-clipboard-and-indent/content/ui/bindings.css" type="text/css"?>
+<?xml-stylesheet href="chrome://selite-better-gui/content/ui/bindings.css" type="text/css"?>
 <overlay id="clipboard-ovIDE" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
     <window id="selenium-ide">
         <script type="application/x-javascript" src="chrome://selite-better-gui/content/ui/handlers.js"/>
