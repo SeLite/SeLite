@@ -4,9 +4,12 @@
     <window id="selenium-ide">
         <script type="application/x-javascript" src="chrome://selite-better-gui/content/ui/handlers.js"/>
     </window>
-    <!-- Adding to Selenium IDE's onclick: -->
+    <!-- 1. Selective tail override of Selenium IDE's onclick handler.
+         2. Adding minheight: otherwise the tree changed the height quite a lot when clicking to edit some commands, which seemed shaking-like and distracting.
+    -->
     <tree id="commands" editable="true"
         onclick="window.editor.treeView.selectCommand(); onTreeClick(event);"
+        minheight="80"
     />
     <treecol id="command" editable="false"/>
     <treecol id="target" editable="true"/>
