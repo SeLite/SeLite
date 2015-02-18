@@ -8,7 +8,7 @@
          2. Adding minheight: otherwise the tree changed the height quite a lot when clicking to edit some commands, which seemed shaking-like and distracting.
     -->
     <tree id="commands" editable="true"
-        onclick="window.editor.treeView.selectCommand(); onTreeClick(event);"
+        onclick="onTreeClick(event);"
         minheight="80"
     />
     <treecol id="command" editable="false"/>
