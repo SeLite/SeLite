@@ -22,7 +22,9 @@ function onTreeClick( event ) {
     ) {
         if( editor.treeView.currentCommand.type==='comment' ) {
             column= tree.columns[0];
-            //@TODO temporarily disable overflow?!
+            // In the following I've tried to temporarily disable comment's overflow, but there seems not to be a way (then I'd have to re-enable it afterwards).
+            //document.getElementById('command').removeAttribute('overflow');
+            //treeBoxObject.invalidateRange( rowObject.value, rowObject.value+1 );
         }
         tree.startEditing( rowObject.value, column );
 

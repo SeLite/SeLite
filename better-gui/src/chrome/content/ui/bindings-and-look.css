@@ -17,3 +17,9 @@ textbox {
 vbox#commandDetail row:nth-child(1) {
     -moz-binding: url( 'chrome://selite-better-gui/content/ui/bindings.xml#commandRow' );
 }
+
+tree#commands treechildren::-moz-tree-cell(recordIndex)
+{
+    border-top: none;
+  /* Override of border-top: 1px solid #008800; from Selenium's chrome/skin/classic/selenium-ide.css. When editing-in-place a command's target/value or a comment, that rule caused underscores _ not to show up. */
+}
