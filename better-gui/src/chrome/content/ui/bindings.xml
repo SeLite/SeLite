@@ -20,7 +20,7 @@
   <binding id="commandRow" extends="xul:row">
       <content>
             <children/>
-            <!-- When the user went from editing a comment to a command -->
+            <!-- When the user edits a command (any of its three fields - command name, target or value), there's an auto-complete dropdown. If the user then switches to edit a comment, there's no auto-complete dropdown, so it takes less height, which gives a tiny shaking distraction. The following eliminates that: it creates an invisible field with a dropdown, so that it reserves the height for command, even if the user edits a comment. -->
             <xul:textbox type="autocomplete" autocompletesearch="selenium-ide-generic" autofill="true" completedefaultindex="true" completeselectedindex="true" enablehistory="true" tabscrolling="false" sizetopopup="pref" autocompletesearchparam="commandAction_w8bw697f4u" width="0" style="visibility: hidden;"/>
       </content>
   </binding>
