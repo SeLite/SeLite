@@ -1,8 +1,5 @@
 "use strict";
-Components.utils.import('resource://gre/modules/devtools/Console.jsm', {});
-Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
 
-var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 function onTreeClick( event ) {
     editor.treeView.seLiteTreePreviousIndex= editor.treeView.tree.currentIndex;
     // event.target is treechildren; event.currentTarget is tree; event.relatedTarget is null
@@ -17,8 +14,6 @@ function onTreeClick( event ) {
     treeBoxObject.QueryInterface(Components.interfaces.nsITreeBoxObject);
     treeBoxObject.getCellAt(event.clientX, event.clientY, rowObject, columnObject, {}/*unused, but needed*/ );
     var column= columnObject.value;
-    console.error( 'onTreeClick row ' +rowObject.value );
-    console.error( 'editor.treeView.currentCommand: ' +editor.treeView.currentCommand['command']+ ' | ' +editor.treeView.currentCommand['target'] +' | ' +editor.treeView.currentCommand['value']);
     // The clicked row has already been selected as the current command/comment.
     // For commands, only allow edit-in-place for 'target' and 'value' columns. That allows us to still execute the command by double-clicking at the command name itself.
     // For comments, only allow edit-in-place for 'command' column, and do it no matter what column was clicked.

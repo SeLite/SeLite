@@ -2,7 +2,6 @@
 
 XulUtils.TreeViewHelper.prototype.isEditable= TreeView.prototype.isEditable= function isEditable( row, col ) { return true;};
 
-//var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 /** There are a few basic scenarios/sequences:
  * 
  *  - No change
@@ -26,11 +25,8 @@ XulUtils.TreeViewHelper.prototype.isEditable= TreeView.prototype.isEditable= fun
  *    Therefore, in onClick() I save this.tree.currentIndex in this.seLiteTreePreviousIndex, which I then compare to current this.tree.currentIndex in setCellText(). If they are different, that means that onSelect() has already selected the newly clicked command. Then I update the previously edited command in the test case, instead of calling updateCurrentCommand(). Also, I don't update the command details area - I don't call selectCommand() - because it already shows the newly edited command.
  * */
 XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= function setCellText( row, col, value, original) {
-    //console.error( 'setCellText: row ' +row+ ', value ' +value );
-    //console.error( 'editor.treeView.currentCommand: ' +editor.treeView.currentCommand['command']+ ' | ' +editor.treeView.currentCommand['target'] +' | ' +editor.treeView.currentCommand['value']);
     //original is undefined, so I don't call original.setCellText( row, col, value );
     var tree= document.getElementById('commands');
-    
     var key= col===tree.columns[0] // What field of the command/comment to update
         ? 'command'
         : (col===tree.columns[1]
@@ -41,12 +37,16 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
         ? value
         : window.editor.treeView.decodeText(value);
         
-    if( this.tree.currentIndex===this.seLiteTreePreviousIndex ) { // Handlign one of the two simple sequences (see above)
+    if( this.tree.currentIndex===this.seLiteTreePreviousIndex ) { // Handling one of the two simple sequences (see above)
         window.editor.treeView.updateCurrentCommand( key, decodedValue);
         window.editor.treeView.selectCommand();
     }
     else { // Handling the complex sequence
-        editor.treeView.getCommand( this.seLiteTreePreviousIndex )[ key ]= decodedValue;
+        // See TreeView.UpdateCommandAction.prototype -> execute()
+        if( col===tree.columns[0] ) {
+            key= 'comment';
+        }
+        window.editor.treeView.getCommand( this.seLiteTreePreviousIndex )[ key ]= decodedValue;
     }
     return true;
 };
