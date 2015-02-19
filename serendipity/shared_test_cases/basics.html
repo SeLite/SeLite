@@ -17,28 +17,28 @@
 	<td>forceReload</td>
 </tr>
 <tr>
-	<td>storeEval</td>
+	<td>&nbsp;&nbsp;storeEval</td>
 	<td>Serendipity.webRoot(true)</td>
 	<td>webRoot</td>
 </tr>
-<!--@TODO remove { and }?-->
+<!--  @TODO remove { and }?-->
 <tr>
-	<td>selectWindow</td>
+	<td>&nbsp;&nbsp;selectWindow</td>
 	<td>null</td>
 	<td></td>
 </tr>
 <tr>
-	<td>if</td>
+	<td>&nbsp;&nbsp;if</td>
 	<td>!window.location.href.startsWith( '${webRoot}' ) || $forceReload</td>
 	<td></td>
 </tr>
 <tr>
-	<td>open</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;open</td>
 	<td>${webRoot}</td>
 	<td></td>
 </tr>
 <tr>
-	<td>endIf</td>
+	<td>&nbsp;&nbsp;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
@@ -47,39 +47,39 @@
 	<td></td>
 	<td></td>
 </tr>
-<!---------------------->
+<!---->
 <tr>
 	<td>function</td>
 	<td>logOut</td>
 	<td></td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>ensureUnderWebRoot</td>
 	<td>forceReload=true</td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;clickAndWait</td>
 	<td>//a[ contains(@href, '`Serendipity.config('indexFile')`?/admin' ) ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>storeElementPresent</td>
+	<td>&nbsp;&nbsp;storeElementPresent</td>
 	<td>//a[ contains(@href, 'serendipity[adminModule]=logout' ) ]</td>
 	<td>userLoggedIn</td>
 </tr>
 <tr>
-	<td>if</td>
+	<td>&nbsp;&nbsp;if</td>
 	<td>$userLoggedIn</td>
 	<td></td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
 	<td>//a[ contains(@href, 'serendipity[adminModule]=logout' ) ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>endIf</td>
+	<td>&nbsp;&nbsp;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
@@ -88,7 +88,7 @@
 	<td></td>
 	<td></td>
 </tr>
-<!----------------->
+<!---->
 <!--Parameter 'loginOrAmpRole' is user login, or user role prefixed with & (then it's passed to SeLiteSettings.roleToUser())-->
 <!--Parameter 'passwd' is optional; if not passed, then this uses password from Firefox login manager.-->
 <tr>
@@ -96,81 +96,80 @@
 	<td>logIn</td>
 	<td>loginOrAmpRole, passwd</td>
 </tr>
-<!--if the user is logged in already, log him out:-->
+<!--  if the user is logged in already, log him out:-->
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>logOut</td>
 	<td></td>
 </tr>
 <!---->
-<!--@TODO Document or fix: if I use ${nonExistingStoredVariable}, then that doesn't evaluate to undefined, but to string '${nonExistingStoredVariable}'-->
+<!--  @TODO Document or fix: if I use ${nonExistingStoredVariable}, then that doesn't evaluate to undefined, but to string '${nonExistingStoredVariable}'-->
 <tr>
-	<td>getEval</td>
+	<td>&nbsp;&nbsp;getEval</td>
 	<td>LOG.info( 'logIn: loginOrAmpRole=${loginOrAmpRole}, passwd=${passwd}' )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>storeEval</td>
+	<td>&nbsp;&nbsp;storeEval</td>
 	<td>SeLiteSettings.roleToUser( '${loginOrAmpRole}' )</td>
 	<td>login</td>
 </tr>
 <tr>
-	<td>getEval</td>
+	<td>&nbsp;&nbsp;getEval</td>
 	<td>Serendipity.selectUsername( storedVars.login )</td>
 	<td></td>
 </tr>
 <!---->
-<!--TODO if ${passwd}===undefined doesn't work, because Selenium.prototype.replaceVariables() tries to replace the variable as a string-->
+<!--  TODO if ${passwd}===undefined doesn't work, because Selenium.prototype.replaceVariables() tries to replace the variable as a string-->
 <tr>
-	<td>if</td>
+	<td>&nbsp;&nbsp;if</td>
 	<td>storedVars.passwd===undefined</td>
 	<td></td>
 </tr>
 <tr>
-	<td>storeEval</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
 	<td>SeLiteMisc.loginManagerPassword( '${login}' )</td>
 	<td>passwd</td>
 </tr>
 <tr>
-	<td>endIf</td>
+	<td>&nbsp;&nbsp;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
-	<td>getEval</td>
+	<td>&nbsp;&nbsp;getEval</td>
 	<td>LOG.info( 'logIn: login=${login}, passwd=${passwd}' )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>waitForTimestampDistinctDownToSeconds</td>
+	<td>&nbsp;&nbsp;waitForTimestampDistinctDownToSeconds</td>
 	<td>logIn</td>
 	<td>10</td>
 </tr>
 <!---->
 <tr>
-	<td>assertElementPresent</td>
+	<td>&nbsp;&nbsp;assertElementPresent</td>
 	<td>//input[ @name='serendipity[user]' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>type</td>
+	<td>&nbsp;&nbsp;type</td>
 	<td>//input[ @name='serendipity[user]' ]</td>
 	<td>${login}</td>
 </tr>
 <tr>
-	<td>type</td>
+	<td>&nbsp;&nbsp;type</td>
 	<td>//input[ @name='serendipity[pass]' ]</td>
 	<td>${passwd}</td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;clickAndWait</td>
 	<td>//form[ @action='serendipity_admin.php'&nbsp;&nbsp;]//input[ @type='submit' ]</td>
 	<td></td>
 </tr>
 <!---->
-<!---->
 <tr>
-	<td>assertElementPresent</td>
+	<td>&nbsp;&nbsp;assertElementPresent</td>
 	<td>//a[ contains(@href, 'serendipity[adminModule]=logout' ) ]</td>
 	<td>Verify that we are logged in</td>
 </tr>
@@ -187,12 +186,12 @@
 	<td>login</td>
 </tr>
 <tr>
-	<td>readRecord</td>
+	<td>&nbsp;&nbsp;readRecord</td>
 	<td>=`{ formula: Serendipity.formulas.authors, username: $login }`</td>
 	<td>user</td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>logIn</td>
 	<td>loginOrAmpRole=$login, passwd=$user.password</td>
 </tr>
@@ -209,17 +208,17 @@
 	<td></td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>ensureUnderWebRoot</td>
 	<td>forceReload=true</td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;clickAndWait</td>
 	<td>//a[ contains(@href, '`Serendipity.config('indexFile')`?/admin') ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;clickAndWait</td>
 	<td>//a[ @href='serendipity_admin.php?serendipity[adminModule]=entries&amp;serendipity[adminAction]=new' ]</td>
 	<td></td>
 </tr>
@@ -242,7 +241,7 @@
 </tr>
 <tr>
 	<td>pause</td>
-	<td>2000</td>
+	<td>fillInEntry</td>
 	<td>Without this I sometimes got an error from wysiwyg editor at line 2585 of /htmlarea/XinhaCore.js:2585</td>
 </tr>
 <!--wysiwyg editor Xinha transforms <b> to <strong>, <i> to <em> and <strike> to <del>. Here I list the allowed tags which don't get transformed - so they will be the same in test & app.-->

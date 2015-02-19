@@ -9,7 +9,7 @@
   </binding>
   <binding id="commandTarget" extends="chrome://global/content/bindings/autocomplete.xml#autocomplete">
       <handlers>
-          <handler event="keypress" action="onKeyPressWithTab( event );" />
+          <handler event="keypress" action="onKeyPressWithShift( event );" />
       </handlers>
   </binding>
 </bindings>

@@ -21,7 +21,7 @@ function onKeyPress(event) {
     }
 }
 
-function onKeyPressWithTab(event) {
+function onKeyPressWithShift(event) {
     if( event.keyCode===KeyEvent.DOM_VK_TAB && event.shiftKey ) {
         selectRightFromIndent( event );
     }
