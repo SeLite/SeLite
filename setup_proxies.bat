@@ -46,6 +46,12 @@ if defined p (
       cd ..\..
     )
 
+    if not exist "!e!\hands-on-gui@selite.googlecode.com.xpi" (
+      cd hands-on-gui\src
+      cd > "!e!\hands-on-gui@selite.googlecode.com"
+      cd ..\..
+    )
+
     if not exist "!e!\settings@selite.googlecode.com.xpi" (
       cd settings\src
       cd > "!e!\settings@selite.googlecode.com"

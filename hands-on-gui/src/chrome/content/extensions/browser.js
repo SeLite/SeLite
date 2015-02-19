@@ -5,8 +5,8 @@ var EXPORTED_SYMBOLS= ['Flag'];
 if( typeof window!=='undefined' ) {
     // Anonymous function puts variables into local scope. Otherwise I had symbols 'thisAddOnChrome' and function showAlert shared across multiple SeLite add-ons, which caused problems when showAlert() shows delayed.
     ( function() {
-        var thisAddOnID= 'better-gui@selite.googlecode.com';
-        var thisAddOnChrome= 'chrome://selite-better-gui';
+        var thisAddOnID= 'hands-on-gui@selite.googlecode.com';
+        var thisAddOnChrome= 'chrome://selite-hands-on-gui';
 
         /** Following code should be the same across all SeLite extensions that need Extension Sequencer. */
         var showAlert= function showAlert( ){

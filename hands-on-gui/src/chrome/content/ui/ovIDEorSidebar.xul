@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
-<?xml-stylesheet href="chrome://selite-better-gui/content/ui/bindings-and-look.css" type="text/css"?>
+<?xml-stylesheet href="chrome://selite-hands-on-gui/content/ui/bindings-and-look.css" type="text/css"?>
 <overlay id="clipboard-ovIDE" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
     <window id="selenium-ide">
-        <script type="application/x-javascript" src="chrome://selite-better-gui/content/ui/handlers.js"/>
+        <script type="application/x-javascript" src="chrome://selite-hands-on-gui/content/ui/handlers.js"/>
     </window>
     <!-- 1. Selective tail override of Selenium IDE's onclick handler.
          2. Adding minheight: otherwise the tree changed the height quite a lot when clicking to edit some commands, which seemed shaking-like and distracting.

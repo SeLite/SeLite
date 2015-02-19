@@ -18,11 +18,14 @@ zip -r ../../xpi/commands.xpi *
 cd ../../clipboard-and-indent/src
 zip -r ../../xpi/clipboard-and-indent.xpi *
 
+cd ../../db-objects/src
+zip -r ../../xpi/db-objects.xpi *
+
 cd ../../extension-sequencer/src
 zip -r ../../xpi/extension-sequencer.xpi *
 
-cd ../../db-objects/src
-zip -r ../../xpi/db-objects.xpi *
+cd ../../hands-on-gui/src
+zip -r ../../xpi/hands-on-gui.xpi *
 
 cd ../../misc/src
 zip -r ../../xpi/misc.xpi *

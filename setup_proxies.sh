@@ -60,6 +60,13 @@ then
       cd ../..
     fi
 
+    if [ ! -e "$EXTENSION_FOLDER"/hands-on-gui\@selite.googlecode.com.xpi ]
+    then
+      cd hands-on-gui/src
+      pwd > "$EXTENSION_FOLDER"/hands-on-gui@selite.googlecode.com
+      cd ../..
+    fi
+
     if [ ! -e "$EXTENSION_FOLDER"/settings\@selite.googlecode.com.xpi ]
     then
       cd settings/src

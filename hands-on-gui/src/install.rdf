@@ -2,8 +2,8 @@
 <RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
  xmlns:em="http://www.mozilla.org/2004/em-rdf#">
   <Description about="urn:mozilla:install-manifest">
-    <em:id>better-gui@selite.googlecode.com</em:id>
-    <em:name>SeLite Better GUI</em:name>
+    <em:id>hands-on-gui@selite.googlecode.com</em:id>
+    <em:name>SeLite Hands-on GUI</em:name>
     <em:version>0.01</em:version>
     <em:creator>Peter Kehl</em:creator>
     <em:homepageURL>https://code.google.com/p/selite/</em:homepageURL>

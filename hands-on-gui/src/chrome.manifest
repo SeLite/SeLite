@@ -1,0 +1,6 @@
+content selite-hands-on-gui chrome/content/
+
+overlay chrome://browser/content/browser.xul chrome://selite-hands-on-gui/content/extensions/browser.xul
+
+overlay chrome://selenium-ide/content/selenium-ide.xul chrome://selite-hands-on-gui/content/ui/ovIDEorSidebar.xul
+overlay chrome://selenium-ide/content/selenium-ide-sidebar.xul chrome://selite-hands-on-gui/content/ui/ovIDEorSidebar.xul
