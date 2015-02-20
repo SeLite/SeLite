@@ -9,4 +9,18 @@
             <xul:textbox type="autocomplete" autocompletesearch="selenium-ide-generic" autofill="true" completedefaultindex="true" completeselectedindex="true" enablehistory="true" tabscrolling="false" sizetopopup="pref" autocompletesearchparam="commandAction_w8bw697f4u" width="0" style="visibility: hidden;"/>
       </content>
   </binding>
+  <binding id="seleniumIDEKeys">
+      <content>
+            <children/>
+            <xul:key id="insert-command-key" key="I" command="cmd_insert_command"/>
+            <xul:key id="insert-comment-key" modifiers="accel" key="M" command="cmd_insert_comment"/>
+      </content>
+  </binding>
+  <binding id="seleniumIDECommands">
+      <content>
+          <children/>
+            <xul:command id="cmd_insert_command" oncommand="debugger; goDoCommand('cmd_insert_command')"/>
+            <xul:command id="cmd_insert_comment" oncommand="debugger; goDoCommand('cmd_insert_comment')"/>
+      </content>
+  </binding>
 </bindings>

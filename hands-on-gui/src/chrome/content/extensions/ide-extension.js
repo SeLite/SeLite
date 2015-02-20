@@ -50,3 +50,55 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
     }
     return true;
 };
+
+( function() {
+    var treeContextMenu= document.getElementById('treeContextMenu');
+    //I've tried XPath and it didn't work:
+    //var nsResolver = document.createNSResolver( treeContextMenu.ownerDocument == null ? treeContextMenu.documentElement : treeContextMenu.ownerDocument.documentElement ); // From https://developer.mozilla.org/en/docs/Introduction_to_using_XPath_in_JavaScript#Implementing_a_Default_Namespace_Resolver
+    //var insertCommandMenuItem= window.document.evaluate( '//menuitem', treeContextMenu, nsResolver, XPathResult.ANY_UNORDERED_NODE_TYPE, null ).singleNodeValue;
+    var menuItems= treeContextMenu.getElementsByTagName('menuitem');
+    for( var i=0; i<menuItems.length; i++ ) {//@TODO for(..of..) once NetBeans like it
+        var item= menuItems[i];
+        if( item.getAttribute('accesskey')==='I' ) {
+            item.setAttribute('key', 'insert-command-key');
+        }
+        if( item.getAttribute('accesskey')==='M' ) {
+            item.setAttribute('key', 'insert-comment-key');
+        }
+    }
+    
+    var originalInitialize= TreeView.prototype.initialize;
+    TreeView.prototype.initialize= function initialize(editor, document, tree) {
+        originalInitialize.call( this, editor, document, tree );
+        var controllers= this.tree.controllers;
+        var originalController= controllers.getControllerAt( controllers.getControllerCount()-1 );
+        controllers.removeController( originalController );
+        
+        var self= this;
+        // Head overrides of three handler functions in originalController. I can't replace functions in originalController itself (object originalController is protected).
+        
+        var newController= {
+            supportsCommand: function supportsCommand(cmd ) {
+                return cmd==='cmd_insert_command' || cmd==='cmd_insert_comment' || originalController.supportsCommand.call(originalController, cmd);
+            },
+
+            isCommandEnabled: function isCommandEnabled(cmd ) {
+                return cmd==='cmd_insert_command' || cmd==='cmd_insert_comment' || originalController.isCommandEnabled.call(originalController, cmd);
+            },
+
+            doCommand: function doCommand(cmd ) {
+                if( cmd==='cmd_insert_command' ) {
+                    self.insertCommand();
+                }
+                else if( cmd==='cmd_insert_comment' ) {
+                    self.insertComment();
+                }
+                else {
+                    originalController.doCommand.call(originalController, cmd);
+                }
+            },
+            onEvent: originalController.onEvent
+        };        
+        controllers.appendController( newController );//@TODO try without replacing controller, just update it
+    };
+} ) ();
