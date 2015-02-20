@@ -12,4 +12,11 @@
           <handler event="keypress" action="onKeyPressWithShift( event );" />
       </handlers>
   </binding>
+  <binding id="seleniumIDEKeys">
+      <content>
+            <children/>
+            <xul:key id="indent-key" modifiers="accel" key="R" command="cmd_indent"/>
+            <xul:key id="unindent-key" modifiers="accel" key="L" command="cmd_unindent"/>
+      </content>
+  </binding>
 </bindings>

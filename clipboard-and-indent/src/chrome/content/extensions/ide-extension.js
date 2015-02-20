@@ -235,6 +235,24 @@ Editor.prototype.addCommand = function (command, target, value, window, insertBe
 // 'editor' is an instance of either StandaloneEditor or SidebarEditor. Those classes don't refer to Editor.prototype, but they have copies of all functions from Editor.prototype (copied via objectExtend()).
         SidebarEditor.prototype.addCommand= StandaloneEditor.prototype.addCommand= Editor.prototype.addCommand;
 // end of addCommand()
+        
+        // Append 'Indent' and 'Unindent'. It can't be done through XBL (see dev-tech-xul.mozilla.narkive.com/D4u2AkVT/binding-menus-using-xbl-doesn-t-work)
+        var treeContextMenu= document.getElementById('treeContextMenu');
+        treeContextMenu.appendChild( document.createElement('menuseparator') );
+
+        var indent= document.createElement("menuitem");
+        indent.setAttribute('label', 'Indent (right)');
+        indent.setAttribute('command', 'cmd_indent');
+        indent.setAttribute('accesskey', 'R');
+        indent.setAttribute('key', 'indent-key');
+        treeContextMenu.appendChild(indent);
+        
+        var unindent= document.createElement("menuitem");
+        unindent.setAttribute('label', 'Unindent (left)');
+        unindent.setAttribute('command', 'cmd_unindent');
+        unindent.setAttribute('accesskey', 'L');
+        unindent.setAttribute('key', 'unindent-key');
+        treeContextMenu.appendChild(unindent);
    }
     SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteClipboardAndIndent']= loadedTimes+1;   
 })();

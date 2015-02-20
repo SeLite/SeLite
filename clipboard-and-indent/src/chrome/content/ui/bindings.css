@@ -5,3 +5,7 @@ tree#commands  {
 textbox#commandTarget  {
     -moz-binding: url( 'chrome://selite-clipboard-and-indent/content/ui/bindings.xml#commandTarget' );
 }
+
+keyset#seleniumIDEKeys {
+    -moz-binding: url( 'chrome://selite-clipboard-and-indent/content/ui/bindings.xml#seleniumIDEKeys' );
+}
