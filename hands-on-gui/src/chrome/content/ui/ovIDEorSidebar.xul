@@ -42,6 +42,6 @@ limitations under the License.
     <key id="exec-key" key="X" command="cmd_selenium_exec_command"/>
     <!-- Added by SeLite Hands-On: -->
     <key id="insert-command-key" key="I" command="cmd_insert_command"/>
-    <key id="insert-comment-key" modifiers="accel" key="M" command="cmd_insert_comment"/>
+    <key id="insert-comment-key" key="M" command="cmd_insert_comment"/>
   </keyset>
 </overlay>

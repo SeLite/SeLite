@@ -52,18 +52,21 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
 };
 
 ( function() {
-    var treeContextMenu= document.getElementById('treeContextMenu');
-    //I've tried XPath and it didn't work:
-    //var nsResolver = document.createNSResolver( treeContextMenu.ownerDocument == null ? treeContextMenu.documentElement : treeContextMenu.ownerDocument.documentElement ); // From https://developer.mozilla.org/en/docs/Introduction_to_using_XPath_in_JavaScript#Implementing_a_Default_Namespace_Resolver
-    //var insertCommandMenuItem= window.document.evaluate( '//menuitem', treeContextMenu, nsResolver, XPathResult.ANY_UNORDERED_NODE_TYPE, null ).singleNodeValue;
-    var menuItems= treeContextMenu.getElementsByTagName('menuitem');
-    for( var i=0; i<menuItems.length; i++ ) {//@TODO for(..of..) once NetBeans like it
-        var item= menuItems[i];
-        if( item.getAttribute('accesskey')==='I' ) {
-            item.setAttribute('key', 'insert-command-key');
-        }
-        if( item.getAttribute('accesskey')==='M' ) {
-            item.setAttribute('key', 'insert-comment-key');
+    // Adjust top 'Edit' menu and context menu: Inject 'key' attribute for menu items that insert new command/comment.
+    var menusToUpdate= [ document.getElementById('treeContextMenu'), document.getElementById('menu_edit') ];
+    for( var i=0; i<2; i++ ) { //@TODO var(..of..) once NetBeans like it
+        //I've tried XPath and it didn't work:
+        //var nsResolver = document.createNSResolver( treeContextMenu.ownerDocument == null ? treeContextMenu.documentElement : treeContextMenu.ownerDocument.documentElement ); // From https://developer.mozilla.org/en/docs/Introduction_to_using_XPath_in_JavaScript#Implementing_a_Default_Namespace_Resolver
+        //var insertCommandMenuItem= window.document.evaluate( '//menuitem', treeContextMenu, nsResolver, XPathResult.ANY_UNORDERED_NODE_TYPE, null ).singleNodeValue;
+        var menuItems= menusToUpdate[i].getElementsByTagName('menuitem');
+        for( var j=0; j<menuItems.length; j++ ) {//@TODO for(..of..) once NetBeans like it
+            var item= menuItems[j];
+            if( item.getAttribute('accesskey')==='I' ) {
+                item.setAttribute('key', 'insert-command-key');
+            }
+            if( item.getAttribute('accesskey')==='M' ) {
+                item.setAttribute('key', 'insert-comment-key');
+            }
         }
     }
     
@@ -72,11 +75,11 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
         originalInitialize.call( this, editor, document, tree );
         var controllers= this.tree.controllers;
         var originalController= controllers.getControllerAt( controllers.getControllerCount()-1 );
-        /**/controllers.removeController( originalController );
+        controllers.removeController( originalController );
         
         var self= this;
-        // Head overrides of three handler functions in originalController. I can't replace functions in originalController itself (object originalController is protected).
-        
+        // Add handling for 'cmd_insert_command' and 'cmd_insert_comment', by head override of controller object that was registered through appendController() in Selenium's chrome/content/treeView.js. Otherwise I couldn't register shortcut keys with those two commands, even though they were listed in Selenium's chrome/content/selenium-ide-common.xul >> <commandset id="seleniumIDECommands">
+        // For that I set head override of three handler functions. I can't replace functions in originalController itself (since object originalController is protected).
         var newController= {
             supportsCommand: function supportsCommand(cmd ) {
                 return cmd==='cmd_insert_command' || cmd==='cmd_insert_comment' || originalController.supportsCommand.call(originalController, cmd);
@@ -85,7 +88,7 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
             isCommandEnabled: function isCommandEnabled(cmd ) {
                 return cmd==='cmd_insert_command' || cmd==='cmd_insert_comment' || originalController.isCommandEnabled.call(originalController, cmd);
             },
-
+            
             doCommand: function doCommand(cmd ) {
                 if( cmd==='cmd_insert_command' ) {
                     self.insertCommand();
@@ -99,6 +102,6 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
             },
             onEvent: originalController.onEvent
         };        
-        controllers.appendController( newController );/**/
+        controllers.appendController( newController );
     };
 } ) ();
