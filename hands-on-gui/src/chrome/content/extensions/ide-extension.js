@@ -72,7 +72,7 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
         originalInitialize.call( this, editor, document, tree );
         var controllers= this.tree.controllers;
         var originalController= controllers.getControllerAt( controllers.getControllerCount()-1 );
-        controllers.removeController( originalController );
+        /**/controllers.removeController( originalController );
         
         var self= this;
         // Head overrides of three handler functions in originalController. I can't replace functions in originalController itself (object originalController is protected).
@@ -99,6 +99,6 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
             },
             onEvent: originalController.onEvent
         };        
-        controllers.appendController( newController );//@TODO try without replacing controller, just update it
+        controllers.appendController( newController );/**/
     };
 } ) ();
