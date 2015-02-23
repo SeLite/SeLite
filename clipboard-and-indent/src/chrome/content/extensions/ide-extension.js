@@ -236,23 +236,25 @@ Editor.prototype.addCommand = function (command, target, value, window, insertBe
         SidebarEditor.prototype.addCommand= StandaloneEditor.prototype.addCommand= Editor.prototype.addCommand;
 // end of addCommand()
         
-        // Append 'Indent' and 'Unindent'. It can't be done through XBL (see dev-tech-xul.mozilla.narkive.com/D4u2AkVT/binding-menus-using-xbl-doesn-t-work)
-        var treeContextMenu= document.getElementById('treeContextMenu');
-        treeContextMenu.appendChild( document.createElement('menuseparator') );
+        // Append 'Indent' and 'Unindent' to top Edit menu and to context menu. They can't be added through XBL (see dev-tech-xul.mozilla.narkive.com/D4u2AkVT/binding-menus-using-xbl-doesn-t-work)
+        var menusToUpdate= [ document.getElementById('treeContextMenu'), document.getElementById('menu_edit').getElementsByTagName('menupopup')[0] ];
+        for( var i=0; i<2; i++ ) { //@TODO var(..of..) once NetBeans like it        
+            menusToUpdate[i].appendChild( document.createElement('menuseparator') );
 
-        var indent= document.createElement("menuitem");
-        indent.setAttribute('label', 'Indent (right)');
-        indent.setAttribute('command', 'cmd_indent');
-        indent.setAttribute('accesskey', 'R');
-        indent.setAttribute('key', 'indent-key');
-        treeContextMenu.appendChild(indent);
-        
-        var unindent= document.createElement("menuitem");
-        unindent.setAttribute('label', 'Unindent (left)');
-        unindent.setAttribute('command', 'cmd_unindent');
-        unindent.setAttribute('accesskey', 'L');
-        unindent.setAttribute('key', 'unindent-key');
-        treeContextMenu.appendChild(unindent);
+            var indent= document.createElement("menuitem");
+            indent.setAttribute('label', 'Indent (right)');
+            indent.setAttribute('command', 'cmd_indent');
+            indent.setAttribute('accesskey', 'R');
+            indent.setAttribute('key', 'indent-key');
+            menusToUpdate[i].appendChild(indent);
+
+            var unindent= document.createElement("menuitem");
+            unindent.setAttribute('label', 'Unindent (left)');
+            unindent.setAttribute('command', 'cmd_unindent');
+            unindent.setAttribute('accesskey', 'L');
+            unindent.setAttribute('key', 'unindent-key');
+            menusToUpdate[i].appendChild(unindent);
+        }
    }
     SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteClipboardAndIndent']= loadedTimes+1;   
 })();

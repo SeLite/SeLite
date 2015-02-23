@@ -15,12 +15,16 @@ function selectRightFromIndent( event ) {
     }
 }
 
+// Following two functions handle when the user navigates to Command detail (wide) input by TAB and Shift+TAB. These functions select (highlight) the part of the existing command right of indentation , so that when the user starts to type, typing replaces the existing command while preserving the indentation.
+
+// When the user navigates to Command detail input from the tree by hitting TAB.
 function onKeyPress(event) {
     if( event.keyCode===KeyEvent.DOM_VK_TAB ) {
         selectRightFromIndent( event );
     }
 }
 
+// When the user navigates to Command detail (wide) input from Target detail (wide) input by hitting Shift+TAB. This doesn't handle Shift+TAB from 'Log' to Comment - there was no easy way to do it through XUL or XBL.
 function onKeyPressWithShift(event) {
     if( event.keyCode===KeyEvent.DOM_VK_TAB && event.shiftKey ) {
         selectRightFromIndent( event );
