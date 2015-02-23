@@ -31,17 +31,8 @@ limitations under the License.
     <treecol id="target" editable="true"/>
     <treecol id="value" editable="true"/>
     
-  <!-- Following can't be done through XBL: it fails with error 'In general, do not extend tag names'. And when my XBL didn't extend xul:keyset, then it wouldn't have effect. -->
+  <!-- Following can't be done by XBL bind for keyset#seleniumIDEKeys. It had a partial effect: the keys would show up in top Edit menu and also in context menu. However, it wouldn't react to the keys when typed. Also, having extends="xul:keyset" in XBL fails with error" 'In general, do not extend tag names'. -->
   <keyset id="seleniumIDEKeys">
-    <key id="close-key" modifiers="accel" key="W" command="cmd_close"/>
-    <key id="save-key" modifiers="accel" key="S" command="cmd_save"/>
-    <key id="open-key" modifiers="accel" key="O" command="cmd_open"/>
-    <key id="add-key" modifiers="accel" key="D" command="cmd_add"/>
-    <key id="new-key" modifiers="accel" key="N" command="cmd_new"/>
-    <key id="breakpoint-key" key="B" command="cmd_selenium_breakpoint"/>
-    <key id="startpoint-key" key="S" command="cmd_selenium_startpoint"/>
-    <key id="exec-key" key="X" command="cmd_selenium_exec_command"/>
-    <!-- Added by SeLite Hands-On: -->
     <key id="insert-command-key" key="I" command="cmd_insert_command"/>
     <key id="insert-comment-key" key="M" command="cmd_insert_comment"/>
   </keyset>

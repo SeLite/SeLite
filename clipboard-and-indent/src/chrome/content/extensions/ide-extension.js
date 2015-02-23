@@ -244,7 +244,7 @@ Editor.prototype.addCommand = function (command, target, value, window, insertBe
             var indent= document.createElement("menuitem");
             indent.setAttribute('label', 'Indent (right)');
             indent.setAttribute('command', 'cmd_indent');
-            indent.setAttribute('accesskey', 'R');
+            indent.setAttribute('accesskey', 'T');
             indent.setAttribute('key', 'indent-key');
             menusToUpdate[i].appendChild(indent);
 
@@ -257,4 +257,44 @@ Editor.prototype.addCommand = function (command, target, value, window, insertBe
         }
    }
     SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteClipboardAndIndent']= loadedTimes+1;   
+    
+    // See similar override in hands-on-gui/src/chrome/content/extensions/ide-extension.js
+    var originalInitialize= TreeView.prototype.initialize;
+    TreeView.prototype.initialize= function initialize(editor, document, tree) {
+        originalInitialize.call( this, editor, document, tree );
+        var controllers= this.tree.controllers;
+        var originalController= controllers.getControllerAt( controllers.getControllerCount()-1 );
+        controllers.removeController( originalController );
+        
+        var self= this;
+        // Add handling for 'cmd_indent' and 'cmd_unindent'.
+        var newController= {
+            supportsCommand: function supportsCommand(cmd ) {
+                return cmd==='cmd_indent' || cmd==='cmd_unindent' || originalController.supportsCommand.call(originalController, cmd);
+            },
+
+            isCommandEnabled: function isCommandEnabled(cmd ) {
+                return cmd==='cmd_indent' || cmd==='cmd_unindent' || originalController.isCommandEnabled.call(originalController, cmd);
+            },
+            
+            doCommand: function doCommand(cmd ) {
+                if( cmd==='cmd_indent' ) {
+                    self.indent(true);
+                }
+                else if( cmd==='cmd_unindent' ) {
+                    self.indent( false );
+                }
+                else {
+                    originalController.doCommand.call(originalController, cmd);
+                }
+            },
+            onEvent: originalController.onEvent
+        };        
+        controllers.appendController( newController );
+    };
+    
+    TreeView.prototype.indent= function indent( unindent ) {
+        alert('hi');
+        //handle a selection of multiple rows. See copy/paste functionality. Handle various row selection (selected non-consecutive rows with Ctrl+click)
+    };
 })();

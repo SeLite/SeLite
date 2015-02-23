@@ -12,18 +12,10 @@
           <handler event="keypress" action="onKeyPressWithShift( event );" />
       </handlers>
   </binding>
-  <binding id="seleniumIDEKeys">
-      <content>
-            <children/>
-            <xul:key id="indent-key" key="R" command="cmd_indent"/>
-            <xul:key id="unindent-key" key="L" command="cmd_unindent"/>
-      </content>
-  </binding>
   <binding id="seleniumIDECommands">
       <content>
           <children/>
-            <!-- @TODO handle a selection of multiple rows. See copy/paste functionality-->
-            <xul:command id="cmd_indent" oncommand="alert('todo')"/>
+            <xul:command id="cmd_indent" oncommand="goDoCommand('cmd_indent')"/>
             <xul:command id="cmd_unindent" oncommand="goDoCommand('cmd_unindent')"/>
       </content>
   </binding>
