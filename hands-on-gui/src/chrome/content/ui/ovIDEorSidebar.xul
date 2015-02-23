@@ -30,7 +30,8 @@ limitations under the License.
     <treecol id="command" editable="false"/>
     <treecol id="target" editable="true"/>
     <treecol id="value" editable="true"/>
-    <!-- Following can't be done through XBL: it fails with error 'In general, do not extend tag names'. And when my XBL didn't extend xul:keyset, then it wouldn't have effect. -->
+    
+  <!-- Following can't be done through XBL: it fails with error 'In general, do not extend tag names'. And when my XBL didn't extend xul:keyset, then it wouldn't have effect. -->
   <keyset id="seleniumIDEKeys">
     <key id="close-key" modifiers="accel" key="W" command="cmd_close"/>
     <key id="save-key" modifiers="accel" key="S" command="cmd_save"/>

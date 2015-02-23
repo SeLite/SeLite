@@ -19,4 +19,11 @@
             <xul:key id="unindent-key" modifiers="accel" key="L" command="cmd_unindent"/>
       </content>
   </binding>
+  <binding id="seleniumIDECommands">
+      <content>
+          <children/>
+            <xul:command id="cmd_indent" oncommand="goDoCommand('cmd_insert_command')"/>
+            <xul:command id="cmd_unindent" oncommand="goDoCommand('cmd_insert_comment')"/>
+      </content>
+  </binding>
 </bindings>

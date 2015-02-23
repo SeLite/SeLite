@@ -20,7 +20,7 @@ function onTreeClick( event ) {
     // event.target is treechildren; event.currentTarget is tree; event.relatedTarget is null
     // @TODO if event.clientY is too close to the bottom of the tree, then return. Otherwise the following selected a cell in a neighbour row!
     var tree= event.currentTarget;
-    if( tree.getAttribute('editing') ) {
+    if( tree.getAttribute('editing') || event.button!==0/*Clicked other than main button*/) {
         return;
     }
     var rowObject= { value: -1 }; // value will be 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
