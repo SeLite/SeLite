@@ -293,8 +293,39 @@ Editor.prototype.addCommand = function (command, target, value, window, insertBe
         controllers.appendController( newController );
     };
     
+    /** Indent or unindent by one level. 
+     * @param {bool} [unindent=false] Whether to unindent instead of indenting.
+     * */
     TreeView.prototype.indent= function indent( unindent ) {
-        alert('hi');
-        //handle a selection of multiple rows. See copy/paste functionality. Handle various row selection (selected non-consecutive rows with Ctrl+click)
+        // Based on TreeView's copyOrDelete()
+        if (!this.treebox.focused) {
+            return;
+        }
+        var firstSelectedRowIndex, lastSelectedRowIndex;
+        var count = this.selection.getRangeCount();
+        if (count > 0) {
+            for (var i = 0; i < count; i++) {
+                var start = {};
+                var end = {};
+                this.selection.getRangeAt(i, start, end);
+                if( firstSelectedRowIndex===undefined ) {
+                    firstSelectedRowIndex= start.value;
+                }
+                lastSelectedRowIndex= end.value;
+                
+                for (var v = start.value; v <= end.value; v++) {
+                    var command = this.getCommand(v);
+                    if( !unindent ) {
+                        command.command= '  ' +command.command;
+                    }
+                    else {
+                        if( command.command.startsWith('  ') ) {
+                            command.command= command.command.substr( 2 );
+                        }
+                    }
+                }
+            }
+            this.treeView.treebox.invalidateRange( firstSelectedRowIndex, lastSelectedRowIndex );
+        }
     };
 })();
