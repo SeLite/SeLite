@@ -242,14 +242,14 @@ Editor.prototype.addCommand = function (command, target, value, window, insertBe
             menusToUpdate[i].appendChild( document.createElement('menuseparator') );
 
             var indent= document.createElement("menuitem");
-            indent.setAttribute('label', 'Indent (right)');
+            indent.setAttribute('label', 'Indent');
             indent.setAttribute('command', 'cmd_indent');
-            indent.setAttribute('accesskey', 'T');
+            indent.setAttribute('accesskey', 'G');
             indent.setAttribute('key', 'indent-key');
             menusToUpdate[i].appendChild(indent);
 
             var unindent= document.createElement("menuitem");
-            unindent.setAttribute('label', 'Unindent (left)');
+            unindent.setAttribute('label', 'Unindent');
             unindent.setAttribute('command', 'cmd_unindent');
             unindent.setAttribute('accesskey', 'L');
             unindent.setAttribute('key', 'unindent-key');
@@ -279,10 +279,10 @@ Editor.prototype.addCommand = function (command, target, value, window, insertBe
             
             doCommand: function doCommand(cmd ) {
                 if( cmd==='cmd_indent' ) {
-                    self.indent(true);
+                    self.indent();
                 }
                 else if( cmd==='cmd_unindent' ) {
-                    self.indent( false );
+                    self.indent( true );
                 }
                 else {
                     originalController.doCommand.call(originalController, cmd);
@@ -325,7 +325,7 @@ Editor.prototype.addCommand = function (command, target, value, window, insertBe
                     }
                 }
             }
-            this.treeView.treebox.invalidateRange( firstSelectedRowIndex, lastSelectedRowIndex );
+            this.treebox.invalidateRange( firstSelectedRowIndex, lastSelectedRowIndex );
         }
     };
 })();
