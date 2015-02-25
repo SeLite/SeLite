@@ -298,7 +298,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//a[ contains(@href, #`Serendipity.permalink('Structure', storedVars.entry)`) ]</td>
+	<td>//a[ contains(@href, \`Serendipity.permalink('Structure', storedVars.entry)`) ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -344,7 +344,7 @@
 </tr>
 <tr>
 	<td>store</td>
-	<td>#`storedVars.entry.title`</td>
+	<td>\`storedVars.entry.title`</td>
 	<td>xpathExprTitle</td>
 </tr>
 <tr>
@@ -354,12 +354,12 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//title[ contains( ., #`storedVars.entry.title` ) ]</td>
+	<td>//title[ contains( ., \`storedVars.entry.title` ) ]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//h4/a[ .=#`storedVars.entry.title` ]</td>
+	<td>//h4/a[ .=\`storedVars.entry.title` ]</td>
 	<td></td>
 </tr>
 <!---->
@@ -381,7 +381,7 @@
 <!--Verify the link to the author-->
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//a[ @href=#` Serendipity.permalink('AuthorStructure', Serendipity.authorById(storedVars.entry.authorid), true) ` ]</td>
+	<td>//a[ @href=\` Serendipity.permalink('AuthorStructure', Serendipity.authorById(storedVars.entry.authorid), true) ` ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -478,7 +478,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//input[ @name='`$fieldName`' and @value=#`Serendipity.config($fieldName)` ]</td>
+	<td>//input[ @name='`$fieldName`' and @value=\`Serendipity.config($fieldName)` ]</td>
 	<td></td>
 </tr>
 <tr>
