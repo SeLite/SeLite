@@ -29,7 +29,7 @@ SeLiteExtensionSequencer.registerPlugin( {
        var bootstrappedCoreExtensions= new SeLiteSettings.Field.File( 'bootstrappedCoreExtensions', { 'Javascript': '*.js*', 'Any': null}, /*multivalued*/true, /*defaultKey*/[], /*allowNull*/false,
             "Javascript file(s) that are loaded initially and on change via SeLite Bootstrap.",
             function customValidate( key ) {
-                bootstrappedListChanged= true;
+                SeLiteSettings.setBootstrappedListAsChanged();
                 return true;
             }
         );
