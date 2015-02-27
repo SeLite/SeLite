@@ -22,45 +22,34 @@ Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
 ( function() {
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 
-    /*  This is here, rather than in selite-misc.js component, because it needs to access global variable 'selenium'.
+    /* Not used. The only place that would use it for now is SeLite Misc ovOptions.js. However, it would need this function to match parameters that don't have part '=value', too.
+     *     This is here, rather than in selite-misc.js component, because it needs to access global variable 'selenium'.
      *  I've tried to have it in selite-misc.js and to load the component using
      *  Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js", {selenium: selenium} );
      *  above, but that failed, because variable selenium is not yet defined when this file itself is processed.
-     *  @TODO Document that in JavascriptAdvanced.wiki
+     *  @TODO Document that in JavascriptComplex.wiki
      */
      /**  This returns value of given parameter (if present) from current URL;
      *  if parameter name is not given, then it returns value of the last parameter in the URL.
-     *  @param string paramName optional
-     *  @return string value of the parameter; null if there are no parameters at all, or if the requested parameter is not present.
-     *  I've tried to have this as a Selenium command, using
-     *  Selenium.prototype.getUrlParam= function( locator, unused ) {...};
-     *  That auto-generated Selenium command storeUrlParam, but the parameters were not passed to it!
-     */
+     *  @param {string} paramName optional
+     *  @return {string} value of the parameter (unescaped of URL encoding); undefined if there are no parameters at all, or if the requested parameter is not present.
+     
     SeLiteMisc.getUrlParam= function getUrlParam( paramName ) {
+        SeLiteMisc.ensureType( paramName, 'string', 'paramName' );
         var search= selenium.browserbot.getCurrentWindow().location.search; // If the URL has no parameters, then this is an empty string
         if( search!=='' ) {
             search= search.substr( 1 ); // removing leading '?'
         }
         var pairs= search.split( '&' );
-        if( paramName ) {
-            var paramNameEquals= paramName+'=';
-            for( var i=0; i<pairs.length; i++ ) {
-                var pair= pairs[i];
-                if( pair.indexOf(paramNameEquals)==0 ) {
-                    return pair.substr( paramNameEquals.length );
-                }
+        var paramNameEquals= paramName+'=';
+        for( var i=0; i<pairs.length; i++ ) {
+            var pair= pairs[i];
+            if( pair.indexOf(paramNameEquals)===0 ) {
+                return unescape( pair.substr(paramNameEquals.length) );
             }
         }
-        else
-        if( pairs.length>0 ) {
-            var pair= pairs[ pairs.length-1 ];
-            var equalsIndex= pair.indexOf('=');
-            if( equalsIndex>=0 ) {
-                return pair.substr( equalsIndex+1 );
-            }
-        }
-        return null;
-    };
+        return undefined;
+    };/**/
 
         var loginManagerInstance = Components.classes["@mozilla.org/login-manager;1"].
             getService(Components.interfaces.nsILoginManager);

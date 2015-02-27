@@ -190,7 +190,7 @@ SeLiteMisc.hasType= function hasType( item, typeStringOrStrings, itemName ) {
 /** Validates that typeof item is one of 
  *  @param {*} item
  *  @param {(string|array)} typeStringOrStrings See same parameter of hasType().
- *  @param {(string|function)} [variableName] See same parameter of ensureOneOf(). However, it has to contain a meaningful name/description, even if you provide parameter message.
+ *  @param {(string|function)} [variableName] See same parameter of ensureOneOf(). Optional; however, if present then it has to contain a meaningful name/description (regardless of whether you provide parameter message or not).
  *  @param {(string|function)} [message] See same parameter of ensureOneOf().
  * */
 SeLiteMisc.ensureType= function ensureType( item, typeStringOrStrings, variableName, message ) {
