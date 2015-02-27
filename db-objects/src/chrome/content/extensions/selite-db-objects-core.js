@@ -5,7 +5,7 @@ Components.utils.import( "chrome://selite-db-objects/content/DbStorage.js" );
 Components.utils.import( "chrome://selite-db-objects/content/DbObjects.js" );
 Components.utils.import( "chrome://selite-db-objects/content/DbFunctions.js" );
 
-Selenium.prototype.doReadRecord= function doReadRecord( info, storedVariableName ) {
+Selenium.prototype.getRecord= function getRecord( info ) {
     /** @type {SeLiteData.Table} */
     var table;
     /** @type SeLiteData.RecordSetFormula*/
@@ -24,8 +24,6 @@ Selenium.prototype.doReadRecord= function doReadRecord( info, storedVariableName
     else {
         SeLiteMisc.fail('getRecord() expects info.table or info.formula to be present.');
     }
-    storedVariableName= storedVariableName || info.store;
-    typeof storedVariableName==='string' || SeLiteMisc.fail( 'You must provide storedVariableName or info.store, a string name of the stored variable to load the record into.' );
     /**@type {object}*/var matchingPairs= SeLiteMisc.objectClone(info, table.columns );
     delete matchingPairs.info;
     delete matchingPairs.formula;
@@ -42,7 +40,7 @@ Selenium.prototype.doReadRecord= function doReadRecord( info, storedVariableName
         record= records[key];
     }
     LOG.debug( 'record: ' +SeLiteMisc.objectToString(record, 2) );
-    storedVars[storedVariableName]= record;
+    return record;
 };
 
 /** @param {object} recordObject

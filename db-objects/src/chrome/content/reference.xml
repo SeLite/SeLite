@@ -7,31 +7,31 @@
 Xml-stylesheet (whether remote or even local) didn't load up work when you open this in a browser locally via file://
 -->
 <apidoc package-name="SeLite DB Objects">
-<function name="readRecord">
+<function name="getRecord">
     <param name="info">Anonymous object in form {
         <dl>
             <dt>table</dt>
             <dd>SeLiteData.Table instance; optional - it must be specified if there is no <i>formula</i></dd>
             <dt>formula</dt>
             <dd>SeLiteData.RecordSetFormula instance; optional - it must be specified if there is no <i>table</i></dd>
-            <dt>columnName; optional</dt>
-            <dd>matchingValue</dd>
-            <dt>anotherColumnName; optional; there may be any number of matching columns</dt>
-            <dd>matchingValue</dd>
-            <dt>store</dt>
-            <dd>Name of the stored variable to put the record to, string, optional - you can use the second Selenese parameter <i>storedVariableName</i> instead.</dd>
+            <dt>string columnName (optional)</dt>
+            <dd>matchingValue (to match that column)</dd>
+            <dt>string anotherColumnName (optional; there may be any number of matching columns)</dt>
+            <dd>matchingValue (to match that column)</dd>
         </dl>
         }. You can pass the object via =`{field: value, ...}` notation as per https://code.google.com/p/selite/wiki/EnhancedSyntax.
     </param>
-    <param name="(storedVariableName)">Name of the stored variable to put the record to, string, optional - required if you don't provide <i>store</i> field in the first parameter <i>info</i>.
-    </param>
-    <comment>Load max. one record from DB and put it into a stored variable. If there's no matching record, store null. If there are two or more matching records, fail.
+    <comment>Load max. one record from DB. If there's no matching record, return null. If there are two or more matching records, fail.
+        <br/>
+        This command is a part of SeLite DB Objects.
     </comment>
 </function>
 <function name="insertRecord">
     <param name="recordObject">Anonymous object with the fields to store, or SeLiteData.Record instance. You can pass it via =`...` notation as per https://code.google.com/p/selite/wiki/EnhancedSyntax. If the table uses an auto-generated primary key (stored in one column), then after this command inserts the record it loads the value of the primary key and saves it in the given <code>recordObject</code>. It also stores the value of the primary key in stored variable <code>insertedRecordKey</code>, which is useful if you're passing an object literal via =`{field:value,...}` as <code>recordObject</code> and later you need the new key but not the whole object.</param>
     <param name="table">SeLiteData.Table instance. You can pass it via =`...` notation as per https://code.google.com/p/selite/wiki/EnhancedSyntax.</param>
     <comment>Insert the given object as a new record in the given table.
+        <br/>
+        This command is a part of SeLite DB Objects.
     </comment>
 </function>
 </apidoc>

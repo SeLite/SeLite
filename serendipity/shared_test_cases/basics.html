@@ -186,7 +186,7 @@
 	<td>login</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;readRecord</td>
+	<td>&nbsp;&nbsp;storeRecord</td>
 	<td>=`{ formula: Serendipity.formulas.authors, username: $login }`</td>
 	<td>user</td>
 </tr>
@@ -235,94 +235,96 @@
 	<td>save</td>
 </tr>
 <tr>
-	<td>typeRandom</td>
+	<td>&nbsp;&nbsp;typeRandom</td>
 	<td>id=entryTitle</td>
 	<td>=`{store: 'title'}`</td>
 </tr>
 <tr>
-	<td>pause</td>
+	<td>&nbsp;&nbsp;pause</td>
 	<td>fillInEntry</td>
 	<td>Without this I sometimes got an error from wysiwyg editor at line 2585 of /htmlarea/XinhaCore.js:2585</td>
 </tr>
 <!--wysiwyg editor Xinha transforms <b> to <strong>, <i> to <em> and <strike> to <del>. Here I list the allowed tags which don't get transformed - so they will be the same in test & app.-->
 <tr>
-	<td>storeEval</td>
+	<td>&nbsp;&nbsp;storeEval</td>
 	<td>['strong', 'em', 'u', 'del', 'sub', 'sup']</td>
 	<td>htmlTags</td>
 </tr>
+<!--Following fails with GIT checkout of commit e12b998bf7-->
+<!--The error is somewhere in 'XinhaCore' WYSIWYG editor JS: this._doc is null-->
 <tr>
-	<td>getEval</td>
+	<td>&nbsp;&nbsp;getEval</td>
 	<td>this.saveSerendipityEditorBody( selenium.randomText({type: 'html', store:'body', htmlTags:storedVars.htmlTags}) )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>getEval</td>
+	<td>&nbsp;&nbsp;getEval</td>
 	<td>this.saveSerendipityEditorExtended( selenium.randomText({type: 'html', store:'extended', htmlTags:storedVars.htmlTags}) )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>storeEval</td>
+	<td>&nbsp;&nbsp;storeEval</td>
 	<td>=`{ title:$title, timestamp:Math.round( Date.now()/1000), body:$body, extended:$extended, exflag:1, author:Serendipity.selectedUsername, authorid:Serendipity.selectedAuthor().authorid, isdraft:'false', allow_comments:'true', last_modified:Math.round( Date.now()/1000), moderate_comments:'false'}`</td>
 	<td>entry</td>
 </tr>
 <!---->
 <tr>
-	<td>if</td>
+	<td>&nbsp;&nbsp;if</td>
 	<td>$save</td>
 	<td></td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
 	<td>//*[ contains(@onclick, &quot;checkSave&quot;) ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>selectFrame</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;selectFrame</td>
 	<td>id=serendipity_iframe</td>
 	<td></td>
 </tr>
 <tr>
-	<td>waitForElementPresent</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;waitForElementPresent</td>
 	<td>xpath=/html/body</td>
 	<td></td>
 </tr>
 <tr>
-	<td>insertRecord</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
 	<td>=`$entry`</td>
 	<td>=`Serendipity.tables.entries`</td>
 </tr>
 <tr>
-	<td>getEval</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;getEval</td>
 	<td>LOG.info( 'entry: ' +SeLiteMisc.objectToString(storedVars.entry, 3) )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>verifyElementPresent</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;verifyElementPresent</td>
 	<td>//a[ contains(@href, \`Serendipity.permalink('Structure', storedVars.entry)`) ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>selectFrame</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;selectFrame</td>
 	<td>relative=top</td>
 	<td></td>
 </tr>
 <tr>
-	<td>else</td>
+	<td>&nbsp;&nbsp;else</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
 	<td>//*[ contains(@onclick, &quot;serendipity[preview]&quot;) ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>endIf</td>
+	<td>&nbsp;&nbsp;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
-	<td>return</td>
+	<td>&nbsp;&nbsp;return</td>
 	<td>$entry</td>
 	<td></td>
 </tr>
@@ -338,49 +340,49 @@
 	<td>entry</td>
 </tr>
 <tr>
-	<td>open</td>
+	<td>&nbsp;&nbsp;open</td>
 	<td>`Serendipity.permalink('Structure', storedVars.entry, true)`</td>
 	<td></td>
 </tr>
 <tr>
-	<td>store</td>
+	<td>&nbsp;&nbsp;store</td>
 	<td>\`storedVars.entry.title`</td>
 	<td>xpathExprTitle</td>
 </tr>
 <tr>
-	<td>getEval</td>
+	<td>&nbsp;&nbsp;getEval</td>
 	<td>LOG.info( 'xpathExprTitle: ' +storedVars.xpathExprTitle )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>verifyElementPresent</td>
+	<td>&nbsp;&nbsp;verifyElementPresent</td>
 	<td>//title[ contains( ., \`storedVars.entry.title` ) ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>verifyElementPresent</td>
+	<td>&nbsp;&nbsp;verifyElementPresent</td>
 	<td>//h4/a[ .=\`storedVars.entry.title` ]</td>
 	<td></td>
 </tr>
 <!---->
 <tr>
-	<td>getEval</td>
+	<td>&nbsp;&nbsp;getEval</td>
 	<td>storedVars.bodyHTML= this.browserbot.getCurrentWindow().document.getElementsByTagName('body')[0].innerHTML</td>
 	<td></td>
 </tr>
 <tr>
-	<td>verifyEval</td>
+	<td>&nbsp;&nbsp;verifyEval</td>
 	<td>storedVars.bodyHTML.indexOf( storedVars.entry.body )&gt;=0</td>
 	<td>true</td>
 </tr>
 <tr>
-	<td>verifyEval</td>
+	<td>&nbsp;&nbsp;verifyEval</td>
 	<td>storedVars.bodyHTML.indexOf( storedVars.entry.extended )&gt;=0</td>
 	<td>true</td>
 </tr>
 <!--Verify the link to the author-->
 <tr>
-	<td>verifyElementPresent</td>
+	<td>&nbsp;&nbsp;verifyElementPresent</td>
 	<td>//a[ @href=\` Serendipity.permalink('AuthorStructure', Serendipity.authorById(storedVars.entry.authorid), true) ` ]</td>
 	<td></td>
 </tr>
@@ -399,48 +401,48 @@
 	<td>fieldName, newValue</td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>ensureUnderWebRoot</td>
 	<td>forceReload=true</td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;clickAndWait</td>
 	<td>//a[ contains(@href, '`Serendipity.config('indexFile')`?/admin') ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;clickAndWait</td>
 	<td>//a[ contains(@href, 'serendipity_admin.php?serendipity[adminModule]=personal') ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>storeEval</td>
+	<td>&nbsp;&nbsp;storeEval</td>
 	<td>Serendipity.config('${fieldName}', true)</td>
 	<td>currentValue</td>
 </tr>
 <!--Can't use verifyAttribute if the attribute ('checked') is not present. Therefore I use xpath-->
 <tr>
-	<td>verifyElementPresent</td>
+	<td>&nbsp;&nbsp;verifyElementPresent</td>
 	<td>//input[ @type='radio' and @name='`$fieldName`' and @value='true' and `''+$currentValue==='true' ? '' : 'not'`(@checked) ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>verifyElementPresent</td>
+	<td>&nbsp;&nbsp;verifyElementPresent</td>
 	<td>//input[ @type='radio' and @name='`$fieldName`' and @value='false' and `''+$currentValue==='true' ? 'not' : ''`(@checked) ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>check</td>
+	<td>&nbsp;&nbsp;check</td>
 	<td>//input[ @type='radio' and @name='`$fieldName`' and @value='`$newValue`' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;clickAndWait</td>
 	<td>//input[ @type='submit' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>getEval</td>
+	<td>&nbsp;&nbsp;getEval</td>
 	<td>Serendipity.updateConfig( '${fieldName}', ''+storedVars.newValue, true )</td>
 	<td></td>
 </tr>
@@ -457,42 +459,42 @@
 	<td>fieldName, newValue</td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>ensureUnderWebRoot</td>
 	<td>forceReload=true</td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;clickAndWait</td>
 	<td>//a[ contains(@href, '`Serendipity.config('indexFile')`?/admin') ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;clickAndWait</td>
 	<td>//a[ contains(@href, 'serendipity_admin.php?serendipity[adminModule]=configuration') ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>click</td>
+	<td>&nbsp;&nbsp;click</td>
 	<td>//a[ contains(@onclick, 'showConfigAll') ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>verifyElementPresent</td>
+	<td>&nbsp;&nbsp;verifyElementPresent</td>
 	<td>//input[ @name='`$fieldName`' and @value=\`Serendipity.config($fieldName)` ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>type</td>
+	<td>&nbsp;&nbsp;type</td>
 	<td>//input[ @name='`$fieldName`' ]</td>
 	<td>${newValue}</td>
 </tr>
 <tr>
-	<td>getEval</td>
+	<td>&nbsp;&nbsp;getEval</td>
 	<td>Serendipity.updateConfig( storedVars.fieldName, storedVars.newValue )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;clickAndWait</td>
 	<td>//input[ @type='submit' ]</td>
 	<td></td>
 </tr>
@@ -508,22 +510,22 @@
 	<td></td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>ensureUnderWebRoot</td>
 	<td>forceReload=true</td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;clickAndWait</td>
 	<td>//a[ contains(@href, '`Serendipity.config('indexFile')`?/admin') ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;clickAndWait</td>
 	<td>//a[ contains(@href, 'serendipity_admin.php?serendipity[adminModule]=users') ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;clickAndWait</td>
 	<td>//input[ @type='submit' and @name='NEW' ]</td>
 	<td></td>
 </tr>
@@ -543,155 +545,155 @@
 	<td>currentPassword, access</td>
 </tr>
 <tr>
-	<td>storeEval</td>
+	<td>&nbsp;&nbsp;storeEval</td>
 	<td>${access}&lt;3 ? ${access}-1 : 255</td>
 	<td>userlevel</td>
 </tr>
 <tr>
-	<td>typeRandom</td>
+	<td>&nbsp;&nbsp;typeRandom</td>
 	<td>//input[ @name='username' ]</td>
 	<td>username</td>
 </tr>
 <tr>
-	<td>typeRandom</td>
+	<td>&nbsp;&nbsp;typeRandom</td>
 	<td>//input[ @name='password' ]</td>
 	<td>=`{type: 'password', store: 'password'}`</td>
 </tr>
 <tr>
-	<td>type</td>
+	<td>&nbsp;&nbsp;type</td>
 	<td>//input[ @name='check_password' ]</td>
 	<td>`storedVars.currentPassword!==undefined ? storedVars.currentPassword : '' `</td>
 </tr>
 <tr>
-	<td>typeRandom</td>
+	<td>&nbsp;&nbsp;typeRandom</td>
 	<td>//input[ @name='realname' ]</td>
 	<td>realname</td>
 </tr>
 <tr>
-	<td>select</td>
+	<td>&nbsp;&nbsp;select</td>
 	<td>//select[ @name='userlevel' ]</td>
 	<td>value=${userlevel}</td>
 </tr>
 <tr>
-	<td>select</td>
+	<td>&nbsp;&nbsp;select</td>
 	<td>//select[ @name='groups[]' ]</td>
 	<td>value=${access}</td>
 </tr>
 <tr>
-	<td>typeRandom</td>
+	<td>&nbsp;&nbsp;typeRandom</td>
 	<td>//input[ @name='email' ]</td>
 	<td>=`{type:'email', store:'email' }`</td>
 </tr>
 <tr>
-	<td>selectRandom</td>
+	<td>&nbsp;&nbsp;selectRandom</td>
 	<td>//select[ @name='lang' ]</td>
 	<td>lang</td>
 </tr>
 <tr>
-	<td>clickRandom</td>
+	<td>&nbsp;&nbsp;clickRandom</td>
 	<td>//input[ @name='wysiwyg' ]</td>
 	<td>wysiwyg</td>
 </tr>
 <!--For now I leave advanced JS usage=on (config name 'eyecandy')-->
 <tr>
-	<td>clickRandom</td>
+	<td>&nbsp;&nbsp;clickRandom</td>
 	<td>//input[ @name='mail_comments' ]</td>
 	<td>mail_comments</td>
 </tr>
 <tr>
-	<td>clickRandom</td>
+	<td>&nbsp;&nbsp;clickRandom</td>
 	<td>//input[ @name='mail_trackbacks' ]</td>
 	<td>mail_trackbacks</td>
 </tr>
 <!--For now the user is always enabled (config name no_create) and can publish (config name right_publish)-->
 <tr>
-	<td>clickRandom</td>
+	<td>&nbsp;&nbsp;clickRandom</td>
 	<td>//input[ @name='moderateCommentsDefault' ]</td>
 	<td>moderateCommentsDefault</td>
 </tr>
 <tr>
-	<td>clickRandom</td>
+	<td>&nbsp;&nbsp;clickRandom</td>
 	<td>//input[ @name='allowCommentsDefault' ]</td>
 	<td>allowCommentsDefault</td>
 </tr>
 <tr>
-	<td>clickRandom</td>
+	<td>&nbsp;&nbsp;clickRandom</td>
 	<td>//input[ @name='showMediaToolbar' ]</td>
 	<td>showMediaToolbar</td>
 </tr>
 <tr>
-	<td>insertRecord</td>
+	<td>&nbsp;&nbsp;insertRecord</td>
 	<td>=`{ realname: $realname, username:$username, password:$password, email:$email, userlevel:$userlevel, right_publish:1 }`</td>
 	<td>=`Serendipity.tables.authors`</td>
 </tr>
 <tr>
-	<td>store</td>
+	<td>&nbsp;&nbsp;store</td>
 	<td>=`$insertedRecordKey`</td>
 	<td>authorid</td>
 </tr>
 <tr>
-	<td>insertRecord</td>
+	<td>&nbsp;&nbsp;insertRecord</td>
 	<td>=`{groupid:$access, authorid:$authorid}`</td>
 	<td>=`Serendipity.tables.authorgroups`</td>
 </tr>
 <tr>
-	<td>insertRecord</td>
+	<td>&nbsp;&nbsp;insertRecord</td>
 	<td>=`{name:'lang', value:$lang, authorid:$authorid}`</td>
 	<td>=`Serendipity.tables.config`</td>
 </tr>
 <tr>
-	<td>insertRecord</td>
+	<td>&nbsp;&nbsp;insertRecord</td>
 	<td>=`{name:'wysiwyg', value:$wysiwyg, authorid:$authorid}`</td>
 	<td>=`Serendipity.tables.config`</td>
 </tr>
 <!--Use string constants 'true', 'false', not Javascript boolean constants true, false. See SQLiteSpecifics in wiki-->
 <tr>
-	<td>insertRecord</td>
+	<td>&nbsp;&nbsp;insertRecord</td>
 	<td>=`{name:'eyecandy', value:'true', authorid:$authorid}`</td>
 	<td>=`Serendipity.tables.config`</td>
 </tr>
 <tr>
-	<td>insertRecord</td>
+	<td>&nbsp;&nbsp;insertRecord</td>
 	<td>=`{name:'mail_comments', value:$mail_comments, authorid:$authorid}`</td>
 	<td>=`Serendipity.tables.config`</td>
 </tr>
 <tr>
-	<td>insertRecord</td>
+	<td>&nbsp;&nbsp;insertRecord</td>
 	<td>=`{name:'mail_trackbacks', value:$mail_trackbacks, authorid:$authorid}`</td>
 	<td>=`Serendipity.tables.config`</td>
 </tr>
 <tr>
-	<td>insertRecord</td>
+	<td>&nbsp;&nbsp;insertRecord</td>
 	<td>=`{name:'no_create', value:'false', authorid:$authorid}`</td>
 	<td>=`Serendipity.tables.config`</td>
 </tr>
 <tr>
-	<td>insertRecord</td>
+	<td>&nbsp;&nbsp;insertRecord</td>
 	<td>=`{name:'right_publish', value:'true', authorid:$authorid}`</td>
 	<td>=`Serendipity.tables.config`</td>
 </tr>
 <tr>
-	<td>insertRecord</td>
+	<td>&nbsp;&nbsp;insertRecord</td>
 	<td>=`{name:'moderateCommentsDefault', value:$moderateCommentsDefault, authorid:$authorid}`</td>
 	<td>=`Serendipity.tables.config`</td>
 </tr>
 <tr>
-	<td>insertRecord</td>
+	<td>&nbsp;&nbsp;insertRecord</td>
 	<td>=`{name:'allowCommentsDefault', value:$allowCommentsDefault, authorid:$authorid}`</td>
 	<td>=`Serendipity.tables.config`</td>
 </tr>
 <tr>
-	<td>insertRecord</td>
+	<td>&nbsp;&nbsp;insertRecord</td>
 	<td>=`{name:'showMediaToolbar', value:$showMediaToolbar, authorid:$authorid}`</td>
 	<td>=`Serendipity.tables.config`</td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;clickAndWait</td>
 	<td>//input[ @type='submit' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>return</td>
+	<td>&nbsp;&nbsp;return</td>
 	<td>$username</td>
 	<td></td>
 </tr>

@@ -218,6 +218,7 @@ if( Serendipity===undefined ) {
         };
         Selenium.prototype.saveSerendipityEditorBody= function saveSerendipityEditorBody(content) {
             if( Serendipity.useRichEditor() ) {
+                //@TODO Following fails with checkout e12b998bf7 
                 this.serendipityEditorBodyRich().setEditorContent( content );
             }
             else {

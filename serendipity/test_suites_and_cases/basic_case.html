@@ -23,58 +23,57 @@
 	<td></td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>logIn</td>
 	<td>loginOrAmpRole='&amp;admin'</td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>changeGlobalConfig</td>
 	<td>fieldName='permalinkStructure', newValue='arch/entry-%id%-%title%.html'</td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>singleRun</td>
 	<td>wysiwyg=true</td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>changeGlobalConfig</td>
 	<td>fieldName='permalinkStructure', newValue='archives/%id%-%title%.html'</td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>singleRun</td>
 	<td>wysiwyg=false</td>
 </tr>
-<!---->
 <tr>
 	<td>else</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>logIn</td>
 	<td>loginOrAmpRole='&amp;admin'</td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>openNewUserPage</td>
 	<td></td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>fillInUser</td>
 	<td>access=3</td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>logInAsStoredUser</td>
 	<td>login=$_result</td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>singleRun</td>
 	<td>wysiwyg=true</td>
 </tr>
@@ -90,22 +89,22 @@
 	<td>wysiwyg</td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>changeUserConfig</td>
 	<td>fieldName='wysiwyg', newValue=$wysiwyg</td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>createNewEntry</td>
 	<td></td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>fillInEntry</td>
 	<td>save=true</td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;call</td>
 	<td>validateEntry</td>
 	<td>entry=storedVars._result</td>
 </tr>
