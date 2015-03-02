@@ -10,12 +10,10 @@
 */
 Components.utils.import('chrome://selite-db-objects/content/Db.js');
 Selenium.prototype.doHello= function doHello(one, two) { LOG.error( typeof one); }//.LOG.warn('hello');};
-//@TODO Document/report - maybe I've reported it already: getXXX can't declare the 2nd formal parameter, even if unused. Otherwise the first parameter gets no value passed at all.
-Selenium.prototype.getBufo= function getBufo(one/*, two*/) {
+Selenium.prototype.getBufo= function getBufo(one) {
     debugger;
     //The following works when one is an object
-    //return 'getBufo: Parameter one is a ' +(typeof one);
-    return one;
+    return 'getBufo: Parameter one is a ' +(typeof one);
 };
 
 Selenium.prototype.doBye= function doBye(one, two) { LOG.error('bye!'); alert( this); }//.LOG.warn('hello');};

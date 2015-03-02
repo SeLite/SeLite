@@ -28,7 +28,7 @@ limitations under the License.
         minheight="80"
     />
     <treecol id="command" editable="false"/>
-    <treecol id="target" editable="true"/>
+    <treecol id="target" editable="true" overflow="true"/>
     <treecol id="value" editable="true"/>
     
   <!-- Following can't be done by XBL bind for keyset#seleniumIDEKeys. It had a partial effect: the keys would show up in top Edit menu and also in context menu. However, it wouldn't react to the keys when typed. Also, having extends="xul:keyset" in XBL fails with error" 'In general, do not extend tag names'. -->
