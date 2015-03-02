@@ -12,6 +12,8 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     <param name="value">value to type</param>
     <comment>This types the value in the target element, if the element exists.
         Otherwise it just passes silently.
+        <br/>
+        This command is a part of SeLite Commands.
     </comment>
 </function>   
 <function name="selectRobust">
@@ -19,28 +21,42 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     <param name="optionLocator">value to type</param>
     <comment>This selects an option for a select list, if the select list exists.
         Otherwise it just passes silently.
+        <br/>
+        This command is a part of SeLite Commands.
     </comment>
 </function>   
 <function name="clickRobust">
     <param name="locator">identifier of the element to click at</param>
-    <comment>This clicks at the element, if it exists. Otherwise it just passes silently.</comment>
+    <comment>This clicks at the element, if it exists. Otherwise it just passes silently.
+        <br/>
+        This command is a part of SeLite Commands.
+    </comment>
 </function>   
 <function name="isTimestampDownToMilliseconds">
     <param name="locator">identifier of the element to parse the timestamp from</param>
     <param name="timestampInMilliseconds">Expected timestamp, in milliseconds, since Epoch (January 1, 1970 00:00:00 UTC)</param>
     <comment>Parse the given element as a timestamp and compare to the given timestamp, down to precision of milliseconds.
+        <br/>Do not use auto-generated form <i>waitForTimestampDownToMilliseconds</i>.
+        <br/>
+        This command is a part of SeLite Commands.
     </comment>
 </function>
 <function name="isTimestampDownToSeconds">
     <param name="locator">identifier of the element to parse the timestamp from</param>
     <param name="timestampInMilliseconds">Expected timestamp, in <strong>milliseconds</strong>, since Epoch (January 1, 1970 00:00:00 UTC)</param>
     <comment>Parse the given element as a timestamp and compare to the given timestamp, down to precision of seconds.
+        <br/>Do not use auto-generated form <i>waitForTimestampDownToSeconds</i>.
+        <br/>
+        This command is a part of SeLite Commands.
     </comment>
 </function>
 <function name="isTimestampDownToMinutes">
     <param name="locator">identifier of the element to parse the timestamp from</param>
     <param name="timestampInMilliseconds">Expected timestamp, in <strong>milliseconds</strong>, since Epoch (January 1, 1970 00:00:00 UTC)</param>
     <comment>Parse the given element as a timestamp and compare to the given timestamp, down to precision of minutes.
+        <br/>Do not use auto-generated form <i>waitForTimestampDownToMinutes</i>.
+        <br/>
+        This command is a part of SeLite Commands.
     </comment>
 </function>
 <function name="isTimestampDownToPrecision">
@@ -61,15 +77,20 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     </param>
     <comment>Parse the given element as a timestamp <!--(at the given timezone, if any)-->
         and compare to the given timestamp, down to given precision.
+        <br/>Do not use auto-generated form <i>waitForTimestampDownToPrecision</i>.
+        <br/>
+        This command is a part of SeLite Commands.
     </comment>
 </function>
-<function name="waitForTimestampDistinctDownToMilliseconds">
+<function name="sleepUntilTimestampDistinctDownToMilliseconds">
     <param name="timestampName">Label/name, usually reflecting an element or field, for which you want to get a distinct timestamp.</param>
     <param name="precision">Precision, in milliseconds; 1 by default.</param>
-    <comment>Just like <code>waitForTimestampDistinctDownToSeconds</code>, but guaranteed timestamp separation is the given number of milliseconds.
+    <comment>Just like <code>sleepUntilTimestampDistinctDownToSeconds</code>, but guaranteed timestamp separation is the given number of milliseconds.
+        <br/>
+        This command is a part of SeLite Commands.
     </comment>
 </function>
-<function name="waitForTimestampDistinctDownToSeconds">
+<function name="sleepUntilTimestampDistinctDownToSeconds">
     <param name="timestampName">Label/name, usually reflecting an element or field, for which you want to get a distinct timestamp.</param>
     <param name="precision">Precision, in seconds; 1 by default.</param>
     <comment>
@@ -81,16 +102,20 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
        when comparing using given precision (in seconds).
        This makes sure that you get timestamps which can be compared as distinct.
        So it guarantees that timestamps with same label will have time distance between them at equal or greater than given precision.
+        <br/>
+        This command is a part of SeLite Commands.
     </comment>
 </function>
-<function name="waitForTimestampDistinctDownToMinutes">
+<function name="sleepUntilTimestampDistinctDownToMinutes">
     <param name="timestampName">Label/name, usually reflecting an  element or field, for which you want to get a distinct timestamp.</param>
     <param name="precision">Precision, in minutes; 1 by default.</param>
-    <comment>Just like <code>waitForTimestampDistinctDownToSeconds</code>, but the guaranteed timestamp separation is 1 minute.
+    <comment>Just like <code>sleepUntilTimestampDistinctDownToSeconds</code>, but the guaranteed timestamp separation is 1 minute.
       <br/><br/>
       Warning: This keeps a count only of timestamps notes since you started Selenium IDE. If you re-started it soon
       after the previous run which could record timestamps, make sure you wait for a sufficient period to get distinct new timestamps.
-      (That shouldn't be a problem with <code>waitForTimestampDistinctDownToSeconds</code> and <code>waitForTimestampDistinctDownToMilliseconds</code>).
+      (That shouldn't be a problem with <code>sleepUntilTimestampDistinctDownToSeconds</code> and <code>sleepUntilTimestampDistinctDownToMilliseconds</code>).
+        <br/>
+        This command is a part of SeLite Commands.
     </comment>
 </function>
 <function name="indexBy">
@@ -116,6 +141,8 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
         is not set, then the result will replace the source (<code>storedVars[sourceVariableName]</code>).
     </param>
     <comment>Index data.
+        <br/>
+        This command is a part of SeLite Commands.
     </comment>
 </function>   
 <function name="clickRandom">
@@ -123,7 +150,10 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     </param>
     <param name="store">Optional; name of the stored variable to store the selected value, it may include field or sub(sub...)field e.g. <code>variableName.fieldName, variableName.fieldName.subfieldName</code>...
     </param>
-    <comment>This clicks at a random radio button from within a set of radio button(s) identified by locator.</comment>
+    <comment>This clicks at a random radio button from within a set of radio button(s) identified by locator.
+        <br/>
+        This command is a part of SeLite Commands.
+    </comment>
 </function>   
 <function name="selectRandom">
     <param name="selectLocator">Locator of <code>&amp;lt;select&amp;gt;...&amp;lt;/select&amp;gt;</code> to select an option for.</param>
@@ -140,10 +170,14 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
         </ul>
     </param>
     <comment>This selects a random option from within <code>&amp;lt;select&amp;gt;...&amp;lt;/select&amp;gt;</code> identified by the locator.
+        <br/>
+        This command is a part of SeLite Commands.
     </comment>
 </function>
 <function name="typeRandom">
     <comment>Type random characters into an input. It always types at least 1 character.
+        <br/>
+        This command is a part of SeLite Commands.
     </comment>
     <param name="locator">Locator of the text input</param>
     <param name="paramsOrStore">optional, either
@@ -228,16 +262,28 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
             </li>
         </ul>
     </param>
-    <comment>Type random email address, based on a name already typed in another element. If you don't want the email address to be based on any name, then use <i>typeRandom</i> with <i>type='email' instead.</i></comment>
+    <comment>Type random email address, based on a name already typed in another element. If you don't want the email address to be based on any name, then use <i>typeRandom</i> with <i>type='email' instead.</i>
+        <br/>
+        This command is a part of SeLite Commands.
+    </comment>
 </function>
 <function name="selectMapped">
-    <comment>TODO implement + comment</comment>
+    <comment>TODO implement + comment
+        <br/>
+        This command is a part of SeLite Commands.
+    </comment>
 </function>
 <function name="disableJavascript">
-    <comment>Disable Javascript for the web application that is being tested</comment>
+    <comment>Disable Javascript for the web application that is being tested
+        <br/>
+        This command is a part of SeLite Commands.
+    </comment>
 </function>
 <function name="enableJavascript">
-    <comment>Disable Javascript for the web application that is being tested</comment>
+    <comment>Disable Javascript for the web application that is being tested
+        <br/>
+        This command is a part of SeLite Commands.
+    </comment>
 </function>
 <function name="selectTopFrameAnd">
     <param name="locatorOrLocators">Either
@@ -249,6 +295,8 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     </param>
     <comment>
         It selects the top frame. Then it waits for any specified frames to become present. However, it doesn't wait for the top frame. For that you should use 'andWait' postifx for the last command that loaded the current page. Don't use <b>selectTopFrameAndAndWait</b>.
+        <br/>
+        This command is a part of SeLite Commands.
     </comment>
 </function>
 <function name="ensureUnderWebRoot">
@@ -256,6 +304,8 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     </param>
     <comment>
         It ensures that the location of the current window will be under <i>webroot</i> (defined in webRoot config field - see https://code.google.com/p/selite/wiki/SettingsOverview). If it is not so, or if you pass forceReload equal to true, then it opens <i>webRoot</i> in the current window.
+        <br/>
+        This command is a part of SeLite Commands.
     </comment>
 </function>
 </apidoc>

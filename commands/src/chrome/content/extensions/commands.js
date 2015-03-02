@@ -76,6 +76,15 @@
             timestampDetails.precision, timestampDetails.validatePrecision, timestampDetails.timezone );
     };
     
+    // The following functions don't have entries in reference.xml, because when they had they didn't show up in Selenium IDE. Selenium IDE overrode them and it showed auto-generated entries based on isTimestampDownToXXX().
+    Selenium.prototype.doWaitForTimestampDownToMilliseconds=
+    Selenium.prototype.doWaitForTimestampDownToSeconds=
+    Selenium.prototype.doWaitForTimestampDownToMinutes=
+    Selenium.prototype.doWaitForTimestampDownToPrecision=
+    function doWaitForTimestampDownToXXX( target, value ) {
+        throw new Error( "Do not use. See https://code.google.com/p/selite/wiki/ExtraCommands." );
+    };
+    
     /** This will be SeLiteSettings.Module instance for config module extensions.selite-settings.common. I can retrieve it here, but I can't access its field maxTimeDifference here, because that field is only added on-the-fly in callBack part of Command's SeLiteExtensionSequencerManifest.js, which is only after this file is loaded (as a Core extension) by ExtensionSequencer.
      * */
     var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
@@ -151,23 +160,21 @@
         };
     };
 
-    /** This and similar functions have name starting with 'doWaitFor'. That way when you type 'waitForDistinctTimestamp' in Selenium IDE,
+    /** This and similar functions have name starting with 'doSleepUntil'. That way when you type 'waitForDistinctTimestamp' in Selenium IDE,
      *  it doesn't auto-suggest '...AndWait' alternatives, which we don't want and which would confuse user. If the function name
-     *  was any doXyz that doesn't start with 'doWaitFor', Selenium IDE would auto-suggest '..AndWait' alternative, which don't make sense.
-     *  Some functions are not implemented as Selenium.prototype.getXyz, because getXyz() only receives the first Selenese parameter (target)
-     *  and not the second parameter. That's understandable, since getXyz auto-generates storeXyz, which uses the second parameter (value) as a namce of a stored variable. However, getXyz (and storeXyz) don't allow the first parameter to be a composite. E.g. if you use EnhancedSyntax to pass object or array literal `{field:value, field:value... }` or `[item, item...]` as the parameter, those don't get passed well. Allowing that would mean a tremendous workaround, or modifying Selenium IDE - each out of scope for now. @TODO Investigate that
+     *  was any doXyz that doesn't start with 'doSleepUntil', Selenium IDE would auto-suggest '..AndWait' alternative, which don't make sense.
      * */
-    Selenium.prototype.doWaitForTimestampDistinctDownToMilliseconds= function doWaitForTimestampDistinctDownToMilliseconds( timestampName, precisionInMilliseconds ) {
+    Selenium.prototype.doSleepUntilTimestampDistinctDownToMilliseconds= function doSleepUntilTimestampDistinctDownToMilliseconds( timestampName, precisionInMilliseconds ) {
         precisionInMilliseconds= precisionInMilliseconds || 1;
         return this.waitForDistinctTimestamp( timestampName, precisionInMilliseconds );
     };
 
-    Selenium.prototype.doWaitForTimestampDistinctDownToSeconds= function doWaitForTimestampDistinctDownToSeconds( timestampName, precisionInSeconds ) {
+    Selenium.prototype.doSleepUntilTimestampDistinctDownToSeconds= function doSleepUntilTimestampDistinctDownToSeconds( timestampName, precisionInSeconds ) {
         precisionInSeconds= precisionInSeconds || 1;
         return this.waitForDistinctTimestamp( timestampName, precisionInSeconds*1000 );
     };
 
-    Selenium.prototype.doWaitForTimestampDistinctDownToMinutes= function doWaitTimestampDistinctDownToMinutes( timestampName, precisionInMinutes ) {
+    Selenium.prototype.doSleepUntilTimestampDistinctDownToMinutes= function doWaitTimestampDistinctDownToMinutes( timestampName, precisionInMinutes ) {
         precisionInMinutes= precisionInMinutes || 1;
         return this.waitForDistinctTimestamp( timestampName, precisionInMinutes*60000 );
     };
