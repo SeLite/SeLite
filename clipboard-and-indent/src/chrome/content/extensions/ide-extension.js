@@ -324,6 +324,11 @@ Editor.prototype.addCommand = function (command, target, value, window, insertBe
                         }
                     }
                 }
+                // If current row is in the range, update commandAction.
+                // It can happen that the row shown in the command detailed area is not in the selected range. E.g. if you Ctrl+click at multiple rows, the last clicked one is in the command detailed area. When you Ctrl+click at that row again, it will be deselected, but it will still be in the detailed area!
+                if( this.tree.currentIndex>=0 && this.getCommand(this.tree.currentIndex)===this.currentCommand ) {
+                    document.getElementById('commandAction').value= command.command;
+                }
             }
             this.treebox.invalidateRange( firstSelectedRowIndex, lastSelectedRowIndex );
         }
