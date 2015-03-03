@@ -11,3 +11,6 @@ tree#commands treechildren::-moz-tree-cell(recordIndex)
   /* Override of border-top: 1px solid #008800; from Selenium's chrome/skin/classic/selenium-ide.css. When editing-in-place a command's target/value or a comment, that rule caused underscores _ not to show up. */
 }
 
+tree#commands  {
+    -moz-binding: url( 'chrome://selite-hands-on-gui/content/ui/bindings.xml#commands' );
+}
