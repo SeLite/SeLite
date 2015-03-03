@@ -4,7 +4,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>hands-on-gui@selite.googlecode.com</em:id>
     <em:name>SeLite Hands-on GUI</em:name>
-    <em:version>0.03</em:version>
+    <em:version>0.04</em:version>
     <em:creator>Peter Kehl</em:creator>
     <em:homepageURL>https://code.google.com/p/selite/</em:homepageURL>
     <em:description>It makes Selenium IDE GUI better.</em:description>

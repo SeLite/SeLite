@@ -4,19 +4,19 @@
   <!-- I have the functions in handlers.js, loaded through ovIDEorSidebar.xul. I can't load that file here through <script> (see also http://mb.eschew.org/15). A less structured alternative is to have the code here in CDATA between <handler>...</handler> as per http://books.mozdev.org/html/mozilla-chp-7-sect-6.html. -->
   <binding id="commands" extends="chrome://global/content/bindings/tree.xml#tree">
       <handlers>
-          <handler event="keypress" action="onKeyPress( event );" />
+          <handler event="keypress" action="TreeView.seLiteTreeOnKeyPress( event );" />
       </handlers>
   </binding>
   <binding id="commandTarget" extends="chrome://global/content/bindings/autocomplete.xml#autocomplete">
       <handlers>
-          <handler event="keypress" action="onKeyPressWithShift( event );" />
+          <handler event="keypress" action="TreeView.seLiteCommandTargetOnKeyPress( event );" />
       </handlers>
   </binding>
   <binding id="seleniumIDECommands">
       <content>
           <children/>
-            <xul:command id="cmd_indent" oncommand="goDoCommand('cmd_indent')"/>
-            <xul:command id="cmd_unindent" oncommand="goDoCommand('cmd_unindent')"/>
+            <xul:command id="cmd_indent" oncommand="goDoCommand('cmd_indent');"/>
+            <xul:command id="cmd_unindent" oncommand="goDoCommand('cmd_unindent');"/>
       </content>
   </binding>
 </bindings>

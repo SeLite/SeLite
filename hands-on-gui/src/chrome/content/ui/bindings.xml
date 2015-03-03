@@ -11,7 +11,7 @@
   </binding>
   <binding id="commands" extends="chrome://global/content/bindings/tree.xml#tree">
       <handlers>
-          <handler event="keypress" action="onKeyPress( event );" />
+          <handler event="keypress" action="TreeView.seLiteTreeOnKeyPress( event );" />
       </handlers>
   </binding>
 </bindings>

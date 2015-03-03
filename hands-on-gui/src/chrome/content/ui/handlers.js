@@ -54,28 +54,3 @@ function onTreeClick( event ) {
         }, 0 );
    }
 }
-
-/** When editing-in place Command's Target (but not for comments), on hitting TAB make it shift focus to Value. Also, in reverse: when editing Value, on hitting Shift+TAB shift focus to Target.
- * */
-function onKeyPress(event) {
-    if( event.keyCode===KeyEvent.DOM_VK_TAB ) {
-        var tree= event.currentTarget;
-        
-        if( tree.getAttribute('editing') ) {
-            var targetColumn= tree.columns.getColumnAt(1);
-            var valueColumn= tree.columns.getColumnAt(2);
-            
-            if( tree.editingColumn===targetColumn && !event.shiftKey
-            ||  tree.editingColumn===valueColumn && event.shiftKey ) {
-                event.preventDefault();
-                var otherColumn= tree.editingColumn===targetColumn
-                    ? valueColumn
-                    : targetColumn;
-                var editingRow= tree.editingRow;
-                
-                tree.stopEditing(/*shouldAccept:*/true );
-                tree.startEditing( editingRow, otherColumn );
-            }
-        }
-    }
-}

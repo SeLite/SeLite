@@ -104,4 +104,35 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
         };        
         controllers.appendController( newController );
     };
+    
+    /** When editing-in place Command's Target (but not for comments), on hitting TAB make it shift focus to Value. Also, in reverse: when editing Value, on hitting Shift+TAB shift focus to Target.
+ * */
+    // This function is set up and/or extended by both Clipboard and Indent, and Hands-on GUI. See also another override of this at hands-on-gui/src/chrome/content/extensions/ide-extension.js
+    var originalSeLiteTreeOnKeyPress= TreeView.seLiteTreeOnKeyPress;
+    TreeView.seLiteTreeOnKeyPress= function seLiteTreeOnKeyPress( event ) {
+        if( originalSeLiteTreeOnKeyPress ) {
+            originalSeLiteTreeOnKeyPress.call( null, event );
+        }
+        
+        if( event.keyCode===KeyEvent.DOM_VK_TAB ) {
+            var tree= event.currentTarget;
+            
+            if( tree.getAttribute('editing') ) {
+                var targetColumn= tree.columns.getColumnAt(1);
+                var valueColumn= tree.columns.getColumnAt(2);
+
+                if( tree.editingColumn===targetColumn && !event.shiftKey
+                ||  tree.editingColumn===valueColumn && event.shiftKey ) {
+                    event.preventDefault();
+                    var otherColumn= tree.editingColumn===targetColumn
+                        ? valueColumn
+                        : targetColumn;
+                    var editingRow= tree.editingRow;
+
+                    tree.stopEditing(/*shouldAccept:*/true );
+                    tree.startEditing( editingRow, otherColumn );
+                }
+            }
+        }
+    };
 } ) ();
