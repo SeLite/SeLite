@@ -156,7 +156,7 @@
          *  In some situations (either the very first command in the test case, or after a change of window) the original addCommand() calls itself recursively, so that it adds two or more extra command(s) before the actual given command. However, we want to indent them all.
          *  There's no easy workaround, so I just duplicate the original addCommand(), modified to support indentation and refactored the related part.
          * */
-Editor.prototype.addCommand = function (command, target, value, window, insertBeforeLastCommand) {debugger;
+Editor.prototype.addCommand = function (command, target, value, window, insertBeforeLastCommand) {
   this.log.debug("addCommand: command=" + command + ", target=" + target + ", value=" + value + " window.name=" + window.name);
   if (command != 'open' &&
       command != 'selectWindow' &&
@@ -351,7 +351,6 @@ Editor.prototype.addCommand = function (command, target, value, window, insertBe
     // This function is set up and/or extended by both Clipboard and Indent, and Hands-on GUI. See also another override of this at hands-on-gui/src/chrome/content/extensions/ide-extension.js
     var originalSeLiteTreeOnKeyPress= TreeView.seLiteTreeOnKeyPress;
     TreeView.seLiteTreeOnKeyPress= function seLiteTreeOnKeyPress( event ) {
-        debugger;
         if( originalSeLiteTreeOnKeyPress ) {
             originalSeLiteTreeOnKeyPress.call( null, event );
         }

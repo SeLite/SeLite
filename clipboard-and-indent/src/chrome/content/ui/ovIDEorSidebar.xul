@@ -6,7 +6,6 @@
         <script type="application/x-javascript">
             Editor.GENERIC_AUTOCOMPLETE = Components.classes["@mozilla.org/autocomplete/search;1?name=selite-generic"].getService(Components.interfaces.nsISeleniumIDEGenericAutoCompleteSearch);
         </script>
-        <script type="application/x-javascript" src="chrome://selite-clipboard-and-indent/content/ui/handlers.js"/>
     </window>
   <!-- Following can't be done by XBL bind for keyset#seleniumIDEKeys. It had a partial effect: the keys would show up in top Edit menu and also in context menu. However, it wouldn't react to the keys when typed. Also, having extends="xul:keyset" in XBL fails with error" 'In general, do not extend tag names'. -->
   <keyset id="seleniumIDEKeys">
