@@ -315,14 +315,21 @@ Editor.prototype.addCommand = function (command, target, value, window, insertBe
                 
                 for (var v = start.value; v <= end.value; v++) {
                     var command = this.getCommand(v);
+                    var isCommandAndNotComment= command.command!==undefined;
+                    var commandOrComment= isCommandAndNotComment
+                        ? command.command
+                        : command.comment;
                     if( !unindent ) {
-                        command.command= '  ' +command.command;
+                        commandOrComment= '  ' +commandOrComment;
                     }
                     else {
-                        if( command.command.startsWith('  ') ) {
-                            command.command= command.command.substr( 2 );
+                        if( commandOrComment.startsWith('  ') ) {
+                            commandOrComment= commandOrComment.substr( 2 );
                         }
                     }
+                    command[ isCommandAndNotComment
+                        ? 'command'
+                        : 'comment' ]= commandOrComment;
                 }
                 // If current row is in the range, update commandAction.
                 // It can happen that the row shown in the command detailed area is not in the selected range. E.g. if you Ctrl+click at multiple rows, the last clicked one is in the command detailed area. When you Ctrl+click at that row again, it will be deselected, but it will still be in the detailed area!
