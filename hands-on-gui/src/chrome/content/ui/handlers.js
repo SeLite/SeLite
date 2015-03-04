@@ -54,3 +54,20 @@ function onTreeClick( event ) {
         }, 0 );
    }
 }
+
+function onInPlaceEditInputOrBlur( newValue ) {
+    //Components.utils.import('resource://gre/modules/devtools/Console.jsm', {}).console.error
+    var tree= document.getElementById('commands');
+    var key= tree.editingColumn===tree.columns[0] // What field of the command/comment to update
+        ? 'command'
+        : (tree.editingColumn===tree.columns[1]
+            ? 'target'
+            : 'value'
+        );
+    var decodedValue= tree.editingColumn===tree.columns[0]
+        ? newValue
+        : window.editor.treeView.decodeText(newValue);
+    
+    window.editor.treeView.updateCurrentCommand( key, decodedValue);
+    window.editor.treeView.selectCommand();
+}

@@ -14,4 +14,10 @@
           <handler event="keypress" action="TreeView.seLiteTreeOnKeyPress( event );" />
       </handlers>
   </binding>
+  <binding id="input" extends="chrome://global/content/bindings/textbox.xml#textbox" >
+      <handlers>
+          <handler event="input" action="onInPlaceEditInputOrBlur(this.value);" />
+          <handler event="blur" action="onInPlaceEditInputOrBlur(this.value);" />
+      </handlers>
+  </binding>
 </bindings>
