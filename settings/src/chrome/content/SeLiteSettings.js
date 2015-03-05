@@ -1513,18 +1513,17 @@ var namedTestSuiteFolderChangeHandlers= {};
  * */
 SeLiteSettings.getTestSuiteFolder= function getTestSuiteFolder() { return SeLiteSettings.testSuiteFolder; };
 
-/** @note Internal. Used by extensions/core-extension.js which stores the path of the test suite here.
+/** @note Internal. Used by extensions/core-extension.js which stores the path of the test suite here. Don't call this from auxiliary Selenium IDE instances (i.e. ones normally open with URL ending with '#GREEN' etc. - see SeleniumIde.wiki).
  *  @param folder string or undefined
  * */
 SeLiteSettings.setTestSuiteFolder= function setTestSuiteFolder( folder ) {
-    //console.log( 'setTestSuiteFolder ' +folder );
     if( SeLiteSettings.testSuiteFolder!==folder ) {
         SeLiteSettings.testSuiteFolder= folder;
         SeLiteSettings.applyTestSuiteFolderChangeHandlers( folder );
     }
 };
 
-/** @note Internal. Used by ui/ovOptions.js
+/** @note Internal. Used by ui/ovOptions.js. Don't call this from auxiliary Selenium IDE instances (i.e. ones normally open with URL ending with '#GREEN' etc. - see SeleniumIde.wiki).
  * */
 SeLiteSettings.changedDefaultSet= function changedDefaultSet() {
     SeLiteSettings.applyTestSuiteFolderChangeHandlers( SeLiteSettings.testSuiteFolder );

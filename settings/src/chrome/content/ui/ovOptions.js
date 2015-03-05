@@ -1063,7 +1063,7 @@ else {
                             }
                         }
                     }
-                    SeLiteSettings.changedDefaultSet();
+                    window.location.hash || SeLiteSettings.changedDefaultSet();
                 }
                 if( column.value.element===treeColumnElements.checked && cellIsEditable ) {
                     var isSingleNonChoice= !(field.multivalued || field instanceof SeLiteSettings.Field.Choice);
