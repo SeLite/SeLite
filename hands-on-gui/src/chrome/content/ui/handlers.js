@@ -16,6 +16,7 @@
 "use strict";
 
 function onTreeClick( event ) {
+    // editor.treeView.tree.currentIndex may be different to the clicked row. See notes on 'Complex' sequence in ide-extension.js.
     editor.treeView.seLiteTreePreviousIndex= editor.treeView.tree.currentIndex;
     // event.target is treechildren; event.currentTarget is tree; event.relatedTarget is null
     // @TODO if event.clientY is too close to the bottom of the tree, then return. Otherwise the following selected a cell in a neighbour row!
@@ -55,19 +56,27 @@ function onTreeClick( event ) {
    }
 }
 
-function onInPlaceEditInputOrBlur( newValue ) {
-    //Components.utils.import('resource://gre/modules/devtools/Console.jsm', {}).console.error
+function onInPlaceEditInput( newValue ) {
     var tree= document.getElementById('commands');
-    var key= tree.editingColumn===tree.columns[0] // What field of the command/comment to update
-        ? 'command'
+    var key= tree.editingColumn===tree.columns[0] // What field of the command/comment to update in details area
+        ? 'Action'
         : (tree.editingColumn===tree.columns[1]
-            ? 'target'
-            : 'value'
+            ? 'Target'
+            : 'Value'
         );
+    var detailsField= document.getElementById( 'command'+key ).value= newValue;
+    /* // Do not use the following, because then 'blur' event couldn't revert changes when use hits ESC. When I used it, it needed adjusted values of 'key' set above.
     var decodedValue= tree.editingColumn===tree.columns[0]
         ? newValue
         : window.editor.treeView.decodeText(newValue);
-    
-    window.editor.treeView.updateCurrentCommand( key, decodedValue);
+    window.editor.treeView.updateCurrentCommand( key, decodedValue); // This updates the command in the test case object
+    window.editor.treeView.selectCommand(); // This updates the Command/Target/Value details area
+    */
+    //editor.treeView.seLiteTreePreviousIndex= editor.treeView.tree.currentIndex;
+}
+
+// See notes in ide-extension.js
+function onInPlaceEditBlur() {
+    // tree.editingColumn is already null. tree.inputField.value is already empty. Hence:
     window.editor.treeView.selectCommand();
 }
