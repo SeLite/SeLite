@@ -16,9 +16,7 @@ if( phpMyFAQ===undefined ) {
         db: new SeLiteData.Db( SeLiteData.getStorageFromSettings() )
     };
 }
-(function() {
-    var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
-    console.warn('phpMyFAQ framework loading');
+SeLiteMisc.registerOrExtendFramework( function() {
     /** @type {SeLiteSettings.Module} */
     var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
     commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor'] );
@@ -91,5 +89,4 @@ if( phpMyFAQ===undefined ) {
         user: phpMyFAQ.tables.user.formula(),
         userlogin: phpMyFAQ.tables.userlogin.formula()
     };
-    console.warn('phpMyFaq framework loaded');
-})();
+}, 'phpMyFAQ' );

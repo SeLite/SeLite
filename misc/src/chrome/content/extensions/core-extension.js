@@ -145,7 +145,7 @@ Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
         }
         catch( e ) {
             throw SeLiteMisc.addStackToMessage( e, true );
-            // doRunJavascript@chrome://selite-misc/content/extensions/selite-misc-core.js
+            // doRunJavascript@chrome://selite-misc/content/extensions/core-extension.js
         }
     };
 }) ();

@@ -27,8 +27,7 @@ if( Serendipity===undefined ) {
         db: new SeLiteData.Db( SeLiteData.getStorageFromSettings() )
     };
 }
-
-(function() {
+SeLiteMisc.registerOrExtendFramework( function() {
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
     console.warn('Serendipity framework loading');
         /** @type {SeLiteSettings.Module} */
@@ -298,4 +297,4 @@ if( Serendipity===undefined ) {
         /** @type {SeLiteData.RecordSetFormula} */
         Serendipity.formulas.entries= Serendipity.tables.entries.formula();
     console.warn('Serendipity framework loaded');
-})();
+}, 'Serendipity' );

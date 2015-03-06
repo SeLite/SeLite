@@ -2128,4 +2128,18 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
     }
 };
 
+/** This ensures that there's maximum one framework loaded per Firefox sessionAs per https://code.google.com/p/selite/wiki/TestFramework#Extending_a_test_framework#Limitations. TODO: link to No hot switching between frameworks] and to [BootstrapLoader#Switching between files Switching between files].
+ * */
+SeLiteMisc.registerOrExtendFramework= function registerOrExtendFramework( initialiser, name ) {
+    SeLiteMisc.ensureType( initialiser, 'function', 'initialiser' );
+    SeLiteMisc.ensureType( name, 'string', 'name' );
+    if( SeLiteMisc.frameworkRegistered && SeLiteMisc.frameworkName===name ) {
+        SeLiteMisc.fail( "Can't register framework " +name+ '. Another framework was registered already: ' +SeLiteMisc.frameworkName );
+    }
+    SeLiteMisc.frameworkRegistered= true;
+    SeLiteMisc.frameworkName= name;
+    SeLiteMisc.LOG.error( 'Loading SeLite framework ' +name );
+    initialiser();
+};
+
 var EXPORTED_SYMBOLS= ['SeLiteMisc'];
