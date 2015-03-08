@@ -1063,7 +1063,7 @@ else {
                             }
                         }
                     }
-                    window.location.hash || SeLiteSettings.changedDefaultSet();
+                    window.location.href!=='chrome://selenium-ide/content/selenium-ide.xul' || SeLiteSettings.changedDefaultSet();
                 }
                 if( column.value.element===treeColumnElements.checked && cellIsEditable ) {
                     var isSingleNonChoice= !(field.multivalued || field instanceof SeLiteSettings.Field.Choice);

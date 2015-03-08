@@ -2133,13 +2133,20 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
 SeLiteMisc.registerOrExtendFramework= function registerOrExtendFramework( initialiser, name ) {
     SeLiteMisc.ensureType( initialiser, 'function', 'initialiser' );
     SeLiteMisc.ensureType( name, 'string', 'name' );
-    if( SeLiteMisc.frameworkRegistered && SeLiteMisc.frameworkName===name ) {
+    if( SeLiteMisc.frameworkRegistered && SeLiteMisc.frameworkName!==name ) {
         SeLiteMisc.fail( "Can't register framework " +name+ '. Another framework was registered already: ' +SeLiteMisc.frameworkName );
     }
     SeLiteMisc.frameworkRegistered= true;
     SeLiteMisc.frameworkName= name;
-    SeLiteMisc.LOG.error( 'Loading SeLite framework ' +name );
+    SeLiteMisc.log().info( 'Loading SeLite framework ' +name );
     initialiser();
+    SeLiteMisc.log().info( 'Loaded SeLite framework ' +name );
+};
+
+/** @return {object} Log object for Selenium IDE 'Log' tab. Only valid for primary Selenium IDE instances (not for auxiliary instances - see SeleniumIde.wiki).
+ * */
+SeLiteMisc.log= function log() {
+    return SeLiteMisc.LOG;
 };
 
 var EXPORTED_SYMBOLS= ['SeLiteMisc'];

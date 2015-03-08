@@ -25,7 +25,7 @@
     var originalLoadFile= TestSuite.loadFile;
     TestSuite.loadFile= function loadFile(file) {
         var result= originalLoadFile.call( this, file );
-        window.location.hash || SeLiteSettings.setTestSuiteFolder( file.parent.path );
+        window.location.href!=='chrome://selenium-ide/content/selenium-ide.xul' || SeLiteSettings.setTestSuiteFolder( file.parent.path );
         return result;
     };
     
@@ -36,7 +36,7 @@
         // If !this.file or newFile, then the original function call is not saving the file, but it calls itself recursively.
         // That recursive call has this.file and newFile. See the original code in IDE's chrome/content/testSuite.js
         if( this.file && !newFile ) {
-            window.location.hash || SeLiteSettings.setTestSuiteFolder( this.file.parent.path );
+            window.location.href!=='chrome://selenium-ide/content/selenium-ide.xul' || SeLiteSettings.setTestSuiteFolder( this.file.parent.path );
         }
         return result;
     };
@@ -46,7 +46,7 @@
     var originalTestSuite= TestSuite;
     TestSuite= function TestSuite() {
         originalTestSuite.call(this);
-        window.location.hash || SeLiteSettings.setTestSuiteFolder( undefined );
+        window.location.href!=='chrome://selenium-ide/content/selenium-ide.xul' ||SeLiteSettings.setTestSuiteFolder( undefined );
     };
     for( var i in originalTestSuite ) {
         TestSuite[i]= originalTestSuite[i];

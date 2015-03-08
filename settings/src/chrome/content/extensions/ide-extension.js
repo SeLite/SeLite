@@ -28,7 +28,7 @@
         var result= originalConfirmClose.call(this);
         // result===true means that the window was closed (whether saved or not)
         if( result ) {
-            window.location.hash || SeLiteSettings.setTestSuiteFolder(undefined);
+            window.location.href!=='chrome://selenium-ide/content/selenium-ide.xul' || SeLiteSettings.setTestSuiteFolder(undefined);
             SeLiteSettings.closingIde();
         }
         //console.log( 'Editor.proto.confirmClose passed');

@@ -1513,7 +1513,7 @@ var namedTestSuiteFolderChangeHandlers= {};
  * */
 SeLiteSettings.getTestSuiteFolder= function getTestSuiteFolder() { return SeLiteSettings.testSuiteFolder; };
 
-/** @note Internal. Used by extensions/core-extension.js which stores the path of the test suite here. Don't call this from auxiliary Selenium IDE instances (i.e. ones normally open with URL ending with '#GREEN' etc. - see SeleniumIde.wiki).
+/** @note Internal. Used by extensions/core-extension.js which stores the path of the test suite here. Don't call this from auxiliary Selenium IDE instances (i.e. ones normally open with URL ending with '#GREEN' etc. - see SeleniumIde.wiki), neither from Selenium IDE in browser sidebar (which has a different URL: chrome://selenium-ide/content/selenium-ide-sidebar.xul). I.e. call this only if window.location.href==='chrome://selenium-ide/content/selenium-ide.xul'.
  *  @param folder string or undefined
  * */
 SeLiteSettings.setTestSuiteFolder= function setTestSuiteFolder( folder ) {
@@ -1523,7 +1523,7 @@ SeLiteSettings.setTestSuiteFolder= function setTestSuiteFolder( folder ) {
     }
 };
 
-/** @note Internal. Used by ui/ovOptions.js. Don't call this from auxiliary Selenium IDE instances (i.e. ones normally open with URL ending with '#GREEN' etc. - see SeleniumIde.wiki).
+/** @note Internal. Used by ui/ovOptions.js. See SeLiteSettings.setTestSuiteFolder() on where this can be called from.
  * */
 SeLiteSettings.changedDefaultSet= function changedDefaultSet() {
     SeLiteSettings.applyTestSuiteFolderChangeHandlers( SeLiteSettings.testSuiteFolder );
