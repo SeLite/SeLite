@@ -1,5 +1,6 @@
 /*
  * Copyright 2005 Shinya Kasatani
+ * Copyright 2015 Peter Kehl
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +65,7 @@ function onInPlaceEditInput( newValue ) {
             ? 'Target'
             : 'Value'
         );
-    var detailsField= document.getElementById( 'command'+key ).value= newValue;
+    document.getElementById( 'command'+key ).value= newValue;
     /* // Do not use the following, because then 'blur' event couldn't revert changes when use hits ESC. When I used it, it needed adjusted values of 'key' set above.
     var decodedValue= tree.editingColumn===tree.columns[0]
         ? newValue

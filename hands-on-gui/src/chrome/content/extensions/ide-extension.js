@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Peter Kehl
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 "use strict";
 
 XulUtils.TreeViewHelper.prototype.isEditable= TreeView.prototype.isEditable= function isEditable( row, col ) { return true;};
@@ -23,38 +38,43 @@ XulUtils.TreeViewHelper.prototype.isEditable= TreeView.prototype.isEditable= fun
  *    2.1 tree's onSelect(), which calls editor.treeView.selectCommand(), so now editor.treeView.currentCommand is the command from the newly selected cell!
  *    2.2 setCellText()
  *    2.3 tree's onClick() in handlers.js
- *    Therefore, in onClick() I save this.tree.currentIndex in this.seLiteTreePreviousIndex, which I then compare to current this.tree.currentIndex in setCellText(). If they are different, that means that onSelect() has already selected the newly clicked command. Then I update the previously edited command in the test case, instead of calling updateCurrentCommand(). Also, I don't update the command details area - I don't call selectCommand() - because it already shows the newly edited command.
+ *    Therefore, in step 2 - onClick() - I save this.tree.currentIndex in this.seLiteTreePreviousIndex, which I later compare to current this.tree.currentIndex in setCellText(). If they are different, that means that onSelect() has already selected the newly clicked command. Then I update the previously edited command in the test case, instead of calling updateCurrentCommand(). Also, I don't update the command details area - I don't call selectCommand() - because it already shows the newly edited command.
  *    
  *  E) Medium Complext: Edit, modify, cancel (no change)
  *    1. edit a cell
- *    2. stop editing (and revert any modifications) by pressing ESC. That doesn't trigger setCellText(), but only onBlur. So we need an onBlur handler to revert any changes in Command details area (i.e. one of wide inputs Command, Target or Value) that were made by previous typing (as was captured by a sequence of onInput events).
+ *    2. stop editing (and revert any modifications) by pressing ESC. That doesn't trigger setCellText(), but only onBlur. So we need an onBlur handler to revert any changes in Command details area (i.e. one of wide inputs Command, Target or Value) that were made by previous typing (as was captured by a sequence of onInput events) - that's done in onInPlaceEditBlur().
  *    
  *  We have an onInput handler, so that we update Command details area (wide inputs Command, Target or Value) as the user types in the cell (rather than updating it only after 'committing' the change by e.g. ENTER). However, all event sequences that accept the change (i.e. except for ones where the user hits ESC) trigger setCellText() first and only then they trigger onBlur(). Therefore onBlur handles that specially.
  * */
-
 XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= function setCellText( row, col, value, original) {
     //original is undefined, so I don't call original.setCellText( row, col, value );
     var tree= document.getElementById('commands');
-    var key= col===tree.columns[0] // What field of the command/comment to update
+    var key= col===tree.columns[0] // What field of the command/comment to pass to window.editor.treeView.updateCurrentCommand()
         ? 'command'
         : (col===tree.columns[1]
             ? 'target'
             : 'value'
         );
+    // What field of the command/comment to update directly in command object. See also TreeView.UpdateCommandAction.prototype -> execute()
+    // @TODO change the following condition - make it depend on command's type - once I allow edit-in place for non-comments (i.e. commands)
+    var directKey= col===tree.columns[0]
+        ? 'comment'
+        : key;
     var decodedValue= col===tree.columns[0]
         ? value
         : window.editor.treeView.decodeText(value);
     
-    if( this.tree.currentIndex===this.seLiteTreePreviousIndex || this.seLiteTreePreviousIndex===undefined ) { // Handling one of the three simple sequences (see above)
-        window.editor.treeView.updateCurrentCommand( key, decodedValue);
+    if( this.tree.currentIndex===this.seLiteTreePreviousIndex || this.seLiteTreePreviousIndex===undefined ) { // Handling one of the three simple sequences A), B) or C) (see above)
+        if( editor.treeView.currentCommand[directKey]!==decodedValue ) { // Update only on change. Otherwise the test case would show up as modified.
+            window.editor.treeView.updateCurrentCommand( key, decodedValue);
+        }
         window.editor.treeView.selectCommand();
     }
-    else { // Handling the complex sequence
-        // See TreeView.UpdateCommandAction.prototype -> execute()
-        if( col===tree.columns[0] ) {
-            key= 'comment';
+    else { // Handling the complex sequence D) (see above)
+        if( window.editor.treeView.getCommand( this.seLiteTreePreviousIndex )[ directKey ]!==decodedValue ) {
+            window.editor.treeView.getCommand( this.seLiteTreePreviousIndex )[ directKey ]= decodedValue;
+            window.editor.treeView.testCase.setModified();
         }
-        window.editor.treeView.getCommand( this.seLiteTreePreviousIndex )[ key ]= decodedValue;
         this.seLiteTreePreviousIndex= undefined;
     }
     return true;
