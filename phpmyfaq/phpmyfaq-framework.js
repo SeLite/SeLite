@@ -4,7 +4,7 @@
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at http://mozilla.org/MPL/2.0/.*/
 "use strict";
-
+//throw new Error('h');
 // If you extend this framework from another file, see https://code.google.com/p/selite/wiki/TestFramework#Extending_a_test_framework
 /** @type{object} A namespace-like object in the global scope.*/
 var phpMyFAQ;

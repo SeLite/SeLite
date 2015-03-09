@@ -1,4 +1,4 @@
-/*  Copyright 2013, 2014 Peter Kehl
+/*  Copyright 2013, 2014, 2015 Peter Kehl
     This file is part of SeLite Settings.
     
     This program is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@
     var originalSave= TestSuite.prototype.save;
     TestSuite.prototype.save= function save(newFile) {
         var result= originalSave.call(this, newFile);
-        // If !this.file or newFile, then the original function call is not saving the file, but it calls itself recursively.
+        // If (!this.file || newFile), then the original function call is not saving the file, but it calls itself recursively, so then I skip the following.
         // That recursive call has this.file and newFile. See the original code in IDE's chrome/content/testSuite.js
         if( this.file && !newFile ) {
             window.location.href!=='chrome://selenium-ide/content/selenium-ide.xul' || SeLiteSettings.setTestSuiteFolder( this.file.parent.path );
@@ -46,7 +46,7 @@
     var originalTestSuite= TestSuite;
     TestSuite= function TestSuite() {
         originalTestSuite.call(this);
-        window.location.href!=='chrome://selenium-ide/content/selenium-ide.xul' ||SeLiteSettings.setTestSuiteFolder( undefined );
+        window.location.href!=='chrome://selenium-ide/content/selenium-ide.xul' || SeLiteSettings.setTestSuiteFolder( undefined );
     };
     for( var i in originalTestSuite ) {
         TestSuite[i]= originalTestSuite[i];

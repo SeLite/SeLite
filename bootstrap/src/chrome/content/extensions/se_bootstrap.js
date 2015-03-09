@@ -28,6 +28,7 @@
         ;
         var FileUtils= Components.utils.import("resource://gre/modules/FileUtils.jsm", {} ).FileUtils;
         var Services= Components.utils.import("resource://gre/modules/Services.jsm", {} ).Services;
+        Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
         Components.utils.import( 'chrome://selite-settings/content/SeLiteSettings.js' );
 
         /** There are two sets of events when we want to call reloadScripts(), which are handled separately:
@@ -72,7 +73,7 @@
                     LOG.warn( "SeBootstrap tried to (re)load a non-existing file " +filePath );
                     continue;
                 }
-                anyFileNewOrModified= !(filePath in Selenium.bootstrapScriptLoadTimestamps) || Selenium.bootstrapScriptLoadTimestamps[filePath]!==files[filePath].lastModifiedTime;
+                anyFileNewOrModified|= !(filePath in Selenium.bootstrapScriptLoadTimestamps) || Selenium.bootstrapScriptLoadTimestamps[filePath]!==files[filePath].lastModifiedTime;
             }
             if( anyFileNewOrModified ) {
                 for( var filePath in files ) { // Reload all files, not just the modified one(s). That allows dependant files to maintain their book keeping.
@@ -80,21 +81,20 @@
                     // until it's updated (or until you reload Selenium IDE).
                     Selenium.bootstrapScriptLoadTimestamps[filePath]= files[filePath].lastModifiedTime;
 
-                    var tmpFile= FileUtils.getFile( "TmpD", [ files[filePath].leafName+'-'+Date.now() ] ); //  The second parameter is just a suggested name. FileUtils ensures I get a unique file.
-                    tmpFile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, FileUtils.PERMS_FILE); // This creates an empty file
-                    tmpFile.remove( false ); // Need to remove it, otherwise copyTo(..) wouldn't copy over an existing file
-                    files[filePath].copyTo( tmpFile.parent, tmpFile.leafName );
-
-                    var tmpFileUrl= Services.io.newFileURI( tmpFile ); // object of type nsIURI
+                    var fileUrl= Services.io.newFileURI( files[filePath] );
                     try {
                         // When I passed editor.seleniumAPI, then bootstrapped extension must have defined global variables (without _var_ keyword) and therefore it couldn't use Javascript strict mode.
-                        subScriptLoader.loadSubScript( tmpFileUrl.spec, global, 'UTF-8' );
+                        subScriptLoader.loadSubScriptWithOptions( fileUrl.spec, {
+                            target: global,
+                            charset: 'UTF-8',
+                            ignoreCache: true
+                        } );
                         // This could also be done via Components.utils.import( tmpFileUrl.spec, scope ) and Components.utils.unload(url). However, the .js file would have to define var EXPORTED_SYMBOLS= ['symbol1', 'symbol2', ...];
                     }
                     catch(error ) {
                         var msg= "SeBootstrap tried to evaluate " +filePath+ " and it failed with "
                             +error+ '. Following stack excludes the location(s) in that loaded file:\n' +error.stack;
-                        LOG.error( msg );
+                        SeLiteMisc.log().error( msg );
                     }
                 }
             }
