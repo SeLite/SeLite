@@ -56,7 +56,7 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
             : 'value'
         );
     // What field of the command/comment to update directly in command object. See also TreeView.UpdateCommandAction.prototype -> execute()
-    // @TODO change the following condition - make it depend on command's type - once I allow edit-in place for non-comments (i.e. commands)
+    // If we ever allow edit-in place for non-comments (i.e. commands), then change the following condition: make it depend on command's type
     var directKey= col===tree.columns[0]
         ? 'comment'
         : key;

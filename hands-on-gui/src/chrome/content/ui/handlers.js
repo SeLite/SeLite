@@ -37,7 +37,7 @@ function onTreeClick( event ) {
     if( editor.treeView.currentCommand.type==='command' && (column===tree.columns[1] || column===tree.columns[2])
     ||  editor.treeView.currentCommand.type==='comment'
     ) {
-        if( editor.treeView.currentCommand.type==='comment' ) {
+        if( editor.treeView.currentCommand.type==='comment' ) { // Since it's a comment, we're editing its first cell, no matter which cell was clicked.
             column= tree.columns[0];
             // In the following I've tried to temporarily disable comment's overflow, but there seems not to be a way (then I'd have to re-enable it afterwards).
             //document.getElementById('command').removeAttribute('overflow');
