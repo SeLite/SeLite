@@ -1,4 +1,4 @@
-/*  Copyright 2013, 2014 Peter Kehl
+/*  Copyright 2013, 2014, 2015 Peter Kehl
     This file is part of SeLite Settings.
     
     This program is free software: you can redistribute it and/or modify
@@ -1116,19 +1116,24 @@ SeLiteSettings.Module.prototype.addFields= function addFields( fields, dontReReg
 SeLiteSettings.setTestDbKeeper= function setTestDbKeeper( testDbKeeper ) {
     try { throw new Error(); } // This is to get the location of the test framework. If testDbKeeper was already set from the same framework, then I skip it. Otherwise I report a problem.
     catch( e ) {
-        // e is a string, with the innermost stack information first. This is usually called
+        // e.stack is a string, with the innermost stack information first. This is usually called
         // when Selenium IDE runs a Selenese command from the test suite for the first time.
         // It may be any Selenese - thus some of the stack levels can vary.
-        // I also accept this scenario: The user uses a test suite with a framework. Then she uses a test suite with no test framework. Then she uses a test suite with the exact same framework as the first one - however, Bootstrap copies the framework to a new file with timestamp in the name. So I extract the framework file name except for the timestamp. Limitation: if multiple frameworks have the same file leaf name, this can't distinguish between them. QA Note: you can only trigger the second load of the same framework, if you update timestamp of its file (e.g. by unix command 'touch').
+        // So I extract the framework file name - the depest filename that doesn't start with chrome://selite-. Limitation: if multiple frameworks have the same file leaf name, this can't distinguish between them. QA Note: you can only trigger the second load of the same framework, if you update timestamp of its file (e.g. by unix command 'touch').
         // -> file:///var/tmp/dotclear-framework.js-1401941951280:102
-        var invoker= e.stack.match( /^[^>]+-> ([^\n]+)-[0-9]+:[0-9]+/ )[1];
-        if( SeLiteSettings.moduleForReloadButtons.testDbKeeperInvoker!==undefined ) {
-            if( SeLiteSettings.moduleForReloadButtons.testDbKeeperInvoker===invoker ) {
-                return;
+        debugger;
+        var depestNonSeLiteFileUrl;
+        var depestNonSeLiteFileUrlMatch= e.stack.match( /( ->|@)([a-z]:\/\/(?!selite-)[a-zA-Z_0-9/~-]+):/ );
+        if( depestNonSeLiteFileUrlMatch ) {
+            var depestNonSeLiteFileUrl= depestNonSeLiteFileUrlMatch[1];
+            if( SeLiteSettings.moduleForReloadButtons.testDbKeeperInvoker!==undefined ) {
+                if( SeLiteSettings.moduleForReloadButtons.testDbKeeperInvoker===depestNonSeLiteFileUrl ) {
+                    return;
+                }
+                SeLiteMisc.fail( "You've already set testDbKeeper at " +SeLiteSettings.moduleForReloadButtons.testDbKeeperInvoker+ ", or you've already loaded another test framework. Please restart Firefox (not just Selenium IDE)." );
             }
-            SeLiteMisc.fail( "You've already set testDbKeeper at " +SeLiteSettings.moduleForReloadButtons.testDbKeeperInvoker+ ", or you've already loaded another test framework. Please restart Firefox (not just Selenium IDE)." );
         }
-        SeLiteSettings.moduleForReloadButtons.testDbKeeperInvoker= invoker;
+        SeLiteSettings.moduleForReloadButtons.testDbKeeperInvoker= depestNonSeLiteFileUrl;
         SeLiteSettings.moduleForReloadButtons.testDbKeeper= testDbKeeper;
         if( testDbKeeper ) {
             var testDbField= SeLiteSettings.moduleForReloadButtons.fields['testDB'];

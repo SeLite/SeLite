@@ -92,8 +92,8 @@
                         // This could also be done via Components.utils.import( tmpFileUrl.spec, scope ) and Components.utils.unload(url). However, the .js file would have to define var EXPORTED_SYMBOLS= ['symbol1', 'symbol2', ...];
                     }
                     catch(error ) {
-                        var msg= "SeBootstrap tried to evaluate " +filePath+ " and it failed with "
-                            +error+ '. Following stack excludes the location(s) in that loaded file:\n' +error.stack;
+                        var msg= "SeBootstrap tried to evaluate " +filePath+ " and it failed with:\n"
+                            +SeLiteMisc.addStackToMessage( error, true )+ '.';
                         SeLiteMisc.log().error( msg );
                     }
                 }
