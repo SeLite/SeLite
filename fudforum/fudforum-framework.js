@@ -24,48 +24,50 @@ if( FUDforum===undefined ) {
     };
 }
 
-(function() {
-        var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
-        commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor', 'contributor'] );
+SeLiteMisc.registerOrExtendFramework(
+    function() {
+            var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
+            commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor', 'contributor'] );
 
-        SeLiteSettings.setTestDbKeeper( 
-            new SeLiteSettings.TestDbKeeper.Columns( {
-                users: {
-                    key: 'login', // This is the logical/matching column, rather then a primary key
-                    columnsToPreserve: ['passwd'],
-                    defaults: { passwd: '' }
-                }
-            })
-        );
+            SeLiteSettings.setTestDbKeeper( 
+                new SeLiteSettings.TestDbKeeper.Columns( {
+                    users: {
+                        key: 'login', // This is the logical/matching column, rather then a primary key
+                        columnsToPreserve: ['passwd'],
+                        defaults: { passwd: '' }
+                    }
+                })
+            );
 
-        FUDforum.tables= {};
-        FUDforum.tables.users= new SeLiteData.Table( {
-           db:  FUDforum.db,
-           name: 'users',
-           columns: ['id', 'login', 'alias', 'passwd', 'salt', 'name', 'email',
-               'location', 'interests', 'occupation', 'avatar', 'avatar_loc',
-               'icq', 'aim', 'yahoo', 'msnm', 'jabber', 'affero', 'google', 'skype', 'twitter',
-               'posts_ppg', 'time_zone', 'birthday'
-           ],
-           primary: 'id' // However, for purpose of matching users I usually use 'login'
-        });
-        FUDforum.formulas= {};
-        FUDforum.formulas.users= FUDforum.tables.users.formula();
-        /*@TODO
-        FUDforum.tables.node= new SeLiteData.Table( {
-           db:  FUDforum.db,
-           name: 'node',
-           columns: ['nid', 'vid', 'type', 'language', 'title', 'uid', 'status',
-               'created', 'changed',
-               'comment', 'promote', 'sticky', 'tnid', 'translate'
-           ],
-           primary: 'nid'
-        });
-        
-        FUDforum.tables.field_data_body= new SeLiteData.Table( {
-            db: FUDforum.db,
-            name: 'field_data_body',
-            columns: ['entity_type', 'bundle', 'deleted', 'entity_id', 'revision_id', 'language', 'delta', 'body_value', 'body_sumary', 'body_format'],
-            primary: '@TODO group of columns'
-        });*/
-})();
+            FUDforum.tables= {};
+            FUDforum.tables.users= new SeLiteData.Table( {
+               db:  FUDforum.db,
+               name: 'users',
+               columns: ['id', 'login', 'alias', 'passwd', 'salt', 'name', 'email',
+                   'location', 'interests', 'occupation', 'avatar', 'avatar_loc',
+                   'icq', 'aim', 'yahoo', 'msnm', 'jabber', 'affero', 'google', 'skype', 'twitter',
+                   'posts_ppg', 'time_zone', 'birthday'
+               ],
+               primary: 'id' // However, for purpose of matching users I usually use 'login'
+            });
+            FUDforum.formulas= {};
+            FUDforum.formulas.users= FUDforum.tables.users.formula();
+            /*@TODO
+            FUDforum.tables.node= new SeLiteData.Table( {
+               db:  FUDforum.db,
+               name: 'node',
+               columns: ['nid', 'vid', 'type', 'language', 'title', 'uid', 'status',
+                   'created', 'changed',
+                   'comment', 'promote', 'sticky', 'tnid', 'translate'
+               ],
+               primary: 'nid'
+            });
+
+            FUDforum.tables.field_data_body= new SeLiteData.Table( {
+                db: FUDforum.db,
+                name: 'field_data_body',
+                columns: ['entity_type', 'bundle', 'deleted', 'entity_id', 'revision_id', 'language', 'delta', 'body_value', 'body_sumary', 'body_format'],
+                primary: '@TODO group of columns'
+            });*/
+    }
+);
