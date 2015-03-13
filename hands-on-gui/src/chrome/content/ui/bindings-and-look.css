@@ -15,6 +15,7 @@ tree#commands  {
     -moz-binding: url( 'chrome://selite-hands-on-gui/content/ui/bindings.xml#commands' );
 }
 
-textbox[anonid="input"] {
+// @TODO consider: textbox.tree-input
+/*textbox[anonid="input"] {
     -moz-binding: url( 'chrome://selite-hands-on-gui/content/ui/bindings.xml#input' );
-}
+}*/

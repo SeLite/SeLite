@@ -19,12 +19,94 @@ limitations under the License.
 <overlay id="clipboard-ovIDE" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
     <window id="selenium-ide">
         <script type="application/x-javascript" src="chrome://selite-hands-on-gui/content/ui/handlers.js"/>
+        <script type="application/x-javascript">
+        //<![CDATA[
+                var XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+                var textbox= window.document.createElementNS( XUL_NS, 'textbox' );
+                //@TODO oninput
+                //textbox.setAttribute( 'onchange', "window.editor.autoCompleteCommand(this.value)" );
+                textbox.setAttribute( 'id', 'commandAction1' );
+                textbox.setAttribute( 'type', 'autocomplete' );
+                textbox.setAttribute( 'autocompletesearch', 'selite-generic' );
+                textbox.setAttribute( 'autofill', 'true' );
+                textbox.setAttribute( 'completedefaultindex', 'true' );
+                textbox.setAttribute( 'completeselectedindex', 'true' );
+                textbox.setAttribute( 'enablehistory', 'true' );
+                textbox.disableautocomplete= false;
+                
+                document.getElementById('testCasePane').appendChild( textbox );
+                
+                window.setTimeout( function() {
+                  // Verbatim copy of function _loadSeleniumCommands() from Selenium's treeView.js, except for ID on the last line. Watch out: if you factor this code somewhere else, then replace 'this.editor' with 'window.editor'
+                  
+                    var commands = [];
+
+                    var nonWaitActions = ['open', 'selectWindow', 'chooseCancelOnNextConfirmation', 'answerOnNextPrompt', 'close', 'setContext', 'setTimeout', 'selectFrame'];
+
+                    for (func in this.editor.seleniumAPI.Selenium.prototype) {
+                        //this.log.debug("func=" + func);
+                        var r;
+                        if (func.match(/^do[A-Z]/)) {
+                            var action = func.substr(2,1).toLowerCase() + func.substr(3);
+                            commands.push(action);
+                            if (!action.match(/^waitFor/) && nonWaitActions.indexOf(action) < 0) {
+                                commands.push(action + "AndWait");
+                            }
+                        } else if (func.match(/^assert.+/)) {
+                            commands.push(func);
+                            commands.push("verify" + func.substr(6));
+                        } else if ((r = func.match(/^(get|is)(.+)$/))) {
+                            var base = r[2];
+                            commands.push("assert" + base);
+                            commands.push("verify" + base);
+                            commands.push("store" + base);
+                            commands.push("waitFor" + base);
+                            var r2;
+                            if ((r = func.match(/^is(.*)Present$/))) {
+                                base = r[1];
+                                commands.push("assert" + base + "NotPresent");
+                                commands.push("verify" + base + "NotPresent");
+                                commands.push("waitFor" + base + "NotPresent");
+                            } else {
+                                commands.push("assertNot" + base);
+                                commands.push("verifyNot" + base);
+                                commands.push("waitForNot" + base);
+                            }
+                        }
+                    }
+
+                    commands.push("pause");
+                    commands.push("store");
+                    commands.push("echo");
+                    commands.push("break");
+
+                    commands.sort();
+                    
+                    Editor.GENERIC_AUTOCOMPLETE.setCandidates(XulUtils.toXPCOMString(this.editor.getAutoCompleteSearchParam("commandAction1")),
+                                                              XulUtils.toXPCOMArray(commands));
+                                                              
+                    var tree= document.getElementById('commands');
+                    if( !tree.inputField.getAttribute('id') ) {
+                        tree.inputField.setAttribute('id', 'treeTextbox' );
+                    }
+                    Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console.error( 'inputField id: ' +tree.inputField.getAttribute('id') );
+                    /*Editor.GENERIC_AUTOCOMPLETE.setCandidates(XulUtils.toXPCOMString(this.editor.getAutoCompleteSearchParam( tree.inputField.getAttribute('id') )),
+                                                              XulUtils.toXPCOMArray(commands));/**/                                            
+                    
+                }, 3000 );
+        //]]>
+        </script>
     </window>
-    <!-- 1. Selective tail override of Selenium IDE's onclick handler.
+    <vbox id="testCasePane">
+        <textbox id="commandAction2" oninput="window.editor.treeView.updateCurrentCommand('command', this.value)" onchange="window.editor.autoCompleteCommand(this.value)" type="autocomplete" autocompletesearch="selite-generic" autofill="true" completedefaultindex="true" completeselectedindex="true" enablehistory="true" tabscrolling="false" sizetopopup="pref"  disableautocomplete="false" maxrows="0"/>
+    </vbox>
+    <!-- 1. onclick: Selective tail override of Selenium IDE's onclick handler.
          2. Adding minheight: otherwise the tree changed the height quite a lot when clicking to edit some commands, which seemed shaking-like and distracting.
+         3. ondblclick: it stops editing the cell (which was started in onclick). Then I set focus on the tree - otherwise it wouldn't run a command (as per https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XUL/Tutorial/Commands#Command_Dispatching).
     -->
     <tree id="commands" editable="true"
         onclick="onTreeClick(event);"
+        ondblclick="var tree= event.currentTarget;  tree.stopEditing(); tree.focus(); goDoCommand('cmd_selenium_exec_command');"
         minheight="80"
     />
     <treecol id="command" editable="false"/>

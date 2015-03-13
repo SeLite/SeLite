@@ -14,7 +14,8 @@
           <handler event="keypress" action="TreeView.seLiteTreeOnKeyPress( event );" />
       </handlers>
   </binding>
-  <binding id="input" extends="chrome://global/content/bindings/textbox.xml#textbox" >
+  <!-- @TODO Remove the following, and the commented part in bind*.css. Set event handlers programatically instead. Then programatically make the field autocomplete or not. -->
+  <binding id="input" extends="chrome://global/content/bindings/autocomplete.xml#autocomplete" >
       <handlers>
           <handler event="input" action="onInPlaceEditInput(this.value);" />
           <!-- For some reason, for "blur" event keyword 'this' is the textbox, however this.value is not set. -->

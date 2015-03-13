@@ -40,7 +40,7 @@ XulUtils.TreeViewHelper.prototype.isEditable= TreeView.prototype.isEditable= fun
  *    2.3 tree's onClick() in handlers.js
  *    Therefore, in step 2 - onClick() - I save this.tree.currentIndex in this.seLiteTreePreviousIndex, which I later compare to current this.tree.currentIndex in setCellText(). If they are different, that means that onSelect() has already selected the newly clicked command. Then I update the previously edited command in the test case, instead of calling updateCurrentCommand(). Also, I don't update the command details area - I don't call selectCommand() - because it already shows the newly edited command.
  *    
- *  E) Medium Complext: Edit, modify, cancel (no change)
+ *  E) Medium Complex: Edit, modify, cancel (no change)
  *    1. edit a cell
  *    2. stop editing (and revert any modifications) by pressing ESC. That doesn't trigger setCellText(), but only onBlur. So we need an onBlur handler to revert any changes in Command details area (i.e. one of wide inputs Command, Target or Value) that were made by previous typing (as was captured by a sequence of onInput events) - that's done in onInPlaceEditBlur().
  *    
@@ -56,7 +56,7 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
             : 'value'
         );
     // What field of the command/comment to update directly in command object. See also TreeView.UpdateCommandAction.prototype -> execute()
-    // If we ever allow edit-in place for non-comments (i.e. commands), then change the following condition: make it depend on command's type
+    // @TODO If we ever allow edit-in place for non-comments (i.e. commands), then change the following condition: make it depend on command's type
     var directKey= col===tree.columns[0]
         ? 'comment'
         : key;

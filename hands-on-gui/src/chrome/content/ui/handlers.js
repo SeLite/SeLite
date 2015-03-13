@@ -33,8 +33,8 @@ function onTreeClick( event ) {
     var column= columnObject.value;
     // The clicked row has already been selected as the current command/comment.
     // For commands, only allow edit-in-place for 'target' and 'value' columns. That allows us to still execute the command by double-clicking at the command name itself.
-    // For comments, only allow edit-in-place for 'command' column, and do it no matter what column was clicked.
-    if( editor.treeView.currentCommand.type==='command' && (column===tree.columns[1] || column===tree.columns[2])
+    // For comments, only allow edit-in-place for 'command' column, no matter what column was clicked.
+    if( true || TODO_cleanup || editor.treeView.currentCommand.type==='command' && (column===tree.columns[1] || column===tree.columns[2])
     ||  editor.treeView.currentCommand.type==='comment'
     ) {
         if( editor.treeView.currentCommand.type==='comment' ) { // Since it's a comment, we're editing its first cell, no matter which cell was clicked.
@@ -47,12 +47,114 @@ function onTreeClick( event ) {
 
         // The above call to startEditing() calls setTimeout(), which puts a callback function in the execution queue. That callback function focuses and selects the tree.inputField. The following puts another code in the queue, which simulates a click at tree.inputField, so that the user can start typing where she clicked. See also chrome://global/content/bindings/tree.xml#tree -> startEditing
         window.setTimeout( function() {
+            if( editor.treeView.currentCommand.type==='command' && column===tree.columns[0] ) {
+            //@TODO keep indentation; make replacing the command easy: highlight the whole command (excluding any leading spaces)
+            //@TODO autocomplete
+                //tree.inputField.setAttribute( 'oninput', "window.editor.treeView.updateCurrentCommand('command', this.value)" ); // This has effect
+                //tree.inputField.setAttribute( 'onchange', "window.editor.autoCompleteCommand(this.value)" );
+                tree.inputField.setAttribute( 'type', "autocomplete" );
+                tree.inputField.setAttribute( 'autocompletesearch', "selite-generic" );
+                tree.inputField.setAttribute( 'autofill', "true" );
+                tree.inputField.setAttribute( 'completedefaultindex', "true" );
+                tree.inputField.setAttribute( 'completeselectedindex', "true" );
+                tree.inputField.setAttribute( 'enablehistory', "true" );
+                tree.inputField.setAttribute( "sizetopopup", "pref" );
+                tree.inputField.disableautocomplete= false;
+                
+                    var commands = [];
+
+                    var nonWaitActions = ['open', 'selectWindow', 'chooseCancelOnNextConfirmation', 'answerOnNextPrompt', 'close', 'setContext', 'setTimeout', 'selectFrame'];
+                    debugger;
+                    for (func in window.editor.seleniumAPI.Selenium.prototype) {
+                        //this.log.debug("func=" + func);
+                        var r;
+                        if (func.match(/^do[A-Z]/)) {
+                            var action = func.substr(2,1).toLowerCase() + func.substr(3);
+                            commands.push(action);
+                            if (!action.match(/^waitFor/) && nonWaitActions.indexOf(action) < 0) {
+                                commands.push(action + "AndWait");
+                            }
+                        } else if (func.match(/^assert.+/)) {
+                            commands.push(func);
+                            commands.push("verify" + func.substr(6));
+                        } else if ((r = func.match(/^(get|is)(.+)$/))) {
+                            var base = r[2];
+                            commands.push("assert" + base);
+                            commands.push("verify" + base);
+                            commands.push("store" + base);
+                            commands.push("waitFor" + base);
+                            var r2;
+                            if ((r = func.match(/^is(.*)Present$/))) {
+                                base = r[1];
+                                commands.push("assert" + base + "NotPresent");
+                                commands.push("verify" + base + "NotPresent");
+                                commands.push("waitFor" + base + "NotPresent");
+                            } else {
+                                commands.push("assertNot" + base);
+                                commands.push("verifyNot" + base);
+                                commands.push("waitForNot" + base);
+                            }
+                        }
+                    }
+                    debugger;
+                    commands.push("pause");
+                    commands.push("store");
+                    commands.push("echo");
+                    commands.push("break");
+
+                    commands.sort();
+                    
+                    //var tree= document.getElementById('commands');
+                    if( !tree.inputField.getAttribute('id') ) {
+                        tree.inputField.setAttribute('id', 'treeTextbox' );
+                    }
+                    Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console.error( 'inputField id: ' +tree.inputField.getAttribute('id') );
+                    var searchParam= window.editor.getAutoCompleteSearchParam( tree.inputField.getAttribute('id') );
+                    tree.inputField.setAttribute( 'autocompletesearchparam', searchParam ); // equivalent to 'searchParam' property, which was already set by window.editor.getAutoCompleteSearchParam() above.
+                    Editor.GENERIC_AUTOCOMPLETE.setCandidates( XulUtils.toXPCOMString(searchParam),
+                                                               XulUtils.toXPCOMArray(commands));                                   
+                
+                var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+                var goodAttributes= document.getElementById('commandAction1').attributes;
+                var sickAttributes= tree.inputField.attributes;
+                
+                // Compare attributes
+                var attributeSets= [goodAttributes, sickAttributes];
+                var setNames= ['good', 'sick'];
+                for( var i=0; i<2; i++ ) {
+                    var sourceName= setNames[i];
+                    var targetName= setNames[1-i];
+                    var source= attributeSets[i];
+                    var target= attributeSets[1-i];
+                    
+                    for( var j=0; j<source.length; j++ ) {
+                        var sourceAttr= source[j];
+                        var targetAttr= undefined;
+                        for( var k=0; k<target.length; k++ ) {
+                            if( target[k].name===sourceAttr.name ) {
+                                targetAttr= target[k];
+                                break;
+                            }
+                        }
+                        if( !targetAttr || sourceAttr.value!==targetAttr.value && i===0 ) {
+                            console.error( sourceAttr.name+ ' ' +sourceName+ ': ' +sourceAttr.value+ ', ' +targetName+ ': '
+                                +(targetAttr
+                                    ? targetAttr.value
+                                    : 'missing'
+                                 )
+                            );
+                        }                                
+                    }
+                }
+            }
+            else {
             // If the user clicked at a long comment (that overflew to target/value column), we put the caret after the last character in the editable area.
             // I tried to put it after the last *visible* character, but I couldn't find a way. E.g. document.caretPositionFromPoint( window.left+tree.inputField.left+tree.inputField.width-20, event.clientY) returned null.
-            var caretCharacterIndex= editor.treeView.currentCommand.type==='command' || columnObject.value===tree.columns[0]
-                ? document.caretPositionFromPoint( event.clientX, event.clientY).offset
-                : tree.inputField.value.length;
-            tree.inputField.setSelectionRange( caretCharacterIndex, caretCharacterIndex );
+                var caretCharacterIndex= editor.treeView.currentCommand.type==='command' || columnObject.value===tree.columns[0]
+                    ? document.caretPositionFromPoint( event.clientX, event.clientY).offset
+                    : tree.inputField.value.length;
+                tree.inputField.setSelectionRange( caretCharacterIndex, caretCharacterIndex );
+            }
         }, 0 );
    }
 }
