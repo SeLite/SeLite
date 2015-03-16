@@ -16,6 +16,13 @@
  */
 "use strict";
 
+function onTreeDblClick(event) {
+    var tree= event.currentTarget;
+    tree.stopEditing();
+    tree.focus(); // otherwise Firefox command despatcher won't route the following command properly
+    goDoCommand('cmd_selenium_exec_command');
+}
+
 function onTreeClick( event ) {
     // editor.treeView.tree.currentIndex may be different to the clicked row. See notes on 'Complex' sequence in ide-extension.js.
     editor.treeView.seLiteTreePreviousIndex= editor.treeView.tree.currentIndex;
@@ -31,9 +38,8 @@ function onTreeClick( event ) {
     treeBoxObject.QueryInterface(Components.interfaces.nsITreeBoxObject);
     treeBoxObject.getCellAt(event.clientX, event.clientY, rowObject, columnObject, {}/*unused, but needed*/ );
     var column= columnObject.value;
-    // The clicked row has already been selected as the current command/comment.
-    // For commands, only allow edit-in-place for 'target' and 'value' columns. That allows us to still execute the command by double-clicking at the command name itself.
-    // For comments, only allow edit-in-place for 'command' column, no matter what column was clicked.
+    // The clicked row has already been selected as the current command/comment. Start editing cell in-place.
+    // For comments, start editing in-place 'command' column, no matter what column was clicked.
     if( true || TODO_cleanup || editor.treeView.currentCommand.type==='command' && (column===tree.columns[1] || column===tree.columns[2])
     ||  editor.treeView.currentCommand.type==='comment'
     ) {
@@ -61,7 +67,7 @@ function onTreeClick( event ) {
                 tree.inputField.setAttribute( "sizetopopup", "pref" );
                 tree.inputField.disableautocomplete= false;
                 
-                    var commands = [];
+                    /*var commands = [];
 
                     var nonWaitActions = ['open', 'selectWindow', 'chooseCancelOnNextConfirmation', 'answerOnNextPrompt', 'close', 'setContext', 'setTimeout', 'selectFrame'];
                     debugger;
@@ -112,7 +118,7 @@ function onTreeClick( event ) {
                     var searchParam= window.editor.getAutoCompleteSearchParam( tree.inputField.getAttribute('id') );
                     tree.inputField.setAttribute( 'autocompletesearchparam', searchParam ); // equivalent to 'searchParam' property, which was already set by window.editor.getAutoCompleteSearchParam() above.
                     Editor.GENERIC_AUTOCOMPLETE.setCandidates( XulUtils.toXPCOMString(searchParam),
-                                                               XulUtils.toXPCOMArray(commands));                                   
+                                                               XulUtils.toXPCOMArray(commands));
                 
                 var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
                 var goodAttributes= document.getElementById('commandAction1').attributes;
@@ -145,9 +151,10 @@ function onTreeClick( event ) {
                             );
                         }                                
                     }
-                }
+                }*/
             }
             else {
+                tree.inputField.setAttribute( 'type', "" ); // Clear it, in case it was previously set to "autocomplete" from the above
             // If the user clicked at a long comment (that overflew to target/value column), we put the caret after the last character in the editable area.
             // I tried to put it after the last *visible* character, but I couldn't find a way. E.g. document.caretPositionFromPoint( window.left+tree.inputField.left+tree.inputField.width-20, event.clientY) returned null.
                 var caretCharacterIndex= editor.treeView.currentCommand.type==='command' || columnObject.value===tree.columns[0]

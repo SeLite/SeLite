@@ -14,8 +14,3 @@ tree#commands treechildren::-moz-tree-cell(recordIndex)
 tree#commands  {
     -moz-binding: url( 'chrome://selite-hands-on-gui/content/ui/bindings.xml#commands' );
 }
-
-// @TODO consider: textbox.tree-input
-/*textbox[anonid="input"] {
-    -moz-binding: url( 'chrome://selite-hands-on-gui/content/ui/bindings.xml#input' );
-}*/

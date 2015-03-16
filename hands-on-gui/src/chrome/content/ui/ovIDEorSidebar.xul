@@ -21,30 +21,15 @@ limitations under the License.
         <script type="application/x-javascript" src="chrome://selite-hands-on-gui/content/ui/handlers.js"/>
         <script type="application/x-javascript">
         //<![CDATA[
-                var XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
-                var textbox= window.document.createElementNS( XUL_NS, 'textbox' );
-                //@TODO oninput
-                //textbox.setAttribute( 'onchange', "window.editor.autoCompleteCommand(this.value)" );
-                textbox.setAttribute( 'id', 'commandAction1' );
-                textbox.setAttribute( 'type', 'autocomplete' );
-                textbox.setAttribute( 'autocompletesearch', 'selite-generic' );
-                textbox.setAttribute( 'autofill', 'true' );
-                textbox.setAttribute( 'completedefaultindex', 'true' );
-                textbox.setAttribute( 'completeselectedindex', 'true' );
-                textbox.setAttribute( 'enablehistory', 'true' );
-                textbox.disableautocomplete= false;
-                
-                document.getElementById('testCasePane').appendChild( textbox );
-                
                 window.setTimeout( function() {
-                  // Verbatim copy of function _loadSeleniumCommands() from Selenium's treeView.js, except for ID on the last line. Watch out: if you factor this code somewhere else, then replace 'this.editor' with 'window.editor'
+                    var XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+                  // Verbatim copy of function _loadSeleniumCommands() from Selenium's treeView.js, except for ID on the last line. Watch out: if you factor this code somewhere else, then replace 'this.editor' with 'window.editor'.
                   
                     var commands = [];
 
                     var nonWaitActions = ['open', 'selectWindow', 'chooseCancelOnNextConfirmation', 'answerOnNextPrompt', 'close', 'setContext', 'setTimeout', 'selectFrame'];
 
                     for (func in this.editor.seleniumAPI.Selenium.prototype) {
-                        //this.log.debug("func=" + func);
                         var r;
                         if (func.match(/^do[A-Z]/)) {
                             var action = func.substr(2,1).toLowerCase() + func.substr(3);
@@ -82,17 +67,16 @@ limitations under the License.
 
                     commands.sort();
                     
-                    Editor.GENERIC_AUTOCOMPLETE.setCandidates(XulUtils.toXPCOMString(this.editor.getAutoCompleteSearchParam("commandAction1")),
-                                                              XulUtils.toXPCOMArray(commands));
-                                                              
                     var tree= document.getElementById('commands');
                     if( !tree.inputField.getAttribute('id') ) {
                         tree.inputField.setAttribute('id', 'treeTextbox' );
                     }
-                    Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console.error( 'inputField id: ' +tree.inputField.getAttribute('id') );
-                    /*Editor.GENERIC_AUTOCOMPLETE.setCandidates(XulUtils.toXPCOMString(this.editor.getAutoCompleteSearchParam( tree.inputField.getAttribute('id') )),
-                                                              XulUtils.toXPCOMArray(commands));/**/                                            
+                    //Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console.error( 'inputField id: ' +tree.inputField.getAttribute('id') );
+                    Editor.GENERIC_AUTOCOMPLETE.setCandidates(XulUtils.toXPCOMString(this.editor.getAutoCompleteSearchParam( tree.inputField.getAttribute('id') )),
+                                                              XulUtils.toXPCOMArray(commands));                              
                     
+                    tree.inputField.setAttribute( 'oninput', 'onInPlaceEditInput( this.value );' );
+                    tree.inputField.setAttribute( 'onblur', 'onInPlaceEditBlur();' ); // Side note: For some reason, for "blur" event keyword 'this' is the textbox, however this.value is not set.
                 }, 3000 );
         //]]>
         </script>
@@ -106,7 +90,7 @@ limitations under the License.
     -->
     <tree id="commands" editable="true"
         onclick="onTreeClick(event);"
-        ondblclick="var tree= event.currentTarget;  tree.stopEditing(); tree.focus(); goDoCommand('cmd_selenium_exec_command');"
+        ondblclick="onTreeDblClick(event);"
         minheight="80"
     />
     <treecol id="command" editable="false"/>
