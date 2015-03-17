@@ -167,21 +167,28 @@ function onTreeClick( event ) {
 function onInPlaceEditInput( newValue ) {
     console.error( 'onInput');
     var tree= document.getElementById('commands');
-    var key= tree.editingColumn===tree.columns[0] // What field of the command/comment to update in details area
+    var idKey= tree.editingColumn===tree.columns[0] // What field of the command/comment to update in details area
         ? 'Action'
         : (tree.editingColumn===tree.columns[1]
             ? 'Target'
             : 'Value'
         );
-    document.getElementById( 'command'+key ).value= newValue;
-    /* // Do not use the following, because then 'blur' event couldn't revert changes when use hits ESC. But keep this for its documentation value because of the following line.
-    // When I used the following, it needed adjustment to values of 'key' variable set above.
-    var decodedValue= tree.editingColumn===tree.columns[0]
-        ? newValue
-        : window.editor.treeView.decodeText(newValue);
-    window.editor.treeView.updateCurrentCommand( key, decodedValue); // This updates the command in the test case object
-    window.editor.treeView.selectCommand(); // This updates the Command/Target/Value details area
-    */
+    document.getElementById( 'command'+idKey ).value= newValue; //@TODO if we use the following, then I may eliminate this line and the above
+    
+    // When editing in-place, sometimes there's 'select' event for the tree after each 'input' event for tree.inputField. Hence here I have to update the command in the object model.
+    if( true ) {//@TODO How will I revert the changes in on blur? Also, how will I then mark test case as unmodified? See notes.txt
+        var key= tree.editingColumn===tree.columns[0] // What field of the command/comment to pass to window.editor.treeView.updateCurrentCommand()
+            ? 'command'
+            : ( tree.editingColumn===tree.columns[1]
+                ? 'target'
+                : 'value'
+            );
+        var decodedValue= tree.editingColumn===tree.columns[0]
+            ? newValue
+            : window.editor.treeView.decodeText(newValue);
+        window.editor.treeView.updateCurrentCommand( key, decodedValue); // This updates the command in the test case object
+        //window.editor.treeView.selectCommand(); // This updates the Command/Target/Value details area
+    }
     //editor.treeView.seLiteTreePreviousIndex= editor.treeView.tree.currentIndex;
 }
 
