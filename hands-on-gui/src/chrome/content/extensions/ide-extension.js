@@ -143,7 +143,8 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
         controllers.appendController( newController );
     };
     
-    /** When editing-in place Command's Target (but not for comments), on hitting TAB make it shift focus to Value. Also, in reverse: when editing Value, on hitting Shift+TAB shift focus to Target.
+    /** 1. When editing-in place Command's Target (but not for comments), on hitting TAB make it shift focus to Value. Also, in reverse: when editing Value, on hitting Shift+TAB shift focus to Target.
+     *  2. When user selected a command, i.e. it's highlighted (but it's not being edited it in-place), then on hitting Enter key start editing it.
  * */
     // This function is set up and/or extended by both Clipboard and Indent, and Hands-on GUI. See also another override of this at hands-on-gui/src/chrome/content/extensions/ide-extension.js
     var originalSeLiteTreeOnKeyPress= TreeView.seLiteTreeOnKeyPress;
@@ -178,10 +179,12 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
             var editing= tree.getAttribute('editing');
             if( !tree.getAttribute('editing') && tree.currentIndex>=0 ) {
                 var commandOrComment= window.editor.treeView.getCommand( tree.currentIndex );
-                var firstColumnEditableInPlace= commandOrComment.comment!==undefined
-                    ? tree.columns.getColumnAt(0) // comment (i.e. 'Command' column)
-                    : tree.columns.getColumnAt(1); // Target
-                tree.startEditing( tree.currentIndex, firstColumnEditableInPlace );
+                tree.inputField.setAttribute( 'type',
+                    commandOrComment.type==='command'
+                    ? 'autocomplete'
+                    : ''
+                );
+                tree.startEditing( tree.currentIndex, tree.columns.getColumnAt(0) );
             }
         }
     };
