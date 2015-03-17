@@ -41,39 +41,35 @@ function onTreeClick( event ) {
     
     // The clicked row has already been selected as the current command/comment. Start editing cell in-place.
     // For comments, start editing in-place 'command' column, no matter what column was clicked.
-    if( true || TODO_cleanup || editor.treeView.currentCommand.type==='command' && (column===tree.columns[1] || column===tree.columns[2])
-    ||  editor.treeView.currentCommand.type==='comment'
-    ) {
-        var column= columnObject.value;
-        if( editor.treeView.currentCommand.type==='comment' ) { // Since it's a comment, we're editing its first cell, no matter which cell was clicked.
-            column= tree.columns[0];
-            // In the following I've tried to temporarily disable comment's overflow, but there seems not to be a way (then I'd have to re-enable it afterwards).
-            //document.getElementById('command').removeAttribute('overflow');
-            //treeBoxObject.invalidateRange( rowObject.value, rowObject.value+1 );
-        }
-        
-        var editingCommandAction= editor.treeView.currentCommand.type==='command' && column===tree.columns[0];
-        if( editingCommandAction ) {
-        //@TODO keep indentation; make replacing the command easy: highlight the whole command (excluding any leading spaces)
-            tree.inputField.setAttribute( 'type', "autocomplete" );
-        }
-        else {
-            tree.inputField.setAttribute( 'type', "" ); // Clear it, in case it was previously set to "autocomplete" from the above
-        }
-        tree.startEditing( rowObject.value, column );
+    var column= columnObject.value;
+    if( editor.treeView.currentCommand.type==='comment' ) { // Since it's a comment, we're editing its first cell, no matter which cell was clicked.
+        column= tree.columns[0];
+        // In the following I've tried to temporarily disable comment's overflow, but there seems not to be a way (then I'd have to re-enable it afterwards).
+        //document.getElementById('command').removeAttribute('overflow');
+        //treeBoxObject.invalidateRange( rowObject.value, rowObject.value+1 );
+    }
 
-        // The above call to startEditing() calls setTimeout(), which puts a callback function in the execution queue. That callback function focuses and selects the tree.inputField. The following puts another code in the queue, which simulates a click at tree.inputField, so that the user can start typing where she clicked. See also chrome://global/content/bindings/tree.xml#tree -> startEditing
-        if( !editingCommandAction ) {
-            window.setTimeout( function() {
-            // If the user clicked at a long comment (that overflew to target/value column), we put the caret after the last character in the editable area.
-            // I tried to put it after the last *visible* character, but I couldn't find a way. E.g. document.caretPositionFromPoint( window.left+tree.inputField.left+tree.inputField.width-20, event.clientY) returned null.
-                var caretCharacterIndex= editor.treeView.currentCommand.type==='command' || columnObject.value===tree.columns[0]
-                    ? document.caretPositionFromPoint( event.clientX, event.clientY).offset
-                    : tree.inputField.value.length;
-                tree.inputField.setSelectionRange( caretCharacterIndex, caretCharacterIndex );
-            }, 0 );
-        }
-   }
+    var editingCommandAction= editor.treeView.currentCommand.type==='command' && column===tree.columns[0];
+    if( editingCommandAction ) {
+    //@TODO keep indentation; make replacing the command easy: highlight the whole command (excluding any leading spaces)
+        tree.inputField.setAttribute( 'type', "autocomplete" );
+    }
+    else {
+        tree.inputField.setAttribute( 'type', "" ); // Clear it, in case it was previously set to "autocomplete" from the above
+    }
+    tree.startEditing( rowObject.value, column );
+
+    // The above call to startEditing() calls setTimeout(), which puts a callback function in the execution queue. That callback function focuses and selects the tree.inputField. The following puts another code in the queue, which simulates a click at tree.inputField, so that the user can start typing where she clicked. See also chrome://global/content/bindings/tree.xml#tree -> startEditing
+    if( !editingCommandAction ) {
+        window.setTimeout( function() {
+        // If the user clicked at a long comment (that overflew to target/value column), we put the caret after the last character in the editable area.
+        // I tried to put it after the last *visible* character, but I couldn't find a way. E.g. document.caretPositionFromPoint( window.left+tree.inputField.left+tree.inputField.width-20, event.clientY) returned null.
+            var caretCharacterIndex= editor.treeView.currentCommand.type==='command' || columnObject.value===tree.columns[0]
+                ? document.caretPositionFromPoint( event.clientX, event.clientY).offset
+                : tree.inputField.value.length;
+            tree.inputField.setSelectionRange( caretCharacterIndex, caretCharacterIndex );
+        }, 0 );
+    }
 }
 
 function onInPlaceEditInput( newValue ) {
