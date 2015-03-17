@@ -24,6 +24,8 @@ function onTreeDblClick(event) {
     goDoCommand('cmd_selenium_exec_command');
 }
 
+var indentedText= /^(\s+)(.*)/;
+
 function onTreeClick( event ) {
     console.error( 'onTreeClick');
     //  editor.treeView.tree.currentIndex may be different to the clicked row. See 'Complex' sequence D) in ide-extension.js: 'onblur' handler gets triggerred before 'onclick'
@@ -50,26 +52,35 @@ function onTreeClick( event ) {
     }
 
     var editingCommandAction= editor.treeView.currentCommand.type==='command' && column===tree.columns[0];
-    if( editingCommandAction ) {
-    //@TODO keep indentation; make replacing the command easy: highlight the whole command (excluding any leading spaces)
-        tree.inputField.setAttribute( 'type', "autocomplete" );
-    }
-    else {
-        tree.inputField.setAttribute( 'type', "" ); // Clear it, in case it was previously set to "autocomplete" from the above
-    }
+    tree.inputField.setAttribute( 'type',
+        editingCommandAction
+        ? "autocomplete"
+        : '' // Clear it, in case it was previously set to "autocomplete" by the previous line
+    );
     tree.startEditing( rowObject.value, column );
 
-    // The above call to startEditing() calls setTimeout(), which puts a callback function in the execution queue. That callback function focuses and selects the tree.inputField. The following puts another code in the queue, which simulates a click at tree.inputField, so that the user can start typing where she clicked. See also chrome://global/content/bindings/tree.xml#tree -> startEditing
-    if( !editingCommandAction ) {
-        window.setTimeout( function() {
+    // The above call to startEditing() calls setTimeout(), which puts a callback function in the execution queue. That callback function focuses and selects the tree.inputField. So, if there is any code here that needs to be run after tree.inputField gets selected, it is queued by the following.
+    window.setTimeout(
+        editingCommandAction
+          // 1. Keep indentation: put the caret right of any leading spaces
+          // 2. make replacing the command easy: highlight the whole command (excluding any leading spaces)
+        ? function() {
+            var match= indentedText.exec( tree.inputField.value );
+            var selectionStart= match
+                ? match[1].length
+                : 0;
+            tree.inputField.setSelectionRange( selectionStart, tree.inputField.value.length );
+        }
+          // Simulate a click at tree.inputField, so that the user can start typing where she clicked. See also chrome://global/content/bindings/tree.xml#tree -> startEditing
+        : function() {
         // If the user clicked at a long comment (that overflew to target/value column), we put the caret after the last character in the editable area.
         // I tried to put it after the last *visible* character, but I couldn't find a way. E.g. document.caretPositionFromPoint( window.left+tree.inputField.left+tree.inputField.width-20, event.clientY) returned null.
             var caretCharacterIndex= editor.treeView.currentCommand.type==='command' || columnObject.value===tree.columns[0]
                 ? document.caretPositionFromPoint( event.clientX, event.clientY).offset
                 : tree.inputField.value.length;
             tree.inputField.setSelectionRange( caretCharacterIndex, caretCharacterIndex );
-        }, 0 );
-    }
+        },
+    0 );
 }
 
 function onInPlaceEditInput( newValue ) {
@@ -81,7 +92,7 @@ function onInPlaceEditInput( newValue ) {
             ? 'Target'
             : 'Value'
         );
-    document.getElementById( 'command'+idKey ).value= newValue; //@TODO if we use the following, then I may eliminate this line and the above
+    document.getElementById( 'command'+idKey ).value= newValue;
 }
 
 // See notes for setCellText() in ide-extension.js
