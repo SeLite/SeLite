@@ -39,7 +39,7 @@ var console= Components.utils.import("resource://gre/modules/devtools/Console.js
  *    2.2 setCellText()
  *    2.3 onBlur - which has to call selectCommand() again because of sequence E)
  *    2.4 tree's onClick() in handlers.js
- *    Therefore, in onClick() of the *previous* sequence I saved this.tree.currentIndex in this.seLiteTreePreviousIndex, which compare to current this.tree.currentIndex now in 2.2: setCellText(). If they are different, that means that onSelect() has already selected the newly clicked command. Then I update the previously edited command in the test case, instead of calling updateCurrentCommand(). Also, I don't update the command details area - I don't call selectCommand() - because it already shows the newly edited command.
+ *    However, setCellText() is also called from other scenarios, which don't involve this concurrent race. So, setCellText() checks whether editor.treeView.currentCommand is the same as the command for the row for its event. If they are different, that means that onSelect() has already selected the newly clicked command, but setCellText() is called with a row for the previously edited command; so then I update the previously edited command in the test case, instead of calling updateCurrentCommand(). Also, I don't update the command details area - I don't call selectCommand() - because it already shows the newly edited command.
  *    
  *    If in step 2. you edit a command's Command column, and it has autocomplete hint(s) for your changes, then see note 4. in ovIDEorSidebar.xul on extra 'select' events.
  *    
@@ -50,7 +50,7 @@ var console= Components.utils.import("resource://gre/modules/devtools/Console.js
  *  We have an onInput handler, so that we update Command details area (wide inputs Command, Target or Value) as the user types in the cell (rather than updating it only after 'committing' the change by e.g. ENTER). However, all event sequences that accept the change (i.e. except for ones where the user hits ESC) trigger setCellText() first, and only then they trigger onBlur(). Therefore onBlur handles that specially.
  * */
 XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= function setCellText( row, col, value, original) {
-    console.error( 'setCellText: row' +row+ ', this.tree.currentIndex: ' +this.tree.currentIndex+ ', this.seLiteTreePreviousIndex: ' +this.seLiteTreePreviousIndex );
+    console.error( 'setCellText: row' +row+ ', this.tree.currentIndex: ' +this.tree.currentIndex );
     //original is undefined, so I don't call original.setCellText( row, col, value );
     var tree= document.getElementById('commands');
     var key= col===tree.columns[0] // What field of the command/comment to pass to window.editor.treeView.updateCurrentCommand()
@@ -72,9 +72,9 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
         ? value
         : window.editor.treeView.decodeText(value);
     
-    if( this.tree.currentIndex===row/*this.seLiteTreePreviousIndex || this.seLiteTreePreviousIndex===undefined*/ ) { // Handling one of the three simple sequences A), B) or C) (see above)
+    if( this.tree.currentIndex===row ) { // Handling one of the three simple sequences A), B) or C) (see above)
         editor.treeView.currentCommand===clickedCommand || SeLiteMisc.fail();
-        //@TODO use clickedCommand:
+        
         if( clickedCommand[directKey]!==decodedValue ) { // Update only on change. Otherwise the test case would show up as modified.
             window.editor.treeView.updateCurrentCommand( key, decodedValue);
         }
@@ -85,7 +85,6 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
             clickedCommand[ directKey ]= decodedValue;
             window.editor.treeView.testCase.setModified();
         }
-        this.seLiteTreePreviousIndex= undefined;
     }
     return true;
 };

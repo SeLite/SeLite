@@ -26,8 +26,7 @@ function onTreeDblClick(event) {
 
 function onTreeClick( event ) {
     console.error( 'onTreeClick');
-    //  editor.treeView.tree.currentIndex may be different to the clicked row. See notes on 'Complex' sequence in ide-extension.js: 'onblur' handler gets triggerred before 'onclick'
-    editor.treeView.seLiteTreePreviousIndex= editor.treeView.tree.currentIndex;
+    //  editor.treeView.tree.currentIndex may be different to the clicked row. See 'Complex' sequence D) in ide-extension.js: 'onblur' handler gets triggerred before 'onclick'
     // event.target is treechildren; event.currentTarget is tree; event.relatedTarget is null
     // @TODO if event.clientY is too close to the bottom of the tree, then return. Otherwise the following selected a cell in a neighbour row!
     var tree= event.currentTarget;
@@ -56,94 +55,7 @@ function onTreeClick( event ) {
         var editingCommandAction= editor.treeView.currentCommand.type==='command' && column===tree.columns[0];
         if( editingCommandAction ) {
         //@TODO keep indentation; make replacing the command easy: highlight the whole command (excluding any leading spaces)
-        //@TODO autocomplete
             tree.inputField.setAttribute( 'type', "autocomplete" );
-
-                /*var commands = [];
-
-                var nonWaitActions = ['open', 'selectWindow', 'chooseCancelOnNextConfirmation', 'answerOnNextPrompt', 'close', 'setContext', 'setTimeout', 'selectFrame'];
-                debugger;
-                for (func in window.editor.seleniumAPI.Selenium.prototype) {
-                    //this.log.debug("func=" + func);
-                    var r;
-                    if (func.match(/^do[A-Z]/)) {
-                        var action = func.substr(2,1).toLowerCase() + func.substr(3);
-                        commands.push(action);
-                        if (!action.match(/^waitFor/) && nonWaitActions.indexOf(action) < 0) {
-                            commands.push(action + "AndWait");
-                        }
-                    } else if (func.match(/^assert.+/)) {
-                        commands.push(func);
-                        commands.push("verify" + func.substr(6));
-                    } else if ((r = func.match(/^(get|is)(.+)$/))) {
-                        var base = r[2];
-                        commands.push("assert" + base);
-                        commands.push("verify" + base);
-                        commands.push("store" + base);
-                        commands.push("waitFor" + base);
-                        var r2;
-                        if ((r = func.match(/^is(.*)Present$/))) {
-                            base = r[1];
-                            commands.push("assert" + base + "NotPresent");
-                            commands.push("verify" + base + "NotPresent");
-                            commands.push("waitFor" + base + "NotPresent");
-                        } else {
-                            commands.push("assertNot" + base);
-                            commands.push("verifyNot" + base);
-                            commands.push("waitForNot" + base);
-                        }
-                    }
-                }
-                debugger;
-                commands.push("pause");
-                commands.push("store");
-                commands.push("echo");
-                commands.push("break");
-
-                commands.sort();
-
-                //var tree= document.getElementById('commands');
-                if( !tree.inputField.getAttribute('id') ) {
-                    tree.inputField.setAttribute('id', 'treeTextbox' );
-                }
-                Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console.error( 'inputField id: ' +tree.inputField.getAttribute('id') );
-                var searchParam= window.editor.getAutoCompleteSearchParam( tree.inputField.getAttribute('id') );
-                tree.inputField.setAttribute( 'autocompletesearchparam', searchParam ); // equivalent to 'searchParam' property, which was already set by window.editor.getAutoCompleteSearchParam() above.
-                Editor.GENERIC_AUTOCOMPLETE.setCandidates( XulUtils.toXPCOMString(searchParam),
-                                                           XulUtils.toXPCOMArray(commands));
-
-            var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
-            var goodAttributes= document.getElementById('commandAction1').attributes;
-            var sickAttributes= tree.inputField.attributes;
-
-            // Compare attributes
-            var attributeSets= [goodAttributes, sickAttributes];
-            var setNames= ['good', 'sick'];
-            for( var i=0; i<2; i++ ) {
-                var sourceName= setNames[i];
-                var targetName= setNames[1-i];
-                var source= attributeSets[i];
-                var target= attributeSets[1-i];
-
-                for( var j=0; j<source.length; j++ ) {
-                    var sourceAttr= source[j];
-                    var targetAttr= undefined;
-                    for( var k=0; k<target.length; k++ ) {
-                        if( target[k].name===sourceAttr.name ) {
-                            targetAttr= target[k];
-                            break;
-                        }
-                    }
-                    if( !targetAttr || sourceAttr.value!==targetAttr.value && i===0 ) {
-                        console.error( sourceAttr.name+ ' ' +sourceName+ ': ' +sourceAttr.value+ ', ' +targetName+ ': '
-                            +(targetAttr
-                                ? targetAttr.value
-                                : 'missing'
-                             )
-                        );
-                    }                                
-                }
-            }*/
         }
         else {
             tree.inputField.setAttribute( 'type', "" ); // Clear it, in case it was previously set to "autocomplete" from the above
@@ -174,8 +86,6 @@ function onInPlaceEditInput( newValue ) {
             : 'Value'
         );
     document.getElementById( 'command'+idKey ).value= newValue; //@TODO if we use the following, then I may eliminate this line and the above
-    
-    //editor.treeView.seLiteTreePreviousIndex= editor.treeView.tree.currentIndex;
 }
 
 // See notes for setCellText() in ide-extension.js
