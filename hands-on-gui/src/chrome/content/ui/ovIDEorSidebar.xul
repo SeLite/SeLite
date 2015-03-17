@@ -66,18 +66,27 @@ limitations under the License.
                     commands.push("break");
 
                     commands.sort();
+                    // end of verbatim copy
                     
                     var tree= document.getElementById('commands');
                     if( !tree.inputField.getAttribute('id') ) {
                         tree.inputField.setAttribute('id', 'treeTextbox' );
                     }
-                    //Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console.error( 'inputField id: ' +tree.inputField.getAttribute('id') );
                     Editor.GENERIC_AUTOCOMPLETE.setCandidates(XulUtils.toXPCOMString(this.editor.getAutoCompleteSearchParam( tree.inputField.getAttribute('id') )),
                                                               XulUtils.toXPCOMArray(commands));                              
-                    
+                
                     tree.inputField.setAttribute( 'oninput', 'onInPlaceEditInput( this.value );' );
                     tree.inputField.setAttribute( 'onblur', 'onInPlaceEditBlur();' ); // Side note: For some reason, for "blur" event keyword 'this' is the textbox, however this.value is not set.
-                }, 3000 );
+
+                    // Prepare tree.inputField for autocomplete. This won't have effect until onTreeClick() changes 'type' attribute.
+                    tree.inputField.setAttribute( 'autocompletesearch', "selite-generic" );
+                    tree.inputField.setAttribute( 'autofill', "true" );
+                    tree.inputField.setAttribute( 'completedefaultindex', "true" );
+                    tree.inputField.setAttribute( 'completeselectedindex', "true" );
+                    tree.inputField.setAttribute( 'enablehistory', "true" );
+                    tree.inputField.setAttribute( "sizetopopup", "pref" );
+                    tree.inputField.disableautocomplete= false;
+                }, 1500 );
         //]]>
         </script>
     </window>
