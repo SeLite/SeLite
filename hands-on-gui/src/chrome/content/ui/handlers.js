@@ -175,8 +175,9 @@ function onInPlaceEditInput( newValue ) {
         );
     document.getElementById( 'command'+idKey ).value= newValue; //@TODO if we use the following, then I may eliminate this line and the above
     
-    // When editing in-place, sometimes there's 'select' event for the tree after each 'input' event for tree.inputField. Hence here I have to update the command in the object model.
+    // When editing in-place, if there's an autocomplete hint, then there's 'select' event for the tree after each 'input' event for tree.inputField. Hence here I have to update the command in the object model. If there's no autocomplete hint, then there's no 'select' event.
     if( true ) {//@TODO How will I revert the changes in on blur? Also, how will I then mark test case as unmodified? See notes.txt
+        // OR: override tree's onselect; don't call selectCommand() if tree.isEditing.
         var key= tree.editingColumn===tree.columns[0] // What field of the command/comment to pass to window.editor.treeView.updateCurrentCommand()
             ? 'command'
             : ( tree.editingColumn===tree.columns[1]
