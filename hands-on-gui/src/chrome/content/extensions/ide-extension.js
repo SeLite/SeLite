@@ -41,6 +41,8 @@ var console= Components.utils.import("resource://gre/modules/devtools/Console.js
  *    2.4 tree's onClick() in handlers.js
  *    Therefore, in onClick() of the *previous* sequence I saved this.tree.currentIndex in this.seLiteTreePreviousIndex, which compare to current this.tree.currentIndex now in 2.2: setCellText(). If they are different, that means that onSelect() has already selected the newly clicked command. Then I update the previously edited command in the test case, instead of calling updateCurrentCommand(). Also, I don't update the command details area - I don't call selectCommand() - because it already shows the newly edited command.
  *    
+ *    If in step 2. you edit a command's Command column, and it has autocomplete hint(s) for your changes, then see note 4. in ovIDEorSidebar.xul on extra 'select' events.
+ *    
  *  E) Medium Complex: Edit, modify, cancel (no change)
  *    1. edit a cell
  *    2. stop editing (and revert any modifications) by pressing ESC. That doesn't trigger setCellText(), but only onBlur. So we need an onBlur handler to revert any changes in Command details area (i.e. one of wide inputs Command, Target or Value) that were made by previous typing (as was captured by a sequence of onInput events) - that's done in onInPlaceEditBlur().
@@ -57,9 +59,9 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
             ? 'target'
             : 'value'
         );
-    // What field of the command/comment to update directly in command object. See also TreeView.UpdateCommandAction.prototype -> execute()
     var clickedCommand= window.editor.treeView.getCommand( row );
-    // @TODO If we ever allow edit-in place for non-comments (i.e. commands), then change the following condition: make it depend on command's type
+    
+    // What field of the command/comment to update directly in command object. See also TreeView.UpdateCommandAction.prototype -> execute()
     var directKey= col===tree.columns[0]
         ? (clickedCommand.type==='command'
             ? 'command'
