@@ -157,19 +157,51 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
             var tree= event.currentTarget;
             
             if( tree.getAttribute('editing') ) {
-                var targetColumn= tree.columns.getColumnAt(1);
-                var valueColumn= tree.columns.getColumnAt(2);
-
-                if( tree.editingColumn===targetColumn && !event.shiftKey
-                ||  tree.editingColumn===valueColumn && event.shiftKey ) {
+                // Get index of tree.editingColumn in tree.columns[]. We can't use tree.columns.indexOf() since tree.columns is not a real array.
+                for( var editingColumnIndex=0; editingColumnIndex<3; editingColumnIndex++ ) {
+                    if( tree.columns[editingColumnIndex]===tree.editingColumn ) {
+                        break;
+                    }
+                }
+                editingColumnIndex<3 || SeLiteMisc.fail( 'editingColumnIndex should be less than 3, but it is: ' +editingColumnIndex );
+                
+                // Whether we're re-focusing on the next or previous column in the same row
+                if( editor.treeView.currentCommand.type==='command'
+                    && ( !event.shiftKey && editingColumnIndex<2
+                       || event.shiftKey && editingColumnIndex>0
+                       ) ) {
                     event.preventDefault();
-                    var otherColumn= tree.editingColumn===targetColumn
-                        ? valueColumn
-                        : targetColumn;
+                    var otherColumn= tree.columns[ editingColumnIndex+
+                        !event.shiftKey
+                        ? +1
+                        : -1
+                    ];
                     var editingRow= tree.editingRow;
 
                     tree.stopEditing(/*shouldAccept:*/true );
                     tree.startEditing( editingRow, otherColumn );
+                    // @TODO here and below: change tree.inputField type as needed
+                }
+                else // re-focus on the previous or next row, if any; otherwise keep default behavious of handling TAB
+                if( !event.shiftKey && tree.currentIndex<window.editor.treeView.commands.length
+                  || event.shiftKey && tree.currentIndex>0
+                ) {
+                    var otherRow= tree.currentIndex+
+                        !event.shiftKey
+                        ? +1
+                        : -1;
+                    var otherRowIsCommand= window.editor.treeView.getCommand( otherRow ).type==='command';
+                    var otherColumn= tree.columns[
+                        otherRowIsCommand
+                        ? (!event.shiftKey
+                           ? 0
+                           : 2
+                        )
+                        : 0
+                    ];
+                            
+                    //TODO How do I select a row? Not by window.editor.treeView.selectCommand(). Or is it enough just to startEditing()?
+                    tree.startEditing( otherRow, otherColumn );
                 }
             }
         }
