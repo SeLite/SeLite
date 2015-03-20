@@ -156,7 +156,7 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
         if( event.keyCode===KeyEvent.DOM_VK_TAB ) {
             var tree= event.currentTarget;
             
-            if( tree.getAttribute('editing') ) {
+            if( tree.getAttribute('editing')==='true' ) {
                 // Get index of tree.editingColumn in tree.columns[]. We can't use tree.columns.indexOf() since tree.columns is not a real array.
                 for( var editingColumnIndex=0; editingColumnIndex<3; editingColumnIndex++ ) {
                     if( tree.columns[editingColumnIndex]===tree.editingColumn ) {
@@ -164,7 +164,7 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                     }
                 }
                 editingColumnIndex<3 || SeLiteMisc.fail( 'editingColumnIndex should be less than 3, but it is: ' +editingColumnIndex );
-                
+                console.error( 'currentIndex ' +tree.currentIndex+', commands.length ' +window.editor.treeView.testCase.commands.length );
                 // Whether we're re-focusing on the next or previous column in the same row (this only applies to Commands, not to Comments)
                 if( editor.treeView.currentCommand.type==='command'
                     && ( !event.shiftKey && editingColumnIndex<2
@@ -178,6 +178,12 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                          : -1
                         )
                     ];
+                    var otherColumnIndex= editingColumnIndex+//@TODO remove - for debug only
+                        (!event.shiftKey
+                         ? +1
+                         : -1
+                        );
+                    console.error( 'was editing col. ' +editingColumnIndex+', switching to col '+otherColumnIndex);
                     var editingRow= tree.editingRow; // We must save it before we call stopEditing()
                     tree.stopEditing(/*shouldAccept:*/true );
                     tree.startEditing( editingRow, otherColumn );
@@ -188,7 +194,7 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                   || event.shiftKey && tree.currentIndex>0
                 ) {
                     event.preventDefault();
-                    var otherRow= tree.currentIndex+
+                    var otherRow= tree.currentIndex+//@TODO currentIndex didn't get updated: TODO select the row!
                         (!event.shiftKey
                          ? +1
                          : -1
@@ -198,18 +204,24 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                         ? 2
                         : 0
                     ];
-                            
+                    var otherColumnIndex= //@TODO remove
+                        event.shiftKey && window.editor.treeView.getCommand( otherRow ).type==='command'
+                        ? 2
+                        : 0;
+                    console.error( 'was editing row ' +tree.editingRow+ ', col. ' +editingColumnIndex+', switching to row ' +otherRow+ ', col '+otherColumnIndex);
                     tree.stopEditing(/*shouldAccept:*/true );
-                    //TODO How do I select a row? Not by window.editor.treeView.selectCommand(). Or is it enough just to startEditing()?
-                    tree.startEditing( otherRow, otherColumn );
+                    tree.view.selection.select( otherRow );
+                    window.setTimeout( function() {
+                        tree.startEditing( otherRow, otherColumn );
+                    }, 0 );
                 }
             }
         }
         else
         if( event.keyCode===KeyEvent.DOM_VK_RETURN ) {
             var tree= event.currentTarget;
-            var editing= tree.getAttribute('editing');
-            if( !tree.getAttribute('editing') && tree.currentIndex>=0 ) {
+            
+            if( tree.getAttribute('editing')!=='true' && tree.currentIndex>=0 ) {
                 var commandOrComment= window.editor.treeView.getCommand( tree.currentIndex );
                 tree.inputField.setAttribute( 'type',
                     commandOrComment.type==='command'

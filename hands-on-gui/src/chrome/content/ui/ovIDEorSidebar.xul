@@ -102,7 +102,7 @@ limitations under the License.
         onclick="onTreeClick(event);"
         ondblclick="onTreeDblClick(event);"
         minheight="80"
-        onselect="if( !document.getElementById('commands').getAttribute('editing') ) {window.editor.treeView.selectCommand(); }"
+        onselect="if( document.getElementById('commands').getAttribute('editing')!=='true' ) {window.editor.treeView.selectCommand(); }"
     />
     <treecol id="command" editable="false"/>
     <treecol id="target" editable="true" overflow="true"/>

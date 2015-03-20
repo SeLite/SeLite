@@ -370,7 +370,7 @@ Editor.prototype.addCommand = function (command, target, value, window, insertBe
         var tree= event.currentTarget;
         if( event.keyCode===KeyEvent.DOM_VK_TAB && !event.shiftKey ) {
             var valueColumn= tree.columns.getColumnAt(2);
-            if( !tree.getAttribute('editing') || tree.editingColumn===valueColumn ) {
+            if( tree.getAttribute('editing')!=='true' || tree.editingColumn===valueColumn ) {
                 selectRightFromIndent( event );
             }
         }
