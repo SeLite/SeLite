@@ -47,12 +47,17 @@ var console= Components.utils.import("resource://gre/modules/devtools/Console.js
  *    1. edit a cell
  *    2. stop editing (and revert any modifications) by pressing ESC. That doesn't trigger setCellText(), but only onBlur. So we need an onBlur handler to revert any changes in Command details area (i.e. one of wide inputs Command, Target or Value) that were made by previous typing (as was captured by a sequence of onInput events) - that's done in onInPlaceEditBlur().
  *    
- *  We have an onInput handler, so that we update Command details area (wide inputs Command, Target or Value) as the user types in the cell (rather than updating it only after 'committing' the change by e.g. ENTER). However, all event sequences that accept the change (i.e. except for ones where the user hits ESC) trigger setCellText() first, and only then they trigger onBlur(). Therefore onBlur handles that specially.
+ *  We have an onInput handler, so that we update Command details area (wide inputs Command, Target or Value) as the user types in the cell (rather than updating it only after 'committing' the change by e.g. ENTER). However, all event sequences that accept the change (i.e. except for ones where the user hits ESC) trigger setCellText() first, and only then they trigger onBlur().
  * */
 XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= function setCellText( row, col, value, original) {
-    console.error( 'setCellText: row' +row+ ', this.tree.currentIndex: ' +this.tree.currentIndex );
-    //original is undefined, so I don't call original.setCellText( row, col, value );
     var tree= document.getElementById('commands');
+    for( var columnIndex=0; columnIndex<3; columnIndex++ ) {
+        if( tree.columns[columnIndex]===col ) {
+            break;
+        }
+    }
+    console.error( 'setCellText: row' +row+ ', this.tree.currentIndex: ' +this.tree.currentIndex+ ', columnIndex ' +columnIndex );
+    //original is undefined, so I don't call original.setCellText( row, col, value );
     var key= col===tree.columns[0] // What field of the command/comment to pass to window.editor.treeView.updateCurrentCommand()
         ? 'command'
         : (col===tree.columns[1]
@@ -73,7 +78,7 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
         : window.editor.treeView.decodeText(value);
     
     if( this.tree.currentIndex===row ) { // Handling one of the three simple sequences A), B) or C) (see above)
-        editor.treeView.currentCommand===clickedCommand || SeLiteMisc.fail();
+        editor.treeView.currentCommand===clickedCommand || SeLiteMisc.fail( "SeLite Hands-on GUI setCellText: editor.treeView.currentCommand!==clickedCommand" );
         
         if( clickedCommand[directKey]!==decodedValue ) { // Update only on change. Otherwise the test case would show up as modified.
             window.editor.treeView.updateCurrentCommand( key, decodedValue);
@@ -152,9 +157,11 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
         if( originalSeLiteTreeOnKeyPress ) {
             originalSeLiteTreeOnKeyPress.call( null, event );
         }
+        console.error( 'onkeypress');
         
         if( event.keyCode===KeyEvent.DOM_VK_TAB ) {
             var tree= event.currentTarget;
+            console.error( "onkeypress has TAB; tree.getAttribute('editing'):" +tree.getAttribute('editing') );
             
             if( tree.getAttribute('editing')==='true' ) {
                 // Get index of tree.editingColumn in tree.columns[]. We can't use tree.columns.indexOf() since tree.columns is not a real array.
@@ -163,8 +170,8 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                         break;
                     }
                 }
-                editingColumnIndex<3 || SeLiteMisc.fail( 'editingColumnIndex should be less than 3, but it is: ' +editingColumnIndex );
                 console.error( 'currentIndex ' +tree.currentIndex+', commands.length ' +window.editor.treeView.testCase.commands.length );
+                editingColumnIndex<3 || SeLiteMisc.fail( 'editingColumnIndex should be less than 3, but it is: ' +editingColumnIndex );
                 // Whether we're re-focusing on the next or previous column in the same row (this only applies to Commands, not to Comments)
                 if( editor.treeView.currentCommand.type==='command'
                     && ( !event.shiftKey && editingColumnIndex<2
@@ -186,7 +193,9 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                     console.error( 'was editing col. ' +editingColumnIndex+', switching to col '+otherColumnIndex);
                     var editingRow= tree.editingRow; // We must save it before we call stopEditing()
                     tree.stopEditing(/*shouldAccept:*/true );
-                    tree.startEditing( editingRow, otherColumn );
+                    window.setTimeout( function() {
+                        tree.startEditing( editingRow, otherColumn );
+                    }, 0 );
                     // @TODO here and below: change tree.inputField type as needed
                 }
                 else // We're re-focusing to a different row: the previous or next row, if any; otherwise keep default behavious of handling TAB
@@ -210,9 +219,11 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                         : 0;
                     console.error( 'was editing row ' +tree.editingRow+ ', col. ' +editingColumnIndex+', switching to row ' +otherRow+ ', col '+otherColumnIndex);
                     tree.stopEditing(/*shouldAccept:*/true );
-                    tree.view.selection.select( otherRow );
                     window.setTimeout( function() {
-                        tree.startEditing( otherRow, otherColumn );
+                        tree.view.selection.select( otherRow ); //This invokes tree's 'select' handler, so then IDE updates the detailed edit area of the command.
+                        window.setTimeout( function() {
+                            tree.startEditing( otherRow, otherColumn );
+                        }, 0 );
                     }, 0 );
                 }
             }

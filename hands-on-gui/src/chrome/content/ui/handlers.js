@@ -95,9 +95,15 @@ function onInPlaceEditInput( newValue ) {
     document.getElementById( 'command'+idKey ).value= newValue;
 }
 
-// See notes for setCellText() in ide-extension.js
-function onInPlaceEditBlur() {
-    console.error( 'onBlur');
+function onInPlaceEditBlur( event ) {
+    var tree= document.getElementById('commands');
+    if( tree.getAttribute('editing')!=="true" ) {
+        // This gets sometimes called on TAB/Shift+TAB, before 'keypress' event. That caused a race conflict with seLiteTreeOnKeyPress() in ide-extension.js
+        // This happens for *some* blur events (e.g. for 4th and further row). So the following uses cell details captured by setCellText handler in ide-extension.js
+        event.preventDefault();
+        return;
+    }
+    // See notes for setCellText() in ide-extension.js.
     // tree.editingColumn is already null. tree.inputField.value is already empty. Hence:
     window.editor.treeView.selectCommand();
 }

@@ -76,7 +76,7 @@ limitations under the License.
                                                               XulUtils.toXPCOMArray(commands));                              
                 
                     tree.inputField.setAttribute( 'oninput', 'onInPlaceEditInput( this.value );' );
-                    tree.inputField.setAttribute( 'onblur', 'onInPlaceEditBlur();' ); // Side note: For some reason, for "blur" event keyword 'this' is the textbox, however this.value is not set.
+                    tree.inputField.setAttribute( 'onblur', 'onInPlaceEditBlur(event);' ); // Side note: For some reason, for "blur" event keyword 'this' is the textbox, however this.value is not set.
 
                     // Prepare tree.inputField for autocomplete. This won't have effect until onTreeClick() changes 'type' attribute.
                     tree.inputField.setAttribute( 'autocompletesearch', "selite-generic" );
@@ -102,6 +102,7 @@ limitations under the License.
         onclick="onTreeClick(event);"
         ondblclick="onTreeDblClick(event);"
         minheight="80"
+        onblur="Components.utils.import('resource://gre/modules/devtools/Console.jsm', {}).console.error( 'tree.onblur');"
         onselect="if( document.getElementById('commands').getAttribute('editing')!=='true' ) {window.editor.treeView.selectCommand(); }"
     />
     <treecol id="command" editable="false"/>
