@@ -72,11 +72,11 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
             ? 'target'
             : 'value'
         );
-    var clickedCommand= window.editor.treeView.getCommand( row );
+    var command= window.editor.treeView.getCommand( row );
     
     // What field of the command/comment to update directly in command object. See also TreeView.UpdateCommandAction.prototype -> execute()
     var directKey= col===tree.columns[0]
-        ? (clickedCommand.type==='command'
+        ? (command.type==='command'
             ? 'command'
             : 'comment'
         )
@@ -86,16 +86,16 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
         : window.editor.treeView.decodeText(value);
     
     if( this.tree.currentIndex===row ) { // Handling one of the three simple sequences A), B) or C) (see above)
-        editor.treeView.currentCommand===clickedCommand || SeLiteMisc.fail( "SeLite Hands-on GUI setCellText: editor.treeView.currentCommand!==clickedCommand" );
+        editor.treeView.currentCommand===command || SeLiteMisc.fail( "SeLite Hands-on GUI setCellText: editor.treeView.currentCommand!==command" );
         
-        if( clickedCommand[directKey]!==decodedValue ) { // Update only on change. Otherwise the test case would show up as modified.
+        if( command[directKey]!==decodedValue ) { // Update only on change. Otherwise the test case would show up as modified.
             window.editor.treeView.updateCurrentCommand( key, decodedValue);
         }
         window.editor.treeView.selectCommand();
     }
     else { // Handling the complex sequence F) (see above)
-        if( clickedCommand[ directKey ]!==decodedValue ) {
-            clickedCommand[ directKey ]= decodedValue;
+        if( command[ directKey ]!==decodedValue ) {
+            command[ directKey ]= decodedValue;
             window.editor.treeView.testCase.setModified();
         }
     }

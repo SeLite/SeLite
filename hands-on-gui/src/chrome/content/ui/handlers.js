@@ -35,6 +35,8 @@ function onTreeClick( event ) {
     if( tree.getAttribute('editing')==='true' || event.button!==0/*Clicked other than main button*/) {
         return;
     }
+    window.editor.treeView.selectCommand(); // because of our override of tree's onselect in ovIDEorSidebar.xul
+    
     var rowObject= { value: -1 }; // value will be 0-based row index, within the set of *visible* rows only (it skips the collapsed rows)
     var columnObject= { value: null }; // value is instance of TreeColumn. See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeColumn                
     var treeBoxObject= tree.boxObject;
