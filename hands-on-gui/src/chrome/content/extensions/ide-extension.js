@@ -31,19 +31,29 @@ var console= Components.utils.import("resource://gre/modules/devtools/Console.js
  *    1. select a command (without starting to edit in-place, e.g. by right click)
  *    2. hit Enter (to edit the comment, or Target, in-place), edit the cell
  *    3. finish editing in any other way than cancelling (i.e. by hiting Enter, TAB, clicking somewhere else)
- *    
- *  D) Complex (like a concurrent race)
+ *  
+ *  D) Navigating to another cell by TAB/Shift+TAB - 'healthy' event sequence:
+ *    1. you're editing in-place
+ *    2. you hit TAB or Shift+TAB
+ *    3. tree's onkeypress (tree's "editing" attribute is still "true"), setCellText.
+ *  
+ *  E) Navigating to another cell by TAB/Shift+TAB - 'strange' event sequence:
+ *    1. you're editing in-place
+ *    2. you hit TAB or Shift+TAB
+ *    3. setCellText, input onblur, tree's onblur, tree's onkeypress (tree's "editing" attribute is ""). This sequence made cell identification difficult in onkeypress handler. That's why setCellText stores details of the currently edited cell, which are used by seLiteTreeOnKeyPress(). This sequence is also handled specially by onInPlaceEditBlur().
+ *      
+ *  F) Complex (like a concurrent race)
  *    1. click at a cell to edit-in-place
  *    2. finish editing by clicking at another cell (regardless of whether it's possible to edit that other cell in-place, or not). That triggers:
  *    2.1 tree's onSelect(), which calls editor.treeView.selectCommand(), so now editor.treeView.currentCommand is the command from the newly selected cell!
  *    2.2 setCellText()
- *    2.3 onBlur - which has to call selectCommand() again because of sequence E)
+ *    2.3 onBlur - which has to call selectCommand() again because of sequence G)
  *    2.4 tree's onClick() in handlers.js
  *    However, setCellText() is also called from other scenarios, which don't involve this concurrent race. So, setCellText() checks whether editor.treeView.currentCommand is the same as the command for the row for its event. If they are different, that means that onSelect() has already selected the newly clicked command, but setCellText() is called with a row for the previously edited command; so then I update the previously edited command in the test case, instead of calling updateCurrentCommand(). Also, I don't update the command details area - I don't call selectCommand() - because it already shows the newly edited command.
  *    
  *    If in step 2. you edit a command's Command column, and it has autocomplete hint(s) for your changes, then see note 4. in ovIDEorSidebar.xul on extra 'select' events.
  *    
- *  E) Medium Complex: Edit, modify, cancel (no change)
+ *  G) Medium Complex: Edit, modify, cancel (no change)
  *    1. edit a cell
  *    2. stop editing (and revert any modifications) by pressing ESC. That doesn't trigger setCellText(), but only onBlur. So we need an onBlur handler to revert any changes in Command details area (i.e. one of wide inputs Command, Target or Value) that were made by previous typing (as was captured by a sequence of onInput events) - that's done in onInPlaceEditBlur().
  *    
@@ -51,12 +61,10 @@ var console= Components.utils.import("resource://gre/modules/devtools/Console.js
  * */
 XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= function setCellText( row, col, value, original) {
     var tree= document.getElementById('commands');
-    for( var columnIndex=0; columnIndex<3; columnIndex++ ) {
-        if( tree.columns[columnIndex]===col ) {
-            break;
-        }
-    }
-    console.error( 'setCellText: row' +row+ ', this.tree.currentIndex: ' +this.tree.currentIndex+ ', columnIndex ' +columnIndex );
+    console.error( 'setCellText: row' +row );
+    TreeView.lastEditingRow= row;
+    TreeView.lastEditingColumn= col;
+    
     //original is undefined, so I don't call original.setCellText( row, col, value );
     var key= col===tree.columns[0] // What field of the command/comment to pass to window.editor.treeView.updateCurrentCommand()
         ? 'command'
@@ -85,7 +93,7 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
         }
         window.editor.treeView.selectCommand();
     }
-    else { // Handling the complex sequence D) (see above)
+    else { // Handling the complex sequence F) (see above)
         if( clickedCommand[ directKey ]!==decodedValue ) {
             clickedCommand[ directKey ]= decodedValue;
             window.editor.treeView.testCase.setModified();
@@ -157,16 +165,22 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
         if( originalSeLiteTreeOnKeyPress ) {
             originalSeLiteTreeOnKeyPress.call( null, event );
         }
-        console.error( 'onkeypress');
+        console.error( 'seLiteTreeOnKeyPress');
         
         if( event.keyCode===KeyEvent.DOM_VK_TAB ) {
             var tree= event.currentTarget;
             console.error( "onkeypress has TAB; tree.getAttribute('editing'):" +tree.getAttribute('editing') );
             
-            if( tree.getAttribute('editing')==='true' ) {
+            if( tree.getAttribute('editing')==='true' || TreeView.lastEditingRow!==undefined ) { // For sequence D) and E) above
+                var editingColumn= tree.getAttribute('editing')==='true'
+                    ? tree.editingColumn
+                    : TreeView.lastEditingColumn;
+                var editingRow= tree.getAttribute('editing')==='true'
+                    ? tree.editingRow
+                    : TreeView.lastEditingRow;
                 // Get index of tree.editingColumn in tree.columns[]. We can't use tree.columns.indexOf() since tree.columns is not a real array.
                 for( var editingColumnIndex=0; editingColumnIndex<3; editingColumnIndex++ ) {
-                    if( tree.columns[editingColumnIndex]===tree.editingColumn ) {
+                    if( tree.columns[editingColumnIndex]===editingColumn ) {
                         break;
                     }
                 }
@@ -191,8 +205,9 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                          : -1
                         );
                     console.error( 'was editing col. ' +editingColumnIndex+', switching to col '+otherColumnIndex);
-                    var editingRow= tree.editingRow; // We must save it before we call stopEditing()
-                    tree.stopEditing(/*shouldAccept:*/true );
+                    if( tree.getAttribute('editing')==='true' ) {//@TODO do I need this check? Maybe it's robust enough.
+                        tree.stopEditing(/*shouldAccept:*/true );
+                    }
                     window.setTimeout( function() {
                         tree.startEditing( editingRow, otherColumn );
                     }, 0 );
@@ -203,7 +218,7 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                   || event.shiftKey && tree.currentIndex>0
                 ) {
                     event.preventDefault();
-                    var otherRow= tree.currentIndex+//@TODO currentIndex didn't get updated: TODO select the row!
+                    var otherRow= editingRow+
                         (!event.shiftKey
                          ? +1
                          : -1
@@ -217,8 +232,10 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                         event.shiftKey && window.editor.treeView.getCommand( otherRow ).type==='command'
                         ? 2
                         : 0;
-                    console.error( 'was editing row ' +tree.editingRow+ ', col. ' +editingColumnIndex+', switching to row ' +otherRow+ ', col '+otherColumnIndex);
-                    tree.stopEditing(/*shouldAccept:*/true );
+                    console.error( 'was editing row ' +editingRow+ ', col. ' +editingColumnIndex+', switching to row ' +otherRow+ ', col '+otherColumnIndex);
+                    if( tree.getAttribute('editing')==='true' ) {//@TODO do I need this check? Maybe it's robust enough.
+                        tree.stopEditing(/*shouldAccept:*/true );
+                    }
                     window.setTimeout( function() {
                         tree.view.selection.select( otherRow ); //This invokes tree's 'select' handler, so then IDE updates the detailed edit area of the command.
                         window.setTimeout( function() {
@@ -242,5 +259,6 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                 tree.startEditing( tree.currentIndex, tree.columns.getColumnAt(0) );
             }
         }
+        TreeView.lastEditingRow= TreeView.lastEditingColumn= undefined;
     };
 } ) ();

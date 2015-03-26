@@ -96,14 +96,14 @@ limitations under the License.
     <!-- 1. onclick: Selective tail override of Selenium IDE's onclick handler.
          2. Adding minheight: otherwise the tree changed the height quite a lot when clicking to edit some commands, which seemed shaking-like and distracting.
          3. ondblclick: it stops editing the cell (which was started in onclick). Then I set focus on the tree - otherwise it wouldn't run a command (as per https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XUL/Tutorial/Commands#Command_Dispatching).
-         4. changing onselect. Long story: When editing in-place, if there's an autocomplete hint, then there's 'select' event for the tree after each 'input' event for tree.inputField. (If there's no autocomplete hint, then there's no 'select' event.) However, for such cases we don't want to call treeView.selectCommand(), since that would reload the current command from its object model - and for that we'd have to change tree's input's 'onchange' handler onInPlaceEditInput() to update the command object model on every change; but then if the user cancels editing in-place by hitting ESC, tree's 'onblur' handler onInPlaceEditBlur() couldn't reload the command as it was before editing. So, this override ensures that onselect event doesn't re-select a command if it's being edited in-place. Otherwise it caused a conflict/race in processing - see complex sequence 'D)' in ide-extension.js.
+         4. changing onselect. Long story: When editing in-place, if there's an autocomplete hint, then there's 'select' event for the tree after each 'input' event for tree.inputField. (If there's no autocomplete hint, then there's no 'select' event.) However, for such cases we don't want to call treeView.selectCommand(), since that would reload the current command from its object model - and for that we'd have to change tree's input's 'onchange' handler onInPlaceEditInput() to update the command object model on every change; but then if the user cancels editing in-place by hitting ESC, tree's 'onblur' handler onInPlaceEditBlur() couldn't reload the command as it was before editing. So, this override ensures that onselect event doesn't re-select a command if it's being edited in-place. Otherwise it caused a conflict/race in processing - see complex sequence 'F)' in ide-extension.js.
     -->
     <tree id="commands" editable="true"
         onclick="onTreeClick(event);"
         ondblclick="onTreeDblClick(event);"
         minheight="80"
         onblur="Components.utils.import('resource://gre/modules/devtools/Console.jsm', {}).console.error( 'tree.onblur');"
-        onselect="if( document.getElementById('commands').getAttribute('editing')!=='true' ) {window.editor.treeView.selectCommand(); }"
+        onselect="Components.utils.import('resource://gre/modules/devtools/Console.jsm', {}).console.error( 'tree.onselect'); if( document.getElementById('commands').getAttribute('editing')!=='true' ) {window.editor.treeView.selectCommand(); }"
     />
     <treecol id="command" editable="false"/>
     <treecol id="target" editable="true" overflow="true"/>
