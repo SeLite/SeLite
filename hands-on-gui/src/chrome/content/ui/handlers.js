@@ -64,14 +64,14 @@ function onTreeClick( event ) {
     window.setTimeout(
         column===tree.columns[0]
         ? TreeView.putCaretAfterLeadingSpaces
-        : putCaretWhereClickedOrAtTheEnd,
+        : putCaretWhereClickedOrAtTheEnd.bind( null, event ),
     0 );
 }
 
 // Simulate a click at tree.inputField, so that the user can start typing where she clicked. See also chrome://global/content/bindings/tree.xml#tree -> startEditing
 // If the user clicked at a long comment (that overflew to target/value column), we put the caret after the last character in the editable area.
 // I tried to put it after the last *visible* character, but I couldn't find a way. E.g. document.caretPositionFromPoint( window.left+tree.inputField.left+tree.inputField.width-20, event.clientY) returned null.
-function putCaretWhereClickedOrAtTheEnd() {
+function putCaretWhereClickedOrAtTheEnd( event ) {
     var tree= document.getElementById('commands');
     var caretCharacterIndex= editor.treeView.currentCommand.type==='command' || columnObject.value===tree.columns[0]
         ? document.caretPositionFromPoint( event.clientX, event.clientY).offset
