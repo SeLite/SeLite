@@ -199,19 +199,13 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                          : -1
                         )
                     ];
-                    var otherColumnIndex= editingColumnIndex+//@TODO remove - for debug only
-                        (!event.shiftKey
-                         ? +1
-                         : -1
-                        );
-                    console.error( 'was editing col. ' +editingColumnIndex+', switching to col '+otherColumnIndex);
-                    if( tree.getAttribute('editing')==='true' ) {//@TODO do I need this check? Maybe it's robust enough.
-                        tree.stopEditing(/*shouldAccept:*/true );
-                    }
-                    window.setTimeout( function() {
-                        tree.startEditing( editingRow, otherColumn );
-                    }, 0 );
-                    // @TODO here and below: change tree.inputField type as needed
+                    tree.stopEditing(/*shouldAccept:*/true );
+                    tree.inputField.setAttribute( 'type',
+                        editor.treeView.currentCommand.type==='command' && otherColumn===tree.columns[0]
+                        ? "autocomplete"
+                        : '' // Clear it, in case it was previously set to "autocomplete" previously
+                    );
+                    tree.startEditing( editingRow, otherColumn );
                 }
                 else // We're re-focusing to a different row: the previous or next row, if any; otherwise keep default behavious of handling TAB
                 if( !event.shiftKey && tree.currentIndex+1<window.editor.treeView.testCase.commands.length
@@ -233,15 +227,14 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                         ? 2
                         : 0;
                     console.error( 'was editing row ' +editingRow+ ', col. ' +editingColumnIndex+', switching to row ' +otherRow+ ', col '+otherColumnIndex);
-                    if( tree.getAttribute('editing')==='true' ) {//@TODO do I need this check? Maybe it's robust enough.
-                        tree.stopEditing(/*shouldAccept:*/true );
-                    }
-                    window.setTimeout( function() {
-                        tree.view.selection.select( otherRow ); //This invokes tree's 'select' handler, so then IDE updates the detailed edit area of the command.
-                        window.setTimeout( function() {
-                            tree.startEditing( otherRow, otherColumn );
-                        }, 0 );
-                    }, 0 );
+                    tree.stopEditing(/*shouldAccept:*/true );
+                    tree.view.selection.select( otherRow ); //This invokes tree's 'select' handler, so then IDE updates the detailed edit area of the command.
+                    tree.inputField.setAttribute( 'type',
+                        window.editor.treeView.getCommand( otherRow ).type==='command' && otherColumn===tree.columns[0]
+                        ? "autocomplete"
+                        : '' // Clear it, in case it was previously set to "autocomplete" previously
+                    );
+                    tree.startEditing( otherRow, otherColumn );
                 }
             }
         }

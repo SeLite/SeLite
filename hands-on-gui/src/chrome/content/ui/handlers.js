@@ -55,7 +55,7 @@ function onTreeClick( event ) {
     tree.inputField.setAttribute( 'type',
         editingCommandAction
         ? "autocomplete"
-        : '' // Clear it, in case it was previously set to "autocomplete" by the previous line
+        : '' // Clear it, in case it was previously set to "autocomplete" by the previously
     );
     tree.startEditing( rowObject.value, column );
 
