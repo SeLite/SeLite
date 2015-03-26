@@ -53,9 +53,8 @@ function onTreeClick( event ) {
         //treeBoxObject.invalidateRange( rowObject.value, rowObject.value+1 );
     }
 
-    var editingCommandAction= editor.treeView.currentCommand.type==='command' && column===tree.columns[0];
     tree.inputField.setAttribute( 'type',
-        editingCommandAction
+        editor.treeView.currentCommand.type==='command' && column===tree.columns[0]
         ? "autocomplete"
         : '' // Clear it, in case it was previously set to "autocomplete" by the previously
     );
@@ -63,26 +62,21 @@ function onTreeClick( event ) {
 
     // The above call to startEditing() calls setTimeout(), which puts a callback function in the execution queue. That callback function focuses and selects the tree.inputField. So, if there is any code here that needs to be run after tree.inputField gets selected, it is queued by the following.
     window.setTimeout(
-        editingCommandAction
-          // 1. Keep indentation: put the caret right of any leading spaces
-          // 2. make replacing the command easy: highlight the whole command (excluding any leading spaces)
-        ? function() {
-            var match= indentedText.exec( tree.inputField.value );
-            var selectionStart= match
-                ? match[1].length
-                : 0;
-            tree.inputField.setSelectionRange( selectionStart, tree.inputField.value.length );
-        }
-          // Simulate a click at tree.inputField, so that the user can start typing where she clicked. See also chrome://global/content/bindings/tree.xml#tree -> startEditing
-        : function() {
-        // If the user clicked at a long comment (that overflew to target/value column), we put the caret after the last character in the editable area.
-        // I tried to put it after the last *visible* character, but I couldn't find a way. E.g. document.caretPositionFromPoint( window.left+tree.inputField.left+tree.inputField.width-20, event.clientY) returned null.
-            var caretCharacterIndex= editor.treeView.currentCommand.type==='command' || columnObject.value===tree.columns[0]
-                ? document.caretPositionFromPoint( event.clientX, event.clientY).offset
-                : tree.inputField.value.length;
-            tree.inputField.setSelectionRange( caretCharacterIndex, caretCharacterIndex );
-        },
+        column===tree.columns[0]
+        ? TreeView.putCaretAfterLeadingSpaces
+        : putCaretWhereClickedOrAtTheEnd,
     0 );
+}
+
+// Simulate a click at tree.inputField, so that the user can start typing where she clicked. See also chrome://global/content/bindings/tree.xml#tree -> startEditing
+// If the user clicked at a long comment (that overflew to target/value column), we put the caret after the last character in the editable area.
+// I tried to put it after the last *visible* character, but I couldn't find a way. E.g. document.caretPositionFromPoint( window.left+tree.inputField.left+tree.inputField.width-20, event.clientY) returned null.
+function putCaretWhereClickedOrAtTheEnd() {
+    var tree= document.getElementById('commands');
+    var caretCharacterIndex= editor.treeView.currentCommand.type==='command' || columnObject.value===tree.columns[0]
+        ? document.caretPositionFromPoint( event.clientX, event.clientY).offset
+        : tree.inputField.value.length;
+    tree.inputField.setSelectionRange( caretCharacterIndex, caretCharacterIndex );
 }
 
 function onInPlaceEditInput( newValue ) {

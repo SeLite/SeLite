@@ -156,6 +156,18 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
         controllers.appendController( newController );
     };
     
+    var indentedText= /^(\s+)(.*)/;
+    // 1. Keep indentation: put the caret right of any leading spaces
+    // 2. make replacing the command easy: highlight the whole command or comment (excluding any leading spaces)
+    TreeView.putCaretAfterLeadingSpaces= function putCaretAfterLeadingSpaces() {
+        var tree= document.getElementById('commands');
+        var match= indentedText.exec( tree.inputField.value );
+        var selectionStart= match
+            ? match[1].length
+            : 0;
+        tree.inputField.setSelectionRange( selectionStart, tree.inputField.value.length );
+    };
+    
     /** 1. When editing-in place Command's Target (but not for comments), on hitting TAB make it shift focus to Value. Also, in reverse: when editing Value, on hitting Shift+TAB shift focus to Target.
      *  2. When user selected a command, i.e. it's highlighted (but it's not being edited it in-place), then on hitting Enter key start editing it.
  * */
@@ -206,6 +218,9 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                         : '' // Clear it, in case it was previously set to "autocomplete" previously
                     );
                     tree.startEditing( editingRow, otherColumn );
+                    if( otherColumn===tree.columns[0] ) {
+                        window.setTimeout( TreeView.putCaretAfterLeadingSpaces, 0 );
+                    }
                 }
                 else // We're re-focusing to a different row: the previous or next row, if any; otherwise keep default behavious of handling TAB
                 if( !event.shiftKey && tree.currentIndex+1<window.editor.treeView.testCase.commands.length
@@ -235,6 +250,9 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                         : '' // Clear it, in case it was previously set to "autocomplete" previously
                     );
                     tree.startEditing( otherRow, otherColumn );
+                    if( otherColumn===tree.columns[0] ) {
+                        window.setTimeout( TreeView.putCaretAfterLeadingSpaces, 0 );
+                    }
                 }
             }
         }
@@ -250,6 +268,7 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                     : ''
                 );
                 tree.startEditing( tree.currentIndex, tree.columns.getColumnAt(0) );
+                window.setTimeout( TreeView.putCaretAfterLeadingSpaces, 0 );
             }
         }
         TreeView.lastEditingRow= TreeView.lastEditingColumn= undefined;
