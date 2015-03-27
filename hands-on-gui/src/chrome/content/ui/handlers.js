@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 "use strict";
-var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 function onTreeDblClick(event) {
-    console.error( 'onTreeDblClick');
     var tree= event.currentTarget;
     tree.stopEditing();
     tree.focus(); // otherwise Firefox command despatcher won't route the following command properly
@@ -27,7 +25,6 @@ function onTreeDblClick(event) {
 var indentedText= /^(\s+)(.*)/;
 
 function onTreeClick( event ) {
-    console.error( 'onTreeClick');
     //  editor.treeView.tree.currentIndex may be different to the clicked row. See 'Complex' sequence F) in ide-extension.js: 'onblur' handler gets triggerred before 'onclick'
     // event.target is treechildren; event.currentTarget is tree; event.relatedTarget is null
     // @TODO if event.clientY is too close to the bottom of the tree, then return. Otherwise the following selected a cell in a neighbour row!
@@ -80,7 +77,6 @@ function putCaretWhereClickedOrAtTheEnd( event ) {
 }
 
 function onInPlaceEditInput( newValue ) {
-    console.error( 'onInPlaceEditInput');
     var tree= document.getElementById('commands');
     var idKey= tree.editingColumn===tree.columns[0] // What field of the command/comment to update in details area
         ? 'Action'
@@ -93,7 +89,6 @@ function onInPlaceEditInput( newValue ) {
 
 function onInPlaceEditBlur( event ) {
     var tree= document.getElementById('commands');
-    console.error( 'onInPlaceEditBlur, editing ' +tree.getAttribute('editing'));
     if( tree.getAttribute('editing')!=="true" ) {
         // This gets sometimes called on TAB/Shift+TAB, before 'keypress' event. That caused a race conflict with seLiteTreeOnKeyPress() in ide-extension.js
         // This happens for *some* blur events (e.g. for 4th and further row).

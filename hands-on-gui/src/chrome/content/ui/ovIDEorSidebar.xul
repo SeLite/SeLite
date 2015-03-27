@@ -102,8 +102,7 @@ limitations under the License.
         onclick="onTreeClick(event);"
         ondblclick="onTreeDblClick(event);"
         minheight="80"
-        onblur="Components.utils.import('resource://gre/modules/devtools/Console.jsm', {}).console.error( 'tree.onblur');"
-        onselect="Components.utils.import('resource://gre/modules/devtools/Console.jsm', {}).console.error( 'tree.onselect'); if( document.getElementById('commands').getAttribute('editing')!=='true' ) {window.editor.treeView.selectCommand(); }"
+        onselect="if( document.getElementById('commands').getAttribute('editing')!=='true' ) {window.editor.treeView.selectCommand(); }"
     />
     <treecol id="command" editable="false"/>
     <treecol id="target" editable="true" overflow="true"/>
@@ -114,4 +113,8 @@ limitations under the License.
     <key id="insert-command-key" key="I" command="cmd_insert_command"/>
     <key id="insert-comment-key" key="M" command="cmd_insert_comment"/>
   </keyset>
+  <commandset id="seleniumIDECommands">
+      <command id="cmd_insert_command" oncommand="goDoCommand('cmd_insert_command')"/>
+      <command id="cmd_insert_comment" oncommand="goDoCommand('cmd_insert_comment')"/>
+  </commandset>
 </overlay>

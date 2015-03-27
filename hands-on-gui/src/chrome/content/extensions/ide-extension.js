@@ -16,7 +16,6 @@
 "use strict";
 
 XulUtils.TreeViewHelper.prototype.isEditable= TreeView.prototype.isEditable= function isEditable( row, col ) { return true;};
-var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 /** There are a few basic scenarios/sequences:
  * 
  *  A) Simple sequence: edit, focus out
@@ -61,7 +60,6 @@ var console= Components.utils.import("resource://gre/modules/devtools/Console.js
  * */
 XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= function setCellText( row, col, value, original) {
     var tree= document.getElementById('commands');
-    console.error( 'setCellText: row' +row );
     TreeView.lastEditingRow= row;
     TreeView.lastEditingColumn= col;
     
@@ -177,11 +175,9 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
         if( originalSeLiteTreeOnKeyPress ) {
             originalSeLiteTreeOnKeyPress.call( null, event );
         }
-        console.error( 'seLiteTreeOnKeyPress');
         
         if( event.keyCode===KeyEvent.DOM_VK_TAB ) {
             var tree= event.currentTarget;
-            console.error( "onkeypress has TAB; tree.getAttribute('editing'):" +tree.getAttribute('editing') );
             
             if( tree.getAttribute('editing')==='true' || TreeView.lastEditingRow!==undefined ) { // For sequence D) and E) above
                 var editingColumn= tree.getAttribute('editing')==='true'
@@ -196,7 +192,6 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                         break;
                     }
                 }
-                console.error( 'currentIndex ' +tree.currentIndex+', commands.length ' +window.editor.treeView.testCase.commands.length );
                 editingColumnIndex<3 || SeLiteMisc.fail( 'editingColumnIndex should be less than 3, but it is: ' +editingColumnIndex );
                 // Whether we're re-focusing on the next or previous column in the same row (this only applies to Commands, not to Comments)
                 if( editor.treeView.currentCommand.type==='command'
@@ -237,11 +232,6 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                         ? 2
                         : 0
                     ];
-                    var otherColumnIndex= //@TODO remove
-                        event.shiftKey && window.editor.treeView.getCommand( otherRow ).type==='command'
-                        ? 2
-                        : 0;
-                    console.error( 'was editing row ' +editingRow+ ', col. ' +editingColumnIndex+', switching to row ' +otherRow+ ', col '+otherColumnIndex);
                     tree.stopEditing(/*shouldAccept:*/true );
                     tree.view.selection.select( otherRow ); //This invokes tree's 'select' handler, so then IDE updates the detailed edit area of the command.
                     tree.inputField.setAttribute( 'type',
