@@ -139,11 +139,12 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
             },
             
             doCommand: function doCommand(cmd ) {
-                if( cmd==='cmd_insert_command' ) {
-                    self.insertCommand();
-                }
-                else if( cmd==='cmd_insert_comment' ) {
-                    self.insertComment();
+                if( cmd==='cmd_insert_command' || cmd==='cmd_insert_comment' ) {
+                    var indentationLength= self.insertCommandBase( cmd==='cmd_insert_comment' );
+                    self.tree.startEditing( self.tree.currentIndex, self.tree.columns[0] );
+                    if( indentationLength ) {
+                        window.setTimeout( TreeView.putCaretAfterLeadingSpaces, 0 );
+                    }
                 }
                 else {
                     originalController.doCommand.call(originalController, cmd);

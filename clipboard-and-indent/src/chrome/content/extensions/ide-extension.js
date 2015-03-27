@@ -126,30 +126,34 @@
             return '';
         };
         
-        var insertCommandOrComment= function insertCommandOrComment( treeView, insertComment ) {
-            if (treeView.tree.currentIndex >= 0) {
-                var currentIndex = treeView.tree.currentIndex;
-                var indentation= newCommandOrCommentIndentation( treeView.testCase, currentIndex );
-                treeView.insertAt( currentIndex,
+        /** Insert a new command/comment into the tree, and select it. Don't start editing - that's up to the caller.
+         *  @param {boolean} insertComment Whether a comment; otherwise it's a command.
+         *  @return {number} length of indentation prefix, if any
+         * */
+        TreeView.prototype.insertCommandBase= function insertCommandOrComment(insertComment ) {
+            if (this.tree.currentIndex >= 0) {
+                var currentIndex = this.tree.currentIndex;
+                var indentation= newCommandOrCommentIndentation( this.testCase, currentIndex );
+                this.insertAt( currentIndex,
                     insertComment
                         ? new Comment(indentation)
                         : new Command(indentation)
                 );
-                treeView.selection.select(currentIndex);
-                
-                var action=document.getElementById('commandAction');
-                action.focus();
-                if( indentation ) {
-                    action.setSelectionRange( indentation.length, indentation.length );
-                }
+                this.selection.select(currentIndex);
+                return indentation.length;
             }
         };
         
-        TreeView.prototype.insertCommand= function insertCommand() {
-            insertCommandOrComment( this, false );
+        TreeView.prototype.insertCommand= function insertCommand( insertComment ) {
+            var indentationLength= this.insertCommandBase( false );
+            var action=document.getElementById('commandAction');
+            action.focus();
+            if( indentationLength ) {
+                action.setSelectionRange( indentationLength, indentationLength );
+            }
         };
         TreeView.prototype.insertComment= function insertComment() {
-            insertCommandOrComment( this, true );
+            this.insertCommand( true );
         };
         
         /** This handles indentation for commands generated via Firefox context menu (right click on the tested webpage) or in Selenium IDE recording mode.
