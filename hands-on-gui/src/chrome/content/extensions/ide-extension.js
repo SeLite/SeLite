@@ -119,6 +119,20 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
         }
     }
     
+    TreeView.prototype.insertCommand= function insertCommand( insertComment ) {
+        var indentationLength= this.insertCommandBase( insertComment ); //From selite/clipboard-and-indent/src/chrome/content/extensions/ide-extension.js
+        var tree= document.getElementById('commands');
+        tree.inputField.setAttribute( 'type',
+            !insertComment
+            ? "autocomplete"
+            : '' // Clear it, in case it was previously set to "autocomplete"
+        );
+        tree.startEditing( tree.currentIndex, tree.columns[0] );
+        if( indentationLength ) {
+            window.setTimeout( TreeView.putCaretAfterLeadingSpaces, 0 );
+        }
+    };
+    
     var originalInitialize= TreeView.prototype.initialize;
     TreeView.prototype.initialize= function initialize(editor, document, tree) {
         originalInitialize.call( this, editor, document, tree );
@@ -139,12 +153,11 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
             },
             
             doCommand: function doCommand(cmd ) {
-                if( cmd==='cmd_insert_command' || cmd==='cmd_insert_comment' ) {
-                    var indentationLength= self.insertCommandBase( cmd==='cmd_insert_comment' );
-                    self.tree.startEditing( self.tree.currentIndex, self.tree.columns[0] );
-                    if( indentationLength ) {
-                        window.setTimeout( TreeView.putCaretAfterLeadingSpaces, 0 );
-                    }
+                if( cmd==='cmd_insert_command' ) {
+                    self.insertCommand();
+                }
+                else if( cmd==='cmd_insert_comment' ) {
+                    self.insertComment();
                 }
                 else {
                     originalController.doCommand.call(originalController, cmd);
