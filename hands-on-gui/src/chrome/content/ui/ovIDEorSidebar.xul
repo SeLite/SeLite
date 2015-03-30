@@ -75,7 +75,7 @@ limitations under the License.
                     Editor.GENERIC_AUTOCOMPLETE.setCandidates(XulUtils.toXPCOMString(this.editor.getAutoCompleteSearchParam( tree.inputField.getAttribute('id') )),
                                                               XulUtils.toXPCOMArray(commands));                              
                 
-                    tree.inputField.setAttribute( 'oninput', 'onInPlaceEditInput( this.value );' );
+                    tree.inputField.setAttribute( 'oninput', 'onInPlaceEditInput( this );' );
                     tree.inputField.setAttribute( 'onblur', 'onInPlaceEditBlur(event);' ); // Side note: For some reason, for "blur" event keyword 'this' is the textbox, however this.value is not set.
 
                     // Prepare tree.inputField for autocomplete. This won't have effect until onTreeClick() changes 'type' attribute.

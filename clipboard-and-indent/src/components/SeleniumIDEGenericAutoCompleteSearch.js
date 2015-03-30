@@ -93,19 +93,40 @@ function AutoCompleteResult(search, candidates) {
         }
     }else {
         for (var i = 0; i < candidates.length; i++) {
-            if (candidates[i][0].toLowerCase().indexOf(lsearch) == 0) {
+            if( candidates[i][0].toLowerCase().indexOf(lsearch)===0 ) {
                 this.result.push( candidates[i] );
             }
         }
     }
     if( indentationPrefix ) {
-        if( indentationPrefix.length>=2 && (search.startsWith('end') || closingCommands.indexOf(search)>=0 ) ) {
+        var isFullyTyped= false; // Whether search (excluding any indentation) fully matches a command, rather than just its prefix.
+        for( var i=0; i<this.result.length; i++ ) {//@TODO for(..of..)
+            var candidate= this.result[i][0];
+            if( search===candidate ) {
+                isFullyTyped= true;
+                break;
+            }
+        }
+        var matchesClosingCommand= false; // Whether search matches at least three letter prefix of any of closingCommands
+        if( search.length>=3 ) {
+            for( var i=0; i<closingCommands.length; i++ ) {//@TODO for(..of..)
+                if( closingCommands[i].indexOf(search)===0 ) {
+                    matchesClosingCommand= true;
+                    break;
+                }
+            }
+        }
+        if( indentationPrefix.length>=2 && !isFullyTyped &&
+            ( search.startsWith('end') || matchesClosingCommand )
+        ) {
+            // Unindent endXXX or any closing command when it is typed (i.e. hwen it doesn't fully match any command yet)
             indentationPrefix= indentationPrefix.substr( 2 );
         }
         for( var i=0; i<this.result.length; i++ ) {
             var candidateCopy= this.result[i].slice();
             candidateCopy[0]= indentationPrefix+candidateCopy[0];
             this.result[i]= candidateCopy;
+            // This adds much more indentation than the above: this.result[i][0]= indentationPrefix+this.result[i][0];
         }
     }
 }

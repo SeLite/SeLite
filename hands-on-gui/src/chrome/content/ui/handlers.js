@@ -76,7 +76,7 @@ function putCaretWhereClickedOrAtTheEnd( event ) {
     tree.inputField.setSelectionRange( caretCharacterIndex, caretCharacterIndex );
 }
 
-function onInPlaceEditInput( newValue ) {
+function onInPlaceEditInput( input ) {
     var tree= document.getElementById('commands');
     var idKey= tree.editingColumn===tree.columns[0] // What field of the command/comment to update in details area
         ? 'Action'
@@ -84,7 +84,11 @@ function onInPlaceEditInput( newValue ) {
             ? 'Target'
             : 'Value'
         );
-    document.getElementById( 'command'+idKey ).value= newValue;
+    var indexOfReplacementSign= input.value.indexOf('>>'); // This happens when clipboard-and-indent/src/components/SeleniumIDEGenericAutoCompleteSearch.js decreases indentation for endXXX or for closing commands. That works in Clipboard-and-indent for auto-complete in the detailed editing area; however, in-place editing doesn't handle it well, so the following assists it
+    if( indexOfReplacementSign>0 ) {
+        input.value= input.value.substr( indexOfReplacementSign+2 );
+    }
+    document.getElementById( 'command'+idKey ).value= input.value;
 }
 
 function onInPlaceEditBlur( event ) {
