@@ -27,7 +27,8 @@ SeLiteMisc.registerOrExtendFramework( function() {
     }/**/
     //@TODO join formula
     phpMyFAQ.selectUserByLogin= function selectUserByLogin( givenLogin ) {
-        phpMyFAQ.selectedUser= phpMyFAQ.formulas.user.selectOne( {login: givenLogin} );
+        debugger;
+        phpMyFAQ.selectedUser= phpMyFAQ.formulas.userwithdata.selectOne( {login: givenLogin} );
         phpMyFAQ.selectedUser.pass= phpMyFAQ.formulas.userlogin.selectOne( {login: givenLogin} ).pass;
         if( phpMyFAQ.selectedUser.pass===undefined || phpMyFAQ.selectedUser.pass==='' ) {
             phpMyFAQ.selectedUser.pass= SeLiteMisc.loginManagerPassword( givenLogin );
@@ -78,15 +79,31 @@ SeLiteMisc.registerOrExtendFramework( function() {
        columns: ['user_id', 'right_id'],
        primary: ['user_id', 'right_id']
     });
-    phpMyFAQ.tables.faqvisits= new SeLiteData.Table( {
+    phpMyFAQ.tables.visits= new SeLiteData.Table( {
        db:  phpMyFAQ.db,
-       name: 'faqvisits',
+       name: 'visits',
        columns: ['id', 'lang', 'visits', 'last_visit'],
        primary: ['id', 'login']
     });
 
     phpMyFAQ.formulas= {
         user: phpMyFAQ.tables.user.formula(),
-        userlogin: phpMyFAQ.tables.userlogin.formula()
+        userdata: phpMyFAQ.tables.userdata.formula(),
+        userlogin: phpMyFAQ.tables.userlogin.formula(),
+        userwithdata: new SeLiteData.RecordSetFormula( {
+            table: phpMyFAQ.tables.user,
+            alias: 'user',
+            columns: new SeLiteMisc.Settable().set(
+                phpMyFAQ.tables.user.name, SeLiteData.RecordSetFormula.ALL_FIELDS
+            ).set(
+                phpMyFAQ.tables.userdata.name, SeLiteData.RecordSetFormula.ALL_FIELDS
+            ),
+            joins: [{
+                table: phpMyFAQ.tables.userdata,
+                alias: 'userdata',
+                on: phpMyFAQ.tables.user.name+ '.user_id=userdata.user_id'
+            }]
+        }
+        )
     };
 }, 'phpMyFAQ' );

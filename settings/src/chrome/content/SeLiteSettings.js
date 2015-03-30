@@ -1121,7 +1121,6 @@ SeLiteSettings.setTestDbKeeper= function setTestDbKeeper( testDbKeeper ) {
         // It may be any Selenese - thus some of the stack levels can vary.
         // So I extract the framework file name - the depest filename that doesn't start with chrome://selite-. Limitation: if multiple frameworks have the same file leaf name, this can't distinguish between them. QA Note: you can only trigger the second load of the same framework, if you update timestamp of its file (e.g. by unix command 'touch').
         // -> file:///var/tmp/dotclear-framework.js-1401941951280:102
-        debugger;
         var depestNonSeLiteFileUrl;
         var depestNonSeLiteFileUrlMatch= e.stack.match( /( ->|@)([a-z]:\/\/(?!selite-)[a-zA-Z_0-9/~-]+):/ );
         if( depestNonSeLiteFileUrlMatch ) {

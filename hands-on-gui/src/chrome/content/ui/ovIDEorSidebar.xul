@@ -78,7 +78,7 @@ limitations under the License.
                     tree.inputField.setAttribute( 'oninput', 'onInPlaceEditInput( this );' );
                     tree.inputField.setAttribute( 'onblur', 'onInPlaceEditBlur(event);' ); // Side note: For some reason, for "blur" event keyword 'this' is the textbox, however this.value is not set.
 
-                    // Prepare tree.inputField for autocomplete. This won't have effect until onTreeClick() changes 'type' attribute.
+                    // Prepare tree.inputField for autocomplete. This won't have effect until onTreeClick() or another handler changes 'type' attribute to 'autocomplete'.
                     tree.inputField.setAttribute( 'autocompletesearch', "selite-generic" );
                     tree.inputField.setAttribute( 'autofill', "true" );
                     tree.inputField.setAttribute( 'completedefaultindex', "true" );

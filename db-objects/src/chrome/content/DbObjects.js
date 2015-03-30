@@ -473,9 +473,9 @@ SeLiteData.RecordSetFormula.prototype.tableByName= function tableByName( tableNa
     if( this.table.name===tableName ) {
         return this.table;
     }
-    for( var join in this.joins ) {
-        if( join.table.name===tableName ) {
-            return join.table;
+    for( var joinIndex=0; joinIndex<this.joins.length; joinIndex++ ) {//@TODO for(..of..)
+        if( this.joins[joinIndex].table.name===tableName ) {
+            return this.joins[joinIndex].table;
         }
     }
     return null;
@@ -653,7 +653,7 @@ RecordSetHolder.prototype.select= function select() {
     var columns= {};
     // @TODO potentially use allAliasesToSource() to simplify the following
     for( var tableName in formula.columns ) { // excluding prefix
-        var columnsToAliases= formula.columnsToAliases( tableName );
+        debugger;var columnsToAliases= formula.columnsToAliases( tableName );
         var tableAlias; // tableAlias, if specified
         var table; // Table object for tableName. Used to get table name with prefix if tableAlias is undefined.
         if( tableName==formula.table.name ) {
