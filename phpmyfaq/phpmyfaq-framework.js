@@ -27,7 +27,7 @@ SeLiteMisc.registerOrExtendFramework( function() {
     }/**/
     //@TODO join formula
     phpMyFAQ.selectUserByLogin= function selectUserByLogin( givenLogin ) {
-        debugger;
+        //debugger;
         phpMyFAQ.selectedUser= phpMyFAQ.formulas.userwithdata.selectOne( {login: givenLogin} );
         phpMyFAQ.selectedUser.pass= phpMyFAQ.formulas.userlogin.selectOne( {login: givenLogin} ).pass;
         if( phpMyFAQ.selectedUser.pass===undefined || phpMyFAQ.selectedUser.pass==='' ) {

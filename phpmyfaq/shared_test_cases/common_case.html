@@ -149,15 +149,23 @@
 	<td>=`{ login: $login, user_id: new SeLiteData.SqlExpression( &quot;(SELECT COALESCE( MAX(user_id)+1, 0) FROM &quot; +phpMyFAQ.tables.user.nameWithPrefix()+')' )}`</td>
 	<td>=`phpMyFAQ.tables.user`</td>
 </tr>
+<!--  Following doesn't work-->
 <tr>
 	<td>&nbsp;&nbsp;store</td>
 	<td>$insertedRecordKey</td>
 	<td>user_id</td>
 </tr>
+<!--  -->
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
 	<td>=`{ login: $login, pass:$pass}`</td>
 	<td>=`phpMyFAQ.tables.userlogin`</td>
+</tr>
+<!--  Following doesn't work with $login-->
+<tr>
+	<td>&nbsp;&nbsp;getEval</td>
+	<td>LOG.error( 'login ' +storedVars.login )</td>
+	<td></td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;storeRecord</td>
