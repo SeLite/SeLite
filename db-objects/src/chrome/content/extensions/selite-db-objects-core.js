@@ -46,8 +46,7 @@ Selenium.prototype.getRecord= function getRecord( info ) {
 /** @param {object} recordObject
  *  @param {SeLiteData.Table} table
  * */
-Selenium.prototype.doInsertRecord= function doInsertRecord( recordObject, table) {debugger;
-    var record= new SeLiteData.Record(recordObject);
+Selenium.prototype.doInsertRecord= function doInsertRecord( recordObject, table) {    var record= new SeLiteData.Record(recordObject);
     //@TODO If we use generateInsertKey() with table - like formula.generateInsertKey() - then use it and store the generated key here
     table.insert(record);
     if( typeof table.primary==='string' ) {
