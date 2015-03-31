@@ -48,6 +48,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>&nbsp;&nbsp;assertElementPresent</td>
+	<td>ui=adminPages::currentUserDropdown()-&gt;xpath=/a/span[ contains(., \`phpMyFAQ.selectedUser.display_name`) ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;getEval</td>
+	<td>alert( phpMyFAQ.selectedUser.display_name )</td>
+	<td></td>
+</tr>
+<tr>
 	<td>endFunction</td>
 	<td></td>
 	<td></td>
@@ -70,7 +80,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;click</td>
-	<td>//a[ @class=&quot;dropdown-toggle&quot; ]//span[ contains(@title, 'Logged in as') ]/..</td>
+	<td>ui=allPages::loggedInAs()</td>
 	<td></td>
 </tr>
 <tr>
@@ -89,7 +99,87 @@
 	<td></td>
 </tr>
 <!---->
-<!--TODO and then use it:-->
+<tr>
+	<td>function</td>
+	<td>createUser</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;call</td>
+	<td>goToAdministration</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;clickAndWait</td>
+	<td>//a[ @href='index.php?action=user' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;clickAndWait</td>
+	<td>//a[ @href='?action=user&amp;user_action=add' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;typeRandom</td>
+	<td>user_name</td>
+	<td>login</td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;typeRandom</td>
+	<td>user_realname</td>
+	<td>display_name</td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;typeRandom</td>
+	<td>user_email</td>
+	<td>=`{type:'email', store:'email' }`</td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;typeRandom</td>
+	<td>password</td>
+	<td>=`{type: 'password', store: 'pass'}`</td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;type</td>
+	<td>password_confirm</td>
+	<td>${pass}</td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;clickAndWait</td>
+	<td>//button[ @type='submit' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;insertRecord</td>
+	<td>=`{ login: $login}`</td>
+	<td>=`phpMyFAQ.table.user`</td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;insertRecord</td>
+	<td>=`{ login: $login, pass:$pass}`</td>
+	<td>=`phpMyFAQ.table.userlogin`</td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;storeRecord</td>
+	<td>=`{ formula: phpMyFAQ.formulas.user, login: $login}`</td>
+	<td>user</td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;insertRecord</td>
+	<td>=`{ user_id: $user.id, display_name:$display_name, email:$email}`</td>
+	<td>=`phpMyFAQ.table.userdata`</td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;return</td>
+	<td>=`$user`</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!--  -->
 <!--This requires the password to be stored in the test DB in plain text. Like for accounts created by function createUser.-->
 <tr>
 	<td>function</td>
@@ -119,7 +209,12 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;click</td>
-	<td>//a[ @class=&quot;dropdown-toggle&quot; ]//span[ contains(@title, 'Logged in as') ]/..</td>
+	<td>//div[ @class='navbar-header' ]/button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;click</td>
+	<td>ui=allPages::loggedInAs()</td>
 	<td></td>
 </tr>
 <tr>

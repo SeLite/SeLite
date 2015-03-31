@@ -17,6 +17,10 @@
 "use strict";
 function onTreeDblClick(event) {
     var tree= event.currentTarget;
+    // If you double-click within Target or Value, keep the default behaviour: select the word.
+    if( tree.getAttribute('editing')==='true' && tree.editingColumn!==tree.columns[0] ) {
+        return;
+    }
     tree.stopEditing();
     tree.focus(); // otherwise Firefox command despatcher won't route the following command properly
     goDoCommand('cmd_selenium_exec_command');

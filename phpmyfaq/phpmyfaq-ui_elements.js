@@ -32,6 +32,11 @@
             </li>'
         }
     });
+    phpMyFAQ.uiMap.addElement('allPages', {
+       name: 'loggedInAs' ,
+       description: 'Span with info on currently logged user',
+       locator: "//a[ @class='dropdown-toggle' ]//span[ contains(@title, 'Logged in as') ]/.."
+    });
     // @TODO Why do I call the following? I think it's for development, so that when Bootstrap re-loads this file automatically, it re-runs the test.
     phpMyFAQ.uiMap.pagesets.allPages.uiElements.currentUserDropdown.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
     
@@ -69,7 +74,8 @@
     });
     phpMyFAQ.uiMap.pagesets.adminPages.uiElements.currentUserDropdown.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
     
-    /** object {
+    /** Beware: Admin navigation menu shrinks on mobile/small screen.
+     *  object {
      *    string sectionName: object {
      *        topLevel: string URL,
      *        secondLevel: object {
