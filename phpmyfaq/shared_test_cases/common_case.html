@@ -49,12 +49,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;assertElementPresent</td>
-	<td>ui=adminPages::currentUserDropdown()-&gt;xpath=/a/span[ contains(., \`phpMyFAQ.selectedUser.display_name`) ]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;getEval</td>
-	<td>alert( phpMyFAQ.selectedUser.display_name )</td>
+	<td>ui=allPages::currentUserDropdown()-&gt;xpath=/a/span[ contains(., \`phpMyFAQ.selectedUser.display_name`) ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -122,17 +117,17 @@
 <tr>
 	<td>&nbsp;&nbsp;typeRandom</td>
 	<td>user_name</td>
-	<td>login</td>
+	<td>=`{maxLength:128, store:'login'}`</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;typeRandom</td>
 	<td>user_realname</td>
-	<td>display_name</td>
+	<td>=`{maxLength:128, store:'display_name'}`</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;typeRandom</td>
 	<td>user_email</td>
-	<td>=`{type:'email', store:'email' }`</td>
+	<td>=`{maxLength:128, store:'email', type:'email' }`</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;typeRandom</td>
@@ -151,13 +146,18 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=`{ login: $login}`</td>
-	<td>=`phpMyFAQ.table.user`</td>
+	<td>=`{ login: $login, user_id: new SeLiteData.SqlExpression( &quot;(SELECT COALESCE( MAX(user_id)+1, 0) FROM &quot; +phpMyFAQ.tables.user.nameWithPrefix()+')' )}`</td>
+	<td>=`phpMyFAQ.tables.user`</td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;store</td>
+	<td>$insertedRecordKey</td>
+	<td>user_id</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
 	<td>=`{ login: $login, pass:$pass}`</td>
-	<td>=`phpMyFAQ.table.userlogin`</td>
+	<td>=`phpMyFAQ.tables.userlogin`</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;storeRecord</td>
@@ -166,8 +166,8 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=`{ user_id: $user.id, display_name:$display_name, email:$email}`</td>
-	<td>=`phpMyFAQ.table.userdata`</td>
+	<td>=`{ user_id: $user_id, display_name:$display_name, email:$email}`</td>
+	<td>=`phpMyFAQ.tables.userdata`</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;return</td>

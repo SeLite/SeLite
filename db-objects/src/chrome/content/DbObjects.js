@@ -81,18 +81,25 @@ SeLiteData.Table.prototype.nameWithPrefix= function nameWithPrefix() {
  * */
 SeLiteData.Table.prototype.insert= function insert( record ) {
     // I don't use asynchronous API, because I don't know how to use it with classic program control flow. Therefore I need to list all columns.
-    var givenColumns= [];
+    var columns= [];
+    var columnPlaceholders= []; // :columnName, or SeLiteData.SQLExpression literal
     var bindings= {};
     for( var column in record ) {
         if( column==='toString' ) {
             continue;
         }
         this.columns.indexOf(column)>=0 || SeLiteMisc.fail( "Column " +column+ " is not among columns defined for table " +this.nameWithPrefix() );
-        givenColumns.push( column );
-        bindings[ column ]= record[ column ];
+        columns.push( column );
+        if( !(record[column] instanceof SeLiteData.SqlExpression) ) {
+            bindings[ column ]= record[ column ];
+            columnPlaceholders.push( ':' +column );
+        }
+        else {
+            columnPlaceholders.push( record[column] );
+        }
     }
-    var query= 'INSERT INTO ' +this.nameWithPrefix()+ '('+ givenColumns.join(', ')+ ') '+
-        'VALUES (:' +givenColumns.join(', :')+ ')';
+    var query= 'INSERT INTO ' +this.nameWithPrefix()+ '('+ columns.join(', ')+ ') '+
+        'VALUES (' +columnPlaceholders.join(', ')+ ')';
     this.db.storage.execute( query, bindings );
 };
 
@@ -653,7 +660,7 @@ RecordSetHolder.prototype.select= function select() {
     var columns= {};
     // @TODO potentially use allAliasesToSource() to simplify the following
     for( var tableName in formula.columns ) { // excluding prefix
-        debugger;var columnsToAliases= formula.columnsToAliases( tableName );
+        var columnsToAliases= formula.columnsToAliases( tableName );
         var tableAlias; // tableAlias, if specified
         var table; // Table object for tableName. Used to get table name with prefix if tableAlias is undefined.
         if( tableName==formula.table.name ) {
