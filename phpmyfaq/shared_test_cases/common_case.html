@@ -112,7 +112,7 @@
 <tr>
 	<td>&nbsp;&nbsp;typeRandom</td>
 	<td>user_name</td>
-	<td>=`{maxLength:128, store:'login'}`</td>
+	<td>=`{maxLength:128, store:'login', characters:/[a-zA-Z1-9_-]/}`</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;typeRandom</td>
@@ -216,7 +216,7 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;click</td>
+	<td>&nbsp;&nbsp;click</td>
 	<td>ui=allPages::loggedInAs()</td>
 	<td></td>
 </tr>

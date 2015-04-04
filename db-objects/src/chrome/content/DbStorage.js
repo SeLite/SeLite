@@ -174,7 +174,6 @@ SeLiteData.Storage.prototype.select= function select( query, bindings, fields ) 
     }
     this.connection() || SeLiteMisc.fail( 'SeLiteData.Storage.connection() is not set. SQLite file name: ' +this.parameters.fileName );
     //console.log( 'SeLite: ' +query );
-    debugger;
     var stmt= this.connection().createStatement( query );
     for( var field in bindings ) {
         try {
@@ -224,7 +223,6 @@ SeLiteData.Storage.prototype.selectOne= function selectOne( query, bindings, fie
  *  @throws error on failure
  **/
 SeLiteData.Storage.prototype.execute= function execute( query, bindings ) {
-    debugger;
     if( !bindings ) {
         this.connection().executeSimpleSQL( query );
     }
@@ -428,7 +426,6 @@ SeLiteData.Storage.prototype.updateRecords= function updateRecords( params ) {
     if( params.debugQuery!==undefined && params.debugQuery ) {
         console.log( query );
     }
-    debugger;
     var stmt= this.connection().createStatement( query );
     try {
         stmt.execute();
@@ -488,7 +485,6 @@ SeLiteData.Storage.prototype.removeRecordByPrimary= function removeRecordByPrima
         conditionParts.push( primaryKey[i]+ '=' +this.quoteValues( record[primaryKey[i]] ) );
     }
     var query= "DELETE FROM " +tableName+ " WHERE " +conditionParts.join( 'AND' );
-    debugger;
     var stmt= this.connection().createStatement( query );
     try {
         stmt.execute();
@@ -528,7 +524,6 @@ SeLiteData.Storage.prototype.insertRecord= function insertRecord( params ) {
     if( params.debugQuery!==undefined && params.debugQuery ) {
         console.log( query );
     }
-    debugger;
     var stmt= this.connection().createStatement( query );
     try {
         stmt.execute();
