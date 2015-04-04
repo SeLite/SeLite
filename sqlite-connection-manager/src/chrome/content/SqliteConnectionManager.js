@@ -210,12 +210,17 @@ SQLiteConnectionInfo.prototype.open= function open() {
         var cacheSize= null; // By the end of this block, cacheSize will be the result cache size, in DB pages
         if( this.parameters.cacheRatio!=null ) {
             var stmt= connection.createStatement( "PRAGMA page_count" );
-            if( !stmt.executeStep() ) {
-                throw "Couldn't get PRAGMA page_count";
+            var dbSize;
+            try {
+                if( !stmt.executeStep() ) {
+                    throw "Couldn't get PRAGMA page_count";
+                }
+                // typeof stmt.row.page_count is 'number' - very good
+                dbSize= stmt.row.page_count; // in DB pages
             }
-            // typeof stmt.row.page_count is 'number' - very good
-            var dbSize= stmt.row.page_count; // in DB pages
-            stmt.finalize();
+            finally {
+                stmt.finalize();
+            }
             cacheSize= Math.round( dbSize*this.parameters.cacheRatio );
         }
         else { // get the default page size

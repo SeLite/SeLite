@@ -29,16 +29,19 @@
 <!---->
 <tr>
 	<td>call</td>
-	<td>createUser</td>
+	<td>goToAdministration</td>
 	<td></td>
 </tr>
 <tr>
-	<td>call</td>
-	<td>logIn</td>
-	<td>loginOrAmpRole=$_result.login</td>
+	<td>getEval</td>
+	<td>LOG.error( SeLiteMisc.objectToString(phpMyFAQ.selectedUser, 2) )</td>
+	<td></td>
 </tr>
-<!---->
-<!--When definition of UI element fails to be loaded, Selenium IDE highlighs the command in red, but it doesn't increase Failures!-->
+<tr>
+	<td>pause</td>
+	<td>150</td>
+	<td></td>
+</tr>
 <tr>
 	<td>assertElementPresent</td>
 	<td>ui=adminPages::currentUserDropdown()-&gt;xpath=/a/span[ contains(., \`phpMyFAQ.selectedUser.display_name`) ]</td>
@@ -62,6 +65,39 @@
 <tr>
 	<td>assertElementPresent</td>
 	<td>ui=adminPages::secondNavigation(section=Users,item=Change Password)</td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>call</td>
+	<td>createUser</td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>storedVars._result</td>
+	<td>createdUser</td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>logOut</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ensureUnderWebRoot</td>
+	<td>` true `</td>
+	<td></td>
+</tr>
+<tr>
+	<td>call</td>
+	<td>logIn</td>
+	<td>loginOrAmpRole=$createdUser.login</td>
+</tr>
+<!---->
+<!--When definition of UI element fails to be loaded, Selenium IDE highlighs the command in red, but it doesn't increase Failures!-->
+<tr>
+	<td>assertElementPresent</td>
+	<td>ui=allPages::currentUserDropdown()-&gt;xpath=/a/span[ contains(., \`phpMyFAQ.selectedUser.display_name`) ]</td>
 	<td></td>
 </tr>
 </tbody></table>
