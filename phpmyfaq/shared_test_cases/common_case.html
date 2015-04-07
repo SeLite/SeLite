@@ -144,7 +144,7 @@
 	<td>=`{ login: $login, user_id: new SeLiteData.SqlExpression( &quot;(SELECT COALESCE( MAX(user_id)+1, 0) FROM &quot; +phpMyFAQ.tables.user.nameWithPrefix()+')' )}`</td>
 	<td>=`phpMyFAQ.tables.user`</td>
 </tr>
-<!--  Following doesn't work!!!-->
+<!--  Following doesn't work with $insertedRecordKey-->
 <tr>
 	<td>&nbsp;&nbsp;storeEval</td>
 	<td>storedVars.insertedRecordKey</td>
