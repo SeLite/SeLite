@@ -1,3 +1,3 @@
-SeLite enables automated navigation of web applications that can use a database. It serves for functional testing, with test data isolated from the tested web application. It can be used for non-testing purposes, such as automated web-based administration or data mining/modification.
+SeLite automates navigation of web applications. It allows database-driven operation. It serves for functional testing, with test data isolated from the tested application. You can also use it for non-testing purposes, such as automated administration or data mining.
 
-See [Documentation](http://selite.github.io/).
+See its extensive [documentation](http://selite.github.io/).
