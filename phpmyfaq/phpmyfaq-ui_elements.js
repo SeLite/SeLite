@@ -14,6 +14,17 @@
         pathRegexp: '.*'
     });
     phpMyFAQ.uiMap.addElement('allPages', {
+       name: 'loggedInAs' ,
+       description: 'Span with info on currently logged user',
+       locator: "//a[ @class='dropdown-toggle' ]//span[ contains(@title, 'Logged in as') ]/.."
+    });
+    
+    phpMyFAQ.uiMap.addPageset({
+        name: 'nonAdminPages',
+        description: 'Non-admin phpMyFAQ pages',
+        pathRegexp: '(?!admin/).*'
+    });
+    phpMyFAQ.uiMap.addElement('nonAdminPages', {
         name: 'currentUserDropdown',
         description: '<li> with menu for the currently logged in user (if any). For ordinary pages only, not for pages under "admin/".',
         locator: '//a[ @class="dropdown-toggle" ]//b[ contains(@class, "caret") ]/preceding-sibling::span/../..',
@@ -22,8 +33,8 @@
             '<li class="dropdown" expected-result="1">\
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">\
                     <b class="fa fa-user"></b>\
-                    <span title="Logged in as pkehl">\
-                        Pete                    </span>\
+                    <span title="Logged in as username-here">\
+                        Name-of-user-here                    </span>\
                     <b class="fa fa-caret-down"></b>\
                 </a>\
                 <ul class="dropdown-menu">\
@@ -32,13 +43,8 @@
             </li>'
         }
     });
-    phpMyFAQ.uiMap.addElement('allPages', {
-       name: 'loggedInAs' ,
-       description: 'Span with info on currently logged user',
-       locator: "//a[ @class='dropdown-toggle' ]//span[ contains(@title, 'Logged in as') ]/.."
-    });
     // @TODO Why do I call the following? I think it's for development, so that when Bootstrap re-loads this file automatically, it re-runs the test.
-    phpMyFAQ.uiMap.pagesets.allPages.uiElements.currentUserDropdown.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
+    phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.currentUserDropdown.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
     
     phpMyFAQ.uiMap.addPageset({
         name: 'adminPages',

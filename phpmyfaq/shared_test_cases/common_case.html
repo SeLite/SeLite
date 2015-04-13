@@ -49,7 +49,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;assertElementPresent</td>
-	<td>ui=allPages::currentUserDropdown()-&gt;xpath=/a/span[ contains(., \`phpMyFAQ.selectedUser.display_name`) ]</td>
+	<td>ui=nonAdminPages::currentUserDropdown()-&gt;xpath=/a/span[ contains(., \`phpMyFAQ.selectedUser.display_name`) ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -73,6 +73,7 @@
 	<td>$userLoggedIn</td>
 	<td></td>
 </tr>
+<!--  TODO Following depends on screen size (Bootstrap behavior)-->
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;click</td>
 	<td>ui=allPages::loggedInAs()</td>
@@ -144,7 +145,6 @@
 	<td>=`{ login: $login, user_id: new SeLiteData.SqlExpression( &quot;(SELECT COALESCE( MAX(user_id)+1, 0) FROM &quot; +phpMyFAQ.tables.user.nameWithPrefix()+')' )}`</td>
 	<td>=`phpMyFAQ.tables.user`</td>
 </tr>
-<!--  Following doesn't work with $insertedRecordKey-->
 <tr>
 	<td>&nbsp;&nbsp;storeEval</td>
 	<td>storedVars.insertedRecordKey</td>
@@ -156,7 +156,6 @@
 	<td>=`{ login: $login, pass:$pass}`</td>
 	<td>=`phpMyFAQ.tables.userlogin`</td>
 </tr>
-<!--  Following doesn't work with $login-->
 <tr>
 	<td>&nbsp;&nbsp;getEval</td>
 	<td>LOG.error( 'login ' +storedVars.login )</td>
