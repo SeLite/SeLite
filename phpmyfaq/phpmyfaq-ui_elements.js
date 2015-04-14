@@ -24,9 +24,15 @@
         description: 'Non-admin phpMyFAQ pages',
         pathRegexp: '(?!admin/).*'
     });
+    
+    phpMyFAQ.uiMap.addElement('nonAdminPages', {
+        name: 'mobileMenuButton',
+        description: 'button for the Bootstrap menu in mobile mode.',
+        locator: "//button/span[ .='Toggle navigation' ]/.."
+    } );
     phpMyFAQ.uiMap.addElement('nonAdminPages', {
         name: 'currentUserDropdown',
-        description: '<li> with menu for the currently logged in user (if any). For ordinary pages only, not for pages under "admin/".',
+        description: '<li> with menu for the currently logged in user (if any).',
         locator: '//a[ @class="dropdown-toggle" ]//b[ contains(@class, "caret") ]/preceding-sibling::span/../..',
         testcase1: {
             xhtml:
