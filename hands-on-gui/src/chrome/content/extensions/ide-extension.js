@@ -129,6 +129,7 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
         );
         tree.startEditing( tree.currentIndex, tree.columns[0] );
         if( indentationLength ) {
+            // Schedule TreeView.putCaretAfterLeadingSpaces() after the above DOM changes get processed
             window.setTimeout( TreeView.putCaretAfterLeadingSpaces, 0 );
         }
     };
@@ -228,6 +229,7 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                     );
                     tree.startEditing( editingRow, otherColumn );
                     if( otherColumn===tree.columns[0] ) {
+                        // Schedule TreeView.putCaretAfterLeadingSpaces() after the above DOM changes get processed
                         window.setTimeout( TreeView.putCaretAfterLeadingSpaces, 0 );
                     }
                 }
@@ -255,6 +257,7 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                     );
                     tree.startEditing( otherRow, otherColumn );
                     if( otherColumn===tree.columns[0] ) {
+                        // Schedule TreeView.putCaretAfterLeadingSpaces() after the above DOM changes get processed
                         window.setTimeout( TreeView.putCaretAfterLeadingSpaces, 0 );
                     }
                 }
@@ -272,6 +275,7 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
                     : ''
                 );
                 tree.startEditing( tree.currentIndex, tree.columns.getColumnAt(0) );
+                // Schedule TreeView.putCaretAfterLeadingSpaces() after the above DOM changes get processed
                 window.setTimeout( TreeView.putCaretAfterLeadingSpaces, 0 );
             }
         }

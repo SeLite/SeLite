@@ -21,7 +21,7 @@ limitations under the License.
         <script type="application/x-javascript" src="chrome://selite-hands-on-gui/content/ui/handlers.js"/>
         <script type="application/x-javascript">
         //<![CDATA[
-                window.setTimeout( function() {
+                function setUp() {
                     var XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
                   // Verbatim copy of function _loadSeleniumCommands() from Selenium's treeView.js, except for ID on the last line. Watch out: if you factor this code somewhere else, then replace 'this.editor' with 'window.editor'.
                   
@@ -86,7 +86,16 @@ limitations under the License.
                     tree.inputField.setAttribute( 'enablehistory', "true" );
                     tree.inputField.setAttribute( "sizetopopup", "pref" );
                     tree.inputField.disableautocomplete= false;
-                }, 1500 );
+                }
+                function delaySetUp() {
+                    if( this.editor ) {
+                        setUp();
+                    }
+                    else { // Loop-like wait until Selenium sets up this.editor
+                        window.setTimeout( delaySetUp, 300 );
+                    }
+                }
+                delaySetUp();
         //]]>
         </script>
     </window>
