@@ -47,6 +47,7 @@
 	<td>//form//div[ @class=&quot;form-actions&quot; ]//button[ @type=&quot;submit&quot; ]</td>
 	<td></td>
 </tr>
+<!--  TODO Following is admi-specific. Make this function generic.-->
 <tr>
 	<td>&nbsp;&nbsp;assertElementPresent</td>
 	<td>ui=nonAdminPages::currentUserDropdown()-&gt;xpath=/a/span[ contains(., \`phpMyFAQ.selectedUser.display_name`) ]</td>
@@ -280,11 +281,48 @@
 	<td></td>
 </tr>
 <!--  -->
+<!--  TODO delete closeBootstrapMenu-->
 <!--Open Bootstrap menu, if in mobile mode (and expanded already). Only for non-admin pages.-->
 <!--Don't use directly. Use function clickNonAdminMenu instead.-->
 <tr>
 	<td>function</td>
 	<td>closeBootstrapMenu</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;if</td>
+	<td>javascript{ window.opener.innerWidth&lt;=1020 }</td>
+	<td></td>
+</tr>
+<!--    A combination of if... and an isXyz() condition:-->
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;if</td>
+	<td>selenium.isVisible( 'id=pmf-navbar-collapse' )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;click</td>
+	<td>ui=nonAdminPages::mobileMenuButton()</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pause</td>
+	<td>100</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assertNotVisible</td>
+	<td>id=pmf-navbar-collapse</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;endIf</td>
+	<td></td>
 	<td></td>
 </tr>
 <tr>
@@ -301,11 +339,6 @@
 <tr>
 	<td>&nbsp;&nbsp;call</td>
 	<td>openBootstrapMenu</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;call</td>
-	<td>closeBootstrapMenu</td>
 	<td></td>
 </tr>
 <tr>

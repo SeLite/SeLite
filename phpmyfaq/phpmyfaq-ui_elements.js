@@ -13,6 +13,7 @@
         description: 'all phpMyFAQ pages',
         pathRegexp: '.*'
     });
+    // @TODO centralise with currentUserDropdown?:
     phpMyFAQ.uiMap.addElement('allPages', {
        name: 'loggedInAs' ,
        description: 'Span with info on currently logged user',
@@ -24,7 +25,6 @@
         description: 'Non-admin phpMyFAQ pages',
         pathRegexp: '(?!admin/).*'
     });
-    
     phpMyFAQ.uiMap.addElement('nonAdminPages', {
         name: 'mobileMenuButton',
         description: 'button for the Bootstrap menu in mobile mode.',
@@ -51,6 +51,31 @@
     });
     // @TODO Why do I call the following? I think it's for development, so that when Bootstrap re-loads this file automatically, it re-runs the test.
     phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.currentUserDropdown.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
+    phpMyFAQ.uiMap.addElement( 'nonAdminPages', {
+       name: 'categoriesDropdown',
+       description: '"Categories" dropdown menu',
+       locator: "//a[ @class='dropdown-toggle' and contains(., 'Categories') ]" 
+    });
+    phpMyFAQ.uiMap.addElement( 'nonAdminPages', {
+       name: 'instantResponse',
+       description: 'Top menu > Instant Response',
+       locator: "//a[ @href='index.php?action=instantresponse' ]" 
+    });
+    phpMyFAQ.uiMap.addElement( 'nonAdminPages', {
+       name: 'addNewFAQ',
+       description: 'Top menu > Add new FAQ',
+       locator: "//a[ contains( @href, 'index.php?action=add&cat=' ) ]" 
+    });
+    phpMyFAQ.uiMap.addElement( 'nonAdminPages', {
+       name: 'addQuestion',
+       description: 'Top menu > Add question',
+       locator: "//a[ contains( @href, 'index.php?action=ask&category_id=' ) ]" 
+    });
+    phpMyFAQ.uiMap.addElement( 'nonAdminPages', {
+       name: 'openQuestions',
+       description: 'Top menu > Open questions',
+       locator: "//a[ contains( @href, 'index.php?action=open' ) ]" 
+    });
     
     phpMyFAQ.uiMap.addPageset({
         name: 'adminPages',
