@@ -237,18 +237,40 @@
 	<td>openBootstrapMenu</td>
 	<td></td>
 </tr>
+<!--  resizeTo(), innerWidth and innerHeight don't work in getEval with window, neither with this.browserbot.getCurrentWindow()-->
 <tr>
 	<td>&nbsp;&nbsp;if</td>
 	<td>javascript{ window.opener.innerWidth&lt;=1020 }</td>
 	<td></td>
 </tr>
+<!--    A combination of if... and an isXyz() condition:-->
 <tr>
-	<td>&nbsp;&nbsp;assertVisible</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;if</td>
+	<td>!selenium.isVisible( 'id=pmf-navbar-collapse' )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;click</td>
+	<td>ui=nonAdminPages::mobileMenuButton()</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pause</td>
+	<td>100</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assertVisible</td>
 	<td>id=pmf-navbar-collapse</td>
 	<td></td>
 </tr>
 <tr>
-	<td> endIf</td>
+	<td>&nbsp;&nbsp;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
