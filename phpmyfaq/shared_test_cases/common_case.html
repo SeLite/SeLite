@@ -111,27 +111,27 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;typeRandom</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>user_name</td>
 	<td>=`{maxLength:128, store:'login', characters:/[a-zA-Z1-9_-]/}`</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;typeRandom</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>user_realname</td>
 	<td>=`{maxLength:128, store:'display_name'}`</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;typeRandom</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>user_email</td>
 	<td>=`{maxLength:128, store:'email', type:'email' }`</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;typeRandom</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>password</td>
 	<td>=`{type: 'password', store: 'pass'}`</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;type</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
 	<td>password_confirm</td>
 	<td>${pass}</td>
 </tr>
@@ -141,33 +141,33 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;insertRecord</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
 	<td>=`{ login: $login, user_id: new SeLiteData.SqlExpression( &quot;(SELECT COALESCE( MAX(user_id)+1, 0) FROM &quot; +phpMyFAQ.tables.user.nameWithPrefix()+')' )}`</td>
 	<td>=`phpMyFAQ.tables.user`</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;storeEval</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
 	<td>storedVars.insertedRecordKey</td>
 	<td>user_id</td>
 </tr>
-<!--  -->
+<!--    -->
 <tr>
-	<td>&nbsp;&nbsp;insertRecord</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
 	<td>=`{ login: $login, pass:$pass}`</td>
 	<td>=`phpMyFAQ.tables.userlogin`</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;getEval</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;getEval</td>
 	<td>LOG.error( 'login ' +storedVars.login )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;storeRecord</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeRecord</td>
 	<td>=`{ formula: phpMyFAQ.formulas.user, login: $login}`</td>
 	<td>user</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;insertRecord</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
 	<td>=`{ user_id: $user_id, display_name:$display_name, email:$email}`</td>
 	<td>=`phpMyFAQ.tables.userdata`</td>
 </tr>
@@ -235,7 +235,7 @@
 <!--Don't use directly. Use function clickNonAdminMenu instead.-->
 <tr>
 	<td>function</td>
-	<td>openBootstrapMenu</td>
+	<td>openBootstrapMenuIfApplicable</td>
 	<td></td>
 </tr>
 <!--  resizeTo(), innerWidth and innerHeight don't work in getEval with window, neither with this.browserbot.getCurrentWindow()-->
@@ -281,56 +281,6 @@
 	<td></td>
 </tr>
 <!--  -->
-<!--  TODO delete closeBootstrapMenu-->
-<!--Open Bootstrap menu, if in mobile mode (and expanded already). Only for non-admin pages.-->
-<!--Don't use directly. Use function clickNonAdminMenu instead.-->
-<tr>
-	<td>function</td>
-	<td>closeBootstrapMenu</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;if</td>
-	<td>javascript{ window.opener.innerWidth&lt;=1020 }</td>
-	<td></td>
-</tr>
-<!--    A combination of if... and an isXyz() condition:-->
-<tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;if</td>
-	<td>selenium.isVisible( 'id=pmf-navbar-collapse' )</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;click</td>
-	<td>ui=nonAdminPages::mobileMenuButton()</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pause</td>
-	<td>100</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assertNotVisible</td>
-	<td>id=pmf-navbar-collapse</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;endIf</td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
-	<td>endFunction</td>
-	<td></td>
-	<td></td>
-</tr>
-<!--  -->
 <tr>
 	<td>function</td>
 	<td>clickNonAdminMenu</td>
@@ -338,7 +288,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;call</td>
-	<td>openBootstrapMenu</td>
+	<td>openBootstrapMenuIfApplicable</td>
 	<td></td>
 </tr>
 <tr>
