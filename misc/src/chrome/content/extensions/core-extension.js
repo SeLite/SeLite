@@ -130,6 +130,16 @@ Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
 
     var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
     
+    var originalSelenium= Selenium;
+    Selenium= function Selenium(browserbot) {
+        originalSelenium.call( this, browserbot );
+        SeLiteMisc.selenium= this;
+    };
+    Selenium.prototype= originalSelenium.prototype;
+    for( var functionName in originalSelenium ) {
+        Selenium[functionName]= originalSelenium[functionName];
+    }
+    
     Selenium.prototype.doRunJavascript= function doRunJavascript( fileURL, scope ) {
         fileURL+= fileURL.indexOf('?')<0
             ? '?'

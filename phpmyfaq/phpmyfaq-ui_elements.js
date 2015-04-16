@@ -111,6 +111,15 @@
     });
     phpMyFAQ.uiMap.pagesets.adminPages.uiElements.currentUserDropdown.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
     
+    /** @return {string} Locator of current user dropdown, depending on current URL. It works for both admin and non-admin pages. The only menu item under this dropdown common on both types of pages is Logout link, so this serves to locate it in a uniform way.
+     * */
+    phpMyFAQ.currentUserDropdownLocator= function currentUserDropdownLocator() {
+        // @TODO DOC Selenese > ???: CombiningExpressions: Use variable selenium in Selenium Core scope (or SeLiteMisc.selenium in JS module scope) for the same as what 'this' keyword is in context of getEval().
+        return SeLiteSettings.appPath().startsWith( '/admin/' )
+            ? 'ui=adminPages::currentUserDropdown()'
+            : 'ui=nonAdminPages::currentUserDropdown()';
+    };
+    
     /** Beware: Admin navigation menu shrinks on mobile/small screen.
      *  object {
      *    string sectionName: object {
@@ -390,4 +399,3 @@
     });
     phpMyFAQ.uiMap.pagesets.adminPages.uiElements.secondNavigation.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
 })();
-

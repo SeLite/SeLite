@@ -2072,8 +2072,8 @@ SeLiteSettings.webRoot= function webRoot() {
     return entry;
 };
 
-/** @return {string} URL of the application, based on SeLiteSettings.webRoot() and given path.
- * @param {string} [path] Absolute path relative to webroot. It can start with '/' or without it. Optional - if not present, then this just returns webroot.
+/** @return {string} URL of the application, based on SeLiteSettings.webRoot() and the given path.
+ * @param {string} [path] URI, absolute path, relative to webroot. It can start with '/' or without it. Optional - if not present, then this just returns webroot.
  * */
 SeLiteSettings.webURL= function webURL( path ) {
     path= path || '';
@@ -2081,6 +2081,17 @@ SeLiteSettings.webURL= function webURL( path ) {
         path= path.substring(1);
     }
     return SeLiteSettings.webRoot()+path;
+};
+
+/** Get application webroot-relative path out of given full URL. Use this instead of SeLiteMisc.selenium.browserbot.getCurrentWindow().location.pathname, which may be under a sub(sub...)folder of site webroot.
+ *  @param {string} [webURL] Full URL. Optional - it defaults to current URL.
+ *  @return {string} URI, in an absolute form (starting with /), relative to application's webroot as per SeLiteSettings.webRoot().
+ * */
+SeLiteSettings.appPath= function appPath( webURL ) {
+    webURL= webURL || SeLiteMisc.selenium.browserbot.getCurrentWindow().location.href;
+    var webRoot= SeLiteSettings.webRoot();
+    webURL.startsWith(webRoot) || SeLiteMisc.fail( 'Given webURL ' +webURL+ ' is not under webRoot: ' +webRoot );
+    return webURL.substr( webRoot.length-1 );
 };
 
 loadingPackageDefinition= false;
