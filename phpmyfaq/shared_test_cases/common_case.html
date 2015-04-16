@@ -33,12 +33,12 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;type</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
 	<td>id=faqusername</td>
 	<td>${login}</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;type</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
 	<td>id=faqpassword</td>
 	<td>`phpMyFAQ.selectedUser.pass`</td>
 </tr>
@@ -47,10 +47,9 @@
 	<td>//form//div[ @class=&quot;form-actions&quot; ]//button[ @type=&quot;submit&quot; ]</td>
 	<td></td>
 </tr>
-<!--  TODO Following is admi-specific. Make this function generic.-->
 <tr>
 	<td>&nbsp;&nbsp;assertElementPresent</td>
-	<td>ui=nonAdminPages::currentUserDropdown()-&gt;xpath=/a/span[ contains(., \`phpMyFAQ.selectedUser.display_name`) ]</td>
+	<td>ui=allPages::loggedInAs()-&gt;xpath=/self::span[ contains(., \`phpMyFAQ.selectedUser.display_name` ) ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -77,7 +76,7 @@
 <!--  TODO Following depends on screen size (Bootstrap behavior)-->
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;click</td>
-	<td>ui=allPages::loggedInAs()</td>
+	<td>//nav</td>
 	<td></td>
 </tr>
 <tr>
@@ -215,6 +214,7 @@
 	<td>//div[ @class='navbar-header' ]/button</td>
 	<td></td>
 </tr>
+<!--  TODO -->
 <tr>
 	<td>&nbsp;&nbsp;click</td>
 	<td>ui=allPages::loggedInAs()</td>

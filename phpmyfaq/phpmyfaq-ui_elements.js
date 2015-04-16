@@ -13,11 +13,10 @@
         description: 'all phpMyFAQ pages',
         pathRegexp: '.*'
     });
-    // @TODO centralise with currentUserDropdown?:
     phpMyFAQ.uiMap.addElement('allPages', {
        name: 'loggedInAs' ,
-       description: 'Span with info on currently logged user',
-       locator: "//a[ @class='dropdown-toggle' ]//span[ contains(@title, 'Logged in as') ]/.."
+       description: 'Span with name of the currently logged user',
+       locator: "//a[ @class='dropdown-toggle' ]//span[ contains(@title, 'Logged in as') ]"
     });
     
     phpMyFAQ.uiMap.addPageset({
