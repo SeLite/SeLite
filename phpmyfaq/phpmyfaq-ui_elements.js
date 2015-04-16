@@ -32,20 +32,14 @@
     phpMyFAQ.uiMap.addElement('nonAdminPages', {
         name: 'currentUserDropdown',
         description: '<li> with menu for the currently logged in user (if any).',
-        locator: '//a[ @class="dropdown-toggle" ]//b[ contains(@class, "caret") ]/preceding-sibling::span/../..',
+        locator: "//ul[ contains(@class, 'navbar-nav') and  position()=2 ]/li[ contains(@class, 'dropdown') ]",
         testcase1: {
             xhtml:
-            '<li class="dropdown" expected-result="1">\
-                <a class="dropdown-toggle" data-toggle="dropdown" href="#">\
-                    <b class="fa fa-user"></b>\
-                    <span title="Logged in as username-here">\
-                        Name-of-user-here                    </span>\
-                    <b class="fa fa-caret-down"></b>\
-                </a>\
-                <ul class="dropdown-menu">\
-                    <li>...</li>\
-                </ul>\
-            </li>'
+            '<ul class="nav navbar-nav">(The first dropdown - Categories)\n\
+             </ul>\
+             <ul class="nav navbar-nav navbar-right">\n\
+                <li class="dropdown" expected-result="1">...</li>\n\
+             </ul>'
         }
     });
     // @TODO Why do I call the following? I think it's for development, so that when Bootstrap re-loads this file automatically, it re-runs the test.

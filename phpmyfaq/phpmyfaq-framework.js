@@ -85,7 +85,14 @@ SeLiteMisc.registerOrExtendFramework( function() {
        columns: ['id', 'lang', 'visits', 'last_visit'],
        primary: ['id', 'login']
     });
-
+    phpMyFAQ.tables.categories= new SeLiteData.Table( {
+       db:  phpMyFAQ.db,
+       name: 'categories',
+       columns: ['id', 'lang', 'parent_id', 'name', 'description', 'user_id', 'active'],
+       primary: ['id']
+    });
+// category_user: .category_id, .user_id
+debugger;
     phpMyFAQ.formulas= {
         user: phpMyFAQ.tables.user.formula(),
         userdata: phpMyFAQ.tables.userdata.formula(),
@@ -104,6 +111,12 @@ SeLiteMisc.registerOrExtendFramework( function() {
                 on: phpMyFAQ.tables.user.name+ '.user_id=userdata.user_id'
             }]
         }
-        )
+        ),
+        categories: new SeLiteData.RecordSetFormula( {
+            table: phpMyFAQ.tables.categories,
+            columns: new SeLiteMisc.Settable().set(
+                phpMyFAQ.tables.categories.name, SeLiteData.RecordSetFormula.ALL_FIELDS ),
+            fetchCondition: "active=1"
+        })
     };
 }, 'phpMyFAQ' );

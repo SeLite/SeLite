@@ -18,13 +18,8 @@
 	<td>loginOrAmpRole</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;storeEval</td>
-	<td>SeLiteSettings.roleToUser( '${loginOrAmpRole}' )</td>
-	<td>login</td>
-</tr>
-<tr>
 	<td>&nbsp;&nbsp;getEval</td>
-	<td>phpMyFAQ.selectUserByLogin( storedVars.login )</td>
+	<td>phpMyFAQ.selectUserByLogin( SeLiteSettings.roleToUser( '${loginOrAmpRole}' ) )</td>
 	<td></td>
 </tr>
 <tr>
@@ -35,7 +30,7 @@
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
 	<td>id=faqusername</td>
-	<td>${login}</td>
+	<td>`phpMyFAQ.selectedUser.login`</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
@@ -48,7 +43,7 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;assertElementPresent</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;assertElementPresent</td>
 	<td>ui=allPages::loggedInAs()-&gt;xpath=/self::span[ contains(., \`phpMyFAQ.selectedUser.display_name` ) ]</td>
 	<td></td>
 </tr>
@@ -79,7 +74,7 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;pause</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pause</td>
 	<td>150</td>
 	<td></td>
 </tr>
@@ -230,6 +225,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pause</td>
+	<td>150</td>
+	<td></td>
+</tr>
+<tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
 	<td>` phpMyFAQ.currentUserDropdownLocator() `-&gt;//a[ @href='` SeLiteSettings.webURL('admin/index.php') `' ]</td>
 	<td></td>
@@ -271,7 +271,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pause</td>
-	<td>250</td>
+	<td>150</td>
 	<td></td>
 </tr>
 <tr>
@@ -287,22 +287,6 @@
 <tr>
 	<td>&nbsp;&nbsp;endIf</td>
 	<td></td>
-	<td></td>
-</tr>
-<tr>
-	<td>endFunction</td>
-	<td></td>
-	<td></td>
-</tr>
-<!--  -->
-<tr>
-	<td>function</td>
-	<td>clickNonAdminMenu</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;call</td>
-	<td>openBootstrapMenuIfCollapsed</td>
 	<td></td>
 </tr>
 <tr>
