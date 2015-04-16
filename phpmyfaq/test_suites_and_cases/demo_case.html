@@ -33,27 +33,22 @@
 	<td></td>
 </tr>
 <tr>
-	<td>getEval</td>
+	<td>&nbsp;&nbsp;getEval</td>
 	<td>LOG.error( SeLiteMisc.objectToString(phpMyFAQ.selectedUser, 2) )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>pause</td>
-	<td>150</td>
-	<td></td>
-</tr>
-<tr>
-	<td>assertElementPresent</td>
+	<td>&nbsp;&nbsp;assertElementPresent</td>
 	<td>ui=adminPages::currentUserDropdown()-&gt;xpath=/a/span[ contains(., \`phpMyFAQ.selectedUser.display_name`) ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>click</td>
+	<td>clickAndWait</td>
 	<td>ui=adminPages::currentUserDropdown()-&gt;//a[ contains(@href, 'action=passwd') ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>assertElementPresent</td>
+	<td>&nbsp;&nbsp;assertElementPresent</td>
 	<td>ui=adminPages::topNavigation(section=Dashboard)</td>
 	<td></td>
 </tr>
@@ -63,7 +58,12 @@
 	<td></td>
 </tr>
 <tr>
-	<td>assertElementPresent</td>
+	<td>&nbsp;&nbsp;pause</td>
+	<td>250</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;assertElementPresent</td>
 	<td>ui=adminPages::secondNavigation(section=Users,item=Change Password)</td>
 	<td></td>
 </tr>
@@ -102,7 +102,7 @@
 </tr>
 <tr>
 	<td>call</td>
-	<td>openBootstrapMenu</td>
+	<td>openBootstrapMenuIfCollapsed</td>
 	<td></td>
 </tr>
 <tr>
@@ -128,16 +128,6 @@
 <tr>
 	<td>click</td>
 	<td>ui=nonAdminPages::openQuestions()</td>
-	<td></td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>id=page-wrapper</td>
-	<td></td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>` phpMyFAQ.currentUserDropdownLocator() `-&gt;//a[ contains(@href, '?action=logout') ]</td>
 	<td></td>
 </tr>
 </tbody></table>

@@ -64,24 +64,28 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;storeElementPresent</td>
-	<td>//a[ @class=&quot;dropdown-toggle&quot; ]//span[ contains(@title, 'Logged in as') ]</td>
-	<td>userLoggedIn</td>
-</tr>
-<tr>
 	<td>&nbsp;&nbsp;if</td>
-	<td>$userLoggedIn</td>
+	<td>selenium.isElementPresent( 'ui=allPages::loggedInAs()' )</td>
 	<td></td>
 </tr>
-<!--  TODO Following depends on screen size (Bootstrap behavior)-->
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;call</td>
+	<td>openBootstrapMenuIfCollapsed</td>
+	<td></td>
+</tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;click</td>
-	<td>//nav</td>
+	<td>` phpMyFAQ.currentUserDropdownLocator() `-&gt;/a[ @class=&quot;dropdown-toggle&quot; ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;pause</td>
+	<td>150</td>
 	<td></td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
-	<td>//a[ contains(@href, '?action=logout') ]</td>
+	<td>` phpMyFAQ.currentUserDropdownLocator() `-&gt;//a[ contains(@href, '?action=logout') ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -210,19 +214,29 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;click</td>
-	<td>//div[ @class='navbar-header' ]/button</td>
-	<td></td>
-</tr>
-<!--  TODO -->
-<tr>
-	<td>&nbsp;&nbsp;click</td>
-	<td>ui=allPages::loggedInAs()</td>
+	<td>&nbsp;&nbsp;if</td>
+	<td>!SeLiteSettings.appPath().startsWith('/admin/')</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;clickAndWait</td>
-	<td>//a[ @href='` SeLiteSettings.webRoot() `admin/index.php' ]</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;call</td>
+	<td>openBootstrapMenuIfCollapsed</td>
+	<td></td>
+</tr>
+<!--    TODO -->
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;click</td>
+	<td>` phpMyFAQ.currentUserDropdownLocator() `-&gt;/a[ @class=&quot;dropdown-toggle&quot; ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
+	<td>` phpMyFAQ.currentUserDropdownLocator() `-&gt;//a[ @href='` SeLiteSettings.webURL('admin/index.php') `' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;endIf</td>
+	<td></td>
 	<td></td>
 </tr>
 <tr>
@@ -235,7 +249,7 @@
 <!--Don't use directly. Use function clickNonAdminMenu instead.-->
 <tr>
 	<td>function</td>
-	<td>openBootstrapMenuIfApplicable</td>
+	<td>openBootstrapMenuIfCollapsed</td>
 	<td></td>
 </tr>
 <!--  resizeTo(), innerWidth and innerHeight don't work in getEval with window, neither with this.browserbot.getCurrentWindow()-->
@@ -256,12 +270,12 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pause</td>
-	<td>100</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pause</td>
+	<td>250</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
@@ -288,7 +302,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;call</td>
-	<td>openBootstrapMenuIfApplicable</td>
+	<td>openBootstrapMenuIfCollapsed</td>
 	<td></td>
 </tr>
 <tr>
