@@ -30,45 +30,69 @@
         locator: "//button/span[ .='Toggle navigation' ]/.."
     } );
     phpMyFAQ.uiMap.addElement('nonAdminPages', {
+        name: 'firstNavBar',
+        description: '<ul> for the first navbar (containing Categories, Instant Response etc.).',
+        locator: "//ul[ contains(@class, 'navbar-nav') and  position()=1 ]",
+        testcase1: {
+            xhtml:
+            '<ul class="nav navbar-nav" expected-result="1">(The first navbar - Categories)\n\
+             </ul>\
+             <ul class="nav navbar-nav navbar-right">(The second navbar)\n\
+             </ul>'
+        }
+    });
+    phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.firstNavBar.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
+    phpMyFAQ.uiMap.addElement('nonAdminPages', {
+        name: 'categoriesDropdown',
+        description: '<li> for Top menu > "Categories" dropdown menu',
+        locator: Object.keys(phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.firstNavBar.defaultLocators)[0]+ "/li[ position()=1 ]",
+        testcase1: {
+            xhtml:
+            '<ul class="nav navbar-nav">\
+                <li class="dropdown" expected-result="1">Categories...</li>\n\
+             </ul>\\n\
+             some other elements\
+             <ul class="nav navbar-nav navbar-right">\n\
+                <li class="dropdown">Categories here...</li>\n\
+             </ul>'
+        }
+    });
+    phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.categoriesDropdown.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
+    phpMyFAQ.uiMap.addElement( 'nonAdminPages', {
+       name: 'instantResponse',
+       description: 'Top menu > Instant Response',
+       locator: Object.keys(phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.firstNavBar.defaultLocators)[0]+ "/li[ position()=2 ]/a"
+    });
+    phpMyFAQ.uiMap.addElement( 'nonAdminPages', {
+       name: 'addNewFAQ',
+       description: 'Top menu > Add new FAQ',
+       locator: Object.keys(phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.firstNavBar.defaultLocators)[0]+ "/li[ position()=3 ]/a"
+    });
+    phpMyFAQ.uiMap.addElement( 'nonAdminPages', {
+       name: 'addQuestion',
+       description: 'Top menu > Add question',
+       locator: Object.keys(phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.firstNavBar.defaultLocators)[0]+ "/li[ position()=4 ]/a"
+    });
+    phpMyFAQ.uiMap.addElement( 'nonAdminPages', {
+       name: 'openQuestions',
+       description: 'Top menu > Open questions',
+       locator: Object.keys(phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.firstNavBar.defaultLocators)[0]+ "/li[ position()=5 ]/a"
+    });
+    phpMyFAQ.uiMap.addElement('nonAdminPages', {
         name: 'currentUserDropdown',
         description: '<li> with menu for the currently logged in user (if any).',
         locator: "//ul[ contains(@class, 'navbar-nav') and  position()=2 ]/li[ contains(@class, 'dropdown') ]",
         testcase1: {
             xhtml:
-            '<ul class="nav navbar-nav">(The first dropdown - Categories)\n\
+            '<ul class="nav navbar-nav">(The first navbar - Categories etc.)\n\
              </ul>\
              <ul class="nav navbar-nav navbar-right">\n\
-                <li class="dropdown" expected-result="1">...</li>\n\
+                <li class="dropdown" expected-result="1">User-name-here...</li>\n\
              </ul>'
         }
     });
     // @TODO Why do I call the following? I think it's for development, so that when Bootstrap re-loads this file automatically, it re-runs the test.
     phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.currentUserDropdown.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
-    phpMyFAQ.uiMap.addElement( 'nonAdminPages', {
-       name: 'categoriesDropdown',
-       description: '"Categories" dropdown menu',
-       locator: "//a[ @class='dropdown-toggle' and contains(., 'Categories') ]" 
-    });
-    phpMyFAQ.uiMap.addElement( 'nonAdminPages', {
-       name: 'instantResponse',
-       description: 'Top menu > Instant Response',
-       locator: "//a[ @href='index.php?action=instantresponse' ]" 
-    });
-    phpMyFAQ.uiMap.addElement( 'nonAdminPages', {
-       name: 'addNewFAQ',
-       description: 'Top menu > Add new FAQ',
-       locator: "//a[ contains( @href, 'index.php?action=add&cat=' ) ]" 
-    });
-    phpMyFAQ.uiMap.addElement( 'nonAdminPages', {
-       name: 'addQuestion',
-       description: 'Top menu > Add question',
-       locator: "//a[ contains( @href, 'index.php?action=ask&category_id=' ) ]" 
-    });
-    phpMyFAQ.uiMap.addElement( 'nonAdminPages', {
-       name: 'openQuestions',
-       description: 'Top menu > Open questions',
-       locator: "//a[ contains( @href, 'index.php?action=open' ) ]" 
-    });
     
     phpMyFAQ.uiMap.addPageset({
         name: 'adminPages',
@@ -364,7 +388,7 @@
 <li><a href="?action=passwd">Change Password</a></li>\
                     </ul>\
                 </li>\
-                <li>\
+1                <li>\
                     <a href="index.php?action=config">\
                         <i class="fa fa-wrench fa-fw"></i> Configuration                        <span class="fa arrow"></span></a>\
                     \
