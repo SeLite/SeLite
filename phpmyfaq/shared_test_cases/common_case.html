@@ -139,6 +139,7 @@
 	<td>//button[ @type='submit' ]</td>
 	<td></td>
 </tr>
+<!--  TODO automate and put into framework:-->
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
 	<td>=`{ login: $login, user_id: new SeLiteData.SqlExpression( &quot;(SELECT COALESCE( MAX(user_id)+1, 0) FROM &quot; +phpMyFAQ.tables.user.nameWithPrefix()+')' )}`</td>
@@ -288,6 +289,52 @@
 	<td>&nbsp;&nbsp;endIf</td>
 	<td></td>
 	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>function</td>
+	<td>addCategory</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;clickAndWait</td>
+	<td>ui=adminPages::topNavigation(section=Content)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;clickAndWait</td>
+	<td>ui=adminPages::secondNavigation(section=Content, item=FAQ Categories)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;clickAndWait</td>
+	<td>//a[ @href='?action=addcategory' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
+	<td>id=name</td>
+	<td>=` {maxLength:255, store:'name'} `</td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
+	<td>id=description</td>
+	<td>`&nbsp;&nbsp;('Cat.Description ' +$name).substr(0, 255) `</td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;clickAndWait</td>
+	<td>//button[ @type='submit' ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
+	<td>=`{ user_id: $user_id, display_name:$display_name, email:$email}`</td>
+	<td>=`phpMyFAQ.tables.categories`</td>
 </tr>
 <tr>
 	<td>endFunction</td>

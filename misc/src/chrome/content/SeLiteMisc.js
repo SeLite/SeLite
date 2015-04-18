@@ -1731,6 +1731,7 @@ SeLiteMisc.collectByColumnFromDeep= function collectByColumnFromDeep( records, f
     doNotThrow= doNotThrow || false;
     typeof doNotThrow==='boolean' || SeLiteMisc.fail( 'Parameter doNotThrow must be a boolean, if provided.' );
     result= result || {};
+    typeof result==='object' || SeLiteMisc.fail( 'Parameter result must be an object, if specified.' );
     result!==records || SeLiteMisc.fail( 'SeLiteMisc.collectByColumnFromDeep() requires parameter result not to be the same object as records, if provided.' );
     
     // Iterate by keys of records. This generats 'key-' part of the result index.
@@ -1842,19 +1843,23 @@ SeLiteMisc.testCollectByColumnFromDeep();
  *  @param {object} records
  *  @param {number} depth The depth to collect from; non-negative. 0 means to collect items directly under records object.
  *  @param {Array} [result] Array to put the entries to. Otherwise this creates a new array.
+ *  @param {boolean} [collectIndexes=false] Whether to collect indexes (keys). Otherwise (and by default) this collect values.
  *  @return {Array} The result array.
  * */
-SeLiteMisc.collectFromDepth= function collectFromDepth( records, depth, result ) {
+SeLiteMisc.collectFromDepth= function collectFromDepth( records, depth, result, collectIndexes ) {
     typeof records==='object' || SeLiteMisc.fail( 'Parameter depth must be an object.' );
     typeof depth==='number' && depth>=0 || SeLiteMisc.fail( 'Parameter depth must be a non-negative number.' );
     result= result || [];
     Array.isArray( result ) || SeLiteMisc.fail( 'Parameter result must a an array, if provided.' );
     for( var index in records ) {
         if( depth>0 ) {
-            SeLiteMisc.collectFromDepth( records[index], depth-1, result );
+            SeLiteMisc.collectFromDepth( records[index], depth-1, result, collectIndexes );
         }
         else {
-            result.push( records[index] );
+            result.push( collectIndexes
+                ? index
+                : records[index]
+            );
         }
     }
     return result;

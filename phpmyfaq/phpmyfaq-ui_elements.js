@@ -43,21 +43,52 @@
     });
     phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.firstNavBar.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
     phpMyFAQ.uiMap.addElement('nonAdminPages', {
-        name: 'categoriesDropdown',
-        description: '<li> for Top menu > "Categories" dropdown menu',
-        locator: Object.keys(phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.firstNavBar.defaultLocators)[0]+ "/li[ position()=1 ]",
+        name: 'categories',
+        description: '<li> for Top menu > Categories',
+        locator: Object.keys(phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.firstNavBar.defaultLocators)[0]+ "/li[ position()=1 ]/a",
         testcase1: {
             xhtml:
             '<ul class="nav navbar-nav">\
-                <li class="dropdown" expected-result="1">Categories...</li>\n\
-             </ul>\\n\
+                <li class="dropdown">\n\
+                    <a expected-result="1">Categories...</a>\n\\n\
+                </li>\
+             </ul>\n\
              some other elements\
              <ul class="nav navbar-nav navbar-right">\n\
                 <li class="dropdown">Categories here...</li>\n\
              </ul>'
         }
     });
-    phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.categoriesDropdown.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
+    phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.categories.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
+    phpMyFAQ.uiMap.addElement('nonAdminPages', {
+        name: 'allCategories',
+        description: '<li> for Top menu > Categories > All categories',
+        locator: Object.keys(phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.categories.defaultLocators)[0]+ "/../ul/li/a[ not( contains(@href, '&cat=') ) ]"
+    } );
+    phpMyFAQ.uiMap.addElement('nonAdminPages', {
+        name: 'category',
+        description: '<li> for Top menu > Categories > Xyz',
+        args: [
+            {name: 'name',
+             description: 'Category name',
+             defaultValues: []
+            },
+            {name: 'id',
+             description: 'Category ID',
+             defaultValues: []
+            }
+        ],
+        getLocator: function(args) {
+            //@TODO: use SeLiteMisc.log instead:
+            args.name===undefined || args.id===undefined || SeLiteMisc.fail( "Don't specify both 'name' and 'id' of a category." );
+            args.name!==undefined || args.id!==undefined || SeLiteMisc.fail( "Specify one of 'name' or 'id' of a category." );
+            return Object.keys(phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.categories.defaultLocators)[0]+ "/../ul/li/a[ "+
+                (args.name!==undefined
+                 ? ".=" +args.name.quoteForXPath()
+                 : "contains( @href, 'cat=" +args.id+ "' )"
+                )+ " ]";
+        }
+    } );
     phpMyFAQ.uiMap.addElement( 'nonAdminPages', {
        name: 'instantResponse',
        description: 'Top menu > Instant Response',
@@ -334,7 +365,7 @@
                 name: 'item',
                 description: 'Name of the second level item',
                 required: true,
-                defaultValues: SeLiteMisc.collectFromDepth( SeLiteMisc.collectByColumnFromDeep(adminNavigation, ['secondLevel'], 1), 1)
+                defaultValues: SeLiteMisc.collectFromDepth( SeLiteMisc.collectByColumnFromDeep(adminNavigation, ['secondLevel'], 1), 1, undefined, true )
             }
         ],
         testcase1: {
