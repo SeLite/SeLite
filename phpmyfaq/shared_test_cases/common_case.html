@@ -49,7 +49,12 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;assertElementPresent</td>
-	<td>ui=allPages::loggedInAs()-&gt;xpath=/self::span[ contains(., \`phpMyFAQ.selectedUser.display_name` ) ]</td>
+	<td>ui=allPages::userOwnMenuLoggedInName()-&gt;xpath=/self::span[ contains(., \`phpMyFAQ.selectedUser.display_name`) ]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;getEval</td>
+	<td>LOG.error( SeLiteMisc.objectToString(phpMyFAQ.selectedUser, 3) )</td>
 	<td></td>
 </tr>
 <tr>
@@ -64,38 +69,28 @@
 	<td></td>
 </tr>
 <tr>
+	<td>&nbsp;&nbsp;call</td>
+	<td>openUserOwnMenuIfCollapsed</td>
+	<td></td>
+</tr>
+<tr>
 	<td>&nbsp;&nbsp;if</td>
-	<td>selenium.isElementPresent( 'ui=allPages::loggedInAs()' )</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;call</td>
-	<td>openBootstrapMenuIfCollapsed</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;click</td>
-	<td>` phpMyFAQ.currentUserDropdownLocator() `-&gt;/a[ @class=&quot;dropdown-toggle&quot; ]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pause</td>
-	<td>150</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;assertVisible</td>
-	<td>` phpMyFAQ.currentUserDropdownLocator() `-&gt;//a[ contains(@href, '?action=logout') ]</td>
+	<td>selenium.isElementPresent( 'ui=allPages::userOwnMenuItem( item=Logout )' )</td>
 	<td></td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
-	<td>` phpMyFAQ.currentUserDropdownLocator() `-&gt;//a[ contains(@href, '?action=logout') ]</td>
+	<td>ui=allPages::userOwnMenuItem( item=Logout )</td>
 	<td></td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;endIf</td>
 	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;assertElementPresent</td>
+	<td>ui=allPages::userOwnMenuItem( item=Login )</td>
 	<td></td>
 </tr>
 <tr>
@@ -296,6 +291,47 @@
 <tr>
 	<td>&nbsp;&nbsp;endIf</td>
 	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>function</td>
+	<td>openUserOwnMenuIfCollapsed</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;call</td>
+	<td>openBootstrapMenuIfCollapsed</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;if</td>
+	<td>!selenium.isVisible( 'ui=allPages::userOwnMenu()' )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;click</td>
+	<td>ui=allPages::userOwnMenuToggle()</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;pause</td>
+	<td>150</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;assertVisible</td>
+	<td>ui=allPages::userOwnMenu()</td>
 	<td></td>
 </tr>
 <tr>

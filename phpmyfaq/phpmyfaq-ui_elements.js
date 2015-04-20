@@ -14,9 +14,46 @@
         pathRegexp: '.*'
     });
     phpMyFAQ.uiMap.addElement('allPages', {
-       name: 'loggedInAs' ,
-       description: 'Span with name of the currently logged user',
-       locator: "//a[ @class='dropdown-toggle' ]//span[ contains(@title, 'Logged in as') ]"
+       name: 'userOwnMenu' ,
+       description: "<ul> containing a dropdown menu and a span with name of the currently logged user. Not visible if the user's menu is collapsed. Not clickable.",
+       locator: "//a[ @class='dropdown-toggle' ]/../self::li/ul[ @class='dropdown-menu' ]"
+    });
+    phpMyFAQ.uiMap.addElement('allPages', {
+       name: 'userOwnMenuToggle' ,
+       description: '<a> that toggles user own dropdown menu to expand/collapse',
+       locator: Object.keys(phpMyFAQ.uiMap.pagesets.allPages.uiElements.userOwnMenu.defaultLocators)[0]+ '/../self::li/a[ @class="dropdown-toggle" ]'
+    });
+    var userOwnMenuItems= {
+        'Advanced search': '?action=search',
+        'All categories': '?action=show',
+        'Add new FAQ': '?action=add',
+        'Add question': '?action=ask',
+        'Open questions': '?action=open',
+        // Only shown when not logged on:
+        'Sign up': '?action=register',
+        'Login': '?action=login',
+        // Only shown when logged on, and if applicable:
+        'User Control Panel': '?action=ucp',
+        'Administration': '/admin/index.php',
+        'Logout': '?action=logout'
+    };
+    phpMyFAQ.uiMap.addElement('allPages', {
+       name: 'userOwnMenuItem' ,
+       description: "<a> for the user's own menu item",
+       args: [
+            {name: 'item',
+             description: 'Item label/text',
+             defaultValues: Object.keys(userOwnMenuItems)
+            }
+       ],
+       getLocator: function getLocator(args) {
+           return Object.keys(phpMyFAQ.uiMap.pagesets.allPages.uiElements.userOwnMenu.defaultLocators)[0]+ '/li/a[ contains(@href, "' +userOwnMenuItems[args.item]+ '") ]';
+       }
+    });
+    phpMyFAQ.uiMap.addElement('allPages', {
+       name: 'userOwnMenuLoggedInName' ,
+       description: "<span> in user's own menu that contains the current user's name",
+       locator: Object.keys(phpMyFAQ.uiMap.pagesets.allPages.uiElements.userOwnMenu.defaultLocators)[0]+ '/preceding::a/span'
     });
     
     phpMyFAQ.uiMap.addPageset({
@@ -112,7 +149,7 @@
     phpMyFAQ.uiMap.addElement('nonAdminPages', {
         name: 'currentUserDropdown',
         description: '<li> with menu for the currently logged in user (if any).',
-        locator: "//ul[ contains(@class, 'navbar-nav') and  position()=2 ]/li[ contains(@class, 'dropdown') ]",
+        locator: "//ul[ contains(@class, 'navbar-nav') ]/li[ contains(@class, 'dropdown') ]",
         testcase1: {
             xhtml:
             '<ul class="nav navbar-nav">(The first navbar - Categories etc.)\n\
@@ -167,8 +204,7 @@
             : 'ui=nonAdminPages::currentUserDropdown()';
     };
     
-    /** Beware: Admin navigation menu shrinks on mobile/small screen.
-     *  object {
+    /** object {
      *    string sectionName: object {
      *        topLevel: string URL,
      *        secondLevel: object {
