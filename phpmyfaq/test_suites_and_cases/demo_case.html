@@ -38,13 +38,28 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;assertElementPresent</td>
-	<td>ui=adminPages::currentUserDropdown()-&gt;xpath=/a/span[ contains(., \`phpMyFAQ.selectedUser.display_name`) ]</td>
+	<td>&nbsp;&nbsp;click</td>
+	<td>ui=adminPages::currentUserDropdown()-&gt;/a</td>
+	<td>Toggle expand the menu</td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;storeVisible</td>
+	<td>//a[ @class=&quot;dropdown-toggle&quot; ]//b[ contains(@class, &quot;fa-user&quot;) ]/following-sibling::span/../../a</td>
+	<td>isVisible</td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;storeVisible</td>
+	<td>ui=adminPages::currentUserDropdown()-&gt;xpath=/a</td>
+	<td>isVisible</td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;pause</td>
+	<td>100</td>
 	<td></td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
-	<td>ui=adminPages::currentUserDropdown()-&gt;//a[ contains(@href, 'action=passwd') ]</td>
+	<td>&nbsp;&nbsp;assertElementPresent</td>
+	<td>ui=adminPages::currentUserDropdown()-&gt;xpath=/a/span[ contains(., \`phpMyFAQ.selectedUser.display_name`) ]</td>
 	<td></td>
 </tr>
 <tr>
