@@ -144,22 +144,6 @@
 	<td>//button[ @type='submit' ]</td>
 	<td></td>
 </tr>
-<!--  TODO automate and put into framework:-->
-<tr>
-	<td>&nbsp;&nbsp;if</td>
-	<td>false</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
-	<td>=`{ login: $login, user_id: new SeLiteData.SqlExpression( &quot;(SELECT COALESCE( MAX(user_id)+1, 0) FROM &quot; +phpMyFAQ.tables.user.nameWithPrefix()+')' )}`</td>
-	<td>=`phpMyFAQ.tables.user`</td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;&nbsp;endIf</td>
-	<td></td>
-	<td></td>
-</tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
 	<td>=`{ login: $login}`</td>
@@ -267,7 +251,7 @@
 </tr>
 <!---->
 <!--Open Bootstrap menu, if in mobile mode (and if not expanded already). Only for non-admin pages.-->
-<!--Don't use directly. Use function clickNonAdminMenu instead.-->
+<!--Don't use directly. Use function goToAdministration instead.-->
 <tr>
 	<td>function</td>
 	<td>openBootstrapMenuIfCollapsed</td>
@@ -342,9 +326,14 @@
 	<td>=` {maxLength:255, store:'name'} `</td>
 </tr>
 <tr>
+	<td>storeEval</td>
+	<td>('Cat.Description ' +storedVars.name).substr(0, 255)</td>
+	<td>description</td>
+</tr>
+<tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
 	<td>id=description</td>
-	<td>`&nbsp;&nbsp;('Cat.Description ' +$name).substr(0, 255) `</td>
+	<td>$description</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;clickAndWait</td>
@@ -353,7 +342,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
-	<td>=`{ user_id: $user_id, display_name:$display_name, email:$email}`</td>
+	<td>=`{ lang:'en', parent_id:0, name: $name, description:$description, user_id:1}`</td>
 	<td>=`phpMyFAQ.tables.categories`</td>
 </tr>
 <tr>

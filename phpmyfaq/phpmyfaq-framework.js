@@ -88,7 +88,7 @@ SeLiteMisc.registerOrExtendFramework( function() {
        db:  phpMyFAQ.db,
        name: 'categories',
        columns: ['id', 'lang', 'parent_id', 'name', 'description', 'user_id', 'active'],
-       primary: ['id']
+       primary: 'id'
     });
 // category_user: .category_id, .user_id
 

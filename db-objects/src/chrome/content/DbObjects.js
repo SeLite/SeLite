@@ -49,7 +49,7 @@ SeLiteData.Db.prototype.tablePrefix= function tablePrefix() {
  *      noNamePrefix: boolean, optional; if true, then it cancels effect of prototype.db.tableNamePrefix (if set),
  *      name: string table name,
  *      columns: array of string column names,
- *      primary: string primary key name, or array of string key names; optional - 'id' by default,
+ *      primary: string primary key name (one column), or array of multiple string column names; optional - 'id' by default,
  *      generateInsertKey: boolean, like parameter generateInsertKey of SeLiteData.Db(). If specified and different to prototype.db.generateInsertKey, then prototype.generateInsertKey overrides it (even if db.generateInsertKey is true but here prototype.generateInsertKey is false).
  */
 SeLiteData.Table= function Table( prototype ) {
@@ -64,6 +64,7 @@ SeLiteData.Table= function Table( prototype ) {
     this.columns= prototype.columns;
     this.primary= prototype.primary || 'id';
     typeof this.primary==='string' || Array.isArray(this.primary) || SeLiteMisc.fail( 'prototype.primary must be a string or an array.' );
+    !Array.isArray(this.primary) || this.primary.length>1 || SeLiteMisc.fail( 'prototype.primary must contain multiple column names, if it is an array.' );
     this.generateInsertKey= prototype.generateInsertKey!==undefined
         ? (prototype.generateInsertKey || false)
         : this.db.generateInsertKey;
