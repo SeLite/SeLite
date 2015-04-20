@@ -79,6 +79,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;assertVisible</td>
+	<td>` phpMyFAQ.currentUserDropdownLocator() `-&gt;//a[ contains(@href, '?action=logout') ]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
 	<td>` phpMyFAQ.currentUserDropdownLocator() `-&gt;//a[ contains(@href, '?action=logout') ]</td>
 	<td></td>
@@ -141,8 +146,23 @@
 </tr>
 <!--  TODO automate and put into framework:-->
 <tr>
+	<td>&nbsp;&nbsp;if</td>
+	<td>false</td>
+	<td></td>
+</tr>
+<tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
 	<td>=`{ login: $login, user_id: new SeLiteData.SqlExpression( &quot;(SELECT COALESCE( MAX(user_id)+1, 0) FROM &quot; +phpMyFAQ.tables.user.nameWithPrefix()+')' )}`</td>
+	<td>=`phpMyFAQ.tables.user`</td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
+	<td>=`{ login: $login}`</td>
 	<td>=`phpMyFAQ.tables.user`</td>
 </tr>
 <tr>

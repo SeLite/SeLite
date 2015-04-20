@@ -13,7 +13,7 @@ if( phpMyFAQ===undefined ) {
         /** @type {object} As loaded from 'user' table, with 'pass' field loaded from 'userlogin' table. */
         selectedUser: undefined,
         /** @type {SeLiteData.Db}*/
-        db: new SeLiteData.Db( SeLiteData.getStorageFromSettings() )
+        db: new SeLiteData.Db( SeLiteData.getStorageFromSettings(), /*prefix:*/undefined, /*generateInsertKey:*/true )
     };
 }
 SeLiteMisc.registerOrExtendFramework( function() {
@@ -27,7 +27,6 @@ SeLiteMisc.registerOrExtendFramework( function() {
     }/**/
     //@TODO join formula
     phpMyFAQ.selectUserByLogin= function selectUserByLogin( givenLogin ) {
-        //debugger;
         phpMyFAQ.selectedUser= phpMyFAQ.formulas.userwithdata.selectOne( {login: givenLogin} );
         phpMyFAQ.selectedUser.pass= phpMyFAQ.formulas.userlogin.selectOne( {login: givenLogin} ).pass;
         if( phpMyFAQ.selectedUser.pass===undefined || phpMyFAQ.selectedUser.pass==='' ) {
@@ -92,7 +91,7 @@ SeLiteMisc.registerOrExtendFramework( function() {
        primary: ['id']
     });
 // category_user: .category_id, .user_id
-debugger;
+
     phpMyFAQ.formulas= {
         user: phpMyFAQ.tables.user.formula(),
         userdata: phpMyFAQ.tables.userdata.formula(),

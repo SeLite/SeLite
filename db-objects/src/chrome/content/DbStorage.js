@@ -399,6 +399,7 @@ SeLiteData.Storage.prototype.updateRecords= function updateRecords( params ) {
     var fieldsToProtect= params.fieldsToProtect!==undefined
         ? params.fieldsToProtect
         : [];
+        //@TODO use bindings instead of quoting?:
     var entries= this.quoteValues( params.entries, fieldsToProtect );
 
     var setPairs= [];
@@ -519,6 +520,7 @@ SeLiteData.Storage.prototype.insertRecord= function insertRecord( params ) {
         columns.push( field );
         values.push( entries[field] );
     }
+    //@TODO re-do/merge with SeLiteData.Table.prototype.insert
     var query= 'INSERT INTO ' +params.table+ '(' +columns.join(', ')+ ') VALUES ('+
         values.join(', ')+ ')';
     if( params.debugQuery!==undefined && params.debugQuery ) {

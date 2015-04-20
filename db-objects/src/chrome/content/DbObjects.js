@@ -25,7 +25,7 @@ Components.utils.import('chrome://selite-db-objects/content/Db.js');
 /** @constructor
  *  @param {SeLiteData.Storage} storage Underlying lower-level storage object.
  *  @param {string} [tableNamePrefix] optional prefix, which will be applied to all tables (except for tables that have noNamePrefix=true when constructed). If not set, then storage.tableNamePrefix is used (if any).
- *  @param {boolean} [generateInsertKey=false] Whether all tables with single-column primary key should have the key values generated (based on the maximum existing key) on insert.
+ *  @param {boolean} [generateInsertKey=false] Whether all tables with single-column primary key should have the key values generated (based on the maximum existing key) on insert. SeLiteData.Table constructor can override this on per-table basis.
  **/
 SeLiteData.Db= function Db( storage, tableNamePrefix, generateInsertKey ) {
     /** @type {SeLiteData.Storage} storage*/
@@ -50,7 +50,7 @@ SeLiteData.Db.prototype.tablePrefix= function tablePrefix() {
  *      name: string table name,
  *      columns: array of string column names,
  *      primary: string primary key name, or array of string key names; optional - 'id' by default,
- *      generateInsertKey: boolean, like parameter generateInsertKey of SeLiteData.Db()
+ *      generateInsertKey: boolean, like parameter generateInsertKey of SeLiteData.Db(). If specified and different to prototype.db.generateInsertKey, then prototype.generateInsertKey overrides it (even if db.generateInsertKey is true but here prototype.generateInsertKey is false).
  */
 SeLiteData.Table= function Table( prototype ) {
     /** @type {SeLiteData.Db} */
@@ -64,7 +64,9 @@ SeLiteData.Table= function Table( prototype ) {
     this.columns= prototype.columns;
     this.primary= prototype.primary || 'id';
     typeof this.primary==='string' || Array.isArray(this.primary) || SeLiteMisc.fail( 'prototype.primary must be a string or an array.' );
-    this.generateInsertKey= prototype.generateInsertKey || false;
+    this.generateInsertKey= prototype.generateInsertKey!==undefined
+        ? (prototype.generateInsertKey || false)
+        : this.db.generateInsertKey;
 };
 
 SeLiteData.Table.prototype.nameWithPrefix= function nameWithPrefix() {
@@ -79,13 +81,20 @@ SeLiteData.Table.prototype.nameWithPrefix= function nameWithPrefix() {
  *  - save primary key, if auto-generated: table.db.storage.lastInsertedRow( table.nameWithPrefix(), [table.primary] )[ table.primary ];
  *  - if record is linked to a RecordHolder, update .originals
  * */
-SeLiteData.Table.prototype.insert= function insert( record ) {
+SeLiteData.Table.prototype.insert= function insert( originalRecord ) {
+    var record= SeLiteMisc.objectClone( originalRecord );
     // I don't use asynchronous API, because I don't know how to use it with classic program control flow. Therefore I need to list all columns.
     var columns= [];
     var columnPlaceholders= []; // :columnName, or SeLiteData.SQLExpression literal
     var bindings= {};
+    if( this.generateInsertKey && record[this.primary]===undefined/* If the client provided a value for the primary key, don't generate it.*/ ) {
+        //<editor-fold defaultstate="collapsed" desc="Ensure the table has single-value primary key.">
+        typeof this.primary==='string' || SeLiteMisc.fail( "The table or DB has generateInsertKey set, but table " +this.name +" uses multi-column primary key: " +this.primary );
+        //</editor-fold>
+        record[ this.primary ]= new SeLiteData.SqlExpression( "(SELECT MAX(" +this.primary+ ") FROM " +this.nameWithPrefix()+ ")+1" );
+    }
     for( var column in record ) {
-        if( column==='toString' ) {
+        if( typeof record[column]==='function' ) {// This handles any functions defined on the instance, including toString() (which comes from Object constructor)
             continue;
         }
         this.columns.indexOf(column)>=0 || SeLiteMisc.fail( "Column " +column+ " is not among columns defined for table " +this.nameWithPrefix() );
@@ -101,6 +110,10 @@ SeLiteData.Table.prototype.insert= function insert( record ) {
     var query= 'INSERT INTO ' +this.nameWithPrefix()+ '('+ columns.join(', ')+ ') '+
         'VALUES (' +columnPlaceholders.join(', ')+ ')';
     this.db.storage.execute( query, bindings );
+    // Fetch the auto-generated primary one-column key, if applicable (whether it came from DB or from the expression injected above)
+    if( typeof this.primary==='string' && bindings[this.primary]===undefined ) {
+        originalRecord[ this.primary ]= this.db.storage.lastInsertedRow( this.nameWithPrefix(), [this.primary] )[ this.primary ];
+    }
 };
 
 /** Create on-the-fly a new SeLiteData.RecordSetFormula instance. Do not store/cache it anyhwere.
@@ -268,7 +281,7 @@ RecordHolder.prototype.selectOne= function selectOne() { throw new Error( "@TODO
 /** This saves this.record into main table of the formula. As defined by RecordHolder() constructor,
  *  keys/field names in this.record are the column aliases. This re-maps them to the DB columns before inserting.
  *  @TODO set/modify this.originals.
- *  @return {(number|string)} value of the primary key for the new record, or undefined if the table doesn't use one column as a primary key (i.e. it uses a group of multiple columns as a primary key)
+ *  @return {(number|string)} value of the primary key for the new record, if auto-generated (whether auto-generated by DB or by SeLite based on the maximum existing key) and if  it's a one column key; undefined otherwise.
  **/
 RecordHolder.prototype.insert= function insert() {
     // Fields set in formula's onInsert{} override any fields with the same name in this.record
@@ -279,10 +292,9 @@ RecordHolder.prototype.insert= function insert() {
         this.record[ field ]= value;
     }
     var entries= this.ownEntries();
-    var generateInsertKey= this.recordSetHolder.formula.generateInsertKey || this.recordSetHolder.formula.table.generateInsertKey || this.recordSetHolder.formula.table.db.generateInsertKey;
-    if( generateInsertKey && entries[this.recordSetHolder.formula.table.primary]===undefined/* If the client provided a value for the primary key, don't generate it.*/ ) {
+    if( this.recordSetHolder.formula.generateInsertKey && entries[this.recordSetHolder.formula.table.primary]===undefined/* If the client provided a value for the primary key, don't generate it.*/ ) {
         //<editor-fold defaultstate="collapsed" desc="Ensure the table has single-value primary key.">
-        typeof this.recordSetHolder.formula.table.primary==='string' || SeLiteMisc.fail( "The formula or table has generateInsertKey set, but table " +this.recordSetHolder.formula.table +" uses multi-column primary key: " +this.recordSetHolder.formula.table.primary );
+        typeof this.recordSetHolder.formula.table.primary==='string' || SeLiteMisc.fail( "The formula, table or DB has generateInsertKey set, but table " +this.recordSetHolder.formula.table +" uses multi-column primary key: " +this.recordSetHolder.formula.table.primary );
         //</editor-fold>
         entries= SeLiteMisc.objectsMerge( new SeLiteMisc.Settable().set(
             this.recordSetHolder.formula.table.primary,
@@ -297,16 +309,15 @@ RecordHolder.prototype.insert= function insert() {
             : [], // We allow change of multi-column primary key columns, otherwise it would be impractical to update them
         debugQuery: this.recordSetHolder.formula.debugQuery
     });
-    var primaryKeyValue;
+    // Fetch the auto-generated primary one-column key, if applicable (whether it came from DB or from the expression injected above)
     if( typeof this.recordSetHolder.formula.table.primary==='string'
-        && entries[this.recordSetHolder.formula.table.primary]===undefined
-        && !generateInsertKey
+        && ( entries[this.recordSetHolder.formula.table.primary]===undefined || entries[this.recordSetHolder.formula.table.primary] instanceof SeLiteData.SqlExpression )
     ) {
-        primaryKeyValue= this.recordSetHolder.storage().lastInsertRow( this.recordSetHolder.formula.table.nameWithPrefix(), [this.recordSetHolder.formula.table.primary] )[ this.recordSetHolder.formula.table.primary ];
+        var primaryKeyValue= this.recordSetHolder.storage().lastInsertedRow( this.recordSetHolder.formula.table.nameWithPrefix(), [this.recordSetHolder.formula.table.primary] )[ this.recordSetHolder.formula.table.primary ];
         // This requires that the primary key is never aliased. @TODO use column alias, if present?
         this.record[ this.recordSetHolder.formula.table.primary ]= primaryKeyValue;
+        return primaryKeyValue;
     }
-    return primaryKeyValue;
 };
 
 /** This generates a transformation of this.record, with any column alias names transformed to the original columns (as defined for the table). It serves when updating/inserting this.record that was previously loaded from the DB (potentially with column aliases).
@@ -403,7 +414,7 @@ RecordHolder.prototype.remove= function remove() {
  *      process
  *      debugQuery
  *      debugResult
- *      generateInsertKey: boolean, like parameter generateInsertKey of SeLiteData.Db()
+ *      generateInsertKey: boolean, like parameter generateInsertKey of SeLiteData.Db(). Optional; if present, then it overrides table.generateInsertKey (whether it's set here to true or false, regardless of whether table.generateInsertKey is true or false).If not set, then it's copied from prototype.generateInsertKey (if defined), or from this.table.generateInsertKey.
  *      onInsert: value to fill in on insert, or function to call to get such a value
  *      onUpdate: value to fill in on update, or function to call to get such a value
  *  }
@@ -420,10 +431,17 @@ SeLiteData.RecordSetFormula= function RecordSetFormula( params, prototype ) {
     SeLiteMisc.PrototypedObject.call( this, prototype );
     params= params ? params : {};
     SeLiteMisc.objectClone( params, ['table', 'alias', 'columns', 'joins', 'fetchCondition', 'fetchMatching', 'parameterNames', 'sort',
-            'sortDirection', 'indexBy', 'indexUnique', 'process', 'debugQuery', 'debugResult', 'generateInsertKey',
+            'sortDirection', 'indexBy', 'indexUnique', 'process', 'debugQuery', 'debugResult',
             'onInsert', 'onUpdate' ],
         null, this );
-
+    if( params.generateInsertKey!==undefined ) {
+        this.generateInsertKey= params.generateInsertKey || false;
+    }
+    else {
+        if( this.generateInsertKey===undefined ) {
+            this.generateInsertKey= this.table.generateInsertKey;
+        }
+    }
     if( !Array.isArray(this.joins) ) {
         throw new Error( "params.joins must be an array (of objects), if present." );
     }
@@ -468,8 +486,8 @@ SeLiteData.RecordSetFormula.prototype.sortDirection= 'ASC';
 SeLiteData.RecordSetFormula.prototype.process= null;
 SeLiteData.RecordSetFormula.prototype.debugQuery= false;
 SeLiteData.RecordSetFormula.prototype.debugResult= false;
+// Don't set SeLiteData.RecordSetFormula.prototype.generateInsertKey, because it would interfere with how SeLiteData.RecordSetFormula() sets this.generateInsertKey.
 
-SeLiteData.RecordSetFormula.prototype.generateInsertKey= false;
 SeLiteData.RecordSetFormula.prototype.onInsert= {}; // aliasedFieldName: string value or function; used on insert; it overrides any existing value for that field
 SeLiteData.RecordSetFormula.prototype.onUpdate= {}; // aliasedFieldName: string value or function; used on update; it overrides any existing value for that field
 
