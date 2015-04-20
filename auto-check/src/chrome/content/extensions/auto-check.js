@@ -27,10 +27,9 @@ if( loadedTimes===1 ) { // Setup the overrides on the second load
         Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
         
         var settingsModule= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
-        
-        var originalSeLitePostCurrentCommand= global.seLitePostCurrentCommand;
-        global.seLitePostCurrentCommand= function seLitePostCurrentCommand() {
-            originalSeLitePostCurrentCommand.call( this );
+        var originalSeLiteAfterCurrentCommand= global.seLiteAfterCurrentCommand;
+        global.seLiteAfterCurrentCommand= function seLiteAfterCurrentCommand() {
+            originalSeLiteAfterCurrentCommand.call( this );
             // See AssertResult.prototype.setFailed and AssertHandler.prototype.execute in selenium-commandhandlers.js.
             // For getters (e.g. getEval), this.result is an instance of AccessorResult, which doesn't have field .passed (as of Selenium IDE 2.5.0). That's why the following checks !this.result.failed rather than this.result.passed.
             if( !this.result.failed ) { // Only perform the checks, if there was no Selenese failure already. Otherwise if the following raised an error, it would hide the previous error.
