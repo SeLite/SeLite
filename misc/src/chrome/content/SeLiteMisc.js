@@ -1943,44 +1943,6 @@ SeLiteMisc.random= function random( threshold ) {
     return Math.random()<=threshold;
 };
 
-/** Escape a given string (possibly containing ' and/or ") to use as a string literal/constant in XPath expressions (e.g. in element locators).
- *  @param {string} string
- *  @return {string} String literal for XPath expressions, with enclosing ' or ". If both ' and " are present in given <code>string</code>, then this returns a string that contains a call to concat(), with the parts of the given string enclosed with either ' or ".
- **/
-SeLiteMisc.xpath_escape_quote= function xpath_escape_quote( string ) {
-    if( string.indexOf("'")>=0 ) {
-        if( string.indexOf('"')<0 ) {
-            return '"' +string+ '"';
-        }
-    }
-    else {
-        return "'" +string+ "'";
-    }
-    // The string contains both a quote and an apostrophe. So I'll split in parts and will generate an expression containing concat()
-    var parts= string.split( /(['"])/ );
-    var resultParts= []; // This will contain a multiply of 3 items, each group being:
-                        // quote char - one of' or "; substring (not containing the quote char); same quote char
-    for( var i=0; i<parts.length; i++ ) {
-        var part= parts[i];
-        var resultIndex= resultParts.length-3;
-        if( part==='"' || part==="'" ) {
-            if( resultParts.length===0 || resultParts[resultIndex]!==part ) {
-                // The first special character in string, or change of the special character
-                var quoteChar= part==='"' ? "'" : '"';
-                resultParts.push( quoteChar, '', quoteChar );
-            }
-            else {
-                assert( resultParts[resultIndex]===part );
-                resultParts[ resultIndex+1 ]+= part;
-            }
-        }
-        else {
-            resultParts[ resultIndex+1 ]+= part;
-        }
-    }
-    return 'concat(' +resultParts.join(',')+ ')';
-};
-
 SeLiteMisc.unescape_xml= function unescape_xml( param ) {
     return param!==null
         ? (typeof param==='string' ? param : ''+param)

@@ -79,9 +79,9 @@
             }
         ],
         getLocator: function(args) {
-            //@TODO: use SeLiteMisc.log instead:
-            args.name===undefined || args.id===undefined || SeLiteMisc.fail( "Don't specify both 'name' and 'id' of a category." );
-            args.name!==undefined || args.id!==undefined || SeLiteMisc.fail( "Specify one of 'name' or 'id' of a category." );
+            // @TODO Use SeLiteMisc.fail() instead. However, Selenium IDE 2.9.0 doesn't show such errors nicely - TODO report that to Se HQ.
+            args.name===undefined || args.id===undefined || SeLiteMisc.log().error( "Don't specify both 'name' and 'id' of a category." );
+            args.name!==undefined || args.id!==undefined || SeLiteMisc.log().error( "Specify one of 'name' or 'id' of a category." );
             return Object.keys(phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.categories.defaultLocators)[0]+ "/../ul/li/a[ "+
                 (args.name!==undefined
                  ? ".=" +args.name.quoteForXPath()
