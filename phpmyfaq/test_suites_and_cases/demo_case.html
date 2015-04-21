@@ -83,52 +83,12 @@
 <!--TODO Documen or report to Se HQ: When definition of UI element fails to be loaded, Selenium IDE highlighs the command in red, but it doesn't increase Failures!-->
 <tr>
 	<td>assertElementPresent</td>
-	<td>ui=nonAdminPages::currentUserDropdown()-&gt;xpath=/a/span[ contains(., \`phpMyFAQ.selectedUser.display_name`) ]</td>
-	<td></td>
+	<td>ui=allPages::userOwnMenuLoggedInName( displayName= `phpMyFAQ.selectedUser.display_name` )</td>
+	<td>Comment: keep a space between displayName= and `phpMyFAQ.selectedUser.display_name`, otherwise EnhancedSyntax treats it specially</td>
 </tr>
 <tr>
 	<td>call</td>
 	<td>openBootstrapMenuIfCollapsed</td>
-	<td></td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>ui=nonAdminPages::categories()</td>
-	<td></td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>ui=nonAdminPages::instantResponse()</td>
-	<td></td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>ui=nonAdminPages::addNewFAQ()</td>
-	<td></td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>ui=nonAdminPages::addQuestion()</td>
-	<td></td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>ui=nonAdminPages::openQuestions()</td>
-	<td></td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>ui=nonAdminPages::allCategories()</td>
-	<td></td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>ui=nonAdminPages::category(name=Honkey dory categ)</td>
-	<td></td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>ui=nonAdminPages::category(id=1)</td>
 	<td></td>
 </tr>
 </tbody></table>

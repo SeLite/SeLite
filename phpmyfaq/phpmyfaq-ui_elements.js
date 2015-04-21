@@ -73,106 +73,12 @@
         locator: "//button[ @class='navbar-toggle' ]"
     } );
     
+    // --------
     phpMyFAQ.uiMap.addPageset({
         name: 'nonAdminPages',
         description: 'Non-admin phpMyFAQ pages',
         pathRegexp: '(?!admin/).*'
     });
-    phpMyFAQ.uiMap.addElement('nonAdminPages', {
-        name: 'firstNavBar',
-        description: '<ul> for the first navbar (containing Categories, Instant Response etc.).',
-        locator: "//ul[ contains(@class, 'navbar-nav') and  position()=1 ]",
-        testcase1: {
-            xhtml:
-            '<ul class="nav navbar-nav" expected-result="1">(The first navbar - Categories)\n\
-             </ul>\
-             <ul class="nav navbar-nav navbar-right">(The second navbar)\n\
-             </ul>'
-        }
-    });
-    phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.firstNavBar.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
-    phpMyFAQ.uiMap.addElement('nonAdminPages', {
-        name: 'categories',
-        description: '<li> for Top menu > Categories',
-        locator: Object.keys(phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.firstNavBar.defaultLocators)[0]+ "/li[ position()=1 ]/a",
-        testcase1: {
-            xhtml:
-            '<ul class="nav navbar-nav">\
-                <li class="dropdown">\n\
-                    <a expected-result="1">Categories...</a>\n\\n\
-                </li>\
-             </ul>\n\
-             some other elements\
-             <ul class="nav navbar-nav navbar-right">\n\
-                <li class="dropdown">Categories here...</li>\n\
-             </ul>'
-        }
-    });
-    phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.categories.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
-    phpMyFAQ.uiMap.addElement('nonAdminPages', {
-        name: 'allCategories',
-        description: '<li> for Top menu > Categories > All categories',
-        locator: Object.keys(phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.categories.defaultLocators)[0]+ "/../ul/li/a[ not( contains(@href, '&cat=') ) ]"
-    } );
-    phpMyFAQ.uiMap.addElement('nonAdminPages', {
-        name: 'category',
-        description: '<li> for Top menu > Categories > Xyz',
-        args: [
-            {name: 'name',
-             description: 'Category name',
-             defaultValues: []
-            },
-            {name: 'id',
-             description: 'Category ID',
-             defaultValues: []
-            }
-        ],
-        getLocator: function(args) {
-            // @TODO Use SeLiteMisc.fail() instead. However, Selenium IDE 2.9.0 doesn't show such errors nicely - TODO report that to Se HQ.
-            args.name===undefined || args.id===undefined || SeLiteMisc.log().error( "Don't specify both 'name' and 'id' of a category." );
-            args.name!==undefined || args.id!==undefined || SeLiteMisc.log().error( "Specify one of 'name' or 'id' of a category." );
-            return Object.keys(phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.categories.defaultLocators)[0]+ "/../ul/li/a[ "+
-                (args.name!==undefined
-                 ? ".=" +args.name.quoteForXPath()
-                 : "contains( @href, 'cat=" +args.id+ "' )"
-                )+ " ]";
-        }
-    } );
-    phpMyFAQ.uiMap.addElement( 'nonAdminPages', {
-       name: 'instantResponse',
-       description: 'Top menu > Instant Response',
-       locator: Object.keys(phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.firstNavBar.defaultLocators)[0]+ "/li[ position()=2 ]/a"
-    });
-    phpMyFAQ.uiMap.addElement( 'nonAdminPages', {
-       name: 'addNewFAQ',
-       description: 'Top menu > Add new FAQ',
-       locator: Object.keys(phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.firstNavBar.defaultLocators)[0]+ "/li[ position()=3 ]/a"
-    });
-    phpMyFAQ.uiMap.addElement( 'nonAdminPages', {
-       name: 'addQuestion',
-       description: 'Top menu > Add question',
-       locator: Object.keys(phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.firstNavBar.defaultLocators)[0]+ "/li[ position()=4 ]/a"
-    });
-    phpMyFAQ.uiMap.addElement( 'nonAdminPages', {
-       name: 'openQuestions',
-       description: 'Top menu > Open questions',
-       locator: Object.keys(phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.firstNavBar.defaultLocators)[0]+ "/li[ position()=5 ]/a"
-    });
-    phpMyFAQ.uiMap.addElement('nonAdminPages', {
-        name: 'currentUserDropdown',
-        description: '<li> with menu for the currently logged in user (if any).',
-        locator: "//ul[ contains(@class, 'navbar-nav') ]/li[ contains(@class, 'dropdown') ]",
-        testcase1: {
-            xhtml:
-            '<ul class="nav navbar-nav">(The first navbar - Categories etc.)\n\
-             </ul>\
-             <ul class="nav navbar-nav navbar-right">\n\
-                <li class="dropdown" expected-result="1">User-name-here...</li>\n\
-             </ul>'
-        }
-    });
-    // the following is for development, so that when Bootstrap re-loads this file automatically, it re-runs the test.
-    phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.currentUserDropdown.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
     phpMyFAQ.uiMap.addElement('nonAdminPages', {
         name: 'bootstrapMenu',
         description: '<div> for the Bootstrap menu. Only use through phpMyFAQ.bootstrapMenuLocator() to detect whether the menu is expanded; do not use to access menu items etc.',
@@ -184,42 +90,6 @@
         description: 'Admin pages of  phpMyFAQ',
         pathRegexp: 'admin/'
     });
-    phpMyFAQ.uiMap.addElement('adminPages', {
-        name: 'currentUserDropdown',
-        description: '<li> with menu for the currently logged in admin user; only for pages under "admin/".',
-        locator: '//a[ @class="dropdown-toggle" ]//b[ contains(@class, "fa-user") ]/following-sibling::span/../..',
-        testcase1: {
-            xhtml:
-            '<li class="dropdown" expected-result="1">\
-                <a class="dropdown-toggle" data-toggle="dropdown" href="#">\
-                    <b class="fa fa-user"></b>\
-                    <span title="Logged in as louise">\
-                        Louise                    </span>\
-                    <b class="fa fa-caret-down"></b>\
-                </a>\
-                <ul class="dropdown-menu">\
-                    <li>\
-                        <a href="index.php?action=passwd">\
-                            <i class="fa fa-lock"></i> Change Password                        </a>\
-                    </li>\
-                    <li class="divider"></li>\
-                    <li>\
-                        <a href="index.php?action=logout">\
-                            <i class="fa fa-power-off"></i> Logout                        </a>\
-                    </li>\
-                </ul>\
-            </li>'
-        }
-    });
-    phpMyFAQ.uiMap.pagesets.adminPages.uiElements.currentUserDropdown.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
-    
-    /** @return {string} Locator of current user dropdown, depending on current URL. It works for both admin and non-admin pages. The only menu item under this dropdown common on both types of pages is Logout link, so this serves to locate it in a uniform way.
-     * */
-    phpMyFAQ.currentUserDropdownLocator= function currentUserDropdownLocator() {
-        return SeLiteSettings.appPath().startsWith( '/admin/' )
-            ? 'ui=adminPages::currentUserDropdown()'
-            : 'ui=nonAdminPages::currentUserDropdown()';
-    };
     
     /** object {
      *    string sectionName: object {
@@ -399,6 +269,7 @@
             </ul>'
         }
     });
+    // the following is for development, so that when Bootstrap re-loads this file automatically, it re-runs the test.
     phpMyFAQ.uiMap.pagesets.adminPages.uiElements.topNavigation.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
     
     phpMyFAQ.uiMap.addElement('adminPages', {
