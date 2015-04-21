@@ -276,16 +276,16 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;if</td>
-	<td>!selenium.isVisible( 'id=pmf-navbar-collapse' )</td>
+	<td>!selenium.isVisible( phpMyFAQ.bootstrapMenuLocator() )</td>
 	<td></td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;click</td>
-	<td>ui=nonAdminPages::mobileMenuButton()</td>
+	<td>ui=allPages::bootstrapMenuToggle()</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pause</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pause</td>
 	<td>150</td>
 	<td></td>
 </tr>
@@ -295,8 +295,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assertVisible</td>
-	<td>id=pmf-navbar-collapse</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;assertVisible</td>
+	<td>` phpMyFAQ.bootstrapMenuLocator() `</td>
 	<td></td>
 </tr>
 <tr>

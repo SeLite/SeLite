@@ -67,17 +67,17 @@
            );
        }
     } );
+    phpMyFAQ.uiMap.addElement('allPages', {
+        name: 'bootstrapMenuToggle',
+        description: '<button> for the Bootstrap menu toggle button. Visible in mobile mode only.',
+        locator: "//button[ @class='navbar-toggle' ]"
+    } );
     
     phpMyFAQ.uiMap.addPageset({
         name: 'nonAdminPages',
         description: 'Non-admin phpMyFAQ pages',
         pathRegexp: '(?!admin/).*'
     });
-    phpMyFAQ.uiMap.addElement('nonAdminPages', {
-        name: 'mobileMenuButton',
-        description: 'button for the Bootstrap menu in mobile mode.',
-        locator: "//button/span[ .='Toggle navigation' ]/.."
-    } );
     phpMyFAQ.uiMap.addElement('nonAdminPages', {
         name: 'firstNavBar',
         description: '<ul> for the first navbar (containing Categories, Instant Response etc.).',
@@ -173,6 +173,11 @@
     });
     // the following is for development, so that when Bootstrap re-loads this file automatically, it re-runs the test.
     phpMyFAQ.uiMap.pagesets.nonAdminPages.uiElements.currentUserDropdown.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
+    phpMyFAQ.uiMap.addElement('nonAdminPages', {
+        name: 'bootstrapMenu',
+        description: '<div> for the Bootstrap menu. Only use through phpMyFAQ.bootstrapMenuLocator() to detect whether the menu is expanded; do not use to access menu items etc.',
+        locator: "//div[ @id='pmf-navbar-collapse' ]"
+    } );
     
     phpMyFAQ.uiMap.addPageset({
         name: 'adminPages',
@@ -493,4 +498,18 @@
         }
     });
     phpMyFAQ.uiMap.pagesets.adminPages.uiElements.secondNavigation.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
+    phpMyFAQ.uiMap.addElement('adminPages', {
+        name: 'bootstrapMenu',
+        description: '<span> for the Bootstrap menu. Only use through phpMyFAQ.bootstrapMenuLocator() to detect whether the menu is expanded; do not use to access menu items etc.',
+        locator: "//ul[ @id='side-menu' ]"
+    } );
+    
+    /** @return {string} Locator of bootstrapMenuLocator, depending on current URL. It works for both admin and non-admin pages. Only use it to detect whether the bootstrap menu is expanded; do not use to access menu items etc.
+     * */
+    phpMyFAQ.bootstrapMenuLocator= function bootstrapMenuLocator() {
+        return SeLiteSettings.appPath().startsWith( '/admin/' )
+            ? 'ui=adminPages::bootstrapMenu()'
+            : 'ui=nonAdminPages::bootstrapMenu()';
+    };
+
 })();
