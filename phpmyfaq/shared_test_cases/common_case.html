@@ -24,12 +24,12 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;call</td>
-	<td>openBootstrapMenuIfCollapsed</td>
+	<td>openUserOwnMenuIfCollapsed</td>
 	<td></td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;clickAndWait</td>
-	<td>//a[ contains(@href, '?action=login') ]</td>
+	<td>ui=allPages::userOwnMenuItem( item=Login )</td>
 	<td></td>
 </tr>
 <tr>
@@ -47,10 +47,11 @@
 	<td>//form//div[ @class=&quot;form-actions&quot; ]//button[ @type=&quot;submit&quot; ]</td>
 	<td></td>
 </tr>
+<!--    The current page and its URL depends on whether we got here from an admin or non-admin screen-->
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;assertElementPresent</td>
-	<td>ui=allPages::userOwnMenuLoggedInName()-&gt;xpath=/self::span[ contains(., \`phpMyFAQ.selectedUser.display_name`) ]</td>
-	<td></td>
+	<td>ui=allPages::userOwnMenuLoggedInName( displayName= `phpMyFAQ.selectedUser.display_name` )</td>
+	<td>Comment: keep a space between displayName= and `phpMyFAQ.selectedUser.display_name`, otherwise EnhancedSyntax treats it specially</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;getEval</td>
@@ -91,6 +92,11 @@
 <tr>
 	<td>&nbsp;&nbsp;assertElementPresent</td>
 	<td>ui=allPages::userOwnMenuItem( item=Login )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;assertLocation</td>
+	<td>regexp:</td>
 	<td></td>
 </tr>
 <tr>
@@ -220,22 +226,12 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;call</td>
-	<td>openBootstrapMenuIfCollapsed</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;click</td>
-	<td>` phpMyFAQ.currentUserDropdownLocator() `-&gt;/a[ @class=&quot;dropdown-toggle&quot; ]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pause</td>
-	<td>150</td>
+	<td>openUserOwnMenuIfCollapsed</td>
 	<td></td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
-	<td>` phpMyFAQ.currentUserDropdownLocator() `-&gt;//a[ @href='` SeLiteSettings.webURL('admin/index.php') `' ]</td>
+	<td>ui=allPages::userOwnMenuItem( item=Administration )</td>
 	<td></td>
 </tr>
 <tr>
@@ -244,12 +240,22 @@
 	<td></td>
 </tr>
 <tr>
+	<td>&nbsp;&nbsp;call</td>
+	<td>openBootstrapMenuIfCollapsed</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;assertVisible</td>
+	<td>ui=adminPages::topNavigation(section=Dashboard)</td>
+	<td></td>
+</tr>
+<tr>
 	<td>endFunction</td>
 	<td></td>
 	<td></td>
 </tr>
 <!---->
-<!--Open Bootstrap menu, if in mobile mode (and if not expanded already). Only for non-admin pages.-->
+<!--Expand Bootstrap menu, if in mobile mode (and if not expanded already). Only for non-admin pages.-->
 <!--Don't use directly. Use function goToAdministration instead.-->
 <tr>
 	<td>function</td>
@@ -258,11 +264,16 @@
 </tr>
 <!--  resizeTo(), innerWidth and innerHeight don't work in getEval with window, neither with this.browserbot.getCurrentWindow()-->
 <tr>
-	<td>&nbsp;&nbsp;if</td>
-	<td>javascript{ window.opener.innerWidth&lt;=1020 }</td>
+	<td>&nbsp;&nbsp;getEval</td>
+	<td>javascript{ 'LOG.info( &quot;window.opener.width: &quot; +' +window.opener.innerWidth+ ')' }</td>
 	<td></td>
 </tr>
-<!--    A combination of if... and an isXyz() condition:-->
+<!--  TODO Doc: the following innerWidth is different to value reported by console in Firebug or in Firefox's Web Developer > Toggle tools > console.-->
+<tr>
+	<td>&nbsp;&nbsp;if</td>
+	<td>javascript{ window.opener.innerWidth&lt;1024 }</td>
+	<td>In Firebug console it is 768</td>
+</tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;if</td>
 	<td>!selenium.isVisible( 'id=pmf-navbar-collapse' )</td>
@@ -299,6 +310,7 @@
 	<td></td>
 </tr>
 <!---->
+<!--Expand user's own menu (if  not expanded already). It also calls openBootstrapMenuIfCollapsed. For both non-admin and admin  pages.-->
 <tr>
 	<td>function</td>
 	<td>openUserOwnMenuIfCollapsed</td>

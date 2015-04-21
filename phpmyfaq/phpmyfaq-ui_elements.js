@@ -53,8 +53,20 @@
     phpMyFAQ.uiMap.addElement('allPages', {
        name: 'userOwnMenuLoggedInName' ,
        description: "<span> in user's own menu that contains the current user's name",
-       locator: Object.keys(phpMyFAQ.uiMap.pagesets.allPages.uiElements.userOwnMenu.defaultLocators)[0]+ '/preceding::a/span'
-    });
+       args: [
+            {name: 'displayName',
+             description: "User's display name. Matched as a substring of the content of <span>. Optional - if not set, then this matches any user's name.",
+             defaultValues: ['']
+            }
+       ],
+       getLocator: function getLocator(args) {
+           return Object.keys(phpMyFAQ.uiMap.pagesets.allPages.uiElements.userOwnMenu.defaultLocators)[0]+ '/preceding::a/span'+ (
+               args.displayName!==undefined && args.displayName!==''
+               ? '[ contains(., ' +(''+args.displayName).quoteForXPath()+ ') ]'
+               : ''
+           );
+       }
+    } );
     
     phpMyFAQ.uiMap.addPageset({
         name: 'nonAdminPages',

@@ -33,38 +33,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;getEval</td>
-	<td>LOG.error( SeLiteMisc.objectToString(phpMyFAQ.selectedUser, 2) )</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;click</td>
-	<td>ui=adminPages::currentUserDropdown()-&gt;/a</td>
-	<td>Toggle expand the menu</td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;storeVisible</td>
-	<td>//a[ @class=&quot;dropdown-toggle&quot; ]//b[ contains(@class, &quot;fa-user&quot;) ]/following-sibling::span/../../a</td>
-	<td>isVisible</td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;&nbsp;storeVisible</td>
-	<td>ui=adminPages::currentUserDropdown()-&gt;xpath=/a</td>
-	<td>isVisible</td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;pause</td>
-	<td>100</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;assertElementPresent</td>
-	<td>ui=adminPages::currentUserDropdown()-&gt;xpath=/a/span[ contains(., \`phpMyFAQ.selectedUser.display_name`) ]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;assertElementPresent</td>
-	<td>ui=adminPages::topNavigation(section=Dashboard)</td>
+	<td>call</td>
+	<td>openBootstrapMenuIfCollapsed</td>
 	<td></td>
 </tr>
 <tr>
@@ -73,12 +43,7 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;pause</td>
-	<td>250</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;assertElementPresent</td>
+	<td>assertElementPresent</td>
 	<td>ui=adminPages::secondNavigation(section=Users,item=Change Password)</td>
 	<td></td>
 </tr>
@@ -92,6 +57,12 @@
 	<td>storeEval</td>
 	<td>storedVars._result</td>
 	<td>createdUser</td>
+</tr>
+<!--TODO remove the following once https://github.com/thorsten/phpMyFAQ/issues/1015 is fixed-->
+<tr>
+	<td>ensureUnderWebRoot</td>
+	<td>` true `</td>
+	<td></td>
 </tr>
 <tr>
 	<td>call</td>

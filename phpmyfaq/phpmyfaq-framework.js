@@ -25,13 +25,14 @@ SeLiteMisc.registerOrExtendFramework( function() {
     /*if( commonSettings.getField('exitConfirmationCheckerMode') ) {
         //commonSettings.getField('exitConfirmationCheckerMode').setDefaultKey( 'skipRevertedChanges' );
     }/**/
-    //@TODO join formula
     phpMyFAQ.selectUserByLogin= function selectUserByLogin( givenLogin ) {
         phpMyFAQ.selectedUser= phpMyFAQ.formulas.userwithdata.selectOne( {login: givenLogin} );
-        phpMyFAQ.selectedUser.pass= phpMyFAQ.formulas.userlogin.selectOne( {login: givenLogin} ).pass;
-        if( phpMyFAQ.selectedUser.pass===undefined || phpMyFAQ.selectedUser.pass==='' ) {
-            phpMyFAQ.selectedUser.pass= SeLiteMisc.loginManagerPassword( givenLogin );
+        // Try login manager first. That helps when userlogin record in the test DB comes from the (initial) app DB, with encrypted password(s) rather than plain text ones.
+        phpMyFAQ.selectedUser.pass= SeLiteMisc.loginManagerPassword( givenLogin );
+        if( phpMyFAQ.selectedUser.pass===undefined ) {
+            phpMyFAQ.selectedUser.pass= phpMyFAQ.formulas.userlogin.selectOne( {login: givenLogin} ).pass;
         }
+        phpMyFAQ.selectedUser.pass!==undefined && phpMyFAQ.selectedUser.pass!=='' || SeLiteMisc.fail( "No password known for user login " +givenLogin );
     };
 
     SeLiteSettings.setTestDbKeeper( 
