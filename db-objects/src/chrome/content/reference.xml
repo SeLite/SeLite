@@ -7,7 +7,7 @@
 Xml-stylesheet (whether remote or even local) didn't load up work when you open this in a browser locally via file://
 -->
 <apidoc package-name="SeLite DB Objects">
-<function name="getRecord">
+<function name="getReadRecord">
     <param name="info">Anonymous object in form {
         <dl>
             <dt>table</dt>

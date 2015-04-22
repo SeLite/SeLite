@@ -718,5 +718,8 @@
     };
     */
     Selenium.prototype.doNop= function doNop( locatorUnused, valueUnused ) {};
+    Selenium.prototype.doNopAndWait= function doNopAndWait( locatorUnused, valueUnused ) {
+        throw new SeleniumError( "Do not use nopAndWait. Use nop instead." );
+    };
   }
 )();
