@@ -12,7 +12,8 @@ and open the template in the editor.
     </head>
     <body>
         <div>
-            <!-- When testing, access this online at and pass a number, e.g. http://htmlpreview.github.io/?https://github.com/selite/main/blob/master/implicit-wait/selenese-tests/page.html&queryNumber=1234. See below. -->
+            <!-- When testing, access this online at and pass a number, e.g. http://htmlpreview.github.io/?https://github.com/selite/main/blob/master/implicit-wait/selenese-tests/page.html&queryNumber=1234. See below.
+            Don't use with htmlpreview.github.io, because it doesn't accept extra parameter(s) in the URL. E.g. http://htmlpreview.github.io/?https://github.com/selite/main/blob/master/implicit-wait/selenese-tests/page.html&queryNumber=1 has failed. -->
             Reload this file at
             <script type="text/javascript">
                 //<![CDATA[
@@ -25,7 +26,7 @@ and open the template in the editor.
                 var url= match
                     ? match[1]+ match[2] +nextQueryNumber+ match[4]
                     : location.href +(location.href.indexOf('?')>0
-                            ? '&' // - for URL http://htmlpreview.github.io/?https://github.com/selite/main/blob/master/implicit-wait/selenese-tests/page.html with no queryNumber parameter
+                            ? '&' // - just in case there would be other parameter(s) in the URL.
                             : '?'
                         )+ 'queryNumber=' +nextQueryNumber;
                 document.write( '<a id="link" class="link-' +nextQueryNumber+ '" href="' +url+ '">' +url+ '<a>. ' );
