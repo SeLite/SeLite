@@ -701,6 +701,7 @@
         }
     };
     
+    /* @TODO
     var originalClick= Selenium.prototype.doClick;
     Selenium.prototype.doClick= function doClick( locator ) {
         var element= this.browserbot.findElementOrNull( locator );
@@ -715,5 +716,7 @@
         }
         return originalClick.call( this, locator );
     };
+    */
+    Selenium.prototype.doNop= function doNop( locatorUnused, valueUnused ) {};
   }
 )();

@@ -308,4 +308,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
         This command is a part of SeLite Commands.
     </comment>
 </function>
+<function name="nop">
+    <comment>This does nothing. It serves when all you need is to evaluate Target and/or Value parameter, e.g. <code>javascript{...}</code> (see http://docs.seleniumhq.org/docs/02_selenium_ide.jsp#javascript-usage-with-non-script-parameters).</comment>
+</function>
 </apidoc>
