@@ -12,16 +12,19 @@ and open the template in the editor.
     </head>
     <body>
         <div>
-            <!-- When testing, access this online at https://selite.googlecode.com/git/implicit-wait/selenese-tests/page.html. You can invoke pass a number after its URL, e.g. https://selite.googlecode.com/git/implicit-wait/selenese-tests/page.html?1234. See below. -->
+            <!-- When testing, access this online at and pass a number, e.g. http://htmlpreview.github.io/?https://github.com/selite/main/blob/master/implicit-wait/selenese-tests/page.html&queryNumber=1234. See below. -->
             Reload this file at
             <script type="text/javascript">
                 //<![CDATA[
                 "use strict";
                 // Generate a link based on the given number, increased by one. - Selenium script captures the link with that increased number and runs 'click' for it. That ensures every click has to wait for the server - and that lets us test Implicit Wait.
-                var nextQueryNumber= location.search.length>0
-                    ? Number( location.search.substr(1) ) +1
+                var match= /^(.+)([?&]queryNumber=)([^&]+)(.*)$/.exec( location );
+                var nextQueryNumber= match
+                    ? Number( match[3] ) +1
                     : Date.now();
-                var url= 'page.html?' +nextQueryNumber;
+                var url= match
+                    ? match[1]+ match[2] +nextQueryNumber+ match[4]
+                    : 'page.html?queryNumber=' +nextQueryNumber;
                 document.write( '<a id="link" class="link-' +nextQueryNumber+ '" href="' +url+ '">' +url+ '<a>. ' );
                 document.write( 'That page will have query number <span id="nextQueryNumber">' +nextQueryNumber+ '</span>. ')
                 document.write( 'The page after it (i.e. the page after the one linked to) will have query number ' +(nextQueryNumber+1)+ '.' );

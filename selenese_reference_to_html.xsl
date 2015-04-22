@@ -4,8 +4,7 @@
 - cd commands/src/chrome/content/
 - ln -s ../../../../selenese_reference_to_html.xsl
 - vi reference.xml, change it to load "selenese_reference_to_html.xsl" instead of "https://selite.googlecode.com/git/selenese_reference_to_html.xsl"
-- then open chrome://selite-commands/content/reference.xml
-Somehow XSLT doesn't work when .xml file is open via file://
+- then open chrome://selite-commands/content/reference.xml. Don't open it via file:// URL, because then XSLT doesn't work.
 -->
 <xsl:stylesheet
     version="1.0"
