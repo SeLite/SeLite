@@ -24,22 +24,27 @@
        locator: Object.keys(phpMyFAQ.uiMap.pagesets.allPages.uiElements.userOwnMenu.defaultLocators)[0]+ '/../self::li/a[ @class="dropdown-toggle" ]'
     });
     var userOwnMenuItems= {
-        'Advanced search': '?action=search',
-        'All categories': '?action=show',
-        'Add new FAQ': '?action=add',
-        'Add question': '?action=ask',
-        'Open questions': '?action=open',
-        // Only shown when not logged on:
-        'Sign up': '?action=register',
-        'Login': '?action=login',
-        // Only shown when logged on, and if applicable:
-        'User Control Panel': '?action=ucp',
-        'Administration': '/admin/index.php',
-        'Logout': '?action=logout'
+        // Non-admin pages only:
+            // Shown whether logged on or not:
+            'Advanced search': '?action=search',
+            'All categories': '?action=show',
+            'Add new FAQ': '?action=add',
+            'Add question': '?action=ask',
+            'Open questions': '?action=open',
+            // Only shown when not logged on:
+            'Sign up': '?action=register',
+            'Login': '?action=login',
+            // Only shown when logged on, and if applicable:
+            'User Control Panel': '?action=ucp',
+            'Administration': '/admin/index.php',
+        // Admin pages only:
+            'Change Password': 'index.php?action=passwd',
+        // Both non-admin and admin pages:
+            'Logout': '?action=logout' // This covers both 'Logout' on admin pages: 'index.php?action=logout' and on non-admin pages: '?action=logout'.
     };
     phpMyFAQ.uiMap.addElement('allPages', {
        name: 'userOwnMenuItem' ,
-       description: "<a> for the user's own menu item",
+       description: "<a> for the user's own menu item. Most are for non-admin pages only.",
        args: [
             {name: 'item',
              description: 'Item label/text',
@@ -47,6 +52,7 @@
             }
        ],
        getLocator: function getLocator(args) {
+           // Use contains(@href, '...') rather than @href='...', so that it covers both 'Logout' URLs (see above).
            return Object.keys(phpMyFAQ.uiMap.pagesets.allPages.uiElements.userOwnMenu.defaultLocators)[0]+ '/li/a[ contains(@href, "' +userOwnMenuItems[args.item]+ '") ]';
        }
     });
@@ -166,7 +172,7 @@
         name: 'topNavigation',
         description: 'Link to top level navigation entry.',
         getLocator: function(args) {
-            // I could set a 'local variable', as per chrome://selenium-ide/content/selenium-core/scripts/ui-doc.html > UI-Element Shorthand > _*, but it could make this less clear
+            // I could set a 'local variable', as per chrome://selenium-ide/content/selenium-core/scripts/ui-doc.html > UI-Element Shorthand > _*, but it could make this less clear.
             return '//ul[ @id="side-menu" ]/li/a[ @href="' +adminNavigation[ args.section ].topLevel+ '" ]';
         },
         args: [
@@ -276,6 +282,7 @@
         name: 'secondNavigation',
         description: 'Link to second level navigation entry.',
         getLocator: function(args) {
+            // Use exact match by @href='...', rather than contains(@href, '...'), because URLs for some parts end up with same substring (e.g. Statistics and Rating Statistics).
             return '//ul[ @id="side-menu" ]/li/a[ @href="' +adminNavigation[ args.section ].topLevel+ '" ]/following-sibling::ul/li/a[ @href="' +adminNavigation[ args.section ].secondLevel[ args.item ]+ '" ]';
         },
         args: [

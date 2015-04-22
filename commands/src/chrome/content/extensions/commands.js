@@ -1,4 +1,4 @@
-/*  Copyright 2011, 2012, 2013, 2014 Peter Kehl
+/*  Copyright 2011, 2012, 2013, 2014, 2015 Peter Kehl
     This file is part of SeLite Commands.
 
     This program is free software: you can redistribute it and/or modify
@@ -111,7 +111,7 @@
      *  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat/supportedLocalesOf
      **/
     Selenium.prototype.timestampComparesTo= function timestampComparesTo( locator, timestampInMilliseconds, displayPrecisionInMilliseconds, validatePrecision, timezoneTODO ) {
-        var element= this.page().findElement(locator);
+        var element= this.browserbot.findElement(locator);
         var displayedTimeString= element.value!==undefined
             ? element.value
             : element.textContent;
@@ -122,7 +122,7 @@
         // Following works because timezone shifts are multiplies of 30min.
         if( validatePrecision && displayedTime%displayPrecisionInMilliseconds>0 ) {
             var msg= 'Timestamp precision validation failed. The displayed timestamp has value of precision lower than the given precision ' +displayPrecisionInMilliseconds+ 'ms. If this worked in past, then the application most likely changed. Change the precision.';
-            LOG.error();
+            LOG.error( msg );
             throw new Error(msg);
         }
         return Math.abs( timestampInMilliseconds-displayedTime) <= maxDifference;
@@ -289,7 +289,7 @@
      */
     Selenium.prototype.randomOption= function randomOption( selectLocator, params ) {
         params= params || {};
-        var select= this.page().findElement(selectLocator);
+        var select= this.browserbot.findElement(selectLocator);
         var options= select.getElementsByTagName('option');
 
         var excludeFirst= params && params.excludeFirst;
@@ -369,7 +369,7 @@
         }
         !( params.characters && params.type ) || SeLiteMisc.fail("Can't use both parameter subfields 'characters' and 'type'.");
         var elementMaxLength= locator
-            ? parseInt( this.page().findElement(locator).getAttribute('maxlength') )
+            ? parseInt( this.browserbot.findElement(locator).getAttribute('maxlength') )
             : undefined;
 
         var minLength= params.minLength || 1;
@@ -613,7 +613,7 @@
         }
         else {
             if( params.from!==undefined ) {
-                var fromElement= this.page().findElement( params.from );
+                var fromElement= this.browserbot.findElement( params.from );
                 var name= fromElement.value!==undefined
                         ? fromElement.value
                         : fromElement.textContent;
@@ -659,7 +659,7 @@
                 self.doSelectFrame( 'relative=top' );
                 for( var i=0; i<locatorOrLocators.length; i++ ) {//@TODO for(..of..)
                     var locator= locatorOrLocators[i];
-                    var wrappedElementOrNull= self.page().findElementOrNull( locator );
+                    var wrappedElementOrNull= self.browserbot.findElementOrNull( locator );
                     if( wrappedElementOrNull!==null ) {
                         self.doSelectFrame( locator );
                         continue;
@@ -692,12 +692,28 @@
     Selenium.prototype.doEnableJavascript= function doEnableJavascript() {
         this.setJavascriptPref(true);
     };
-    
+//--------------------------
+
     Selenium.prototype.doEnsureUnderWebRoot= function doEnsureUnderWebRoot( forceReload ) {
         this.browserbot.selectWindow( null );
         if( !this.browserbot.getCurrentWindow().location.href.startsWith( SeLiteSettings.webRoot() ) || forceReload ) {
             return this.doOpen( SeLiteSettings.webRoot() );
         }
+    };
+    
+    var originalClick= Selenium.prototype.doClick;
+    Selenium.prototype.doClick= function doClick( locator ) {
+        var element= this.browserbot.findElementOrNull( locator );
+        if( !element || !this.isVisible(locator) ) {
+            var msg= "Element " +locator+ (!element
+                ? " is not on the page."
+                : " is on the page, but it is not visible."
+            );
+            throw false//assert-like
+                ? new SeleniumError(  msg )
+                : new Error( msg ); // This: 'Unexpected Exception'
+        }
+        return originalClick.call( this, locator );
     };
   }
 )();

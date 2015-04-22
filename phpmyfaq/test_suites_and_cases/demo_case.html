@@ -91,6 +91,18 @@
 	<td>openBootstrapMenuIfCollapsed</td>
 	<td></td>
 </tr>
+<!--TODO DOC Somehow, within javascript{...}, window.opener.outerWidth==window.opener.innerWidth, regardless of vertical scrollbars-->
+<!--TODO DOC window.opener is not available in getEval(). It's not available in EnhancedSyntax `...` either, but there it is null.-->
+<tr>
+	<td>pause</td>
+	<td>javascript{ alert( window.opener.outerWidth-window.opener.innerWidth);}</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>javascript{ window.opener.resizeTo( window.opener.outerWidth-100, window.opener.outerHeight ); '0'; }</td>
+	<td></td>
+</tr>
 </tbody></table>
 </body>
 </html>

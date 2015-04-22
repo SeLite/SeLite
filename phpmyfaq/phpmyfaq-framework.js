@@ -13,7 +13,10 @@ if( phpMyFAQ===undefined ) {
         /** @type {object} As loaded from 'user' table, with 'pass' field loaded from 'userlogin' table. */
         selectedUser: undefined,
         /** @type {SeLiteData.Db}*/
-        db: new SeLiteData.Db( SeLiteData.getStorageFromSettings(), /*prefix:*/undefined, /*generateInsertKey:*/true )
+        db: new SeLiteData.Db( SeLiteData.getStorageFromSettings(), /*prefix:*/undefined, /*generateInsertKey:*/true ),
+        mobileWidth: 800,
+        desktopWidth: 1100,
+        minDesktopWidth: 1024
     };
 }
 SeLiteMisc.registerOrExtendFramework( function() {

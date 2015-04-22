@@ -213,7 +213,7 @@ SeLiteMisc.registerOrExtendFramework( function() {
         Selenium.prototype.readSerendipityEditorBody= function readSerendipityEditorBody() {
             return Serendipity.useRichEditor()
                 ? this.serendipityEditorBodyRich().getEditorContent()
-                : this.page().findElement( 'name=serendipity[body]' ).value;
+                : this.browserbot.findElement( 'name=serendipity[body]' ).value;
         };
         Selenium.prototype.saveSerendipityEditorBody= function saveSerendipityEditorBody(content) {
             if( Serendipity.useRichEditor() ) {
@@ -221,20 +221,20 @@ SeLiteMisc.registerOrExtendFramework( function() {
                 this.serendipityEditorBodyRich().setEditorContent( content );
             }
             else {
-                this.page().findElement( 'name=serendipity[body]' ).value= content;
+                this.browserbot.findElement( 'name=serendipity[body]' ).value= content;
             }
         };
         Selenium.prototype.readSerendipityEditorExtended= function readSerendipityEditorExtended() {
             return Serendipity.useRichEditor()
                 ? this.serendipityEditorExtendedRich().getEditorContent()
-                : this.page().findElement( 'name=serendipity[extended]' ).value;
+                : this.browserbot.findElement( 'name=serendipity[extended]' ).value;
         };
         Selenium.prototype.saveSerendipityEditorExtended= function saveSerendipityEditorExtended( content ) {
             if( Serendipity.useRichEditor() ) {
                 this.serendipityEditorExtendedRich().setEditorContent( content );
             }
             else {
-                this.page().findElement( 'name=serendipity[extended]' ).value= content;
+                this.browserbot.findElement( 'name=serendipity[extended]' ).value= content;
             }
         };
         
