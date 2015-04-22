@@ -17,8 +17,10 @@
 "use strict";
 function onTreeDblClick(event) {
     var tree= event.currentTarget;
-    // If you double-click within Target or Value, keep the default behaviour: select the word.
-    if( tree.getAttribute('editing')==='true' && tree.editingColumn!==tree.columns[0] ) {
+    // If you double-click within Target or Value, or within Command of a comment, keep the default behaviour: select the word.
+    if( tree.getAttribute('editing')==='true'
+        && ( tree.editingColumn!==tree.columns[0] || editor.treeView.currentCommand.type==='comment' )
+    ) {
         return;
     }
     tree.stopEditing();
