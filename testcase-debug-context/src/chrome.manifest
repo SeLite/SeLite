@@ -1,3 +1,4 @@
 content selite-testcase-debug-context  chrome/content/
+skin selite-testcase-debug-context classic chrome/skin/classic/
 
 overlay chrome://browser/content/browser.xul chrome://selite-testcase-debug-context/content/extensions/browser.xul

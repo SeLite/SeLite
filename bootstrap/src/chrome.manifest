@@ -1,5 +1,5 @@
 content selite-bootstrap  chrome/content/
-
+skin selite-bootstrap classic chrome/skin/classic/
 locale selite-bootstrap  en-US chrome/locale/en-US/
 
 # custom extension(s)

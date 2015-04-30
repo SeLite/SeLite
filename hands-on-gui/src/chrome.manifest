@@ -1,4 +1,5 @@
 content selite-hands-on-gui chrome/content/
+skin selite-hands-on-gui classic chrome/skin/classic/
 
 overlay chrome://browser/content/browser.xul chrome://selite-hands-on-gui/content/extensions/browser.xul
 

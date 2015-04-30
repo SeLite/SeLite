@@ -17,5 +17,7 @@
         <em:maxVersion>38.*</em:maxVersion>
       </Description>
     </em:targetApplication>
+    <em:iconURL>chrome://selite-settings/skin/favicon-32x32.png</em:iconURL>
+    <em:icon64URL>chrome://selite-settings/skin/favicon-64x64.png</em:icon64URL>
   </Description>
 </RDF>

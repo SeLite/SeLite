@@ -1,5 +1,5 @@
 content selite-settings  chrome/content/
-skin selite-settings classic/1.0 chrome/skin/
+skin selite-settings classic chrome/skin/classic/
 
 locale selite-settings  en-US chrome/locale/en-US/
 overlay chrome://selenium-ide/content/selenium-ide.xul chrome://selite-settings/content/ui/ovIDE.xul

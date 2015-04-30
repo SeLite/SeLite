@@ -1,4 +1,5 @@
 content implicit-wait chrome/content/
+skin implicit-wait classic chrome/skin/classic/
 
 locale implicit-wait en-US chrome/locale/en-US/
 

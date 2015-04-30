@@ -1,4 +1,5 @@
 content selite-db-objects chrome/content/
+skin selite-db-objects classic chrome/skin/classic/
 
 # custom extension(s)
 overlay chrome://browser/content/browser.xul chrome://selite-db-objects/content/extensions/browser.xul
