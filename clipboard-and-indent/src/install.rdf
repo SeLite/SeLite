@@ -4,7 +4,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>clipboard-and-indent@selite.googlecode.com</em:id>
     <em:name>SeLite Clipboard And Indent</em:name>
-    <em:version>0.13</em:version>
+    <em:version>0.14</em:version>
     <em:creator>Peter Kehl</em:creator>
     <em:homepageURL>https://code.google.com/p/selite/</em:homepageURL>
     <em:description>It makes Selenium IDE accept HTML from clipboard (e.g. from another Selenium IDE instance). It enables Selenese commands to be indented with spaces into blocks. It indents and de-indents structured commands that come with SeLite SelBlocks Global. </em:description>
