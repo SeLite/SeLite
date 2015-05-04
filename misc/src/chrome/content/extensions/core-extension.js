@@ -27,7 +27,7 @@ Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
      *  I've tried to have it in selite-misc.js and to load the component using
      *  Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js", {selenium: selenium} );
      *  above, but that failed, because variable selenium is not yet defined when this file itself is processed.
-     *  @TODO Document that in JavascriptComplex.wiki
+     *  @TODO Document that in http://selite.github.io/JavascriptComplex
      */
      /**  This returns value of given parameter (if present) from current URL;
      *  if parameter name is not given, then it returns value of the last parameter in the URL.

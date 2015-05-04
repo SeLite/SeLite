@@ -73,7 +73,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
             <!--<dt>timezone</dt>
             <dd>To be defined once Firefox supports time zone names</dd>-->
         </dl>
-        }. You can pass it via =`...` notation as per https://code.google.com/p/selite/wiki/EnhancedSyntax.
+        }. You can pass it via =`...` notation as per http://selite.github.io/EnhancedSyntax.
     </param>
     <comment>Parse the given element as a timestamp <!--(at the given timezone, if any)-->
         and compare to the given timestamp, down to given precision.
@@ -132,7 +132,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
                     <dt>store</dt>
                     <dd>string, name of the result stored variable; optional</dd>
                 </dl>
-                }. You can pass it via =`...` notation as per https://code.google.com/p/selite/wiki/EnhancedSyntax.
+                }. You can pass it via =`...` notation as per http://selite.github.io/EnhancedSyntax.
             </li>
         </ul>
     </param>
@@ -165,7 +165,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
                     <li>excludeFirst: true - Whether to exclude the first option, optional</li>
                     <li>excludeLast: true - Whether to exclude the last option, optional</li>
                     <li>store: string  - name of the stored variable to store the selected value, it may include field or sub(sub...)field e.g. <code>variableName.fieldName, variableName.fieldName.subfieldName</code>...</li>
-                </ul>}. You can pass it via =`...` notation as per https://code.google.com/p/selite/wiki/EnhancedSyntax.
+                </ul>}. You can pass it via =`...` notation as per http://selite.github.io/EnhancedSyntax.
             </li>
         </ul>
     </param>
@@ -235,7 +235,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
                     <dd>string name of the stored variable to store the selected value, it may include field or sub(sub...)field e.g. <code>variableName.fieldName, variableName.fieldName.subfieldName</code>...
                     </dd>
                 </dl>
-                }. You can pass it via =`...` notation as per https://code.google.com/p/selite/wiki/EnhancedSyntax.
+                }. You can pass it via =`...` notation as per http://selite.github.io/EnhancedSyntax.
             </li>
         </ul>
     </param>
@@ -258,7 +258,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
                     <dt>maxLength</dt>
                     <dd>int as described for typeRandom action (i.e. doTypeRandom function), optional</dd>
                 </dl>
-               }. You can pass it via =`...` notation as per https://code.google.com/p/selite/wiki/EnhancedSyntax.
+               }. You can pass it via =`...` notation as per http://selite.github.io/EnhancedSyntax.
             </li>
         </ul>
     </param>
@@ -303,7 +303,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     <param name="forceReload">Whether to reload the webroot, even when the current URL is under webroot. Boolean, optional, false by default.
     </param>
     <comment>
-        It ensures that the location of the current window will be under <i>webroot</i> (defined in webRoot config field - see https://code.google.com/p/selite/wiki/SettingsOverview). If it is not so, or if you pass forceReload equal to true, then it opens <i>webRoot</i> in the current window.
+        It ensures that the location of the current window will be under <i>webroot</i> (defined in webRoot config field - see http://selite.github.io/SettingsOverview). If it is not so, or if you pass forceReload equal to true, then it opens <i>webRoot</i> in the current window.
         <br/>
         This command is a part of SeLite Commands.
     </comment>

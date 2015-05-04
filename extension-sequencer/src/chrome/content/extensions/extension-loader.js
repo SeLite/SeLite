@@ -133,7 +133,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                         ? (numberOfBrokenSeLiteAddOns===brokenDependantIds.length
                             ? ' See also'
                             : ' For those of them which are SeLite add-on(s), see also'
-                          )+ ' <a href="https://code.google.com/p/selite/wiki/AddOnsDependants">https://code.google.com/p/selite/wiki/AddOnsDependants</a>.'
+                          )+ ' <a href="http://selite.github.io/AddOnsDependants">http://selite.github.io/AddOnsDependants</a>.'
                         : ''
                     )
                 );

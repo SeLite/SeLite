@@ -475,7 +475,7 @@ SeLiteSettings.Field.prototype.getDownToFolder= function getDownToFolder( folder
     return this.module.getFieldsDownToFolder( folderPath, dontCache, includeUndeclaredEntries )[ this.name ];
 };
 
-// @TODO Move this line to Javascript.wiki?: See also https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
+// @TODO Move this line to http://selite.github.io/Javascript?: See also https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
 /** There's no parameter 'customValidate' for Bool.
  * */
 SeLiteSettings.Field.Boolean= function Bool( name, defaultKey, allowNull, description ) {
@@ -1517,7 +1517,7 @@ var namedTestSuiteFolderChangeHandlers= {};
  * */
 SeLiteSettings.getTestSuiteFolder= function getTestSuiteFolder() { return SeLiteSettings.testSuiteFolder; };
 
-/** @note Internal. Used by extensions/core-extension.js which stores the path of the test suite here. Don't call this from auxiliary Selenium IDE instances (i.e. ones normally open with URL ending with '#GREEN' etc. - see SeleniumIde.wiki), neither from Selenium IDE in browser sidebar (which has a different URL: chrome://selenium-ide/content/selenium-ide-sidebar.xul). I.e. call this only if window.location.href==='chrome://selenium-ide/content/selenium-ide.xul'.
+/** @note Internal. Used by extensions/core-extension.js which stores the path of the test suite here. Don't call this from auxiliary Selenium IDE instances (i.e. ones normally open with URL ending with '#GREEN' etc. - see http://selite.github.io/SeleniumIde), neither from Selenium IDE in browser sidebar (which has a different URL: chrome://selenium-ide/content/selenium-ide-sidebar.xul). I.e. call this only if window.location.href==='chrome://selenium-ide/content/selenium-ide.xul'.
  *  @param folder string or undefined
  * */
 SeLiteSettings.setTestSuiteFolder= function setTestSuiteFolder( folder ) {
@@ -1689,7 +1689,7 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
     return this.mergeSetsAndDefaults( associations, result, dontCache, includeUndeclaredEntries );
 };
 
-/** This gets values of the given set (if any). It merges them with values of default set (if any), and with field defaults, as per SettingsScope.wiki.
+/** This gets values of the given set (if any). It merges them with values of default set (if any), and with field defaults, as per http://selite.github.io/SettingsScope.
  * @private
  * @param {string} [setName]
  * @param {bool} [dontCache]

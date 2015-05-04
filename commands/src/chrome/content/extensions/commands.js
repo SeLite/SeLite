@@ -82,7 +82,7 @@
     Selenium.prototype.doWaitForTimestampDownToMinutes=
     Selenium.prototype.doWaitForTimestampDownToPrecision=
     function doWaitForTimestampDownToXXX( target, value ) {
-        throw new Error( "Do not use. See https://code.google.com/p/selite/wiki/ExtraCommands." );
+        throw new Error( "Do not use. See http://selite.github.io/ExtraCommands." );
     };
     
     /** This will be SeLiteSettings.Module instance for config module extensions.selite-settings.common. I can retrieve it here, but I can't access its field maxTimeDifference here, because that field is only added on-the-fly in callBack part of Command's SeLiteExtensionSequencerManifest.js, which is only after this file is loaded (as a Core extension) by ExtensionSequencer.

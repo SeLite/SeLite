@@ -17,7 +17,7 @@
 "use strict";
 
 Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
-// The primary/initial purpose here was to make Selenium IDE 'Log' tab accessible from Misc JS module. It's only for main Selenium IDE instance and not for auxiliary ones (i.e. Selenium IDE instances normally open with URL ending with '#GREEN' etc. - see SeleniumIde.wiki) and neither for Selenium IDE in Firefox sidebar (Firefox menu > View > Sidebar > Selenium IDE - which has a different URL: chrome://selenium-ide/content/selenium-ide-sidebar.xul).
+// The primary/initial purpose here was to make Selenium IDE 'Log' tab accessible from Misc JS module. It's only for main Selenium IDE instance and not for auxiliary ones (i.e. Selenium IDE instances normally open with URL ending with '#GREEN' etc. - see http://selite.github.io/SeleniumIde) and neither for Selenium IDE in Firefox sidebar (Firefox menu > View > Sidebar > Selenium IDE - which has a different URL: chrome://selenium-ide/content/selenium-ide-sidebar.xul).
 if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
     // LOG is defined, but it won't log into Selenium IDE 'Log' tab.
     // This is being called from Editor() constructor, hence editor, editor.selDebugger and editor.selDebugger.log are not set up yet. Only after Editor() loads IDE extensions (including this one), it sets its field selDebugger to an instance of Debugger.

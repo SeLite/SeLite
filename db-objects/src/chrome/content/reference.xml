@@ -19,7 +19,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
             <dt>string anotherColumnName (optional; there may be any number of matching columns)</dt>
             <dd>matchingValue (to match that column)</dd>
         </dl>
-        }. You can pass the object via =`{field: value, ...}` notation as per https://code.google.com/p/selite/wiki/EnhancedSyntax.
+        }. You can pass the object via =`{field: value, ...}` notation as per http://selite.github.io/EnhancedSyntax.
     </param>
     <comment>Load max. one record from DB. If there's no matching record, return null. If there are two or more matching records, fail.
         <br/>
@@ -27,8 +27,8 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
     </comment>
 </function>
 <function name="insertRecord">
-    <param name="recordObject">Anonymous object with the fields to store, or SeLiteData.Record instance. You can pass it via =`...` notation as per https://code.google.com/p/selite/wiki/EnhancedSyntax. If the table uses an auto-generated primary key (stored in one column), then after this command inserts the record it loads the value of the primary key and saves it in the given <code>recordObject</code>. It also stores the value of the primary key in stored variable <code>insertedRecordKey</code>, which is useful if you're passing an object literal via =`{field:value,...}` as <code>recordObject</code> and later you need the new key but not the whole object.</param>
-    <param name="table">SeLiteData.Table instance. You can pass it via =`...` notation as per https://code.google.com/p/selite/wiki/EnhancedSyntax.</param>
+    <param name="recordObject">Anonymous object with the fields to store, or SeLiteData.Record instance. You can pass it via =`...` notation as per http://selite.github.io/EnhancedSyntax. If the table uses an auto-generated primary key (stored in one column), then after this command inserts the record it loads the value of the primary key and saves it in the given <code>recordObject</code>. It also stores the value of the primary key in stored variable <code>insertedRecordKey</code>, which is useful if you're passing an object literal via =`{field:value,...}` as <code>recordObject</code> and later you need the new key but not the whole object.</param>
+    <param name="table">SeLiteData.Table instance. You can pass it via =`...` notation as per http://selite.github.io/EnhancedSyntax.</param>
     <comment>Insert the given object as a new record in the given table.
         <br/>
         This command is a part of SeLite DB Objects.

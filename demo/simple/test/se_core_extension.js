@@ -1,7 +1,7 @@
 /*  Copyright 2013 Peter Kehl
     See ../web/index.html
 */
-// Do not load this file through Selenium IDE menu Options > Options... > General > Selenium core extensions, since that may get loaded before SeLite add-ons (which use ExtensionSequencer). Load this file through BootstrapLoader. @TODO Document this in Wiki.
+// Do not load this file through Selenium IDE menu Options > Options... > General > Selenium core extensions, since that may get loaded before SeLite add-ons (which use ExtensionSequencer). Load this file through BootstrapLoader. @TODO Document this in online documentation.
 //"not using strict";
 /* Do not have "use strict"; if you want to set any new global variables/functions that you want to be visible from Selenese.
  * Any such functions define using: XXX= function(params...) { ... };

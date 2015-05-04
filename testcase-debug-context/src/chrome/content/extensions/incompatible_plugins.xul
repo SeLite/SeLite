@@ -2,7 +2,7 @@
 <window id="yourwindow" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml">
     <vbox id="SeSettingsBox" flex="1">
         <description >
-        SeLite TestCase Debug Context (and its <html:a href="https://code.google.com/p/selite/wiki/AddOnsDependants">dependants</html:a>) cannot work with SelBlocks or FlowControl - please, uninstall those. See also <html:a href="https://code.google.com/p/selite/wiki/SelBlocksGlobal">SelBlocks Global</html:a>.
+        SeLite TestCase Debug Context (and its <html:a href="http://selite.github.io/AddOnsDependants">dependants</html:a>) cannot work with SelBlocks or FlowControl - please, uninstall those. See also <html:a href="http://selite.github.io/SelBlocksGlobal">SelBlocks Global</html:a>.
         <html:script type="text/javascript">
             //<![CDATA[
             // Following is the same in similar .xul files across SeLite.

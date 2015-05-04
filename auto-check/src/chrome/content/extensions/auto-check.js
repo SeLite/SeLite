@@ -58,7 +58,7 @@ if( loadedTimes===1 ) { // Setup the overrides on the second load
                         else {
                             // see AssertHandler.prototype.execute() in chrome://selenium-ide/content/selenium-core/scripts/selenium-commandhandlers.js
                             var result= new AssertResult();
-                            result.setFailed( "(Ignore this log line, see the other one. It's due to https://code.google.com/p/selite/wiki/ThirdPartyIssues > verify* should show the diff)" );
+                            result.setFailed( "(Ignore this log line, see the other one. It's due to http://selite.github.io/ThirdPartyIssues > verify* should show the diff)" );
                             this.result= result;
                             this.waitForCondition = this.result.terminationCondition;
                             LOG.error( message );

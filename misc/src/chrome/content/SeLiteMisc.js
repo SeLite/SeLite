@@ -2098,7 +2098,7 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
     }
 };
 
-/** This ensures that there's maximum one framework loaded per Firefox sessionAs per https://code.google.com/p/selite/wiki/TestFramework#Extending_a_test_framework#Limitations. TODO: link to No hot switching between frameworks] and to [BootstrapLoader#Switching between files Switching between files].
+/** This ensures that there's maximum one framework loaded per Firefox sessionAs per http://selite.github.io/TestFramework#Extending_a_test_framework#Limitations. TODO: link to No hot switching between frameworks] and to [BootstrapLoader#Switching between files Switching between files].
  * */
 SeLiteMisc.registerOrExtendFramework= function registerOrExtendFramework( initialiser, name ) {
     SeLiteMisc.ensureType( initialiser, 'function', 'initialiser' );
@@ -2113,7 +2113,7 @@ SeLiteMisc.registerOrExtendFramework= function registerOrExtendFramework( initia
     SeLiteMisc.log().info( 'Loaded SeLite framework ' +name );
 };
 
-/** @return {object} Log object for Selenium IDE 'Log' tab. Only valid for primary Selenium IDE instances (not for auxiliary instances - see SeleniumIde.wiki).
+/** @return {object} Log object for Selenium IDE 'Log' tab. Only valid for primary Selenium IDE instances (not for auxiliary instances - see http://selite.github.io/SeleniumIde).
  * */
 SeLiteMisc.log= function log() {
     return SeLiteMisc.LOG;

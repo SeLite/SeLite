@@ -144,7 +144,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
                         else {
                             // see AssertHandler.prototype.execute() in chrome://selenium-ide/content/selenium-core/scripts/selenium-commandhandlers.js
                             var result= new AssertResult();
-                            result.setFailed( "(Ignore this log line, see the previous error. This line is due to https://code.google.com/p/selite/wiki/ThirdPartyIssues > verify* should show the diff)" );
+                            result.setFailed( "(Ignore this log line, see the previous error. This line is due to http://selite.github.io/ThirdPartyIssues > verify* should show the diff)" );
                             this.result= result;
                             this.waitForCondition = this.result.terminationCondition;
                             LOG.error( message );

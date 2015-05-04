@@ -61,7 +61,7 @@
             return;
         }
         if( SeLiteSettings.moduleForReloadButtons.testDbKeeper===undefined ) {
-            alert( "Please run any single Selenese test command first. Then use the button again. If that doesn't help, ensure that you load a test framework which calls SeLiteSettings.setTestDbKeeper(...). See https://code.google.com/p/selite/wiki/TestFramework#Creating_a_new_framework" );
+            alert( "Please run any single Selenese test command first. Then use the button again. If that doesn't help, ensure that you load a test framework which calls SeLiteSettings.setTestDbKeeper(...). See http://selite.github.io/TestFramework#Creating_a_new_framework" );
             return;
         }
         SeLiteSettings.moduleForReloadButtons || SeLiteMisc.fail( 'This requires your Core extension to call SeLiteSettings.setModuleForReloadButtons().' );
@@ -80,7 +80,7 @@
                         ? ' and vanillaDB'
                         : ''
                     )
-                    + ') and as per https://code.google.com/p/selite/wiki/InstallFramework' );
+                    + ') and as per http://selite.github.io/InstallFramework' );
             return;
         }
         if( !appDB ) {
@@ -89,14 +89,14 @@
                         ? ' and vanillaDB'
                         : ''
                     )
-                    + ') and as per https://code.google.com/p/selite/wiki/InstallFramework' );
+                    + ') and as per http://selite.github.io/InstallFramework' );
             return;
         }
         var vanillaDB;
         if( reloadAppAndTest || reloadVanillaAndTest ) {
             vanillaDB= fields['vanillaDB'].entry;
             if( !vanillaDB ) {
-                alert( 'Please configure vanillaDB as per https://code.google.com/p/selite/wiki/InstallFramework' );
+                alert( 'Please configure vanillaDB as per http://selite.github.io/InstallFramework' );
                 return;
             }
         }        
