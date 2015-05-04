@@ -3,7 +3,7 @@
 - have Commands (or any other extension) from filesystem loaded via Firefox extension proxy. See setup_proxies.sh
 - cd commands/src/chrome/content/
 - ln -s ../../../../selenese_reference_to_html.xsl
-- vi reference.xml, change it to load "selenese_reference_to_html.xsl" instead of "https://selite.googlecode.com/git/selenese_reference_to_html.xsl"
+- vi reference.xml, change it to load "selenese_reference_to_html.xsl" instead of "https://cdn.rawgit.com/selite/selite/master/selenese_reference_to_html.xsl"
 - then open chrome://selite-commands/content/reference.xml. Don't open it via file:// URL, because then XSLT doesn't work.
 -->
 <xsl:stylesheet
