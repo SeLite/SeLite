@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <?xml-stylesheet type="text/xsl" href="https://cdn.rawgit.com/selite/selite/master/extension-sequencer/src/chrome/content/selenese_reference_to_html.xsl"?>
 <!-- If you'd like to preview this reference.xml in Firefox, open it either
-- online at https://cdn.rawgit.com/selite/selite/master/misc/src/chrome/content/reference.xml, or
+- online at https://cdn.rawgit.com/selite/selite/91106478cbdecc86c53cce7dad1aa4f231754853/misc/src/chrome/content/reference.xml, or
 - offline at chrome://selite-extension-sequencer/content/selenese_reference.html?chrome://selite-misc/content/reference.xml
 Xml-stylesheet (whether remote or even local) didn't load up work when you open this in a browser locally via file://
 -->

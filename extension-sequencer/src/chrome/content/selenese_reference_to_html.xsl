@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding="UTF-8"?>
-<!-- When debugging this in Firefox:
-- have Commands (or any other extension) from filesystem loaded via Firefox extension proxy. See setup_proxies.sh
-- cd commands/src/chrome/content/
-- ln -s ../../../../selenese_reference_to_html.xsl
-- vi reference.xml, change it to load "selenese_reference_to_html.xsl" instead of "https://cdn.rawgit.com/selite/selite/master/selenese_reference_to_html.xsl"
-- then open chrome://selite-commands/content/reference.xml. Don't open it via file:// URL, because then XSLT doesn't work.
+<!-- This serves to show reference.xml for various add-ons offline. When debugging this in Firefox:
+- have the relevant Firefox add-on (other than SelBlocksGlobal, which is in a separate repository) loaded from filesystem via proxy. See setup_proxies.sh
+- cd <name-of-the-add-on>/src/chrome/content/
+- ln -s ../../../../extension-sequencer/src/chrome/content/selenese_reference_to_html.xsl
+- vi reference.xml, change it to load "selenese_reference_to_html.xsl" instead of "https://cdn.rawgit.com/selite/selite/master/extension-sequencer/src/chrome/content/selenese_reference_to_html.xsl"
+- then open chrome://selite-<add-on-name>/content/reference.xml. Don't open it via file:// URL, because then XSLT doesn't work.
 -->
 <xsl:stylesheet
     version="1.0"
