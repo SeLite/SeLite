@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<?xml-stylesheet type="text/xsl" href="https://cdn.rawgit.com/selite/selite/master/selenese_reference_to_html.xsl"?>
+<?xml-stylesheet type="text/xsl" href="https://cdn.rawgit.com/selite/selite/master/extension-sequencer/src/chrome/content/selenese_reference_to_html.xsl"?>
 <!-- If you'd like to preview this reference.xml in Firefox, open it either
 - online at https://cdn.rawgit.com/selite/selite/master/implicit-wait/src/chrome/content/reference.xml, or
 - offline at chrome://selite-extension-sequencer/content/selenese_reference.html?chrome://implicit-wait/content/reference.xml
