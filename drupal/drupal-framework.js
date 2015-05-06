@@ -14,7 +14,7 @@
 */
 "use strict";
 
-// If you extend this framework from another file, see http://selite.github.io/TestFramework#Extending_a_test_framework
+// If you extend this framework from another file, see http://selite.github.io/GeneralFramework#extending-a-test-framework
 /** @type{object} A namespace-like object in the global scope.*/
 var Drupal;
 if( Drupal===undefined ) {

@@ -47,23 +47,24 @@ function infoURLtoDownloadURL( infoURL ) {
     }
 }
 
-/** SeLiteMisc object, if available. */
-var SeLiteMisc;
-try {
-    SeLiteMisc= Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js", {} ).SeLiteMisc;
+/** This is to access SeLiteMisc object, if available. I don't declare 'var SeLiteMisc' here - otherwise NetBeans would navigate here instead of SeLiteMisc.js when I Ctrl+click at 'SeLiteMisc' elsewhere.
+ * */
+var global= this;
+try { // SeLiteMisc is optional. Use it if available; worarkound otherwise.
+    global.SeLiteMisc= Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js", {} ).SeLiteMisc;
 }
 catch(e) {}
 
 var PluginDetails;
-if( SeLiteMisc ) {
+if( global.SeLiteMisc ) {
     /** This serves in SeLiteExtensionSequencer.registerPlugin() to validate the plugin.
      * @param {object} [source] The same as parameter passed to SeLiteExtensionSequencer.registerPlugin().
      * */
     PluginDetails= function PluginDetails( source ) {
-        !source || SeLiteMisc.objectCopyFields( source, this );
+        !source || global.SeLiteMisc.objectCopyFields( source, this );
     };
     
-    PluginDetails= SeLiteMisc.proxyVerifyFields( PluginDetails, undefined, undefined, {
+    PluginDetails= global.SeLiteMisc.proxyVerifyFields( PluginDetails, undefined, undefined, {
         id: 'string',
         pluginId: 'string', ///@TODO low: cleanup - for backwards compatibility only
         name: 'string',
@@ -114,22 +115,22 @@ if( SeLiteMisc ) {
 **/
 SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
     var pluginInfo;
-    if( SeLiteMisc ) {
+    if( global.SeLiteMisc ) {
         prototype= new PluginDetails( prototype );
         pluginInfo= {
-            id: SeLiteMisc.field(prototype, 'id') || SeLiteMisc.field(prototype, 'pluginId'), //@TODO low: cleanup - for backwards compatibility only
-            name: SeLiteMisc.field(prototype, 'name') || '{' +( SeLiteMisc.field(prototype, 'id') || SeLiteMisc.field(prototype, 'pluginId') )+ '}', //@TODO low: cleanup - for backwards compatibility only
+            id: global.SeLiteMisc.field(prototype, 'id') || global.SeLiteMisc.field(prototype, 'pluginId'), //@TODO low: cleanup - for backwards compatibility only
+            name: global.SeLiteMisc.field(prototype, 'name') || '{' +( global.SeLiteMisc.field(prototype, 'id') || global.SeLiteMisc.field(prototype, 'pluginId') )+ '}', //@TODO low: cleanup - for backwards compatibility only
             //@TODO low: remove backward compatiblity for xxxUrl on the following lines, and for non-object values in *requisite*Plugins
-            coreURL: SeLiteMisc.asArray( SeLiteMisc.field(prototype, 'coreURL') || SeLiteMisc.field(prototype, 'coreUrl') ),
-            xmlURL: SeLiteMisc.asArray( SeLiteMisc.field(prototype, 'xmlURL') || SeLiteMisc.field(prototype, 'xmlUrl') ),
-            ideURL: SeLiteMisc.asArray( SeLiteMisc.field(prototype, 'ideURL') || SeLiteMisc.field(prototype, 'ideUrl') ),
-            apiRevision: SeLiteMisc.field(prototype, 'apiRevision'),
-            infoURL: SeLiteMisc.field(prototype, 'infoURL'),
-            downloadURL: SeLiteMisc.field(prototype, 'downloadURL') || infoURLtoDownloadURL( SeLiteMisc.field(prototype, 'infoURL') ),
-            requisitePlugins: SeLiteMisc.field(prototype, 'requisitePlugins') || {},
-            optionalRequisitePlugins: SeLiteMisc.field(prototype, 'optionalRequisitePlugins') || {},
-            nonSequencedRequisitePlugins: SeLiteMisc.field(prototype, 'nonSequencedRequisitePlugins') || {},
-            preActivate: SeLiteMisc.field(prototype, 'preActivate')
+            coreURL: global.SeLiteMisc.asArray( global.SeLiteMisc.field(prototype, 'coreURL') || global.SeLiteMisc.field(prototype, 'coreUrl') ),
+            xmlURL: global.SeLiteMisc.asArray( global.SeLiteMisc.field(prototype, 'xmlURL') || global.SeLiteMisc.field(prototype, 'xmlUrl') ),
+            ideURL: global.SeLiteMisc.asArray( global.SeLiteMisc.field(prototype, 'ideURL') || global.SeLiteMisc.field(prototype, 'ideUrl') ),
+            apiRevision: global.SeLiteMisc.field(prototype, 'apiRevision'),
+            infoURL: global.SeLiteMisc.field(prototype, 'infoURL'),
+            downloadURL: global.SeLiteMisc.field(prototype, 'downloadURL') || infoURLtoDownloadURL( global.SeLiteMisc.field(prototype, 'infoURL') ),
+            requisitePlugins: global.SeLiteMisc.field(prototype, 'requisitePlugins') || {},
+            optionalRequisitePlugins: global.SeLiteMisc.field(prototype, 'optionalRequisitePlugins') || {},
+            nonSequencedRequisitePlugins: global.SeLiteMisc.field(prototype, 'nonSequencedRequisitePlugins') || {},
+            preActivate: global.SeLiteMisc.field(prototype, 'preActivate')
         };
     }
     else {

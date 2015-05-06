@@ -302,7 +302,7 @@ Xml-stylesheet (whether remote or even local) didn't load up when you open this 
     <param name="forceReload">Whether to reload the webroot, even when the current URL is under webroot. Boolean, optional, false by default.
     </param>
     <comment>
-        It ensures that the location of the current window will be under <i>webroot</i> (defined in webRoot config field - see http://selite.github.io/SettingsOverview). If it is not so, or if you pass forceReload equal to true, then it opens <i>webRoot</i> in the current window.
+        It ensures that the location of the current window will be under <i>webroot</i> (defined in webRoot config field - see http://selite.github.io/Settings). If it is not so, or if you pass forceReload equal to true, then it opens <i>webRoot</i> in the current window.
         <br/>
         This command is a part of SeLite Commands.
     </comment>

@@ -34,7 +34,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
         var SeLiteMiscModule;
         // Lazy quiet loader of SeLiteMisc.
         // @return SeLiteMisc object, or null if not available
-        var SeLiteMisc= function SeLiteMisc() {
+        var getSeLiteMisc= function getSeLiteMisc() {
             if( SeLiteMiscModule===undefined ) {
                 try {
                     SeLiteMiscModule= Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js", {} ).SeLiteMisc;
@@ -78,8 +78,8 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                                 )
                             );
                             if( !e.messageContainsStackWithExcludedCommonBaseBySeLiteMisc ) {
-                                if( SeLiteMisc() ) {
-                                    SeLiteMisc().addStackToMessage( e, true );
+                                if( getSeLiteMisc() ) {
+                                    getSeLiteMisc().addStackToMessage( e, true );
                                 }
                                 else {
                                     e.message+= '\n' +e.stack;
@@ -227,8 +227,8 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                     var pluginInfo= SeLiteExtensionSequencer.pluginInfos[pluginId];
                     problems.push( 'Failure when initialising Selenium IDE plugin ' +pluginNameAndLinks(pluginInfo)+ ':' );
                     if( !e.messageContainsStackWithExcludedCommonBaseBySeLiteMisc ) {
-                        if( SeLiteMisc() ) {
-                            SeLiteMisc().addStackToMessage( e, true );
+                        if( getSeLiteMisc() ) {
+                            getSeLiteMisc().addStackToMessage( e, true );
                         }
                         else {
                             e.message+= '\n' +e.stack;

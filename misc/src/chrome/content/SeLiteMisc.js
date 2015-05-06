@@ -2098,7 +2098,7 @@ function nthRecordOrLengthOrIndexesOf( recordSet, action, positionOrRecord ) {
     }
 };
 
-/** This ensures that there's maximum one framework loaded per Firefox sessionAs per http://selite.github.io/TestFramework#Extending_a_test_framework#Limitations. TODO: link to No hot switching between frameworks] and to [BootstrapLoader#Switching between files Switching between files].
+/** This ensures that there's maximum one framework loaded per Firefox sessionAs per http://selite.github.io/GeneralFramework#limitations. TODO: link to [No hot switching between frameworks] and to [BootstrapLoader#Switching between files Switching between files].
  * */
 SeLiteMisc.registerOrExtendFramework= function registerOrExtendFramework( initialiser, name ) {
     SeLiteMisc.ensureType( initialiser, 'function', 'initialiser' );

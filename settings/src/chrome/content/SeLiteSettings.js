@@ -297,7 +297,7 @@ SeLiteSettings.Field.prototype.getDefaultKey= function getDefaultKey() {
     return this.defaultKey;
 };
 
-/** Set (or override) a default key (or keys) for this field. Used e.g. by test frameworks to set the default key appropriate to the tested web app.
+/** Set (or override) a default key (or keys) for this field. Used e.g. by frameworks to set the default key appropriate to the tested web app.
  *  @param {string|number|array} Key (or keys) to make default for this field.
  *  @param {boolean} dontReRegister If true, then this doesn't re-register the module.
  *  @returns {void}
@@ -703,7 +703,7 @@ SeLiteSettings.Field.Choice.String.prototype.constructor= SeLiteSettings.Field.C
 
 /** This represents a freetype map with a fixed keyset. This is an abstract class, serving as a parent.
  *  @param {string} name
- *  @param {(string|number)[]} [keySet] We only allow strings, or numbers, because they're stored as strings (as a part of preference names). keySet specifically can't contain Javascript expression undefined, since updateSpecial() depends on that. Numbers get transformed to strings. It's optional, because test frameworks can add keys later via addKeys().
+ *  @param {(string|number)[]} [keySet] We only allow strings, or numbers, because they're stored as strings (as a part of preference names). keySet specifically can't contain Javascript expression undefined, since updateSpecial() depends on that. Numbers get transformed to strings. It's optional, because frameworks can add keys later via addKeys().
  *  @param {object} [defaultMappings]
  *  @param {function} customValidate
  * */
@@ -1114,7 +1114,7 @@ SeLiteSettings.Module.prototype.addFields= function addFields( fields, dontReReg
  *  @param {(SeLiteSettings.TestDbKeeper|null)} testDbKeeper. Pass null if your framework doesn't use testDbKeeper.
  * */
 SeLiteSettings.setTestDbKeeper= function setTestDbKeeper( testDbKeeper ) {
-    try { throw new Error(); } // This is to get the location of the test framework. If testDbKeeper was already set from the same framework, then I skip it. Otherwise I report a problem.
+    try { throw new Error(); } // This is to get the location of the framework/core extension that calls this. If testDbKeeper was already set from the same framework/core extension, then I skip it. Otherwise I report a problem.
     catch( e ) {
         // e.stack is a string, with the innermost stack information first. This is usually called
         // when Selenium IDE runs a Selenese command from the test suite for the first time.
@@ -1129,7 +1129,7 @@ SeLiteSettings.setTestDbKeeper= function setTestDbKeeper( testDbKeeper ) {
                 if( SeLiteSettings.moduleForReloadButtons.testDbKeeperInvoker===depestNonSeLiteFileUrl ) {
                     return;
                 }
-                SeLiteMisc.fail( "You've already set testDbKeeper at " +SeLiteSettings.moduleForReloadButtons.testDbKeeperInvoker+ ", or you've already loaded another test framework. Please restart Firefox (not just Selenium IDE)." );
+                SeLiteMisc.fail( "You've already set testDbKeeper at " +SeLiteSettings.moduleForReloadButtons.testDbKeeperInvoker+ ", or you've already loaded another SeLite framework or Selenium Core extension that set testDbKeeper. Please restart Firefox (not just Selenium IDE)." );
             }
         }
         SeLiteSettings.moduleForReloadButtons.testDbKeeperInvoker= depestNonSeLiteFileUrl;
