@@ -117,7 +117,7 @@ SeLiteData.Table.prototype.insert= function insert( originalRecord ) {
     }
 };
 
-/** Create on-the-fly a new SeLiteData.RecordSetFormula instance. Do not store/cache it anyhwere.
+/** Create on-the-fly a new SeLiteData.RecordSetFormula instance. Do not store/cache it anywhere.
  * @param {object} [params] See parameter params of SeLiteData.RecordSetFormula(). This is on top of (or it overrides) 'table' and 'columns'.
  * @param {object} [prototype] See parameter prototype of SeLiteData.RecordSetFormula().
  * @return {SeLiteData.RecordSetFormula}
