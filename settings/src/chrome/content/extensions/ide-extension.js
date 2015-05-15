@@ -45,7 +45,7 @@
     var optionsPopup= document.getElementById('options-popup');
     
     var seLiteSettingsMenuItem= document.createElementNS( XUL_NS, 'menuitem' );
-    seLiteSettingsMenuItem.setAttribute( 'label', 'SeLite Settings for this test suite' );
+    seLiteSettingsMenuItem.setAttribute( 'label', 'SeLite Settings for this suite' );
     seLiteSettingsMenuItem.setAttribute( 'oncommand', 'openTabOrWindow("chrome://selite-settings/content/tree.xul" + (SeLiteSettings.testSuiteFolder ? "?folder="+escape(SeLiteSettings.testSuiteFolder) : "") )' );
     optionsPopup.appendChild(seLiteSettingsMenuItem);
     
