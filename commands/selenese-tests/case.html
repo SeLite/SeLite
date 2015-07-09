@@ -83,6 +83,12 @@
 	<td>id=name</td>
 	<td>=`{ characters:'abcdefghijk', minLength: 8, maxLength: 15, store:'name' }`</td>
 </tr>
+<!--Use regular expression to allow uppercase letters:-->
+<tr>
+	<td>typeRandom</td>
+	<td>id=name</td>
+	<td>=`{ characters: /[A-Z]/, minLength: 8, maxLength: 15, store:'name' }`</td>
+</tr>
 <!---->
 <!--Generating an email independently of other steps:-->
 <tr>
