@@ -44,7 +44,7 @@ window.setTimeout( function() {
             }
           }
           if( !sharedPartsCount ) {
-             throw new Error( "Root folders of parameter file and folderRelativeTo don't match." );
+             throw new Error( "Root folders of parameter file: " +file.path+ " and folderRelativeTo: " +folderRelativeTo.path+ " don't match." );
           }
           var result= '';
           for( var i=sharedPartsCount; i<folderPathParts.length; i++ ) {
@@ -89,10 +89,10 @@ window.setTimeout( function() {
               file= file.clone(); // That's because the following code will modify file.
            }
            while( i<pathParts.length ) {
+              // Following code modifies file by calling append(). Side note: To make it safe, Mozilla made file.parent resolve to a new object everytime it's used: file.parent!==file.parent.
               file.append( pathParts[i] );
               i++;
            }
-           // Following code modifies file by calling append(). Side note: To make it safe, Mozilla made file.parent resolve to a new object everytime it's used: file.parent!==file.parent.
            return file;
         };
 
@@ -112,9 +112,9 @@ window.setTimeout( function() {
                 favorite.path= getRelativePathToHome(favorite.path);
                 updatedSomePaths= true;
             }
-            if( updatedSomePaths ) {
-                editor.favorites.save( editor.favorites.prefBranch );
-            }
+        }
+        if( updatedSomePaths ) {
+            editor.favorites.save( editor.favorites.prefBranch );
         }
 
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
