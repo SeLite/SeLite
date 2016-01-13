@@ -19,7 +19,7 @@
     <em:name>SeLite SQLite Connection Manager</em:name>
     <em:description>Manages SQLite DB connection(s)</em:description>
     <em:creator>Peter Kehl</em:creator>
-    <em:homepageURL>http://code.google.com/p/selite</em:homepageURL>
+    <em:homepageURL>http://selite.github.io/</em:homepageURL>
     <em:iconURL>chrome://selite-sqlite-connection-manager/skin/favicon-32x32.png</em:iconURL>
     <em:icon64URL>chrome://selite-sqlite-connection-manager/skin/favicon-64x64.png</em:icon64URL>
   </Description>

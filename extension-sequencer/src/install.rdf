@@ -6,7 +6,7 @@
     <em:name>SeLite Extension Sequencer</em:name>
     <em:version>0.49</em:version>
     <em:creator>Peter Kehl</em:creator>
-    <em:homepageURL>https://code.google.com/p/selite/</em:homepageURL>
+    <em:homepageURL>http://selite.github.io/</em:homepageURL>
     <em:description>SeLite Extension Sequencer - it loads user Core or IDE extensions to Selenium IDE in a order reflecting dependancies </em:description>
     <em:type>2</em:type> <!--Type extension-->
     <em:targetApplication>
