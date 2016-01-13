@@ -30,7 +30,7 @@ window.setTimeout( function() {
         /** Get a relative path for the given file, relative to the given folder.
          *  @param {nsIFile} file
          *  @param {nsIFile} folderRelativeTo
-         *  @return {string} File path for the given file, relative to path of folderRelativeTo.
+         *  @return {string} File path for the given file, relative to path of folderRelativeTo, in Unix notation (using .. and / for relative folder navigation).
         */
         var getRelativePath= function getRelativePath( file, folderRelativeTo ) {
           var filePathParts= pathParts(file), folderPathParts= pathParts(folderRelativeTo);
@@ -108,7 +108,7 @@ window.setTimeout( function() {
         var updatedSomePaths= false;
         for( var i=0; i<editor.favorites.favorites.length; i++ ) {
             var favorite= editor.favorites.favorites[i];
-            if( /^([a-zA-Z]:\\|\/)/.test(favorite.path) ) {
+            if( /^([a-zA-Z]:\\|\/)/.test(favorite.path) ) { // favorite.path is absolute: it starts with Windows-like drive name e.g. C:\, or with Unix root folder /. We convert it to be relative to user's home folder.
                 favorite.path= getRelativePathToHome(favorite.path);
                 updatedSomePaths= true;
             }
