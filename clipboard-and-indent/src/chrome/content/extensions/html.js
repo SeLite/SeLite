@@ -348,7 +348,7 @@ function defaultExtension() {
  */
 this.options = {
 	commandLoadPattern:
-	"<tr\s*[^>]*>" +
+	"<tr\\s*[^>]*>" +
 	"\\s*(<!--[\\d\\D]*?-->)?" +
 	"\\s*<td\\s*[^>]*>\\s*((?:&nbsp;)*[\\w]*?)\\s*</td>" +
 	"\\s*<td\\s*[^>]*>([\\d\\D]*?)</td>" +

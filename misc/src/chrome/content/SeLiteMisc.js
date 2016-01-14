@@ -38,12 +38,21 @@ SeLiteMisc.fail= function fail( errorOrMessage, excludeCommonBase ) {
 
 /** @private */
 SeLiteMisc.treatError= function treatError( errorOrMessage ) {
-    return errorOrMessage!==undefined
-        ?(typeof errorOrMessage==='object' &&  errorOrMessage.constructor.name==='Error'
-            ? errorOrMessage
-            : new Error(errorOrMessage)
-         )
-        : new Error();
+    if( errorOrMessage!==undefined ) {
+        // Don't use errorOrMessage.constructor.name==='Error', because that doesn't cover custom exceptions e.g. DOMException.
+        if( typeof errorOrMessage==='object' &&  'message' in errorOrMessage && 'stack' in errorOrMessage ) {
+            // Effectively clone errorOrMessage. Otherwise its .stack may not be modifiable, which made SeLiteMisc.addStackToMessage() upset.
+            var newError= new Error( errorOrMessage.message );
+            newError.stack= errorOrMessage.stack;
+            return newError;
+        }
+        else {
+            return new Error(errorOrMessage);
+        };
+    }
+    else {
+        return new Error();
+    }
 };
 
 /** Add error's stack trace to its message.
