@@ -26,17 +26,31 @@ window.setTimeout( function() {
            parts.reverse();
            return parts;
         };
-
-        /** Get a relative path for the given file, relative to the given folder.
-         *  @param {nsIFile} file
-         *  @param {nsIFile} folderRelativeTo
-         *  @return {string} File path for the given file, relative to path of folderRelativeTo, in Unix notation (using .. and / for relative folder navigation).
-        */
-        var getRelativePath= function getRelativePath( file, folderRelativeTo ) {
-          var filePathParts= pathParts(file), folderPathParts= pathParts(folderRelativeTo);
+        
+        var homeFolder= Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("Home", Components.interfaces.nsIFile); // nsFile instance
+        var homeFolderPathParts= pathParts(homeFolder);
+        var usingSeparateVolumeRoots= homeFolderPathParts[0] !== '';
+        
+        var DifferentRootFoldersError= function DifferentRootFoldersError( filePath ) {
+            Error.call( this );
+            this.filePath= filePath;
+            this.message= "Root of test suite " +filePath+ " differs to root of your home folder " +homeFolder.path+ ". Move your test suite to be on the same volume (drive) as your home folder - " +homeFolderPathParts[0]+ ".";
+        };
+        DifferentRootFoldersError.prototype= Object.create(Error.prototype);
+        DifferentRootFoldersError.prototype.constructor= DifferentRootFoldersError;
+        
+        /** Get a relative path for the given file, relative to the given folder. When testing on Windows: Windows > Run: cmd > run: echo %USERPROFILE%
+         * @param {string} filePath Absolute file path.
+         * @returns {string} File path relative to user's home; in Unix notation (using .. and / for relative folder navigation).
+         */
+        var getRelativePathToHome= function getRelativePathToHome( filePath ) {
+          var file = Components.classes['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsILocalFile);
+          file.initWithPath(filePath);
+          var filePathParts= pathParts(file);
+          
           var sharedPartsCount= 0;
-          while( sharedPartsCount<filePathParts.length && sharedPartsCount<folderPathParts.length ) {
-            if( filePathParts[sharedPartsCount]===folderPathParts[sharedPartsCount] )  {
+          while( sharedPartsCount<filePathParts.length && sharedPartsCount<homeFolderPathParts.length ) {
+            if( filePathParts[sharedPartsCount]===homeFolderPathParts[sharedPartsCount] )  {
                sharedPartsCount++;
             }
             else {
@@ -44,10 +58,10 @@ window.setTimeout( function() {
             }
           }
           if( !sharedPartsCount ) {
-             throw new Error( "Root folders of parameter file: " +file.path+ " and folderRelativeTo: " +folderRelativeTo.path+ " don't match." );
+             throw new DifferentRootFoldersError( file.path );
           }
           var result= '';
-          for( var i=sharedPartsCount; i<folderPathParts.length; i++ ) {
+          for( var i=sharedPartsCount; i<homeFolderPathParts.length; i++ ) {
             if( result ) {
                result+= '/';
             }
@@ -60,17 +74,6 @@ window.setTimeout( function() {
             result+= filePathParts[i];
           }
           return result;
-        };
-
-        /** When testing on Windows: Windows > Run: cmd > run: echo %USERPROFILE%
-         * @param {string} filePath Absolute file path.
-         * @returns {string} File path relative to user's home.
-         */
-        var getRelativePathToHome= function getRelativePathToHome( filePath ) {
-            var homeFolder= Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("Home", Components.interfaces.nsIFile);
-            var file = Components.classes['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsILocalFile);
-            file.initWithPath(filePath);
-            return getRelativePath( file, homeFolder );
         };
 
         /** @param nsIFile baseFolder
@@ -106,17 +109,39 @@ window.setTimeout( function() {
 
         // Update any old-style absolute paths. I don't intercept Favorites.prototype.load(), because that was already run from favorites' content/logic/Favorites.js when it created an instance.
         var updatedSomePaths= false;
+        var updateOtherVolumePaths= [];
+        var updateGenericErrorMessages= [];
         for( var i=0; i<editor.favorites.favorites.length; i++ ) {
             var favorite= editor.favorites.favorites[i];
             if( /^([a-zA-Z]:\\|\/)/.test(favorite.path) ) { // favorite.path is absolute: it starts with Windows-like drive name e.g. C:\, or with Unix root folder /. We convert it to be relative to user's home folder.
-                favorite.path= getRelativePathToHome(favorite.path);
+                try {
+                    favorite.path= getRelativePathToHome(favorite.path);
+                }
+                catch( e ) {
+                    if( e instanceof DifferentRootFoldersError ) {
+                        updateOtherVolumePaths.push( e.filePath );
+                    }
+                    else {
+                        updateGenericErrorMessages.push( e.message );
+                    }
+                }
                 updatedSomePaths= true;
             }
         }
         if( updatedSomePaths ) {
             editor.favorites.save( editor.favorites.prefBranch );
         }
-
+        if( updateOtherVolumePaths.length || updateGenericErrorMessages.length ) {
+            Favorites.alert(
+                ( updateOtherVolumePaths.length
+                  ? "Root of test suite(s) " +updateOtherVolumePaths.join(', ')+ " differ to root of your home folder " +homeFolder.path+ ". Move those test suite(s) to be on the same volume (drive) as your home folder - " +homeFolderPathParts[0]+ "."
+                  : ''
+                )
+                + ' '
+                + updateGenericErrorMessages.join(', '),
+                "SeLite Run All Favorites");
+        }
+        
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         // Mostly copied from original Favorites with these changes:
         // -adding 'Run all'
@@ -164,7 +189,12 @@ window.setTimeout( function() {
 
         // Copied from original Favorites + transforming absolute file path to relative
         Favorites.prototype.isFavorite = function isFavorite(suite) {
-          var suiteRelativePath= getRelativePathToHome(suite);
+          try {
+            var suiteRelativePath= getRelativePathToHome(suite);
+          }
+          catch( e ) {
+            return false; // The use opened a test suite outside the volume of their home drive. Be quiet, no need for an alert. We alert them below only if they toggle the favorite.
+          }
           for( var i=0; i<this.favorites.length; i++ ) {
             if( this.favorites[i].path===suiteRelativePath ) {
               return true;
@@ -177,7 +207,13 @@ window.setTimeout( function() {
         Favorites.prototype.toggleSuiteFavorite = function toggleSuiteFavorite() {
           var curSuite = this.editor.app.getTestSuite();
           if (curSuite.file) {
-            var suiteRelativePath= getRelativePathToHome( curSuite.file.path );
+            var suiteRelativePath;
+            try {
+                suiteRelativePath= getRelativePathToHome( curSuite.file.path );
+            }
+            catch( e ) {
+                Favorites.alert( e.message, "SeLite Run All Favorites");
+            }
             if( !this.removeFavorite(suiteRelativePath) ) {
               var suiteName = curSuite.file.leafName;
               suiteName = suiteName.replace(/\.[^.]+$/, "");
@@ -187,7 +223,13 @@ window.setTimeout( function() {
             this.suiteStateChanged(curSuite);
           } else {
             //Suite must be saved first
-            Favorites.alert("Please save the suite first.", "SeLite Run All Favorites");
+            // TODO on Windows: Save it on the same volume (drive) as your home folder: ...
+            Favorites.alert("Please save the suite first." +
+                (usingSeparateVolumeRoots
+                 ? " Save it on the same volume as your home folder - " +homeFolderPathParts[0] + '.'
+                 : ''
+                ),
+                "SeLite Run All Favorites");
           }
         };
 
