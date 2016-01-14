@@ -8,7 +8,7 @@
   <packaging>jar</packaging>
 
   <name>SeLiteFilter</name>
-  <url>https://code.google.com/p/selite/</url>
+  <url>http://selite.github.io/</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
