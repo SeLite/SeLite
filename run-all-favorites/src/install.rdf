@@ -4,11 +4,11 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>run-all-favorites@selite.googlecode.com</em:id>
     <em:name>SeLite Run All Favorites</em:name>
-    <em:version>0.10</em:version>
+    <em:version>0.11</em:version>
     <em:creator>Peter Kehl</em:creator>
     <em:description>It runs all favorites from "Favorites (Selenium IDE)". They are stored relative to user's home folder. It lets the user to import and export favorites through the menu.</em:description>
     <em:type>2</em:type> <!--Type extension-->
-    <em:homepageURL>https://code.google.com/p/selite/</em:homepageURL>
+    <em:homepageURL>http://selite.github.io/</em:homepageURL>
     <em:targetApplication>
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id> <!-- Firefox -->

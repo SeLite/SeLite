@@ -160,7 +160,8 @@ function preloadCacheTable( connection, tableNames, tableIndex, errorHandler ) {
     } );
 }
 
-function preloadCache( connection, errorHandler ) {return;
+function preloadCache( connection, errorHandler ) {
+    if( true ) return;//@TODO
     try {
         connection= connection.clone( true );
         var stmt= connection.createStatement( "SELECT name FROM SQLITE_MASTER where type='table'" );

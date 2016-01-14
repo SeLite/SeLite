@@ -6,7 +6,7 @@
     <em:name>SeLite Hands-on GUI</em:name>
     <em:version>0.07</em:version>
     <em:creator>Peter Kehl</em:creator>
-    <em:homepageURL>https://code.google.com/p/selite/</em:homepageURL>
+    <em:homepageURL>http://selite.github.io/</em:homepageURL>
     <em:description>It makes Selenium IDE GUI better.</em:description>
     <em:type>2</em:type> <!--Type extension-->
     <em:targetApplication>

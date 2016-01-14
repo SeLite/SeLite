@@ -144,7 +144,7 @@ public class Run {
     protected ArgumentParser createParser() {
         return ArgumentParsers.newArgumentParser("java com.googlecode.selite.filter.Run")
             .defaultHelp(true)
-            .description("SeLiteFilter serves to transform SQL from other RDBMs to SQLite. It's a part of SeLite, a family of tools for test automation of DB-driven web applications. See https://code.google.com/p/selite.")
+            .description("SeLiteFilter serves to transform SQL from other RDBMs to SQLite. It's a part of SeLite, a family of tools for test automation of DB-driven web applications. See http://selite.github.io/.")
             .epilog("SeLiteFilter is a free software under GNU GPL License version 3. See http://www.gnu.org/licenses/gpl.html")
             .version("${prog} 0.1");
     }
