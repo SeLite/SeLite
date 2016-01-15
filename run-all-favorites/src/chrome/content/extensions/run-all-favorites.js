@@ -31,13 +31,19 @@ window.setTimeout( function() {
         var homeFolderPathParts= pathParts(homeFolder);
         var usingSeparateVolumeRoots= homeFolderPathParts[0] !== '';
         
-        var DifferentRootFoldersError= function DifferentRootFoldersError( filePath ) {
+        /** @param {(string|array)} filePathOrPaths
+         *  @extends Error
+         * */
+        var SuiteOutsideHomeFolderVolume= function SuiteOutsideHomeFolderVolume( filePathOrPaths ) {
             Error.call( this );
-            this.filePath= filePath;
-            this.message= "Root of test suite " +filePath+ " differs to root of your home folder " +homeFolder.path+ ". Move your test suite to be on the same volume (drive) as your home folder - " +homeFolderPathParts[0]+ ".";
+            var multiplePaths= Array.isArray(filePathOrPaths) && filePathOrPaths.length>1;
+            this.filePath= Array.isArray(filePathOrPaths)
+                ? filePathOrPaths.join(', ')
+                : filePathOrPaths;
+            this.message= "Test suite" +(multiplePaths ? 's ' : ' ')+ this.filePath+ (multiplePaths ? ' are' : ' is' )+ " not on the same volume (drive) as your home folder: " +homeFolder.path+ ". Move the test suite" +(multiplePaths ? 's' : '')+ " and all " +(multiplePaths ? 'their' : 'its')+ " test cases to volume " +homeFolderPathParts[0]+ ". (If you have many favorites, back them up by menu Favorites > Export - save). Then apply menu Favorites > Clear all, open " +(multiplePaths ? "each " : "the") +" moved test suite and mark it as a favorite.";
         };
-        DifferentRootFoldersError.prototype= Object.create(Error.prototype);
-        DifferentRootFoldersError.prototype.constructor= DifferentRootFoldersError;
+        SuiteOutsideHomeFolderVolume.prototype= Object.create(Error.prototype);
+        SuiteOutsideHomeFolderVolume.prototype.constructor= SuiteOutsideHomeFolderVolume;
         
         /** Get a relative path for the given file, relative to the given folder. When testing on Windows: Windows > Run: cmd > run: echo %USERPROFILE%
          * @param {string} filePath Absolute file path.
@@ -58,7 +64,7 @@ window.setTimeout( function() {
             }
           }
           if( !sharedPartsCount ) {
-             throw new DifferentRootFoldersError( file.path );
+             throw new SuiteOutsideHomeFolderVolume( file.path );
           }
           var result= '';
           for( var i=sharedPartsCount; i<homeFolderPathParts.length; i++ ) {
@@ -83,12 +89,14 @@ window.setTimeout( function() {
         var applyRelativePath= function applyRelativePath( baseFolder, path ) {
            var file= baseFolder;
            var pathParts= path.split( '/');
+           
+           // Get to the deepest common parent folder. I.e. apply any '..' pathParts to navigate up baseFolder.
            var i=0;
            while( i<pathParts.length && pathParts[i]==='..' ) {
               file= file.parent;
               i++;
            }
-           if( i===0 ) {
+           if( i<pathParts.length ) {
               file= file.clone(); // That's because the following code will modify file.
            }
            while( i<pathParts.length ) {
@@ -103,22 +111,32 @@ window.setTimeout( function() {
             @return nsIFile
         */
         var applyRelativePathToHome= function applyRelativePathToHome( path ) {
-            var homeFolder= Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("Home", Components.interfaces.nsIFile);
+            if( pathIsAbsolute(path) ) {
+                throw new SuiteOutsideHomeFolderVolume( path );
+            }
             return applyRelativePath( homeFolder, path );
         };
-
-        // Update any old-style absolute paths. I don't intercept Favorites.prototype.load(), because that was already run from favorites' content/logic/Favorites.js when it created an instance.
+        
+        /** @param {string} path File.folder path
+         * @returns {boolean} Whether the path is absolute. True if the path starts with Windows-like drive name e.g. C:\, or with Unix root folder /.
+        */
+        var pathIsAbsolute= function pathIsAbsolute( path ) {
+            return /^([a-zA-Z]:\\|\/)/.test(path);
+        };
+        
+        // Update any old-style absolute path
+        // s. I don't intercept Favorites.prototype.load(), because that was already run from favorites' content/logic/Favorites.js when it created an instance.
         var updatedSomePaths= false;
         var updateOtherVolumePaths= [];
         var updateGenericErrorMessages= [];
         for( var i=0; i<editor.favorites.favorites.length; i++ ) {
             var favorite= editor.favorites.favorites[i];
-            if( /^([a-zA-Z]:\\|\/)/.test(favorite.path) ) { // favorite.path is absolute: it starts with Windows-like drive name e.g. C:\, or with Unix root folder /. We convert it to be relative to user's home folder.
+            if( pathIsAbsolute(favorite.path) ) {
                 try {
                     favorite.path= getRelativePathToHome(favorite.path);
                 }
                 catch( e ) {
-                    if( e instanceof DifferentRootFoldersError ) {
+                    if( e instanceof SuiteOutsideHomeFolderVolume ) {
                         updateOtherVolumePaths.push( e.filePath );
                     }
                     else {
@@ -132,9 +150,10 @@ window.setTimeout( function() {
             editor.favorites.save( editor.favorites.prefBranch );
         }
         if( updateOtherVolumePaths.length || updateGenericErrorMessages.length ) {
+            // @TODO nice message:
             Favorites.alert(
                 ( updateOtherVolumePaths.length
-                  ? "Root of test suite(s) " +updateOtherVolumePaths.join(', ')+ " differ to root of your home folder " +homeFolder.path+ ". Move those test suite(s) to be on the same volume (drive) as your home folder - " +homeFolderPathParts[0]+ "."
+                  ? new SuiteOutsideHomeFolderVolume(updateOtherVolumePaths).message
                   : ''
                 )
                 + ' '
@@ -223,7 +242,6 @@ window.setTimeout( function() {
             this.suiteStateChanged(curSuite);
           } else {
             //Suite must be saved first
-            // TODO on Windows: Save it on the same volume (drive) as your home folder: ...
             Favorites.alert("Please save the suite first." +
                 (usingSeparateVolumeRoots
                  ? " Save it on the same volume as your home folder - " +homeFolderPathParts[0] + '.'
@@ -232,7 +250,7 @@ window.setTimeout( function() {
                 "SeLite Run All Favorites");
           }
         };
-
+        
         // Mostly copied from original Favorites + transforming test suite file path from relative to absolute + handling 'Run All' menu item
         Favorites.prototype.menuClicked = function menuClicked(evt) {
           if( evt.target.id ) {
@@ -266,7 +284,13 @@ window.setTimeout( function() {
           else {
             try {
                 var path = evt.target.value || evt.target.getAttribute('value');
-                path= applyRelativePathToHome(path).path;
+                try {
+                    path= applyRelativePathToHome(path).path;
+                }
+                catch( e ) {
+                    Favorites.alert( e.message, "SeLite Run All Favorites");
+                    return;
+                }
                 if (FileUtils.fileExists(path)) {
                   this.editor.loadRecentSuite(path);
                   if (evt.ctrlKey || evt.metaKey || this.meta) {
@@ -318,7 +342,13 @@ window.setTimeout( function() {
              * @param [bool] dontReset Whether to reset success/failure numbers; optional.
             */
             var loadAndPlayTestSuite= function loadAndPlayTestSuite( dontReset ) {
-                self.editor.loadRecentSuite( applyRelativePathToHome(self.favorites[testSuiteIndex].path).path );
+                try {
+                    self.editor.loadRecentSuite( applyRelativePathToHome(self.favorites[testSuiteIndex].path).path );
+                }
+                catch( e ) {
+                    Favorites.alert( e.message, "SeLite Run All Favorites");
+                    return;
+                }
                 self.editor.playTestSuite( undefined, dontReset );
             };
 
