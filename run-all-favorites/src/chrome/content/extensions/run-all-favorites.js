@@ -32,24 +32,31 @@ window.setTimeout( function() {
         var usingSeparateVolumeRoots= homeFolderPathParts[0] !== '';
         
         /** @param {(string|array)} filePathOrPaths
+         * @param {boolean} [dontMentionMigratingFavorites] If true, then the message won't suggest any changes to favorites.
          *  @extends Error
          * */
-        var SuiteOutsideHomeFolderVolume= function SuiteOutsideHomeFolderVolume( filePathOrPaths ) {
+        var SuiteOutsideHomeFolderVolume= function SuiteOutsideHomeFolderVolume( filePathOrPaths, dontMentionMigratingFavorites ) {
             Error.call( this );
             var multiplePaths= Array.isArray(filePathOrPaths) && filePathOrPaths.length>1;
             this.filePath= Array.isArray(filePathOrPaths)
                 ? filePathOrPaths.join(', ')
                 : filePathOrPaths;
-            this.message= "Test suite" +(multiplePaths ? 's ' : ' ')+ this.filePath+ (multiplePaths ? ' are' : ' is' )+ " not on the same volume (drive) as your home folder: " +homeFolder.path+ ". Move the test suite" +(multiplePaths ? 's' : '')+ " and all " +(multiplePaths ? 'their' : 'its')+ " test cases to volume " +homeFolderPathParts[0]+ ". (If you have many favorites, back them up by menu Favorites > Export - save). Then apply menu Favorites > Clear all, open " +(multiplePaths ? "each " : "the") +" moved test suite and mark it as a favorite.";
+            this.message= "Test suite" +(multiplePaths ? 's ' : ' ')+ this.filePath+ (multiplePaths ? ' are' : ' is' )+ " not on the same volume (drive) " +homeFolderPathParts[0]+ " as your home folder " +homeFolder.path+ ". Move the test suite" +(multiplePaths ? 's' : '')+ " and all " +(multiplePaths ? 'their' : 'its')+ " test cases to volume " +homeFolderPathParts[0]+ "." +
+                    (   !dontMentionMigratingFavorites
+                        ? "(If you have many favorites, back them up by menu Favorites > Export - save).\n\nThen apply menu Favorites > Clear all, open " +(multiplePaths ? "each " : "the") +" moved test suite and mark it as a favorite."
+                        : "" 
+                    );
         };
         SuiteOutsideHomeFolderVolume.prototype= Object.create(Error.prototype);
         SuiteOutsideHomeFolderVolume.prototype.constructor= SuiteOutsideHomeFolderVolume;
         
         /** Get a relative path for the given file, relative to the given folder. When testing on Windows: Windows > Run: cmd > run: echo %USERPROFILE%
          * @param {string} filePath Absolute file path.
+         * @param {boolean} [dontMentionMigratingFavorites] If true, and the given filePath is absolute and it's not on the same volume as home folder, then this function still throws an error, but the error won't suggest any changes to favorites.
          * @returns {string} File path relative to user's home; in Unix notation (using .. and / for relative folder navigation).
+         * @throws SuiteOutsideHomeFolderVolume If the given filePath is absolute and it's not on the same volume as home folder.
          */
-        var getRelativePathToHome= function getRelativePathToHome( filePath ) {
+        var getRelativePathToHome= function getRelativePathToHome( filePath, dontMentionMigratingFavorites ) {
           var file = Components.classes['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsILocalFile);
           file.initWithPath(filePath);
           var filePathParts= pathParts(file);
@@ -63,8 +70,9 @@ window.setTimeout( function() {
                break;
             }
           }
+          // On Linux/Unix, sharedParts[0] is always "". Hence the following only applies to Windows volumes.
           if( !sharedPartsCount ) {
-             throw new SuiteOutsideHomeFolderVolume( file.path );
+             throw new SuiteOutsideHomeFolderVolume( file.path, dontMentionMigratingFavorites );
           }
           var result= '';
           for( var i=sharedPartsCount; i<homeFolderPathParts.length; i++ ) {
@@ -228,7 +236,7 @@ window.setTimeout( function() {
           if (curSuite.file) {
             var suiteRelativePath;
             try {
-                suiteRelativePath= getRelativePathToHome( curSuite.file.path );
+                suiteRelativePath= getRelativePathToHome( curSuite.file.path, true );
             }
             catch( e ) {
                 Favorites.alert( e.message, "SeLite Run All Favorites");
