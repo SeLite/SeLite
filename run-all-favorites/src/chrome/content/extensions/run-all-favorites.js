@@ -1,11 +1,14 @@
 /* Copyright 2011, 2012 Samit Badle
- * Copyright 2014 Peter Kehl
+ * Copyright 2014, 2016 Peter Kehl
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 1.1. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/1.1/.
  */
 "use strict";
 
+/* This file depends on FileUtils as set by chrome://selenium-ide/content/file-utils.js. Because of that, we can't use new FileUtils.File(filePath) as per standard Mozilla's FileUtils. Instead, here we use Components.interfaces.nsILocalFile to create nsIFile instances.
+ * Do not run Components.utils.import( "resource://gre/modules/FileUtils.jsm" ), because then we miss FileUtils.fileExists().
+ */
 window.setTimeout( function() {
     // Se IDE loads this file twice, and with a different scope object! See http://code.google.com/p/selenium/issues/detail?id=6697
     if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
@@ -29,145 +32,83 @@ window.setTimeout( function() {
         
         var homeFolder= Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("Home", Components.interfaces.nsIFile); // nsFile instance
         var homeFolderPathParts= pathParts(homeFolder);
-        var usingSeparateVolumeRoots= homeFolderPathParts[0] !== '';
         
-        /** @param {(string|array)} filePathOrPaths
-         * @param {boolean} [dontMentionMigratingFavorites] If true, then the message won't suggest any changes to favorites.
-         *  @extends Error
-         * */
-        var SuiteOutsideHomeFolderVolume= function SuiteOutsideHomeFolderVolume( filePathOrPaths, dontMentionMigratingFavorites ) {
-            Error.call( this );
-            var multiplePaths= Array.isArray(filePathOrPaths) && filePathOrPaths.length>1;
-            this.filePath= Array.isArray(filePathOrPaths)
-                ? filePathOrPaths.join(', ')
-                : filePathOrPaths;
-            this.message= "Test suite" +(multiplePaths ? 's ' : ' ')+ this.filePath+ (multiplePaths ? ' are' : ' is' )+ " not on the same volume (drive) " +homeFolderPathParts[0]+ " as your home folder " +homeFolder.path+ ". Move the test suite" +(multiplePaths ? 's' : '')+ " and all " +(multiplePaths ? 'their' : 'its')+ " test cases to volume " +homeFolderPathParts[0]+ "." +
-                    (   !dontMentionMigratingFavorites
-                        ? "(If you have many favorites, back them up by menu Favorites > Export - save).\n\nThen apply menu Favorites > Clear all, open " +(multiplePaths ? "each " : "the") +" moved test suite and mark it as a favorite."
-                        : "" 
-                    );
-        };
-        SuiteOutsideHomeFolderVolume.prototype= Object.create(Error.prototype);
-        SuiteOutsideHomeFolderVolume.prototype.constructor= SuiteOutsideHomeFolderVolume;
-        
-        /** Get a relative path for the given file, relative to the given folder. When testing on Windows: Windows > Run: cmd > run: echo %USERPROFILE%
+        /** Get a relative path for the given file, relative to the given folder, if possible. When testing on Windows: Windows > Run: cmd > run: echo %USERPROFILE%
          * @param {string} filePath Absolute file path.
-         * @param {boolean} [dontMentionMigratingFavorites] If true, and the given filePath is absolute and it's not on the same volume as home folder, then this function still throws an error, but the error won't suggest any changes to favorites.
-         * @returns {string} File path relative to user's home; in Unix notation (using .. and / for relative folder navigation).
+         * @returns {string} File path relative to user's home, if it is under user's home (in Unix notation - / for subfolder navigation). Otherwise return filePath unchanged.
          * @throws SuiteOutsideHomeFolderVolume If the given filePath is absolute and it's not on the same volume as home folder.
          */
-        var getRelativePathToHome= function getRelativePathToHome( filePath, dontMentionMigratingFavorites ) {
+        var getRelativePathToHome= function getRelativePathToHome( filePath ) {
           var file = Components.classes['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsILocalFile);
           file.initWithPath(filePath);
           var filePathParts= pathParts(file);
           
-          var sharedPartsCount= 0;
-          while( sharedPartsCount<filePathParts.length && sharedPartsCount<homeFolderPathParts.length ) {
-            if( filePathParts[sharedPartsCount]===homeFolderPathParts[sharedPartsCount] )  {
-               sharedPartsCount++;
-            }
-            else {
-               break;
-            }
+          if( homeFolderPathParts.length>filePathParts.length ) {
+              return filePath;
           }
-          // On Linux/Unix, sharedParts[0] is always "". Hence the following only applies to Windows volumes.
-          if( !sharedPartsCount ) {
-             throw new SuiteOutsideHomeFolderVolume( file.path, dontMentionMigratingFavorites );
+          for( var i=0; i<homeFolderPathParts.length; i++ ) {
+              if( homeFolderPathParts[i]!==filePathParts[i] ) {
+                  return filePath;
+              }
           }
-          var result= '';
-          for( var i=sharedPartsCount; i<homeFolderPathParts.length; i++ ) {
-            if( result ) {
-               result+= '/';
-            }
-            result+= '..';
+          var relativePath= '';
+          for( ; i<filePathParts.length; i++ ) {
+              if( relativePath!=='' ) {
+                  relativePath+= '/';
+              }
+              relativePath+= filePathParts[i];
           }
-          for( var i=sharedPartsCount; i<filePathParts.length; i++ ) {
-             if( result ) {
-               result+= '/';
-             }
-            result+= filePathParts[i];
-          }
-          return result;
+          return relativePath;
         };
 
         /** @param nsIFile baseFolder
-            @param string path Relative path, e.g. result of relativePath()
-            @return nsIFile
+            @param string path Relative path, e.g. result of relativePath(). It must not be an absolute path.
+            @return {string}
         */
         var applyRelativePath= function applyRelativePath( baseFolder, path ) {
-           var file= baseFolder;
            var pathParts= path.split( '/');
            
-           // Get to the deepest common parent folder. I.e. apply any '..' pathParts to navigate up baseFolder.
-           var i=0;
-           while( i<pathParts.length && pathParts[i]==='..' ) {
-              file= file.parent;
-              i++;
-           }
-           if( i<pathParts.length ) {
-              file= file.clone(); // That's because the following code will modify file.
-           }
-           while( i<pathParts.length ) {
+           var file= baseFolder.clone(); // That's because the following code will modify file.
+           for( var i=0; i<pathParts.length; i++ ) {
               // Following code modifies file by calling append(). Side note: To make it safe, Mozilla made file.parent resolve to a new object everytime it's used: file.parent!==file.parent.
               file.append( pathParts[i] );
-              i++;
            }
-           return file;
+           return file.path;
         };
 
-        /** @param string path Relative path, e.g. result of relativePath()
-            @return nsIFile
+        /** @param string path Relative path, e.g. result of relativePath(), or an absolute path.
+            @return nsIFile File for given path - either relative to user's home (if path is relative), or file for given path unchanged.
         */
         var applyRelativePathToHome= function applyRelativePathToHome( path ) {
             if( pathIsAbsolute(path) ) {
-                throw new SuiteOutsideHomeFolderVolume( path );
+                return path;
             }
             return applyRelativePath( homeFolder, path );
         };
         
         /** @param {string} path File.folder path
-         * @returns {boolean} Whether the path is absolute. True if the path starts with Windows-like drive name e.g. C:\, or with Unix root folder /.
+         * @returns {boolean} Whether the path is absolute. True if the path starts with Windows-like drive name e.g. C:\, or with Unix root folder /. False if it's an empty string - then it's deemed to be a relative path for the user's home folder.
         */
         var pathIsAbsolute= function pathIsAbsolute( path ) {
             return /^([a-zA-Z]:\\|\/)/.test(path);
         };
         
-        // Update any old-style absolute path
-        // s. I don't intercept Favorites.prototype.load(), because that was already run from favorites' content/logic/Favorites.js when it created an instance.
-        var updatedSomePaths= false;
-        var updateOtherVolumePaths= [];
-        var updateGenericErrorMessages= [];
-        for( var i=0; i<editor.favorites.favorites.length; i++ ) {
-            var favorite= editor.favorites.favorites[i];
-            if( pathIsAbsolute(favorite.path) ) {
-                try {
+        var makeFavoritesRelativeToHome= function makeFavoritesRelativeToHome() {
+            // Update any old-style absolute path that are under user's home folder.
+            // I don't intercept Favorites.prototype.load(), because that was already run from favorites' content/logic/Favorites.js when it created an instance.
+            var updatedSomePaths= false;
+            for( var i=0; i<editor.favorites.favorites.length; i++ ) {
+                var favorite= editor.favorites.favorites[i];
+                if( pathIsAbsolute(favorite.path) ) {
                     favorite.path= getRelativePathToHome(favorite.path);
+                    updatedSomePaths= true;
                 }
-                catch( e ) {
-                    if( e instanceof SuiteOutsideHomeFolderVolume ) {
-                        updateOtherVolumePaths.push( e.filePath );
-                    }
-                    else {
-                        updateGenericErrorMessages.push( e.message );
-                    }
-                }
-                updatedSomePaths= true;
             }
-        }
-        if( updatedSomePaths ) {
-            editor.favorites.save( editor.favorites.prefBranch );
-        }
-        if( updateOtherVolumePaths.length || updateGenericErrorMessages.length ) {
-            // @TODO nice message:
-            Favorites.alert(
-                ( updateOtherVolumePaths.length
-                  ? new SuiteOutsideHomeFolderVolume(updateOtherVolumePaths).message
-                  : ''
-                )
-                + ' '
-                + updateGenericErrorMessages.join(', '),
-                "SeLite Run All Favorites");
-        }
+            if( updatedSomePaths ) {
+                editor.favorites.save( editor.favorites.prefBranch );
+            }
+        };
+        makeFavoritesRelativeToHome();
         
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         // Mostly copied from original Favorites with these changes:
@@ -216,12 +157,7 @@ window.setTimeout( function() {
 
         // Copied from original Favorites + transforming absolute file path to relative
         Favorites.prototype.isFavorite = function isFavorite(suite) {
-          try {
-            var suiteRelativePath= getRelativePathToHome(suite);
-          }
-          catch( e ) {
-            return false; // The use opened a test suite outside the volume of their home drive. Be quiet, no need for an alert. We alert them below only if they toggle the favorite.
-          }
+          var suiteRelativePath= getRelativePathToHome(suite);
           for( var i=0; i<this.favorites.length; i++ ) {
             if( this.favorites[i].path===suiteRelativePath ) {
               return true;
@@ -234,13 +170,7 @@ window.setTimeout( function() {
         Favorites.prototype.toggleSuiteFavorite = function toggleSuiteFavorite() {
           var curSuite = this.editor.app.getTestSuite();
           if (curSuite.file) {
-            var suiteRelativePath;
-            try {
-                suiteRelativePath= getRelativePathToHome( curSuite.file.path, true );
-            }
-            catch( e ) {
-                Favorites.alert( e.message, "SeLite Run All Favorites");
-            }
+            var suiteRelativePath= getRelativePathToHome( curSuite.file.path, true );
             if( !this.removeFavorite(suiteRelativePath) ) {
               var suiteName = curSuite.file.leafName;
               suiteName = suiteName.replace(/\.[^.]+$/, "");
@@ -249,13 +179,7 @@ window.setTimeout( function() {
             this.save(this.prefBranch);
             this.suiteStateChanged(curSuite);
           } else {
-            //Suite must be saved first
-            Favorites.alert("Please save the suite first." +
-                (usingSeparateVolumeRoots
-                 ? " Save it on the same volume as your home folder - " +homeFolderPathParts[0] + '.'
-                 : ''
-                ),
-                "SeLite Run All Favorites");
+            Favorites.alert("Please save the suite first.", "SeLite Run All Favorites");
           }
         };
         
@@ -292,13 +216,7 @@ window.setTimeout( function() {
           else {
             try {
                 var path = evt.target.value || evt.target.getAttribute('value');
-                try {
-                    path= applyRelativePathToHome(path).path;
-                }
-                catch( e ) {
-                    Favorites.alert( e.message, "SeLite Run All Favorites");
-                    return;
-                }
+                path= applyRelativePathToHome(path);
                 if (FileUtils.fileExists(path)) {
                   this.editor.loadRecentSuite(path);
                   if (evt.ctrlKey || evt.metaKey || this.meta) {
@@ -312,7 +230,7 @@ window.setTimeout( function() {
                   }
                 }
             } catch(err) {
-              Favorites.alert("Error: Could not load test suite.", "SeLite Run All Favorites");
+              Favorites.alert("Error: Could not load test suite.\n" +err, "SeLite Run All Favorites");
             }
           }
         };
@@ -351,7 +269,7 @@ window.setTimeout( function() {
             */
             var loadAndPlayTestSuite= function loadAndPlayTestSuite( dontReset ) {
                 try {
-                    self.editor.loadRecentSuite( applyRelativePathToHome(self.favorites[testSuiteIndex].path).path );
+                    self.editor.loadRecentSuite( applyRelativePathToHome(self.favorites[testSuiteIndex].path) );
                 }
                 catch( e ) {
                     Favorites.alert( e.message, "SeLite Run All Favorites");
@@ -446,6 +364,7 @@ window.setTimeout( function() {
                 this.prefBranch.setCharPref("favorites", data);
                 this.clearFavorites();
                 this.load( this.prefBranch );
+                makeFavoritesRelativeToHome();
             }
         };
         
