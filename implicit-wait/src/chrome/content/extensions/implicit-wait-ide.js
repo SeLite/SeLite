@@ -196,7 +196,7 @@ editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHa
                             return;
                         }
                         if( self.result.failed ) {
-                            editor.editor.testLoopResumeHandleFailedResult.call( self );
+                            editor.testLoopResumeHandleFailedResult.call( self );
                         }
                         self.commandComplete(self.result);
                         self.continueTest();
