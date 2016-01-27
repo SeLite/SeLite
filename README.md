@@ -11,4 +11,6 @@ SeLite enables
 * automatic detection of webserver errors/warnings
 * custom fine-grain configuration schemas.
 
+SeLite also contains [SelBlocks Global](https://selite.github.io/SelBlocksGlobal). However, SelBlocks Global's code is in a [separate repository](https://github.com/SeLite/SelBlocksGlobal).
+
 See its extensive [documentation](http://selite.github.io/) for benefits and installation.
