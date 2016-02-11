@@ -23,12 +23,12 @@
     // For all Selenium actions and locators defined here - i.e. functions with name doXXXX, isXXXXX, getXXXXX
     // see their user documentation at ../reference.xml
 
-    // @TODO document/report this to Selenium
     // 1. As of Se IDE 1.5.0, contrary to http://release.seleniumhq.org/selenium-core/1.0/reference.html#extending-selenium
     // (documentation on how to write custom getXXX functions),
     // getXyz() must have exactly one parameter. If you specify two parameters, neither of them will get the value assigned!
     // 2. getXyz() function must return a non-null defined value; otherwise you'll get a confusing error from AccessorResult
     // at chrome/content/selenium-core/scripts/selenium-commandhandlers.js
+    // @TODO Move to GitHub: https://code.google.com/p/selenium/issues/detail?id=3202
 
     /** @TODO eliminate? Or, keep, if we use NaN
      **/
