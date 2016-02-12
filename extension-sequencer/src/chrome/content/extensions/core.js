@@ -9,7 +9,7 @@
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
         console.debug( 'SeLite Extension Sequencer (re)setting SeLiteExtensionSequencer.coreExtensionsLoadedTimes to an empty object.' );
         Components.utils.import( "chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js" );
-        // Re-set because Selenium IDE was (re)loaded. This is for a workaround for http://code.google.com/p/selenium/issues/detail?id=6697.
+        // Re-set because Selenium IDE was (re)loaded. This is for a workaround for https://github.com/SeleniumHQ/selenium/issues/1549 "Core extensions are loaded 2x".
         SeLiteExtensionSequencer.coreExtensionsLoadedTimes= {};
     }
     StandaloneEditor.extensionSequencerClearedLoadedTimes++;

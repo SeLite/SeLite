@@ -16,7 +16,7 @@
  * 
  * Based on Selenium code of chrome/content/formats/html.js. This adds parseCommandsAndHeader(), it adjusts parse() respectively, and it changes option 'commandLoadPattern'.
  * parseCommandsAndHeader() and related code in ide-extension.js, makes Selenium IDE accept HTML from native clipboard, regardless of its souce (potentially another Selenium IDE instance, or a file), as far as it fits the format.
- * Changes to 'commandLoadPattern' fix https://code.google.com/p/selenium/issues/detail?id=6903 and https://code.google.com/p/selenium/issues/detail?id=6901
+ * Changes to 'commandLoadPattern' fix https://code.google.com/archive/p/selenium/issues/6901 and https://github.com/SeleniumHQ/selenium/issues/1546.
  */
 // Characters that should be escaped when saving.
 var EncodeToXhtmlEntity = ["amp", "gt", "lt", "quot", "nbsp"];
@@ -342,7 +342,7 @@ function defaultExtension() {
   return this.options.defaultExtension;
 }
 
-// Following changes commandLoadPattern setting from the original. That fixes https://code.google.com/p/selenium/issues/detail?id=6903 and https://code.google.com/p/selenium/issues/detail?id=6901. This change of default settings has effect, even if the user used Selenium IDE before she installed this SeLite extension (as far as didn't modify these settings in Selenium IDE menu Options > Options... > Formats).
+// Following changes commandLoadPattern setting from the original. That fixes https://code.google.com/archive/p/selenium/issues/6901 and https://github.com/SeleniumHQ/selenium/issues/1546. This change of default settings has effect, even if the user used Selenium IDE before she installed this SeLite extension (as far as didn't modify these settings in Selenium IDE menu Options > Options... > Formats).
 /*
  * Optional: The customizable option that can be used in format/parse functions.
  */

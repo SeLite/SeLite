@@ -26,9 +26,5 @@
  {
   "name": "sel-blocks-global_suite",
   "path": "sel-blocks-global/selenese-tests/sel-blocks-global_suite.html"
- },
- {
-  "name": "implicit-wait_suite",
-  "path": "selite/implicit-wait/selenese-tests/implicit-wait_suite.html"
  }
 ]

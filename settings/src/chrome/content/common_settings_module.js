@@ -6,7 +6,7 @@
 var appDB= new SeLiteSettings.Field.SQLite('appDB', undefined, false, "Application database (or its export/copy)" );
 var testDB= new SeLiteSettings.Field.SQLite('testDB', undefined, false, "Test database" );
 var vanillaDB= new SeLiteSettings.Field.SQLite('vanillaDB', undefined, false, "Vanilla database (serving as a snapshot of application database)" );
-// This is needed because Selenium IDE desn't allow base URL to contain path (http://code.google.com/p/selenium/issues/detail?id=3116).
+// This is needed because Selenium IDE desn't allow base URL to contain path (https://github.com/SeleniumHQ/selenium/issues/1550).
 var webRoot= new SeLiteSettings.Field.String('webRoot', /*multivalued:*/false, undefined, /*allowNull*/true, "Webroot of the tested application" );
 
 // Following two fields logically belong to SeLite Miscellaneous. However, they couldn't be defined in SeLiteExtensionSequencerManifest.js there, since SeLite Miscellaneous gets initialised before SeLite Settings (due to dependency), and therefore 'extensions.selite-settings.common' module wouldn' be defined yet.

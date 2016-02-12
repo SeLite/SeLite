@@ -16,7 +16,7 @@
 */
 "use strict";
 
-// The following if() check is needed because Se IDE loads extensions twice - http://code.google.com/p/selenium/issues/detail?id=6697
+// The following if() check is needed because Se IDE loads extensions twice - https://github.com/SeleniumHQ/selenium/issues/1549
 //if( typeof HtmlRunnerTestLoop!=='undefined' ) {
 Components.utils.import( "chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js" );
 var loadedTimes= SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteAutoCheck'] || 0;

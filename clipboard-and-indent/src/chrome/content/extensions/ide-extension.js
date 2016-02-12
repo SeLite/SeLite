@@ -71,7 +71,7 @@
             }
         };
         
-        // For indentation - https://code.google.com/p/selenium/issues/detail?id=6903:
+        // For indentation - https://github.com/SeleniumHQ/selenium/issues/1546:
         
         /** The body is identical to original getDefinition(), but this adds trimLeft() for indented commands. */
         Command.prototype.getDefinition = function getDefinition() {

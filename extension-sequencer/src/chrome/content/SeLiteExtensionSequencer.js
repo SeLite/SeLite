@@ -23,7 +23,7 @@ function SeLiteExtensionSequencer() {}
  *      string core extension name: number of times the extension was loaded, or undefined if not loaded yet. It's 1 before running any Selenese (i.e. after the first load of the custom core extension) and 2 when running the first Selenese (i.e. after the second load of the custom core extension). It should not be more than 2.
  *  }
  *  Passive - It's up to the Core extension to use this appropriately.
- *  This exists because of issue http://code.google.com/p/selenium/issues/detail?id=6697 "Core extensions are loaded 2x".
+ *  This exists because of issue https://github.com/SeleniumHQ/selenium/issues/1549 "Core extensions are loaded 2x".
  *  This gets re-set by extensions/core.js, otherwise it would stay between reloads of Selenium IDE.
 */
 SeLiteExtensionSequencer.coreExtensionsLoadedTimes= {};

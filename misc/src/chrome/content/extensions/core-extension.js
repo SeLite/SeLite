@@ -77,7 +77,7 @@ Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
         @param {string} username Case-sensitive username.
         @param {mixed} hostnameOrUseBaseURL String hostname in form 'https://server-name.some.domain'. It must contain http or https. It can contain the port (if not standard),
         but no trailing slash / neither any URI (path). Optional; if not present, then this uses the current website.
-        If it's true (boolean), then the function uses Selenium IDE's "Base URL" field - which may be different to the test website (e.g. single-sign-on). @TODO Once/if http://code.google.com/p/selenium/issues/detail?id=3116 is fixed, I'd need to extract the protocol+host+port from Base URL here.
+        If it's true (boolean), then the function uses Selenium IDE's "Base URL" field - which may be different to the test website (e.g. single-sign-on). @TODO Once/if https://github.com/SeleniumHQ/selenium/issues/1550 is fixed, I'd need to extract the protocol+host+port from Base URL here.
         @param {boolean} [returnLoginInfo] Whether to return nsILoginInfo object (if any); otherwise (and by default) this returns a string password (if any).
         @return {string} password if found; undefined otherwise
     */

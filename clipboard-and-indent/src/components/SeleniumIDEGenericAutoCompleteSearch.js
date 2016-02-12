@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * Based on Selenium code of components/SeleniumIDEGenericAutoCompleteSearch.js. This fixes https://code.google.com/p/selenium/issues/detail?id=6903 
+ * Based on Selenium code of components/SeleniumIDEGenericAutoCompleteSearch.js. This fixes https://github.com/SeleniumHQ/selenium/issues/1546
  */
 function SeleniumIDEGenericAutoCompleteSearch() {
 	this.candidates = {};

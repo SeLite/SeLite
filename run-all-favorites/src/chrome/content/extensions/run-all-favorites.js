@@ -10,7 +10,7 @@
  * Do not run Components.utils.import( "resource://gre/modules/FileUtils.jsm" ), because then we miss FileUtils.fileExists().
  */
 window.setTimeout( function() {
-    // Se IDE loads this file twice, and with a different scope object! See http://code.google.com/p/selenium/issues/detail?id=6697
+    // Se IDE loads this file twice, and with a different scope object! See https://github.com/SeleniumHQ/selenium/issues/1549 "Core extensions are loaded 2x"
     if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
         Favorites.interceptedBySeLiteRunAllFavorites= true;
 

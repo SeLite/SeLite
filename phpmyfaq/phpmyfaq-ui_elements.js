@@ -276,7 +276,7 @@
         }
     });
     // the following is for development, so that when Bootstrap re-loads this file automatically, it re-runs the test.
-    phpMyFAQ.uiMap.pagesets.adminPages.uiElements.topNavigation.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
+    phpMyFAQ.uiMap.pagesets.adminPages.uiElements.topNavigation.test();//@TODO remove once https://github.com/SeleniumHQ/selenium/issues/1536 gets fixed
     
     phpMyFAQ.uiMap.addElement('adminPages', {
         name: 'secondNavigation',
@@ -375,7 +375,7 @@
             </ul>'
         }
     });
-    phpMyFAQ.uiMap.pagesets.adminPages.uiElements.secondNavigation.test();//@TODO remove once https://code.google.com/p/selenium/issues/detail?id=8429 gets fixed
+    phpMyFAQ.uiMap.pagesets.adminPages.uiElements.secondNavigation.test();//@TODO remove once https://github.com/SeleniumHQ/selenium/issues/1536 gets fixed
     phpMyFAQ.uiMap.addElement('adminPages', {
         name: 'bootstrapMenu',
         description: '<span> for the Bootstrap menu. Only use through phpMyFAQ.bootstrapMenuLocator() to detect whether the menu is expanded; do not use to access menu items etc.',

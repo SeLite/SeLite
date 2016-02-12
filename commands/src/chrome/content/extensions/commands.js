@@ -109,6 +109,13 @@
      *  evaluate in a .js file or via Firebug console, not via 'javascript:' url: new Intl.DateTimeFormat("en-GB", {timeZone:"AEDT", timeZoneName:'short'}).format( new Date())
      *  See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat  and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTimezoneOffset and
      *  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat/supportedLocalesOf
+     *  
+     *  This is on hold, pending https://bugzilla.mozilla.org/show_bug.cgi?id=837961. In Firefox 47.0a1 timezones seem to work one way only:
+     *  new Intl.DateTimeFormat('en-AU', {timeZoneName: 'short'}).format( new Date() )  -> "12/02/2016, AEDT"
+     *  new Intl.DateTimeFormat("en-AU", {timeZone:"AEDT", timeZoneName:'short'}).format( new Date()) -> RangeError: invalid time zone
+     *  
+     *  new Intl.DateTimeFormat('en-AU', {timeZoneName: 'long'}).format( new Date() ) -> "12/02/2016, Australian Eastern Daylight Time"
+     *  new Intl.DateTimeFormat("en-AU", {timeZone:"Australian Eastern Daylight Time", timeZoneName:'long'}).format( new Date()) -> RangeError: invalid time zone
      **/
     Selenium.prototype.timestampComparesTo= function timestampComparesTo( locator, timestampInMilliseconds, displayPrecisionInMilliseconds, validatePrecision, timezoneTODO ) {
         var element= this.browserbot.findElement(locator);

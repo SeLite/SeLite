@@ -2,7 +2,7 @@
  * Copyright 2013, 2014 Peter Kehl
  * Based on Selenium code of ide/main/src/content/testCase.js
  *
- * This is needed for SelBlocksGlobal to work until Selenium accepts https://code.google.com/p/selenium/issues/detail?id=5495
+ * This is needed for SelBlocksGlobal to work until Selenium accepts https://github.com/SeleniumHQ/selenium/issues/1537
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 // Anonymous function keeps global and origTestCasePrototype out of global scope
 ( function(global) {
     // Se IDE loads this file twice, and with a different scope object! I need to create TestCaseDebugContext when this file is loaded for the first time. I couldn't use 'var TestCaseDebugContext=...', or global.TestCaseDebugContext= .... because it would disappear (due to the different scope object). Since I want "use strict"; I set it on TestCase, which exists outside the loading scope, and therefore it's preserved between both loadings of this file.
-    // See http://code.google.com/p/selenium/issues/detail?id=6697
+    // See https://github.com/SeleniumHQ/selenium/issues/1549 "Core extensions are loaded 2x".
     if( typeof TestCase.TestCaseDebugContext==="undefined" ) {
         global.TestCaseDebugContext= function TestCaseDebugContext( testCase ) {
             this.testCase= testCase;
@@ -59,7 +59,7 @@
             return command;
         };
         var origTestCasePrototype;
-        if( origTestCasePrototype===undefined ) { // This check is needed because of http://code.google.com/p/selenium/issues/detail?id=6697
+        if( origTestCasePrototype===undefined ) { // This check is needed because of https://github.com/SeleniumHQ/selenium/issues/1549 "Core extensions are loaded 2x"
             origTestCasePrototype= TestCase.prototype;
             TestCase= function TestCase(tempTitle) {
                 if (!tempTitle) tempTitle = "Untitled";
