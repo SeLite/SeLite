@@ -660,8 +660,7 @@
         return Selenium.decorateFunctionWithTimeout(
             function () {
                 self.doSelectFrame( 'relative=top' );
-                for( var i=0; i<locatorOrLocators.length; i++ ) {//@TODO for(..of..)
-                    var locator= locatorOrLocators[i];
+                for( var locator of locatorOrLocators ) {
                     var wrappedElementOrNull= self.browserbot.findElementOrNull( locator );
                     if( wrappedElementOrNull!==null ) {
                         self.doSelectFrame( locator );

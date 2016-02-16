@@ -108,8 +108,7 @@ XulUtils.TreeViewHelper.prototype.setCellText= TreeView.prototype.setCellText= f
         //var nsResolver = document.createNSResolver( treeContextMenu.ownerDocument == null ? treeContextMenu.documentElement : treeContextMenu.ownerDocument.documentElement ); // From https://developer.mozilla.org/en/docs/Introduction_to_using_XPath_in_JavaScript#Implementing_a_Default_Namespace_Resolver
         //var insertCommandMenuItem= window.document.evaluate( '//menuitem', treeContextMenu, nsResolver, XPathResult.ANY_UNORDERED_NODE_TYPE, null ).singleNodeValue;
         var menuItems= menusToUpdate[i].getElementsByTagName('menuitem');
-        for( var j=0; j<menuItems.length; j++ ) {//@TODO for(..of..) once NetBeans like it
-            var item= menuItems[j];
+        for( var item of menuItems ) {
             if( item.getAttribute('accesskey')==='I' ) {
                 item.setAttribute('key', 'insert-command-key');
             }

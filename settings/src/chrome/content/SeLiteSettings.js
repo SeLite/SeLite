@@ -634,8 +634,8 @@ SeLiteSettings.Field.Choice= function Choice( name, multivalued, defaultKey, cho
         var defaultKeys= multivalued
             ? defaultKey
             : [defaultKey];
-        for( var i=0; i<defaultKeys.length; i++ ) { //@TODO for..of.. loop once NetBeans support it
-            defaultKeys[i] in choicePairs || SeLiteMisc.fail( "SeLiteSettings.Field.Choice " +name+ " has defaultKey " +defaultKeys[i]+ ", which is not among keys of its choicePairs." );
+        for( var iteratedDefaultKey of defaultKeys ) {
+            iteratedDefaultKey in choicePairs || SeLiteMisc.fail( "SeLiteSettings.Field.Choice " +name+ " has defaultKey " +iteratedDefaultKey+ ", which is not among keys of its choicePairs." );
         }
     }
 };
@@ -762,8 +762,8 @@ SeLiteSettings.Field.FixedMap.prototype.addKey= function addKey( key, defaultVal
  * */
 SeLiteSettings.Field.FixedMap.prototype.addKeys= function addKeys( keys, dontReRegister ) {
     if( Array.isArray(keys) ) {
-        for( var i=0; i<keys.length; i++ ) { //@TODO for(..of..)
-            this.addKey( keys[i], undefined, true );
+        for( var key of keys ) {
+            this.addKey( key, undefined, true );
         }
     }
     else {
@@ -902,8 +902,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
                     var originals= {}; // Original values that I'm replacing. For logging only.
                     // @TODO I could have two queries, one for each of the following if/else branch, and re-use them
                     if( this.data[tableName] && keyValue in this.data[tableName] ) { // Restore the original values as they were in test DB
-                        for( var i=0; i<tableDetails.columnsToPreserve.length; i++ ) {// @TODO for(..of..)
-                            var column= tableDetails.columnsToPreserve[i];
+                        for( var column of tableDetails.columnsToPreserve ) {
                             var oldValue= this.data[ tableName ][ keyValue ][ column ];
                             updateParts.push( column+ '=:' +column );
                             bindings[ column ]= oldValue;
@@ -1209,8 +1208,7 @@ SeLiteSettings.Module.prototype.getFieldsOfSet= function getFieldsOfSet( setName
             ? setName+ '.'
             : '';
         var children= this.prefsBranch.getChildList( setNameWithDot, {} );
-        for( var i=0; i<children.length; i++ ) {//@TODO for(..of..)
-            var prefName= children[i];
+        for( var prefName of children ) {
             var fieldNameAndKey= prefName.substring( setNameWithDot.length );
             
             var fieldNameAndKeyIndexOfDot= fieldNameAndKey.indexOf( '.' );
@@ -1296,8 +1294,7 @@ SeLiteSettings.Module.prototype.getFieldOfSet= function getFieldOfSet( setName, 
             ? {}
             : SeLiteMisc.sortedObject( field.compareValues );
     }
-    for( var i=0; i<children.length; i++ ) {//@TODO for(..of..)
-        var prefName= children[i];
+    for( var prefName of children ) {
 
         var value= this.preferenceValue( prefName );
         if( multivaluedOrChoice ) {
@@ -1536,11 +1533,11 @@ SeLiteSettings.changedDefaultSet= function changedDefaultSet() {
 /** @note Internal
  * */
 SeLiteSettings.applyTestSuiteFolderChangeHandlers= function applyTestSuiteFolderChangeHandlers( folder ) {
-    for( var i=0; i<unnamedTestSuiteFolderChangeHandlers.length; i++ ) { // @TODO change to for( .. of .. ) loop
-        unnamedTestSuiteFolderChangeHandlers[i].call( null, folder );
+    for( var handler of unnamedTestSuiteFolderChangeHandlers ) {
+        handler.call( null, folder );
     }
-    for( var i in namedTestSuiteFolderChangeHandlers ) { // @TODO for( .. of .. )
-        namedTestSuiteFolderChangeHandlers[i].call( null, folder );
+    for( var key in namedTestSuiteFolderChangeHandlers ) {
+        namedTestSuiteFolderChangeHandlers[key].call( null, folder );
     }
 };
     
@@ -1617,8 +1614,7 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
     var manifests= manifestsDownToFolder(folderPath, dontCache);
     // First, merge values from values manifests.
     for( var manifestFolder in manifests.values ) {
-        for( var i=0; i<manifests.values[manifestFolder].length; i++ ) { //@TODO for .. of..
-            var manifest= manifests.values[manifestFolder][i];
+        for( var manifest of manifests.values[manifestFolder] ) {
             
             if( manifest.moduleName==this.name ) {
                 if( manifest.fieldName in this.fields || includeUndeclaredEntries ) {

@@ -241,8 +241,8 @@ RecordHolder.prototype.primaryKeyCompound= function primaryKeyCompound() {
         return this.record[primary]
     }
     var object= {};
-    for( var i=0; i<primary.length; i++ ) {//@TODO for(..of..) once NetBeans likes it
-        object[ primary[i] ]= this.record[ primary[i] ];
+    for( var primaryCompound of primary ) {
+        object[ primaryCompound ]= this.record[ primaryCompound ];
     }
     return JSON.stringify(object);
 };
@@ -269,8 +269,8 @@ RecordHolder.prototype.setOriginalAndWatchEntries= function setOriginalAndWatchE
     var primaryKeyColumns= typeof this.recordSetHolder.formula.table.primary==='string'
         ? [this.recordSetHolder.formula.table.primary]
         : this.recordSetHolder.formula.table.primary;
-    for( var i=0; i<primaryKeyColumns.length; i++ ) {//@TODO for(..of..) once NetBeans likes it
-        this.record.watch( primaryKeyColumns[i], readOnlyPrimary );
+    for( var primaryKeyColumn of primaryKeyColumns ) {
+        this.record.watch( primaryKeyColumn, readOnlyPrimary );
     }
 };
 
@@ -500,9 +500,9 @@ SeLiteData.RecordSetFormula.prototype.tableByName= function tableByName( tableNa
     if( this.table.name===tableName ) {
         return this.table;
     }
-    for( var joinIndex=0; joinIndex<this.joins.length; joinIndex++ ) {//@TODO for(..of..)
-        if( this.joins[joinIndex].table.name===tableName ) {
-            return this.joins[joinIndex].table;
+    for( var join of this.joins ) {
+        if( join.table.name===tableName ) {
+            return join.table;
         }
     }
     return null;
@@ -689,9 +689,9 @@ RecordSetHolder.prototype.select= function select() {
         }
         else {
             var join;
-            for( var i=0; i<formula.joins.length; i++ ) {//@TODO for(..of..) once NetBeans likes it
-                if( formula.joins[i].table.name===tableName ) {
-                    join= formula.joins[i];
+            for( var iteratedJoin of formula.joins ) {
+                if( iteratedJoin.table.name===tableName ) {
+                    join= iteratedJoin;
                     break;
                 }
             }

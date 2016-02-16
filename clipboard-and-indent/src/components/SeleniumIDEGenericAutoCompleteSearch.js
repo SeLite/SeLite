@@ -100,17 +100,16 @@ function AutoCompleteResult(search, candidates) {
     }
     if( indentationPrefix ) {
         var isFullyTyped= false; // Whether search (excluding any indentation) fully matches a command, rather than just its prefix.
-        for( var i=0; i<this.result.length; i++ ) {//@TODO for(..of..)
-            var candidate= this.result[i][0];
-            if( search===candidate ) {
+        for( var candidate of this.result ) {
+            if( search===candidate[0] ) {
                 isFullyTyped= true;
                 break;
             }
         }
         var matchesClosingCommand= false; // Whether search matches at least three letter prefix of any of closingCommands
         if( search.length>=3 ) {
-            for( var i=0; i<closingCommands.length; i++ ) {//@TODO for(..of..)
-                if( closingCommands[i].indexOf(search)===0 ) {
+            for( var iteratedClosingCommand of closingCommands ) {
+                if( iteratedClosingCommand.indexOf(search)===0 ) {
                     matchesClosingCommand= true;
                     break;
                 }

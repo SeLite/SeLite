@@ -460,8 +460,7 @@ SeLiteData.Storage.prototype.updateRecordByPrimary= function updateRecordByPrima
         ? [primaryKey]
         : primaryKey;
     copiedParams.matching= {};
-    for( var i=0; i<primaryKeyColumns.length; i++ ) { //@TODO for(..of..) once NetBeans like it
-        var column= primaryKeyColumns[i];
+    for( var column of primaryKeyColumns ) {
         copiedParams.entries[column]!==undefined || SeLiteMisc.fail( "updateRecordByPrimary(): params.entries." +column+ " is not set." );
         copiedParams.matching[column]= copiedParams.entries[column];
         delete copiedParams.entries[column];
@@ -482,8 +481,8 @@ SeLiteData.Storage.prototype.removeRecordByPrimary= function removeRecordByPrima
         primaryKey= [primaryKey];
     }
     var conditionParts= [];
-    for( var i=0; i<primaryKey.length; i++ ) {//@TODO for(..of..) once NetBeans likes it
-        conditionParts.push( primaryKey[i]+ '=' +this.quoteValues( record[primaryKey[i]] ) );
+    for( var primaryKeyColumn of primaryKey ) {
+        conditionParts.push( primaryKeyColumn+ '=' +this.quoteValues( record[primaryKeyColumn] ) );
     }
     var query= "DELETE FROM " +tableName+ " WHERE " +conditionParts.join( 'AND' );
     var stmt= this.connection().createStatement( query );

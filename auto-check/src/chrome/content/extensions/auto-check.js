@@ -146,8 +146,7 @@ var SeLiteAutoCheck= {};
             // "//b[ .='Notice' or .='Warning' or .='Error' ][ following-sibling::node()[1][starts-with(., ': ') and following-sibling::node()[2][contains(., 'on line')] ] ]/following-sibling::node()[ 1 ]"
         }
         errorElementLoop:
-        for( var i=0; i<errorElements.length; i++ ) { //@TODO for..of..
-            var errorElement= errorElements[i];
+        for( var errorElement of errorElements ) {
             var errorFileElements= undefined; // element containing the file path where the error was reported (if displayed and if !fromDebug)
             // If fromXdebug, then I don't match the file location separately - it's already within errorElement
             if( !fromXdebug ) {
