@@ -51,8 +51,8 @@ ImplicitWait.prototype = {
     },
     
     /** Call from the setImplicitWait command*/
-    setImplicitWait: function(timeout){
-        this.wait_timeout = +timeout || 0;
+    setImplicitWait: function(timeout=0){
+        this.wait_timeout = timeout;
     },
         
     /** Call from the setImplicitWaitCondition command*/

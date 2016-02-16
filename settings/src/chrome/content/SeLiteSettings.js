@@ -214,7 +214,7 @@ SeLiteSettings.getField= function getField( fullNameOrField ) {
  *  - 2 parameters: 'key' and 'value' for SeLiteSettings.Field.Choice and its subclasses
  *  It returns boolean - true on success, false on failure. Optional.
  * */
-SeLiteSettings.Field= function Field( name, multivalued=false, defaultKey, allowNull, description, customValidate ) {
+SeLiteSettings.Field= function Field( name, multivalued=false, defaultKey, allowNull=false, description, customValidate ) {
     if( typeof name!=='string' ) {
         throw new Error( 'SeLiteSettings.Field() expects a string name ("primitive" string, not new String(..)).');
     }
@@ -234,7 +234,7 @@ SeLiteSettings.Field= function Field( name, multivalued=false, defaultKey, allow
     this.defaultKey= defaultKey;
     this.description= description;
     SeLiteMisc.ensureType( this.description, ['string', 'undefined'], 'description (if present)' );
-    this.allowNull= allowNull || false;
+    this.allowNull= allowNull;
     SeLiteMisc.ensureType( this.allowNull, 'boolean', 'allowNull (if present)' );
     this.customValidate= customValidate;
     SeLiteMisc.ensureType( this.customValidate, ['function', 'undefined'], 'customValidate (if present)' );
@@ -551,9 +551,9 @@ SeLiteSettings.Field.String.prototype.constructor= SeLiteSettings.Field.String;
  *  @param saveFile Whether we're saving/creating a file, otherwise we're opening/reading. Optional, false by default.
     Only needed when isFolder is false, because the file/folder picker dialog always lets you create new folder (if you have access).
  * */
-SeLiteSettings.Field.FileOrFolder= function FileOrFolder( name, filters, multivalued, defaultKey, isFolder=false, allowNull, description, customValidate, saveFile=false ) {
+SeLiteSettings.Field.FileOrFolder= function FileOrFolder( name, filters={}, multivalued, defaultKey, isFolder=false, allowNull, description, customValidate, saveFile=false ) {
     SeLiteSettings.Field.NonChoice.call( this, name, multivalued, defaultKey, allowNull, description, customValidate );
-    this.filters= filters || {};
+    this.filters= filters;
     typeof(this.filters)==='object' && !Array.isArray(this.filters) || SeLiteMisc.fail( 'SeLiteSettings.Field.FileOrFolder() expects filters to be an object (not an array) serving as an associative array, if provided.');
     this.isFolder= isFolder;
     SeLiteMisc.ensureType( this.isFolder, 'boolean', "isFolder (if provided)" );
@@ -944,7 +944,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
  *  Required if you want to register a brand new module; not needed if re-registering (upgrading) an already registered module.
  *  @param {boolean} [dontRegister] Whether not to (re)register this module; by default it's false (i.e. do register).
  * */
-SeLiteSettings.Module= function Module( name, fields, allowSets=false, defaultSetName, associatesWithFolders, definitionJavascriptFile, dontRegister ) {
+SeLiteSettings.Module= function Module( name, fields, allowSets=false, defaultSetName, associatesWithFolders=false, definitionJavascriptFile, dontRegister ) {
     this.name= name;
     if( typeof this.name!='string' ) {
         throw new Error( 'SeLiteSettings.Module() expects a string name.');
@@ -973,7 +973,7 @@ SeLiteSettings.Module= function Module( name, fields, allowSets=false, defaultSe
     this.defaultSetName==undefined || this.allowSets || SeLiteMisc.fail( 'SeLiteSettings.Module() allows optional parameter defaultSetName only if allowSets is true..' );
     defaultSetName===null || ensureFieldName( defaultSetName, 'defaultSetName', true );
     
-    this.associatesWithFolders= associatesWithFolders || false;
+    this.associatesWithFolders= associatesWithFolders;
     SeLiteMisc.ensureType( this.associatesWithFolders, 'boolean', 'associatesWithFolders (if provided)' );
     
     this.definitionJavascriptFile= definitionJavascriptFile;
@@ -1423,9 +1423,7 @@ SeLiteSettings.ManifestInfo= SeLiteMisc.proxyVerifyFields( SeLiteSettings.Manife
  *      }
  *  }
  * */
-function manifestsDownToFolder( folderPath, dontCache ) {
-    folderPath= folderPath || SeLiteSettings.testSuiteFolder;
-    dontCache= dontCache || false;
+function manifestsDownToFolder( folderPath=SeLiteSettings.testSuiteFolder, dontCache=false ) {
     var folderNames= [];
     if( folderPath ) {
         if( !dontCache && folderPath in cachedManifests ) {
@@ -1595,10 +1593,9 @@ SeLiteSettings.ModuleAndSetInformation= SeLiteMisc.proxyVerifyFields( SeLiteSett
  *  - default key (value) of the field.
  *  The structure of the result is mostly similar to result of SeLiteSettings.Module.prototype.getFieldsOfSet().
 * */
-SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToFolder( folderPath, dontCache, includeUndeclaredEntries ) {
+SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToFolder( folderPath, dontCache=false, includeUndeclaredEntries ) {
     folderPath= folderPath || SeLiteSettings.testSuiteFolder;
     this.associatesWithFolders || SeLiteMisc.fail( "SeLiteSettings.Module.getFieldsDownToFolder() requires module.associatesWithFolders to be true, but it was called for module " +this.name );
-    dontCache= dontCache || false;
     
     var result= SeLiteMisc.sortedObject(true);
     for( var fieldName in this.fields ) {
@@ -2068,8 +2065,7 @@ SeLiteSettings.webRoot= function webRoot() {
 /** @return {string} URL of the application, based on SeLiteSettings.webRoot() and the given path.
  * @param {string} [path] URI, absolute path, relative to webroot. It can start with '/' or without it. Optional - if not present, then this just returns webroot.
  * */
-SeLiteSettings.webURL= function webURL( path ) {
-    path= path || '';
+SeLiteSettings.webURL= function webURL( path='' ) {
     if( path.startsWith('/') ) {
         path= path.substring(1);
     }

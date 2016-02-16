@@ -135,8 +135,7 @@ SQLiteConnectionInfo.prototype= {
  * */
 SQLiteConnectionInfo.connectionInfos= [];
 
-function preloadCacheTable( connection, tableNames, tableIndex, errorHandler ) {
-    tableIndex= tableIndex || 0;
+function preloadCacheTable( connection, tableNames, tableIndex=0, errorHandler ) {
     if( tableIndex==tableNames.length ) {
         connection.asyncClose(); //@TODO why?
         return;

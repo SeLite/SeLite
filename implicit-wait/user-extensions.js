@@ -79,12 +79,12 @@ ImplicitWait.prototype = {
     
     /** Call from the setImplicitWait command*/
     setImplicitWait: function(timeout){
-        this.wait_timeout = +timeout || 0;
+        this.wait_timeout = timeout || 0;
     },
         
     /** Call from the setImplicitWaitCondition command*/
     setImplicitWaitCondition: function(timeout, condition_js){
-        if((this.postcondition_timeout = +timeout || 0)){
+        if((this.postcondition_timeout = timeout || 0)){
             this.postcondition_func = new Function('return ' + condition_js);
             this.postcondition_func.__string__ = condition_js;
         }else{

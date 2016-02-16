@@ -1715,7 +1715,7 @@ SeLiteMisc.cascadeField= function cascadeField( object, fieldNameDotEtc, doNotTh
  *    ...
  * }
  * */
-SeLiteMisc.collectByColumnFromDeep= function collectByColumnFromDeep( records, fieldNameDotEtcByLevel, depth, doNotThrow, result={} ) {
+SeLiteMisc.collectByColumnFromDeep= function collectByColumnFromDeep( records, fieldNameDotEtcByLevel, depth, doNotThrow=false, result={} ) {
     typeof records==='object' || SeLiteMisc.fail( 'Parameter records must be an object.' );
     typeof fieldNameDotEtcByLevel==='object' || typeof fieldNameDotEtcByLevel==='string' || SeLiteMisc.fail( 'Parameter fieldNameDotEtcByLevel must be an object or a string.' );
     fieldNameDotEtcByLevel= Array.isArray(fieldNameDotEtcByLevel)
@@ -1723,7 +1723,6 @@ SeLiteMisc.collectByColumnFromDeep= function collectByColumnFromDeep( records, f
         : [ fieldNameDotEtcByLevel ];
     fieldNameDotEtcByLevel.length>0 || SeLiteMisc.fail( 'Parameter fieldNameDotEtcByLevel must not be an empty array.' );
     typeof depth==='number' && depth>0 && depth<=fieldNameDotEtcByLevel.length || SeLiteMisc.fail( 'SeLiteMisc.collectByColumnFromDeep() requires parameter depth to be a positive number and no more than fieldNameDotEtcByLevel.length, if provided.' );
-    doNotThrow= doNotThrow || false;
     typeof doNotThrow==='boolean' || SeLiteMisc.fail( 'Parameter doNotThrow must be a boolean, if provided.' );
     typeof result==='object' || SeLiteMisc.fail( 'Parameter result must be an object, if specified.' );
     result!==records || SeLiteMisc.fail( 'SeLiteMisc.collectByColumnFromDeep() requires parameter result not to be the same object as records, if provided.' );

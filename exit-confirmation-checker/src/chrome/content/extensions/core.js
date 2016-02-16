@@ -175,8 +175,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
          *  @param {(string|function|undefined)} [elementValueField='value'] Name of the attribute that keeps the value. If a function, then it will be called with input as its only parameter.
          *  @return {*} value (or an array of values)
          * */
-        var elementValue= function elementValue( input, elementValueField ) {
-            elementValueField= elementValueField || 'value';
+        var elementValue= function elementValue( input, elementValueField='value' ) {
             if( typeof elementValueField==='function' ) {
                 return elementValueField( input );
             }

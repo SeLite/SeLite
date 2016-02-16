@@ -167,8 +167,7 @@ SeLiteData.Storage.prototype.sqlAnd= function sqlAnd( first, second, etc ) {
  *  @return array of objects, one per DB row, each having DB column names as fields; empty array if no matching rows
  *  @throws error on failure
  **/
-SeLiteData.Storage.prototype.select= function select( query, bindings, fields ) {
-    bindings= bindings || {};
+SeLiteData.Storage.prototype.select= function select( query, bindings={}, fields ) {
     if( !fields ) {
         fields= this.fieldNames( this.fieldParts( query ) );
     }
@@ -544,8 +543,7 @@ SeLiteData.Storage.prototype.insertRecord= function insertRecord( params ) {
  *  @param {(array)} columns Names of the columns to retrieve; optional - ['id'] by default
  *  @return {object} Record object with given column(s).
 */
-SeLiteData.Storage.prototype.lastInsertedRow= function lastInsertedRow( tableName, columns ) {
-    columns= columns || ['id'];
+SeLiteData.Storage.prototype.lastInsertedRow= function lastInsertedRow( tableName, columns=['id'] ) {
     var query= "SELECT " +columns.join(',')+ " FROM " +tableName+ " WHERE rowid=last_insert_rowid()";
     var record= this.selectOne( query, {}, columns );
     return record;
@@ -583,7 +581,7 @@ SeLiteData.SqlExpression.prototype.toString= function toString() {
  *  if passing SQL expressions for their values. fieldToProtect has only effect if entries is an object.
  *  @return new array or object, based on the original, with the treated values. Original array/object is not modified.
  **/
-SeLiteData.Storage.prototype.quoteValues= function quoteValues( entries, fieldsToProtect ) {
+SeLiteData.Storage.prototype.quoteValues= function quoteValues( entries, fieldsToProtect=[] ) {
     if( typeof entries !='object' ) {
         throw "quoteValues(): parameter should be an object or array, but it was " +values;
     }
@@ -594,7 +592,6 @@ SeLiteData.Storage.prototype.quoteValues= function quoteValues( entries, fieldsT
         }
     }
     else {
-        fieldsToProtect= fieldsToProtect || [];
         var result= {};
         for( var field in entries ) {
             if( fieldsToProtect.indexOf(field)>=0 ) {
@@ -700,7 +697,7 @@ StorageFromSettings.prototype.tablePrefix= function tablePrefix() {
  *  if it doesn't exist yet (then this returns null). False by default.
  *  @return {StorageFromSettings}
  */
-SeLiteData.getStorageFromSettings= function getStorageFromSettings( appDbFieldOrFieldName, tablePrefixFieldOrFieldName, dontCreate ) {
+SeLiteData.getStorageFromSettings= function getStorageFromSettings( appDbFieldOrFieldName, tablePrefixFieldOrFieldName, dontCreate=false ) {
     appDbFieldOrFieldName= appDbFieldOrFieldName!==undefined
         ? appDbFieldOrFieldName
         : 'extensions.selite-settings.common.testDB';
@@ -715,7 +712,6 @@ SeLiteData.getStorageFromSettings= function getStorageFromSettings( appDbFieldOr
         : undefined;
     tablePrefixFieldOrFieldName===undefined || tablePrefixDBfield instanceof SeLiteSettings.Field.String || SeLiteMisc.fail('Parameter tablePrefixDBfield must be an instance of SeLiteSettings.Field.String, or a string, but it is (after processing) ' +tablePrefixFieldOrFieldName+ '; tablePrefixField: ' +tablePrefixDBfield );
     
-    dontCreate= dontCreate || false;
     SeLiteMisc.ensureType( dontCreate, 'boolean', 'dontCreate (if specified)' );
     var instance= appDBfield.name in StorageFromSettings.instances
         ? StorageFromSettings.instances[appDBfield.name]
