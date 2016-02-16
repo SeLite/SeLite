@@ -534,7 +534,7 @@ function treatProxyFieldDefinitions( definitions=[], targetOrProxy ) {
  *      ...
  *      and optionally:
  *      '*': function( name, value ) { return boolean }. That is only called for fields that are not specifically declared. So if a field is declared as above, then '*' doesn't apply to it.
- *  }. If you have multiple fields with same definition, you can shorten the code by using SeLiteMisc.Settable instance for <code>givenObjectOrClassDefinitions</code> or <code>classInstanceDefinitions</code>.
+ *  }. If you have multiple fields with same definition, you can shorten the code by using SeLiteMisc.setFields() for value of <code>givenObjectOrClassDefinitions</code> and/or <code>classInstanceDefinitions</code>.
  *  @param {(object|Array)} [prototypeDefinitions] Definitions of fields of 'prototype' field of the given class to be proxied. Optional; it must not be present if target is not a class (a constructor function). Structure like that of <code>givenObjectOrClassDefinitions</code>. The actual instances of the class won't inherit thise definition set - so if you need to modify such fields per instance, include definition of those fields in <code>classInstanceDefinitions</code>.
  *  @param {(object|Array)} [classInstanceDefinitions] Definitions of fields of instances of the given class. Optional; it must not be present if target is not a class (a constructor function). Structure like that of <code>givenObjectOrClassDefinitions</code>. Side note: If we didn't have <code>classInstanceDefinitions</code>, the programmer could workaround by calling <code>SeLiteMisc.proxyAllowFields(this)</code> from the constructor function. However, that could be awkward.
  *   */
@@ -597,44 +597,34 @@ SeLiteMisc.proxyAllowFields= function proxyAllowFields( proxy, definitions, prev
     SeLiteMisc.objectCopyFields( definitions, existingDefinitions );
 };
 
-/** An auxilliary class, that allows setting fields with names generated at runtime in one function call, or through a chain of calls.
- * It serves to generate parameter <code>definitions</code> for SeLiteMisc.loadVerifyScope(), SeLiteMisc.proxyVerifyFields() and SeLiteMisc.proxyAllowFields().
- * It also serves e.g. to generate object parts of 'columns' part of the parameter to SeLiteData.RecordSetFormula() constructor, if your table names are not constants, i.e. you have a configurable table prefix string, and you don't want to have a string variable for each table name itself, but you want to refer to .name property of the table object. Then your table name is not a string constant, and you can't use string runtime expressions as object keys in anonymous object construction {}. That's when you can use new SeLiteMisc.Settable().set( tableXYZ.name, ...).set( tablePQR.name, ...) as the value of 'columns' field of SeLiteData.RecordSetFormula()'s parameter. There its usage assumes that no table name (and no value for parameter field) is 'set'. It refuses duplicate entries (field names) and it also refuses to override an already set field.
-*/
-SeLiteMisc.Settable= function Settable( field, value, etc ) {
-    if( arguments.length>0 ) {
-        SeLiteMisc.Settable.prototype.set.apply( this, arguments );
-    }
-};
-// I don't want method set() to show up when iterating through SeLiteMisc.Settable instances using for( .. in..), therefore I use defineProperty():
-Object.defineProperty( SeLiteMisc.Settable.prototype, 'set', {
-    /** It sets fields with given names to given values (on <code>this</code> object). It accepts a flexible number (even number) of parameters. It refuses to override an already set field (and hence it refuses the same field name passed in multiple times).
+/** It sets field(s) with given names to given values (on given object). It accepts a flexible number (odd number) of parameters. It refuses to override an already set field (and hence it refuses the same field name passed in multiple times).
+ * @param {object} object
      *  @param {(string|number|Array)} field. If it's an array, then it represents zero, one or multiple fields, and the next value will be assigned to all listed fields.
      *  @param {*} value
-     *  @return {Settable} this
-     * */
-    value: function set( field, value, etc ) {
-        arguments.length%2===0 || SeLiteMisc.fail( 'SeLiteMisc.Settable.prototype.set() only accepts an even number of arguments.' );
-        for( var i=0; i<arguments.length; i+=2 ) {
-            
-            var field= arguments[i];
-            if( typeof field==='number' || typeof field==='string' ) {
-                !( field in this ) || SeLiteMisc.fail( "Field '" +field+ "' has been set previously." );
-                this[ field ]= arguments[i+1];
-            }
-            else if( Array.isArray(field) ) {
-                for( var fieldEntry of field ) {
-                    !( fieldEntry in this ) || SeLiteMisc.fail( "Field '" +fieldEntry+ "' has been set previously." );
-                    this[ fieldEntry ]= arguments[i+1];
-                }
-            }
-            else {
-                SeLiteMisc.fail( '' +i+ '-nth parameter is ' +typeof field+ ', but it should be a number, a string or an array.' );
+     *  @return {object} object
+*/
+SeLiteMisc.setFields= function setFields( object, field, value, etc ) {
+    typeof object==='object' || SeLiteMisc.fail( 'SeLiteMisc.setFields() requires the first parameter to be an object.' );
+    arguments.length%2===1 || SeLiteMisc.fail( 'SeLiteMisc.setFields() only accepts an odd number of arguments.' );
+    for( var i=1; i<arguments.length; i+=2 ) {
+
+        var field= arguments[i];
+        if( typeof field==='number' || typeof field==='string' ) {
+            !( field in object ) || SeLiteMisc.fail( "Field '" +field+ "' has been set previously." );
+            object[ field ]= arguments[i+1];
+        }
+        else if( Array.isArray(field) ) {
+            for( var fieldEntry of field ) {
+                !( fieldEntry in object ) || SeLiteMisc.fail( "Field '" +fieldEntry+ "' has been set previously." );
+                object[ fieldEntry ]= arguments[i+1];
             }
         }
-        return this;
+        else {
+            SeLiteMisc.fail( '' +i+ '-nth parameter is ' +typeof field+ ', but it should be a number, a string or an array.' );
+        }
     }
-} );
+    return object;
+}; 
 
 /** Used to streamline the code when accessing optional fields on objects that are a result of SeLiteMisc.proxyVerifyFieldsOnRead() or SeLiteMisc.proxyVerifyFields(). That's instead of object.fieldName || defaultValue, which fails for such objects.
  * @param {object} object
