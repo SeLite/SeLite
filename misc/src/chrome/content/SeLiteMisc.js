@@ -1232,7 +1232,7 @@ Object.defineProperty( SeLiteMisc.SortedObjectTarget.prototype, 'subContainer', 
     }
 } );
 
-// For backwards compatibility only. Remove once Settings XPI is approved by Mozilla.
+// @TODO For backwards compatibility only. Remove once Settings XPI is approved by Mozilla.
 SeLiteMisc.subContainer= function subContainer( parent, fieldOrFields ) {
     return SeLiteMisc.SortedObjectTarget.prototype.subContainer.apply( parent, fieldOrFields.slice(1) );
 }
@@ -1274,7 +1274,7 @@ SortedObjectProxyIterator.prototype.next= function() {
 SortedObjectProxy.prototype.__iterator__= function() {
     
 };
-/**/
+/*
 // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/watch.
 // I could also just have a setter but it's more hassle: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_Objects#Defining_getters_and_setters
 function IterableArrayKeysWatchThrow( id, oldValue, newValue ) {
@@ -1295,13 +1295,13 @@ IterableArray.prototype.__iterator__= function __iterator__() {
         yield this[SELITE_MISC_ITERABLE_ARRAY_KEYS][i];
     }
 };
-
-/** Sort fields in object by keys (keys are always strings).
+*/
+/* Sort fields in object by keys (keys are always strings).
  *  @param object object serving as an associative array
  *  @param function compareFunction Function that compares two keys. Optional; by default case-sensitive string comparison.
  *  @return new anonymous object serving as an associative array, with all fields and values from object, but in the sorted order
  *  @TODO low: remove, replace by SeLiteMisc.sortedObject()
- * */
+ *
 SeLiteMisc.sortByKeys= function sortByKeys( object, compareFunction ) {
     if( !compareFunction ) {
         compareFunction= undefined;
@@ -1317,7 +1317,7 @@ SeLiteMisc.sortByKeys= function sortByKeys( object, compareFunction ) {
         result[ name ]= object[ name ];
     }
     return result;
-};
+};*/
 
 /** @return a negative, 0 or positive number, depending on whether first is less
  *  than, equal to or greater than second, in case insensitive dictionary order.
@@ -1327,7 +1327,6 @@ SeLiteMisc.sortByKeys= function sortByKeys( object, compareFunction ) {
  *  var o={ false:0, null:-1, 5: 5 }
  *  for( var field in o ) { // typeof field is string. It's strictly equal to 'false' or 'null' or '5'
  *  }
- *  So you can pass this function as a second parameter to SeLiteMisc.sortByKeys() with no other checks.
  * */
 SeLiteMisc.compareCaseInsensitively= function compareCaseInsensitively( first, second ) {
     var firstLower= first.toLowerCase();

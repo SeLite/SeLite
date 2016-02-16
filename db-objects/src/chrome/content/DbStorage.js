@@ -28,7 +28,7 @@ var console= Components.utils.import("resource://gre/modules/devtools/Console.js
  *  have name clashes with functions in other files. See SeLite DB Objects for OOP layer on top of this.
  **/
 SeLiteData.Storage= function Storage() {
-    /** @type{SQLiteConnectionParameters} */
+    /** @type {SQLiteConnectionParameters} */
     this.parameters= new SQLiteConnectionParameters();
     this.parameters.errorHandler= console.error;
     this.con= null; // This will be the actual connection - result of Services.storage.openDatabase(file)
@@ -730,7 +730,7 @@ function testSuiteFolderChangeHandler() {
     Object.keys(StorageFromSettings.instances).length===0 || SeLiteSettings.getTestSuiteFolder()
     || console.log( 'SeLiteSettings: there are ' +Object.keys(StorageFromSettings.instances).length+ ' instance(s) of StorageFromSettings, yet the current test suite has no folder yet.' );
     for( var fieldName in StorageFromSettings.instances ) {
-        /** @type{StorageFromSettings} */
+        /** @type {StorageFromSettings} */
         var instance= StorageFromSettings.instances[fieldName];
         instance instanceof StorageFromSettings || fail();
         var newFileName= instance.dbField.getDownToFolder().entry;

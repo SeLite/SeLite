@@ -249,8 +249,7 @@ SeLiteSettings.Field= function Field( name, multivalued, defaultKey, allowNull, 
                 : this.defaultKey
               )
             : [this.defaultKey];
-        for( var i=0; i<defaultKeys.length; i++ ) {//@TODO use loop for(.. of..) once NetBeans supports it
-            var key= defaultKeys[i];
+        for( var key of defaultKeys ) {
             this.validateKey(key) // This is redundant for SeLiteSettings.Field.Choice, but that's OK
             && this.customValidateDefault(key)
             || SeLiteMisc.fail( 'Default key for '
@@ -1101,8 +1100,8 @@ SeLiteSettings.Module.prototype.removeField= function removeField( fieldOrName, 
  * */
 SeLiteSettings.Module.prototype.addFields= function addFields( fields, dontReRegister ) {
     Array.isArray(fields) || SeLiteMisc.fail( 'addFields() expects fields to be an array.' );
-    for( var i=0; i<fields.length; i++ ) { //@TODO change into for(.. of.. ) once NEtBeans supports it
-        this.addField( fields[i], true );
+    for( var field of fields ) {
+        this.addField( field, true );
     }
     if( !dontReRegister ) {
         this.register();
@@ -1458,8 +1457,7 @@ function manifestsDownToFolder( folderPath, dontCache ) {
     var values= SeLiteMisc.sortedObject(true);
     var associations= SeLiteMisc.sortedObject(true);
     
-    for( var i=0; i<folderNames.length; i++) {//@TODO use loop for of() once NetBeans supports it
-        var folder=  folderNames[i];
+    for( var folder of folderNames ) {
         var fileName= OS.Path.join(folder, SeLiteSettings.VALUES_MANIFEST_FILENAME);
         var contents= readFile( fileName );
         if( contents!==false ) {
@@ -1752,6 +1750,9 @@ SeLiteSettings.Module.prototype.mergeSetsAndDefaults= function getFieldsDownToSe
                     : SeLiteMisc.sortedObject( field.compareValues );
                 var keyOrKeys= field.getDefaultKey();
                 if( field.multivalued ) {
+                    if ( !Array.isArray(keyOrKeys) ) {
+                        debugger;
+                    }
                     for( var i=0; i<keyOrKeys.length; i++ ) { //@TODO use for.. of.. loop once NetBeans support it
                         var key= keyOrKeys[i];
                         entry[ key ]= isChoice

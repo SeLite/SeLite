@@ -191,7 +191,7 @@ function RecordHolder( recordSetHolderOrFormula, plainRecord ) {
     else if( recordSetHolderOrFormula!==null ) {
         throw new Error("RecordHolder() expects the first parameter to be an instance of RecordSetHolder or SeLiteData.RecordSetFormula." );
     }
-    /** @type{SeLiteData.Record}*/
+    /** @type {SeLiteData.Record} */
     this.record= new SeLiteData.Record( plainRecord, this );
     if( recordSetHolderOrFormula instanceof SeLiteData.RecordSetFormula && Object.keys(this.record).length>0 ) {
         this.setOriginalAndWatchEntries();
@@ -877,7 +877,7 @@ RecordSetHolder.prototype.insert= function insert() { throw new Error( "@TODO if
 
 RecordSetHolder.prototype.update= function update() {
         for( var i=0; i<this.holders.length; i++ ) {
-        /** @type{RecordHolder} */var recordHolder= this.holders[i];
+        /** @type {RecordHolder} */var recordHolder= this.holders[i];
         recordHolder.update();
     }
 };

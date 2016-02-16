@@ -794,14 +794,14 @@ else {
      * */
     RowInfo.prototype.setAllCellDetails= function setAllCellDetails( treerow, createCells ) {
         var columns= applicableColumns();
-        for( var i=0; i<columns.length; i++ ) { //@TODO low: for(..of..)
+        for( var column of columns ) {
             var treecell= createCells
                 ? window.document.createElementNS( XUL_NS, 'treecell')
-                : treeCell( treerow, columns[i] );
+                : treeCell( treerow, column );
             if( createCells ) {
                 treerow.appendChild( treecell);
             }
-            this.setCellDetails( treecell, columns[i] );
+            this.setCellDetails( treecell, column );
         }
     };
 
@@ -913,8 +913,7 @@ else {
                 if( field.multivalued || isChoice ) {
                     var fieldChildren= createTreeChildren( fieldItem );
                     if( field instanceof SeLiteSettings.Field.FixedMap ) {
-                        for( var i=0; i<field.keySet.length; i++ ) { //@TODO low: loop for( .. of ..) once NetBeans supports it
-                            var key= field.keySet[i];
+                        for( var key of keySet ) {
                             rowInfo= new RowInfo( module, setName, RowLevel.OPTION, field, key, valueCompound );
                             var optionItem= rowInfo.generateTreeItem();
                             fieldChildren.appendChild( optionItem );
