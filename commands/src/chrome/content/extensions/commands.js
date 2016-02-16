@@ -290,8 +290,7 @@
      *  }
      *  @return DOM Element of a random <option>...</option> from within the select
      */
-    Selenium.prototype.randomOption= function randomOption( selectLocator, params ) {
-        params= params || {};
+    Selenium.prototype.randomOption= function randomOption( selectLocator, params={} ) {
         var select= this.browserbot.findElement(selectLocator);
         var options= select.getElementsByTagName('option');
 
@@ -309,19 +308,18 @@
         return option;
     };
 
-    Selenium.prototype.doSelectRandom= function doSelectRandom( selectLocator, paramsOrStore ) {
-        var params= paramsOrStore || {};
-        if( typeof params =='string' ) {
-            params= {store: params};
+    Selenium.prototype.doSelectRandom= function doSelectRandom( selectLocator, paramsOrStore={} ) {
+        if( typeof paramsOrStore =='string' ) {
+            paramsOrStore= {store: paramsOrStore};
         }
-        var option= this.randomOption( selectLocator, params );
+        var option= this.randomOption( selectLocator, paramsOrStore );
 
         // This didn't work: this.browserbot.selectOption( select, option );
         this.doSelect( selectLocator, /*optionLocator:*/'value=' +option.value );
 
-        if( params && params.store ) {
-            //storedVars[params.store]= option.value;
-            SeLiteMisc.setFields( storedVars, params.store, option.value );
+        if( paramsOrStore && paramsOrStore.store ) {
+            //storedVars[paramsOrStore.store]= option.value;
+            SeLiteMisc.setFields( storedVars, paramsOrStore.store, option.value );
         }
     };
 
@@ -361,8 +359,7 @@
      * @parameter {string} [locator] Locator of the text input. Used to get max. length of the generated input.
      * @return string as speficied in doTypeRandom()
      */
-    Selenium.prototype.randomText= function randomText( params, extraParams, locator ) {
-        params= params || {};
+    Selenium.prototype.randomText= function randomText( params={}, extraParams, locator ) {
         var type= params.type || null;
         if( type && 
             (typeof type!=='string' || ['email', 'name', 'word', 'number', 'text', 'html', 'password', 'ugly'].indexOf(type)<0)
@@ -593,23 +590,21 @@
         return result;
     };
 
-    Selenium.prototype.doTypeRandom= function doTypeRandom( locator, paramsOrStore ) {
-        var params= paramsOrStore || {};
-        if( typeof params =='string' ) {
-            params= {store: params};
+    Selenium.prototype.doTypeRandom= function doTypeRandom( locator, paramsOrStore={} ) {
+        if( typeof paramsOrStore ==='string' ) {
+            paramsOrStore= {store: paramsOrStore};
         }
-        var resultString= this.randomText( params, undefined, locator );
+        var resultString= this.randomText( paramsOrStore, undefined, locator );
 
         LOG.debug('doTypeRandom() typing: ' +resultString );
         this.doType( locator, resultString );
-        if( params.store ) {
-            SeLiteMisc.setFields( storedVars, params.store, resultString );
+        if( paramsOrStore.store ) {
+            SeLiteMisc.setFields( storedVars, paramsOrStore.store, resultString );
         }
     };
     
     // @TODO This doesn't work well
-    Selenium.prototype.doTypeRandomEmail= function doTypeRandomEmail( locator, params ) {
-        params= params || {};
+    Selenium.prototype.doTypeRandomEmail= function doTypeRandomEmail( locator, params={} ) {
         var paramsToPass= { type: 'email' };
         if( typeof params==='string' ) {
             var name= params;

@@ -27,12 +27,12 @@ Components.utils.import('chrome://selite-db-objects/content/Db.js');
  *  @param {string} [tableNamePrefix] optional prefix, which will be applied to all tables (except for tables that have noNamePrefix=true when constructed). If not set, then storage.tableNamePrefix is used (if any).
  *  @param {boolean} [generateInsertKey=false] Whether all tables with single-column primary key should have the key values generated (based on the maximum existing key) on insert. SeLiteData.Table constructor can override this on per-table basis.
  **/
-SeLiteData.Db= function Db( storage, tableNamePrefix, generateInsertKey ) {
+SeLiteData.Db= function Db( storage, tableNamePrefix, generateInsertKey=false ) {
     /** @type {SeLiteData.Storage} storage*/
     this.storage= storage;
     /** @type {string} tableNamePrefix*/
     this.tableNamePrefix= tableNamePrefix;
-    this.generateInsertKey= generateInsertKey || false;
+    this.generateInsertKey= generateInsertKey;
 };
 
 /** @return {string} Table prefix, or an empty string. It never returns undefined.
@@ -654,11 +654,11 @@ SeLiteData.recordOrSetHolder= function recordOrSetHolder( recordOrSet ) {
  *   Note that if parameter-name matches two or more columns with same name (from two or more tables), the condition will probably fail
  *   with an error - then use aliases.
  **/
-function RecordSetHolder( formula, parametersOrCondition ) {
+function RecordSetHolder( formula, parametersOrCondition={} ) {
     RecordOrSetHolder.call( this );
     formula instanceof SeLiteData.RecordSetFormula || SeLiteMisc.fail();
     this.formula= formula;
-    this.parametersOrCondition= parametersOrCondition || {};
+    this.parametersOrCondition= parametersOrCondition;
     this.holders= {}; // Object serving as an associative array { primary key value: RecordHolder instance }
     this.recordSet= new SeLiteData.RecordSet( this );
     this.originals= {}; // This will be set to object { primary-key-value: original object... }

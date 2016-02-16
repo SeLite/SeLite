@@ -83,11 +83,11 @@ var SeLiteAutoCheck= {};
      *  @param {object) ignored Object serving as an array of entries matching any ignored notices/warnings/errors. The detail of on using these entries is up to the implementation of failedNotIgnored(document) in the actual subclass. In default implementation an entry can be any Selenese locator.
      *  @param {boolean} assert Whether to run the checks as assertions; otherwise they are run as validation only. Optional, false by default.
      * */
-    SeLiteAutoCheck.Detector= function Detector( required, refused, ignored, assert ) {
-        this.required= required || {};
-        this.refused= refused || {};
-        this.ignored= ignored || {};
-        this.assert= assert || false;
+    SeLiteAutoCheck.Detector= function Detector( required={}, refused={}, ignored={}, assert=false ) {
+        this.required= required;
+        this.refused= refused;
+        this.ignored= ignored;
+        this.assert= assert;
         typeof this.required==='object' || SeLiteMisc.fail( 'parameter required must be an object, if provided' );
         typeof this.refused==='object' || SeLiteMisc.fail( 'parameter refused must be an object, if provided' );
         typeof this.ignored==='object' || SeLiteMisc.fail( 'parameter ignored must be an object, if provided' );

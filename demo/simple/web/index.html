@@ -35,13 +35,13 @@
         var SHOW_LAST_PAGE_RECORD_ID= 999999; // An unrealistic ID that will never be reached
         
         // Constructor of an object that will be stored in IndexedDb
-        function Charity( name, initialAmount ) {
+        function Charity( name, initialAmount=0 ) {
             if( !name ) {
                 throw new Error("Charity() requires parameter name");
             }
             this.name= name;
             this.lastAmount= 0;
-            this.totalAmount= initialAmount || 0;
+            this.totalAmount= initialAmount;
             this.enabled= true;
         }
         
@@ -50,8 +50,8 @@
             return db.transaction( ['charity'], 'readwrite').objectStore('charity');
         }
         
-        function appendCell( row, text, className, textIsHtml ) {
-            textIsHtml= textIsHtml || false;
+        function appendCell( row, text, className, textIsHtml=false ) {
+            textIsHtml= textIsHtml;
             var cell= row.insertCell(-1);
             if( !textIsHtml ) {
                 cell.appendChild( document.createTextNode(text) );
@@ -222,10 +222,7 @@
          *  doesn't show a prompt again. If it did, it would have to repeat prompt() for up to a fixed maximum number of times;
          *  otherwise in Safari it wouldn't let the user cancel the prompt - they would have to type a non-empty value to get out of it.
          * */
-        function promptNonEmpty( text, defaultValue, fieldName, numericField ) {
-            defaultValue= defaultValue || '';
-            fieldName= fieldName || 'value';
-            numericField= numericField || false;
+        function promptNonEmpty( text, defaultValue='', fieldName='value', numericField=false ) {
             var amount= prompt(text, defaultValue );
             if( amount===null ) { // The user clicked at Cancel. (That may not work in Safari)
                 return null;

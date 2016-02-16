@@ -214,7 +214,7 @@ SeLiteSettings.getField= function getField( fullNameOrField ) {
  *  - 2 parameters: 'key' and 'value' for SeLiteSettings.Field.Choice and its subclasses
  *  It returns boolean - true on success, false on failure. Optional.
  * */
-SeLiteSettings.Field= function Field( name, multivalued, defaultKey, allowNull, description, customValidate ) {
+SeLiteSettings.Field= function Field( name, multivalued=false, defaultKey, allowNull, description, customValidate ) {
     if( typeof name!=='string' ) {
         throw new Error( 'SeLiteSettings.Field() expects a string name ("primitive" string, not new String(..)).');
     }
@@ -224,21 +224,19 @@ SeLiteSettings.Field= function Field( name, multivalued, defaultKey, allowNull, 
     loadingPackageDefinition || ensureFieldName( name, 'field name' );
     this.name= name;
     
-    multivalued= multivalued || false;
-    if( typeof multivalued!=='boolean') {
-        throw new Error( 'SeLiteSettings.Field("' +name+ ') expects multivalued to be a boolean, if provided.');
-    }
+    typeof multivalued==='boolean' || SeLiteMisc.fail( 'SeLiteSettings.Field("' +name+ ') expects multivalued to be a boolean, if provided.');
     this.multivalued= multivalued;
     !this.multivalued || defaultKey===undefined || Array.isArray(defaultKey)
         || typeof defaultKey==='object' && this instanceof SeLiteSettings.Field.FixedMap
         || SeLiteMisc.fail( "Multi valued field " +name+ " must have a default key: an array (possibly empty []), or an object for FixedMap, or undefined." );
+        
     this.multivalued || defaultKey===undefined || defaultKey===null || typeof defaultKey!=='object' || SeLiteMisc.fail( 'Single valued field ' +name+ " must have default key a primitive or null.");
     this.defaultKey= defaultKey;
     this.description= description;
     SeLiteMisc.ensureType( this.description, ['string', 'undefined'], 'description (if present)' );
     this.allowNull= allowNull || false;
     SeLiteMisc.ensureType( this.allowNull, 'boolean', 'allowNull (if present)' );
-    this.customValidate= customValidate || undefined;
+    this.customValidate= customValidate;
     SeLiteMisc.ensureType( this.customValidate, ['function', 'undefined'], 'customValidate (if present)' );
     
     !(this.defaultKey===null && multivalued) || SeLiteMisc.fail( 'SeLiteSettings.Field ' +name+ " must have a non-null defaultKey (possibly undefined), because it's multivalued." );
@@ -553,13 +551,13 @@ SeLiteSettings.Field.String.prototype.constructor= SeLiteSettings.Field.String;
  *  @param saveFile Whether we're saving/creating a file, otherwise we're opening/reading. Optional, false by default.
     Only needed when isFolder is false, because the file/folder picker dialog always lets you create new folder (if you have access).
  * */
-SeLiteSettings.Field.FileOrFolder= function FileOrFolder( name, filters, multivalued, defaultKey, isFolder, allowNull, description, customValidate, saveFile ) {
+SeLiteSettings.Field.FileOrFolder= function FileOrFolder( name, filters, multivalued, defaultKey, isFolder=false, allowNull, description, customValidate, saveFile=false ) {
     SeLiteSettings.Field.NonChoice.call( this, name, multivalued, defaultKey, allowNull, description, customValidate );
     this.filters= filters || {};
     typeof(this.filters)==='object' && !Array.isArray(this.filters) || SeLiteMisc.fail( 'SeLiteSettings.Field.FileOrFolder() expects filters to be an object (not an array) serving as an associative array, if provided.');
-    this.isFolder= isFolder || false;
+    this.isFolder= isFolder;
     SeLiteMisc.ensureType( this.isFolder, 'boolean', "isFolder (if provided)" );
-    this.saveFile= saveFile || false;
+    this.saveFile= saveFile;
     SeLiteMisc.ensureType( this.saveFile, 'boolean', "saveFile (if provided)" );
 }
 SeLiteSettings.Field.FileOrFolder.prototype= Object.create( SeLiteSettings.Field.NonChoice.prototype );
@@ -612,8 +610,8 @@ SeLiteSettings.Field.SQLite.prototype.constructor= SeLiteSettings.Field.SQLite;
  *  label reflects how it is shown when using Firefox url about:config.
  *  Also, Javascript transforms object field/key names to strings, even if they were set to number/boolean.
  * */
-SeLiteSettings.Field.Choice= function Choice( name, multivalued, defaultKey, choicePairs, allowNull, description, customValidate ) {
-    this.choicePairs= choicePairs || {}; // This is set before I call the parent constructor, so that it can validate defaultKey against this.choicePairs
+SeLiteSettings.Field.Choice= function Choice( name, multivalued, defaultKey, choicePairs={}, allowNull, description, customValidate ) {
+    this.choicePairs= choicePairs; // This is set before I call the parent constructor, so that it can validate defaultKey against this.choicePairs
     !multivalued || !allowNull || SeLiteMisc.fail( "SeLiteSettings.Field.Choice can't be multivalued and allow null." );
     SeLiteSettings.Field.call( this, name, multivalued, defaultKey, allowNull, description, customValidate );
     loadingPackageDefinition || this.constructor!==SeLiteSettings.Field.Choice
@@ -706,12 +704,10 @@ SeLiteSettings.Field.Choice.String.prototype.constructor= SeLiteSettings.Field.C
  *  @param {object} [defaultMappings]
  *  @param {function} customValidate
  * */
-SeLiteSettings.Field.FixedMap= function FixedMap( name, keySet, defaultMappings, description, customValidate ) {
+SeLiteSettings.Field.FixedMap= function FixedMap( name, keySet=[], defaultMappings={}, description, customValidate ) {
     loadingPackageDefinition || this.constructor!==SeLiteSettings.Field.FixedMap
         || SeLiteMisc.fail( "Can't define instances of SeLiteSettings.Field.FixedMap class itself outside the package. Use SeLiteSettings.Field.FixedMap.Bool, SeLiteSettings.Field.FixedMap.Int, SeLiteSettings.Field.FixedMap.Decimal or SeLiteSettings.Field.FixedMap.String." );
-    defaultMappings= defaultMappings || {};
     SeLiteSettings.Field.NonChoice.call( this, name, /*multivalued*/true, defaultMappings, /*allowNull*/false, description, customValidate );
-    keySet= keySet || [];
     this.keySet= keySet.slice(); // protective copy
     for( var i=0; i<this.keySet.length; i++ ) {
         var key= this.keySet[i];
@@ -948,7 +944,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
  *  Required if you want to register a brand new module; not needed if re-registering (upgrading) an already registered module.
  *  @param {boolean} [dontRegister] Whether not to (re)register this module; by default it's false (i.e. do register).
  * */
-SeLiteSettings.Module= function Module( name, fields, allowSets, defaultSetName, associatesWithFolders, definitionJavascriptFile, dontRegister ) {
+SeLiteSettings.Module= function Module( name, fields, allowSets=false, defaultSetName, associatesWithFolders, definitionJavascriptFile, dontRegister ) {
     this.name= name;
     if( typeof this.name!='string' ) {
         throw new Error( 'SeLiteSettings.Module() expects a string name.');
@@ -968,7 +964,7 @@ SeLiteSettings.Module= function Module( name, fields, allowSets, defaultSetName,
         this.fields[ field.name ]= field;
     }
     
-    this.allowSets= allowSets || false;
+    this.allowSets= allowSets;
     if( typeof this.allowSets!='boolean' ) {
         throw new Error( 'SeLiteSettings.Module() expects allowSets to be a boolean, if provided.');
     }

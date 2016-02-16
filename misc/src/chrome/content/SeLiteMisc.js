@@ -175,7 +175,7 @@ SeLiteMisc.hasType= function hasType( item, typeStringOrStrings, itemName ) {
     var typeStringOrStringsWasArray= Array.isArray(typeStringOrStrings);
     if( !typeStringOrStringsWasArray ) {
         if( typeof typeStringOrStrings!=='string' ) {
-            SeLiteMisc.fail( (SeLiteMisc.valueOf(itemName) || 'typeStringOrStrings')+ ' must be a string or an array, but it is ' +typeof typeStringOrStrings );
+            SeLiteMisc.fail( (SeLiteMisc.valueOf(itemName) || 'Parameter typeStringOrStrings')+ ' must be a string or an array, but it is ' +typeof typeStringOrStrings );
         }
         typeStringOrStrings= [typeStringOrStrings];
     }
@@ -477,8 +477,8 @@ SeLiteMisc.proxyVerifyFieldsOnRead= function proxyVerifyFieldsOnRead( target ) {
  *  @param {object} targetOrProxy Either an existing proxy, or a target (for a proxy that will be created). Only used when reporting an error.
  *  @return {object} Treated definitions.
  * */
-function treatProxyFieldDefinitions( definitions, targetOrProxy ) {
-    definitions= definitions || [];
+function treatProxyFieldDefinitions( definitions=[], targetOrProxy ) {
+    definitions= definitions;
     typeof definitions==='object' || SeLiteMisc.fail( 'Parameter definitions must be an object or an array.' );
     !(SeLiteMisc.PROXY_FIELD_DEFINITIONS in definitions) || SeLiteMisc.fail( "You can't declare field with name same as value of SeLiteMisc.PROXY_FIELD_DEFINITIONS." );
     if( Array.isArray(definitions) ) {
@@ -723,9 +723,7 @@ VerifiedScope= SeLiteMisc.proxyVerifyFields( VerifiedScope, {}, {}, {
  * @param {string} [charset='UTF-8']
  * @return {object} Scope, in which it loads the given file through _subScriptLoader.loadSubScript()_.
  * */
-SeLiteMisc.loadVerifyScope= function loadVerifyScope( fileURL, initialScope, initialScopeDefinitions, charset ) {
-    initialScope= initialScope || {};
-    charset= charset || 'UTF-8';
+SeLiteMisc.loadVerifyScope= function loadVerifyScope( fileURL, initialScope={}, initialScopeDefinitions, charset='UTF-8' ) {
     var globalScope= new VerifiedScope();
     globalScope.SeLiteMisc= new SeLiteMiscClassForVerifiedScope( globalScope );
     
@@ -826,14 +824,11 @@ var OBJECT_TO_STRING_INDENTATION= "  ";
  *  @param bool includeNonEnumerable Whether to include non-enumerable fields; false by default.
  *  @return string
  */
-SeLiteMisc.objectToString= function objectToString( object, recursionDepth, includeFunctions, leafClassNames,
-higherObjects, includeNonEnumerable ) {
+SeLiteMisc.objectToString= function objectToString( object, recursionDepth=0, includeFunctions, leafClassNames=[],
+higherObjects=[], includeNonEnumerable ) {
     if( typeof object!=='object' || object===null ) {
         return ''+object;
     }
-    recursionDepth= recursionDepth || 0;
-    leafClassNames= leafClassNames || [];
-    higherObjects= higherObjects || [];
     higherObjects.push(object);
     var isLeafClass= leafClassNames.indexOf(object.constructor.name)>=0;
     var result= '';
@@ -955,7 +950,7 @@ SeLiteMisc.isEmptyObject= function isEmptyObject( obj ) {
  *  @param boolean throwOnDifference Whether to throw an error if different
  *  @return boolean Whether both objects have same fields and their values
  * */
-SeLiteMisc.compareAllFields= function compareAllFields( firstContainer, secondContainer, strictOrMethodName, throwOnDifference ) {
+SeLiteMisc.compareAllFields= function compareAllFields( firstContainer, secondContainer, strictOrMethodName=false, throwOnDifference ) {
     SeLiteMisc.ensureType( firstContainer, 'object', 'firstContainer' );
     SeLiteMisc.ensureType( secondContainer, 'object', 'secondContainer' );
     if( Array.isArray(firstContainer) || Array.isArray(secondContainer) ) {
@@ -964,7 +959,6 @@ SeLiteMisc.compareAllFields= function compareAllFields( firstContainer, secondCo
     if( firstContainer===null || secondContainer===null ) {
         return firstContainer===secondContainer;
     }
-    strictOrMethodName= strictOrMethodName || false;
     var strict= typeof strictOrMethodName=='boolean' && strictOrMethodName;
     var methodName= typeof strictOrMethodName=='string'
         ? strictOrMethodName
@@ -1039,10 +1033,9 @@ SeLiteMisc.compareFieldOneWay= function compareFieldOneWay( fieldName, firstCont
     }
 };
 
-SeLiteMisc.compareArrays= function compareArrays( firstArray, secondArray, strictOrMethodName, throwOnDifference ) {
+SeLiteMisc.compareArrays= function compareArrays( firstArray, secondArray, strictOrMethodName=false, throwOnDifference ) {
     Array.isArray(firstArray) || SeLiteMisc.fail( 'SeLiteMisc.compareArrays() requires firstArray to be an array.');
     Array.isArray(secondArray) || SeLiteMisc.fail('object', 'SeLiteMisc.compareArrays() requires secondArray to be an array.');
-    strictOrMethodName= strictOrMethodName || false;
     var strict= typeof strictOrMethodName=='boolean' && strictOrMethodName;
     var methodName= typeof strictOrMethodName=='string'
         ? strictOrMethodName
@@ -1423,13 +1416,10 @@ SeLiteMisc.objectCopyFields= function objectCopyFields( source, target ) {
  *  it will be set to be the same as acceptableFields
  *  See https://developer.mozilla.org/en/JavaScript/Reference/Operators/Operator_Precedence
  **/
-SeLiteMisc.objectClone= function objectClone( original, acceptableFields, requiredFields, result ) {
-    acceptableFields= acceptableFields || [];
-    requiredFields= requiredFields || [];
+SeLiteMisc.objectClone= function objectClone( original, acceptableFields=[], requiredFields=[], result={} ) {
     if( requiredFields==='all' ) {
         requiredFields= acceptableFields;
     }
-    result= result || {};
     if( original.prototype!==undefined ) {
         result.prototype= original.prototype;
     }
@@ -1579,12 +1569,11 @@ SeLiteMisc.objectValueToField= function objectValueToField( obj, value, strict )
  *  non-negative integer index range. General data doesn't fit that.
  *  Users must not depend on compound index value, since its calculation may change in future. Users can get the compound index value from SeLiteMisc.compoundIndexValue().
  */
-SeLiteMisc.collectByColumn= function collectByColumn( records, fieldNames, valuesUnique, result ) {
+SeLiteMisc.collectByColumn= function collectByColumn( records, fieldNames, valuesUnique, result={} ) {
     typeof fieldNames==='object' || typeof fieldNames==='string' || SeLiteMisc.fail();
     fieldNames= Array.isArray(fieldNames)
         ? fieldNames
         : [fieldNames];
-    result= result || {};
     result!==records || SeLiteMisc.fail( 'SeLiteMisc.collectByColumn() requires parameter result not to be the same object as records, if provided.' );
     if( Array.isArray(records) ) { // records is an array, so it's not a result of previous call to this method.
         for( var i=0; i<records.length; i++ ) {
@@ -1726,7 +1715,7 @@ SeLiteMisc.cascadeField= function cascadeField( object, fieldNameDotEtc, doNotTh
  *    ...
  * }
  * */
-SeLiteMisc.collectByColumnFromDeep= function collectByColumnFromDeep( records, fieldNameDotEtcByLevel, depth, doNotThrow, result ) {
+SeLiteMisc.collectByColumnFromDeep= function collectByColumnFromDeep( records, fieldNameDotEtcByLevel, depth, doNotThrow, result={} ) {
     typeof records==='object' || SeLiteMisc.fail( 'Parameter records must be an object.' );
     typeof fieldNameDotEtcByLevel==='object' || typeof fieldNameDotEtcByLevel==='string' || SeLiteMisc.fail( 'Parameter fieldNameDotEtcByLevel must be an object or a string.' );
     fieldNameDotEtcByLevel= Array.isArray(fieldNameDotEtcByLevel)
@@ -1736,7 +1725,6 @@ SeLiteMisc.collectByColumnFromDeep= function collectByColumnFromDeep( records, f
     typeof depth==='number' && depth>0 && depth<=fieldNameDotEtcByLevel.length || SeLiteMisc.fail( 'SeLiteMisc.collectByColumnFromDeep() requires parameter depth to be a positive number and no more than fieldNameDotEtcByLevel.length, if provided.' );
     doNotThrow= doNotThrow || false;
     typeof doNotThrow==='boolean' || SeLiteMisc.fail( 'Parameter doNotThrow must be a boolean, if provided.' );
-    result= result || {};
     typeof result==='object' || SeLiteMisc.fail( 'Parameter result must be an object, if specified.' );
     result!==records || SeLiteMisc.fail( 'SeLiteMisc.collectByColumnFromDeep() requires parameter result not to be the same object as records, if provided.' );
     
@@ -1852,10 +1840,9 @@ SeLiteMisc.testCollectByColumnFromDeep();
  *  @param {boolean} [collectIndexes=false] Whether to collect indexes (keys). Otherwise (and by default) this collect values.
  *  @return {Array} The result array.
  * */
-SeLiteMisc.collectFromDepth= function collectFromDepth( records, depth, result, collectIndexes ) {
+SeLiteMisc.collectFromDepth= function collectFromDepth( records, depth, result=[], collectIndexes=false ) {
     typeof records==='object' || SeLiteMisc.fail( 'Parameter depth must be an object.' );
     typeof depth==='number' && depth>=0 || SeLiteMisc.fail( 'Parameter depth must be a non-negative number.' );
-    result= result || [];
     Array.isArray( result ) || SeLiteMisc.fail( 'Parameter result must a an array, if provided.' );
     for( var index in records ) {
         if( depth>0 ) {
