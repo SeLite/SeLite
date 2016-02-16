@@ -124,8 +124,8 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                 var numberOfBrokenSeLiteAddOns= 0; // Number of add-ons directly or indirectly broken. An add-on broken in both ways will be there twice.
                 // ... means http://es6-features.org/#SpreadOperator:
                 var brokenDependantIds= [ ...Object.keys(sortedPlugins.missingDirectDependancies), ...Object.keys(sortedPlugins.brokenDirectDependancies) ];
-                for( var i=0; i<brokenDependantIds.length; i++ ) {//TODO low: (for pluginId of ..)
-                    if( brokenDependantIds[i].indexOf('@selite.googlecode.com')>0 ) {
+                for( var pluginId of brokenDependantIds ) {
+                    if( pluginId.indexOf('@selite.googlecode.com')>0 ) {
                         numberOfBrokenSeLiteAddOns++;
                     }
                 }
@@ -171,8 +171,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                     if( pluginIdsMissingIndirectDependanciesOnly.length ) {
                         problems.push( '' );
                         problems.push( "Add-on(s) having problems with plugin(s) that they indirectly depend on:" );
-                        for( var i=0; i<pluginIdsMissingIndirectDependanciesOnly.length; i++ ) {//@TODO low: for(..of..)
-                            var pluginId= pluginIdsMissingIndirectDependanciesOnly[i];
+                        for( var pluginId of pluginIdsMissingIndirectDependanciesOnly ) {
                             problems.push( pluginNameAndLinks( SeLiteExtensionSequencer.pluginInfos[pluginId] )+ ' indirectly depends on missing or incompatible plugin(s) through following plugin(s): ' +
                                 values( sortedPlugins.brokenDirectDependancies[pluginId] ).map(pluginNameAndLinks).join(', ')+ '.' );
                         }
@@ -192,18 +191,17 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
         SeLiteExtensionSequencer.Loader.registerAndPreActivate= function registerAndPreActivate( sortedPlugins, problems ) {
             // The actual registration
             var failed= {}; // Object { string failed pluginId => exception }
-            for( var i=0; i<sortedPlugins.sortedPluginIds.length; i++ ) {//@TODO low: for(..of..)
-                var pluginId= sortedPlugins.sortedPluginIds[i];
+            for( var pluginId of sortedPlugins.sortedPluginIds ) {
                 var pluginInfo= SeLiteExtensionSequencer.pluginInfos[pluginId];
                 var ide_api = new API();
                 try {
                     // I register the plugin even if it has no core/ide extension URL. That way it
                     // will be listed in Selenium IDE > Options > Options > Plugins.
                     ide_api.addPlugin(pluginId);
-                    for( var j=0; j<pluginInfo.ideURL.length; j++ ) {//@TODO low: for(..of..)
-                        ide_api.addPluginProvidedIdeExtension( pluginInfo.ideURL[j] );
+                    for( var ideURL of pluginInfo.ideURL ) {
+                        ide_api.addPluginProvidedIdeExtension( ideURL );
                     }
-                    for( var j=0; j<pluginInfo.coreURL.length; j++ ) {//@TODO low: for(..of..)
+                    for( var j=0; j<pluginInfo.coreURL.length; j++ ) {
                         if( j<pluginInfo.xmlURL.length ) {
                             ide_api.addPluginProvidedUserExtension( pluginInfo.coreURL[j], pluginInfo.xmlURL[j] );
                         }
@@ -253,8 +251,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                     // Collect all directly and indirectly dependant add-ons:
                     var dependantIds= [pluginId];
                     // dependantIds.length may increase during the inner loop, which adds any new dependants to its end. That's OK with the outer loop.
-                    for( var i=0; i<dependantIds.length; i++ ) {//@TODO low: for(..of..)
-                        var dependantId= dependantIds[i]; // We're collecting add-ons for which dependantIds[i] is a provider - they are its dependants.
+                    for( var dependantId of dependantIds ) { // We're collecting add-ons for which dependantIds[i] is a provider - they are its dependants.
                         for( var subDependantId in SeLiteExtensionSequencer.pluginInfos ) {
                             var subDependantInfo= SeLiteExtensionSequencer.pluginInfos[subDependantId];
                             if( dependantId in subDependantInfo.requisitePlugins && dependantIds.indexOf(subDependantId)<0 ) {

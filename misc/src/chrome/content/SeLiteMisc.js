@@ -237,15 +237,14 @@ var globalClasses= ['Array', 'Boolean', 'Date', 'Function', 'Iterator', 'Number'
  *  @param {function|array} classes Class (that is, a constructor function), or its name, or an array of any number of one or the other.
  *  @param {string} [variableName] See same parameter of ensureOneOf(). Only used on failure, so that the error message is more meaningful.
  */
-SeLiteMisc.isInstance= function isInstance( object, classes, variableName ) {
+SeLiteMisc.isInstance= function isInstance( object, classes, variableName='object' ) {
     var classesWasArray= Array.isArray(classes);
     if( !classesWasArray ) {
         typeof classes==='function' || typeof classes==='string' || SeLiteMisc.fail( "Parameter clases must be a constructor method, or an array of them." ); // internal validation
         classes= [classes];
     }
-    SeLiteMisc.ensureType( object, 'object', variableName || 'object' ); // semi-internal validation
-    for( var i=0; i<classes.length; i++ ) {//@TODO low: use loop for of() once NetBeans supports it
-        var clazz= classes[i];
+    SeLiteMisc.ensureType( object, 'object', variableName ); // semi-internal validation
+    for( var clazz of classes ) {
         if( typeof clazz==='function' ) {
             if( object instanceof clazz
                 || SeLiteMisc.oneOf(clazz.name, globalClasses) && object.constructor.name===clazz.name ) {
@@ -263,7 +262,7 @@ SeLiteMisc.isInstance= function isInstance( object, classes, variableName ) {
             }
         }
         else {
-            SeLiteMisc.fail( "When checking class of " +(variableName || 'object')+ ", parameter " +
+            SeLiteMisc.fail( "When checking class of " +variableName+ ", parameter " +
                 (classesWasArray
                     ? 'slice classes[' +i+ ']'
                     : 'classes'
@@ -364,8 +363,7 @@ function checkField( name, value, target ) {
             return true;
         }
         var isObject= typeof value==='object';
-        for( var i=0; i<definition.length; i++ ) { //@TODO low: for(..of..)
-            var definitionEntry= definition[i];
+        for( var definitionEntry of definition ) {
 
             if( SeLiteMisc.TYPE_NAMES.indexOf(definitionEntry)>=0 ) {
                 if( SeLiteMisc.hasType(value, [definitionEntry]) ) {
@@ -625,9 +623,9 @@ Object.defineProperty( SeLiteMisc.Settable.prototype, 'set', {
                 this[ field ]= arguments[i+1];
             }
             else if( Array.isArray(field) ) {
-                for( var j=0; j<field.length; j++ ) {// TODO low: for(..of..)
-                    !( field[j] in this ) || SeLiteMisc.fail( "Field '" +field[j]+ "' has been set previously." );
-                    this[ field[j] ]= arguments[i+1];
+                for( var fieldEntry of field ) {
+                    !( fieldEntry in this ) || SeLiteMisc.fail( "Field '" +fieldEntry+ "' has been set previously." );
+                    this[ fieldEntry ]= arguments[i+1];
                 }
             }
             else {
@@ -843,8 +841,8 @@ higherObjects, includeNonEnumerable ) {
         var fields= includeNonEnumerable
             ? Object.getOwnPropertyNames(object)
             : Object.keys(object); // This handles both Array and non-array objects
-        for( var j=0; j<fields.length; j++ ) {//@TODO low: replace with for(.. of ..) once NetBeans support it
-            result+= objectFieldToString( object, fields[j], recursionDepth, includeFunctions, leafClassNames, higherObjects, includeNonEnumerable, result=='' );
+        for( var field of fields ) {
+            result+= objectFieldToString( object, field, recursionDepth, includeFunctions, leafClassNames, higherObjects, includeNonEnumerable, result=='' );
         }
     }
     higherObjects.pop();
@@ -1224,8 +1222,7 @@ Object.defineProperty( SeLiteMisc.SortedObjectTarget.prototype, 'subContainer', 
      * */
     function subContainer( fieldOrFields ) {
         var object= this;
-        for( var i=0; i<arguments.length; i++ ) { //@TODO low: for(..of..)
-            var fieldName= arguments[i];
+        for( var fieldName of arguments ) {
             if( !(fieldName in object) ) {
                 object[fieldName]= SeLiteMisc.sortedObject(true);
             }
@@ -1480,8 +1477,7 @@ SeLiteMisc.objectFillIn= function objectFillIn( target, keys, values, valuesFrom
             }
         }
         else {
-            for( var i=0; i<keys.length; i++ ) {//@TODO low: for(..of..)
-                var key= keys[i];
+            for( var key of keys ) {
                 target[ key ]= values[ key ];
             }
         }        
@@ -1622,8 +1618,8 @@ SeLiteMisc.compoundIndexValue= function compoundIndexValue( record, fieldNames )
     }
     var result= ''; // Concatenation of index values, separated with '-'. In case there are any '-' in any index values, those are doubled - so that the result can be transformed back to the group of index values. An alternative way would be to use JSON.stringify().
     // Side note: I've used null character '\0' instead of '-'. That caused debugging problems, since '\0' doesn't show up in strings on Firefox console or GUI.
-    for( var i=0; i<fieldNames.length; i++ ) { //@TODO low: for(.. of.. ) once NetBeans likes it
-        result+= ( '' + SeLiteMisc.getField(record, fieldNames[i]) ).replace( '-', '--' )+ '-';
+    for( var fieldName of fieldNames ) {
+        result+= ( '' + SeLiteMisc.getField(record, fieldName) ).replace( '-', '--' )+ '-';
     }
     return result;
 }

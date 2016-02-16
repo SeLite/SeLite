@@ -48,8 +48,8 @@ var indexed= SeLiteMisc.collectByColumn( records, fieldNames, false );
 Object.keys(indexed).length===6 || SeLiteMisc.fail( 'by name, breed - bad number of entries.');
 recordsLoop: for( var i=0; i<records.length; i++ ) {
     var items= indexed[ SeLiteMisc.compoundIndexValue(records[i], fieldNames) ];
-    for( var j=0; j<items.length; j++ ) {//@TODO low: for(..of..)
-        if( items[j]===records[i] ) {
+    for( var item of items) {
+        if( item===records[i] ) {
             continue recordsLoop;
         }
     }
