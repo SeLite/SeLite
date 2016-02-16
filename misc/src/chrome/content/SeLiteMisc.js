@@ -285,14 +285,14 @@ SeLiteMisc.classNameOf= function classNameOf( objectOrConstructor ) {
         : (typeof objectOrConstructor==='function'
             ?(objectOrConstructor.name
                         ? objectOrConstructor.name
-                        : 'unnamed class' // E.g.: var anonymousConstructor= function() {}; -> it has: anonymousConstructor.name===''
+                        : 'unnamed class' // E.g.: var anonymousConstructor= function() {}; //-> it has: anonymousConstructor.name===''
              )
             : 'not an object, neither a function, but ' +typeof objectOrConstructor
         );
 };
 
-/** @param {*}
- *  @return {(object|function)} Either 'object of XXX' or 'class XXX', where XXX is objectOrConstructor (if it's a class), or a constructor of objectOrConstructor.
+/** @param {*} objectOrConstructor
+ *  @return {object|function} Either 'object of XXX' or 'class XXX', where XXX is objectOrConstructor (if it's a class), or a constructor of objectOrConstructor.
  * */
 SeLiteMisc.typeAndClassNameOf= function typeAndClassNameOf( objectOrConstructor ) {
     return (objectOrConstructor!==null
