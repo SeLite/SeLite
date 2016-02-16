@@ -1325,8 +1325,9 @@ SeLiteMisc.sortByKeys= function sortByKeys( object, compareFunction ) {
  *  This doesn't expects first and second to be string. That is true for object field names (keys),
  *  even if they were declared using a number/boolean/false. Meaning
  *  var o={ false:0, null:-1, 5: 5 }
- *  for( var field in o ) { // typeof field is string. It's strictly equal to 'false' or 'null' or '5'
+ *    for( var field in o ) { // typeof field is string. It's strictly equal to 'false' or 'null' or '5'
  *  }
+ *  @TODO DOC if we ever have SeLiteMisc.sortByKeys() again: You can pass this function SeLiteMisc.compareCaseInsensitively as a second parameter to SeLiteMisc.sortByKeys().
  * */
 SeLiteMisc.compareCaseInsensitively= function compareCaseInsensitively( first, second ) {
     var firstLower= first.toLowerCase();
