@@ -182,7 +182,8 @@ SeLiteExtensionSequencer.registerPlugin= function registerPlugin( prototype ) {
         }
     }
     
-    var mergedPluginIds= Object.keys(pluginInfo.requisitePlugins).concat( Object.keys(pluginInfo.optionalRequisitePlugins) ).concat( Object.keys(pluginInfo.nonSequencedRequisitePlugins) );
+    // ... means http://es6-features.org/#SpreadOperator
+    var mergedPluginIds= [ ...Object.keys(pluginInfo.requisitePlugins), ...Object.keys(pluginInfo.optionalRequisitePlugins), ...Object.keys(pluginInfo.nonSequencedRequisitePlugins) ];
     for( var i=0; i<mergedPluginIds.length; i++ ) {
         if( mergedPluginIds.indexOf(mergedPluginIds[i])!=i ) {
             // This doesn't need to show human-friendly plugin names, because it should be caught by developer

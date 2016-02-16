@@ -4,7 +4,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>db-objects@selite.googlecode.com</em:id>
     <em:name>SeLite DB Objects</em:name>
-    <em:version>0.87</em:version>
+    <em:version>0.88</em:version>
     <em:creator>Peter Kehl</em:creator>
     <em:homepageURL>http://selite.github.io/</em:homepageURL>
     <em:description>SeLite DB Objects - mid level objects for accessing SQLite</em:description>

@@ -103,11 +103,10 @@ SeLiteMisc.registerOrExtendFramework( function() {
         userwithdata: new SeLiteData.RecordSetFormula( {
             table: phpMyFAQ.tables.user,
             alias: 'user',
-            columns: new SeLiteMisc.Settable().set(
-                phpMyFAQ.tables.user.name, SeLiteData.RecordSetFormula.ALL_FIELDS
-            ).set(
-                phpMyFAQ.tables.userdata.name, SeLiteData.RecordSetFormula.ALL_FIELDS
-            ),
+            columns: {
+                [phpMyFAQ.tables.user.name]: SeLiteData.RecordSetFormula.ALL_FIELDS,
+                [phpMyFAQ.tables.userdata.name]: SeLiteData.RecordSetFormula.ALL_FIELDS
+            },
             joins: [{
                 table: phpMyFAQ.tables.userdata,
                 alias: 'userdata',
@@ -117,8 +116,9 @@ SeLiteMisc.registerOrExtendFramework( function() {
         ),
         categories: new SeLiteData.RecordSetFormula( {
             table: phpMyFAQ.tables.categories,
-            columns: new SeLiteMisc.Settable().set(
-                phpMyFAQ.tables.categories.name, SeLiteData.RecordSetFormula.ALL_FIELDS ),
+            columns: {
+                [phpMyFAQ.tables.categories.name]: SeLiteData.RecordSetFormula.ALL_FIELDS
+            },
             fetchCondition: "active=1"
         })
     };

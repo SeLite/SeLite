@@ -609,8 +609,6 @@ SeLiteData.Storage.prototype.quoteValues= function quoteValues( entries, fieldsT
     return result;
 };
 
-SeLiteData.Settable= SeLiteMisc.Settable; //@TODO Remove; it's for backward compatibility only.
-
 /** @constructor Subclass of SeLiteData.Storage, that is based on SeLiteSettings.Field pointing to an SQLite source, and an optional Field indicating table prefix.
  * @private
  *  @param {SeLiteSettings.Field.SQLite} dbField

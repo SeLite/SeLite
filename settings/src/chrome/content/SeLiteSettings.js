@@ -850,7 +850,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.initialise= function initialise( t
         });
         this.formulas[ tableName ]= new SeLiteData.RecordSetFormula( {
             table: table,
-            columns: new SeLiteMisc.Settable().set( tableName, columns ),
+            columns: { [tableName]: columns },
             indexBy: tableDetails.key,
             indexUnique: true
         });

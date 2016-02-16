@@ -61,7 +61,7 @@
             return;
         }
         if( SeLiteSettings.moduleForReloadButtons.testDbKeeper===undefined ) {
-            alert( "Please run any single Selenese test command first. Then use the button again. If that doesn't help, ensure that you load a framework which calls SeLiteSettings.setTestDbKeeper(...). See http://selite.github.io/GeneralFramework#creating-a-new-framework" );
+            alert( "Please run one (any) single Selenese test command first. Then use the button again. If that doesn't help, ensure that you load a framework which calls SeLiteSettings.setTestDbKeeper(...). See http://selite.github.io/GeneralFramework#creating-a-new-framework" );
             return;
         }
         SeLiteSettings.moduleForReloadButtons || SeLiteMisc.fail( 'This requires your Core extension to call SeLiteSettings.setModuleForReloadButtons().' );

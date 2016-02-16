@@ -611,13 +611,14 @@ SeLiteMisc.Settable= function Settable( field, value, etc ) {
 // I don't want method set() to show up when iterating through SeLiteMisc.Settable instances using for( .. in..), therefore I use defineProperty():
 Object.defineProperty( SeLiteMisc.Settable.prototype, 'set', {
     /** It sets fields with given names to given values (on <code>this</code> object). It accepts a flexible number (even number) of parameters. It refuses to override an already set field (and hence it refuses the same field name passed in multiple times).
-     *  @param {(string|number|Array)} field. If it's an array, then it represents zero, one or multiple fields, and the value will be assigned to all listed fields.
+     *  @param {(string|number|Array)} field. If it's an array, then it represents zero, one or multiple fields, and the next value will be assigned to all listed fields.
      *  @param {*} value
      *  @return {Settable} this
      * */
     value: function set( field, value, etc ) {
         arguments.length%2===0 || SeLiteMisc.fail( 'SeLiteMisc.Settable.prototype.set() only accepts an even number of arguments.' );
         for( var i=0; i<arguments.length; i+=2 ) {
+            
             var field= arguments[i];
             if( typeof field==='number' || typeof field==='string' ) {
                 !( field in this ) || SeLiteMisc.fail( "Field '" +field+ "' has been set previously." );

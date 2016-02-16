@@ -122,7 +122,8 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
         SeLiteExtensionSequencer.Loader.reportMissingDependancies= function reportMissingDependancies( addonsById, sortedPlugins, problems ) {
             if( Object.keys(sortedPlugins.missingDirectDependancies).length ) {
                 var numberOfBrokenSeLiteAddOns= 0; // Number of add-ons directly or indirectly broken. An add-on broken in both ways will be there twice.
-                var brokenDependantIds= Object.keys(sortedPlugins.missingDirectDependancies).concat( Object.keys(sortedPlugins.brokenDirectDependancies) );
+                // ... means http://es6-features.org/#SpreadOperator:
+                var brokenDependantIds= [ ...Object.keys(sortedPlugins.missingDirectDependancies), ...Object.keys(sortedPlugins.brokenDirectDependancies) ];
                 for( var i=0; i<brokenDependantIds.length; i++ ) {//TODO low: (for pluginId of ..)
                     if( brokenDependantIds[i].indexOf('@selite.googlecode.com')>0 ) {
                         numberOfBrokenSeLiteAddOns++;
