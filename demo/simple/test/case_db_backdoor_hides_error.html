@@ -11,7 +11,7 @@
 <thead>
 <tr><td rowspan="1" colspan="3">case_shared_db_via_backdoor_hides_error</td></tr>
 </thead><tbody>
-<!--Beware that this was adjusted for `..` and \`..` as per  http://selite.github.io/EnhancedSelenese, but it wasn't tested -->
+<!--Beware that this was adjusted for <>..<> and \<>...<> as per  http://selite.github.io/EnhancedSelenese, but it wasn't tested -->
 <tr>
 	<td>storeEval</td>
 	<td>3</td>
@@ -126,7 +126,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>xpath=( //table[@id='charities']//tr )[ `$xpathRowIndex` ]/td[@class='name' and text()= \`SeLiteMisc.unescape_xml(storedVars.name)` ]</td>
+	<td>xpath=( //table[@id='charities']//tr )[ &lt;&gt;$xpathRowIndex&lt;&gt; ]/td[@class='name' and text()= \&lt;&gt;SeLiteMisc.unescape_xml(storedVars.name)&lt;&gt; ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -157,7 +157,7 @@
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
-	<td>//table[@id='charities' and count(.//tr)= `$items.length%$MAX_DISPLAYED_ITEMS+1` ]</td>
+	<td>//table[@id='charities' and count(.//tr)= &lt;&gt;$items.length%$MAX_DISPLAYED_ITEMS+1&lt;&gt; ]</td>
 	<td></td>
 </tr>
 <!---->

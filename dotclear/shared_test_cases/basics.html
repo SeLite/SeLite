@@ -20,12 +20,12 @@
 </tr>
 <tr>
 	<td>if</td>
-	<td>!window.location.href.startsWith( '`SeLiteSettings.webURL(storedVars.path)`' ) || storedVars.forceReload</td>
+	<td>!window.location.href.startsWith( '&lt;&gt;SeLiteSettings.webURL(storedVars.path)&lt;&gt;' ) || storedVars.forceReload</td>
 	<td></td>
 </tr>
 <tr>
 	<td>open</td>
-	<td>`SeLiteSettings.webURL(storedVars.path)`</td>
+	<td>&lt;&gt;SeLiteSettings.webURL(storedVars.path)&lt;&gt;</td>
 	<td></td>
 </tr>
 <tr>
@@ -270,7 +270,7 @@
 <tr>
 	<td>typeRandom</td>
 	<td>id=user_id</td>
-	<td>=`{characters: /[a-z0-9]/i, minLength: 2}`</td>
+	<td>=&lt;&gt;{characters: /[a-z0-9]/i, minLength: 2}&lt;&gt;</td>
 </tr>
 <!--Because of the following, the test only works for standard English installation.-->
 <tr>
@@ -312,22 +312,22 @@
 <tr>
 	<td>typeRandom</td>
 	<td>id=edit-name</td>
-	<td>=`{maxLength:60, type:'word', store:'newUserId'}`</td>
+	<td>=&lt;&gt;{maxLength:60, type:'word', store:'newUserId'}&lt;&gt;</td>
 </tr>
 <tr>
 	<td>typeRandom</td>
 	<td>id=edit-mail</td>
-	<td>=`{maxLength: 254, type:'email', store:'newUserEmail'}`</td>
+	<td>=&lt;&gt;{maxLength: 254, type:'email', store:'newUserEmail'}&lt;&gt;</td>
 </tr>
 <tr>
 	<td>typeRandom</td>
 	<td>id=edit-pass-pass1</td>
-	<td>=`{type:'password', store:'newUserPassword'}`</td>
+	<td>=&lt;&gt;{type:'password', store:'newUserPassword'}&lt;&gt;</td>
 </tr>
 <tr>
 	<td>type</td>
 	<td>id=edit-pass-pass2</td>
-	<td>=`$newUserPassword`</td>
+	<td>=&lt;&gt;$newUserPassword&lt;&gt;</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
@@ -336,8 +336,8 @@
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>=`{name: $newUserId, mail: $newUserEmail, pass: $newUserPassword}`</td>
-	<td>=`Dotclear.tables.user`</td>
+	<td>=&lt;&gt;{name: $newUserId, mail: $newUserEmail, pass: $newUserPassword}&lt;&gt;</td>
+	<td>=&lt;&gt;Dotclear.tables.user&lt;&gt;</td>
 </tr>
 <!--Login and verify-->
 <tr>
@@ -388,7 +388,7 @@
 </tr>
 <tr>
 	<td>storeReadRecord</td>
-	<td>=`{ formula: Dotclear.formulas.user, name: $userId }`</td>
+	<td>=&lt;&gt;{ formula: Dotclear.formulas.user, name: $userId }&lt;&gt;</td>
 	<td>user</td>
 </tr>
 <!--if the user is logged in already, log him out:-->
@@ -425,7 +425,7 @@
 </tr>
 <tr>
 	<td>open</td>
-	<td>`SeLiteSettings.webRoot()`</td>
+	<td>&lt;&gt;SeLiteSettings.webRoot()&lt;&gt;</td>
 	<td></td>
 </tr>
 <tr>
@@ -442,7 +442,7 @@
 <tr>
 	<td>type</td>
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-pass' ]</td>
-	<td>`$user.pass`</td>
+	<td>&lt;&gt;$user.pass&lt;&gt;</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>

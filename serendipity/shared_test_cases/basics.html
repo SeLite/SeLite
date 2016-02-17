@@ -60,7 +60,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;clickAndWait</td>
-	<td>//a[ contains(@href, '`Serendipity.config('indexFile')`?/admin' ) ]</td>
+	<td>//a[ contains(@href, '&lt;&gt;Serendipity.config('indexFile')&lt;&gt;?/admin' ) ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -187,7 +187,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;storeReadRecord</td>
-	<td>=`{ formula: Serendipity.formulas.authors, username: $login }`</td>
+	<td>=&lt;&gt;{ formula: Serendipity.formulas.authors, username: $login }&lt;&gt;</td>
 	<td>user</td>
 </tr>
 <tr>
@@ -214,7 +214,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;clickAndWait</td>
-	<td>//a[ contains(@href, '`Serendipity.config('indexFile')`?/admin') ]</td>
+	<td>//a[ contains(@href, '&lt;&gt;Serendipity.config('indexFile')&lt;&gt;?/admin') ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -237,7 +237,7 @@
 <tr>
 	<td>&nbsp;&nbsp;typeRandom</td>
 	<td>id=entryTitle</td>
-	<td>=`{store: 'title'}`</td>
+	<td>=&lt;&gt;{store: 'title'}&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;pause</td>
@@ -264,7 +264,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;storeEval</td>
-	<td>=`{ title:$title, timestamp:Math.round( Date.now()/1000), body:$body, extended:$extended, exflag:1, author:Serendipity.selectedUsername, authorid:Serendipity.selectedAuthor().authorid, isdraft:'false', allow_comments:'true', last_modified:Math.round( Date.now()/1000), moderate_comments:'false'}`</td>
+	<td>=&lt;&gt;{ title:$title, timestamp:Math.round( Date.now()/1000), body:$body, extended:$extended, exflag:1, author:Serendipity.selectedUsername, authorid:Serendipity.selectedAuthor().authorid, isdraft:'false', allow_comments:'true', last_modified:Math.round( Date.now()/1000), moderate_comments:'false'}&lt;&gt;</td>
 	<td>entry</td>
 </tr>
 <!---->
@@ -290,8 +290,8 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
-	<td>=`$entry`</td>
-	<td>=`Serendipity.tables.entries`</td>
+	<td>=&lt;&gt;$entry&lt;&gt;</td>
+	<td>=&lt;&gt;Serendipity.tables.entries&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;getEval</td>
@@ -300,7 +300,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;verifyElementPresent</td>
-	<td>//a[ contains(@href, \`Serendipity.permalink('Structure', storedVars.entry)`) ]</td>
+	<td>//a[ contains(@href, \&lt;&gt;Serendipity.permalink('Structure', storedVars.entry)&lt;&gt;) ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -341,12 +341,12 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;open</td>
-	<td>`Serendipity.permalink('Structure', storedVars.entry, true)`</td>
+	<td>&lt;&gt;Serendipity.permalink('Structure', storedVars.entry, true)&lt;&gt;</td>
 	<td></td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;store</td>
-	<td>\`storedVars.entry.title`</td>
+	<td>\&lt;&gt;storedVars.entry.title&lt;&gt;</td>
 	<td>xpathExprTitle</td>
 </tr>
 <tr>
@@ -356,12 +356,12 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;verifyElementPresent</td>
-	<td>//title[ contains( ., \`storedVars.entry.title` ) ]</td>
+	<td>//title[ contains( ., \&lt;&gt;storedVars.entry.title&lt;&gt; ) ]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;verifyElementPresent</td>
-	<td>//h4/a[ .=\`storedVars.entry.title` ]</td>
+	<td>//h4/a[ .=\&lt;&gt;storedVars.entry.title&lt;&gt; ]</td>
 	<td></td>
 </tr>
 <!---->
@@ -383,7 +383,7 @@
 <!--Verify the link to the author-->
 <tr>
 	<td>&nbsp;&nbsp;verifyElementPresent</td>
-	<td>//a[ @href=\` Serendipity.permalink('AuthorStructure', Serendipity.authorById(storedVars.entry.authorid), true) ` ]</td>
+	<td>//a[ @href=\&lt;&gt; Serendipity.permalink('AuthorStructure', Serendipity.authorById(storedVars.entry.authorid), true) &lt;&gt; ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -407,7 +407,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;clickAndWait</td>
-	<td>//a[ contains(@href, '`Serendipity.config('indexFile')`?/admin') ]</td>
+	<td>//a[ contains(@href, '&lt;&gt;Serendipity.config('indexFile')&lt;&gt;?/admin') ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -423,17 +423,17 @@
 <!--Can't use verifyAttribute if the attribute ('checked') is not present. Therefore I use xpath-->
 <tr>
 	<td>&nbsp;&nbsp;verifyElementPresent</td>
-	<td>//input[ @type='radio' and @name='`$fieldName`' and @value='true' and `''+$currentValue==='true' ? '' : 'not'`(@checked) ]</td>
+	<td>//input[ @type='radio' and @name='&lt;&gt;$fieldName&lt;&gt;' and @value='true' and &lt;&gt;''+$currentValue==='true' ? '' : 'not'&lt;&gt;(@checked) ]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;verifyElementPresent</td>
-	<td>//input[ @type='radio' and @name='`$fieldName`' and @value='false' and `''+$currentValue==='true' ? 'not' : ''`(@checked) ]</td>
+	<td>//input[ @type='radio' and @name='&lt;&gt;$fieldName&lt;&gt;' and @value='false' and &lt;&gt;''+$currentValue==='true' ? 'not' : ''&lt;&gt;(@checked) ]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;check</td>
-	<td>//input[ @type='radio' and @name='`$fieldName`' and @value='`$newValue`' ]</td>
+	<td>//input[ @type='radio' and @name='&lt;&gt;$fieldName&lt;&gt;' and @value='&lt;&gt;$newValue&lt;&gt;' ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -465,7 +465,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;clickAndWait</td>
-	<td>//a[ contains(@href, '`Serendipity.config('indexFile')`?/admin') ]</td>
+	<td>//a[ contains(@href, '&lt;&gt;Serendipity.config('indexFile')&lt;&gt;?/admin') ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -480,12 +480,12 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;verifyElementPresent</td>
-	<td>//input[ @name='`$fieldName`' and @value=\`Serendipity.config($fieldName)` ]</td>
+	<td>//input[ @name='&lt;&gt;$fieldName&lt;&gt;' and @value=\&lt;&gt;Serendipity.config($fieldName)&lt;&gt; ]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;type</td>
-	<td>//input[ @name='`$fieldName`' ]</td>
+	<td>//input[ @name='&lt;&gt;$fieldName&lt;&gt;' ]</td>
 	<td>${newValue}</td>
 </tr>
 <tr>
@@ -516,7 +516,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;clickAndWait</td>
-	<td>//a[ contains(@href, '`Serendipity.config('indexFile')`?/admin') ]</td>
+	<td>//a[ contains(@href, '&lt;&gt;Serendipity.config('indexFile')&lt;&gt;?/admin') ]</td>
 	<td></td>
 </tr>
 <tr>
@@ -557,12 +557,12 @@
 <tr>
 	<td>&nbsp;&nbsp;typeRandom</td>
 	<td>//input[ @name='password' ]</td>
-	<td>=`{type: 'password', store: 'password'}`</td>
+	<td>=&lt;&gt;{type: 'password', store: 'password'}&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;type</td>
 	<td>//input[ @name='check_password' ]</td>
-	<td>`storedVars.currentPassword!==undefined ? storedVars.currentPassword : '' `</td>
+	<td>&lt;&gt;storedVars.currentPassword!==undefined ? storedVars.currentPassword : '' &lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;typeRandom</td>
@@ -582,7 +582,7 @@
 <tr>
 	<td>&nbsp;&nbsp;typeRandom</td>
 	<td>//input[ @name='email' ]</td>
-	<td>=`{type:'email', store:'email' }`</td>
+	<td>=&lt;&gt;{type:'email', store:'email' }&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;selectRandom</td>
@@ -623,69 +623,69 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=`{ realname: $realname, username:$username, password:$password, email:$email, userlevel:$userlevel, right_publish:1 }`</td>
-	<td>=`Serendipity.tables.authors`</td>
+	<td>=&lt;&gt;{ realname: $realname, username:$username, password:$password, email:$email, userlevel:$userlevel, right_publish:1 }&lt;&gt;</td>
+	<td>=&lt;&gt;Serendipity.tables.authors&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;store</td>
-	<td>=`$insertedRecordKey`</td>
+	<td>=&lt;&gt;$insertedRecordKey&lt;&gt;</td>
 	<td>authorid</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=`{groupid:$access, authorid:$authorid}`</td>
-	<td>=`Serendipity.tables.authorgroups`</td>
+	<td>=&lt;&gt;{groupid:$access, authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;Serendipity.tables.authorgroups&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=`{name:'lang', value:$lang, authorid:$authorid}`</td>
-	<td>=`Serendipity.tables.config`</td>
+	<td>=&lt;&gt;{name:'lang', value:$lang, authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;Serendipity.tables.config&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=`{name:'wysiwyg', value:$wysiwyg, authorid:$authorid}`</td>
-	<td>=`Serendipity.tables.config`</td>
+	<td>=&lt;&gt;{name:'wysiwyg', value:$wysiwyg, authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;Serendipity.tables.config&lt;&gt;</td>
 </tr>
 <!--Use string constants 'true', 'false', not Javascript boolean constants true, false. See http://selite.github.io/SQLiteSpecifics -->
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=`{name:'eyecandy', value:'true', authorid:$authorid}`</td>
-	<td>=`Serendipity.tables.config`</td>
+	<td>=&lt;&gt;{name:'eyecandy', value:'true', authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;Serendipity.tables.config&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=`{name:'mail_comments', value:$mail_comments, authorid:$authorid}`</td>
-	<td>=`Serendipity.tables.config`</td>
+	<td>=&lt;&gt;{name:'mail_comments', value:$mail_comments, authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;Serendipity.tables.config&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=`{name:'mail_trackbacks', value:$mail_trackbacks, authorid:$authorid}`</td>
-	<td>=`Serendipity.tables.config`</td>
+	<td>=&lt;&gt;{name:'mail_trackbacks', value:$mail_trackbacks, authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;Serendipity.tables.config&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=`{name:'no_create', value:'false', authorid:$authorid}`</td>
-	<td>=`Serendipity.tables.config`</td>
+	<td>=&lt;&gt;{name:'no_create', value:'false', authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;Serendipity.tables.config&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=`{name:'right_publish', value:'true', authorid:$authorid}`</td>
-	<td>=`Serendipity.tables.config`</td>
+	<td>=&lt;&gt;{name:'right_publish', value:'true', authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;Serendipity.tables.config&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=`{name:'moderateCommentsDefault', value:$moderateCommentsDefault, authorid:$authorid}`</td>
-	<td>=`Serendipity.tables.config`</td>
+	<td>=&lt;&gt;{name:'moderateCommentsDefault', value:$moderateCommentsDefault, authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;Serendipity.tables.config&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=`{name:'allowCommentsDefault', value:$allowCommentsDefault, authorid:$authorid}`</td>
-	<td>=`Serendipity.tables.config`</td>
+	<td>=&lt;&gt;{name:'allowCommentsDefault', value:$allowCommentsDefault, authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;Serendipity.tables.config&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=`{name:'showMediaToolbar', value:$showMediaToolbar, authorid:$authorid}`</td>
-	<td>=`Serendipity.tables.config`</td>
+	<td>=&lt;&gt;{name:'showMediaToolbar', value:$showMediaToolbar, authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;Serendipity.tables.config&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;clickAndWait</td>

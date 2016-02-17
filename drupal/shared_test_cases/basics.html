@@ -18,12 +18,12 @@
 </tr>
 <tr>
 	<td>if</td>
-	<td>!window.location.href.startsWith( '`SeLiteSettings.webRoot()`' )</td>
+	<td>!window.location.href.startsWith( '&lt;&gt;SeLiteSettings.webRoot()&lt;&gt;' )</td>
 	<td></td>
 </tr>
 <tr>
 	<td>open</td>
-	<td>`SeLiteSettings.webRoot()`</td>
+	<td>&lt;&gt;SeLiteSettings.webRoot()&lt;&gt;</td>
 	<td></td>
 </tr>
 <tr>
@@ -104,7 +104,7 @@
 </tr>
 <tr>
 	<td>open</td>
-	<td>`SeLiteSettings.webRoot()`</td>
+	<td>&lt;&gt;SeLiteSettings.webRoot()&lt;&gt;</td>
 	<td></td>
 </tr>
 <tr>
@@ -200,22 +200,22 @@
 <tr>
 	<td>typeRandom</td>
 	<td>id=edit-name</td>
-	<td>=`{maxLength:60, type:'word', store:'newUserName'}`</td>
+	<td>=&lt;&gt;{maxLength:60, type:'word', store:'newUserName'}&lt;&gt;</td>
 </tr>
 <tr>
 	<td>typeRandom</td>
 	<td>id=edit-mail</td>
-	<td>=`{maxLength: 254, type:'email', store:'newUserEmail'}`</td>
+	<td>=&lt;&gt;{maxLength: 254, type:'email', store:'newUserEmail'}&lt;&gt;</td>
 </tr>
 <tr>
 	<td>typeRandom</td>
 	<td>id=edit-pass-pass1</td>
-	<td>=`{type:'password', store:'newUserPassword'}`</td>
+	<td>=&lt;&gt;{type:'password', store:'newUserPassword'}&lt;&gt;</td>
 </tr>
 <tr>
 	<td>type</td>
 	<td>id=edit-pass-pass2</td>
-	<td>`$newUserPassword`</td>
+	<td>&lt;&gt;$newUserPassword&lt;&gt;</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
@@ -224,8 +224,8 @@
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>=`{name: $newUserName, mail: $newUserEmail, pass: $newUserPassword}`</td>
-	<td>=`Drupal.tables.users`</td>
+	<td>=&lt;&gt;{name: $newUserName, mail: $newUserEmail, pass: $newUserPassword}&lt;&gt;</td>
+	<td>=&lt;&gt;Drupal.tables.users&lt;&gt;</td>
 </tr>
 <!--Login and verify-->
 <tr>
@@ -276,7 +276,7 @@
 </tr>
 <tr>
 	<td>storeReadRecord</td>
-	<td>=`{ formula: Drupal.formulas.users, name: $userName }`</td>
+	<td>=&lt;&gt;{ formula: Drupal.formulas.users, name: $userName }&lt;&gt;</td>
 	<td>user</td>
 </tr>
 <!--if the user is logged in already, log him out:-->
@@ -313,7 +313,7 @@
 </tr>
 <tr>
 	<td>open</td>
-	<td>`SeLiteSettings.webRoot()`</td>
+	<td>&lt;&gt;SeLiteSettings.webRoot()&lt;&gt;</td>
 	<td></td>
 </tr>
 <tr>
@@ -330,7 +330,7 @@
 <tr>
 	<td>type</td>
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-pass' ]</td>
-	<td>`$user.pass`</td>
+	<td>&lt;&gt;$user.pass&lt;&gt;</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>

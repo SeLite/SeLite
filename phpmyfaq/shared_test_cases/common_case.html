@@ -35,12 +35,12 @@
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
 	<td>id=faqusername</td>
-	<td>`phpMyFAQ.selectedUser.login`</td>
+	<td>&lt;&gt;phpMyFAQ.selectedUser.login&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
 	<td>id=faqpassword</td>
-	<td>`phpMyFAQ.selectedUser.pass`</td>
+	<td>&lt;&gt;phpMyFAQ.selectedUser.pass&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;clickAndWait</td>
@@ -50,8 +50,8 @@
 <!--    The current page and its URL depends on whether we got here from an admin or non-admin screen-->
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;assertElementPresent</td>
-	<td>ui=allPages::userOwnMenuLoggedInName( displayName= `phpMyFAQ.selectedUser.display_name` )</td>
-	<td>Comment: keep a space between displayName= and `phpMyFAQ.selectedUser.display_name`, otherwise http://selite.github.io/EnhancedSelenese treats it specially</td>
+	<td>ui=allPages::userOwnMenuLoggedInName( displayName= &lt;&gt;phpMyFAQ.selectedUser.display_name&lt;&gt; )</td>
+	<td>Comment: keep a space between displayName= and &lt;&gt;phpMyFAQ.selectedUser.display_name&lt;&gt;, otherwise http://selite.github.io/EnhancedSelenese treats it specially</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;getEval</td>
@@ -118,22 +118,22 @@
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>user_name</td>
-	<td>=`{maxLength:128, store:'login', characters:/[a-zA-Z1-9_-]/}`</td>
+	<td>=&lt;&gt;{maxLength:128, store:'login', characters:/[a-zA-Z1-9_-]/}&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>user_realname</td>
-	<td>=`{maxLength:128, store:'display_name'}`</td>
+	<td>=&lt;&gt;{maxLength:128, store:'display_name'}&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>user_email</td>
-	<td>=`{maxLength:128, store:'email', type:'email' }`</td>
+	<td>=&lt;&gt;{maxLength:128, store:'email', type:'email' }&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>password</td>
-	<td>=`{type: 'password', store: 'pass'}`</td>
+	<td>=&lt;&gt;{type: 'password', store: 'pass'}&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
@@ -147,8 +147,8 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
-	<td>=`{ login: $login}`</td>
-	<td>=`phpMyFAQ.tables.user`</td>
+	<td>=&lt;&gt;{ login: $login}&lt;&gt;</td>
+	<td>=&lt;&gt;phpMyFAQ.tables.user&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
@@ -158,8 +158,8 @@
 <!--    -->
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
-	<td>=`{ login: $login, pass:$pass}`</td>
-	<td>=`phpMyFAQ.tables.userlogin`</td>
+	<td>=&lt;&gt;{ login: $login, pass:$pass}&lt;&gt;</td>
+	<td>=&lt;&gt;phpMyFAQ.tables.userlogin&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;getEval</td>
@@ -168,17 +168,17 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeReadRecord</td>
-	<td>=`{ formula: phpMyFAQ.formulas.user, login: $login}`</td>
+	<td>=&lt;&gt;{ formula: phpMyFAQ.formulas.user, login: $login}&lt;&gt;</td>
 	<td>user</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
-	<td>=`{ user_id: $user_id, display_name:$display_name, email:$email}`</td>
-	<td>=`phpMyFAQ.tables.userdata`</td>
+	<td>=&lt;&gt;{ user_id: $user_id, display_name:$display_name, email:$email}&lt;&gt;</td>
+	<td>=&lt;&gt;phpMyFAQ.tables.userdata&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;return</td>
-	<td>=`$user`</td>
+	<td>=&lt;&gt;$user&lt;&gt;</td>
 	<td></td>
 </tr>
 <tr>
@@ -195,7 +195,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;storeReadRecord</td>
-	<td>=`{ formula: phpMyFAQ.formulas.userlogin, login: $login }`</td>
+	<td>=&lt;&gt;{ formula: phpMyFAQ.formulas.userlogin, login: $login }&lt;&gt;</td>
 	<td>userlogin</td>
 </tr>
 <tr>
@@ -291,7 +291,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;assertVisible</td>
-	<td>` phpMyFAQ.bootstrapMenuLocator() `</td>
+	<td>&lt;&gt; phpMyFAQ.bootstrapMenuLocator() &lt;&gt;</td>
 	<td></td>
 </tr>
 <tr>
@@ -370,7 +370,7 @@
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>id=name</td>
-	<td>=` {maxLength:255, store:'name'} `</td>
+	<td>=&lt;&gt; {maxLength:255, store:'name'} &lt;&gt;</td>
 </tr>
 <tr>
 	<td>storeEval</td>
@@ -389,8 +389,8 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
-	<td>=`{ lang:'en', parent_id:0, name: $name, description:$description, user_id:1}`</td>
-	<td>=`phpMyFAQ.tables.categories`</td>
+	<td>=&lt;&gt;{ lang:'en', parent_id:0, name: $name, description:$description, user_id:1}&lt;&gt;</td>
+	<td>=&lt;&gt;phpMyFAQ.tables.categories&lt;&gt;</td>
 </tr>
 <tr>
 	<td>endFunction</td>
