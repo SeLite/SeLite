@@ -1,30 +1,30 @@
 [
  {
   "name": "exit-confirmation-checker_skipRevertedChanges_verify_suite",
-  "path": "selite/exit-confirmation-checker/selenese-tests/skipRevertedChanges/verify/exit-confirmation-checker_skipRevertedChanges_verify_suite.html"
+  "path": "selite/exit-confirmation-checker/selenese-scripts/skipRevertedChanges/verify/exit-confirmation-checker_skipRevertedChanges_verify_suite.html"
  },
  {
   "name": "exit-confirmation-checker_skipRevertedChanges_assert_suite",
-  "path": "selite/exit-confirmation-checker/selenese-tests/skipRevertedChanges/assert/exit-confirmation-checker_skipRevertedChanges_assert_suite.html"
+  "path": "selite/exit-confirmation-checker/selenese-scripts/skipRevertedChanges/assert/exit-confirmation-checker_skipRevertedChanges_assert_suite.html"
  },
  {
   "name": "exit-confirmation-checker_includeRevertedChanges_assert_suite",
-  "path": "selite/exit-confirmation-checker/selenese-tests/includeRevertedChanges/assert/exit-confirmation-checker_includeRevertedChanges_assert_suite.html"
+  "path": "selite/exit-confirmation-checker/selenese-scripts/includeRevertedChanges/assert/exit-confirmation-checker_includeRevertedChanges_assert_suite.html"
  },
  {
   "name": "exit-confirmation-checker_includeRevertedChanges_verify_suite",
-  "path": "selite/exit-confirmation-checker/selenese-tests/includeRevertedChanges/verify/exit-confirmation-checker_includeRevertedChanges_verify_suite.html"
+  "path": "selite/exit-confirmation-checker/selenese-scripts/includeRevertedChanges/verify/exit-confirmation-checker_includeRevertedChanges_verify_suite.html"
  },
  {
   "name": "exit-confirmation-checker_ignored_suite",
-  "path": "selite/exit-confirmation-checker/selenese-tests/ignored/exit-confirmation-checker_ignored_suite.html"
+  "path": "selite/exit-confirmation-checker/selenese-scripts/ignored/exit-confirmation-checker_ignored_suite.html"
  },
  {
   "name": "commands_suite",
-  "path": "selite/commands/selenese-tests/commands_suite.html"
+  "path": "selite/commands/selenese-scripts/commands_suite.html"
  },
  {
   "name": "sel-blocks-global_suite",
-  "path": "sel-blocks-global/selenese-tests/sel-blocks-global_suite.html"
+  "path": "sel-blocks-global/selenese-scripts/sel-blocks-global_suite.html"
  }
 ]

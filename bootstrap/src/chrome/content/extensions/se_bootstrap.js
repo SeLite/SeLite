@@ -33,7 +33,7 @@
 
         /** There are two sets of events when we want to call reloadScripts(), which are handled separately:
             - executing a single test command / run a testcase / run each testcase in a testsuite. Handled by tail-intercept of Selenium.prototype.reset() below.
-            - run a testcase/testsuite, pause it (or not), modify a file loaded via SeBootstrap (and make the test continue if you paused it earlier), SeBootstrap will not re-trigger Selenium.prototype.reset() (until next run of a single command/testcase/testsuite). That's handled by TestCaseDebugContext.prototype.nextCommand(). This function is defined in sister extension: testcase-debug-context. Then it's intercepted in sel-blocks-global.
+            - run a testcase/testsuite, pause it (or not), modify a file loaded via SeBootstrap (and make the test continue if you paused it earlier), SeBootstrap will not re-trigger Selenium.prototype.reset() (until next run of a single command/testcase/testsuite). That's handled by TestCaseDebugContext.prototype.nextCommand(). This function is defined in sister extension: testcase-debug-context. Then it's intercepted in SelBlocks Global.
         */
         // Tail intercept of Selenium.reset().
           var origReset = Selenium.prototype.reset;
