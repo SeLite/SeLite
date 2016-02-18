@@ -104,7 +104,7 @@
             bootstrappedListChanged= true;
         };
         
-        SeLiteSettings.addTestSuiteFolderChangeHandler( setBootstrappedListAsChanged );
+        SeLiteSettings.addTestSuiteFolderChangeHandler( SeLiteSettings.setBootstrappedListAsChanged );
     }
     if( loadedTimes>=2 ) {
         throw new Error('SeLiteBootstrap already loaded ' +loadedTimes );
