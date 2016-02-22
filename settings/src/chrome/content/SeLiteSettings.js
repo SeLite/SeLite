@@ -1743,9 +1743,6 @@ SeLiteSettings.Module.prototype.mergeSetsAndDefaults= function getFieldsDownToSe
                     : SeLiteMisc.sortedObject( field.compareValues );
                 var keyOrKeys= field.getDefaultKey();
                 if( field.multivalued ) {
-                    if ( !Array.isArray(keyOrKeys) ) {
-                        debugger;
-                    }
                     for( var i=0; i<keyOrKeys.length; i++ ) { //@TODO use for.. of.. loop once NetBeans support it
                         var key= keyOrKeys[i];
                         entry[ key ]= isChoice
