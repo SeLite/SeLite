@@ -81,7 +81,7 @@ editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHa
     }
 };
 
-setTimeout( //waits until all the sub-scripts are loaded to overload selDebugger.init
+setTimeout( //waits until all the sub-scripts are loaded. Only then it can overload selDebugger.init().
     function() {
         
         var originalInit= editor.selDebugger.init;
