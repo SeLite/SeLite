@@ -66,17 +66,32 @@ editor.testLoopResumeHandleError= function testLoopResumeHandleError(e) {
 /** This replaces _executeCurrentCommand() and a part of resume(), both from selenium-executionloop.js.
  */
 editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHandleErrors( command, handler ) {
+    LOG.debug('testLoopResumeExecuteAndHandleErrors starts');
     var selenium = editor.selDebugger.runner.selenium;
     try{
         this.result = handler.execute(selenium, command); // from _executeCurrentCommand()
         this.waitForCondition = this.result.terminationCondition; // from _executeCurrentCommand()
         editor.selDebugger.runner.Selenium.seLiteAfterCurrentCommand.call( this );
         if( this.result.failed ) {
+            LOG.debug('testLoopResumeExecuteAndHandleErrors failure -> testLoopResumeHandleFailedResult');
             editor.testLoopResumeHandleFailedResult.call( this );
         }
+        LOG.debug('testLoopResumeExecuteAndHandleErrors -> continueTestWhenConditionIsTrue');
         this.continueTestWhenConditionIsTrue(); // from resume()
     }
     catch( e ) {
+        LOG.debug('testLoopResumeExecuteAndHandleErrors caught');
+        var callFrame= selenium.callStack().top();
+        if( callFrame.frameFromAsync ) {
+            if( selenium.handleCommandError(e) ) {
+                this.continueTestWhenConditionIsTrue();
+            }
+            else {
+                !callFrame.onFailure || callFrame.onFailure();
+                this.testComplete();
+            }
+            return;
+        }
         editor.testLoopResumeHandleError.call( this, e );
     }
 };

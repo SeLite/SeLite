@@ -70,7 +70,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                                 'UTF-8'
                             );
                         }
-                        catch( e ) {debugger;
+                        catch( e ) {
                             problems.push( 'Add-on ' +addon.name+ ' has an error in its SeLiteExtensionSequencerManifest.js. Please, '+
                                 (addon.supportURL
                                  ? '<a href="' +addon.supportURL+ '">report this issue</a>.'
