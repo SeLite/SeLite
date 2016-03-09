@@ -99,6 +99,12 @@ if defined p (
       cd > "!e!\run-all-favorites@selite.googlecode.com"
       cd ..\..
     )
+
+   if not exist "!e!\preview@selite.googlecode.com.xpi" (
+      cd preview\src
+      cd > "!e!\preview@selite.googlecode.com"
+      cd ..\..
+    )
 ) else (
    echo Could not find Firefox profile "%profile%"
 )

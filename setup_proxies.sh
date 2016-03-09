@@ -122,6 +122,13 @@ then
       pwd > "$EXTENSION_FOLDER"/run-all-favorites@selite.googlecode.com
       cd ../..
     fi
+
+    if [ ! -e "$EXTENSION_FOLDER"/preview\@selite.googlecode.com ]
+    then
+      cd preview/src
+      pwd > "$EXTENSION_FOLDER"/preview@selite.googlecode.com
+      cd ../..
+    fi
 else
    echo Could not find Firefox profile "$PROFILE"
 fi

@@ -48,5 +48,8 @@ zip -r ../../xpi/exit-confirmation-checker.xpi *
 cd ../../run-all-favorites/src
 zip -r ../../xpi/run-all-favorites.xpi *
 
+cd ../../preview/src
+zip -r ../../xpi/preview.xpi *
+
 #cd ../../implicit-wait/src
 #zip -r ../../xpi/implicit-wait.xpi *
