@@ -22,5 +22,4 @@ Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
 ( function() {
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 
-    Selenium.prototype.bufo= ()=>alert( typeof editor);
 }) ();

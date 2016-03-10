@@ -47,9 +47,12 @@ function initialise( htmlURL, editor ) {
                 }
             }, 300 );
         } else {
-          alert( request.statusText );
+          alert( "Couldn't load " +htmlURL+ ". " +request.statusText );
         }
       }
+    };
+    request.onerror= (event)=> {
+        alert( "Couldn't load " +htmlURL );
     };
 
     // Add a timestamp to make the query unique

@@ -26,13 +26,13 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
     ( function() {
         // This is defined on Editor.prototype, rather than on Selenium.prototype. This way it can access 'editor' object, and through it 'selenium' object, too.
         // Custom Selenese commands (defined on Selenium.prototype) can access 'editor' object in order to call openPreview().
-        Editor.prototype.openPreview= function openPreview( htmlUrl ) {
+        Editor.prototype.openPreview= function openPreview( htmlURL ) {
             var win= window.open( "chrome://selite-preview/content/preview.xul", "SeLite Preview", "chrome");
 
             win.addEventListener( 'load', () => {
                 // win!==window
                 // this===window - thanks to JS ES6 arrow function ()=>{...}
-                win.initialise( htmlUrl, this );
+                win.initialise( htmlURL, this/*i.e. editor*/ );
             } );
         };
         // 'editor' is an instance of either StandaloneEditor or SidebarEditor. Those classes don't refer to Editor.prototype, but they have copies of all functions from Editor.prototype (copied via objectExtend()).
