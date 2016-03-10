@@ -31,6 +31,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
 
             win.addEventListener( 'load', () => {
                 // win!==window
+                // this===window - thanks to JS ES6 arrow function ()=>{...}
                 win.initialise( htmlUrl, this );
             } );
         };
