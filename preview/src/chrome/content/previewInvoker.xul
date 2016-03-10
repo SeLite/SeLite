@@ -14,7 +14,7 @@
             
             win.passed= "Passed";
             
-            win.initialise();
+            win.initialise( 'file:///D:/localdata/pkehl/SeLite/preview/src/chrome/content/content.html', {});
         } );
     //]]>
     </xul:script>

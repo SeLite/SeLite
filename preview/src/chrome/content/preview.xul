@@ -2,42 +2,10 @@
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <window id="yourwindow" xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns="http://www.w3.org/1999/xhtml" width="550" height="680">
     <html>
-        <head>
-            <script type="text/javascript">
-                //<![CDATA[
-                "use strict";
-                function initialise() {
-                    var firstDiv= document.getElementById('first-div');
-                    firstDiv.innerHTML= 'passed ' +passed+ '; window ' +typeof window;
-                    
-                    var iframe= document.getElementById('iframe');
-                    // from https://developer.mozilla.org/en-US/docs/Displaying_web_content_in_an_extension_without_security_issues
-                    var request = new XMLHttpRequest();
-                    request.onload= ()=> {
-                      if (request.readyState === 4) { 
-                        if (request.status === 200) {
-                          
-                            iframe.setAttribute("src", "data:text/html," + encodeURIComponent(request.responseText));
-                            //@TODO consider passing a wrapped XPCOM object, restricting access to selenium.callFromAsync() only.
-                            // Here is too early to access iframe.contentWindow. Hence delay it.
-                            setTimeout( ()=>{iframe.contentWindow.seLite="After delay";  !('seLiteInitialize' in iframe.contentWindow) || iframe.contentWindow.seLiteInitialize()}, 300);
-                        } else {
-                          alert( request.statusText );
-                        }
-                      }
-                    };
-                    // @TODO add a timestamp to ?query
-                    request.open("GET", "file:///D:/localdata/pkehl/SeLite/preview/src/chrome/content/content.html", true );
-                    request.timeout= 3000; // Use Selenium timeout; in milliseconds
-                    request.send(null);
-                }
-                //]]>
-            </script>
+        <head>  
+            <script type="text/javascript" src="preview.js"></script>
         </head>
         <body>
-            <div id="first-div">
-                First div
-            </div>
             <iframe type="content" id="iframe"></iframe>
         </body>
     </html>
