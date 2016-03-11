@@ -24,15 +24,23 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
     // When I captured selDebugger.log from window.setTimeout() here, it was different to global LOG at the time of running Selenese.
     // The following tail-overrides Debugger() with code that sets up a tail-override of 'this.init', i.e. Debugger's instance's init(), to capture its this.runner.LOG, after the original init() loads chrome://selenium-ide/content/selenium-runner.js. Beware that it's differen to global LOG at that time.
     ( function() {
-        // This is defined on Editor.prototype, rather than on Selenium.prototype. This way it can access 'editor' object, and through it 'selenium' object, too.
-        // Custom Selenese commands (defined on Selenium.prototype) can access 'editor' object in order to call openPreview().
-        Editor.prototype.openPreview= function openPreview( htmlURL, todoDataToPass, todoFlagsEgWindowTitleAndInitialIFrameText ) {
+        // This is defined on Editor.prototype, rather than on Selenium.prototype. This way it can access 'editor' object, and through it 'selenium' object, too. Selenese getEval command and custom Selenese commands (defined on Selenium.prototype) can access 'editor' object in order to call editor.openPreview().
+        /** @param {string} htmlURL
+         *  @param {object} [config] Configuration with any of fields: {
+         *      windowTitle: string Window title
+         *      initialContent: string content to show up (plain text or HTML)
+         *      initialContentType: 'html' (default) or 'text'
+         *  }
+         * */
+        Editor.prototype.openPreview= function openPreview( htmlURL, data={}, config={} ) {
             var win= window.open( "chrome://selite-preview/content/preview.xul", "SeLite Preview", "chrome,resizable=1"/**/);
 
             win.addEventListener( 'load', () => {
                 // win!==window
                 // this===window - thanks to JS ES6 arrow function ()=>{...}
-                win.initialise( htmlURL, this/*i.e. editor*/ );
+                win.initialise( htmlURL, this/*i.e. editor*/, data, config );
+                config.windowTitle= config.windowTitle || "SeLite Preview from " +htmlURL;
+                win.document.title= config.windowTitle;
             } );
         };
         // 'editor' is an instance of either StandaloneEditor or SidebarEditor. Those classes don't refer to Editor.prototype, but they have copies of all functions from Editor.prototype (copied via objectExtend()).

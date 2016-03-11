@@ -9,8 +9,7 @@
 <window id="SeLitePreview" xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns="http://www.w3.org/1999/xhtml">
     <html>
         <head>  
-            <!-- use <title> instead of xul:title -->
-            <title>SeLite Preview</title>
+            <!-- We could use <title>, but no xul:title. Instead, however, we set title in Javascript through document.title -->
             <script type="text/javascript" src="preview.js"></script>
         </head>
         <body>

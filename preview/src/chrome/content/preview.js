@@ -19,12 +19,21 @@
 var iframe;
 
 window.onresize= ()=> {
-    iframe.width= window.innerWidth-20;
-    iframe.height= window.innerHeight-20;
+    if( iframe ) {
+        iframe.width= window.innerWidth-20;
+        iframe.height= window.innerHeight-20;
+    }
 };
 
-function initialise( htmlURL, editor ) {
+function initialise( htmlURL, editor, data, config ) {
     iframe= document.getElementById('iframe');
+    
+    config.initialContent= config.initialContent || 'Loading...';
+    config.initialContentType= config.initialContentType || 'html';
+    iframe.setAttribute(
+                "src",
+                "data:text/" +config.initialContentType+ "," + encodeURIComponent( config.initialContent )
+            );
     
     var request = new XMLHttpRequest();
     request.onload= ()=> {
@@ -49,6 +58,7 @@ function initialise( htmlURL, editor ) {
                     iframe.contentWindow.seLitePreviewInitialize( {
                         selenium: editor.selDebugger.runner.selenium,
                         editor,
+                        data,
                         parentAbsoluteURL
                     } );
                 }
