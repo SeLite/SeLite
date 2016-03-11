@@ -26,8 +26,8 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
     ( function() {
         // This is defined on Editor.prototype, rather than on Selenium.prototype. This way it can access 'editor' object, and through it 'selenium' object, too.
         // Custom Selenese commands (defined on Selenium.prototype) can access 'editor' object in order to call openPreview().
-        Editor.prototype.openPreview= function openPreview( htmlURL ) {
-            var win= window.open( "chrome://selite-preview/content/preview.xul", "SeLite Preview", "chrome");
+        Editor.prototype.openPreview= function openPreview( htmlURL, todoDataToPass, todoFlagsEgWindowTitleAndInitialIFrameText ) {
+            var win= window.open( "chrome://selite-preview/content/preview.xul", "SeLite Preview", "chrome,resizable=1"/**/);
 
             win.addEventListener( 'load', () => {
                 // win!==window

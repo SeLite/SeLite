@@ -16,9 +16,16 @@
 */
 "use strict";
 
-function initialise( htmlURL, editor ) {
-    var iframe= document.getElementById('iframe');
+var iframe;
 
+window.onresize= ()=> {
+    iframe.width= window.innerWidth-20;
+    iframe.height= window.innerHeight-20;
+};
+
+function initialise( htmlURL, editor ) {
+    iframe= document.getElementById('iframe');
+    
     var request = new XMLHttpRequest();
     request.onload= ()=> {
       if (request.readyState === 4) {
