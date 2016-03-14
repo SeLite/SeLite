@@ -742,9 +742,11 @@
   }
 )();
 
+SeLiteCommands= {};
+
 /** This allows to access .gBrowser. Other ways failed: window.gBrowser, selenium.browserbot.getCurrentWindow().gBrowser, window.opener.gBrowser.
  * */
-function mostRecentWindow() {
+SeLiteCommands.recentWindow= function recentWindow() {
     // Based on https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Tabbed_browser#From_a_dialog
     return Components.classes["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow("navigator:browser");
-}
+};
