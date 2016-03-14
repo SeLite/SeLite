@@ -24,7 +24,7 @@ if( typeof SeLiteMisc==='undefined' ) {
             XULElement: XULElement,//typeof XULElement==='function', therefore I don't need to declare it below
             exportedSymbols: exportedSymbols
         },
-        SeLiteMisc.setFields(
+        SeLiteMisc.setFieldsPairs(
             {},
             ['window', 'exportedSymbols', 'tree', 'treeBoxObject', 'nsIFilePicker', 'FileUtils', 'promptService', 'SeLiteSettings', 'Services', 'subScriptLoader', 'nsIIOService', 'nsIPrefBranch', 'treeColumnElements', 'modules', 'treeRowsOrChildren', 'moduleSetFields'],
                 'some-object',

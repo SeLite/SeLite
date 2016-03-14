@@ -603,7 +603,7 @@ SeLiteMisc.proxyAllowFields= function proxyAllowFields( proxy, definitions, prev
      *  @param {*} value
      *  @return {object} object
 */
-SeLiteMisc.setFields= function setFields( object, field, value, etc ) {
+SeLiteMisc.setFieldsPairs= function setFieldsPairs( object, field, value, etc ) {
     typeof object==='object' || SeLiteMisc.fail( 'SeLiteMisc.setFields() requires the first parameter to be an object.' );
     arguments.length%2===1 || SeLiteMisc.fail( 'SeLiteMisc.setFields() only accepts an odd number of arguments.' );
     for( var i=1; i<arguments.length; i+=2 ) {
@@ -1205,7 +1205,7 @@ Object.defineProperty( SeLiteMisc.SortedObjectTarget.prototype, 'subContainer', 
      * */
     function subContainer( fieldOrFields ) {
         var object= this;
-        for( var fieldName of arguments ) {
+        for( var fieldName of arguments ) {//@TODO warning here
             if( !(fieldName in object) ) {
                 object[fieldName]= SeLiteMisc.sortedObject(true);
             }
