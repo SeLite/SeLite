@@ -55,12 +55,14 @@ function initialise( htmlURL, editor, data, config ) {
                 //iframe.contentWindow.seLite="TODO";
 
                 if( typeof iframe.contentWindow.seLitePreviewInitialize==='function' ) {
-                    iframe.contentWindow.seLitePreviewInitialize( {
-                        selenium: editor.selDebugger.runner.selenium,
-                        editor,
+                    iframe.contentWindow.seLitePreviewInitialize(
                         data,
-                        parentAbsoluteURL
-                    } );
+                        {
+                            selenium: editor.selDebugger.runner.selenium,
+                            editor,
+                            parentAbsoluteURL
+                        }
+                    );
                 }
             }, 300 );
         } else {

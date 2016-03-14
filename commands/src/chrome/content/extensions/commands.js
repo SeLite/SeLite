@@ -742,7 +742,7 @@
   }
 )();
 
-SeLiteCommands= {};
+var SeLiteCommands= {};
 
 /** This allows to access .gBrowser. Other ways failed: window.gBrowser, selenium.browserbot.getCurrentWindow().gBrowser, window.opener.gBrowser.
  * */

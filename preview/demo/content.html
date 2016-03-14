@@ -12,14 +12,13 @@
       //<![CDATA[
       "use strict";
       
-      function seLitePreviewInitialize( fields ) {
-          var data = {
+      function seLitePreviewInitialize( data, environment ) {
+          /*var data = {
             who:'BeeBole!' //the JSON data
-          };
+          };*/
           var directive = {
             'span':'who' //make the link between the HTML SPAN tag and the JSON property "who".
         };
-        //@TODO Doc: use online URL, or download, and refer to it using a placeholder
         // As per https://groups.google.com/forum/#!searchin/Pure-Unobtrusive-Rendering-Engine/pure$20without$20jquery/pure-unobtrusive-rendering-engine/Cmt1bqfsZLg/rhGP8ZqfliAJ
         // See also autoRender at https://beebole.com/pure/
           $p('#results').render( data, directive );
