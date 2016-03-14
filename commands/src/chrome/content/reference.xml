@@ -310,4 +310,15 @@ Xml-stylesheet (whether remote or even local) didn't load up when you open this 
 <function name="nop">
     <comment>This does nothing. It serves when all you need is to evaluate Target and/or Value parameter, e.g. <code>javascript{...}</code> (see http://docs.seleniumhq.org/docs/02_selenium_ide.jsp#javascript-usage-with-non-script-parameters).</comment>
 </function>
+<function name="doStoreByXPath">
+    <param name="elementSetXPath">XPath, matching any number of elements (0 or more).
+    </param>
+    <param name="storedVariableName">Name of a stored variable to save the element(s) in.
+    </param>
+    <comment>
+        It collects any matching element(s) in an array of objects. It stores them in a given stored variable. It doesn't fail if there are no matching elements - then it stores an empty array.
+        <br/>
+        This command is a part of SeLite Commands.
+    </comment>
+</function>
 </apidoc>
