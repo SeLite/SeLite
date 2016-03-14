@@ -24,6 +24,17 @@
     Components.utils.import( "chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js" );
     var loadedTimes= SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteClipboardAndIndent'] || 0;
     if( !loadedTimes ) {
+        var indentationStep= function indentationStep() { // If this turns out to be a bottleneck, then create a suite-change handler, retrieve indentationStep from there and cache it
+            if( typeof SeLiteSettings!==undefined ) {
+                var settingsModule= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
+                var fieldsDownToFolder= settingsModule.getFieldsDownToFolder();
+                return fieldsDownToFolder['indentationStep'].entry;
+            }
+            else {
+                return 4;
+            }
+        };
+        
         // For clipboard:
         
         // Ideally, I would change behaviour of isCommandEnabled() so that it allows cmd_paste even if self.clipboard==null. However, isCommandEnabled() is out of easy reach outside of original constructor of TreeView (and I don't want to replace the whole TreeView constructor just for that). Therefore, I
@@ -119,7 +130,7 @@
                     ? match[2]
                     : previousCommandText;
                 if( previousCommand.command && openingCommands.indexOf(commandItself)>=0 ) {
-                    indentation+= '  ';
+                    indentation+= " ".repeat( indentationStep() );
                 }
                 return indentation;
             }
@@ -308,6 +319,8 @@ Editor.prototype.addCommand = function (command, target, value, window, insertBe
         var firstSelectedRowIndex, lastSelectedRowIndex;
         var count = this.selection.getRangeCount();
         if (count > 0) {
+            var indentationWidth= indentationStep();
+            
             for (var i = 0; i < count; i++) {
                 var start = {};
                 var end = {};
@@ -324,12 +337,16 @@ Editor.prototype.addCommand = function (command, target, value, window, insertBe
                         ? command.command
                         : command.comment;
                     if( !unindent ) {
-                        commandOrComment= '  ' +commandOrComment;
+                        commandOrComment= " ".repeat( indentationWidth ) +commandOrComment;
                     }
                     else {
-                        if( commandOrComment.startsWith('  ') ) {
-                            commandOrComment= commandOrComment.substr( 2 );
+                        // Remove space prefix, even if fewer spaces than indentationStep()
+                        for( var last=0; last<indentationWidth && last<commandOrComment.length; last++ ) {
+                            if( commandOrComment[last]!==' ' ) {
+                                break;
+                            }
                         }
+                        commandOrComment= commandOrComment.substr( last );
                     }
                     command[ isCommandAndNotComment
                         ? 'command'
