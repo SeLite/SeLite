@@ -206,6 +206,7 @@ RecordHolder.prototype.constructor= RecordHolder;
  **/
 SeLiteData.Record= function Record( data, recordHolder ) {
     // Set the link from record to its record holder. The field for this link is non-iterable.
+    // @TODO here and other calls to defineProperty(): Consider replacing with http://es6-features.org/#SymbolType
     Object.defineProperty( this, SeLiteData.Record.RECORD_TO_HOLDER_FIELD, { value: recordHolder } );
     if( data ) {
         SeLiteMisc.objectCopyFields( data, this );
