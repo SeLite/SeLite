@@ -914,7 +914,7 @@ else {
                 if( field.multivalued || isChoice ) {
                     var fieldChildren= createTreeChildren( fieldItem );
                     if( field instanceof SeLiteSettings.Field.FixedMap ) {
-                        for( var key of keySet ) {
+                        for( var key of field.keySet ) {
                             rowInfo= new RowInfo( module, setName, RowLevel.OPTION, field, key, valueCompound );
                             var optionItem= rowInfo.generateTreeItem();
                             fieldChildren.appendChild( optionItem );

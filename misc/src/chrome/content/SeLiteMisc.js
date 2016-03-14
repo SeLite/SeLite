@@ -1205,7 +1205,8 @@ Object.defineProperty( SeLiteMisc.SortedObjectTarget.prototype, 'subContainer', 
      * */
     function subContainer( fieldOrFields ) {
         var object= this;
-        for( var fieldName of arguments ) {//@TODO warning here
+        for( var i=0; i<arguments.length; i++) { // Can't have for( var fieldName of arguments ) - it generated a warning 
+            var fieldName= arguments[i];
             if( !(fieldName in object) ) {
                 object[fieldName]= SeLiteMisc.sortedObject(true);
             }
