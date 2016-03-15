@@ -1,6 +1,6 @@
 /*
  * Copyright 2005 Shinya Kasatani  and/or Selenium IDE team
- * Copyright 2015 Peter Kehl
+ * Copyright 2015, 2016 Peter Kehl
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,20 +60,32 @@ SeleniumIDEGenericAutoCompleteSearch.prototype = {
     }
 };
 
+Components.utils.import( "chrome://selite-settings/content/SeLiteSettings.js" );
+
+function indentationStep() { // If this turns out to be a bottleneck, then create a suite-change handler, retrieve indentationStep from there and cache it
+    if( typeof SeLiteSettings!==undefined ) {
+        var settingsModule= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
+        var fieldsDownToFolder= settingsModule.getFieldsDownToFolder();
+        return fieldsDownToFolder['indentationStep'].entry;
+    }
+    else {
+        return 4;
+    }
+}
+        
 // Commands (other than ones starting with 'end') that suggest indentation to the left: decrease of indentation as compared to the previous command. Some of them are also 'opening' commands - see ide-extension.js
 var closingCommands= ['else', 'elseIf', 'catch', 'finally'];
 
 function AutoCompleteResult(search, candidates) {
-        this.search = search;
+    this.search = search;
 	this.result = [];
         
-        // Preserving any indentation
-        var indentationPrefix= '';
-        var indented= /^(\s+)/.exec(search);
-        if( indented ) {
-            indentationPrefix= indented[1];
-        }
-        search= search.trimLeft();
+    // Preserving any indentation
+    var indented= /^(\s+)/.exec(search);
+    var indentationPrefix= indented
+        ? indented[1]
+        : '';
+    search= search.trimLeft();
         
 	var lsearch = search.toLowerCase();
     //Samit: Enh: add support for strict camel case as well as relaxed camel case autocompletion
@@ -115,11 +127,11 @@ function AutoCompleteResult(search, candidates) {
                 }
             }
         }
-        if( indentationPrefix.length>=2 && !isFullyTyped &&
+        if( indentationPrefix.length>=1 && !isFullyTyped &&
             ( search.startsWith('end') || matchesClosingCommand )
         ) {
-            // Unindent endXXX or any closing command when it is typed (i.e. hwen it doesn't fully match any command yet)
-            indentationPrefix= indentationPrefix.substr( 2 );
+            // Unindent endXXX or any closing command when it is typed (i.e. when it doesn't fully match any command yet)
+            indentationPrefix= indentationPrefix.substr( Math.min( indentationStep(), indentationPrefix.length) );
         }
         for( var i=0; i<this.result.length; i++ ) {
             var candidateCopy= this.result[i].slice();
