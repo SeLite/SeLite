@@ -109,7 +109,9 @@
                                 return accessor;
                         }
                 }
-                return api[commandName];
+                return api[commandName]!==undefined
+                    ? api[commandName]
+                    : null;
         };
         
         var indentedCommand= /^(\s+)(.*)/;
@@ -138,15 +140,15 @@
         };
         
         /** Insert a new command/comment into the tree, and select it. Don't start editing - that's up to the caller.
-         *  @param {boolean} insertComment Whether a comment; otherwise it's a command.
+         *  @param {boolean} doInsertComment Whether a comment; otherwise it's a command.
          *  @return {number} length of indentation prefix, if any
          * */
-        TreeView.prototype.insertCommandBase= function insertCommandOrComment(insertComment ) {
+        TreeView.prototype.insertCommandBase= function insertCommandOrComment( doInsertComment ) {
             if (this.tree.currentIndex >= 0) {
                 var currentIndex = this.tree.currentIndex;
                 var indentation= newCommandOrCommentIndentation( this.testCase, currentIndex );
                 this.insertAt( currentIndex,
-                    insertComment
+                    doInsertComment
                         ? new Comment(indentation)
                         : new Command(indentation)
                 );
@@ -155,8 +157,8 @@
             }
         };
         
-        TreeView.prototype.insertCommand= function insertCommand( insertComment ) {
-            var indentationLength= this.insertCommandBase( false );
+        TreeView.prototype.insertCommand= function insertCommand( doInsertComment=false ) {
+            var indentationLength= this.insertCommandBase( doInsertComment );
             var action=document.getElementById('commandAction');
             action.focus();
             if( indentationLength ) {
