@@ -112,7 +112,7 @@
                 return api[commandName];
         };
         
-        var indentedText= /^(\s+)(.*)/;
+        var indentedCommand= /^(\s+)(.*)/;
         // Opening commands, which indent the next new commands/comments to the right:
         var openingCommands= ['if', 'elseIf', 'else', 'while', 'for', 'foreach', 'forXml', 'forJson', 'function', 'try', 'catch', 'finally'];
         var newCommandOrCommentIndentation= function newCommandOrCommentIndentation( testCase, currentIndex ) {
@@ -121,7 +121,7 @@
                 var previousCommandText= previousCommand.command
                     ? previousCommand.command
                     : previousCommand.comment;
-                var match= indentedText.exec( previousCommandText );
+                var match= indentedCommand.exec( previousCommandText );
                 var indentation= '';
                 if( match ) {
                     indentation= match[1];
@@ -366,11 +366,11 @@ Editor.prototype.addCommand = function (command, target, value, window, insertBe
     So, if there is an existing command/comment with indentation, pressing TAB moves the editing cursor to the end space prefix, and it selects the rest of the command or comment. That facilitates replacing the command/comment when user starts typing, while keeping the existing indentation.
     Similarly when the user clicks Shift+TAB at command's Target (textbox), which moves focus to Command.
     */
-    var indentedText= /^(\s+)/;
+    var indentation= /^(\s+)/;
 
     var selectRightFromIndent= function selectRightFromIndent( event ) {
         var action=document.getElementById('commandAction');
-        var match= indentedText.exec( action.value );
+        var match= indentation.exec( action.value );
         if( match ) {
             event.preventDefault();
             action.focus();
