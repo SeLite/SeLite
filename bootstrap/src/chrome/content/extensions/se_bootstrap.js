@@ -25,7 +25,6 @@
         /** @var Object serving as an associative array [string file path] => int lastModifiedTime
          **/
         Selenium.bootstrapScriptLoadTimestamps= {};
-        ;
         var FileUtils= Components.utils.import("resource://gre/modules/FileUtils.jsm", {} ).FileUtils;
         var Services= Components.utils.import("resource://gre/modules/Services.jsm", {} ).Services;
         Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
