@@ -1035,7 +1035,7 @@ else {
 
         if( row.value>=0 && column.value ) {
             var modifiedPreferences= false;
-            var rowProperties= tree.view.getRowProperties(row.value);
+            var rowProperties= tree.view.getRowProperties(row.value); // Ignore Firefox 44+ warning: ReferenceError: reference to undefined property "QueryInterface"
             var clickedOptionKey= propertiesPart( rowProperties, RowLevel.OPTION );
             var moduleName= propertiesPart( rowProperties, RowLevel.MODULE );
             var module= modules[moduleName];

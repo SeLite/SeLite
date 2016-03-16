@@ -739,6 +739,22 @@
     Selenium.prototype.doNopAndWait= function doNopAndWait( locatorUnused, valueUnused ) {
         throw new SeleniumError( "Do not use nopAndWait. Use nop instead." );
     };
+    
+    Selenium.prototype.doLog= function doLog( message, level ) {
+        message= '' +message;
+        level= level
+            ? (''+level).toLowerCase()
+            : 'error';
+        switch( level ) {
+            case 'debug': LOG.error( message ); break;
+            case 'info': LOG.error( message ); break;
+            case 'warn': LOG.error( message ); break;
+            case 'error': LOG.error( message ); break;
+        }
+    };
+    Selenium.prototype.doLogAndWait= function doLogAndWait( locatorUnused, valueUnused ) {
+        throw new SeleniumError( "Do not use logAndWait. Use log instead." );
+    };
   }
 )();
 
