@@ -236,11 +236,11 @@
           }
           var indentation= newCommandOrCommentIndentation( this.getTestCase(), index );
 
-          var command = new Command( indentation+command, target, value);
+          var commandObj = new Command( indentation+command, target, value);
           // bind to the href attribute instead of to window.document.location, which
           // is an object reference
           command.lastURL = window.document.location.href;
-          this.getTestCase().commands.splice(index, 0, command);
+          this.getTestCase().commands.splice( index, 0, commandObj );
           this.view.rowInserted(index);
 
           if( !( insertBeforeLastCommand && this.view.getRecordIndex() > 0 ) ) {
