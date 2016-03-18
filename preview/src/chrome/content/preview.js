@@ -30,6 +30,8 @@ function initialise( htmlURL, editor, data, config ) {
     
     config.initialContent= config.initialContent || 'Loading...';
     config.initialContentType= config.initialContentType || 'html';
+    'dontAddTimestamp' in config || (config.dontAddTimestamp=false);
+    
     iframe.setAttribute(
                 "src",
                 "data:text/" +config.initialContentType+ "," + encodeURIComponent( config.initialContent )
@@ -37,6 +39,7 @@ function initialise( htmlURL, editor, data, config ) {
     
     var request = new XMLHttpRequest();
     request.onload= ()=> {
+        
       if (request.readyState === 4) {
         if (request.status === 200) {
 
@@ -75,11 +78,13 @@ function initialise( htmlURL, editor, data, config ) {
     };
 
     // Add a timestamp to make the query unique
-    var htmlURLwithTimestamp= htmlURL+( htmlURL.indexOf('?')<0
-        ? '?'
-        : '&'
-    )+ 'seLiteTimestamp=' +Date.now();
-
+    var htmlURLwithTimestamp= htmlURL;
+    if( !config.dontAddTimestamp ) {
+        htmlURLwithTimestamp+= ( htmlURL.indexOf('?')<0
+            ? '?'
+            : '&'
+        )+ 'seLiteTimestamp=' +Date.now();
+    }
     request.open("GET", htmlURLwithTimestamp, true );
     request.timeout= 3000; // @TODO Use Selenium timeout; in milliseconds
     request.send(null);

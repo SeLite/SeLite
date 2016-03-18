@@ -16,30 +16,27 @@
 */
 "use strict";
 
-Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
-// The primary/initial purpose here was to make Selenium IDE 'Log' tab accessible from Misc JS module. It's only for main Selenium IDE instance and not for auxiliary ones (i.e. Selenium IDE instances normally open with URL ending with '#GREEN' etc. - see http://selite.github.io/SeleniumIde) and neither for Selenium IDE in Firefox sidebar (Firefox menu > View > Sidebar > Selenium IDE - which has a different URL: chrome://selenium-ide/content/selenium-ide-sidebar.xul).
+// For initialisation mechanism, see ide-extension.js of SeLiteMisc.
 if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
-    // LOG is defined, but it won't log into Selenium IDE 'Log' tab.
-    // This is being called from Editor() constructor, hence editor, editor.selDebugger and editor.selDebugger.log are not set up yet. Only after Editor() loads IDE extensions (including this one), it sets its field selDebugger to an instance of Debugger.
-    // When I captured selDebugger.log from window.setTimeout() here, it was different to global LOG at the time of running Selenese.
-    // The following tail-overrides Debugger() with code that sets up a tail-override of 'this.init', i.e. Debugger's instance's init(), to capture its this.runner.LOG, after the original init() loads chrome://selenium-ide/content/selenium-runner.js. Beware that it's differen to global LOG at that time.
     ( function() {
         // This is defined on Editor.prototype, rather than on Selenium.prototype. This way it can access 'editor' object, and through it 'selenium' object, too. Selenese getEval command and custom Selenese commands (defined on Selenium.prototype) can access 'editor' object in order to call editor.openPreview().
-        /** @param {string} htmlURL
+        /** @param {string} htmlFilePathOrURL File path or URL of the preview file/template. If it's a file path, you can use either / or \ as directory separators (they will get translated for the current system). To make it portable, use specify it as a relative path and pass it appended to result of SeLiteSettings.getTestSuiteFolder().
+         <br/>In the content of that file use SELITE_PREVIEW_CONTENT_PARENT as a URL of its folder. That makes it portable.
          *  @param {object} [config] Configuration with any of fields: {
          *      windowTitle: string Window title
          *      initialContent: string content to show up (plain text or HTML)
          *      initialContentType: 'html' (default) or 'text'
          *  }
          * */
-        Editor.prototype.openPreview= function openPreview( htmlURL, data={}, config={} ) {
+        Editor.prototype.openPreview= function openPreview( htmlFilePathOrURL, data={}, config={} ) {
             var win= window.open( "chrome://selite-preview/content/preview.xul", "SeLite Preview", "chrome,resizable=1"/**/);
-
             win.addEventListener( 'load', () => {
                 // win!==window
                 // this===window - thanks to JS ES6 arrow function ()=>{...}
-                win.initialise( htmlURL, this/*i.e. editor*/, data, config );
-                config.windowTitle= config.windowTitle || "SeLite Preview from " +htmlURL;
+                htmlFilePathOrURL= this.selDebugger.runner.selenium.constructor.urlFor( htmlFilePathOrURL );
+                window.alert( 'htmlFilePathOrURL ' +htmlFilePathOrURL);
+                win.initialise( htmlFilePathOrURL, this/*i.e. editor*/, data, config );
+                config.windowTitle= config.windowTitle || "SeLite Preview from " +htmlFilePathOrURL;
                 win.document.title= config.windowTitle;
             } );
         };

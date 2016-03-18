@@ -1,4 +1,4 @@
-/*  Copyright 2011, 2012, 2013, 2014 Peter Kehl
+/*  Copyright 2011, 2012, 2013, 2014, 2016 Peter Kehl
     This file is part of SeLite Misc.
 
     This program is free software: you can redistribute it and/or modify
@@ -18,10 +18,14 @@
 
 Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
 
+var loadedTimes= SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteMisc'] || 0;
+if( loadedTimes===1 ) {
 // Anonymous function to prevent leaking into Selenium global namespace
 ( function() {
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
 
+    //SeLiteExtensionSequencer.coreExtensionsLoadedTimes
+    
     /* Not used. The only place that would use it for now is SeLite Misc ovOptions.js. However, it would need this function to match parameters that don't have part '=value', too.
      *     This is here, rather than in selite-misc.js component, because it needs to access global variable 'selenium'.
      *  I've tried to have it in selite-misc.js and to load the component using
@@ -131,11 +135,14 @@ Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
     var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
     
     var originalSelenium= Selenium;
-    Selenium= function Selenium(browserbot) {
+    Selenium= function SeleniumSeLiteMisc(browserbot) {
         originalSelenium.call( this, browserbot );
         SeLiteMisc.selenium= this;
     };
-    Selenium.prototype= originalSelenium.prototype;
+    // Following selite.github.io/JavascriptComplex#class-inheritance:
+    Selenium.prototype= Object.create( originalSelenium.prototype );
+    Selenium.prototype.constructor= Selenium;
+    Selenium.prototype.originalConstructor= originalSelenium;
     for( var functionName in originalSelenium ) {
         Selenium[functionName]= originalSelenium[functionName];
     }
@@ -159,3 +166,5 @@ Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
         }
     };
 }) ();
+}
+SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteMisc']= loadedTimes+1;

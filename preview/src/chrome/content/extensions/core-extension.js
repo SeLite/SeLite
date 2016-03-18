@@ -16,8 +16,6 @@
 */
 "use strict";
 
-Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
-
 // Anonymous function to prevent leaking into Selenium global namespace
 ( function() {
     var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
