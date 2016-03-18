@@ -18,14 +18,10 @@
 
 // The following if() check is needed because Se IDE loads extensions twice - https://github.com/SeleniumHQ/selenium/issues/1549
 //if( typeof HtmlRunnerTestLoop!=='undefined' ) {
-Components.utils.import( "chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js" );
 var loadedTimes= SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteAutoCheck'] || 0;
 if( loadedTimes===1 ) { // Setup the overrides on the second load
     // @TODO Use $$.fn.interceptAfter from SelBlocks/Global, if it becomes GNU L/GPL
     ( function(global) {
-        Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
-        Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
-        
         var settingsModule= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
         var originalSeLiteAfterCurrentCommand= global.seLiteAfterCurrentCommand;
         global.seLiteAfterCurrentCommand= function seLiteAfterCurrentCommand() {
@@ -74,8 +70,6 @@ SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteAutoCheck']= loadedTim
 var SeLiteAutoCheck= {};
 
 ( function() {
-    Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
-
     /** Parent class of all Auto Check detectors. For description of items of parameters required, refused and ignored check the actual implementation subclasses.
      * When debugging failedXYZ() methods, beware that running a single verification that fails (by double-clicking) doesn't log any message about the failure. It only highlights the command (in the editor matrix) in red/pink. Only when you run a test case/suite then any failed verifications log their messages in the log (in red).
      *  @param {object} required Object serving as an array of entries matching any required contents. In default implementation an entry can be any Selenese locator.

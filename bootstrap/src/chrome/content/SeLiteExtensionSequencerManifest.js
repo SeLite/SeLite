@@ -24,7 +24,6 @@ SeLiteExtensionSequencer.registerPlugin( {
         }
     },
     preActivate: function(api) {
-        Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
         var settingsModule= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
        var bootstrappedCoreExtensions= new SeLiteSettings.Field.File( 'bootstrappedCoreExtensions', { 'Javascript': '*.js*', 'Any': null}, /*multivalued*/true, /*defaultKey*/[], /*allowNull*/false,
             "Javascript file(s) that are loaded initially and on change via SeLite Bootstrap.",

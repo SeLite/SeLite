@@ -1,4 +1,4 @@
-/*  Copyright 2012, 2013, 2014, 2015 Peter Kehl
+/*  Copyright 2012, 2013, 2014, 2015, 2016 Peter Kehl
     This file is part of SeLite Bootstrap.
 
     This program is free software: you can redistribute it and/or modify
@@ -18,7 +18,6 @@
 /** @param {object} global Global object, as per https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects. Its value is value of operator 'this'. I need it, so that I can call loadSubScript() with charset set to 'UTF-8'.
  * */
 (function(global) { // Anonymous function separates local variables from Selenium Core scope
-    Components.utils.import( "chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js" );
     var loadedTimes= SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteBootstrap'] || 0;
     if( loadedTimes===1 ) { // Ignore the first load, because Se IDE somehow discards that Selenium.prototype. So set up the overrides on 2nd load.
         
@@ -27,9 +26,6 @@
         Selenium.bootstrapScriptLoadTimestamps= {};
         var FileUtils= Components.utils.import("resource://gre/modules/FileUtils.jsm", {} ).FileUtils;
         var Services= Components.utils.import("resource://gre/modules/Services.jsm", {} ).Services;
-        Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
-        Components.utils.import( 'chrome://selite-settings/content/SeLiteSettings.js' );
-
         /** There are two sets of events when we want to call reloadScripts(), which are handled separately:
             - executing a single test command / run a testcase / run each testcase in a testsuite. Handled by tail-intercept of Selenium.prototype.reset() below.
             - run a testcase/testsuite, pause it (or not), modify a file loaded via SeBootstrap (and make the test continue if you paused it earlier), SeBootstrap will not re-trigger Selenium.prototype.reset() (until next run of a single command/testcase/testsuite). That's handled by TestCaseDebugContext.prototype.nextCommand(). This function is defined in sister extension: testcase-debug-context. Then it's intercepted in SelBlocks Global.

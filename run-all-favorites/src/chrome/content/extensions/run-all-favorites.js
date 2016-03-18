@@ -448,6 +448,6 @@ window.setTimeout( function() {
         SidebarEditor.prototype.playTestSuite= StandaloneEditor.prototype.playTestSuite= Editor.prototype.playTestSuite;
         
         // Selenium IDE sometimes auto-loads the last test suite when it starts. Following ensures the star for it to be correct:
-        this.editor.favorites.suiteStateChanged( editor.app.testSuite );
+        editor.app.testSuite===null || this.editor.favorites.suiteStateChanged( editor.app.testSuite );
     }
 }, 3000 );

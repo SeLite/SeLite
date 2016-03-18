@@ -98,11 +98,25 @@ editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHa
 
 setTimeout( //waits until all the sub-scripts are loaded. Only then it can overload selDebugger.init().
     function() {
-        
-        var originalInit= editor.selDebugger.init;
-        editor.selDebugger.init= function init() {
-            originalInit.call( this );
+        // In Firefox 48.0a1 (2016-03-08) setTimeout() runs immediately (async?)
+        // even when e10s electrolysis is off. Hence two ways of tail-override of selDebugger.init():
+        var selDebuggerInitOriginal;
+        var selDebuggerInitSeLite= function selDebuggerInitSeLite() {
+            selDebuggerInitOriginal.call( this );
             this.runner.IDETestLoop.prototype.resume= editor.testLoopResume;
+        }
+        if( editor.selDebugger ) {
+            selDebuggerInitOriginal= editor.selDebugger.init;
+            editor.selDebugger.init= selDebuggerInitSeLite;
+        }
+        else {
+            var debuggerOriginal= Debugger;
+            Debugger= function DebuggerSeLite(editor) {
+                debuggerOriginal.call( this, editor );
+                selDebuggerInitOriginal= this.init;
+                this.init= selDebuggerInitSeLite;
+            };
+            Debugger.prototype= debuggerOriginal.prototype;
         }
     },
     0

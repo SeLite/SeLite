@@ -18,8 +18,6 @@
 
 (
   function() {
-    Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
-    
     // For all Selenium actions and locators defined here - i.e. functions with name doXXXX, isXXXXX, getXXXXX
     // see their user documentation at ../reference.xml
     // @TODO report getXyz() function must return a non-null defined value; otherwise you'll get a confusing error from AccessorResult

@@ -23,11 +23,9 @@ if( SeLiteExitConfirmationChecker===undefined ) {
 }
 // Anonymous function to prevent leaking into Selenium global namespace
 ( function( global ) {
-    Components.utils.import( "chrome://selite-extension-sequencer/content/SeLiteExtensionSequencer.js" );
     var loadedTimes= SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteExitConfirmationChecker'] || 0;
     if( loadedTimes===1 ) { // Setup the overrides on the second load
         var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
-        Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
         var settingsModule= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
         
         // Override BrowserBot defined in Selenium IDE's chrome://selenium-ide/content/selenium-core/scripts/selenium-browserbot.js

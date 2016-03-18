@@ -23,7 +23,6 @@ SeLiteExtensionSequencer.registerPlugin( {
         }
     },
     preActivate: function(api) {
-        Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
         var settingsModule= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
         var exitConfirmationCheckerMode= new SeLiteSettings.Field.Choice.String(
                 'exitConfirmationCheckerMode', false, "inactive",
