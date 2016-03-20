@@ -2,8 +2,8 @@
 SeLiteExtensionSequencer.registerPlugin( {
     name: 'SeLite Preview',
     id: 'preview@selite.googlecode.com',
-    coreURL: 'chrome://selite-preview/content/extensions/core-extension.js',
-    ideURL: 'chrome://selite-preview/content/extensions/preview-ide-extension.js',
+    coreURL: 'chrome://selite-preview/content/extensions/preview-core.js',
+    ideURL: 'chrome://selite-preview/content/extensions/preview-ide.js',
     infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-preview/',
     requisitePlugins: {
         'selblocks-global@selite.googlecode.com': {
