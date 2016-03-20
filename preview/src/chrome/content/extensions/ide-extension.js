@@ -33,8 +33,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
             win.addEventListener( 'load', () => {
                 // win!==window
                 // this===window - thanks to JS ES6 arrow function ()=>{...}
-                htmlFilePathOrURL= this.selDebugger.runner.selenium.constructor.urlFor( htmlFilePathOrURL );
-                window.alert( 'htmlFilePathOrURL ' +htmlFilePathOrURL);
+                htmlFilePathOrURL= this.selDebugger.runner.selenium.constructor.urlFor( htmlFilePathOrURL, true );
                 win.initialise( htmlFilePathOrURL, this/*i.e. editor*/, data, config );
                 config.windowTitle= config.windowTitle || "SeLite Preview from " +htmlFilePathOrURL;
                 win.document.title= config.windowTitle;

@@ -60,7 +60,7 @@ function initialise( htmlURL, editor, data, config ) {
                 if( typeof iframe.contentWindow.seLitePreviewInitialize==='function' ) {
                     iframe.contentWindow.seLitePreviewInitialize(
                         data,
-                        {
+                        /*environment:*/{
                             selenium: editor.selDebugger.runner.selenium,
                             editor,
                             parentAbsoluteURL

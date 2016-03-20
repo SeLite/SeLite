@@ -13,11 +13,12 @@
       "use strict";
       
       function seLitePreviewInitialize( data, environment ) {
-          /*var data = {
-            who:'BeeBole!' //the JSON data
-          };*/
-          var directive = {
-            'span':'who' //make the link between the HTML SPAN tag and the JSON property "who".
+          var directive = { //make the link between the CSS selectors and data object
+            li: {
+                'animal<-': {
+                    span: 'animal'
+                }
+            }
         };
         // As per https://groups.google.com/forum/#!searchin/Pure-Unobtrusive-Rendering-Engine/pure$20without$20jquery/pure-unobtrusive-rendering-engine/Cmt1bqfsZLg/rhGP8ZqfliAJ
         // See also autoRender at https://beebole.com/pure/
@@ -28,7 +29,11 @@
 </head>
 <body>
     <div id="results">
-        Hi <span></span>
+        <ul/>
+            <li>
+                <span></span>
+            </li>
+        </ul>
     </div>
 </body>
 </html>
