@@ -24,7 +24,7 @@ function SeLiteExtensionSequencer() {}
  *  }
  *  Passive - It's up to the Core extension to use this appropriately.
  *  This exists because of issue https://github.com/SeleniumHQ/selenium/issues/1549 "Core extensions are loaded 2x".
- *  This gets re-set by extensions/core.js, otherwise it would stay between reloads of Selenium IDE.
+ *  This gets re-set by extensions/extension-sequencer-core.js, otherwise it would stay between reloads of Selenium IDE.
 */
 SeLiteExtensionSequencer.coreExtensionsLoadedTimes= {};
 

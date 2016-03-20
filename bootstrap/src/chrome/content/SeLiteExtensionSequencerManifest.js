@@ -2,7 +2,7 @@
 SeLiteExtensionSequencer.registerPlugin( {
     name: 'SeLite Bootstrap',
     id: 'bootstrap@selite.googlecode.com',
-    coreURL: 'chrome://selite-bootstrap/content/extensions/se_bootstrap.js',
+    coreURL: 'chrome://selite-bootstrap/content/extensions/bootstrap-core.js',
     infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-bootstrap/',
     requisitePlugins: {
         'selblocks-global@selite.googlecode.com': {

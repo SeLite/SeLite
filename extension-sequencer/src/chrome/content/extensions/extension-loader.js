@@ -27,7 +27,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
         if( !global.runAsCheck ) {
             var ide_api= new API(); // API comes from chrome://selenium-ide/content/api.js - referenced through ./extension-loader.xul
             // Register itself - so that it shows up in Selenium IDE > Options > Options > Plugins
-            ide_api.addPluginProvidedUserExtension( 'chrome://selite-extension-sequencer/content/extensions/core.js' );
+            ide_api.addPluginProvidedUserExtension( 'chrome://selite-extension-sequencer/content/extensions/extension-sequencer-core.js' );
             ide_api.addPlugin( 'extension-sequencer@selite.googlecode.com' );
         }
         

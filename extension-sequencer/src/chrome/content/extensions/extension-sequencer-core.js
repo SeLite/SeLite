@@ -14,6 +14,6 @@
     }
     StandaloneEditor.extensionSequencerClearedLoadedTimes++;
     if( StandaloneEditor.extensionSequencerClearedLoadedTimes>2 ) {
-        throw Error( "SeLite Extension Sequencer's core.js was loaded more than twice during the same run of Selenium IDE, or Selenium IDE became incompatible with SeLite Extension Sequencer: " +StandaloneEditor.extensionSequencerClearedLoadedTimes );
+        throw Error( "SeLite Extension Sequencer's extension-sequencer-core.js was loaded more than twice during the same run of Selenium IDE, or Selenium IDE became incompatible with SeLite Extension Sequencer: " +StandaloneEditor.extensionSequencerClearedLoadedTimes );
     }
 } )();

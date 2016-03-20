@@ -30,9 +30,6 @@ zip -r ../../xpi/hands-on-gui.xpi *
 cd ../../misc/src
 zip -r ../../xpi/misc.xpi *
 
-#cd ../../selblocks-global/src
-#zip -r ../../xpi/selblocks-global.xpi *
-
 cd ../../sqlite-connection-manager/src
 zip -r ../../xpi/sqlite-connection-manager.xpi *
 
