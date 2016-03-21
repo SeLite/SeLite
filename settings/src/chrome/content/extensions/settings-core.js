@@ -21,7 +21,8 @@
     // No need for Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" ); because that is done by preActivate() in SeLiteExtensionSequencerManifest.js.
   
     var loadedTimes= SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteSettings'] || 0;
-    if( loadedTimes===1 ) {
+    // Following is different to most other Core extensions: This needs to execute on the first run, not on the second. Otherwise it breaks SeLiteSettings.getTestSuiteFolder().
+    if( loadedTimes===0 ) {
         //@TODO Store the test suite folder via JS component. Have API to return via SeLiteSettings JS component.
         // Tail-intercept of TestSuite.loadFile(file)
         var originalLoadFile= TestSuite.loadFile;

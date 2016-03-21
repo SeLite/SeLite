@@ -9,7 +9,7 @@
 <xul:window id="SeLitePreview" xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns="http://www.w3.org/1999/xhtml">
     <html>
         <head>  
-            <!-- We could use <title>, but no xul:title. Instead, however, we set title in Javascript through document.title.
+            <!-- We could use <title>, but no xul:title. Instead, we set title in Javascript through document.title.
                 If the root element is <xul:window>, but not <window> (i.e. not HTML window), then
                     1. preview.js can set the window's title
                     2. default background is gray rather than white
