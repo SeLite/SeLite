@@ -13,7 +13,7 @@
       "use strict";
       
       function seLitePreviewInitialize( data, environment ) {
-          var directive = { //make the link between the CSS selectors and data object
+        var directive = { //make the link between the CSS selectors and data object
             li: {
                 'animal<-': {
                     span: 'animal'
@@ -22,7 +22,9 @@
         };
         // As per https://groups.google.com/forum/#!searchin/Pure-Unobtrusive-Rendering-Engine/pure$20without$20jquery/pure-unobtrusive-rendering-engine/Cmt1bqfsZLg/rhGP8ZqfliAJ
         // See also autoRender at https://beebole.com/pure/
-          $p('#results').render( data, directive );
+        
+        if( !data.length ); // @TODO remove the template <li> if there are no results
+        $p('#results').render( data, directive );
       }
       //]]>
   </script>
