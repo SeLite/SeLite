@@ -242,27 +242,6 @@
         storedVars[resultVariableName]= SeLiteMisc.collectByColumn( storedVars[sourceVariableName], [indexBy], valuesUnique );
     };
 
-    Selenium.prototype.doStoreByXPath= function doStoreByXPath( elementSetXPath, storedVariableName ) {
-        /** This clicks at a random radio button from within a set of radio buttons identified by locator.
-         *  @param string elementSetXPath XPath expression to locate the element(s). Don't include leading 'xpath='.
-         *  It can't be any other Selenium locator. You probably want to match them
-         *  using XPath 'contains' function, e.g. //input[ @type='radio' and contains(@id, 'feedback-') ].
-         */
-        // Can't use global variable 'window' here
-        var window= this.browserbot.getCurrentWindow();
-
-        // There's no getElements(..) function in Selenium API, so I'm using the DOM one
-        // See https://developer.mozilla.org/en/DOM/document.evaluate
-        var elementsIterator= window.document.evaluate(
-            elementSetXPath, window.document, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null );
-        var elements= [];
-        var element= null;
-        while( (element=elementsIterator.iterateNext()) ) {
-            elements.push( element );
-        }
-        storedVars[ storedVariableName ]= elements;
-    };
-    
     // I don't use prefix 'get' or 'do' in the name of this function
     // because it's not intended to be run as Selenium getter/command.
     Selenium.prototype.randomElement= function randomElement( elementSetXPath ) {
