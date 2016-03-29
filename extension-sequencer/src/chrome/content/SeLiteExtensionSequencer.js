@@ -414,10 +414,10 @@ SeLiteExtensionSequencer.popup= function popup( window, title, message ) {
                     function () {
                         // As per https://developer.mozilla.org/en-US/Add-ons/Overlay_Extensions/XUL_School/DOM_Building_and_HTML_Insertion#See_Also -> https://developer.mozilla.org/en-US/docs/Displaying_web_content_in_an_extension_without_security_issues
                         var body= newTabBrowser.contentDocument.body;
+                        // Following is instead of: newTabBrowser.contentDocument.body.innerHTML= message;
                         var fragment= Components.classes["@mozilla.org/feed-unescapehtml;1"]
                          .getService(Components.interfaces.nsIScriptableUnescapeHTML)
                          .parseFragment( message, false, null, body );
-                        //newTabBrowser.contentDocument.body.innerHTML= message;
                         body.appendChild( fragment );
                     },
                     true

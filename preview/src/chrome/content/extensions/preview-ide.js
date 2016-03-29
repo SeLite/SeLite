@@ -32,10 +32,10 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
             var win= window.open( "chrome://selite-preview/content/preview.xul", "SeLite Preview", "chrome,resizable=1"/**/);
             win.addEventListener( 'load', () => {
                 // win!==window
-                // this===window - thanks to JS ES6 arrow function ()=>{...}
+                // this===editor - thanks to JS ES6 arrow function ()=>{...}
                 htmlFilePathOrURL= this.selDebugger.runner.selenium.constructor.urlFor( htmlFilePathOrURL, true );
-                win.initialise( htmlFilePathOrURL, this/*i.e. editor*/, data, config );
                 config.windowTitle= config.windowTitle || "SeLite Preview from " +htmlFilePathOrURL;
+                win.initialise( htmlFilePathOrURL, this/*i.e. editor*/, data, config );
                 win.document.title= config.windowTitle;
             } );
         };

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/content/xul.css" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/skin/browser.css" type="text/css"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<!DOCTYPE window [
+<!ENTITY % browserDTD SYSTEM "chrome://browser/locale/browser.dtd">
+%browserDTD;
+]>
+<xul:window id="SeLitePreview" xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns="http://www.w3.org/1999/xhtml">
+    <html>
+        <head>  
+            <script type="text/javascript" src="content_iframe_test.js"></script>
+        </head>
+        <body onload="onBodyLoad()">
+            <iframe type="content" id="iframe" width="100%" height="100%" frameborder="0" marginheight="0" marginwidth="0"></iframe>
+        </body>
+    </html>
+</xul:window>

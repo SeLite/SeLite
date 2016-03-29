@@ -17,7 +17,6 @@
 "use strict";
 
 var iframe;
-
 window.onresize= ()=> {
     if( iframe ) {
         iframe.width= window.innerWidth-20;
@@ -28,6 +27,7 @@ window.onresize= ()=> {
 function initialise( htmlURL, editor, data, config ) {
     iframe= document.getElementById('iframe');
     
+    config.initialContent || config.initialContentType || (config.initialContentType= 'plain'); // Use 'plain' if showing initial content 'Loading...'
     config.initialContent= config.initialContent || 'Loading...';
     config.initialContentType= config.initialContentType || 'html';
     'dontAddTimestamp' in config || (config.dontAddTimestamp=false);
@@ -42,23 +42,19 @@ function initialise( htmlURL, editor, data, config ) {
         
       if (request.readyState === 4) {
         if (request.status === 200) {
-
             // Based on https://developer.mozilla.org/en-US/docs/Web/API/URL/URL
             var parentAbsoluteURL= new URL( '.', htmlURL ).href;
             var html= request.responseText.replace( /SELITE_PREVIEW_CONTENT_PARENT/gi, parentAbsoluteURL );
-
             // Based on https://developer.mozilla.org/en-US/docs/Displaying_web_content_in_an_extension_without_security_issues
             iframe.setAttribute(
                 "src",
                 "data:text/html," + encodeURIComponent(html)
             );
-
-            // Here it is too early to access iframe.contentWindow. Hence delay it.
-            setTimeout( ()=> {
-                //iframe.contentWindow.seLite="TODO";
-
-                if( typeof iframe.contentWindow.seLitePreviewInitialize==='function' ) {
-                    iframe.contentWindow.seLitePreviewInitialize(
+            // I've tried handlers for load, pageshow on contentWindow.wrappedJSObject, contentWindow, contentWindow.wrappedJSObject.document. None worked.
+            
+            var invokeSeLitePreviewInitialize= function invokeSeLitePreviewInitialize() {
+                if (typeof iframe.contentWindow.wrappedJSObject.seLitePreviewInitialize === 'function') {
+                    iframe.contentWindow.wrappedJSObject.seLitePreviewInitialize(
                         data,
                         /*environment:*/{
                             selenium: editor.selDebugger.runner.selenium,
@@ -67,7 +63,13 @@ function initialise( htmlURL, editor, data, config ) {
                         }
                     );
                 }
-            }, 300 );
+                else {
+                    // See comments in ../../../dev/content_iframe_test.js.
+                    // Don't use iframe.contentWindow.wrappedJSObject.setTimeout(). Instead, use setTimeout().
+                    setTimeout( invokeSeLitePreviewInitialize, 100 );
+                }
+            };
+            invokeSeLitePreviewInitialize();
         } else {
           alert( "Couldn't load " +htmlURL+ ". " +request.statusText );
         }
