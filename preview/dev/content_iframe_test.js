@@ -21,7 +21,7 @@ function onBodyLoad() {
     
     iframe.setAttribute(
         "src",
-        "data:text/html," + encodeURIComponent( '<html><head><script type="text/javascript">function scripted(){ alert("scripted()"); }</script></head><body>Hi</body></html>' )
+        "data:text/html," + encodeURIComponent( '<html><head><script type="text/javascript">function scripted(){ alert("scripted()"); }</script></head><body>Hi <a href="javascript:alert(\'hi\')" onclick="alert(\'onclick\')">link</a>.</body></html>' )
     );
     // When this is run via file:// rather than via chrome://, then it can't access local files.
     // E.g. following fails with NS_ERROR_DOM_BAD_URI: Access to restricted URI denied:
