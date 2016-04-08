@@ -723,9 +723,9 @@
             ? (''+level).toLowerCase()
             : 'error';
         switch( level ) {
-            case 'debug': LOG.error( message ); break;
-            case 'info': LOG.error( message ); break;
-            case 'warn': LOG.error( message ); break;
+            case 'debug': LOG.debug( message ); break;
+            case 'info': LOG.info( message ); break;
+            case 'warn': LOG.warn( message ); break;
             case 'error': LOG.error( message ); break;
         }
     };
