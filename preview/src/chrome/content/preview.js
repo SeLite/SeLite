@@ -27,7 +27,7 @@ window.onresize= ()=> {
 function initialise( htmlURL, editor, data, config ) {
     iframe= document.getElementById('iframe');
     
-    config.initialContent || config.initialContentType || (config.initialContentType= 'plain'); // Use 'plain' if showing initial content 'Loading...'
+    config.initialContent || config.initialContentType || (config.initialContentType= 'plain');
     config.initialContent= config.initialContent || 'Loading...';
     config.initialContentType= config.initialContentType || 'html';
     'dontAddTimestamp' in config || (config.dontAddTimestamp=false);

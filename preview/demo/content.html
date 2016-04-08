@@ -2,7 +2,7 @@
 <html lang="en-US" dir="ltr">
 <head>
   <meta charset="utf-8"></meta>
-  <title>Don't use title - no effect</title>
+  <!--<title>Don't use title - no effect</title>-->
   <!-- As of March 2016, PURE is the easiest engine listed on https://developer.mozilla.org/en-US/docs/JavaScript_templates -->
   <script type="text/javascript" src="https://raw.githubusercontent.com/pure/pure/master/libs/pure.min.js"></script>
   <!-- If you download pure.min.js and save it next to this .html file, then use:
@@ -12,7 +12,7 @@
       //<![CDATA[
       "use strict";
       
-      function seLitePreviewInitialize( data, environment ) {
+      function seLitePreviewPresent( data ) {
         var directive = { //make the link between the CSS selectors and data object
             li: {
                 'animal<-': {
