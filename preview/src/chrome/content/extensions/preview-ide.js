@@ -49,6 +49,9 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
               if (request.readyState === 4) {
                 if (request.status === 200) {
                     var parentAbsoluteURL= new URL( '.', htmlFilePathOrURL ).href; // Based on https://developer.mozilla.org/en-US/docs/Web/API/URL/URL
+                    if( parentAbsoluteURL[parentAbsoluteURL.length-1]==='/' ) { // Remove trailing '/'
+                        parentAbsoluteURL= parentAbsoluteURL.substring( 0, parentAbsoluteURL.length-1 );
+                    }
                     var html= request.responseText.replace( /SELITE_PREVIEW_CONTENT_PARENT/gi, parentAbsoluteURL );
                     
                     if( html.indexOf('SELITE_PREVIEW_DATA')>=0 ) {
@@ -58,14 +61,18 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
                     
                     // @TODO Export generated HTML or XML <-: document.getElementsByTagName('body')[0].innerHTML
                     //@TODO CSV or plain text through 2 stage generation? <- .innerText
+                    //XML: <script data-selite="yes">...</script> -> remove such elements from XML export
                     else {
                         var scriptParameter= config.contentType==='html'
-                            ? 'type="javascript"'
+                            ? 'type="text/javascript"'
                             : 'xmlns="http://www.w3.org/2000/svg"';
                         var script= "\n<script " +scriptParameter+ ">";
                         script+= "\n//<![CDATA[";
-                        // XML: this works
-                        script+= '\nalert("hi"); typeof seLitePreviewPresent!=="function" || window.addEventListener( "load", () => {seLitePreviewPresent( ' +JSON.stringify( data )+ ' ); } );';
+                        // In XML <body onload="..."> handler doesn't work.
+                        // XML+HTML: document.addEventListener( "load", ...) doesn't work
+                        script+= '\n document.addEventListener( "load", () => {typeof seLitePreviewPresent!=="function" || seLitePreviewPresent( ' +JSON.stringify( data )+ ' ); } );';
+                        
+                        //script+= '\n window.addEventListener( "load", () => {typeof seLitePreviewPresent!=="function" || seLitePreviewPresent( ' +JSON.stringify( data )+ ' ); } );';
                         script+= "\n//]]>";
                         script+= "\n</script>\n";
                         
