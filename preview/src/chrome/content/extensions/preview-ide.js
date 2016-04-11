@@ -20,7 +20,11 @@
 if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
     ( function() {
         // This is defined on Editor.prototype, rather than on Selenium.prototype. This way it can access 'editor' object, and through it 'selenium' object, too. Selenese getEval command and custom Selenese commands (defined on Selenium.prototype) can access 'editor' object in order to call editor.openPreview().
-        /** @param {string} htmlFilePathOrURL File path or URL of the preview file/template. If it's a file path, you can use either / or \ as directory separators (they will get translated for the current system). To make it portable, use specify it as a relative path and pass it appended to result of SeLiteSettings.getTestSuiteFolder().
+        /** Goals:
+         *  - Bookmarkable
+         *  - Access files relative to the template (whether via http:// or file://). In order to access local file://, the topmost URL must use 'data:' meta-protocol. We could have a file that would have an iframe that would use data:. However, that adds an unnecessary layer. Hence we use ?query - which works with both http:// and file://.
+         *  TODO if URL already contains ?, add &seLiteData=...
+         *  @param {string} htmlFilePathOrURL File path or URL of the preview file/template. If it's a file path, you can use either / or \ as directory separators (they will get translated for the current system). To make it portable, use specify it as a relative path and pass it appended to result of SeLiteSettings.getTestSuiteFolder().
          <br/>In the content of that file use SELITE_PREVIEW_CONTENT_PARENT as a URL of its folder. That makes it portable.
          *  @param {object} [config] Configuration with any of fields: {
          *      windowTitle: string Window title
@@ -40,6 +44,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
             }
             
             config.contentType= config.contentType || 'html';
+            var isHTML= config.contentType==='html';
             config.windowTitle= config.windowTitle || "SeLite Preview from " +htmlFilePathOrURL;
             'dontAddTimestamp' in config || (config.dontAddTimestamp=false);
             
@@ -63,28 +68,44 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
                     //@TODO CSV or plain text through 2 stage generation? <- .innerText
                     //XML: <script data-selite="yes">...</script> -> remove such elements from XML export
                     else {
-                        var scriptParameter= config.contentType==='html'
-                            ? 'type="text/javascript"'
-                            : 'xmlns="http://www.w3.org/2000/svg"';
-                        var script= "\n<script " +scriptParameter+ ">";
-                        script+= "\n//<![CDATA[";
-                        // In XML <body onload="..."> handler doesn't work.
-                        // XML+HTML: document.addEventListener( "load", ...) doesn't work
-                        script+= '\n document.addEventListener( "load", () => {typeof seLitePreviewPresent!=="function" || seLitePreviewPresent( ' +JSON.stringify( data )+ ' ); } );';
-                        
+                        var script= isHTML
+                            ? '\n<script'
+                            : '\n<xhtml:script xmlns:xhtml="http://www.w3.org/1999/xhtml"';
+                        script+= 'type="text/javascript">';
+                        script+= "\n//<![CDATA[\n";
+                        // In XML <body onload="..."> handler doesn't work - hence https://developer.mozilla.org/en/docs/web/api/document/readystate
+                        // In either XML or HTML: document.addEventListener( "load", ...) doesn't work
+                        script+= isHTML
+                            ? 'window.addEventListener( "load", '
+                            : 'document.onreadystatechange= ';
+                        script+= '\n() => {\n';
+                        if( !isHTML ) {
+                            script+= 'if (document.readyState==="complete") {\n';
+                        }
+                        script+= 'typeof seLitePreviewPresent!=="function" || seLitePreviewPresent( ' +JSON.stringify( data )+ ' );\n';
+                        if( !isHTML ) {
+                            script+= '}\n'; // end of: if(document.readyState...) {...}
+                        }
+                        script+= '}\n'; // end of arrow function body () => {...}
+                        if( isHTML ) {
+                            script+= ')';
+                        }
+                        script+= ';\n';
                         //script+= '\n window.addEventListener( "load", () => {typeof seLitePreviewPresent!=="function" || seLitePreviewPresent( ' +JSON.stringify( data )+ ' ); } );';
-                        script+= "\n//]]>";
-                        script+= "\n</script>\n";
+                        script+= "//]]>";
+                        script+= isHTML
+                            ? "\n</script>\n"
+                            : "\n</xhtml:script>\n";
                         
                         var injectAt= html.lastIndexOf( '</' );
-                        if( config.contentType==='html' ) {
+                        if( isHTML ) {
                             injectAt= html.lastIndexOf( '</', injectAt-1 ); // just before </body>
                         }
                         html= html.substring( 0, injectAt ) +script+ html.substring( injectAt );
                     }
                     
                     // See also https://developer.mozilla.org/en-US/docs/Displaying_web_content_in_an_extension_without_security_issues
-                    var win= window.open( "data:text/" +config.contentType+ "," + encodeURIComponent(html), /*TODO: no effect*/config.windowTitle/*, "resizable=1"*/);
+                    var win= window.open( "data:text/" +config.contentType+ "," + encodeURIComponent(html), /*TODO: no effect*/config.windowTitle/*, "chrome,resizable=1"/**/);
                     
                     win.addEventListener( 'load', () => {
                         // win!==window; this===editor - thanks to JS ES6 arrow function ()=>{...}
