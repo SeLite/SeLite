@@ -21,91 +21,68 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
     ( function() {
         // This is defined on Editor.prototype, rather than on Selenium.prototype. This way it can access 'editor' object, and through it 'selenium' object, too. Selenese getEval command and custom Selenese commands (defined on Selenium.prototype) can access 'editor' object in order to call editor.openPreview().
         /** Goals:
-         *  - Bookmarkable
-         *  - Access files relative to the template (whether via http:// or file://). In order to access local file://, the topmost URL must use 'data:' meta-protocol. We could have a file that would have an iframe that would use data:. However, that adds an unnecessary layer. Hence we use ?query - which works with both http:// and file://.
-         *  TODO if URL already contains ?, add &seLiteData=...
-         *  @param {string} htmlFilePathOrURL File path or URL of the preview file/template. If it's a file path, you can use either / or \ as directory separators (they will get translated for the current system). To make it portable, use specify it as a relative path and pass it appended to result of SeLiteSettings.getTestSuiteFolder().
-         <br/>In the content of that file use SELITE_PREVIEW_CONTENT_PARENT as a URL of its folder. That makes it portable.
+         *  - Bookmarkable (except for the connection back to Selenium IDE, and except for any secure data)
+         *  - Can access files relative to the template (whether via http://, https:// or file://). However, in order to access local file://, the topmost URL must not use 'data:' meta-protocol. We could have a file that would have an iframe that would use data:. However, that adds an unnecessary layer. Hence we use query or hash part of URL - which works with both http://, https:// and file://. The user can still pass a data: URL, if it contains any images and CSS that it needs. Then the user can pass/bookmark the result URL without any files. TODO refer to a separate add-on to generate those.
+         *  Following describes the API. For  use cases see https://selite.github.io/Preview.
+         *  <br/>
+         *  In the template:
+         *  1. Extract the encoded data. If config.inHash is false, extract from location.query the part (if any) between 'seLitePreviewData=' and the next '&' (if any). If config.inHash is true, then strip leading hash off location.hash.
+         *  2. If there is any such part, apply decodeURIComponent() (if config.base64 is false) or atob() (if config.base64 is true). Then apply JSON.parse().
+         *  @param {string} filePathOrURL File path or URL of the HTML/XML preview file/template. If it's a file path, you can use either / or \ as directory separators (they will get translated for the current system). To make it portable, use specify it as a relative path and pass it appended to result of SeLiteSettings.getTestSuiteFolder(). It must no contain a #hash/fragment part.
+         *  @param {*} [data] Usually an anonymous object or an array. The template must not rely on any class membership or on any fields that are functions.
          *  @param {object} [config] Configuration with any of fields: {
-         *      windowTitle: string Window title
-         *      contentType: 'html' (default) or 'xml'
-         *      dontAddTimestamp: if true, then 
+         *      dontAddTimestamp: boolean. If true, then this doesn't make the URL unique by adding a timestamp in the query part of filePathOrURL.
+         *      dataParameterName: name of HTTP GET parameter ('seLitePreviewData' by default), added to the query part of filePathOrURL. Only used when passing data through URL query rather than through URL hash (fragment, anchor).
+         *      inHash: boolean, whether to pass the data in the URI hash instead of URI query' (default) or 'hash'. How the data is passed - via URL query or URL hash.
+         *      base64: boolean, whether to base64-encode, instead of url-encode. False by default.
          *  }
          * */
-        Editor.prototype.openPreview= function openPreview( htmlFilePathOrURL, data={}, config={} ) {
-            htmlFilePathOrURL= this.selDebugger.runner.selenium.constructor.urlFor( htmlFilePathOrURL, true );
+        Editor.prototype.openPreview= function openPreview( filePathOrURL, data={}, config={} ) {
+            filePathOrURL.indexOf('#')<0 || SeLiteMisc.fail( 'Parameter filePathOrURL must not contain a #hash (fragment): ' +filePathOrURL );
+            var url= this.selDebugger.runner.selenium.constructor.urlFor( filePathOrURL, true );
             // Add a timestamp to make the query unique
-            var htmlURLwithTimestamp= htmlFilePathOrURL;
             if( !config.dontAddTimestamp ) {
-                htmlURLwithTimestamp+= ( htmlURLwithTimestamp.indexOf('?')<0
+                url+= ( url.indexOf('?')<0
                     ? '?'
                     : '&'
                 )+ 'seLiteTimestamp=' +Date.now();
             }
             
-            config.contentType= config.contentType || 'html';
-            var isHTML= config.contentType==='html';
-            config.windowTitle= config.windowTitle || "SeLite Preview from " +htmlFilePathOrURL;
-            'dontAddTimestamp' in config || (config.dontAddTimestamp=false);
+            'dataParameterName' in config || (config.dataParameterName='seLitePreviewData');
+            'inHash' in config || (config.inHash=false);
+            'base64' in config || (config.base64=false);
             
             var request = new XMLHttpRequest();
             request.onload= ()=> {
 
               if (request.readyState === 4) {
                 if (request.status === 200) {
-                    var parentAbsoluteURL= new URL( '.', htmlFilePathOrURL ).href; // Based on https://developer.mozilla.org/en-US/docs/Web/API/URL/URL
-                    if( parentAbsoluteURL[parentAbsoluteURL.length-1]==='/' ) { // Remove trailing '/'
-                        parentAbsoluteURL= parentAbsoluteURL.substring( 0, parentAbsoluteURL.length-1 );
+                    /** Side research on passing data via #hash part of URL:
+                           JSON.stringify( {hi: 'you & i'} ) -> '{"hi":"you & i"}'
+                        however:
+                           window.open( someURL + '#' +JSON.stringify( {hi: 'you & i'} ) )
+                           opens a window with URL ending with #{"hi":"you%20&%20i"}
+                           Firefox adds transformation of spaces to %20. When Javascript from that loaded page
+                           uses its location.hash, it is '#{"hi":"you%20&%20i"}'. However, that doesn't feel robust.
+                        Anyway, let's url-encode or base64-encode the hash as per RFC on URI http://tools.ietf.org/html/rfc3986#section-3.5.
+                   */
+                    var json= JSON.stringify( data );
+                    var encoded= config.base64
+                        ? btoa(json)
+                        : encodeURIComponent(json);
+                    if( config.inHash ) {
+                        url+= '#' +encoded;
                     }
-                    var html= request.responseText.replace( /SELITE_PREVIEW_CONTENT_PARENT/gi, parentAbsoluteURL );
-                    
-                    if( html.indexOf('SELITE_PREVIEW_DATA')>=0 ) {
-                        html= html.replace( /SELITE_PREVIEW_DATA/gi, JSON.stringify(data) );
-                    }
-                    // When injecting a call to seLitePreviewPresent(), and when calling seLitePreviewConnect(), I don't check whether these exist in HTML. That's because they may be in a separate .js file loaded from HTML.
-                    
-                    // @TODO Export generated HTML or XML <-: document.getElementsByTagName('body')[0].innerHTML
-                    //@TODO CSV or plain text through 2 stage generation? <- .innerText
-                    //XML: <script data-selite="yes">...</script> -> remove such elements from XML export
                     else {
-                        var script= isHTML
-                            ? '\n<script'
-                            : '\n<xhtml:script xmlns:xhtml="http://www.w3.org/1999/xhtml"';
-                        script+= 'type="text/javascript">';
-                        script+= "\n//<![CDATA[\n";
-                        // In XML <body onload="..."> handler doesn't work - hence https://developer.mozilla.org/en/docs/web/api/document/readystate
-                        // In either XML or HTML: document.addEventListener( "load", ...) doesn't work
-                        script+= isHTML
-                            ? 'window.addEventListener( "load", '
-                            : 'document.onreadystatechange= ';
-                        script+= '\n() => {\n';
-                        if( !isHTML ) {
-                            script+= 'if (document.readyState==="complete") {\n';
-                        }
-                        script+= 'typeof seLitePreviewPresent!=="function" || seLitePreviewPresent( ' +JSON.stringify( data )+ ' );\n';
-                        if( !isHTML ) {
-                            script+= '}\n'; // end of: if(document.readyState...) {...}
-                        }
-                        script+= '}\n'; // end of arrow function body () => {...}
-                        if( isHTML ) {
-                            script+= ')';
-                        }
-                        script+= ';\n';
-                        //script+= '\n window.addEventListener( "load", () => {typeof seLitePreviewPresent!=="function" || seLitePreviewPresent( ' +JSON.stringify( data )+ ' ); } );';
-                        script+= "//]]>";
-                        script+= isHTML
-                            ? "\n</script>\n"
-                            : "\n</xhtml:script>\n";
-                        
-                        var injectAt= html.lastIndexOf( '</' );
-                        if( isHTML ) {
-                            injectAt= html.lastIndexOf( '</', injectAt-1 ); // just before </body>
-                        }
-                        html= html.substring( 0, injectAt ) +script+ html.substring( injectAt );
+                        url+= url.indexOf('?')>0
+                            ? '&'
+                            : '?';
+                        url+= config.dataParameterName+ '=' +encoded;
                     }
                     
-                    // See also https://developer.mozilla.org/en-US/docs/Displaying_web_content_in_an_extension_without_security_issues
-                    var win= window.open( "data:text/" +config.contentType+ "," + encodeURIComponent(html), /*TODO: no effect*/config.windowTitle/*, "chrome,resizable=1"/**/);
+                    //JSON.stringify(data)
+                    var win= window.open( url, /*@TODO parameters - remove toolbar...*/'resizable=1');
+                    //encodeURIComponent(html)
                     
                     win.addEventListener( 'load', () => {
                         // win!==window; this===editor - thanks to JS ES6 arrow function ()=>{...}
@@ -118,18 +95,19 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
                         }
                     } );
                 } else {
-                  alert( "Couldn't load " +htmlURLwithTimestamp+ ". " +request.statusText );
+                  alert( "Couldn't load " +url+ ". " +request.statusText );
                 }
               }
             };
             request.onerror= (event)=> {
-                alert( "Couldn't load " +htmlURLwithTimestamp );
+                alert( "Couldn't load " +url );
             };
 
-            request.open("GET", htmlURLwithTimestamp, true );
+            request.open("GET", url, true );
             request.timeout= 3000; // @TODO Use Selenium timeout; in milliseconds
             request.send(null);
         };
+        
         // 'editor' is an instance of either StandaloneEditor or SidebarEditor. Those classes don't refer to Editor.prototype, but they have copies of all functions from Editor.prototype (copied via objectExtend()).
         SidebarEditor.prototype.openPreview= StandaloneEditor.prototype.openPreview= Editor.prototype.openPreview;
     } ) ();
