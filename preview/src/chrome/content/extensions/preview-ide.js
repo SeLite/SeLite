@@ -31,9 +31,9 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
          *  @param {string} filePathOrURL File path or URL of the HTML/XML preview file/template. If it's a file path, you can use either / or \ as directory separators (they will get translated for the current system). To make it portable, use specify it as a relative path and pass it appended to result of SeLiteSettings.getTestSuiteFolder(). It must no contain a #hash/fragment part.
          *  @param {*} [data] Usually an anonymous object or an array. The template must not rely on any class membership or on any fields that are functions.
          *  @param {object} [config] Configuration with any of fields: {
-         *      dontAddTimestamp: boolean. If true, then this doesn't make the URL unique by adding a timestamp in the query part of filePathOrURL.
+         *      addTimestamp: boolean. If true, then this doesn't make the URL unique by adding a timestamp in the query part of filePathOrURL. False by default.
          *      dataParameterName: name of HTTP GET parameter ('seLitePreviewData' by default), added to the query part of filePathOrURL. Only used when passing data through URL query rather than through URL hash (fragment, anchor).
-         *      inHash: boolean, whether to pass the data in the URI hash instead of URI query' (default) or 'hash'. How the data is passed - via URL query or URL hash.
+         *      inSearch: boolean, whether to pass the encoded data in the URI search (query) part, instead of URI hash (fragment) part. False (i.e. using hash) by default - which also works with data: URLs.
          *      base64: boolean, whether to base64-encode, instead of url-encode. False by default.
          *  }
          * */
@@ -41,7 +41,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
             filePathOrURL.indexOf('#')<0 || SeLiteMisc.fail( 'Parameter filePathOrURL must not contain a #hash (fragment): ' +filePathOrURL );
             var url= this.selDebugger.runner.selenium.constructor.urlFor( filePathOrURL, true );
             // Add a timestamp to make the query unique
-            if( !config.dontAddTimestamp ) {
+            if( 'addTimestamp' in config && config.addTimestamp ) {
                 url+= ( url.indexOf('?')<0
                     ? '?'
                     : '&'
@@ -49,7 +49,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
             }
             
             'dataParameterName' in config || (config.dataParameterName='seLitePreviewData');
-            'inHash' in config || (config.inHash=false);
+            'inSearch' in config || (config.inSearch=false);
             'base64' in config || (config.base64=false);
             
             var request = new XMLHttpRequest();
@@ -70,14 +70,14 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
                     var encoded= config.base64
                         ? btoa(json)
                         : encodeURIComponent(json);
-                    if( config.inHash ) {
-                        url+= '#' +encoded;
-                    }
-                    else {
+                    if( config.inSearch ) {
                         url+= url.indexOf('?')>0
                             ? '&'
                             : '?';
                         url+= config.dataParameterName+ '=' +encoded;
+                    }
+                    else {
+                        url+= '#' +encoded;
                     }
                     
                     //JSON.stringify(data)

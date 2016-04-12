@@ -3,7 +3,11 @@
   <meta charset="utf-8"></meta>
   <title>Simple</title>
   <!-- As of March 2016, PURE is the easiest engine listed on https://developer.mozilla.org/en-US/docs/JavaScript_templates -->
-  <script type="text/javascript" src="https://raw.githubusercontent.com/peter-kehl/pure/master/libs/pure.js"></script><!-- https://raw.githubusercontent.com/pure/pure/master/libs/pure.js
+  <script type="text/javascript" src="https://rawgit.com/peter-kehl/pure/master/libs/pure.js"></script>
+  <!--
+Don't use raw.githubusercontent.com with MS IE 10, since it fails with SEC7112: Script from https://raw.githubusercontent.com/peter-kehl/pure/master/libs/pure.js was blocked due to mime type mismatch 
+https://raw.githubusercontent.com/pure/pure/master/libs/pure.js
+https://raw.githubusercontent.com/peter-kehl/pure/master/libs/pure.js
  -->
   <script type="text/javascript">
       //<![CDATA[
@@ -14,7 +18,7 @@
           base64: false
       };
       
-       document.onreadystatechange= ()=>{
+       document.onreadystatechange= function() {
           if (document.readyState==="complete") {
             
             var encodedJSON;

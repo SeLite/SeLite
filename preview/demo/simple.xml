@@ -8,7 +8,7 @@
       //<![CDATA[
       "use strict";
       // don't use window's onload handler for XML
-       document.onreadystatechange= ()=>{
+       document.onreadystatechange= function() {
           if (document.readyState==="complete") {
             // See https://beebole.com/pure/
             var directive = {
