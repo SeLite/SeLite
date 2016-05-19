@@ -26,7 +26,7 @@ if( Drupal===undefined ) {
 
 SeLiteMisc.registerOrExtendFramework(
     function() {
-            var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+            var console= Components.utils.import("resource://devtools/Console.jsm", {}).console;
 
             var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );
             commonSettings.getField( 'roles' ).addKeys( ['admin', 'editor', 'contributor'] );

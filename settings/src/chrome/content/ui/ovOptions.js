@@ -58,7 +58,7 @@ else {
     var nsIFilePicker = Components.interfaces.nsIFilePicker;
     Components.utils.import("resource://gre/modules/FileUtils.jsm" );
     Components.utils.import("resource://gre/modules/osfile.jsm");
-    //var console = (Components.utils.import("resource://gre/modules/devtools/Console.jsm", {})).console;
+    //var console = (Components.utils.import("resource://devtools/Console.jsm", {})).console;
 
     var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                   .getService(Components.interfaces.nsIPromptService);

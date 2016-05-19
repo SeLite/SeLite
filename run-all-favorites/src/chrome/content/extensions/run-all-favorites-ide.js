@@ -110,7 +110,7 @@ window.setTimeout( function() {
         };
         makeFavoritesRelativeToHome();
         
-        var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+        var console= Components.utils.import("resource://devtools/Console.jsm", {}).console;
         // Mostly copied from original Favorites with these changes:
         // -adding 'Run all'
         // -showing 'Run all', 'Clear all' only when there is one or more favorite test suites.

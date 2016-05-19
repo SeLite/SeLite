@@ -18,7 +18,7 @@
 
 // Anonymous function to prevent leaking into Selenium global namespace
 ( function() {
-    var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+    var console= Components.utils.import("resource://devtools/Console.jsm", {}).console;
     
     var nsIMIMEService= Components.classes["@mozilla.org/mime;1"].getService(Components.interfaces.nsIMIMEService);
                       

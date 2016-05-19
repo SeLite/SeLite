@@ -17,7 +17,7 @@
 "use strict";
 
 (function() { // Anonymous function to make the variables local
-    //var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+    //var console= Components.utils.import("resource://devtools/Console.jsm", {}).console;
     // No need for Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" ); because that is done by preActivate() in SeLiteExtensionSequencerManifest.js.
   
     var loadedTimes= SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteSettings'] || 0;

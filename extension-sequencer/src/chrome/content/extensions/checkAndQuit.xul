@@ -7,7 +7,7 @@
         //<![CDATA[
         "use strict";
         // If I don't set 'console', the console and stderr won't show up any messages below.
-        var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+        var console= Components.utils.import("resource://devtools/Console.jsm", {}).console;
         /*if( !window.location.search ) {
             console.error( 'Invoke as: firefox -no-remote -P <testProfileName> -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul?~/selite/extension-sequencer/shell-tests/xxx/fileContainingExpectedOutput.txt' );
         }

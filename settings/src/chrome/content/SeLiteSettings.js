@@ -30,7 +30,7 @@ if( runningAsComponent ) {
     var subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
     var nsIIOService= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);    
     Components.utils.import("resource://gre/modules/osfile.jsm");
-    var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+    var console= Components.utils.import("resource://devtools/Console.jsm", {}).console;
 }
 
 // -------

@@ -22,7 +22,7 @@ var loadedTimes= SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteMisc'
 if( loadedTimes===1 ) {
 // Anonymous function to prevent leaking into Selenium global namespace
 ( function() {
-    var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+    var console= Components.utils.import("resource://devtools/Console.jsm", {}).console;
 
     //SeLiteExtensionSequencer.coreExtensionsLoadedTimes
     

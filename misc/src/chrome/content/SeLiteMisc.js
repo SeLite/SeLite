@@ -20,7 +20,7 @@
 // runningAsComponent is false when loaded via <script src="file://..."> or <script src="http://..."> rather than via Components.utils.import().
 // Used for debugging; limited (because when it's not loaded via Components.utils.import() it can't access other components).
 if( runningAsComponent ) {
-    var console= Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+    var console= Components.utils.import("resource://devtools/Console.jsm", {}).console;
 }/**/
 
 var SeLiteMisc= {};
