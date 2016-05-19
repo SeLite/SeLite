@@ -24,7 +24,7 @@
                       
     // @TODO asynchronous? <-
     // @TODO Extend Se IDE, so that there is a layer from Selenese to call async commands,
-    // which won't block Se IDE, but Se IDE won't continue to the next commands, until the async result is back
+    // which won't block Se IDE, but Se IDE won't finish that command (and it won't continue to the next command), until the async result is back
     // (or unless Se IDE determines that the current command timed out).
     // -> async if..doIf, while..endWhile
     /** Encode a file as a data: URI. See https://developer.mozilla.org/en-US/docs/Web/HTTP/data_URIs.
@@ -35,7 +35,7 @@
      *  @return {string} data: URI for content of given documentURL, including content of images/scripts/stylesheets through data: URLs, too.
      * */
     Selenium.encodeFile= function encodeFile( documentURL, base64=false ) {
-        // Refuse data: URL. XMLHttpRequest supports data: URLs, but then responseXML is null. See https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
+        // Refuse data: URL. That's because even though XMLHttpRequest supports data: URLs, its responseXML is null. See https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
         if( documentURL.indexOf( 'data:' )>=0 ) {
             throw new Error( "Parameter documentURL must not ba a data: URL: " +documentURL );
         }
