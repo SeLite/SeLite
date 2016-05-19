@@ -20,7 +20,7 @@ Components.utils.import( 'chrome://selite-misc/content/SeLiteMisc.js' );
 Components.utils.import('chrome://selite-db-objects/content/DbStorage.js');
 Components.utils.import('chrome://selite-db-objects/content/Db.js');
 
-//var console= Components.utils.import("resource://devtools/Console.jsm", {}).console;
+//var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
 
 /** @constructor
  *  @param {SeLiteData.Storage} storage Underlying lower-level storage object.

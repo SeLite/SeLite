@@ -25,7 +25,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
 ( function( global ) {
     var loadedTimes= SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteExitConfirmationChecker'] || 0;
     if( loadedTimes===1 ) { // Setup the overrides on the second load
-        var console= Components.utils.import("resource://devtools/Console.jsm", {}).console;
+        var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
         var settingsModule= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
         
         // Override BrowserBot defined in Selenium IDE's chrome://selenium-ide/content/selenium-core/scripts/selenium-browserbot.js

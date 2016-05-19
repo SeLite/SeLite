@@ -18,7 +18,7 @@
 
 (function(global) { // Anonymous function to make the variables local
     var FileUtils= Components.utils.import("resource://gre/modules/FileUtils.jsm", {} ).FileUtils; // This must be local - otherwise it overrides FileUtils defined/loaded by Se IDE, and it causes problems at Se IDE start
-    var console= Components.utils.import("resource://devtools/Console.jsm", {}).console;
+    var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
     Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
 
     // Tail intercept of Editor.prototype.confirmClose and the same for its subclasses StandaloneEditor and SidebarEditor

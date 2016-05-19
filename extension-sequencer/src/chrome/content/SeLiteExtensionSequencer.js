@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 "use strict";
-var console= Components.utils.import("resource://devtools/Console.jsm", {}).console;
+var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
 
 function SeLiteExtensionSequencer() {}
 

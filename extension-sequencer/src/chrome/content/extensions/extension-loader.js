@@ -22,7 +22,7 @@ if( typeof afterChecks!=='function' ) {
 }
 if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function' ) {
     (function( global ) { // closure to make the variables local
-        var console= Components.utils.import("resource://devtools/Console.jsm", {}).console;
+        var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
         // When I start 'firefox -chrome chrome://selite-extension-sequencer/content/extensions/checkAndQuit.xul', it loads this file extension-loader.js without 'API' class. 'API' class is only defined when this is loaded from extension-loader.xul.
         if( !global.runAsCheck ) {
             var ide_api= new API(); // API comes from chrome://selenium-ide/content/api.js - referenced through ./extension-loader.xul
@@ -268,7 +268,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
         };
         
         Components.utils.import("resource://gre/modules/AddonManager.jsm");
-        // For some reasons I couldn't use console (from resource://devtools/Console.jsm) here (in Firefox 26.0, Selenium IDE 2.5.0). Using it generated a log: can't start debugging: a debuggee script is on the stack webconsole.js:68. I could use console in the handler function passed to AddonManager.getAllAddons():
+        // For some reasons I couldn't use console (from resource://gre/modules/Console.jsm) here (in Firefox 26.0, Selenium IDE 2.5.0). Using it generated a log: can't start debugging: a debuggee script is on the stack webconsole.js:68. I could use console in the handler function passed to AddonManager.getAllAddons():
         AddonManager.getAllAddons( function(addons) {
             var problems= [];
             // There are three ways to invoke this file:

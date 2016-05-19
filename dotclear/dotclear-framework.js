@@ -19,7 +19,7 @@ if( Dotclear===undefined ) {
 }
 SeLiteMisc.registerOrExtendFramework(
     function() {
-        var console= Components.utils.import("resource://devtools/Console.jsm", {}).console;
+        var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
         console.warn('Dotclear framework loading');
         /** @type {SeLiteSettings.Module} */
         var commonSettings= SeLiteSettings.loadFromJavascript( 'extensions.selite-settings.common' );

@@ -26,7 +26,7 @@ var runningAsComponent= (typeof window==='undefined' || window && window.locatio
 if( runningAsComponent ) {
     Components.utils.import("resource://gre/modules/Services.jsm");
     Components.utils.import("resource://gre/modules/FileUtils.jsm");
-    var console= Components.utils.import("resource://devtools/Console.jsm", {}).console;
+    var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
 }
 
 function SQLiteConnectionParameters() {}
