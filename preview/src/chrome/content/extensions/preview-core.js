@@ -30,12 +30,12 @@
     /** Encode a file as a data: URI. See https://developer.mozilla.org/en-US/docs/Web/HTTP/data_URIs.
      *  It also loads content of files referenced by <img src="...">, <link href="..." with rel="stylesheet" or with as="script" or with type="...">,  <script src="...">. It changes src="..." or href="..." of those elements to use data: containing the loaded content.
      *  @see Editor.prototype.openPreview()
-     *  @param {string} documentURL URL of the HTM or XHTML document. This (as passed) can't be a data: URL.
+     *  @param {string} documentURL URL of the HTM or XHTML document. This (as passed) can't be a data: URL. (See in-code comment.)
      *  @param {boolean} [base64] Whether to base64-encode, instead of url-encode.
      *  @return {string} data: URI for content of given documentURL, including content of images/scripts/stylesheets through data: URLs, too.
      * */
     Selenium.encodeFile= function encodeFile( documentURL, base64=false ) {
-        // Refuse data: URL. That's because even though XMLHttpRequest supports data: URLs, its responseXML is null. See https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
+        // Refuse data: URL. That's because even though XMLHttpRequest supports 'data:' URLs, then its responseXML is null. See https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
         if( documentURL.indexOf( 'data:' )>=0 ) {
             throw new Error( "Parameter documentURL must not ba a data: URL: " +documentURL );
         }
