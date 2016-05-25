@@ -82,7 +82,7 @@ editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHa
     catch( e ) {
         LOG.debug('testLoopResumeExecuteAndHandleErrors caught');
         var callFrame= selenium.callStack().top();
-        if( callFrame.frameFromAsync ) {
+        if( callFrame.frameFromAsync ) { // This stack call frame was invoked from selenium.callBackOutFlow(). Hence it has no Selenese try..catch/finally envolope. However, it needs special handling, to pass control back to JS level that invoked selenium.callBackOutFlow().
             if( selenium.handleCommandError(e) ) {
                 this.continueTestWhenConditionIsTrue();
             }
@@ -104,6 +104,46 @@ setTimeout( //waits until all the sub-scripts are loaded. Only then it can overl
         var selDebuggerInitSeLite= function selDebuggerInitSeLite() {
             selDebuggerInitOriginal.call( this );
             this.runner.IDETestLoop.prototype.resume= editor.testLoopResume;
+            
+            /** Based on continueTestWhenConditionIsTrue() in TestLoop.prototype in selenium-executionloop.js.
+             *  Both the original and the following derivative get called via two paths in Selenium IDE:
+             * 1. from testLoopResume() -> testLoopResumeExecuteAndHandleErrors() above (original: TestLoop.prototype's resume() in selenium-executionloop.js) when command evaluation didn't pause via setTimeout() - yet or if it doesn't use setTimeout() at all; or
+             * 2. from IDETestLoop.prototype.continueTestWhenConditionIsTrue() in selenium-runner.js in case of timeout function-decorated commands, if those are called for the 2nd or further time (via setTimeout()).
+             * #2 originally didn't handle exceptions in the command's continue test, or the timeout. Hence the following adds handling of those exceptions, and it calls editor.testLoopResumeHandleError().
+             * */
+            this.runner.TestLoop.prototype.continueTestWhenConditionIsTrue= function continueTestWhenConditionIsTrue() {
+                var runner = editor.selDebugger.runner;
+                var selenium = runner.selenium;
+                selenium.browserbot.runScheduledPollers();
+                
+                if (this.waitForCondition == null) {
+                    LOG.debug("null condition; let's continueTest()");
+                    LOG.debug("Command complete");
+                    this.commandComplete(this.result);
+                    this.continueTest();
+                } else {
+                    var waitForConditionResult;
+                    try {
+                        waitForConditionResult= this.waitForCondition();
+                    }
+                    catch( e ) {
+                        // Handling an exception in path #2 (see above):
+                        LOG.debug("waitForCondition() failed or was repeated until it timed out.");
+                        editor.testLoopResumeHandleError.call( this, e );
+                        return;
+                    }
+                    if( waitForConditionResult ) {
+                        LOG.debug("condition satisfied; let's continueTest()");
+                        this.waitForCondition = null;
+                        LOG.debug("Command complete");
+                        this.commandComplete(this.result);
+                        this.continueTest();
+                    } else {
+                        LOG.debug("waitForCondition() was false; keep waiting!");
+                        window.setTimeout(fnBind(this.continueTestWhenConditionIsTrue, this), 10);
+                    }
+                }
+            };
         }
         if( editor.selDebugger ) {
             selDebuggerInitOriginal= editor.selDebugger.init;
