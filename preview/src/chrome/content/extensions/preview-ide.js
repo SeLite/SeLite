@@ -37,42 +37,32 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
          *      base64: boolean, whether to base64-encode, instead of url-encode. False by default.
          *  }
          * */
-        Editor.prototype.openPreview= function openPreview( filePathOrURL, data={}, config={} ) {
-            filePathOrURL.indexOf('#')<0 || SeLiteMisc.fail( 'Parameter filePathOrURL must not contain a #hash (fragment): ' +filePathOrURL );
-            var Selenium= this.selDebugger.runner.selenium.constructor;
-            var url= Selenium.urlFor( filePathOrURL, true ); // if a filepath, this translates it to a URL
-            // Add a timestamp to make the query unique
-            if( 'addTimestamp' in config && config.addTimestamp ) {
-                url+= ( url.indexOf('?')<0
-                    ? '?'
-                    : '&'
-                )+ 'seLiteTimestamp=' +Date.now();
-            }
+        Editor.prototype.openPreview= function openPreview( urlOrPromise, data={}, config={} ) {
+            var promise= !(urlOrPromise instanceof Promise)
+                ? Promise.resolve( urlOrPromise )
+                : urlOrPromise;
             
             'dataParameterName' in config || (config.dataParameterName='seLitePreviewData');
             'inSearch' in config || (config.inSearch=false);
             'base64' in config || (config.base64=false);
             
-            var request = new XMLHttpRequest();
-            request.onload= ()=> {
+            /** Side research on passing data via #hash part of URL:
+                   JSON.stringify( {hi: 'you & i'} ) -> '{"hi":"you & i"}'
+                however:
+                   window.open( someURL + '#' +JSON.stringify( {hi: 'you & i'} ) )
+                   opens a window with URL ending with #{"hi":"you%20&%20i"}
+                   Firefox adds transformation of spaces to %20. When Javascript from that loaded page
+                   uses its location.hash, it is '#{"hi":"you%20&%20i"}'. However, that doesn't feel robust.
+                Anyway, let's url-encode or base64-encode the hash as per RFC on URI http://tools.ietf.org/html/rfc3986#section-3.5.
+           */
 
-              if (request.readyState === 4) {
-                if (request.status === 200) {
-                    /** Side research on passing data via #hash part of URL:
-                           JSON.stringify( {hi: 'you & i'} ) -> '{"hi":"you & i"}'
-                        however:
-                           window.open( someURL + '#' +JSON.stringify( {hi: 'you & i'} ) )
-                           opens a window with URL ending with #{"hi":"you%20&%20i"}
-                           Firefox adds transformation of spaces to %20. When Javascript from that loaded page
-                           uses its location.hash, it is '#{"hi":"you%20&%20i"}'. However, that doesn't feel robust.
-                        Anyway, let's url-encode or base64-encode the hash as per RFC on URI http://tools.ietf.org/html/rfc3986#section-3.5.
-                   */
-                    var dataUrl= Selenium.encodeFile( request.responseXML, config.base64 );
-                    
-                    var json= JSON.stringify( data );
-                    var encoded= config.base64
-                        ? btoa(json)
-                        : encodeURIComponent(json);
+            var json= JSON.stringify( data );
+            var encoded= config.base64
+                ? btoa(json)
+                : encodeURIComponent(json);
+            
+            return promise.then(
+                (url)=> {
                     if( config.inSearch ) {
                         url+= url.indexOf('?')>0
                             ? '&'
@@ -82,11 +72,9 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
                     else {
                         url+= '#' +encoded;
                     }
-                    
-                    //JSON.stringify(data)
+
                     var win= window.open( url, /*@TODO parameters - remove toolbar...*/'resizable=1');
-                    //encodeURIComponent(html)
-                    
+
                     win.addEventListener( 'load', () => {
                         // win!==window; this===editor - thanks to JS ES6 arrow function ()=>{...}
                         if( typeof win.seLitePreviewConnect==='function' ) {
@@ -97,21 +85,43 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
                             } );
                         }
                     } );
-                } else {
-                  alert( "Couldn't load " +url+ ". " +request.statusText );
+                },
+                (failure)=> {//@TODO check:
+                    throw new Error(failure);
                 }
-              }
-            };
-            request.onerror= (event)=> {
-                alert( "Couldn't load " +url );
-            };
+            );
+        };
+        
+        Editor.prototype.openPreviewEncode= function openPreviewEncode( urlOrPromise, data={}, config={} ) {
+            var promise= !(urlOrPromise instanceof Promise)
+                ? Promise.resolve( urlOrPromise )
+                : urlOrPromise;
+            'base64' in config || (config.base64=false);
+            
+            var selenium= this.selDebugger.runner.selenium;
+            var Selenium= selenium.constructor;
+            return promise.then(
+                (url)=> {
+                    // Add a timestamp to make the query unique
+                    if( 'addTimestamp' in config && config.addTimestamp ) {
+                        url+= ( url.indexOf('?')<0
+                            ? '?'
+                            : '&'
+                        )+ 'seLiteTimestamp=' +Date.now();
+                    }
 
-            request.open("GET", url, true );
-            request.timeout= 3000; // @TODO Use Selenium timeout; in milliseconds
-            request.send(null);
+                    url.indexOf('#')<0 || SeLiteMisc.fail( 'Parameter filePathOrURL must not contain a #hash (fragment): ' +filePathOrURL );
+                    // If .then()'s positive handler returns a promise X, they result of .then() will be a promise that resolved to the value of resolved X
+                    return this.openPreview( selenium.encodeFile(url, config.base64), data, config );
+                },
+                (failure)=> {//@TODO check:
+                    throw new Error(failure);
+                }
+            );
         };
         
         // 'editor' is an instance of either StandaloneEditor or SidebarEditor. Those classes don't refer to Editor.prototype, but they have copies of all functions from Editor.prototype (copied via objectExtend()).
         SidebarEditor.prototype.openPreview= StandaloneEditor.prototype.openPreview= Editor.prototype.openPreview;
+        SidebarEditor.prototype.openPreviewEncode= StandaloneEditor.prototype.openPreviewEncode= Editor.prototype.openPreviewEncode;
     } ) ();
 }
