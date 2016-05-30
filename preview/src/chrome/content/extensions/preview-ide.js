@@ -28,7 +28,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
          *  In the template:
          *  1. Extract the encoded data. If config.inHash is false, extract from location.query the part (if any) between 'seLitePreviewData=' and the next '&' (if any). If config.inHash is true, then strip leading hash off location.hash.
          *  2. If there is any such part, apply decodeURIComponent() (if config.base64 is false) or atob() (if config.base64 is true). Then apply JSON.parse().
-         *  @param {string} filePathOrURL File path or URL of the HTML/XML preview file/template. If it's a file path, you can use either / or \ as directory separators (they will get translated for the current system). To make it portable, use specify it as a relative path and pass it appended to result of SeLiteSettings.getTestSuiteFolder(). It must no contain a #hash/fragment part.
+         *  @param {string} filePathOrURL File path or URL of the HTML/XML preview file/template. If it's a file path, you can use either / or \ as directory separators (they will get translated for the current system). To make it portable, specify it as a relative path and pass it appended to result of SeLiteSettings.getTestSuiteFolder(). It must not contain a #hash/fragment part.
          *  @param {*} [data] Usually an anonymous object or an array. The template must not rely on any class membership or on any fields that are functions.
          *  @param {object} [config] Configuration with any of fields: {
          *      addTimestamp: boolean. If true, then this doesn't make the URL unique by adding a timestamp in the query part of filePathOrURL. False by default.
@@ -39,7 +39,8 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
          * */
         Editor.prototype.openPreview= function openPreview( filePathOrURL, data={}, config={} ) {
             filePathOrURL.indexOf('#')<0 || SeLiteMisc.fail( 'Parameter filePathOrURL must not contain a #hash (fragment): ' +filePathOrURL );
-            var url= this.selDebugger.runner.selenium.constructor.urlFor( filePathOrURL, true );
+            var Selenium= this.selDebugger.runner.selenium.constructor;
+            var url= Selenium.urlFor( filePathOrURL, true ); // if a filepath, this translates it to a URL
             // Add a timestamp to make the query unique
             if( 'addTimestamp' in config && config.addTimestamp ) {
                 url+= ( url.indexOf('?')<0
@@ -66,6 +67,8 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
                            uses its location.hash, it is '#{"hi":"you%20&%20i"}'. However, that doesn't feel robust.
                         Anyway, let's url-encode or base64-encode the hash as per RFC on URI http://tools.ietf.org/html/rfc3986#section-3.5.
                    */
+                    var dataUrl= Selenium.encodeFile( request.responseXML, config.base64 );
+                    
                     var json= JSON.stringify( data );
                     var encoded= config.base64
                         ? btoa(json)

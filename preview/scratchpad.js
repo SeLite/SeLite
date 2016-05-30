@@ -1,3 +1,7 @@
+// For ifAsync...endIfAsync:
+// eval() can't return a value via 'return' keyword. It only yields value of its last expression. Hence it can't return value from an asynchronous call.
+//eval( "1;")
+
 // All combinations run <script>:
 
 //var win= window.open( "chrome://selite-preview/content/preview.xul", "SeLite Preview", "chrome,resizable=1"/**/);

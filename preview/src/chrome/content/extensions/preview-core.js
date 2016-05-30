@@ -26,11 +26,6 @@
     // @TODO Extend Se IDE, so that there is a layer from Selenese to call async commands,
     // which won't block Se IDE, but Se IDE won't finish that command (and it won't continue to the next command), until the async result is back
     // (or unless Se IDE determines that the current command timed out).
-    // -> async versions: ifAsync..elseAsync..endIfAsync, whileAsync..endWhileAsync, doAsync...untilAsync..endDoAsync, XyzEvalAsync. Once the JS expression (or code that it calls) has the result, it invokes a special handler. That handler then controls the Selenese flow. Use e.g. Selenium.asyncResult(value).
-    // - make it Promise-friendly
-    // -- Selenium.asyncResultPromise() to use in xyzAsync commands
-    // -- accept Promise in xyzAsync commands (if the previous doesn't cover this)
-    // -- and/or: ifPromise..elsePromise..endIfPromise, ..., xyzPromise
     // --> To keep it simple, async code can't callback Selenese.
     /** Encode a file as a data: URI. See https://developer.mozilla.org/en-US/docs/Web/HTTP/data_URIs.
      *  It also loads content of files referenced by <img src="...">, <link href="..." with rel="stylesheet" or with as="script" or with type="...">,  <script src="...">. It changes src="..." or href="..." of those elements to use data: containing the loaded content.
@@ -58,7 +53,6 @@
               
               // getElementsByTagNameNS( "http://www.w3.org/1999/xhtml", ...) works even if the document's MIME is text/html rather than text/xml
               var body= doc.getElementsByTagNameNS( "http://www.w3.org/1999/xhtml", 'body')[0];
-              body.setAttribute( 'onload', 'alert("hi")');
               //body.innerHTML;
               
               // Loop over elements. If can't get the file, skip.
@@ -67,7 +61,6 @@
 
               // Try to modify DOM and then user innerHTML
           }
-          // .xhtml -->application/xhtml+xml - which in Firefox invokes Javascript just like text/xml does
           
           var encoded= base64
             ? btoa(content)

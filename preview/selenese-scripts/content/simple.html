@@ -31,7 +31,11 @@ https://raw.githubusercontent.com/peter-kehl/pure/master/libs/pure.js
                 if( location.search.length>0 ) {
                     var parameterPrefix= '&'+config.dataParameterName+'=';
                     var parameterStart= location.search.indexOf( parameterPrefix );
-                    if( parameterStart ) {
+                    if( parameterStart<0 ) {
+                        parameterPrefix= '?'+config.dataParameterName+'=';
+                        parameterStart= location.search.indexOf( parameterPrefix );
+                    }
+                    if( parameterStart>=0 ) {
                         parameterStart+= parameterPrefix.length;
                         var parameterEnd= location.search.indexOf( '=', parameterStart );
                         encodedJSON= parameterEnd>0
@@ -46,13 +50,14 @@ https://raw.githubusercontent.com/peter-kehl/pure/master/libs/pure.js
                     ? atob(encodedJSON)
                     : decodeURIComponent(encodedJSON);
                 var data= JSON.parse(json);
-                        
+                
+                // The whole data will be an array of (primitive) strings. Use those strings for both text and URL of <a> elements:
                 // See https://beebole.com/pure/
                 var directive = {
                     'li':{
                         'data<-':{
                             'a': 'data',
-                            'a@data-text': 'data'
+                            'a@href': 'data'
                         }
                     }
                 };

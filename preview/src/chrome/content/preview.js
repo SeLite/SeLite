@@ -48,7 +48,7 @@ function initialise( htmlURL, editor, data, config ) {
             // Based on https://developer.mozilla.org/en-US/docs/Displaying_web_content_in_an_extension_without_security_issues
             iframe.setAttribute(
                 "src",
-                "data:text/html," + encodeURIComponent(html)
+                /*TODO recurisve - optional, user can turn it off/on:*/"data:text/html," + encodeURIComponent(html)
             );
             // I've tried handlers for load, pageshow on contentWindow.wrappedJSObject, contentWindow, contentWindow.wrappedJSObject.document. None worked.
             
