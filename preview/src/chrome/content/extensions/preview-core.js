@@ -36,7 +36,7 @@
             request.onload= ()=> {
                 if (request.readyState === 4) {
                     if (request.status === 200) {
-                        resolve( request.responseXML );
+                        resolve( request.responseText );
                     }
                     else {
                         reject( "Couldn't load " +url+ ". " +request.statusText );
@@ -65,9 +65,10 @@
      * */
     Selenium.prototype.encodeFile= function encodeFile( filePathOrURL, base64=false ) {
         var url= Selenium.urlFor( filePathOrURL, true ); // if a filepath, this translates it to a URL
+        var uri= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService).newURI( url, null, null);
         
         return this.loadFile( url ).then( (content)=>{
-            return Selenium.encodeContent( content, nsIMIMEService.getTypeFromURI( url ), base64 );
+            return Selenium.encodeContent( content, nsIMIMEService.getTypeFromURI( uri ), base64 );
         } );
     };
     
