@@ -61,15 +61,82 @@
      *  @see Editor.prototype.openPreview()
         @param {string} filePathOrURL File path or URL of the HTML/XML preview file/template. If it's a file path, you can use either / or \ as directory separators (they will get translated for the current system). To make it portable, specify it as a relative path and pass it appended to result of SeLiteSettings.getTestSuiteFolder(). See also parameter url of Selenium.prototype.loadFile().
      *  @param {boolean} [base64] Whether to base64-encode, instead of url-encode.
-     *  @return {Promise} Promise that resolves to encoded content; it rejects on error or on timeout. On success it resolves to string, which is a data: URI for content of given documentURL, including content of images/scripts/stylesheets through data: URIs, too.
+     *  @param {function} [contentHandler=undefined] Function(content, url, base64) which returns a Promise of the handled content. Used for deep/recursive handling. Parameter url is used only for resolving relative URLs for documents that are handled recursively.
+     *  @return {Promise} Promise that resolves to encoded content (and handled, if contentHandler is passed); it rejects on error or on timeout. On success it resolves to string, which is a data: URI for content of given documentURL, including content of images/scripts/stylesheets through data: URIs, too.
      * */
-    Selenium.prototype.encodeFile= function encodeFile( filePathOrURL, base64=false ) {
+    Selenium.prototype.encodeFile= function encodeFile( filePathOrURL, base64=false, contentHandler=undefined ) {
         var url= Selenium.urlFor( filePathOrURL, true ); // if a filepath, this translates it to a URL
         var uri= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService).newURI( url, null, null);
         
         return this.loadFile( url ).then( (content)=>{
-            return Selenium.encodeContent( content, nsIMIMEService.getTypeFromURI( uri ), base64 );
+            var contentHandlerPromise=
+                contentHandler
+                ? contentHandler( content, url, base64 )
+                : Promise.resolve( content );
+            
+            return contentHandlerPromise.then( (handledContent)=>{
+                return Selenium.encodeContent( content, nsIMIMEService.getTypeFromURI( uri ), base64 );
+            } );
         } );
+    };
+    
+    Selenium.prototype.encodeFileRecursively= function encodeFileRecursively( filePathOrURL, base64=false ) {
+        return this.encodeFile( filePathOrURL, base64, Selenium.prototype.encodeFileRecursiveHandler.bind(this) );
+    };
+    
+    // Don't match url() case insensitively, because URL(...) is a standard class in Javascript files
+    var handledLink= /(src=|href=)['"]([^'"]+)['"]|url\( *['"]?([^'"]+)['"] *\)/g;
+    
+    Selenium.prototype.encodeFileRecursiveHandler= function encodeFileRecursiveHandler( wholeContent, wholeContentURL, base64=false ) {
+        var result= Promise.resolve('');
+        try{
+        var lastMatch= {lastIndex: 0};
+        var match;
+        while( ( match=handledLink.exec(wholeContent) )!==null ) {
+            var wholeMatch= match[0];
+            
+            // Store the following before you fire up successive handling, because then lastMatch and match will advance.
+            var sincePreviousMatch= wholeContent.substring( lastMatch.lastIndex, match.index );
+            
+            var url= match[2] || match[3];
+            
+            var matchedSrcOrHref= match[1]!==undefined;
+            // Always return quotes, replacing any previous apostrophes, for these URLs. @TODO comment
+            var beforeUrl= matchedSrcOrHref
+                ? match[1]+ '"'
+                : 'url("';
+            var afterUrl= matchedSrcOrHref
+                ? '"'
+                : '")';
+            
+            lastMatch= match;
+            
+            result= result.then(
+                (previous)=> {
+                    if( url.startsWith("data:") || url.startsWith("javascript:") ) {
+                        return previous+ sincePreviousMatch+ wholeMatch;
+                    }
+                    //Convert relative URL to absolute (based on the document being currently processed). If url is absolute, the following leaves it as it was.
+                    url= new URL( url, wholeContentURL ).href; // Based on https://developer.mozilla.org/en-US/docs/Web/API/URL/URL
+           
+                    //TODO flag/regex/callback to determine what full URLs to *fetch*
+                    
+                    var contentHandler= url.endsWith('.css')
+                        ? Selenium.prototype.encodeFileRecursiveHandler.bind(this) // recursive
+                        : undefined;
+                    
+                    return this.encodeFile( url, base64, contentHandler ).then(
+                        (processed) =>
+                        previous+ sincePreviousMatch+ beforeUrl+ processed+ afterUrl
+                    );
+                }
+            );
+        }
+        result= result.then(
+            (previous)=> previous+ wholeContent.substring(lastMatch.lastIndex)
+        );
+        return result;
+    }catch(e) { debugger;}
     };
     
     /**
@@ -82,8 +149,6 @@
             //body.innerHTML;
 
             // Loop over elements. If can't get the file, skip.
-            //Convert relative links to absolute. Following leaves already absolute links unmodified.
-            //var parentAbsoluteURL= new URL( '.', documentURL ).href; // Based on https://developer.mozilla.org/en-US/docs/Web/API/URL/URL
             // Try to modify DOM and then user innerHTML
 
         var encoded= base64

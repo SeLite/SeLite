@@ -38,7 +38,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
          *  }
          *  @return {Promise} Promise that resolves to Window object.
          * */
-        var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
+        //var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
         Editor.prototype.openPreview= function openPreview( urlOrPromise, data={}, config={} ) {
             var promise= !(urlOrPromise instanceof Promise)
                 ? Promise.resolve( urlOrPromise )
@@ -100,10 +100,12 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
                     //This didn't work well!: waivedWin.selenium= editor.selDebugger.runner.selenium;
                     
                     //console.error('exported. waivedWin contains seLitePreviewConnect: ' +('seLitePreviewConnect' in waivedWin)); // waivedWin.seLitePreviewConnect was not defined!
-                    // Following didn't work: win.seLitePreviewConnect was undefined!
                     /*
                     win.addEventListener( 'load', () => {
-                        // win!==window; this===editor - thanks to JS ES6 arrow function ()=>{...}
+                        // Following passed an object, but 'selenium' field was undefined.
+                        //win.wrappedJSObject.seLitePreviewConnect( {selenium: editor.selDebugger.runner.selenium} );
+                        
+                        // Following didn't work: win.seLitePreviewConnect was undefined!
                         win.selenium= editor.selDebugger.runner.selenium;
                         if( typeof win.seLitePreviewConnect!=='undefined' ) {
                             console.error('calling win.seLitePreviewConnect');
@@ -143,7 +145,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
 
                     url.indexOf('#')<0 || SeLiteMisc.fail( 'Parameter filePathOrURL must not contain a #hash (fragment): ' +filePathOrURL );
                     // If .then()'s positive handler returns a promise X, they result of .then() will be a promise that resolved to the value of resolved X
-                    return this.openPreview( selenium.encodeFile(url, config.base64), data, config );
+                    return this.openPreview( selenium.encodeFileRecursively(url, config.base64), data, config );
                 },
                 (failure)=> {//@TODO check:
                     throw new Error(failure);
