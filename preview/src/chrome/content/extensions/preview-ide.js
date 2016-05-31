@@ -125,7 +125,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
             );
         };
         
-        Editor.prototype.openPreviewEncode= function openPreviewEncode( urlOrPromise, data={}, config={} ) {
+        Editor.prototype.openPreviewEncode= function openPreviewEncode( urlOrPromise, data={}, config={}, filter=undefined ) {
             var promise= !(urlOrPromise instanceof Promise)
                 ? Promise.resolve( urlOrPromise )
                 : urlOrPromise;
@@ -145,7 +145,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
 
                     url.indexOf('#')<0 || SeLiteMisc.fail( 'Parameter filePathOrURL must not contain a #hash (fragment): ' +filePathOrURL );
                     // If .then()'s positive handler returns a promise X, they result of .then() will be a promise that resolved to the value of resolved X
-                    return this.openPreview( selenium.encodeFileRecursively(url, config.base64), data, config );
+                    return this.openPreview( selenium.encodeFileRecursively(url, config.base64, filter), data, config );
                 },
                 (failure)=> {//@TODO check:
                     throw new Error(failure);

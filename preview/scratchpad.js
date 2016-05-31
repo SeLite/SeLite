@@ -1,3 +1,19 @@
+var result;
+var arr=[1, 2];
+
+for( var i of arr ) {
+  ( ()=>{
+    var j=i;
+
+    if( i===1 ) {
+      result= ()=>{
+        return j;
+      }
+    }
+  } )();
+}
+result()
+
 // For ifAsync...endIfAsync:
 // eval() can't return a value via 'return' keyword. It only yields value of its last expression. Hence it can't return value from an asynchronous call.
 //eval( "1;")
