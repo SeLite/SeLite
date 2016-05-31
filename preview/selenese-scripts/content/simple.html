@@ -12,11 +12,17 @@ https://raw.githubusercontent.com/peter-kehl/pure/master/libs/pure.js
   <script type="text/javascript">
       //<![CDATA[
       "use strict";
-      var config= {
+      var config= { // This has to reflect config object passed to editor.openPreview( url, data, config ) in Selenium IDE.
           dataParameterName: 'seLitePreviewData',
           inHash: true,
           base64: false
       };
+      
+      var selenium;
+      function seLitePreviewConnect( connect ) {
+          alert('connect');
+          selenium= connect.selenium;
+      }
       
        document.onreadystatechange= function() {
           if (document.readyState==="complete") {
@@ -72,6 +78,8 @@ https://raw.githubusercontent.com/peter-kehl/pure/master/libs/pure.js
   </script>
 </head>
 <body>
+    <a href="javascript:callBackOutFlow( 'sayHello' )">call back Selenium</a>
+    <br/>
     <div id="results">
         <ul>
           <li>

@@ -36,7 +36,9 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
          *      inSearch: boolean, whether to pass the encoded data in the URI search (query) part, instead of URI hash (fragment) part. False (i.e. using hash) by default - which also works with data: URLs.
          *      base64: boolean, whether to base64-encode, instead of url-encode. False by default.
          *  }
+         *  @return {Promise} Promise that resolves to Window object.
          * */
+        var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
         Editor.prototype.openPreview= function openPreview( urlOrPromise, data={}, config={} ) {
             var promise= !(urlOrPromise instanceof Promise)
                 ? Promise.resolve( urlOrPromise )
@@ -72,19 +74,48 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
                     else {
                         url+= '#' +encoded;
                     }
-
                     var win= window.open( url, /*@TODO parameters - remove toolbar...*/'resizable=1');
-
+                    // Using https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Language_Bindings/Components.utils.exportFunction
+                    // For details see https://developer.mozilla.org/en-US/docs/Mozilla/Gecko/Script_security
+                    // Following exported the function, but the preview couldn't access selenium().callBackOutFlow()
+                    /*Components.utils.exportFunction(
+                        function selenium(){ return editor.selDebugger.runner.selenium;},
+                        win,
+                        {
+                         defineAs: 'selenium',
+                         allowCrossOriginArguments:true
+                        }
+                    );/**/
+                    
+                    Components.utils.exportFunction(
+                        function callBackOutFlow( seleneseFunctionName, parameters ){ editor.selDebugger.runner.selenium.callBackOutFlow( seleneseFunctionName, parameters ) },
+                        win,
+                        {
+                         defineAs: 'callBackOutFlow',
+                         allowCrossOriginArguments:true
+                        }
+                    );
+            
+                    //var waivedWin= Components.utils.waiveXrays(win);
+                    //This didn't work well!: waivedWin.selenium= editor.selDebugger.runner.selenium;
+                    
+                    //console.error('exported. waivedWin contains seLitePreviewConnect: ' +('seLitePreviewConnect' in waivedWin)); // waivedWin.seLitePreviewConnect was not defined!
+                    // Following didn't work: win.seLitePreviewConnect was undefined!
+                    /*
                     win.addEventListener( 'load', () => {
                         // win!==window; this===editor - thanks to JS ES6 arrow function ()=>{...}
-                        if( typeof win.seLitePreviewConnect==='function' ) {
+                        win.selenium= editor.selDebugger.runner.selenium;
+                        if( typeof win.seLitePreviewConnect!=='undefined' ) {
+                            console.error('calling win.seLitePreviewConnect');
                             win.seLitePreviewConnect( {
                                 selenium: editor.selDebugger.runner.selenium,
                                 editor: this,
                                 parentAbsoluteURL
                             } );
-                        }
-                    } );
+                        }else {console.error('no win.seLitePreviewConnect');}
+                    }, true );
+                    /**/
+                    return win;
                 },
                 (failure)=> {//@TODO check:
                     throw new Error(failure);

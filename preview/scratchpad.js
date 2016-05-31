@@ -62,8 +62,7 @@ window.open( "data:text/xml," +encodeURIComponent(`<root>
     alert( 'location ' +location);
   ]]></script>
 </root>`)+ '#hi=true' );
- 
-//  Enclose the inner encoded result of src="..." within quotes "...", not within apostrophes '...' - because the encoded text may contain apostrophes, but no quotes (since encodeURIComponent('"') is '%22' and not '"'). This works multi-level.
+//  Enclose the inner encoded result of src="..." within quotes "...", not within apostrophes '...' - because the encoded text may contain apostrophes, but no quotes (since encodeURIComponent("'") is "'", but encodeURIComponent('"') is '%22' and not '"'). This works multi-level.
 window.open( "data:text/xml," +encodeURIComponent(`<root>
   <b>bol<d>d</d></b>
   <script xmlns="http://www.w3.org/1999/xhtml" src="data:text/javascript,` +encodeURIComponent("alert( location);")+ `"></script>

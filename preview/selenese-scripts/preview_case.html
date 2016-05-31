@@ -16,6 +16,34 @@
 	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot;, ['hi', 'mate'] )</td>
 	<td></td>
 </tr>
+<tr>
+	<td>storePromiseValue</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot;, ['hi', 'mate'] )</td>
+	<td>preview</td>
+</tr>
+<!---->
+<tr>
+	<td>getEval</td>
+	<td>$preview.selenium= selenium</td>
+	<td></td>
+</tr>
+<!---->
+<!--following is called back from the above Preview-->
+<tr>
+	<td>function</td>
+	<td>sayHello</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;getEval</td>
+	<td>alert( &quot;Hello&quot; )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
 </tbody></table>
 </body>
 </html>
