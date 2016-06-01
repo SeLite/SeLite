@@ -40,7 +40,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
          * */
         //var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
         Editor.prototype.openPreview= function openPreview( urlOrPromise, data={}, config={} ) {
-            var promise= !(urlOrPromise instanceof Promise)
+            var promise= !SeLiteMisc.isInstance( urlOrPromise, Promise)
                 ? Promise.resolve( urlOrPromise )
                 : urlOrPromise;
             
@@ -64,7 +64,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
                 : encodeURIComponent(json);
             
             return promise.then(
-                (url)=> {
+                url => {
                     if( config.inSearch ) {
                         url+= url.indexOf('?')>0
                             ? '&'
@@ -119,7 +119,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
                     /**/
                     return win;
                 },
-                (failure)=> {//@TODO check:
+                failure => {//@TODO check:
                     throw new Error(failure);
                 }
             );
@@ -134,7 +134,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
             var selenium= this.selDebugger.runner.selenium;
             var Selenium= selenium.constructor;
             return promise.then(
-                (url)=> {
+                url => {
                     // Add a timestamp to make the query unique
                     if( 'addTimestamp' in config && config.addTimestamp ) {
                         url+= ( url.indexOf('?')<0
@@ -144,10 +144,9 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
                     }
 
                     url.indexOf('#')<0 || SeLiteMisc.fail( 'Parameter filePathOrURL must not contain a #hash (fragment): ' +filePathOrURL );
-                    // If .then()'s positive handler returns a promise X, they result of .then() will be a promise that resolved to the value of resolved X
                     return this.openPreview( selenium.encodeFileRecursively(url, config.base64, filter), data, config );
                 },
-                (failure)=> {//@TODO check:
+                failure => {//@TODO check:
                     throw new Error(failure);
                 }
             );

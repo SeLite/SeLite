@@ -97,6 +97,8 @@
         return this.encodeFile( filePathOrURL, base64, Selenium.prototype.encodeFileRecursiveHandler.bind(this, filter) );
     };
     
+    /*var indentIndex= 0;
+    function indent( indentation, str ) { return str.replace( /\n/g, "\n" +indentation+(++indentIndex)+indentation ); }*/
     // Don't match url() case insensitively, because URL(...) is a standard class in Javascript files
     var handledLink= /(src=|href=)['"]([^'"]+)['"]|url\( *['"]?([^'"]+)['"] *\)/g;
     var urlRoot= /^((?:file:\/\/\/|[a-z]:\/\/)[^/]+)/;
@@ -122,13 +124,13 @@
         SeLiteMisc.ensureInstance( filter, [RegExp, Function], 'filter' );
                 
         var result= Promise.resolve('');
-        var lastMatch= {lastIndex: 0};
+        var lastMatchLastIndex= 0;
         var match;
         while( ( match=handledLink.exec(content) )!==null ) {
-            // We need the following anonymous function to keep the match details before we fire up successive handling, because then lastMatch and match will advance.
+            // The following anonymous function keeps the match details before we fire up successive handling, because then handledLink and match will be updated.
             ( ()=>{
                 var wholeMatch= match[0];
-                var sincePreviousMatch= content.substring( lastMatch.lastIndex, match.index );
+                var sincePreviousMatch= content.substring( lastMatchLastIndex, match.index );
 
                 var url= match[2] || match[3];
 
@@ -142,7 +144,7 @@
                     : '")';
 
                 result= result.then(
-                    (previous)=> {
+                    previous => {
                         //Convert relative URL to absolute (based on the document being currently processed). If url is absolute, the following leaves it as it was.
                         var convertedURL= new URL( url, contentURL ).href; // Based on https://developer.mozilla.org/en-US/docs/Web/API/URL/URL
                         
@@ -159,17 +161,17 @@
                             : undefined; // this file is a leaf, no deeper recursion
                         
                         return this.encodeFile( convertedURL, base64, contentHandler ).then(
-                            (processed) => 
+                            processed => 
                                 previous+ sincePreviousMatch+ beforeUrl+ processed+ afterUrl
                         );
                     }
                 );
             } )();
-            lastMatch= match;
+            lastMatchLastIndex= handledLink.lastIndex;
         }
         result= result.then(
             (previous)=>
-                previous+ content.substring(lastMatch.lastIndex)
+                previous+ content.substring(lastMatchLastIndex)
         );
         return result;
     };
