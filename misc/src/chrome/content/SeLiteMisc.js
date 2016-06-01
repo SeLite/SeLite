@@ -1,4 +1,4 @@
-/*  Copyright 2011, 2012, 2013, 2014, 2015 Peter Kehl
+/*  Copyright 2011, 2012, 2013, 2014, 2015, 2016 Peter Kehl
     This file is part of SeLite Misc.
 
     This program is free software: you can redistribute it and/or modify
@@ -221,11 +221,34 @@ SeLiteMisc.ensureType= function ensureType( item, typeStringOrStrings, variableN
     }
 };
 
-/** @var array of strings which are names of global classes/objects.
+/** @var array of classes (constructor functions) which are global objects.
  *  A list of global classes supported by isInstance(), that are separate per each global scope
- *  (and each Javascript module has its own). See a list of them at https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects.
+ *  (and each Javascript module has its own). These are in the same order as at https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects.
  * */
-var globalClasses= ['Array', 'Boolean', 'Date', 'Function', 'Iterator', 'Number', 'RegExp', 'String', 'Proxy', 'Error'];
+var globalClasses= [
+    Object, Function, Boolean, Symbol, Error, EvalError, InternalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError,
+    Number, Date,
+    String, RegExp,
+    Array, Int8Array, Uint8Array, Uint8ClampedArray, Int16Array, Uint16Array, Int32Array, Uint32Array, Float32Array, Float64Array,
+    Map, Set, WeakMap, WeakSet,
+    ArrayBuffer, SharedArrayBuffer, DataView,
+    Promise, // Generator, GeneratorFunction,
+    Proxy,
+    Intl.Collator, Intl.DateTimeFormat, Intl.NumberFormat
+];
+if( typeof Generator==='class' ) {
+    globalClasses.push( Generator );
+}
+if( typeof GeneratorFunction==='class' ) {
+    globalClasses.push( GeneratorFunction );
+}
+
+/** @var array of classes (functions) strings which are names of global classes/objects.
+ */
+var globalClassNames= [];
+for( var clazz of globalClasses ) {
+    globalClassNames.push( clazz.name );
+}
 
 /** Detect whether the given object is an instance of one of the given class(es). It works mostly even if the object is an instance of one of Javascript 'global' classes ('objects') from a different Javascript code module, its class/constructor is different to this scope. That wouldn't work only if the other scope had a custom class/constructor with function name same as one of the global objects, which is a bad practice, e.g.
  * <code>
@@ -247,7 +270,7 @@ SeLiteMisc.isInstance= function isInstance( object, classes, variableName='objec
     for( var clazz of classes ) {
         if( typeof clazz==='function' ) {
             if( object instanceof clazz
-                || SeLiteMisc.oneOf(clazz.name, globalClasses) && object.constructor.name===clazz.name ) {
+                || SeLiteMisc.oneOf(clazz.name, globalClassNames) && object.constructor.name===clazz.name ) {
                 return true;
             }
         }
