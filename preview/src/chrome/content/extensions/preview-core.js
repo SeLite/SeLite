@@ -68,14 +68,16 @@
         var url= Selenium.urlFor( filePathOrURL, true ); // if a filepath, this translates it to a URL
         var uri= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService).newURI( url, null, null);
         
-        return this.loadFile( url ).then( (content)=>{
+        return this.loadFile( url ).then(
+        unprocessedContent => {
             var contentHandlerPromise=
                 contentHandler
-                ? contentHandler( content, url, base64 )
-                : Promise.resolve( content );
+                ? contentHandler( unprocessedContent, url, base64 )
+                : Promise.resolve( unprocessedContent );
             
-            return contentHandlerPromise.then( (handledContent)=>{
-                return Selenium.encodeContent( content, nsIMIMEService.getTypeFromURI( uri ), base64 );
+            return contentHandlerPromise.then(
+            processedContent => {
+                return Selenium.encodeContent( processedContent, nsIMIMEService.getTypeFromURI( uri ), base64 );
             } );
         } );
     };
@@ -141,25 +143,24 @@
 
                 result= result.then(
                     (previous)=> {
+                        //Convert relative URL to absolute (based on the document being currently processed). If url is absolute, the following leaves it as it was.
+                        var convertedURL= new URL( url, contentURL ).href; // Based on https://developer.mozilla.org/en-US/docs/Web/API/URL/URL
+                        
                         // The following automatically excludes URLs with data: or javascript: scheme.
                         var shouldFetch= SeLiteMisc.isInstance(filter, RegExp )
-                            ? filter.test( url )
-                            : filter( url );// filter is a function
-                        
+                            ? filter.test( convertedURL )
+                            : filter( convertedURL );// filter is a function
                         if( !shouldFetch ) {
                             return previous+ sincePreviousMatch+ wholeMatch;
                         }
-                        //Convert relative URL to absolute (based on the document being currently processed). If url is absolute, the following leaves it as it was.
-                        var convertedURL= new URL( url, contentURL ).href; // Based on https://developer.mozilla.org/en-US/docs/Web/API/URL/URL
-                        //TODO flag/regex/callback to determine what full URLs to *fetch*
                         
                         var contentHandler= convertedURL.endsWith('.css')
                             ? Selenium.prototype.encodeFileRecursiveHandler.bind(this, filter) // recursive - to fetch any images referenced from this CSS file
                             : undefined; // this file is a leaf, no deeper recursion
-
+                        
                         return this.encodeFile( convertedURL, base64, contentHandler ).then(
-                            (processed) =>
-                            previous+ sincePreviousMatch+ beforeUrl+ processed+ afterUrl
+                            (processed) => 
+                                previous+ sincePreviousMatch+ beforeUrl+ processed+ afterUrl
                         );
                     }
                 );
@@ -167,7 +168,8 @@
             lastMatch= match;
         }
         result= result.then(
-            (previous)=> previous+ content.substring(lastMatch.lastIndex)
+            (previous)=>
+                previous+ content.substring(lastMatch.lastIndex)
         );
         return result;
     };

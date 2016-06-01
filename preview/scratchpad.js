@@ -1,3 +1,19 @@
+"use strict";
+var first= Promise.resolve( 'first');
+var second= first.then(
+  (previous)=>
+    Promise.resolve( previous +' inner').then(
+                                               (processed) => processed+' added'
+                                             )
+);
+
+var msg;
+second.then( (result)=> {msg=result;} );
+msg
+/*
+first inner added
+*/
+//-------------
 var result;
 var arr=[1, 2];
 
