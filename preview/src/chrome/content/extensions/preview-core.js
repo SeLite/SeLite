@@ -74,7 +74,7 @@
     Selenium.prototype.encodeFile= function encodeFile( url, preferBase64=false, contentHandler=undefined ) {
         var uri= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService).newURI( url, null, null);
         var mime= nsIMIMEService.getTypeFromURI( uri );
-        var contentIsBinary= !mime.startsWith('text/'); //@TODO also MIME of .xml, .xhtml; and also accept preferBase64 to be an array or MIME prefixes, or a RegExp
+        var contentIsBinary= !mime.startsWith('text/')/*That covers text/xml*/ && mime!=='application/xhtml+xml'; //@TODO also accept preferBase64 to be an array or MIME prefixes, or a RegExp
         
         return this.loadFile( url,  contentIsBinary ).then(
         unprocessedContent => {
