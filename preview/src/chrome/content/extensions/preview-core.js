@@ -71,7 +71,9 @@
      *  @param {function} [contentHandler=undefined] Function(content) => Promise of a string (the handled content). Used for deep/recursive handling. Parameter url is used only for resolving relative URLs for documents that are handled recursively.
      *  @return {Promise} Promise that resolves to encoded content (and handled, if contentHandler is passed); it rejects on error or on timeout. On success it resolves to string, which is a data: URI for content of given documentURL, including content of images/scripts/stylesheets through data: URIs, too.
      * */
-    Selenium.prototype.encodeFile= function encodeFile( url, mime, preferBase64=false, contentHandler=undefined ) {
+    Selenium.prototype.encodeFile= function encodeFile( url, preferBase64=false, contentHandler=undefined ) {
+        var uri= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService).newURI( url, null, null);
+        var mime= nsIMIMEService.getTypeFromURI( uri );
         var contentIsBinary= !mime.startsWith('text/'); //@TODO also MIME of .xml, .xhtml; and also accept preferBase64 to be an array or MIME prefixes, or a RegExp
         
         return this.loadFile( url,  contentIsBinary ).then(
@@ -103,10 +105,8 @@
      * */
     Selenium.prototype.encodeFileWithHandler= function encodeFileWithHandler( filePathOrURL, preferBase64=false, fetchFilter=undefined, handler=undefined ) {
         var url= Selenium.urlFor( filePathOrURL, true ); // if a filepath, this translates it to a URL
-        var uri= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService).newURI( url, null, null);
-        var mime= nsIMIMEService.getTypeFromURI( uri );
         
-        return this.encodeFile( url, mime, preferBase64,
+        return this.encodeFile( url, preferBase64,
             handler
             ? handler.bind(undefined, fetchFilter, preferBase64, url)
             : undefined
