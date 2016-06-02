@@ -68,7 +68,7 @@
      *  @see Editor.prototype.openPreview()
         @param {string} filePathOrURL File path or URL of the HTML/XML preview file/template. It must be a full URL (including the scheme/protocol), or a full path. If it's a file path, you can use either / or \ as directory separators (they will get translated for the current system). To make it portable, specify it as a relative path and pass it appended to result of SeLiteSettings.getTestSuiteFolder(). It must not be a data: URL. It must not contain a #hash/fragment part.
      *  @param {boolean} [preferBase64=false] Whether to prefer base 64 encoding (human-unreadable) rather than URL encoding (English text is human-readable). Only applicable to text fiels - binary files are always encoded at base 64.
-     *  @param {function} [contentHandler=undefined] Function(content, url, preferBase64) which returns a Promise of the handled content. Used for deep/recursive handling. Parameter url is used only for resolving relative URLs for documents that are handled recursively.
+     *  @param {function} [contentHandler=undefined] Function(content) => Promise of a string (the handled content). Used for deep/recursive handling. Parameter url is used only for resolving relative URLs for documents that are handled recursively.
      *  @return {Promise} Promise that resolves to encoded content (and handled, if contentHandler is passed); it rejects on error or on timeout. On success it resolves to string, which is a data: URI for content of given documentURL, including content of images/scripts/stylesheets through data: URIs, too.
      * */
     Selenium.prototype.encodeFile= function encodeFile( url, mime, preferBase64=false, contentHandler=undefined ) {
@@ -79,7 +79,7 @@
             
             var contentHandlerPromise=
                 !contentIsBinary && contentHandler
-                ? contentHandler( unprocessedContent, url, preferBase64 )
+                ? contentHandler( unprocessedContent )
                 : Promise.resolve( unprocessedContent );
             
             return contentHandlerPromise.then(
@@ -98,7 +98,7 @@
      * - RegExp matching any URLs to fetch.
      * - Function(url) that returns whether to fetch a URL.
      * - undefined to fetch any URLs on the same server (or under same top folder/Windows volume).
-     * @param {function} [handler] Function (fetchFilter, content, contentURL, preferBase64) => Promise.
+     * @param {function} [handler] Function (fetchFilter, preferBase64, contentURL, content) => Promise.
      * @return {Promise} Promise of a string content.
      * */
     Selenium.prototype.encodeFileWithHandler= function encodeFileWithHandler( filePathOrURL, preferBase64=false, fetchFilter=undefined, handler=undefined ) {
@@ -108,7 +108,7 @@
         
         return this.encodeFile( url, mime, preferBase64,
             handler
-            ? handler.bind(undefined, fetchFilter) // @TODO also bind preferBase64, and re-order in encodeFileRecursiveHandler()
+            ? handler.bind(undefined, fetchFilter, preferBase64, url)
             : undefined
         );
     };
@@ -125,7 +125,7 @@
     
     /** @param {string|array|RegExp|function|undefined} filter See Selenium.prototype.encodeFileRecursively().
      * */
-    Selenium.prototype.encodeFileRecursiveHandler= function encodeFileRecursiveHandler( filter, content, contentURL, preferBase64=false ) {
+    Selenium.prototype.encodeFileRecursiveHandler= function encodeFileRecursiveHandler( filter, preferBase64, contentURL, content ) {
         if( filter===undefined ) {
             var contentRootMatch= urlRoot.exec(contentURL);
             if( contentRootMatch ) {
