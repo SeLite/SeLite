@@ -2,7 +2,7 @@
 <window id="yourwindow" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml">
     <vbox id="SeSettingsBox" flex="1">
         <description >
-        SeLite requires SeLite Extension Sequencer, which is missing (or is disabled). Please, install (or enable) it and re-start Firefox. See <html:a href="http://selite.github.io/AddOns">http://selite.github.io/AddOns</html:a>.
+        SeLite requires SeLite Extension Sequencer, which is missing (or is disabled). Please, install (or enable) it and re-start Firefox. See <html:a href="http://selite.github.io/Components">http://selite.github.io/Components</html:a>.
         </description>
     </vbox>
 </window>

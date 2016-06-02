@@ -2,7 +2,7 @@
 <window id="yourwindow" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml">
     <vbox id="SeSettingsBox" flex="1">
         <description >
-            Implicit Wait requires <html:a href="https://addons.mozilla.org/en-US/firefox/addon/selite-extension-sequencer/">SeLite Extension Sequencer</html:a> (<html:a href="https://addons.mozilla.org/en-US/firefox/addon/selite-extension-sequencer/versions/">download</html:a>) and <html:a href="https://addons.mozilla.org/en-US/firefox/addon/selite-testcase-debug-conte/">TestCase Debug Context</html:a> (<html:a href="https://addons.mozilla.org/en-US/firefox/addon/selite-testcase-debug-conte/versions/">download</html:a>), which are missing (or are disabled). Please, install (or enable) them and re-start Firefox. See also <html:a href="http://selite.github.io/AddOns">http://selite.github.io/AddOns</html:a>.
+            Implicit Wait requires SeLite Extension Sequencer, which is missing (or is disabled). Please, install (or enable) it and re-start Firefox. See <html:a href="http://selite.github.io/Components">http://selite.github.io/Components</html:a>.
         </description>
     </vbox>
 </window>

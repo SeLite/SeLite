@@ -2,18 +2,7 @@
 <window id="yourwindow" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml">
     <vbox id="SeSettingsBox" flex="1">
         <description >
-        SeLite requires SeLite Extension Sequencer, which is missing (or is disabled). Please, install (or enable) it and re-start Firefox. See <html:a href="http://selite.github.io/AddOns">http://selite.github.io/AddOns</html:a>.
-        <html:script type="text/javascript">
-            //<![CDATA[
-            // Following is the same in similar .xul files across SeLite.
-            // This is for users who have configured Firefox Preferences > General > Startup: When Firefox starts: 'Show my windows and tabs from last time'. When such a user exits and re-starts Firefox, this page would show up even if the user resolved the problem that was announced here in the previous run. That would be misleading. So, the following ensures that when the user exits Firefox, this alert screen disappears, and it won't show up next time (unless the user doesn't resolve the problem, when this page shows up again as it should).
-            // This works when closing by 'X' icon of Firefox window, or by Alt+F4 or via menu File > Exit. It doesn't work when closing Firefox 32 by Ctrl+Q on Linux. On Linux I could check http://kb.mozillazine.org/Browser.startup.page and show an extra note below about Ctrl+Q, but that's quite out of scope. The same may apply to Command-Q on Mac OS (I didn't check).
-            window.onbeforeunload= function onbeforeunload() {
-                window.onbeforeunload= undefined;
-                window.close();
-            };
-            //]]>
-        </html:script>
+        SeLite requires SeLite Extension Sequencer, which is missing (or is disabled). Please, install (or enable) it and re-start Firefox. See <html:a href="http://selite.github.io/Components">http://selite.github.io/Components</html:a>.
         </description>
     </vbox>
 </window>
