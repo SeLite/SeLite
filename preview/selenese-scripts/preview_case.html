@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>getEval</td>
-	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simpler.html&quot;, ['hi', 'mate'] )</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simpler.html&quot;, ['hi', 'mate'], {base64: true} )</td>
 	<td></td>
 </tr>
 <tr>
@@ -26,10 +26,35 @@
 	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot;, ['hi', 'mate'] )</td>
 	<td>preview</td>
 </tr>
+<tr>
+	<td>storePromiseValue</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot;, ['hi', 'mate'], {base64: true} )</td>
+	<td>promise</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot;, ['hi', 'mate'], {base64: true} )</td>
+	<td>promise</td>
+</tr>
 <!---->
 <tr>
 	<td>storePromiseValue</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/favicon-32x32.png&quot;, true )</td>
+	<td>fetched</td>
+</tr>
+<tr>
+	<td>storePromiseValue</td>
+	<td>selenium.encodeFileRecursively( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/favicon-32x32.png&quot;, true )</td>
+	<td>fetched</td>
+</tr>
+<tr>
+	<td>storePromiseValue</td>
 	<td>selenium.encodeFileRecursively( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot; )</td>
+	<td>fetched</td>
+</tr>
+<tr>
+	<td>storePromiseValue</td>
+	<td>selenium.encodeFileRecursively( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot;, true )</td>
 	<td>fetched</td>
 </tr>
 <tr>

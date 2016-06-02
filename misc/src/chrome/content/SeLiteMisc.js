@@ -231,15 +231,18 @@ var globalClasses= [
     String, RegExp,
     Array, Int8Array, Uint8Array, Uint8ClampedArray, Int16Array, Uint16Array, Int32Array, Uint32Array, Float32Array, Float64Array,
     Map, Set, WeakMap, WeakSet,
-    ArrayBuffer, SharedArrayBuffer, DataView,
+    ArrayBuffer, /*SharedArrayBuffer,*/ DataView,
     Promise, // Generator, GeneratorFunction,
     Proxy,
     Intl.Collator, Intl.DateTimeFormat, Intl.NumberFormat
 ];
-if( typeof Generator==='class' ) {
+if( typeof SharedArrayBuffer!=='undefined' ) {
+    globalClasses.push( SharedArrayBuffer );    
+}
+if( typeof Generator!=='undefined' ) {
     globalClasses.push( Generator );
 }
-if( typeof GeneratorFunction==='class' ) {
+if( typeof GeneratorFunction!=='undefined' ) {
     globalClasses.push( GeneratorFunction );
 }
 
@@ -250,7 +253,7 @@ for( var clazz of globalClasses ) {
     globalClassNames.push( clazz.name );
 }
 
-/** Detect whether the given object is an instance of one of the given class(es). It works mostly even if the object is an instance of one of Javascript 'global' classes ('objects') from a different Javascript code module, its class/constructor is different to this scope. That wouldn't work only if the other scope had a custom class/constructor with function name same as one of the global objects, which is a bad practice, e.g.
+/** Detect whether the given object is an instance of one of the given class(es). It works even if the object is an instance of one of Javascript 'global' classes ('objects') from a different Javascript code module, its class/constructor is different to this scope. That wouldn't work only if the other scope had a custom class/constructor with function name same as one of the global objects, which would be a bad practice, e.g.
  * <code>
  *    var MyError= function Error() {... };
  *    var myErrorInstance= new MyError();
@@ -259,12 +262,17 @@ for( var clazz of globalClasses ) {
  *  @param {object} object Object
  *  @param {function|array} classes Class (that is, a constructor function), or its name, or an array of any number of one or the other.
  *  @param {string} [variableName] See same parameter of ensureOneOf(). Only used on failure, so that the error message is more meaningful.
+ *  @param {boolean} [requireAnObject=false] Whether it requires parameter object to be an object. If requireAnObject is true, but parameter object is not an object, then this throws an error. If requireAnObject is false and parameter object is not an object, then this returns false. Use for streamlining error messages.
  */
-SeLiteMisc.isInstance= function isInstance( object, classes, variableName='object' ) {
+SeLiteMisc.isInstance= function isInstance( object, classes, variableName='object', requireAnObject=false ) {
     var classesWasArray= Array.isArray(classes);
     if( !classesWasArray ) {
         typeof classes==='function' || typeof classes==='string' || SeLiteMisc.fail( "Parameter clases must be a constructor method, or an array of them." ); // internal validation
         classes= [classes];
+    }
+    if( typeof object!=='object' ) {
+        ! requireAnObject || SeLiteMisc.fail( 'Variable ' +variableName+ ' is required to be an object, but it was ' +typeof variableName );
+        return false;
     }
     SeLiteMisc.ensureType( object, 'object', variableName ); // semi-internal validation
     for( var clazz of classes ) {
@@ -385,7 +393,6 @@ function checkField( name, value, target ) {
         if( definition==='any' ) {
             return true;
         }
-        var isObject= typeof value==='object';
         for( var definitionEntry of definition ) {
 
             if( SeLiteMisc.TYPE_NAMES.indexOf(definitionEntry)>=0 ) {
@@ -394,7 +401,7 @@ function checkField( name, value, target ) {
                 }
             }
             else {
-                if( isObject && SeLiteMisc.isInstance(value, definitionEntry) ) {
+                if( SeLiteMisc.isInstance(value, definitionEntry) ) {
                     return true;
                 }
             }

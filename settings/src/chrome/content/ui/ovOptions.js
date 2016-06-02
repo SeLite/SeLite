@@ -433,7 +433,7 @@ else {
         this.field || this.rowLevel===RowLevel.MODULE || this.rowLevel===RowLevel.SET || SeLiteMisc.fail( "Parameter field must be defined, unless rowLevel===RowLevel.MODULE or rowLevel===RowLevel.SET, but rowLevel is " +this.rowLevel );
 
         if( 'key' in this && this.key===SeLiteSettings.NEW_VALUE_ROW ) {
-            this.rowLevel===RowLevel.OPTION && this.field.multivalued && !SeLiteMisc.isInstance( this.field, [SeLiteSettings.Field.FixedMap,SeLiteSettings.Field.Choice] ) || SeLiteMisc.fail( 'Only use SeLiteSettings.NEW_VALUE_ROW for multivalued freetype fields at RowLevel.OPTION.' );
+            this.rowLevel===RowLevel.OPTION && this.field.multivalued && !SeLiteMisc.isInstance( this.field, [SeLiteSettings.Field.FixedMap,SeLiteSettings.Field.Choice], 'field', true ) || SeLiteMisc.fail( 'Only use SeLiteSettings.NEW_VALUE_ROW for multivalued freetype fields at RowLevel.OPTION.' );
             !('valueCompound' in this) || SeLiteMisc.fail( 'When using SeLiteSettings.NEW_VALUE_ROW, do not pass valueCompound.' );
             this.valueCompound= new SeLiteSettings.FieldInformation( /*entry*/{});
         }
@@ -720,7 +720,7 @@ else {
                         : DELETE_THE_SET;
             }
             else if( !showingPerFolder() ) {
-                if( this.field!==null && !SeLiteMisc.isInstance( this.field, [SeLiteSettings.Field.Choice, SeLiteSettings.Field.FixedMap], 'field' )
+                if( this.field!==null && !SeLiteMisc.isInstance( this.field, [SeLiteSettings.Field.Choice, SeLiteSettings.Field.FixedMap], 'this.field', true )
                 && this.field.multivalued ) {
                     if( this.rowLevel===RowLevel.FIELD ) {
                         return ADD_NEW_VALUE;

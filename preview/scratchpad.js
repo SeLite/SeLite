@@ -1,4 +1,41 @@
 "use strict";
+function f( par ) {
+  return this;
+  //return 'this: ' +typeof this+ '; par: ' +typeof par;
+}
+
+function MyObject(){}
+var o=new MyObject();
+
+var first= f.bind(o);
+var second= first.bind( 'a');
+second()===o
+
+"use strict";
+var request = new XMLHttpRequest();
+//request.open('GET', "data:text/html," +encodeURIComponent('<html><head><script type="javascript">alert("hi");</script></head><body onload="alert(\'onload\')">bod</body></html>'), false);  // `false` makes the request synchronous
+request.responseType= 'blob';
+
+            request.onload= ()=> {
+                if (request.readyState === 4) {
+                    if (request.status === 200) {
+                      var reader = new FileReader();
+                      reader.addEventListener("loadend", function() {
+                        var stringView= new StringView( reader.result, 'ASCII');
+                        stringView.toBase64( true )
+
+                      });
+                      reader.readAsArrayBuffer( request.response );                    }
+                }
+            };
+
+request.open('GET', 'file:///D:/localdata/pkehl/SeLite/preview/selenese-scripts/content/favicon-32x32.png', true );
+request.send(null);
+//--
+
+if( false ) {
+  
+
 var first= Promise.resolve( 'first');
 var second= first.then(
   (previous)=>
@@ -122,3 +159,4 @@ JSON.stringify( outer)
 Exception: Error: Access to 'file:///D:/localdata/pkehl/SeLite/preview/demo/content.html' from script denied
 @Scratchpad/1:8:10
 */
+}
