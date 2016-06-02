@@ -155,7 +155,7 @@
                 var url= match[2] || match[3];
 
                 var matchedSrcOrHref= match[1]!==undefined;
-                // Always return quotes, replacing any previous apostrophes, for these URLs. @TODO comment
+                // Always return quotes, replacing any previous apostrophes, for these URLs. That's because URL-encoded text may contain apostrophes, but no quotes.
                 var beforeUrl= matchedSrcOrHref
                     ? match[1]+ '"'
                     : 'url("';
@@ -203,13 +203,8 @@
     Selenium.encodeContent= function encodeContent( content, mime, contentIsBinary=false, preferUrlEncode=true ) {
         (typeof content==="object") === SeLiteMisc.isInstance( content, ArrayBuffer ) || SeLiteMisc.fail( "Parameter content must be a primitive string, or an ArrayBuffer.");
         (typeof content==="object") === contentIsBinary || SeLiteMisc.fail( "Parameter content was " +typeof content+ ", but parameter contentIsBinary was " +contentIsBinary );
-        //  TODO When you pass the result as a part of processed HTML of another file - e.g. the result of this function will serve in as a URL in link="..." or src="..." attributes, then enclose the encoded result within quotes "...", not within apostrophes '...' - because the encoded text may contain apostrophes, but no quotes.
 
             //@TODO var body= doc.getElementsByTagNameNS( "http://www.w3.org/1999/xhtml", 'body')[0]; // this works even if the document's MIME is text/html rather than text/xml
-            //body.innerHTML;
-
-            // Loop over elements. If can't get the file, skip.
-            // Try to modify DOM and then user innerHTML
         var encoded= contentIsBinary
             ? new StringView( content, 'ASCII').toBase64( true )
             : ( !preferUrlEncode

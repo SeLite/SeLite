@@ -1,15 +1,14 @@
 "use strict";
 function f( par ) {
   return this;
-  //return 'this: ' +typeof this+ '; par: ' +typeof par;
 }
 
 function MyObject(){}
 var o=new MyObject();
 
 var first= f.bind(o);
-var second= first.bind( 'a');
-second()===o
+var second= first.bind( undefined );
+second()===o // this is true
 
 "use strict";
 var request = new XMLHttpRequest();

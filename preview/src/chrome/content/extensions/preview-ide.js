@@ -30,7 +30,12 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
          *  2. If there is any such part, apply decodeURIComponent() (if config.base64 is false) or atob() (if config.base64 is true). Then apply JSON.parse().
          *  @param {string} filePathOrURL File path or URL of the HTML/XML preview file/template. If it's a file path, you can use either / or \ as directory separators (they will get translated for the current system). To make it portable, specify it as a relative path and pass it appended to result of SeLiteSettings.getTestSuiteFolder(). It must not contain a #hash/fragment part.
          *  @param {*} [data] Usually an anonymous object or an array. The template must not rely on any class membership or on any fields that are functions.
-         *  @param {object} [config] Configuration. Like the same parameter of openPreviewEncode(), but this doesn't use base64.
+         * @param {object} [config] Configuration with any of fields: {
+         *      addTimestamp: boolean. If true, then this doesn't make the URL unique by adding a timestamp in the query part of filePathOrURL. False by default.
+         *      dataParameterName: name of HTTP GET parameter ('seLitePreviewData' by default), added to the query part of filePathOrURL. Only used when passing data through URL query rather than through URL hash (fragment, anchor).
+         *      inSearch: boolean, whether to pass the encoded data in the URI search (query) part, instead of URI hash (fragment) part. False (i.e. using hash) by default - which also works with data: URLs.
+         *      base64: boolean, whether to base64-encode, instead of url-encode. False by default.
+         *  }
          *  @return {Promise} Promise that resolves to Window object.
          * */
         //var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
@@ -41,6 +46,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
             
             'dataParameterName' in config || (config.dataParameterName='seLitePreviewData');
             'inSearch' in config || (config.inSearch=false);
+            'base64' in config || (config.base64=false);
             
             /** Side research on passing data via #hash part of URL:
                    JSON.stringify( {hi: 'you & i'} ) -> '{"hi":"you & i"}'
@@ -53,7 +59,9 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
            */
 
             var json= JSON.stringify( data );
-            var encoded= encodeURIComponent(json);
+            var encoded= config.base64
+                ? btoa(json)
+                : encodeURIComponent(json);
             
             return promise.then(
                 url => {
@@ -111,20 +119,13 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
                     /**/
                     return win;
                 },
-                failure => {//@TODO check:
-                    debugger;
+                failure => {
                     throw new Error(failure);
                 }
             );
         };
         
-        /**
-         * @param {object} [config] Configuration with any of fields: {
-         *      addTimestamp: boolean. If true, then this doesn't make the URL unique by adding a timestamp in the query part of filePathOrURL. False by default.
-         *      dataParameterName: name of HTTP GET parameter ('seLitePreviewData' by default), added to the query part of filePathOrURL. Only used when passing data through URL query rather than through URL hash (fragment, anchor).
-         *      inSearch: boolean, whether to pass the encoded data in the URI search (query) part, instead of URI hash (fragment) part. False (i.e. using hash) by default - which also works with data: URLs.
-         *      base64: boolean, whether to base64-encode, instead of url-encode. False by default.
-         *  }
+        /** Similar to Editor.prototype.openPreview(), but this doesn't fetch the document (it doesn't encode it as a data: URL).
          */
         Editor.prototype.openPreviewEncode= function openPreviewEncode( urlOrPromise, data={}, config={}, filter=undefined ) {
             var promise= !(urlOrPromise instanceof Promise)
@@ -147,7 +148,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
                     url.indexOf('#')<0 || SeLiteMisc.fail( 'Parameter filePathOrURL must not contain a #hash (fragment): ' +filePathOrURL );
                     return this.openPreview( selenium.encodeFileRecursively(url, config.base64, filter), data, config );
                 },
-                failure => {//@TODO check:
+                failure => {
                     throw new Error(failure);
                 }
             );
