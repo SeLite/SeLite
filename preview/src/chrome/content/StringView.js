@@ -1,6 +1,6 @@
 "use strict";
 
-// Compared to original StringView, this file doesn't contain Number.isInteger(), because it's already present in EcmaScript 6 and this is for new browsers only.
+// Based on original StringView (link below). This file removed Number.isInteger(), because it's already present in EcmaScript 6 and this is for new browsers only.
 
 /*\
 |*|
@@ -448,7 +448,6 @@ StringView.bytesToBase64 = function (aBytes) {
 
   for (var nMod3, nLen = aBytes.length, nUint24 = 0, nIdx = 0; nIdx < nLen; nIdx++) {
     nMod3 = nIdx % 3;
-    if (nIdx > 0 && (nIdx * 4 / 3) % 76 === 0) { sB64Enc += "\r\n"; }
     nUint24 |= aBytes[nIdx] << (16 >>> nMod3 & 24);
     if (nMod3 === 2 || aBytes.length - nIdx === 1) {
       sB64Enc += String.fromCharCode(StringView.uint6ToB64(nUint24 >>> 18 & 63), StringView.uint6ToB64(nUint24 >>> 12 & 63), StringView.uint6ToB64(nUint24 >>> 6 & 63), StringView.uint6ToB64(nUint24 & 63));

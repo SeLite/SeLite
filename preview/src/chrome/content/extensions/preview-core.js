@@ -24,6 +24,7 @@
     
     /** Load a given file asynchronously.
      *  @param {string} url URL of the file. It must be a full URL (including the scheme/protocol).
+     *  @param {boolean} [binary=false] Whether it's a binary file. If unsure, pass true.
      *  @return {Promise} A Promise that will resolve to content of the file: either  to a string (if binary is not set/false), or to an ArrayBuffer (if binary is true). On failure or timeout it will be rejected.
      * */
     Selenium.prototype.loadFile= function loadFile( url, binary=false ) {
@@ -69,14 +70,14 @@
      *  It also loads content of files referenced by <img src="...">, <link href="..." with rel="stylesheet" or with as="script" or with type="...">,  <script src="...">. It changes src="..." or href="..." of those elements to use data: containing the loaded content.
      *  @see Editor.prototype.openPreview()
         @param {string} filePathOrURL File path or URL of the HTML/XML preview file/template. It must be a full URL (including the scheme/protocol), or a full path. If it's a file path, you can use either / or \ as directory separators (they will get translated for the current system). To make it portable, specify it as a relative path and pass it appended to result of SeLiteSettings.getTestSuiteFolder(). It must not be a data: URL. It must not contain a #hash/fragment part.
-     *  @param {boolean} [preferBase64=false] Whether to prefer base 64 encoding (human-unreadable) rather than URL encoding (English text is human-readable). Only applicable to text fiels - binary files are always encoded at base 64.
+     *  @param {boolean} [useBase64=false] Whether to prefer base 64 encoding (human-unreadable) rather than URL encoding (English text is human-readable). Only applicable to text fiels - binary files are always encoded at base 64.
      *  @param {function} [contentHandler=undefined] Function(content) => Promise of a string (the handled content). Used for deep/recursive handling. Parameter url is used only for resolving relative URLs for documents that are handled recursively.
      *  @return {Promise} Promise that resolves to encoded content (and handled, if contentHandler is passed); it rejects on error or on timeout. On success it resolves to string, which is a data: URI for content of given documentURL, including content of images/scripts/stylesheets through data: URIs, too.
      * */
-    Selenium.prototype.encodeFile= function encodeFile( url, preferBase64=false, contentHandler=undefined ) {
+    Selenium.prototype.encodeFile= function encodeFile( url, useBase64=false, contentHandler=undefined ) {
         var uri= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService).newURI( url, null, null);
         var mime= nsIMIMEService.getTypeFromURI( uri );
-        var contentIsBinary= !mime.startsWith('text/')/*That covers text/xml*/ && mime!=='application/xhtml+xml'; //@TODO also accept preferBase64 to be an array or MIME prefixes, or a RegExp
+        var contentIsBinary= !mime.startsWith('text/')/*That covers text/xml*/ && mime!=='application/xhtml+xml'; //@TODO also accept useBase64 to be an array or MIME prefixes, or a RegExp
         
         return this.loadFile( url,  contentIsBinary ).then(
         unprocessedContent => {
@@ -88,35 +89,35 @@
             
             return contentHandlerPromise.then(
             processedContent => {
-                return Selenium.encodeContent( processedContent, mime, contentIsBinary, preferBase64 );
+                return Selenium.encodeContent( processedContent, mime, contentIsBinary, useBase64 );
             } );
         } );
     };
     
     /**
      * @param {string} filePathOrURL See Selenium.prototype.encodeFile().
-     * @param {boolean} [preferBase64=false]
+     * @param {boolean} [useBase64=false]
      * @param {string|array|RegExp|function|undefined} fetchFilter Filter that determines for a given URL whether to fetch it or not.
      * - String application webroot. Any resources under it, even if referenced through full URLs, will be fetched.
      * - Array of webroots. Any resources under them will be fetched.
      * - RegExp matching any URLs to fetch.
      * - Function(url) that returns whether to fetch a URL.
      * - undefined to fetch any URLs on the same server (or under same top folder/Windows volume).
-     * @param {function} [handler] Function (fetchFilter, preferBase64, contentURL, content) => Promise.
+     * @param {function} [handler] Function (fetchFilter, useBase64, contentURL, content) => Promise.
      * @return {Promise} Promise of a string content.
      * */
-    Selenium.prototype.encodeFileWithHandler= function encodeFileWithHandler( filePathOrURL, preferBase64=false, fetchFilter=undefined, handler=undefined ) {
+    Selenium.prototype.encodeFileWithHandler= function encodeFileWithHandler( filePathOrURL, useBase64=false, fetchFilter=undefined, handler=undefined ) {
         var url= Selenium.urlFor( filePathOrURL, true ); // if a filepath, this translates it to a URL
         
-        return this.encodeFile( url, preferBase64,
+        return this.encodeFile( url, useBase64,
             handler
-            ? handler.bind(undefined, fetchFilter, preferBase64, url)
+            ? handler.bind(undefined, fetchFilter, useBase64, url)
             : undefined
         );
     };
     
-    Selenium.prototype.encodeFileRecursively= function encodeFileRecursively( filePathOrURL, preferBase64=false, fetchFilter=undefined ) {
-        return this.encodeFileWithHandler( filePathOrURL, preferBase64, fetchFilter, Selenium.prototype.encodeFileRecursiveHandler.bind(this) );
+    Selenium.prototype.encodeFileRecursively= function encodeFileRecursively( filePathOrURL, useBase64=false, fetchFilter=undefined ) {
+        return this.encodeFileWithHandler( filePathOrURL, useBase64, fetchFilter, Selenium.prototype.encodeFileRecursiveHandler.bind(this) );
     };
     
     /*var indentIndex= 0;
@@ -127,7 +128,7 @@
     
     /** @param {string|array|RegExp|function|undefined} filter See Selenium.prototype.encodeFileRecursively().
      * */
-    Selenium.prototype.encodeFileRecursiveHandler= function encodeFileRecursiveHandler( filter, preferBase64, contentURL, content ) {
+    Selenium.prototype.encodeFileRecursiveHandler= function encodeFileRecursiveHandler( filter, useBase64, contentURL, content ) {
         if( filter===undefined ) {
             var contentRootMatch= urlRoot.exec(contentURL);
             if( contentRootMatch ) {
@@ -182,7 +183,7 @@
                             ? Selenium.prototype.encodeFileRecursiveHandler.bind(this) // recursive - to fetch any images referenced from this CSS file
                             : undefined; // this file is a leaf, no deeper recursion
                         
-                        return this.encodeFileWithHandler( convertedURL, preferBase64, filter, contentHandler ).then(
+                        return this.encodeFileWithHandler( convertedURL, useBase64, filter, contentHandler ).then(
                             processed => 
                                 previous+ sincePreviousMatch+ beforeUrl+ processed+ afterUrl
                         );
@@ -213,25 +214,28 @@
         return result;
         //return encodeURIComponent(result);
     };
+    
     /**
      * @param {(string|ArrayBuffer)} content
     @return {Promise} Promise that resolved to encoded content; it rejects on error or on timeout.
     */
-    Selenium.encodeContent= function encodeContent( content, mime, contentIsBinary=false, preferBase64=false ) {
+    Selenium.encodeContent= function encodeContent( content, mime, contentIsBinary=false, useBase64=false ) {
         (typeof content==="object") === SeLiteMisc.isInstance( content, ArrayBuffer ) || SeLiteMisc.fail( "Parameter content must be a primitive string, or an ArrayBuffer.");
         (typeof content==="object") === contentIsBinary || SeLiteMisc.fail( "Parameter content was " +typeof content+ ", but parameter contentIsBinary was " +contentIsBinary );
 
             //@TODO var body= doc.getElementsByTagNameNS( "http://www.w3.org/1999/xhtml", 'body')[0]; // this works even if the document's MIME is text/html rather than text/xml
             debugger;
         var encoded= contentIsBinary
-            //? new StringView( content, 'ASCII').toBase64( true )
-            ? stringViewToUrlEncode( new StringView( content, 'ASCII') )
-            : ( false//preferBase64
-                ? btoa(content)
+            ? (useBase64
+                ? new StringView( content, 'ASCII').toBase64( true )
+                : stringViewToUrlEncode( new StringView( content, 'ASCII') )
+              )
+            : ( useBase64
+                ? btoa(content)//btoaPure(content) // here must be the problem
                 : encodeURIComponent(content)
               );
         return 'data:' +mime+
-            (false//contentIsBinary || preferBase64
+            (useBase64
                 ? ';base64'
                 : ''
             ) + ',' + encoded;
