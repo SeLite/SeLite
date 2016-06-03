@@ -42,7 +42,9 @@
                         }
                         else {
                             var reader = new FileReader();
-                            reader.addEventListener( "loadend", ()=> resolve( reader.result ) );
+                            reader.addEventListener( "loadend",
+                                ()=> resolve( reader.result )
+                            );
                             reader.readAsArrayBuffer( request.response );                                         }
                     }
                     else {
@@ -196,6 +198,21 @@
         return result;
     };
     
+    // For Uint8-backed stringview only
+    var stringViewToUrlEncode= function stringViewToUrlEncode( stringView ) {
+        var result= '';
+        for( var i=0; i<stringView.bufferView.length; i++ ) {
+            // Do one by one, rather than the whole string? TODO: try the whole string collected from ASCII each char.
+            //result+= encodeURIComponent( String.fromCharCode(stringView.bufferView[i]) );
+            
+            var hexa= ( stringView.bufferView[i] ).toString(16);
+            result+= '%'+ (hexa.length<2 ? '0' : '')+ hexa;
+            
+            //result+= String.fromCharCode(stringView.bufferView[i]);
+        }
+        return result;
+        //return encodeURIComponent(result);
+    };
     /**
      * @param {(string|ArrayBuffer)} content
     @return {Promise} Promise that resolved to encoded content; it rejects on error or on timeout.
@@ -205,14 +222,16 @@
         (typeof content==="object") === contentIsBinary || SeLiteMisc.fail( "Parameter content was " +typeof content+ ", but parameter contentIsBinary was " +contentIsBinary );
 
             //@TODO var body= doc.getElementsByTagNameNS( "http://www.w3.org/1999/xhtml", 'body')[0]; // this works even if the document's MIME is text/html rather than text/xml
+            debugger;
         var encoded= contentIsBinary
-            ? new StringView( content, 'ASCII').toBase64( true )
-            : ( preferBase64
+            //? new StringView( content, 'ASCII').toBase64( true )
+            ? stringViewToUrlEncode( new StringView( content, 'ASCII') )
+            : ( false//preferBase64
                 ? btoa(content)
                 : encodeURIComponent(content)
               );
         return 'data:' +mime+
-            (contentIsBinary || preferBase64
+            (false//contentIsBinary || preferBase64
                 ? ';base64'
                 : ''
             ) + ',' + encoded;
