@@ -13,9 +13,10 @@
 </thead><tbody>
 <tr>
 	<td>getEval</td>
-	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simpler.html&quot;, ['hi', 'mate'], {base64: true} )</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simpler.html&quot;, ['hi', 'mate'], {base64ForData: true} )</td>
 	<td></td>
 </tr>
+<!---->
 <tr>
 	<td>getEval</td>
 	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot;, ['hi', 'mate'] )</td>
@@ -23,12 +24,17 @@
 </tr>
 <tr>
 	<td>storePromiseValue</td>
-	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot;, ['hi', 'mate'] )</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot;, ['hi', 'mate'], {urlEncodingForContent:true} )</td>
 	<td>preview</td>
 </tr>
 <tr>
 	<td>storePromiseValue</td>
-	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot;, ['hi', 'mate'], {base64: true} )</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot;, ['hi', 'mate'], {base64ForData: true} )</td>
+	<td>promise</td>
+</tr>
+<tr>
+	<td>storePromiseValue</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot;, ['hi', 'mate'], {base64ForData: true, urlEncodingForContent: true} )</td>
 	<td>promise</td>
 </tr>
 <tr>
