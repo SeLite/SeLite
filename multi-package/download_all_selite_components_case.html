@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://change-this-to-the-site-you-are-testing/" />
+<title>download_all_selite_components_case</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">download_all_selite_components_case</td></tr>
+</thead><tbody>
+<!--No need to save defaultTimeout. It will be restored when the test case run finishes.-->
+<tr>
+	<td>getEval</td>
+	<td>selenium.defaultTimeout= 40000</td>
+	<td></td>
+</tr>
+<!---->
+<!--Download URLs of all SeLite Components, except for Hands-On GUI:-->
+<tr>
+	<td>storeEval</td>
+	<td>['https://addons.mozilla.org/en-US/firefox/addon/selite-auto-check/versions/', 'https://addons.mozilla.org/en-US/firefox/addon/SeLite-Bootstrap/versions/', 'https://addons.mozilla.org/en-US/firefox/addon/selite-clipboard-and-indent/versions/', 'https://addons.mozilla.org/en-US/firefox/addon/selite-commands/versions/', 'https://addons.mozilla.org/en-US/firefox/addon/selite-db-objects/versions/', 'https://addons.mozilla.org/en-US/firefox/addon/selite-exit-confirmation-check/versions/', 'https://addons.mozilla.org/en-US/firefox/addon/selite-extension-sequencer/versions/', 'https://addons.mozilla.org/en-US/firefox/addon/selite-miscellaneous/versions/', 'https://addons.mozilla.org/en-US/firefox/addon/selite-run-all-favorites/versions/', 'https://addons.mozilla.org/en-US/firefox/addon/SeLite-SelBlocks-Global/versions/', 'https://addons.mozilla.org/en-US/firefox/addon/selite-settings/versions/', 'https://addons.mozilla.org/en-US/firefox/addon/SeLite-SQLite-Connection-Mg/versions/', 'https://addons.mozilla.org/en-US/firefox/addon/SeLite-TestCase-Debug-Conte/versions/' ]</td>
+	<td>versionURLs</td>
+</tr>
+<!---->
+<!--Side note: On Windows, when editing the following in 'Target' textbox in Selenium IDE, use four backslashes for each directory level. That textbox shows backslashes doubled (twice as many as in the expression passed to Javascript). -->
+<tr>
+	<td>storeEval</td>
+	<td>Components.utils.import(&quot;resource://gre/modules/osfile.jsm&quot;, {}).OS</td>
+	<td>OS</td>
+</tr>
+<!--If the following fails, run this script by opening its suite: download_all_selite_components_suite.html-->
+<tr>
+	<td>storeEval</td>
+	<td>$OS.Path.join( SeLiteSettings.getTestSuiteFolder(), 'build' )</td>
+	<td>folder</td>
+</tr>
+<!---->
+<tr>
+	<td>storeEval</td>
+	<td>[]</td>
+	<td>promises</td>
+</tr>
+<tr>
+	<td>forIterable</td>
+	<td>versionListURL</td>
+	<td>$versionURLs</td>
+</tr>
+<tr>
+	<td>open</td>
+	<td>${versionListURL}</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeAttribute</td>
+	<td>xpath=(//p[ @class='install-button'])[1]/a@href</td>
+	<td>newestURL</td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
+	<td>Selenium.download( $newestURL, $folder )</td>
+	<td>promise</td>
+</tr>
+<tr>
+	<td>endForIterable</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>promise</td>
+	<td>Promise.all( $promises )</td>
+	<td></td>
+</tr>
+</tbody></table>
+</body>
+</html>

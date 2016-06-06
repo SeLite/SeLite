@@ -56,3 +56,5 @@ jar -cMf ..\..\xpi\preview.xpi .
 
 REM cd ../..\implicit-wait\src
 REM zip -r ../../xpi/implicit-wait.xpi *
+
+cd ..\..
