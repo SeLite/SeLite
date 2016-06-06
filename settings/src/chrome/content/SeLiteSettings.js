@@ -1616,7 +1616,7 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
                         // 2. replace SeLiteSettings.SELITE_THIS_MANIFEST_FOLDER with the full path to the manifest's folder
                         // Since I split the relative path by / and \, the following doesn't affect us: OS.Path.join('\\\\', 'server', 'folder') returned value of JS expression '\\\\server\folder'. I don't want two backslashes \\ anywhere else than the root of the path, because it's deemed absolute and then OS.Path.join() ignores any previous parameters (as is documented at MDN): OS.Path.join('any', 'path', '\\\\', 'subfolder') and also OS.Path.join('any', 'path', '\\', '\\', 'subfolder') return value of JS expression '\\\\subfolder'.
                         var pathParts= manifest.value.split( /[/\\]/ );
-                        manifest.value= OS.Path.join.apply( null, pathParts );
+                        manifest.value= OS.Path.join.apply( OS.Path, pathParts );
                         manifest.value= manifest.value.replace( SeLiteSettings.SELITE_THIS_MANIFEST_FOLDER, manifestFolder, 'g' );
                         manifest.value= OS.Path.normalize( manifest.value );
                     }
