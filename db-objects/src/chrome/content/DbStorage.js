@@ -253,7 +253,7 @@ SeLiteData.Storage.prototype.getRecord= function getRecord( params ) {
 };
 
 /** Get (matching) records from the DB.
- * @param object params Object in form {
+ * @param {Object} params Object in form {
  *   table: string table name,
  *   columns: mixed - one of
  *     - array of string table names; or
@@ -376,7 +376,7 @@ SeLiteData.Storage.prototype.getRecords= function getRecords( params ) {
 };
 
 /** Update (matching) records in the DB.
- * @param object params Object in form {
+ * @param {object} params Object in form {
  *   table: string table name,
  *   entries: object (serving as an associative array) with the columns to update in the given table. In form
  *       { field: value,
@@ -436,7 +436,7 @@ SeLiteData.Storage.prototype.updateRecords= function updateRecords( params ) {
 };
 
 /** Update a in the DB, matching it by 'id' field (i.e. params.entries.id).
- * @param object params Object in form {
+ * @param {object} params Object in form {
  *   table: string table name,
  *   primary: string primary key name, or an array of string column names (for a multi-column primary key),
  *   entries: object (serving as an associative array) with the columns to update in the given table. In form
@@ -494,7 +494,7 @@ SeLiteData.Storage.prototype.removeRecordByPrimary= function removeRecordByPrima
 };
 
 /**Insert the  record into the DB.
- * @param object params Object in form {
+ * @param {object} params Object in form {
  *   table: string table name,
  *   entries: object (serving as an associative array) to store in the given table. In form
  *       { field: value,
@@ -576,10 +576,10 @@ SeLiteData.SqlExpression.prototype.toString= function toString() {
 };
 
 /** This adds enclosing apostrophes and doubles any apostrophes in values in entries for SQLite. See quote() for details on escaping.
- *  @param mixed entries it can be an array (created using new Array() or [...]), or an object {...} serving as an associative array
- *  @param array fieldsToProtect Optional array of strings, which are field (column) names for fields that shouldn't be quoted. Use it
+ *  @param {(Array|object)} entries it can be an array (created using new Array() or [...]), or an object {...} serving as an associative array
+ *  @param {Array} fieldsToProtect Optional array of strings, which are field (column) names for fields that shouldn't be quoted. Use it
  *  if passing SQL expressions for their values. fieldToProtect has only effect if entries is an object.
- *  @return new array or object, based on the original, with the treated values. Original array/object is not modified.
+ *  @return {(Array|object)} New array or object, based on the original, with the treated values. Original array/object is not modified.
  **/
 SeLiteData.Storage.prototype.quoteValues= function quoteValues( entries, fieldsToProtect=[] ) {
     if( typeof entries !='object' ) {

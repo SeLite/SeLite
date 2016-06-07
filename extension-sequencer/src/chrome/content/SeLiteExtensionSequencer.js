@@ -86,7 +86,7 @@ if( global.SeLiteMisc ) {
 
 /** Register a Firefox plugin which is a Selenium IDE core extension. It will be
  *  initiated by SeLiteExtensionSequencer later, in a proper sequence - after any dependencies.
- *  @param prototype Anonymous object in form {
+ *  @param {Object} prototype Anonymous object in form {
  *      id: string, unique id of the Firefox plugin (often in a format of an email address),
  *      name: string, human-friendly name,
  *      coreURL: string, or array of strings, optional - for Core extensions only; usually a chrome:// URL,
@@ -224,7 +224,7 @@ SeLiteExtensionSequencer.DIRECT_DEPENDANCY_TOO_OLD= 'DIRECT_DEPENDANCY_TOO_OLD';
 SeLiteExtensionSequencer.DIRECT_DEPENDANCY_TOO_NEW= 'DIRECT_DEPENDANCY_TOO_NEW';
 
 /** @param {object} Like entries in requisitePlugins subfield for SeLiteExtensionSequencer.registerPlugin()
- *  @return object {
+ *  @return {object} object {
  *                       name: string human-friendly name,
  *                       infoURL: string,
  *                       downloadURL: string optional - see registerPlugin()
@@ -243,8 +243,8 @@ function requisiteDetailsSubset( requisiteFullDetails ) {
  *  that they can be safely loaded. It removes any plugins that miss any of their
  *  required dependencies, and any plugins that require (directly or indirectly)
  *  any of those removed plugins. It reports those removed plugins in the result.
- *  @param object addonsById Object { string addOnId => Addon object }. This includes all active add-ons, not just ones with SeLiteExtensionSequencerManifest.js. I need those other add-ons when checking for non-sequenced dependencies.
- *  @return Object {
+ *  @param {Object<string,AddOn>} addonsById Object { string addOnId => Addon object }. This includes all active add-ons, not just ones with SeLiteExtensionSequencerManifest.js. I need those other add-ons when checking for non-sequenced dependencies.
+ *  @return {Object} Object {
  *      sortedPluginIds: [pluginId... ] in the order they can be loaded,
  *      missingDirectDependancies: {
  *          string dependantPluginId: {

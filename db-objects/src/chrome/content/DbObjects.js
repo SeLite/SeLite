@@ -22,7 +22,7 @@ Components.utils.import('chrome://selite-db-objects/content/Db.js');
 
 //var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
 
-/** @constructs
+/** @constructs SeLiteData.Db
  *  @param {SeLiteData.Storage} storage Underlying lower-level storage object.
  *  @param {string} [tableNamePrefix] optional prefix, which will be applied to all tables (except for tables that have noNamePrefix=true when constructed). If not set, then storage.tableNamePrefix is used (if any).
  *  @param {boolean} [generateInsertKey=false] Whether all tables with single-column primary key should have the key values generated (based on the maximum existing key) on insert. SeLiteData.Table constructor can override this on per-table basis.
@@ -43,7 +43,7 @@ SeLiteData.Db.prototype.tablePrefix= function tablePrefix() {
         : this.storage.tablePrefix();
 };
 
-/** @constructs
+/** @constructs SeLiteData.Table
  *  @param {Object} prototype Anonymous object {
  *      db: SeLiteData.Db instance,
  *      noNamePrefix: boolean, optional; if true, then it cancels effect of prototype.db.tableNamePrefix (if set),
@@ -58,8 +58,9 @@ SeLiteData.Table= function Table( prototype ) {
     var prefix= prototype.noNamePrefix
         ? ''
         : this.db.tableNamePrefix;
-    this.name= prototype.name; /** @var {string} Be careful - this excludes prefix (if any). So this is a 'logical' name. It's mostly used when setting up
-        SeLiteData.RecordSetFormula instances, table aliases in joins etc. If you need to generate custom SQL query, use method nameWithPrefix() to get the full name of the table. */
+    /** @var {string} name Be careful - this excludes prefix (if any). So this is a 'logical' name. It's mostly used when setting up SeLiteData.RecordSetFormula instances, table aliases in joins etc. If you need to generate custom SQL query, use method nameWithPrefix() to get the full name of the table.
+     */
+    this.name= prototype.name;
 
     this.columns= prototype.columns;
     this.primary= prototype.primary || 'id';

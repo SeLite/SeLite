@@ -37,10 +37,11 @@ if( runningAsComponent ) {
 // This component provides optional functionality (SeLiteSettings.TestDbKeeper.Columns), which depends on SeLiteData.
 // That makes both JS components circularly dependent. Therefore here I define EXPORTED_SYMBOLS and any functionality required by SeLiteData,
 // so that they both can be loaded well.
+/** @namespace SeLiteSettings */
 var SeLiteSettings= {};
 var EXPORTED_SYMBOLS= ['SeLiteSettings'];
 
-/** @private Array of functions, that are called whenever the test suite folder changes.
+/** @type {Array<function>} Array of functions, that are called whenever the test suite folder changes.
  * */
 var unnamedTestSuiteFolderChangeHandlers= [];
 
@@ -541,7 +542,7 @@ SeLiteSettings.Field.String.prototype= Object.create( SeLiteSettings.Field.NonCh
 SeLiteSettings.Field.String.prototype.constructor= SeLiteSettings.Field.String;
 
 /** @param string name
- *  @param filters Optional, an object serving as an associative array of file filters { 'visible filter name': '*.extension; *.anotherExtension...', ... }
+ *  @param {Object<string,string>} filters Optional, an object serving as an associative array of file filters { 'visible filter name': '*.extension; *.anotherExtension...', ... }
  *  A false/null/0 key or value mean 'All files'.
  *  See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsIFilePicker#appendFilter%28%29
  *  @param defaultKey
@@ -604,7 +605,7 @@ SeLiteSettings.Field.SQLite.prototype.constructor= SeLiteSettings.Field.SQLite;
 
 /** @param defaultKey It's actually a key, not the visible integer/string value.
  *  If multivalued, then it's an array of key(s).
- *  @param choicePairs Anonymous object serving as an associative array {
+ *  @param {Object<string,(string|number)>} choicePairs Anonymous object serving as an associative array {
  *      string key => string/number value ('label')
  *  } It's not clear what is more intuitive here. However, with this format, the type and positioning of
  *  label reflects how it is shown when using Firefox url about:config.
@@ -700,7 +701,7 @@ SeLiteSettings.Field.Choice.String.prototype.constructor= SeLiteSettings.Field.C
 
 /** This represents a freetype map with a fixed keyset. This is an abstract class, serving as a parent.
  *  @param {string} name
- *  @param {(string|number)[]} [keySet] We only allow strings, or numbers, because they're stored as strings (as a part of preference names). keySet specifically can't contain Javascript expression undefined, since updateSpecial() depends on that. Numbers get transformed to strings. It's optional, because frameworks can add keys later via addKeys().
+ *  @param {Array<(string|number)>} [keySet] We only allow strings, or numbers, because they're stored as strings (as a part of preference names). keySet specifically can't contain Javascript expression undefined, since updateSpecial() depends on that. Numbers get transformed to strings. It's optional, because frameworks can add keys later via addKeys().
  *  @param {object} [defaultMappings]
  *  @param {function} customValidate
  * */
@@ -798,7 +799,7 @@ SeLiteSettings.TestDbKeeper.prototype.load= function load() {};
  * */
 SeLiteSettings.TestDbKeeper.prototype.store= function store() {};
 
-/** @constructs
+/** @constructs SeLiteSettings.TestDbKeeper.Columns
  *  @augments  SeLiteSettings.TestDbKeeper
  * Simple implementation of SeLiteSettings.TestDbKeeper. It loads all data (the given columns)
  *  from test DB. Then after test DB is reloaded from vanilla or app DB, it updates all given columns
@@ -930,12 +931,12 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
 
 /** @constructs Create a Settings module.
  *  In addition to the given parameters, a module can have field testDbKeeper. If present, it's not set from here, but through SeLiteSettings.setTestDbKeeper().
- *  @param name string Name prefix for preferences/fields for this module.
+ *  @param {string} name Name prefix for preferences/fields for this module.
  *  As per Mozilla standard, it should be dot-separated and start with 'extensions.' See Firefox url about:config.
- *  @param fields Array of SeLiteSettings.Field objects, in the order how they will be displayed.
+ *  @param {Array<SeLiteSettings.Field>} fields Objects, in the order how they will be displayed.
  *  Beware: this.fields will not be an array, but an object serving as an associative array { string field name => SeLiteSettings.Field object}
- *  @param allowSets bool Whether to allow multiple sets of settings for this module
- *  @param {(string|undefined)} [defaultSetName] Name of the default set. Optional; only allowed (but not required) if allowSets==true
+ *  @param {boolean} allowSets Whether to allow multiple sets of settings for this module
+ *  @param {string|undefined} [defaultSetName] Name of the default set. Optional; only allowed (but not required) if allowSets==true
  *  @param {boolean} [associatesWithFolders=false] Whether the sets are to be used with folder paths (and manifest files in them)
  *  @param {string} [definitionJavascriptFile] URL or filepath to the filename (including the extension) of a javascript file which contains a 
  *  definition of this module. Optional; if present, it lets SeLiteSettings to load a definition automatically
@@ -1187,9 +1188,7 @@ SeLiteSettings.Module.prototype.setDefaultSetName= function setDefaultSetName( s
 
 /** @param {string} setName Name of the set; optional; undefined or an empty string if the module doesn't allow sets, or if you want the default set.
  * @param {boolean} [includeUndeclaredEntries] Whether to include values of undeclared fields or FixedMap entries. That won't include undeclared options for declared Field.Choice instances.
- *  @return Object with sorted keys, serving as associative array {
- *      string field name: SeLiteSettings.FieldInformation with 'entry' and 'fromPreferences', but without 'folderPath' and 'setName' (since the caller passed setName).
- *  }
+ *  @return {Object<string,SeLiteSettings.FieldInformation>} An object with sorted keys, with keys 'entry' and 'fromPreferences', but without 'folderPath' and 'setName' (since the caller passed setName).
  *  It doesn't inject any field defaults (from the module configuration). If setName is not empty and it differs to name of the default set, this doesn't inject any values from default set. If you'd like the values of the given set to merge with values of default set (if any) or with field defaults, use getFieldsDownToSet() instead. This ignores any manifests.
  *  @private For SeLite internal use only.
  * */
@@ -1404,7 +1403,7 @@ SeLiteSettings.ManifestInfo= SeLiteMisc.proxyVerifyFields( SeLiteSettings.Manife
  *  test suite folder, then such a call is valid and this function returns an object with no manifests.
  *  @param bool dontCache If true, then this doesn't cache manifest files (it doesn't use any
  *  previous result stored in the cache and it doesn't store result in the cache). For use by GUI.
- *  @return anonymous object {
+ *  @return {object} Anonymous object {
  *      values: naturally sorted object (that lists more global folders first) {
  *          string absoluteFolderPath: array of entries from a values manifest at this path
  *               [
@@ -1583,11 +1582,8 @@ SeLiteSettings.ModuleAndSetInformation= SeLiteMisc.proxyVerifyFields( SeLiteSett
  *  @param bool dontCache If true, then this doesn't cache manifest files (it doesn't use any
  *  previous manifests stored in the cache and it doesn't store current manifests in the cache). The actual preferences won't be cached no matter what dontCache. For use by GUI.
  *  @param {bool} [includeUndeclaredEntries] See same parameter of SeLiteSettings.Module.prototype.getFieldsOfSet().
- *  @return Object with sorted keys, serving as an associative array. A bit similar to result of getFieldsOfset(),
- *  but with more information. Structure is {
- *      string field name => SeLiteSettings.FieldInformation
- *  }
- *  where 'entry' of each FieldInformation instances comes from either
+ *  @return {Object<string,SeLiteSettings.FieldInformation>} An object with sorted keys, serving as an associative array. A bit similar to result of getFieldsOfset(),
+ *  but with more information. 'entry' of each FieldInformation instances comes from either
  *  - a set
  *  - a values manifest
  *  - default key (value) of the field.

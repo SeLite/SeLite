@@ -22,7 +22,7 @@
 if( runningAsComponent ) {
     var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
 }/**/
-
+/** @namespace SeLiteMisc */
 var SeLiteMisc= {};
 
 /** This throws the given error or a new error (containg the given message, if any). It also appends the stack trace to the message, which is useful since both Firefox Browser Console and Selenium IDE log don't report error stack trace. I do not log here to Browser Console, since that would polute logs when doing negative testing - when using try/catch to validate that incorrect invocation of functionality calls SeLiteMisc.fail().
@@ -1333,7 +1333,7 @@ SeLiteMisc.sortByKeys= function sortByKeys( object, compareFunction ) {
     return result;
 };*/
 
-/** @return a negative, 0 or positive number, depending on whether first is less
+/** @return {number} A negative, 0 or positive number, depending on whether first is less
  *  than, equal to or greater than second, in case insensitive dictionary order.
  *  Use as a second parameter to array.sort().
  *  This doesn't expects first and second to be string. That is true for object field names (keys),
@@ -1574,7 +1574,7 @@ SeLiteMisc.objectValueToField= function objectValueToField( obj, value, strict )
  *  @param {boolean} valuesUnique whether the compound index (based on given fieldNames) is guaranteed to have unique values. Otherwise it generates an array for each (set of index) value(s) present. If valuesUnique is true but there are multiple records with the same (set of) index value(s), then only the last record (for any compound index - breadcrumb of index/field values) will be kept here.
  *  @param {Object} result The result object, see description of the return value; optional - if not present, then a new anonymous object is used.
  *  Don't use the same object for records and result.
- *  @return An object serving as an associative array of various structure and depth, depending on the parameters.
+ *  @return {Object} An object serving as an associative array of various structure and depth, depending on the parameters.
  *  In the following, 'entry' means an original entry from records.
  *  If valuesUnique==true:
  *  object {
@@ -1730,7 +1730,7 @@ SeLiteMisc.cascadeField= function cascadeField( object, fieldNameDotEtc, doNotTh
  * @param {number} depth 1-based depth down to which this is collecting. If more than 1, then fieldNameDotEtcByLevel[ 0..depth-1 ] are skipped (they're processed at the higher level).
  * @param {boolean} [doNotThrow=false] If true then it throws any appropriate errors (e.g. when object is not an object, or fieldNameDotEtc contains dot(s) but some intermediate objects are not present).
  * @param {object} [result] The result object; if not provided, this creates a new one.
- * @return An object with deep entries from records, indexed by a compound key based on key, deeperKey etc. from each level (but not indexed by the breadcrumb path values).
+ * @return {Object} An object with deep entries from records, indexed by a compound key based on key, deeperKey etc. from each level (but not indexed by the breadcrumb path values).
  * Have fieldNameDotEtcByLevel with N levels [0..N-1]; then this returns {
  *    topLevelKey-keyAfterFirstBreadcrumb-...-keyAfterN-2thBreadcrumb: target,
  *    ...

@@ -52,9 +52,9 @@ if( SeLiteExitConfirmationChecker===undefined ) {
         
         /** @private */
         SeLiteExitConfirmationChecker.reset= function reset() {
-            /** @var object {number index of the input in SeLiteExitConfirmationChecker.inputs => (string|boolean) original value } */
+            /** @type {Object<number,(string|boolean)>} Object {number index of the input in SeLiteExitConfirmationChecker.inputs => (string|boolean) original value } */
             SeLiteExitConfirmationChecker.originalInputValues= {}; // It could be an array. But SeLiteExitConfirmationChecker.modifiedInputValues can't be an array and therefore both are objects serving as associative arrays.
-            /** @var object {number index of the input in SeLiteExitConfirmationChecker.inputs => (string|boolean) modified value } */
+            /** @type {Object<number,(string|boolean)>} Object {number index of the input in SeLiteExitConfirmationChecker.inputs => (string|boolean) modified value } */
             SeLiteExitConfirmationChecker.modifiedInputValues= {};
             /** @var Array of inputs. Used to assign a numeric ID to identify each modified input (that ID is an index in this array). I can't use Selenium locators to identify the modified inputs, because the same input can be referred to (and modified through) multiple locators. */
             SeLiteExitConfirmationChecker.inputs= [];

@@ -1298,27 +1298,30 @@ else {
      <br>Only used after type events (setCellText, or blur other than ESC).
      * @param row is 0-based index among the expanded rows, not all rows.
      * @param string value new value (as typed)
-     * @return object An anonymous object {
-           module: instance of SeLiteSettings.Module,
-            rowProperties: string,
-            setName: string,
-            field: ??,
-            treeRow: ??,
-            oldKey: mixed, previous value
-            - string, the key as it was before this edit (or the fixed key for FixedMap) - for a multi-valued field
-            - mixed previous value (including Javascript null/undefined) - for single-valued field
+     * @return {Object} result
+     * @return {SeLiteSettings.Module} result.module
+     *@return {string} result.rowProperties
+            setName: string,TODO
+            field: *,
+            treeRow: *,
+            oldKey: *,
             validationPassed: boolean,
             valueChanged: boolean,
-            parsed: mixed, the parsed value, string or number (after trimmed)
-            fieldTreeRowsOrChildren: object, retrieved as 2nd level entry from moduleRowsOrChildren;
-              serving as an associative array, with values being <treerow> or <treechildren> objects for the field {
+            parsed: *,
+            fieldTreeRowsOrChildren: object
+            
+        <br/>oldKey is the previous value
+            - string, the key as it was before this edit (or the fixed key for FixedMap) - for a multi-valued field
+            - mixed previous value (including Javascript null/undefined) - for single-valued field
+        <br/>parsed is the parsed value, string or number (after trimmed)
+        <br/>fieldTreeRowsOrChildren: object, retrieved as 2nd level entry from moduleRowsOrChildren;
+              serving as an associative array, with values being <treerow> or <treechildren> objects for the field
                 string value or option key => <treerow> object
                 ...
                 SeLiteSettings.FIELD_MAIN_ROW => <treerow> for the main (collapsible) level of this field
                 SeLiteSettings.FIELD_TREECHILDREN => <treechildren>
                 SeLiteSettings.NEW_VALUE_ROW => <treerow> for the new value to be added (not saved yet), optional
-            }
-     *  }
+     * 
      * */
     var preProcessEdit= function preProcessEdit( row, value ) {
         var rowProperties= tree.view.getRowProperties(row);
