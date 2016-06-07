@@ -19,8 +19,17 @@
 // Following assignments is purely for JSDoc.
 /** @namespace Selenium*/
 Selenium= Selenium;
+
+  if( false ) {
+    // Following @namespace and parameter SeLiteCommands below is a workaround for JSDoc namespace while not adding SeLiteCommands to the global scope.
+    /** @namespace SeLiteCommands*/
+    var SeLiteCommands= {};
+  }
 (
-  function() {
+  function( SeLiteCommands ) {
+    // This functions has SeLiteCommands purely for JSDoc, so that the following members are documented in JSDoc 'SeLiteCommands' namespace. Side note: uncommenting the following line (or a similar 'var') disabled JSDoc for this namespace.
+    //let SeLiteCommandsExtra= Selenium;
+    
     // For all Selenium actions and locators defined here - i.e. functions with name doXXXX, isXXXXX, getXXXXX
     // see their user documentation at ../reference.xml
     // @TODO report getXyz() function must return a non-null defined value; otherwise you'll get a confusing error from AccessorResult
@@ -30,7 +39,7 @@ Selenium= Selenium;
     /** @TODO eliminate? Or, keep, if we use NaN
      * @member {function}
      **/
-    Selenium.prototype.doTypeRobust= function doTypeRobust(target, value) {
+    SeLiteCommands.prototype.doTypeRobust= function doTypeRobust(target, value) {
         if( !target || !value ) {
             LOG.info( 'typeRobust skipped, since target or value was empty/0/false.' );
         }
@@ -39,7 +48,7 @@ Selenium= Selenium;
         }
     };
 
-    Selenium.prototype.doSelectRobust= function doSelectRobust( selectLocator, optionLocator) {
+    SeLiteCommands.prototype.doSelectRobust= function doSelectRobust( selectLocator, optionLocator) {
         if( !selectLocator || !optionLocator ) {
             LOG.info( 'selectRobust skipped, since selectLocator or optionLocator was empty/0/false.' );
         }
@@ -48,7 +57,7 @@ Selenium= Selenium;
         }
     };
 
-    Selenium.prototype.doClickRobust= function doClickRobust( locator, valueUnused) {
+    SeLiteCommands.prototype.doClickRobust= function doClickRobust( locator, valueUnused) {
         if( locator==='' ) {
             LOG.info( 'clickRobust skipped, since locator was an empty string.' );
         }
@@ -57,28 +66,28 @@ Selenium= Selenium;
         }
     };
     
-    Selenium.prototype.isTimestampDownToMilliseconds= function isTimestampDownToMilliseconds( locator, timestampInMilliseconds ) {
+    SeLiteCommands.prototype.isTimestampDownToMilliseconds= function isTimestampDownToMilliseconds( locator, timestampInMilliseconds ) {
         return this.timestampComparesTo( locator, timestampInMilliseconds, 1, true );
     };
     
-    Selenium.prototype.isTimestampDownToSeconds= function isTimestampDownToSeconds( locator, timestampInMilliseconds ) {
+    SeLiteCommands.prototype.isTimestampDownToSeconds= function isTimestampDownToSeconds( locator, timestampInMilliseconds ) {
         return this.timestampComparesTo( locator, timestampInMilliseconds, 1000, true );
     };
     
-    Selenium.prototype.isTimestampDownToMinutes= function isTimestampDownToMinutes( locator, timestampInMilliseconds ) {
+    SeLiteCommands.prototype.isTimestampDownToMinutes= function isTimestampDownToMinutes( locator, timestampInMilliseconds ) {
        return this.timestampComparesTo( locator, timestampInMilliseconds, 60000, true );
     };
     
-    Selenium.prototype.isTimestampDownToPrecision= function isTimestampDownToPrecision( locator, timestampDetails ) {
+    SeLiteCommands.prototype.isTimestampDownToPrecision= function isTimestampDownToPrecision( locator, timestampDetails ) {
         return this.timestampComparesTo( locator, timestampDetails.timestamp,
             timestampDetails.precision, timestampDetails.validatePrecision, timestampDetails.timezone );
     };
     
     // The following functions don't have entries in reference.xml, because when they had they didn't show up in Selenium IDE. Selenium IDE overrode them and it showed auto-generated entries based on isTimestampDownToXXX().
-    Selenium.prototype.doWaitForTimestampDownToMilliseconds=
-    Selenium.prototype.doWaitForTimestampDownToSeconds=
-    Selenium.prototype.doWaitForTimestampDownToMinutes=
-    Selenium.prototype.doWaitForTimestampDownToPrecision=
+    SeLiteCommands.prototype.doWaitForTimestampDownToMilliseconds=
+    SeLiteCommands.prototype.doWaitForTimestampDownToSeconds=
+    SeLiteCommands.prototype.doWaitForTimestampDownToMinutes=
+    SeLiteCommands.prototype.doWaitForTimestampDownToPrecision=
     function doWaitForTimestampDownToXXX( target, value ) {
         throw new Error( "Do not use. See http://selite.github.io/ExtraCommands." );
     };
@@ -115,7 +124,7 @@ Selenium= Selenium;
      *  new Intl.DateTimeFormat('en-AU', {timeZoneName: 'long'}).format( new Date() ) -> "12/02/2016, Australian Eastern Daylight Time"
      *  new Intl.DateTimeFormat("en-AU", {timeZone:"Australian Eastern Daylight Time", timeZoneName:'long'}).format( new Date()) -> RangeError: invalid time zone
      **/
-    Selenium.prototype.timestampComparesTo= function timestampComparesTo( locator, timestampInMilliseconds, displayPrecisionInMilliseconds, validatePrecision, timezoneTODO ) {
+    SeLiteCommands.prototype.timestampComparesTo= function timestampComparesTo( locator, timestampInMilliseconds, displayPrecisionInMilliseconds, validatePrecision, timezoneTODO ) {
         var element= this.browserbot.findElement(locator);
         var displayedTimeString= element.value!==undefined
             ? element.value
@@ -143,7 +152,7 @@ Selenium= Selenium;
      *  where timestampName is a label/name, usually of a timestamp element or field (DB column),
      *  or of a whole fieldset (DB table) if it has only one timestamp field (column).
      **/
-    Selenium.prototype.distinctTimestamps= {};
+    SeLiteCommands.prototype.distinctTimestamps= {};
 
     /**I don't use prefix 'do' in the name of this function because it's not intended to be run as Selenium command.
       Use to record the moment when you inserted/updated a record of given type, and you want to
@@ -155,7 +164,7 @@ Selenium= Selenium;
      *  Records with different timestampName can get same timestamps, because they are not supposed to be compared to each other.
      *  @param int timestampPrecision, the precision (lowest unit) of the timestamp, in milliseconds
      **/
-    Selenium.prototype.noteTimestamp= function noteTimestamp( timestampName, timestampPrecision ) {
+    SeLiteCommands.prototype.noteTimestamp= function noteTimestamp( timestampName, timestampPrecision ) {
         timestampPrecision= Number(timestampPrecision);
         var nextDistinctTimestamp= Date.now()+ maxTimeDifference() +timestampPrecision;
         LOG.debug( 'noteTimestamp: timestampName=' +timestampName+ ', precision=' +timestampPrecision+ ', nextDistinctTimestamp=' +nextDistinctTimestamp);
@@ -169,17 +178,17 @@ Selenium= Selenium;
      *  it doesn't auto-suggest '...AndWait' alternatives, which we don't want and which would confuse user. If the function name
      *  was any doXyz that doesn't start with 'doSleepUntil', Selenium IDE would auto-suggest '..AndWait' alternative, which don't make sense.
      * */
-    Selenium.prototype.doSleepUntilTimestampDistinctDownToMilliseconds= function doSleepUntilTimestampDistinctDownToMilliseconds( timestampName, precisionInMilliseconds ) {
+    SeLiteCommands.prototype.doSleepUntilTimestampDistinctDownToMilliseconds= function doSleepUntilTimestampDistinctDownToMilliseconds( timestampName, precisionInMilliseconds ) {
         precisionInMilliseconds= precisionInMilliseconds || 1;
         return this.waitForDistinctTimestamp( timestampName, precisionInMilliseconds );
     };
 
-    Selenium.prototype.doSleepUntilTimestampDistinctDownToSeconds= function doSleepUntilTimestampDistinctDownToSeconds( timestampName, precisionInSeconds ) {
+    SeLiteCommands.prototype.doSleepUntilTimestampDistinctDownToSeconds= function doSleepUntilTimestampDistinctDownToSeconds( timestampName, precisionInSeconds ) {
         precisionInSeconds= precisionInSeconds || 1;
         return this.waitForDistinctTimestamp( timestampName, precisionInSeconds*1000 );
     };
 
-    Selenium.prototype.doSleepUntilTimestampDistinctDownToMinutes= function doWaitTimestampDistinctDownToMinutes( timestampName, precisionInMinutes ) {
+    SeLiteCommands.prototype.doSleepUntilTimestampDistinctDownToMinutes= function doWaitTimestampDistinctDownToMinutes( timestampName, precisionInMinutes ) {
         precisionInMinutes= precisionInMinutes || 1;
         return this.waitForDistinctTimestamp( timestampName, precisionInMinutes*60000 );
     };
@@ -191,7 +200,7 @@ Selenium= Selenium;
      *  @return true if it's safe to create a new timestamp for this type of record, and the timestamp
      *  will be distinguishable from the previous one.
      **/
-    Selenium.prototype.waitForDistinctTimestamp= function waitForDistinctTimestamp( timestampName, precisionInMilliseconds ) {
+    SeLiteCommands.prototype.waitForDistinctTimestamp= function waitForDistinctTimestamp( timestampName, precisionInMilliseconds ) {
         if( !(timestampName in this.distinctTimestamps) ) {
             LOG.debug( 'waitForDistinctTimestampXXX: No previous timestamp for timestamp name ' +timestampName );
             this.noteTimestamp( timestampName, precisionInMilliseconds );
@@ -232,7 +241,7 @@ Selenium= Selenium;
         );
     };
 
-    Selenium.prototype.doIndexBy= function doIndexBy( columnOrDetails, sourceVariableName ) {
+    SeLiteCommands.prototype.doIndexBy= function doIndexBy( columnOrDetails, sourceVariableName ) {
         var indexBy= columnOrDetails;
         var resultVariableName= sourceVariableName;
         var valuesUnique;
@@ -248,7 +257,7 @@ Selenium= Selenium;
 
     // I don't use prefix 'get' or 'do' in the name of this function
     // because it's not intended to be run as Selenium getter/command.
-    Selenium.prototype.randomElement= function randomElement( elementSetXPath ) {
+    SeLiteCommands.prototype.randomElement= function randomElement( elementSetXPath ) {
         /** This clicks at a random radio button from within a set of radio buttons identified by locator.
          *  @param string elementSetXPath XPath expression to locate the element(s). Don't include leading 'xpath='.
          *  It can't be any other Selenium locator. You probably want to match them
@@ -274,7 +283,7 @@ Selenium= Selenium;
         return elements[elementIndex];
     };
 
-    Selenium.prototype.doClickRandom= function doClickRandom( radiosXPath, store ) {
+    SeLiteCommands.prototype.doClickRandom= function doClickRandom( radiosXPath, store ) {
         var radio= this.randomElement( radiosXPath );
         this.browserbot.clickElement( radio );
 
@@ -292,7 +301,7 @@ Selenium= Selenium;
      *  }
      *  @return DOM Element of a random <option>...</option> from within the select
      */
-    Selenium.prototype.randomOption= function randomOption( selectLocator, params={} ) {
+    SeLiteCommands.prototype.randomOption= function randomOption( selectLocator, params={} ) {
         var select= this.browserbot.findElement(selectLocator);
         var options= select.getElementsByTagName('option');
 
@@ -310,7 +319,7 @@ Selenium= Selenium;
         return option;
     };
 
-    Selenium.prototype.doSelectRandom= function doSelectRandom( selectLocator, paramsOrStore={} ) {
+    SeLiteCommands.prototype.doSelectRandom= function doSelectRandom( selectLocator, paramsOrStore={} ) {
         if( typeof paramsOrStore =='string' ) {
             paramsOrStore= {store: paramsOrStore};
         }
@@ -325,25 +334,25 @@ Selenium= Selenium;
         }
     };
 
-    Selenium.prototype.randomFirstNames= [
+    SeLiteCommands.prototype.randomFirstNames= [
         'Alice', 'Betty', 'Charlie', 'Dan', 'Erwin', 'Frank', 'Geraldine', 'Hugo', 'Ismael', 'Julie', 'Karl', 'Lucy', 'Marc',
         'Nathan', 'Oliver', 'Susie', 'Tatiana', 'Ursula'
     ];
-    Selenium.prototype.randomSurnames= ['Brown', 'Blue', 'Cyan', 'Emerald', 'Green', 'Violet', 'Marble', 'Pink', 'Red', 'Ruby', 'Sunshine', 'White'];
-    Selenium.prototype.randomThirdNameMinLength= 3;
+    SeLiteCommands.prototype.randomSurnames= ['Brown', 'Blue', 'Cyan', 'Emerald', 'Green', 'Violet', 'Marble', 'Pink', 'Red', 'Ruby', 'Sunshine', 'White'];
+    SeLiteCommands.prototype.randomThirdNameMinLength= 3;
     // Following is also applied to (an optional) random part of email domain, the part after a dash -
-    Selenium.prototype.randomThirdNameMaxLength= 8;
-    Selenium.prototype.randomWords= ['amazing', 'cat', 'excellent', 'elephant', 'good', 'frog', 'hamster', 'horse', 'lion', 'mouse', 'happy',
+    SeLiteCommands.prototype.randomThirdNameMaxLength= 8;
+    SeLiteCommands.prototype.randomWords= ['amazing', 'cat', 'excellent', 'elephant', 'good', 'frog', 'hamster', 'horse', 'lion', 'mouse', 'happy',
         'healthy', 'pretty', 'superb', 'tomcat' ];
     // htmlTags must contan an empty string
-    Selenium.prototype.htmlTags= [ '', 'b', 'i', 'u', 'strike', 'sub', 'sup'];
+    SeLiteCommands.prototype.htmlTags= [ '', 'b', 'i', 'u', 'strike', 'sub', 'sup'];
     // Don't enter a dot. Include at least one two-letter domain, so that it gets included in randomTopDomainsShort.
-    Selenium.prototype.randomTopDomains= ['es', 'it', 'com', 'com.au', 'co.nz', 'co.uk'];
+    SeLiteCommands.prototype.randomTopDomains= ['es', 'it', 'com', 'com.au', 'co.nz', 'co.uk'];
 
     /**I don't use prefix 'do' or 'get' in the name of this function
        because it's not intended to be run as Selenium command/getter.
     */
-    Selenium.prototype.randomTopDomainsShort= [];
+    SeLiteCommands.prototype.randomTopDomainsShort= [];
     for( var i=0; i<Selenium.prototype.randomTopDomains.length; i++ ) {
         if( Selenium.prototype.randomTopDomains[i].length==2 ) {
             Selenium.prototype.randomTopDomainsShort.push( Selenium.prototype.randomTopDomains[i] );
@@ -361,7 +370,7 @@ Selenium= Selenium;
      * @parameter {string} [locator] Locator of the text input. Used to get max. length of the generated input.
      * @return string as speficied in doTypeRandom()
      */
-    Selenium.prototype.randomText= function randomText( params={}, extraParams, locator ) {
+    SeLiteCommands.prototype.randomText= function randomText( params={}, extraParams, locator ) {
         var type= params.type || null;
         if( type && 
             (typeof type!=='string' || ['email', 'name', 'word', 'number', 'text', 'html', 'password', 'ugly'].indexOf(type)<0)
@@ -592,7 +601,7 @@ Selenium= Selenium;
         return result;
     };
 
-    Selenium.prototype.doTypeRandom= function doTypeRandom( locator, paramsOrStore={} ) {
+    SeLiteCommands.prototype.doTypeRandom= function doTypeRandom( locator, paramsOrStore={} ) {
         if( typeof paramsOrStore ==='string' ) {
             paramsOrStore= {store: paramsOrStore};
         }
@@ -606,7 +615,7 @@ Selenium= Selenium;
     };
     
     // @TODO This doesn't work well
-    Selenium.prototype.doTypeRandomEmail= function doTypeRandomEmail( locator, params={} ) {
+    SeLiteCommands.prototype.doTypeRandomEmail= function doTypeRandomEmail( locator, params={} ) {
         var paramsToPass= { type: 'email' };
         if( typeof params==='string' ) {
             var name= params;
@@ -638,14 +647,14 @@ Selenium= Selenium;
 
     // @TODO what did I want to do here?
     // @TODO similar doClickMapped?
-    Selenium.prototype.doSelectMapped= function doSelectMapped( locator, params ) {
+    SeLiteCommands.prototype.doSelectMapped= function doSelectMapped( locator, params ) {
     };
 
-    Selenium.prototype.isSelectMapped= function isSelectMapped( locator, params ) {
+    SeLiteCommands.prototype.isSelectMapped= function isSelectMapped( locator, params ) {
     };
     
     // @TODO use the 2nd parameter - for an (optional) timeout in milliseconds
-    Selenium.prototype.doSelectTopFrameAnd= function doSelectTopFrameAnd( locatorOrLocators, unused ) {
+    SeLiteCommands.prototype.doSelectTopFrameAnd= function doSelectTopFrameAnd( locatorOrLocators, unused ) {
         if( typeof locatorOrLocators==='string' ) {
             locatorOrLocators= locatorOrLocators!==''
                 ? [locatorOrLocators]
@@ -678,22 +687,22 @@ Selenium= Selenium;
     /**I don't use prefix 'do' or 'get' in the name of this function
        because it's not intended to be run as Selenium command/getter.
     */
-    Selenium.prototype.setJavascriptPref= function setJavascriptPref( bool ) {
+    SeLiteCommands.prototype.setJavascriptPref= function setJavascriptPref( bool ) {
        preferencesService.setBoolPref("javascript.enabled", bool);
     };
     
     // Beware: this disables Javascript in whole Firefox (for all tabs). The setting
     // will stay after you close Selenium.
-    Selenium.prototype.doDisableJavascript= function doDisableJavascript() {
+    SeLiteCommands.prototype.doDisableJavascript= function doDisableJavascript() {
         this.setJavascriptPref(false);
     };
 
-    Selenium.prototype.doEnableJavascript= function doEnableJavascript() {
+    SeLiteCommands.prototype.doEnableJavascript= function doEnableJavascript() {
         this.setJavascriptPref(true);
     };
 //--------------------------
 
-    Selenium.prototype.doEnsureUnderWebRoot= function doEnsureUnderWebRoot( forceReload ) {
+    SeLiteCommands.prototype.doEnsureUnderWebRoot= function doEnsureUnderWebRoot( forceReload ) {
         this.browserbot.selectWindow( null );
         if( !this.browserbot.getCurrentWindow().location.href.startsWith( SeLiteSettings.webRoot() ) || forceReload ) {
             return this.doOpen( SeLiteSettings.webRoot() );
@@ -716,12 +725,12 @@ Selenium= Selenium;
         return originalClick.call( this, locator );
     };
     */
-    Selenium.prototype.doNop= function doNop( locatorUnused, valueUnused ) {};
-    Selenium.prototype.doNopAndWait= function doNopAndWait( locatorUnused, valueUnused ) {
+    SeLiteCommands.prototype.doNop= function doNop( locatorUnused, valueUnused ) {};
+    SeLiteCommands.prototype.doNopAndWait= function doNopAndWait( locatorUnused, valueUnused ) {
         throw new SeleniumError( "Do not use nopAndWait. Use nop instead." );
     };
     
-    Selenium.prototype.doLog= function doLog( message, level ) {
+    SeLiteCommands.prototype.doLog= function doLog( message, level ) {
         message= '' +message;
         level= level
             ? (''+level).toLowerCase()
@@ -733,17 +742,14 @@ Selenium= Selenium;
             case 'error': LOG.error( message ); break;
         }
     };
-    Selenium.prototype.doLogAndWait= function doLogAndWait( locatorUnused, valueUnused ) {
+    SeLiteCommands.prototype.doLogAndWait= function doLogAndWait( locatorUnused, valueUnused ) {
         throw new SeleniumError( "Do not use logAndWait. Use log instead." );
     };
-  }
-)();
-
-var SeLiteCommands= {};
-
-/** This allows to access .gBrowser. Other ways failed: window.gBrowser, selenium.browserbot.getCurrentWindow().gBrowser, window.opener.gBrowser.
+    /** This allows to access .gBrowser. Other ways failed: window.gBrowser, selenium.browserbot.getCurrentWindow().gBrowser, window.opener.gBrowser.
  * */
-SeLiteCommands.recentWindow= function recentWindow() {
-    // Based on https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Tabbed_browser#From_a_dialog
-    return Components.classes["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow("navigator:browser");
-};
+    SeLiteCommands.recentWindow= function recentWindow() {
+        // Based on https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Tabbed_browser#From_a_dialog
+        return Components.classes["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow("navigator:browser");
+    };
+  }
+)( Selenium );
