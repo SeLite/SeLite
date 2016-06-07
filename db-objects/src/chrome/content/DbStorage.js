@@ -605,7 +605,7 @@ SeLiteData.Storage.prototype.quoteValues= function quoteValues( entries, fieldsT
     return result;
 };
 
-/** @constructor Subclass of SeLiteData.Storage, that is based on SeLiteSettings.Field pointing to an SQLite source, and an optional Field indicating table prefix.
+/** @constructs Subclass of SeLiteData.Storage, that is based on SeLiteSettings.Field pointing to an SQLite source, and an optional Field indicating table prefix.
  * @private
  *  @param {SeLiteSettings.Field.SQLite} dbField
  *  @param {SeLiteSettings.Field.String} [tablePrefixField]

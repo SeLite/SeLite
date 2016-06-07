@@ -22,7 +22,7 @@ Components.utils.import('chrome://selite-db-objects/content/Db.js');
 
 //var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
 
-/** @constructor
+/** @constructs
  *  @param {SeLiteData.Storage} storage Underlying lower-level storage object.
  *  @param {string} [tableNamePrefix] optional prefix, which will be applied to all tables (except for tables that have noNamePrefix=true when constructed). If not set, then storage.tableNamePrefix is used (if any).
  *  @param {boolean} [generateInsertKey=false] Whether all tables with single-column primary key should have the key values generated (based on the maximum existing key) on insert. SeLiteData.Table constructor can override this on per-table basis.
@@ -43,7 +43,7 @@ SeLiteData.Db.prototype.tablePrefix= function tablePrefix() {
         : this.storage.tablePrefix();
 };
 
-/** @constructor
+/** @constructs
  *  @param {Object} prototype Anonymous object {
  *      db: SeLiteData.Db instance,
  *      noNamePrefix: boolean, optional; if true, then it cancels effect of prototype.db.tableNamePrefix (if set),
@@ -145,7 +145,7 @@ function readOnlyJoined( field ) {
     throw new Error( "Field '" +field+ "' is from a joined record, therefore it can't be changed." );
 }
 
-/** @constructor Abstract class, parent of RecordHolder and RecordSetHolder.
+/** @constructs Abstract class, parent of RecordHolder and RecordSetHolder.
  * */
 function RecordOrSetHolder() {}
 RecordOrSetHolder.prototype= {
@@ -156,7 +156,7 @@ RecordOrSetHolder.prototype= {
     remove: function remove() { throw new Error('Abstract'); }
 };
 
-/** @constructor An object which represents a holder of one DB record.
+/** @constructs An object which represents a holder of one DB record.
  *  It allows us to have methods to manipulate the record, without a name conflict
  *  between names of those methods and fields of the record itself.
  *  <br/>Keys (field names) in this.record and this.original (if set) are the aliased
@@ -370,7 +370,7 @@ RecordHolder.prototype.remove= function remove() {
     this.recordSetHolder.storage().removeRecordByPrimary( this.recordSetHolder.formula.table.nameWithPrefix(), this.recordSetHolder.formulate.table.primary, this.record );
 };
 
-/** @constructor Constructor of formula objects.
+/** @constructs Constructor of formula objects.
  *  @param {object} params - Object serving as an associative array; optional, in form {
  *      table: SeLiteData.Table instance
  *      alias: string, alias for this table, used in SQL, optional.
@@ -639,7 +639,7 @@ SeLiteData.recordOrSetHolder= function recordOrSetHolder( recordOrSet ) {
     }
 };
 
-/** @constructor It keeps a set of RecordHolders objects.
+/** @constructs It keeps a set of RecordHolders objects.
  *  @private
  *  @param {SeLiteData.RecordSetFormula} formula Instance of SeLiteData.RecordSetFormula.
  *  @param {Object|Array} [parametersOrCondition] Parameters or SQL condition.

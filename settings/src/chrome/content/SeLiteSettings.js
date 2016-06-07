@@ -777,7 +777,7 @@ SeLiteSettings.Field.FixedMap.String= function String( name, keySet, defaultMapp
 SeLiteSettings.Field.FixedMap.String.prototype= Object.create( SeLiteSettings.Field.FixedMap.prototype );
 SeLiteSettings.Field.FixedMap.String.prototype.constructor= SeLiteSettings.Field.FixedMap.String;
 
-/** @constructor It loads to memory and then inserts/updates what should be preserved in the test DB when it gets reloaded.
+/** @constructs SeLiteSettings.TestDbKeeper It loads to memory and then inserts/updates what should be preserved in the test DB when it gets reloaded.
  * It keeps the data in memory in any way (e.g. in an instance field) - there should be just one instance of it at any time.
  * However, load() should clear that memory, to remove any data from previous calls.
  *  */
@@ -798,7 +798,7 @@ SeLiteSettings.TestDbKeeper.prototype.load= function load() {};
  * */
 SeLiteSettings.TestDbKeeper.prototype.store= function store() {};
 
-/** @constructor
+/** @constructs
  *  @augments  SeLiteSettings.TestDbKeeper
  * Simple implementation of SeLiteSettings.TestDbKeeper. It loads all data (the given columns)
  *  from test DB. Then after test DB is reloaded from vanilla or app DB, it updates all given columns
@@ -928,7 +928,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
     }
 };
 
-/** @constructor Create a Settings module.
+/** @constructs Create a Settings module.
  *  In addition to the given parameters, a module can have field testDbKeeper. If present, it's not set from here, but through SeLiteSettings.setTestDbKeeper().
  *  @param name string Name prefix for preferences/fields for this module.
  *  As per Mozilla standard, it should be dot-separated and start with 'extensions.' See Firefox url about:config.
