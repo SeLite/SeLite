@@ -16,6 +16,10 @@
 */
 "use strict";
 
+// Following assignments is purely for JSDoc.
+/** @namespace */
+Selenium= Selenium;
+
 // Anonymous function to prevent leaking into Selenium global namespace
 ( function() {
     //var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
@@ -66,8 +70,8 @@
         } );
     };
     
-    /** Encode a file as a data: URI. See https://developer.mozilla.org/en-US/docs/Web/HTTP/data_URIs.
-     *  It also loads content of files referenced by <img src="...">, <link href="..." with rel="stylesheet" or with as="script" or with type="...">,  <script src="...">. It changes src="..." or href="..." of those elements to use data: containing the loaded content.
+    /** Encode a file as a <code>data:</code> URI. See https://developer.mozilla.org/en-US/docs/Web/HTTP/data_URIs.
+     *  It also loads content of files referenced by <code>&lt;img src="..."&gt;, &lt;link href="..." with rel="stylesheet" or with as="script" or with type="..."&gt;,  &lt;script src="..."&gt;</code>. It changes src="..." or href="..." of those elements to use <code>data:</code> containing the loaded content.
      *  @see Editor.prototype.openPreview()
         @param {string} filePathOrURL File path or URL of the HTML/XML preview file/template. It must be a full URL (including the scheme/protocol), or a full path. If it's a file path, you can use either / or \ as directory separators (they will get translated for the current system). To make it portable, specify it as a relative path and pass it appended to result of SeLiteSettings.getTestSuiteFolder(). It must not be a data: URL. It must not contain a #hash/fragment part.
      *  @param {boolean|undefined|string|Array|RegExp|function} [useURLencoding=udefined] Whether to apply base 64 encoding (human-unreadable) rather than URL encoding (English text is human-readable). Thri-state parameter:

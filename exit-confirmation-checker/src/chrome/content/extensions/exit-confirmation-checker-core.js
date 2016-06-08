@@ -16,6 +16,10 @@
 */
 "use strict";
 
+// Following assignments is purely for JSDoc.
+/** @namespace */
+Selenium= Selenium;
+
 /** @var {object} Namespace-like holder. */
 var SeLiteExitConfirmationChecker;
 if( SeLiteExitConfirmationChecker===undefined ) {

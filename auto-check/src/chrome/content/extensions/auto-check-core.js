@@ -67,14 +67,15 @@ if( loadedTimes===1 ) { // Setup the overrides on the second load
 }
 SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteAutoCheck']= loadedTimes+1;
 
+/** @namespace */
 var SeLiteAutoCheck= {};
 
 ( function() {
     /** Parent class of all Auto Check detectors. For description of items of parameters required, refused and ignored check the actual implementation subclasses.
      * When debugging failedXYZ() methods, beware that running a single verification that fails (by double-clicking) doesn't log any message about the failure. It only highlights the command (in the editor matrix) in red/pink. Only when you run a test case/suite then any failed verifications log their messages in the log (in red).
      *  @param {object} required Object serving as an array of entries matching any required contents. In default implementation an entry can be any Selenese locator.
-     *  @param {object) refused Object serving as an array of entries matching any refused contents. In default implementation an entry can be any Selenese locator.
-     *  @param {object) ignored Object serving as an array of entries matching any ignored notices/warnings/errors. The detail of on using these entries is up to the implementation of failedNotIgnored(document) in the actual subclass. In default implementation an entry can be any Selenese locator.
+     *  @param {object} refused Object serving as an array of entries matching any refused contents. In default implementation an entry can be any Selenese locator.
+     *  @param {object} ignored Object serving as an array of entries matching any ignored notices/warnings/errors. The detail of on using these entries is up to the implementation of failedNotIgnored(document) in the actual subclass. In default implementation an entry can be any Selenese locator.
      *  @param {boolean} assert Whether to run the checks as assertions; otherwise they are run as validation only. Optional, false by default.
      * */
     SeLiteAutoCheck.Detector= function Detector( required={}, refused={}, ignored={}, assert=false ) {

@@ -16,10 +16,14 @@
 
 "use strict";
 
+// Following assignments is purely for JSDoc.
+/** @namespace */
+Selenium= Selenium;
+
 /**
  * Specifies the amount of time it should wait when searching for an element if it is not immediately present.
  * @param {Integer} timeout Timeout in millisecond, set 0 to disable it
- * @exemple
+ * @example
      setImplicitWait | 0
      setImplicitWait | 1000
  */
@@ -31,7 +35,7 @@ Selenium.prototype.doSetImplicitWait = function(timeout){
  * Specifies the amount of time it should wait for a condition to be true to continue to the next command.
  * @param {Integer} timeout Timeout in millisecond, set 0 to disable it
  * @param {String} condition_js Javascript logical expression that need to be true to execute each command.
- * @exemple
+ * @example
      setImplicitWaitCondition |  0  |  
      setImplicitWaitCondition |  1000  | !window.Sys || !window.Sys.WebForms.PageRequestManager.getInstance().get_isInAsyncPostBack();
      setImplicitWaitCondition |  1000  | !window.dojo || !window.dojo.io.XMLHTTPTransport.inFlight.length;

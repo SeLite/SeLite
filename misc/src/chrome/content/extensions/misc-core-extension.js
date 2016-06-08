@@ -18,6 +18,13 @@
 
 Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
 
+// Following assignments is purely for JSDoc.
+/** @namespace */
+Selenium= Selenium;
+
+/** @namespace */
+SeLiteMisc= SeLiteMisc;
+
 var loadedTimes= SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteMisc'] || 0;
 if( loadedTimes===1 ) {
 // Anonymous function to prevent leaking into Selenium global namespace

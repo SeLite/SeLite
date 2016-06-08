@@ -36,8 +36,10 @@ SeLiteMisc.fail= function fail( errorOrMessage, excludeCommonBase ) {
     throw SeLiteMisc.addStackToMessage( errorOrMessage, excludeCommonBase );
 };
 
-/** @private */
-SeLiteMisc.treatError= function treatError( errorOrMessage ) {
+/** Create a new Error object. Set it with the given message or with message and stack of the given error.
+ *  @param {Error|string} [errorOrMessage]
+ *  @returns {Error} New Error object. */
+SeLiteMisc.treatError= function treatError( errorOrMessage=undefined ) {
     if( errorOrMessage!==undefined ) {
         // Don't use errorOrMessage.constructor.name==='Error', because that doesn't cover custom exceptions e.g. DOMException.
         if( typeof errorOrMessage==='object' &&  'message' in errorOrMessage && 'stack' in errorOrMessage ) {
@@ -56,12 +58,11 @@ SeLiteMisc.treatError= function treatError( errorOrMessage ) {
 };
 
 /** Add error's stack trace to its message.
- *  @param {Error} error
- *  @param {boolean} [excludeCommonBase=false] Essentially, this makes it shorten the stack trace by removing parts that come from Firefox code. That makes the stack trace usually more relevant. excludeCommonBase indicates whether to exclude any stack trace (base) that is the same for error's stack and the current stack. This serves to eliminate upper call levels that are of little interest to the end user. If error was already processed by SeLiteMisc.addStackToMessage() with excludeCommonBase==true, then this function doesn't modify error at all (regardless of what excludeCommonBase is now). That previous call (which would normally be at a deeper level) indicated that the shorter stack trace is meaningful, so there is no need to replace it with a longer trace. However, if error was processed by call(s) to SeLiteMisc.addStackToMessage() only with excludeCommonBase being false or undefined, then the first call of SeLiteMisc.addStackToMessage() with excludeCommonBase replaces and shortens the stack trace that is in error.message. This function doesn't modify error.stack itself. 
  *  <br/>If you call this function multiple times (regardless of what <code>excludeCommonBase</code>), any successive call will replace any stack added to the message in the previous call.
- *  <br/>Beware: Some special errors don't have detailed stack trace. E.g. if you create a Proxy (as per https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) with a 'set' handler function that doesn't return a value (but it should return a boolean), then in Firefox 39a01 error.stack will only contain stack down to the line that set a field on the proxy, but it won't contain any stack from the hanlder function.
+ *  <br/>Beware: Some special errors don't have a detailed stack trace. E.g. if you create a Proxy (as per https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) with a 'set' handler function that doesn't return a value (but it should return a boolean), then in Firefox 39a01 error.stack will only contain stack down to the line that set a field on the proxy, but it won't contain any stack from the handler function.
  *  @param {Error} error Error (with a modified message, if applicable).
- *  @return {Error} error
+ *  @param {boolean} [excludeCommonBase=false] Essentially, this makes it shorten the stack trace by removing parts that come from Firefox code. That makes the stack trace usually more relevant. excludeCommonBase indicates whether to exclude any stack trace (base) that is the same for error's stack and the current stack. This serves to eliminate upper call levels that are of little interest to the end user. If error was already processed by SeLiteMisc.addStackToMessage() with excludeCommonBase==true, then this function doesn't modify error at all (regardless of what excludeCommonBase is now). That previous call (which would normally be at a deeper level) indicated that the shorter stack trace is meaningful, so there is no need to replace it with a longer trace. However, if error was processed by call(s) to SeLiteMisc.addStackToMessage() only with excludeCommonBase being false or undefined, then the first call of SeLiteMisc.addStackToMessage() with excludeCommonBase replaces and shortens the stack trace that is in error.message. This function doesn't modify error.stack itself. 
+ *  @return {Error} The same error object.
  * */
 SeLiteMisc.addStackToMessage= function addStackToMessage( error, excludeCommonBase ) {
     error= SeLiteMisc.treatError( error );
@@ -116,8 +117,8 @@ SeLiteMisc.addStackToMessage= function addStackToMessage( error, excludeCommonBa
  *  @param bool condition If false, then this fails.
  *  @param string message Optional; see SeLiteMisc.fail(). Note that if you pass a non-constant expression
  *   - e.g. concatenation of strings, a call to a function etc.,
- *  it has to be evaluated before SeLiteMisc.ensure() is called, even if it's not used (i.e. condition is true).
- *  Then you may want to chose to use:
+ *  it has to be evaluated before SeLiteMisc.ensure() is called, even if it's not used (i.e. if the condition is true).
+ *  Instead, you may want to chose to use:
  *  <code>
  *      condition || SeLiteMisc.fail( message expression );
  *  </code>
@@ -1692,9 +1693,9 @@ SeLiteMisc.cascadeFieldEntries= function cascadeFieldEntries( object, fieldNameD
  * @param {string} fieldNameDotEtc See the same parameter in SeLiteMisc.cascadeFieldEntries().
  * @param {boolean} [doNotThrow=false] See the same parameter in SeLiteMisc.cascadeFieldEntries().
  * @param {*} [valueInsteadOfThrow=undefined] See the same parameter in SeLiteMisc.cascadeFieldEntries().
- * @return {object} {
- *      keys: [string 
- *      value: (sub..)field of object; undefined if no such field(s) and if doNotThrow equals to true.
+ * @return {object}
+ * <br/>     keys: [string]
+ * <br/>     value: (sub...)field of object; undefined if no such field(s) and if doNotThrow equals to true.
  * @throws See SeLiteMisc.cascadeFieldEntries().
  * */
 SeLiteMisc.cascadeField= function cascadeField( object, fieldNameDotEtc, doNotThrow, valueInsteadOfThrow ) {
