@@ -19,7 +19,7 @@
 Components.utils.import( "chrome://selite-misc/content/SeLiteMisc.js" );
 
 // Following assignments is purely for JSDoc.
-/** @namespace */
+/** @class */
 Selenium= Selenium;
 
 /** @namespace */

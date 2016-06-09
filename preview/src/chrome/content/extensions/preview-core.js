@@ -17,7 +17,7 @@
 "use strict";
 
 // Following assignments is purely for JSDoc.
-/** @namespace */
+/** @class */
 Selenium= Selenium;
 
 // Anonymous function to prevent leaking into Selenium global namespace

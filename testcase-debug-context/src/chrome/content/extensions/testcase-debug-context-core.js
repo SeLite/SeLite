@@ -18,21 +18,35 @@
  */
 
 "use strict";
+
+// Following two assignments and if(false){...} are purely for JSDoc.
+/** @class */
+Selenium= Selenium;
+if( false ) {
+    /** @namespace */
+    global= this;
+}
+
 // Anonymous function keeps global and origTestCasePrototype out of global scope
 ( function(global) {
     // Se IDE loads this file twice, and with a different scope object! I need to create TestCaseDebugContext when this file is loaded for the first time. I couldn't use 'var TestCaseDebugContext=...', or global.TestCaseDebugContext= .... because it would disappear (due to the different scope object). Since I want "use strict"; I set it on TestCase, which exists outside the loading scope, and therefore it's preserved between both loadings of this file.
     // See https://github.com/SeleniumHQ/selenium/issues/1549 "Core extensions are loaded 2x".
     if( typeof TestCase.TestCaseDebugContext==="undefined" ) {
+        /** A TestCaseDebugContext class.
+         * @class
+         * */
         global.TestCaseDebugContext= function TestCaseDebugContext( testCase ) {
             this.testCase= testCase;
         };
-
+        
+        /** Reset the context. */
         global.TestCaseDebugContext.prototype.reset= function reset() {
             this.failed = false;
             this.started = false;
             this.debugIndex = -1;
         };
-
+        
+        /** @returns {Object} Next command, from <code>this.testCase.commands[]</code>. */
         global.TestCaseDebugContext.prototype.nextCommand= function nextCommand() {
             if (!this.started) {
                 this.started = true;
@@ -50,7 +64,8 @@
             }
             return null;
         };
-
+        
+        /** @returns {Object} Current command, from <code>this.testCase.commands[]</code>. */
         global.TestCaseDebugContext.prototype.currentCommand= function currentCommand() {
             var command = this.testCase.commands[this.debugIndex];
             if (!command) {
@@ -84,9 +99,9 @@
         
         /** This will be inserted before standard _executeCurrentCommand() through a head override.
          * */
-        global.Selenium.seLiteBeforeCurrentCommand= function seLiteBeforeCurrentCommand() {};
+        Selenium.seLiteBeforeCurrentCommand= function seLiteBeforeCurrentCommand() {};
         /** This will be appended after standard _executeCurrentCommand() through a tail override.
          * */
-        global.Selenium.seLiteAfterCurrentCommand= function seLiteAfterCurrentCommand() {};
+        Selenium.seLiteAfterCurrentCommand= function seLiteAfterCurrentCommand() {};
     }
 } )( this );

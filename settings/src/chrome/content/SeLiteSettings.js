@@ -37,7 +37,7 @@ if( runningAsComponent ) {
 // This component provides optional functionality (SeLiteSettings.TestDbKeeper.Columns), which depends on SeLiteData.
 // That makes both JS components circularly dependent. Therefore here I define EXPORTED_SYMBOLS and any functionality required by SeLiteData,
 // so that they both can be loaded well.
-/** @namespace SeLiteSettings */
+/** @namespace  */
 var SeLiteSettings= {};
 var EXPORTED_SYMBOLS= ['SeLiteSettings'];
 

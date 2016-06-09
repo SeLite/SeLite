@@ -22,7 +22,7 @@
 if( runningAsComponent ) {
     var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
 }/**/
-/** @namespace SeLiteMisc */
+/** @namespace */
 var SeLiteMisc= {};
 
 /** This throws the given error or a new error (containg the given message, if any). It also appends the stack trace to the message, which is useful since both Firefox Browser Console and Selenium IDE log don't report error stack trace. I do not log here to Browser Console, since that would polute logs when doing negative testing - when using try/catch to validate that incorrect invocation of functionality calls SeLiteMisc.fail().
