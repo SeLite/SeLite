@@ -75,7 +75,7 @@ Selenium= Selenium;
      *  @see Editor.prototype.openPreview()
         @param {string} filePathOrURL File path or URL of the HTML/XML preview file/template. It must be a full URL (including the scheme/protocol), or a full path. If it's a file path, you can use either / or \ as directory separators (they will get translated for the current system). To make it portable, specify it as a relative path and pass it appended to result of SeLiteSettings.getTestSuiteFolder(). It must not be a data: URL. It must not contain a #hash/fragment part.
      *  @param {boolean|undefined|string|Array|RegExp|function} [useURLencoding=udefined] Whether to apply base 64 encoding (human-unreadable) rather than URL encoding (English text is human-readable). Thri-state parameter:
-     *  -If true, then this always uses URL encoding (the result may not work with decodeURIComponent()).
+     *  -If true, then this always uses URL encoding. (However, if the file is binary, the result may not work with decodeURIComponent(). See also https://tools.ietf.org/html/rfc3986#page-12).
      *  -If undefined, then it's automatic: URL encoding for text files (whose MIME starts with "text/" and for .xhtml files) and base 64 for the rest.
      *  -If false, then this always uses base 64 encoding.
      *  -If a string, an array, a regex: matching MIME prefix for files to URL encode, in addition to the above automatic rule.
