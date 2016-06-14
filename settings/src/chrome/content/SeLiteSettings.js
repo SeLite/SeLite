@@ -1,4 +1,4 @@
-/*  Copyright 2013, 2014, 2015 Peter Kehl
+/*  Copyright 2013, 2014, 2015, 2016 Peter Kehl
     This file is part of SeLite Settings.
     
     This program is free software: you can redistribute it and/or modify
@@ -1521,9 +1521,14 @@ SeLiteSettings.changedDefaultSet= function changedDefaultSet() {
     SeLiteSettings.applyTestSuiteFolderChangeHandlers( SeLiteSettings.testSuiteFolder );
 };
 
-/** @note Internal
+/** Internal.
+ * @param {string|undefined} folder
+ * @param {boolean} [reapplyCurrentFolder=false] If true, then this re-applies current folder. Parameter folder is then ignored (it can be undefined).
  * */
-SeLiteSettings.applyTestSuiteFolderChangeHandlers= function applyTestSuiteFolderChangeHandlers( folder ) {
+SeLiteSettings.applyTestSuiteFolderChangeHandlers= function applyTestSuiteFolderChangeHandlers( folder, reapplyCurrentFolder=false ) {
+    if( reapplyCurrentFolder ) {
+        folder= SeLiteSettings.testSuiteFolder;
+    }
     for( var handler of unnamedTestSuiteFolderChangeHandlers ) {
         handler.call( null, folder );
     }

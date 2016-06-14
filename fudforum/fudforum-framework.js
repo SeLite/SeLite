@@ -1,4 +1,4 @@
-/*  Copyright 2014 Peter Kehl
+/*  Copyright 2014, 2016 Peter Kehl
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -69,5 +69,6 @@ SeLiteMisc.registerOrExtendFramework(
                 columns: ['entity_type', 'bundle', 'deleted', 'entity_id', 'revision_id', 'language', 'delta', 'body_value', 'body_sumary', 'body_format'],
                 primary: '@TODO group of columns'
             });*/
-    }
+    },
+    'fudforum'
 );

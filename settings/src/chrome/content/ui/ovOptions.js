@@ -1002,6 +1002,8 @@ else {
         var row= { value: -1 }; // value will be 0-based row index, within the set of rows other than collapsed (whether displayed within the current view, or scrollable to up/down). It skips any collapsed rows.
         var column= { value: null }; // value is instance of TreeColumn. See https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsITreeColumn
         treeBoxObject.getCellAt(event.clientX, event.clientY, row, column, {}/*unused, but needed*/ );
+        // If Javascript console indicates errors in the following getRowProperties(), that's Mozilla's fault. Debug with the following log line.
+        //(Components.utils.import("resource://gre/modules/Console.jsm", {})).console.error( 'Row.value ' +typeof row.value+ ': ' +row.value);
         var rowProperties= tree.view.getRowProperties(row.value);
         var module= modules[ propertiesPart( rowProperties, RowLevel.MODULE ) ];
         var field= module && module.fields[ propertiesPart( rowProperties, RowLevel.FIELD ) ];

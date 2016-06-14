@@ -28,7 +28,8 @@ SeLiteExtensionSequencer.registerPlugin( {
        var bootstrappedCoreExtensions= new SeLiteSettings.Field.File( 'bootstrappedCoreExtensions', { 'Javascript': '*.js*', 'Any': null}, /*multivalued*/true, /*defaultKey*/[], /*allowNull*/false,
             "Javascript file(s) that are loaded initially and on change via SeLite Bootstrap.",
             function customValidate( key ) {
-                SeLiteSettings.setBootstrappedListAsChanged();
+                // For reload of settings, so that Bootstrap loads any files registered in 'bootstrappedCoreExtensions' if that field is set already.
+                SeLiteSettings.applyTestSuiteFolderChangeHandlers( undefined, /**reapplyCurrentFolder:*/true );
                 return true;
             }
         );

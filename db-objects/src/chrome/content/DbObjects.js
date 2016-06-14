@@ -1,4 +1,4 @@
-/*  Copyright 2011, 2012, 2013, 2014, 2015 Peter Kehl
+/*  Copyright 2011, 2012, 2013, 2014, 2015, 2016 Peter Kehl
     This file is part of SeLite Db Objects.
 
     This program is free software: you can redistribute it and/or modify
@@ -437,7 +437,7 @@ SeLiteData.RecordSetFormula= function RecordSetFormula( params, prototype ) {
     SeLiteMisc.objectClone( params, ['table', 'alias', 'columns', 'joins', 'fetchCondition', 'fetchMatching', 'parameterNames', 'sort',
             'sortDirection', 'indexBy', 'indexUnique', 'process', 'debugQuery', 'debugResult',
             'onInsert', 'onUpdate' ],
-        null, this );
+        [], this );
     if( params.generateInsertKey!==undefined ) {
         this.generateInsertKey= params.generateInsertKey || false;
     }

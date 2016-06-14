@@ -1,5 +1,5 @@
 /*
- *   Copyright 2014 Peter Kehl
+ *   Copyright 2014, 2016 Peter Kehl
 # Licensed under the GPL version 2.0 license.
 # See LICENSE file or
 # http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
@@ -155,5 +155,6 @@ SeLiteMisc.registerOrExtendFramework(
         Dotclear.formulas.post= Dotclear.tables.post.formula();
 
         console.warn('Dotclear framework loaded');
-    }
+    },
+    'dotclear'
 );

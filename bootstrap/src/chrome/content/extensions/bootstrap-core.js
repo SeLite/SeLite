@@ -95,11 +95,9 @@
             }
         };
         
-        SeLiteSettings.setBootstrappedListAsChanged= function setBootstrappedListAsChanged() {
-            bootstrappedListChanged= true;
-        };
-        
-        SeLiteSettings.addTestSuiteFolderChangeHandler( SeLiteSettings.setBootstrappedListAsChanged );
+        SeLiteSettings.addTestSuiteFolderChangeHandler(
+            () => { bootstrappedListChanged= true; }
+        );
     }
     if( loadedTimes>=2 ) {
         throw new Error('SeLiteBootstrap already loaded ' +loadedTimes );

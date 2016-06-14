@@ -1209,21 +1209,25 @@ SeLiteMisc.SortedObjectTarget= function SortedObjectTarget( sortCompare ) {
     });*/
 };
 
-SeLiteMisc.SortedObjectTarget.prototype.__iterator__= function __iterator__() {
-    var keys= Object.keys(this);
-    if( this[SELITE_MISC_SORTED_OBJECT_COMPARE] ) {
-        keys.sort( this[SELITE_MISC_SORTED_OBJECT_COMPARE] );
-    }
-    var i=0;
-    return {
-        next: function() {
-            if( i<keys.length ) {
-                return keys[i++];
+Object.defineProperty( SeLiteMisc.SortedObjectTarget.prototype, '__iterator__', {
+    enumerable: false, configurable: false, writable: false,
+    value:
+    function __iterator__() {
+        var keys= Object.keys(this);
+        if( this[SELITE_MISC_SORTED_OBJECT_COMPARE] ) {
+            keys.sort( this[SELITE_MISC_SORTED_OBJECT_COMPARE] );
+        }
+        var i=0;
+        return {
+            next: function() {
+                if( i<keys.length ) {
+                    return keys[i++];
+                }
+                throw StopIteration;
             }
-            throw StopIteration;
         }
     }
-};
+} );
 Object.defineProperty( SeLiteMisc.SortedObjectTarget.prototype, 'subContainer', {
     enumerable: false, configurable: false, writable: false,
     value:
