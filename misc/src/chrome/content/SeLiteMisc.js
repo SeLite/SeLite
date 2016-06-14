@@ -378,8 +378,8 @@ SeLiteMisc.PROXY_CLASS_INSTANCE_DEFINITIONS= 'SELITE_MISC_PROXY_CLASS_INSTANCE_D
 var proxyVerifyFieldsOnReadObjectHandler= {
   get: function get(target, name, receiver) {
     // Check whether name is set in target. Don't use target[name]!==undefined for that, because it may be set to undefined. I allow access to 'toJSON' even if not set. That's needed when your code creates new Error(), which (in Firefox) accesses 'toJSON' for all 'this' objects on the stack. I don't need to check for name==='constructor' with objects, since objects have it defined normally. The same for name==='name' when target is a class (a constructor function).
-    name in target || name==='toJSON' || SeLiteMisc.fail( 'Accessing an unset field "' +name+ '" in ' +SeLiteMisc.typeAndClassNameOf(target) );
-    return target[name];
+    name in target || name==='toJSON' || name===Symbol.unscopables || SeLiteMisc.fail( 'Accessing an unset field "' +name.toString()+ '" in ' +SeLiteMisc.typeAndClassNameOf(target) );
+    return target[name.toString()];
   }
 };
 
