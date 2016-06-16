@@ -79,7 +79,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                             );
                             if( !e.messageContainsStackWithExcludedCommonBaseBySeLiteMisc ) {
                                 if( getSeLiteMisc() ) {
-                                    getSeLiteMisc().addStackToMessage( e, true );
+                                    e= getSeLiteMisc().withStackInMessage( e, true );
                                 }
                                 else {
                                     e.message+= '\n' +e.stack;
@@ -227,7 +227,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                     problems.push( 'Failure when initialising Selenium IDE plugin ' +pluginNameAndLinks(pluginInfo)+ ':' );
                     if( !e.messageContainsStackWithExcludedCommonBaseBySeLiteMisc ) {
                         if( getSeLiteMisc() ) {
-                            getSeLiteMisc().addStackToMessage( e, true );
+                            e= getSeLiteMisc().withStackInMessage( e, true );
                         }
                         else {
                             e.message+= '\n' +e.stack;

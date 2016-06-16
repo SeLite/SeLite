@@ -88,7 +88,7 @@
                     }
                     catch(error ) {
                         var msg= "SeBootstrap tried to evaluate " +filePath+ " and it failed with:\n"
-                            +SeLiteMisc.addStackToMessage( error, true )+ '.';
+                            +SeLiteMisc.withStackInMessage( error, true )+ '.';
                         SeLiteMisc.log().error( msg );
                     }
                 }

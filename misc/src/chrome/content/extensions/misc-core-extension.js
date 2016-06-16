@@ -168,7 +168,7 @@ if( loadedTimes===1 ) {
             }
         }
         catch( e ) {
-            throw SeLiteMisc.addStackToMessage( e, true );
+            throw SeLiteMisc.withStackInMessage( e, true );
             // doRunJavascript@chrome://selite-misc/content/extensions/core-extension.js
         }
     };

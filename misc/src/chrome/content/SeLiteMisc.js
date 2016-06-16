@@ -27,23 +27,24 @@ var SeLiteMisc= {};
 
 /** This throws the given error or a new error (containg the given message, if any). It also appends the stack trace to the message, which is useful since both Firefox Browser Console and Selenium IDE log don't report error stack trace. I do not log here to Browser Console, since that would polute logs when doing negative testing - when using try/catch to validate that incorrect invocation of functionality calls SeLiteMisc.fail().
  *  @param {*} [errorOrMessage] An underlying Error, or a message for a new error.
- *  @param {boolean} [excludeCommonBase] See the same parameter of SeLiteMisc.addStackToMessage().
+ *  @param {boolean} [excludeCommonBase] See the same parameter of SeLiteMisc.withStackInMessage().
  *  @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
  *  - as it mentions, the rethrown exception will have incorreect stack information: Note that the thrown MyError will report incorrect lineNumber and fileName at least in Firefox.
  *  and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw?redirectlocale=en-US&redirectslug=JavaScript%2FReference%2FStatements%2Fthrow
 */
 SeLiteMisc.fail= function fail( errorOrMessage, excludeCommonBase ) {
-    throw SeLiteMisc.addStackToMessage( errorOrMessage, excludeCommonBase );
+    throw SeLiteMisc.withStackInMessage( errorOrMessage, excludeCommonBase );
 };
 
 /** Create a new Error object. Set it with the given message or with message and stack of the given error.
  *  @param {Error|string} [errorOrMessage]
  *  @returns {Error} New Error object. */
-SeLiteMisc.treatError= function treatError( errorOrMessage=undefined ) {
+SeLiteMisc.modifiableError= function modifiableError( errorOrMessage=undefined ) {
     if( errorOrMessage!==undefined ) {
         // Don't use errorOrMessage.constructor.name==='Error', because that doesn't cover custom exceptions e.g. DOMException.
+        // `instanceof Errror` won't work across XPCOM either.
         if( typeof errorOrMessage==='object' &&  'message' in errorOrMessage && 'stack' in errorOrMessage ) {
-            // Effectively clone errorOrMessage. Otherwise its .stack may not be modifiable, which made SeLiteMisc.addStackToMessage() upset.
+            // Effectively clone errorOrMessage. Otherwise its .stack may not be modifiable, which made SeLiteMisc.withStackInMessage() upset.
             var newError= new Error( errorOrMessage.message );
             newError.stack= errorOrMessage.stack;
             return newError;
@@ -57,15 +58,15 @@ SeLiteMisc.treatError= function treatError( errorOrMessage=undefined ) {
     }
 };
 
-/** Add error's stack trace to its message.
+/** Clone the given error, with its stack trace added to the message.
  *  <br/>If you call this function multiple times (regardless of what <code>excludeCommonBase</code>), any successive call will replace any stack added to the message in the previous call.
  *  <br/>Beware: Some special errors don't have a detailed stack trace. E.g. if you create a Proxy (as per https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) with a 'set' handler function that doesn't return a value (but it should return a boolean), then in Firefox 39a01 error.stack will only contain stack down to the line that set a field on the proxy, but it won't contain any stack from the handler function.
- *  @param {Error} error Error (with a modified message, if applicable).
- *  @param {boolean} [excludeCommonBase=false] Essentially, this makes it shorten the stack trace by removing parts that come from Firefox code. That makes the stack trace usually more relevant. excludeCommonBase indicates whether to exclude any stack trace (base) that is the same for error's stack and the current stack. This serves to eliminate upper call levels that are of little interest to the end user. If error was already processed by SeLiteMisc.addStackToMessage() with excludeCommonBase==true, then this function doesn't modify error at all (regardless of what excludeCommonBase is now). That previous call (which would normally be at a deeper level) indicated that the shorter stack trace is meaningful, so there is no need to replace it with a longer trace. However, if error was processed by call(s) to SeLiteMisc.addStackToMessage() only with excludeCommonBase being false or undefined, then the first call of SeLiteMisc.addStackToMessage() with excludeCommonBase replaces and shortens the stack trace that is in error.message. This function doesn't modify error.stack itself. 
- *  @return {Error} The same error object.
+ *  @param {Error|string|*} error Error (with a modified message, if applicable).
+ *  @param {boolean} [excludeCommonBase=false] Essentially, this makes it shorten the stack trace by removing parts that come from Firefox code. That makes the stack trace usually more relevant. excludeCommonBase indicates whether to exclude any stack trace (base) that is the same for error's stack and the current stack. This serves to eliminate upper call levels that are of little interest to the end user. If error was already processed by SeLiteMisc.withStackInMessage() with excludeCommonBase==true, then this function doesn't modify error at all (regardless of what excludeCommonBase is now). That previous call (which would normally be at a deeper level) indicated that the shorter stack trace is meaningful, so there is no need to replace it with a longer trace. However, if error was processed by call(s) to SeLiteMisc.withStackInMessage() only with excludeCommonBase being false or undefined, then the first call of SeLiteMisc.withStackInMessage() with excludeCommonBase replaces and shortens the stack trace that is in error.message. This function doesn't modify error.stack itself. 
+ *  @return {Error} A new error object.
  * */
-SeLiteMisc.addStackToMessage= function addStackToMessage( error, excludeCommonBase ) {
-    error= SeLiteMisc.treatError( error );
+SeLiteMisc.withStackInMessage= function withStackInMessage( error, excludeCommonBase ) {
+    error= SeLiteMisc.modifiableError( error );
     if( !error.originalMessageSavedBySeLiteMisc ) {
         // I make internal fields added to error object non-enumerable, otherwise Selenium IDE shows them in its log.
         Object.defineProperty( error, 'originalMessageSavedBySeLiteMisc', {
