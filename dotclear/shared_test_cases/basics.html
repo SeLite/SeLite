@@ -253,119 +253,119 @@
 	<td></td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;call</td>
 	<td>ensureUnderWebRoot</td>
 	<td>forceReload=true, path='admin'</td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
 	<td>//a[ @href='users.php' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
 	<td>//a[ @href='user.php' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>typeRandom</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>id=user_id</td>
 	<td>=&lt;&gt;{characters: /[a-z0-9]/i, minLength: 2}&lt;&gt;</td>
 </tr>
-<!--Because of the following, the test only works for standard English installation.-->
+<!--    Because of the following, the test only works for standard English installation.-->
 <tr>
-	<td>waitForElementPresent</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;waitForElementPresent</td>
 	<td>//iframe[contains(@title, 'People dialog')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>selectTopFrameAnd</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;selectTopFrameAnd</td>
 	<td>//iframe[contains(@title, 'People dialog')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>if</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;if</td>
 	<td>false</td>
 	<td></td>
 </tr>
 <tr>
-	<td>selectTopFrameAnd</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;selectTopFrameAnd</td>
 	<td>//iframe[contains(@title, 'People dialog')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>endIf</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
 	<td>//div[ @id='content' ]//ul/li/a[ contains(@href, '/?q=admin/people/create') ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>selectTopFrameAnd</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;selectTopFrameAnd</td>
 	<td>//iframe[contains(@title, 'People dialog')]</td>
 	<td></td>
 </tr>
-<!---->
+<!--    -->
 <tr>
-	<td>typeRandom</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>id=edit-name</td>
 	<td>=&lt;&gt;{maxLength:60, type:'word', store:'newUserId'}&lt;&gt;</td>
 </tr>
 <tr>
-	<td>typeRandom</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>id=edit-mail</td>
 	<td>=&lt;&gt;{maxLength: 254, type:'email', store:'newUserEmail'}&lt;&gt;</td>
 </tr>
 <tr>
-	<td>typeRandom</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>id=edit-pass-pass1</td>
 	<td>=&lt;&gt;{type:'password', store:'newUserPassword'}&lt;&gt;</td>
 </tr>
 <tr>
-	<td>type</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
 	<td>id=edit-pass-pass2</td>
 	<td>=&lt;&gt;$newUserPassword&lt;&gt;</td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
 	<td>id=edit-submit</td>
 	<td></td>
 </tr>
 <tr>
-	<td>insertRecord</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
 	<td>=&lt;&gt;{name: $newUserId, mail: $newUserEmail, pass: $newUserPassword}&lt;&gt;</td>
 	<td>=&lt;&gt;Dotclear.tables.user&lt;&gt;</td>
 </tr>
-<!--Login and verify-->
+<!--    Login and verify-->
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;call</td>
 	<td>logInAsStoredUser</td>
 	<td>UserId=$newUserId</td>
 </tr>
-<!--If you'd like the following XPaths to be simpler, vote for http://selite.github.io/ThirdPartyIssues > Support XPath 2.0-->
-<!--Click at 'My account'.-->
+<!--    If you'd like the following XPaths to be simpler, vote for http://selite.github.io/ThirdPartyIssues > Support XPath 2.0-->
+<!--    Click at 'My account'.-->
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
 	<td>//ul/li/a[ contains(@href, '/?q=user') and substring-after(@href, '/?q=user')='' ]</td>
 	<td></td>
 </tr>
-<!--TODO CHECK THIS COMMENT: Check the userId. (Xpath must use contains(), if Dotclear adds extra whitespace.)-->
+<!--    TODO CHECK THIS COMMENT: Check the userId. (Xpath must use contains(), if Dotclear adds extra whitespace.)-->
 <tr>
-	<td>verifyElementPresent</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;verifyElementPresent</td>
 	<td>//div[ @id='content' ]//h1[ @id='page-title' and contains(., '${newUserId}') ]</td>
 	<td></td>
 </tr>
-<!--Click at 'Edit' tab-->
+<!--    Click at 'Edit' tab-->
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
 	<td>//div[ @class='tabs' ]/ul/li/a[ contains(@href, '?q=user/') and translate( substring-after(@href, '?q=user/'), '0123456789', '')='/edit' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>verifyElementPresent</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;verifyElementPresent</td>
 	<td>//input[ @id='edit-mail' and @value='${newUserEmail}' ]</td>
 	<td></td>
 </tr>
@@ -382,76 +382,76 @@
 	<td>UserId</td>
 </tr>
 <tr>
-	<td>selectTopFrameAnd</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;selectTopFrameAnd</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
-	<td>storeReadRecord</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeReadRecord</td>
 	<td>=&lt;&gt;{ formula: Dotclear.formulas.user, name: $userId }&lt;&gt;</td>
 	<td>user</td>
 </tr>
-<!--if the user is logged in already, log him out:-->
+<!--    if the user is logged in already, log him out:-->
 <tr>
-	<td>storeElementPresent</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeElementPresent</td>
 	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
 	<td>userLoggedIn</td>
 </tr>
 <tr>
-	<td>if</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;if</td>
 	<td>$userLoggedIn</td>
 	<td></td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
 	<td>//li[ contains(@class, 'logout') ]/a</td>
 	<td></td>
 </tr>
 <tr>
-	<td>endIf</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
-<!--make sure we're at login screen-->
+<!--    make sure we're at login screen-->
 <tr>
-	<td>storeElementPresent</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeElementPresent</td>
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
 	<td>userIdPresent</td>
 </tr>
 <tr>
-	<td>if</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;if</td>
 	<td>$userIdPresent</td>
 	<td></td>
 </tr>
 <tr>
-	<td>open</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;open</td>
 	<td>&lt;&gt;SeLiteSettings.webRoot()&lt;&gt;</td>
 	<td></td>
 </tr>
 <tr>
-	<td>endIf</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
-<!--Verify that we can log in-->
+<!--    Verify that we can log in-->
 <tr>
-	<td>type</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
 	<td>${userId}</td>
 </tr>
 <tr>
-	<td>type</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-pass' ]</td>
 	<td>&lt;&gt;$user.pass&lt;&gt;</td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-submit' ]</td>
 	<td></td>
 </tr>
-<!---->
+<!--    -->
 <tr>
-	<td>verifyElementPresent</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;verifyElementPresent</td>
 	<td>//ul/li/a[ contains(@href, '/?q=user/logout') ]</td>
 	<td>Verify that we are logged in</td>
 </tr>
