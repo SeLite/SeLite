@@ -39,10 +39,9 @@ editor.testLoopResume= function testLoopResume() {
         this._handleCommandError( SeleniumError("Unknown command: '" + command.command + "'") );
         this.testComplete(); // Simplified version of error handling in resume(), since this._handleCommandError() returns true for this error
         return;
-    }
+    } 
     
-    command.target = selenium.preprocessParameter(command.target);
-    command.value = selenium.preprocessParameter(command.value);
+    // TestLoop's _executeCurrentCommand() had 2 calls to selenium.preprocessParameter() here. We've factored them into testLoopResumeExecuteAndHandleErrors(), to handle any errors in javascript{...} in command.target or command.value
     LOG.debug("Command found, going to execute " + command.command);
 
     runner.updateStats(command.command);
@@ -69,6 +68,8 @@ editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHa
     LOG.debug('testLoopResumeExecuteAndHandleErrors starts');
     var selenium = editor.selDebugger.runner.selenium;
     try{
+        command.target = selenium.preprocessParameter(command.target);
+        command.value = selenium.preprocessParameter(command.value);
         this.result = handler.execute(selenium, command); // from _executeCurrentCommand()
         this.waitForCondition = this.result.terminationCondition; // from _executeCurrentCommand()
         editor.selDebugger.runner.Selenium.seLiteAfterCurrentCommand.call( this );
