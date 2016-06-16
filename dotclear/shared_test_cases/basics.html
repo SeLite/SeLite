@@ -19,17 +19,17 @@
 	<td>path, forceReload</td>
 </tr>
 <tr>
-	<td>if</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;if</td>
 	<td>!window.location.href.startsWith( '&lt;&gt;SeLiteSettings.webURL(storedVars.path)&lt;&gt;' ) || storedVars.forceReload</td>
 	<td></td>
 </tr>
 <tr>
-	<td>open</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;open</td>
 	<td>&lt;&gt;SeLiteSettings.webURL(storedVars.path)&lt;&gt;</td>
 	<td></td>
 </tr>
 <tr>
-	<td>endIf</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
@@ -45,27 +45,27 @@
 	<td></td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;call</td>
 	<td>ensureUnderWebRoot</td>
 	<td>forceReload=true, path='admin'</td>
 </tr>
 <tr>
-	<td>storeElementPresent</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeElementPresent</td>
 	<td>//a[ contains(@href, 'index.php?logout=1' ) ]</td>
 	<td>userLoggedIn</td>
 </tr>
 <tr>
-	<td>if</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;if</td>
 	<td>$userLoggedIn</td>
 	<td></td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
 	<td>//a[ contains(@href, 'index.php?logout=1' ) ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>endIf</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
@@ -80,44 +80,44 @@
 	<td>logIn</td>
 	<td>userIdOrAmpersandRole</td>
 </tr>
-<!--if the user is logged in already, log him out:-->
+<!--    if the user is logged in already, log him out:-->
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;call</td>
 	<td>logOut</td>
 	<td></td>
 </tr>
 <tr>
-	<td>storeEval</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
 	<td>SeLiteSettings.roleToUser( '${userIdOrAmpersandRole}' )</td>
 	<td>userId</td>
 </tr>
 <tr>
-	<td>type</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
 	<td>id=user_id</td>
 	<td>${userId}</td>
 </tr>
 <tr>
-	<td>storeEval</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
 	<td>SeLiteMisc.loginManagerPassword( '${userId}' )</td>
 	<td>password</td>
 </tr>
 <tr>
-	<td>type</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
 	<td>id=user_pwd</td>
 	<td>${password}</td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
 	<td>//form[ @id='login-screen' ]//input[ @type='submit' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>verifyElementPresent</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;verifyElementPresent</td>
 	<td>//a[ contains(@href, 'index.php?logout=1' ) ]</td>
 	<td>Verify that we are logged in</td>
 </tr>
 <tr>
-	<td>getEval</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;getEval</td>
 	<td>Dotclear.selectUserId( storedVars.userId )</td>
 	<td></td>
 </tr>
@@ -135,109 +135,109 @@
 	<td></td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;call</td>
 	<td>ensureUnderWebRoot</td>
 	<td>forceReload=true, path='admin'</td>
 </tr>
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
 	<td>//div[ @id='favorites-menu' ]//a[ @href='preferences.php' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>click</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;click</td>
 	<td>//a[ @href='#user-options' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>pause</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;pause</td>
 	<td>100</td>
 	<td>Wait for the tab to switch</td>
 </tr>
-<!---->
+<!--    -->
 <tr>
-	<td>getEval</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;getEval</td>
 	<td>storedVars.optionNames= Object.keys( storedVars.options )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>for</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;for</td>
 	<td>$optionIndex=0; $optionIndex&lt;$optionNames.length; $optionIndex++</td>
 	<td>optionIndex</td>
 </tr>
 <tr>
-	<td>storeEval</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
 	<td>storedVars.optionNames[storedVars.optionIndex]</td>
 	<td>optionName</td>
 </tr>
 <tr>
-	<td>storeEval</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
 	<td>storedVars.options[storedVars.optionName]</td>
 	<td>optionValue</td>
 </tr>
 <tr>
-	<td>getEval</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;getEval</td>
 	<td>LOG.error( 'optionIndex:' +storedVars.optionIndex+ ', optionName: ' +storedVars.optionName+ ', optionValue: ' +storedVars.optionValue+ ', typeof optionValue: ' +typeof storedVars.optionValue )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>if</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if</td>
 	<td>$optionName==='post_format'</td>
 	<td></td>
 </tr>
 <tr>
-	<td>select</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;select</td>
 	<td>id=user_post_format</td>
 	<td>value=${optionValue}</td>
 </tr>
 <tr>
-	<td>elseIf</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elseIf</td>
 	<td>$optionName==='enable_wysiwyg'</td>
 	<td></td>
 </tr>
 <tr>
-	<td>if</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if</td>
 	<td>$optionValue</td>
 	<td></td>
 </tr>
 <tr>
-	<td>check</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;check</td>
 	<td>id=user_wysiwyg</td>
 	<td></td>
 </tr>
 <tr>
-	<td>else</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
-	<td>uncheck</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;uncheck</td>
 	<td>id=user_wysiwyg</td>
 	<td></td>
 </tr>
 <tr>
-	<td>endIf</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
-	<td>endIf</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
-	<td>endFor</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;endFor</td>
 	<td></td>
 	<td></td>
 </tr>
-<!---->
+<!--    -->
 <tr>
-	<td>clickAndWait</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
 	<td>css=#opts-forms&nbsp;&nbsp;input[type=&quot;submit&quot;]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>getEval</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;getEval</td>
 	<td>Dotclear.updateUserOptions( storedVars.options )</td>
 	<td></td>
 </tr>
