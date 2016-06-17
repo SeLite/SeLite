@@ -36,14 +36,17 @@ SeLiteMisc.fail= function fail( errorOrMessage, excludeCommonBase ) {
     throw SeLiteMisc.withStackInMessage( errorOrMessage, excludeCommonBase );
 };
 
-/** Create a new Error object. Set it with the given message or with message and stack of the given error.
+/** Create the same or a new Error object. If new, set it with the given message or with message and stack of the given error.
  *  @param {Error|string} [errorOrMessage]
- *  @returns {Error} New Error object. */
+ *  @returns {Error} errorOrMessage or a new Error object. */
 SeLiteMisc.modifiableError= function modifiableError( errorOrMessage=undefined ) {
     if( errorOrMessage!==undefined ) {
         // Don't use errorOrMessage.constructor.name==='Error', because that doesn't cover custom exceptions e.g. DOMException.
         // `instanceof Errror` won't work across XPCOM either.
         if( typeof errorOrMessage==='object' &&  'message' in errorOrMessage && 'stack' in errorOrMessage ) {
+            if( 'originalMessageSavedBySeLiteMisc' in errorOrMessage ) {
+                return errorOrMessage;
+            }
             // Effectively clone errorOrMessage. Otherwise its .stack may not be modifiable, which made SeLiteMisc.withStackInMessage() upset.
             var newError= new Error( errorOrMessage.message );
             newError.stack= errorOrMessage.stack;
@@ -67,7 +70,7 @@ SeLiteMisc.modifiableError= function modifiableError( errorOrMessage=undefined )
  * */
 SeLiteMisc.withStackInMessage= function withStackInMessage( error, excludeCommonBase ) {
     error= SeLiteMisc.modifiableError( error );
-    if( !error.originalMessageSavedBySeLiteMisc ) {
+    if( !('originalMessageSavedBySeLiteMisc' in error) ) {
         // I make internal fields added to error object non-enumerable, otherwise Selenium IDE shows them in its log.
         Object.defineProperty( error, 'originalMessageSavedBySeLiteMisc', {
           enumerable: false, configurable: false, writable: false,
