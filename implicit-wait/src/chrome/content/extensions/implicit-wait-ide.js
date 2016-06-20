@@ -150,7 +150,8 @@ editor.implicitwait = new ImplicitWait(editor);
     It's based on three functions in TestLoop from selenium-executionloop.js:
     - the rest of _executeCurrentCommand() that wasn't processed by testLoopResume() itself above, and
     - a call to continueTestWhenConditionIsTrue() and
-    - error handling from resume()
+    - error handling from resume().
+    See a function with the same name in testcase-debug-context-ide.js.
  * */
 editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHandleErrors( command, handler ) {
     var selDebugger = editor.selDebugger;
@@ -163,6 +164,8 @@ editor.testLoopResumeExecuteAndHandleErrors= function testLoopResumeExecuteAndHa
     
     var loopFindElement= function loopFindElement() {
         try{
+            command.target = selenium.preprocessParameter(command.target);
+            command.value = selenium.preprocessParameter(command.value);
             self.result = handler.execute(selenium, command); // from _executeCurrentCommand()
             self.waitForCondition = self.result.terminationCondition; // from _executeCurrentCommand()
             
