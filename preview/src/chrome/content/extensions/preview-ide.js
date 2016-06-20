@@ -98,22 +98,10 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
                     //var waivedWin= Components.utils.waiveXrays(win);
                     //This didn't work well!: waivedWin.selenium= editor.selDebugger.runner.selenium;
                     
-                    //console.error('exported. waivedWin contains seLitePreviewConnect: ' +('seLitePreviewConnect' in waivedWin)); // waivedWin.seLitePreviewConnect was not defined!
                     /*
                     win.addEventListener( 'load', () => {
-                        // Following passed an object, but 'selenium' field was undefined.
+                        // Following failed: 'selenium' field was undefined.
                         //win.wrappedJSObject.seLitePreviewConnect( {selenium: editor.selDebugger.runner.selenium} );
-                        
-                        // Following didn't work: win.seLitePreviewConnect was undefined!
-                        win.selenium= editor.selDebugger.runner.selenium;
-                        if( typeof win.seLitePreviewConnect!=='undefined' ) {
-                            console.error('calling win.seLitePreviewConnect');
-                            win.seLitePreviewConnect( {
-                                selenium: editor.selDebugger.runner.selenium,
-                                editor: this,
-                                parentAbsoluteURL
-                            } );
-                        }else {console.error('no win.seLitePreviewConnect');}
                     }, true );
                     /**/
                     return win;
@@ -126,6 +114,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
         
         /** Similar to Editor.prototype.openPreview(), but this doesn't fetch the document (it doesn't encode it as a data: URL).
          * @param {object} config Similar to Editor.prototype.openPreview(), but here it accepts one more optional field: urlEncodingForContent of mixed type. It indicates whether to use URL encoding for content, instead of base64 encoding. This doesn't affect the Javascript and how it receives the data. Undefined by default, which means automatic. See Selenium.prototype.encodeFile().
+         * @return {Promise}
          */
         Editor.prototype.openPreviewEncode= function openPreviewEncode( urlOrPromise, data={}, config={}, filter=undefined ) {
             var promise= !(urlOrPromise instanceof Promise)

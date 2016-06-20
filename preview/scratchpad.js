@@ -139,16 +139,6 @@ window.open( "data:text/xml," +encodeURIComponent(`<root>
 alert( Components.classes["@mozilla.org/mime;1"].getService(Components.interfaces.nsIMIMEService).getTypeFromExtension('xhtml') );
 //-->application/xhtml+xml
 
-/*
-Both XML and HTML:
-- if the template contains SELITE_PREVIEW_DATA, then fill it there; similar for config object. Otherwise inject <script>...</script> which
--- passes the data and config as object JSON-like literals
--- calls seLitePreviewDisplay()
-
-HTML only:
-non-inject but set win load handler, which calls seLitePreviewConnect(), which connects the links etc. to Selenium IDE.
-*/
-
 var inner= {inner: true};
 var outer= {first: inner, second: inner };
 JSON.stringify( outer)
