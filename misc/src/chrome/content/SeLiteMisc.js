@@ -638,20 +638,20 @@ SeLiteMisc.proxyAllowFields= function proxyAllowFields( proxy, definitions, prev
      *  @param {*} value
      *  @return {object} object
 */
-SeLiteMisc.setFieldsPairs= function setFieldsPairs( object, field, value, etc ) {
+SeLiteMisc.setFieldsPairs= function setFieldsPairs( object, ...fieldValuePairs ) {
     typeof object==='object' || SeLiteMisc.fail( 'SeLiteMisc.setFields() requires the first parameter to be an object.' );
-    arguments.length%2===1 || SeLiteMisc.fail( 'SeLiteMisc.setFields() only accepts an odd number of arguments.' );
-    for( var i=1; i<arguments.length; i+=2 ) {
+    fieldValuePairs.length%2===0 || SeLiteMisc.fail( 'SeLiteMisc.setFields() only accepts an odd number of arguments: an object, optional field, optional value, (anotherField, anotherValue...) )' );
+    for( var i=0; i<fieldValuePairs.length; i+=2 ) {
 
-        var field= arguments[i];
+        var field= fieldValuePairs[i];
         if( typeof field==='number' || typeof field==='string' ) {
             !( field in object ) || SeLiteMisc.fail( "Field '" +field+ "' has been set previously." );
-            object[ field ]= arguments[i+1];
+            object[ field ]= fieldValuePairs[i+1];
         }
         else if( Array.isArray(field) ) {
             for( var fieldEntry of field ) {
                 !( fieldEntry in object ) || SeLiteMisc.fail( "Field '" +fieldEntry+ "' has been set previously." );
-                object[ fieldEntry ]= arguments[i+1];
+                object[ fieldEntry ]= fieldValuePairs[i+1];
             }
         }
         else {
@@ -1690,7 +1690,10 @@ SeLiteMisc.cascadeFieldEntries= function cascadeFieldEntries( object, fieldNameD
             fieldNameDotEtc= fieldNameDotEtc.substring( indexOfDot+1 );
         }
         else {
-            result.push( object[fieldNameDotEtc] );
+            result.push( fieldNameDotEtc in object
+                ? object[fieldNameDotEtc]
+                : undefined
+            );
             return result;
         }
     }
