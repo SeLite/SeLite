@@ -2138,7 +2138,7 @@ SeLiteMisc.registerOrExtendFramework= function registerOrExtendFramework( initia
     SeLiteMisc.log().info( 'Loaded SeLite framework ' +name );
 };
 
-/** @return {object} Log object for Selenium IDE 'Log' tab. Only valid for primary Selenium IDE instances (not for auxiliary instances - see http://selite.github.io/SeleniumIde).
+/** @return {object} Log object for Selenium IDE 'Log' tab. Only valid for primary Selenium IDE instances (not for auxiliary instances - see http://selite.github.io/SeleniumIDEtips).
  * */
 SeLiteMisc.log= function log() {
     return SeLiteMisc.LOG;

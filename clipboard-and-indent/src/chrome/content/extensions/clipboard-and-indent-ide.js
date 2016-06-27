@@ -236,6 +236,7 @@
       var commandObj = new Command( indentation+command, target, value);
       // bind to the href attribute instead of to window.document.location, which
       // is an object reference
+      //TODO watchout the original file at Selenium HQ
       command.lastURL = window.document.location.href;
       this.getTestCase().commands.splice( index, 0, commandObj );
       this.view.rowInserted(index);

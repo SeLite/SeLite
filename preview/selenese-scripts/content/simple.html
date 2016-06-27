@@ -5,6 +5,7 @@
   <!-- As of March 2016, PURE is the easiest engine listed on https://developer.mozilla.org/en-US/docs/JavaScript_templates -->
   <script type="text/javascript" src="https://rawgit.com/pure/pure/master/libs/pure.js"></script>
   <script type="text/javascript" src="simple.js"></script>
+  <script type="text/javascript" src="chrome://selite-preview/content/get-data-from-url.js"></script>
   <link rel="stylesheet" type="text/css" href="style.css" />
   <!--
 Don't use raw.githubusercontent.com with MS IE 10, since it fails with SEC7112: Script from https://raw.githubusercontent.com/pure/pure/master/libs/pure.js was blocked due to mime type mismatch
@@ -19,7 +20,7 @@ Don't use raw.githubusercontent.com with MS IE 10, since it fails with SEC7112: 
       };
       
       var selenium;
-       document.onreadystatechange= function() {
+       document.onreadystatechange= function() { getDataFromURL(config); /*
           if (document.readyState==="complete") {
             
             var encodedJSON;
@@ -67,7 +68,7 @@ Don't use raw.githubusercontent.com with MS IE 10, since it fails with SEC7112: 
 
                 var results= document.getElementById('results');
             }
-          }
+          }*/
         };
       //]]>
   </script>

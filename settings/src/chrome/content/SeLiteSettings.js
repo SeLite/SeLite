@@ -1505,7 +1505,7 @@ var namedTestSuiteFolderChangeHandlers= {};
  * */
 SeLiteSettings.getTestSuiteFolder= function getTestSuiteFolder() { return SeLiteSettings.testSuiteFolder; };
 
-/** @note Internal. Used by extensions/core-extension.js which stores the path of the test suite here. Don't call this from auxiliary Selenium IDE instances (i.e. ones normally open with URL ending with '#GREEN' etc. - see http://selite.github.io/SeleniumIde), neither from Selenium IDE in browser sidebar (which has a different URL: chrome://selenium-ide/content/selenium-ide-sidebar.xul). I.e. call this only if window.location.href==='chrome://selenium-ide/content/selenium-ide.xul'.
+/** @note Internal. Used by extensions/core-extension.js which stores the path of the test suite here. Don't call this from auxiliary Selenium IDE instances (i.e. ones normally open with URL ending with '#GREEN' etc. - see http://selite.github.io/SeleniumIDEtips), neither from Selenium IDE in browser sidebar (which has a different URL: chrome://selenium-ide/content/selenium-ide-sidebar.xul). I.e. call this only if window.location.href==='chrome://selenium-ide/content/selenium-ide.xul'.
  *  @param folder string or undefined
  * */
 SeLiteSettings.setTestSuiteFolder= function setTestSuiteFolder( folder ) {

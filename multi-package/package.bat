@@ -7,5 +7,5 @@ cd %script_folder:~0,-1%
 REM Based on https://developer.mozilla.org/en/docs/Multiple_Item_Packaging
 copy install.rdf build 1>nul 2>&1
 cd build
-jar -cMf ..\selite.xpi .
+jar -cMf ..\..\xpi\selite.xpi .
 cd ..
