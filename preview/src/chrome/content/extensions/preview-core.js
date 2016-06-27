@@ -74,7 +74,7 @@ Selenium= Selenium;
      *  It also loads content of files referenced by <code>&lt;img src="..."&gt;, &lt;link href="..." with rel="stylesheet" or with as="script" or with type="..."&gt;,  &lt;script src="..."&gt;</code>. It changes src="..." or href="..." of those elements to use <code>data:</code> containing the loaded content.
      *  @see Editor.prototype.openPreview()
         @param {string} filePathOrURL File path or URL of the HTML/XML preview file/template. It must be a full URL (including the scheme/protocol), or a full path. If it's a file path, you can use either / or \ as directory separators (they will get translated for the current system). To make it portable, specify it as a relative path and pass it appended to result of SeLiteSettings.getTestSuiteFolder(). It must not be a data: URL. It must not contain a #hash/fragment part.
-     *  @param {boolean|undefined|string|Array|RegExp|function} [useURLencoding=udefined] Whether to apply base 64 encoding (human-unreadable) rather than URL encoding (English text is human-readable). Thri-state parameter:
+     *  @param {boolean|undefined|string|Array|RegExp|function} [useURLencoding=undefined] Whether to apply base 64 encoding (human-unreadable) rather than URL encoding (English text is human-readable). Thri-state parameter:
      *  -If true, then this always uses URL encoding. (However, if the file is binary, the result may not work with decodeURIComponent(). See also https://tools.ietf.org/html/rfc3986#page-12).
      *  -If undefined, then it's automatic: URL encoding for text files (whose MIME starts with "text/" and for .xhtml files) and base 64 for the rest.
      *  -If false, then this always uses base 64 encoding.
@@ -83,10 +83,10 @@ Selenium= Selenium;
      *  @param {function} [contentHandler=undefined] Function(content) => Promise of a string (the handled content). Used for deep/recursive handling. Parameter url is used only for resolving relative URLs for documents that are handled recursively.
      *  @return {Promise} Promise that resolves to encoded content (and handled, if contentHandler is passed); it rejects on error or on timeout. On success it resolves to string, which is a data: URI for content of given documentURL, including content of images/scripts/stylesheets through data: URIs, too.
      * */
-    Selenium.prototype.encodeFile= function encodeFile( url, useURLencoding=false, contentHandler=undefined ) {
+    Selenium.prototype.encodeFile= function encodeFile( url, useURLencoding=undefined, contentHandler=undefined ) {
         var uri= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService).newURI( url, null, null);
         var mime= nsIMIMEService.getTypeFromURI( uri );
-        var contentIsBinary= !mime.startsWith('text/')/*That covers text/xml*/ && mime!=='application/xhtml+xml';
+        var contentIsBinary= !mime.startsWith('text/')/*->that covers text/html and text/xml*/ && mime!=='application/xhtml+xml';
         
         return this.loadFile( url,  contentIsBinary ).then(
         unprocessedContent => {
@@ -234,6 +234,9 @@ Selenium= Selenium;
 
             //@TODO var body= doc.getElementsByTagNameNS( "http://www.w3.org/1999/xhtml", 'body')[0]; // this works even if the document's MIME is text/html rather than text/xml
         var doURLencoding;
+        if( useURLencoding===undefined ) {
+            useURLencoding= !contentIsBinary;
+        }
         if( typeof useURLencoding==='boolean' ) {
             doURLencoding= useURLencoding;
         }
@@ -262,7 +265,7 @@ Selenium= Selenium;
         
         var encoded= contentIsBinary
             ? (doURLencoding
-                ? stringViewToUrlEncode( new StringView( content, 'ASCII') )
+                ? stringViewToUrlEncode( new StringView( content, 'ASCII') ) // Not fully standard
                 : new StringView( content, 'ASCII').toBase64( true )
               )
             : (doURLencoding

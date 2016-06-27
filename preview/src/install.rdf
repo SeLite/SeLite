@@ -4,7 +4,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>preview@selite.googlecode.com</em:id>
     <em:name>SeLite Preview</em:name>
-    <em:version>0.10</em:version>
+    <em:version>0.11</em:version>
     <em:creator>Peter Kehl</em:creator>
     <em:homepageURL>http://selite.github.io/</em:homepageURL>
     <em:description>It enables Selenese scripts to present results and confirm operations in steps</em:description>
