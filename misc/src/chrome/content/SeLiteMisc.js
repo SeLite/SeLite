@@ -2144,4 +2144,30 @@ SeLiteMisc.log= function log() {
     return SeLiteMisc.LOG;
 };
 
+// Same as 2**32, which is Ecmascript7-only (i.e. in Firefox 50+)
+var singleHashLimit= 256*256*256*256;
+
+/** @param {string} string
+ *  @return {string} Hexadecimal hash of that string, 8 characters (32bit). */
+SeLiteMisc.stringToHash= function stringToHash( string ) {
+  // Based on http://hg.openjdk.java.net/jdk7u/jdk7u6/jdk/file/8c2c5d63a17e/src/share/classes/java/lang/String.java -> hashCode()
+  var h= 0;
+  for( var i=0; i<string.length; i++) {
+    h= 31*h + string.charCodeAt( i );
+    h= h%singleHashLimit;
+  }
+  return h.toString(16);
+};
+
+var uuidGenerator = Components.classes["@mozilla.org/uuid-generator;1"].getService(Components.interfaces.nsIUUIDGenerator);
+
+/** @return {string} Hexadecimal number of a hash code of a generated UUID.
+ * */
+SeLiteMisc.generateUUIDhash= function generateUUIDhash() {
+    var uuid = uuidGenerator.generateUUID();
+    var uuidString = uuid.toString();
+    // e.g. {234c4d20-ea78-4892-b1d4-81ba77d939d8}
+    return SeLiteMisc.stringToHash( uuidString ); // Since uuid only contains hexadecimals, {} and -, we could have a better quality hash, but it doesn't matter.
+};
+
 var EXPORTED_SYMBOLS= ['SeLiteMisc'];
