@@ -2147,8 +2147,9 @@ SeLiteMisc.log= function log() {
 // Same as 2**32, which is Ecmascript7-only (i.e. in Firefox 50+)
 var singleHashLimit= 256*256*256*256;
 
-/** @param {string} string
- *  @return {string} Hexadecimal hash of that string, 8 characters (32bit). */
+/** Get a hash (hashcode) of a given string, as per Java's String.hashCode(). When using on a result of SeLiteMisc.generateUUID(): since uuid only contains hexadecimals, {} and -, we could have a better quality hash than from SeLiteMisc.stringToHash(), but it doesn't matter.
+ *  @param {string} string
+ *  @return {string} Hexadecimal number of a hash of that string, 8 characters (32bit). */
 SeLiteMisc.stringToHash= function stringToHash( string ) {
   // Based on http://hg.openjdk.java.net/jdk7u/jdk7u6/jdk/file/8c2c5d63a17e/src/share/classes/java/lang/String.java -> hashCode()
   var h= 0;
@@ -2161,13 +2162,11 @@ SeLiteMisc.stringToHash= function stringToHash( string ) {
 
 var uuidGenerator = Components.classes["@mozilla.org/uuid-generator;1"].getService(Components.interfaces.nsIUUIDGenerator);
 
-/** @return {string} Hexadecimal number of a hash code of a generated UUID.
+/** @return {string} A new generated UUID.
  * */
-SeLiteMisc.generateUUIDhash= function generateUUIDhash() {
-    var uuid = uuidGenerator.generateUUID();
-    var uuidString = uuid.toString();
+SeLiteMisc.generateUUID= function generateUUID() {
+    return uuidGenerator.generateUUID().uuid.toString();
     // e.g. {234c4d20-ea78-4892-b1d4-81ba77d939d8}
-    return SeLiteMisc.stringToHash( uuidString ); // Since uuid only contains hexadecimals, {} and -, we could have a better quality hash, but it doesn't matter.
 };
 
 var EXPORTED_SYMBOLS= ['SeLiteMisc'];

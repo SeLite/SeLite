@@ -1333,7 +1333,7 @@ SeLiteSettings.Module.forName= function forName( moduleNameOrModule ) {
 function readFile( fileName ) {
     try {
         var file= new FileUtils.File( fileName ); // Object of class nsIFile
-        //@TODO speed up: if file doesn't exist, return true, rather than fail and catch
+        //@TODO speed up: if file doesn't exist, return false, rather than fail and catch
         var fstream = Components.classes["@mozilla.org/network/file-input-stream;1"].
                   createInstance(Components.interfaces.nsIFileInputStream);
         var cstream = Components.classes["@mozilla.org/intl/converter-input-stream;1"].
