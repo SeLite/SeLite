@@ -661,13 +661,13 @@ SeLiteMisc.setFieldsPairs= function setFieldsPairs( object, ...fieldValuePairs )
     return object;
 }; 
 
-/** Used to streamline the code when accessing optional fields on objects that are a result of SeLiteMisc.proxyVerifyFieldsOnRead() or SeLiteMisc.proxyVerifyFields(). That's instead of object.fieldName || defaultValue, which fails for such objects.
+/** Used to streamline the code when accessing optional fields on objects that are a result of SeLiteMisc.proxyVerifyFieldsOnRead() or SeLiteMisc.proxyVerifyFields(). That's instead of object.fieldName || defaultValue, which fails for such objects. Also, if fieldName is not set in object, Firefox since about version 48 raises a warning for expression object.fieldName.
  * @param {object} object
  * @param {string} fieldName
  * @param {*} defaultValue
  * @return {*} object[fieldName] if it's present (even if it equals to undefined); defaultValue otherwise
  * */
-SeLiteMisc.field= function field( object, fieldName, defaultValue ) {
+SeLiteMisc.field= function field( object, fieldName, defaultValue=undefined ) {
     return fieldName in object
         ? object[fieldName]
         : defaultValue;
@@ -2165,7 +2165,7 @@ var uuidGenerator = Components.classes["@mozilla.org/uuid-generator;1"].getServi
 /** @return {string} A new generated UUID.
  * */
 SeLiteMisc.generateUUID= function generateUUID() {
-    return uuidGenerator.generateUUID().uuid.toString();
+    return uuidGenerator.generateUUID().toString();
     // e.g. {234c4d20-ea78-4892-b1d4-81ba77d939d8}
 };
 
