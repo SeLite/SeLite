@@ -290,7 +290,7 @@
                 return cmd==='cmd_indent' || cmd==='cmd_unindent' || originalController.isCommandEnabled.call(originalController, cmd);
             },
             
-            doCommand: function doCommand(cmd ) {
+            doCommand: function doCommand(cmd, ...rest ) {
                 if( cmd==='cmd_indent' ) {
                     self.indent();
                 }
@@ -298,7 +298,7 @@
                     self.indent( true );
                 }
                 else {
-                    originalController.doCommand.call(originalController, cmd);
+                    originalController.doCommand.call( originalController, cmd, ...rest );
                 }
             },
             onEvent: originalController.onEvent

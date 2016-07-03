@@ -23,9 +23,9 @@
 
     // Tail intercept of Editor.prototype.confirmClose and the same for its subclasses StandaloneEditor and SidebarEditor
     var originalConfirmClose= Editor.prototype.confirmClose;
-    Editor.prototype.confirmClose= function confirmClose() {
+    Editor.prototype.confirmClose= function confirmClose( ...rest ) {
         //console.log( 'Editor.prototype.confirmClose intercept invoked' );
-        var result= originalConfirmClose.call(this);
+        var result= originalConfirmClose.call( this, ...rest );
         // result===true means that the window was closed (whether saved or not)
         if( result ) {
             window.location.href!=='chrome://selenium-ide/content/selenium-ide.xul' || SeLiteSettings.setTestSuiteFolder(undefined);
