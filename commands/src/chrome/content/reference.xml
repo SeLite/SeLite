@@ -72,7 +72,7 @@ Xml-stylesheet (whether remote or even local) didn't load up when you open this 
             <!--<dt>timezone</dt>
             <dd>To be defined once Firefox supports time zone names</dd>-->
         </dl>
-        }. You can pass it via =`...` notation as per http://selite.github.io/EnhancedSelenese.
+        }. You can pass it via =&lt;&gt;...&lt;&gt; notation as per http://selite.github.io/EnhancedSelenese.
     </param>
     <comment>Parse the given element as a timestamp <!--(at the given timezone, if any)-->
         and compare to the given timestamp, down to given precision.
@@ -131,7 +131,7 @@ Xml-stylesheet (whether remote or even local) didn't load up when you open this 
                     <dt>store</dt>
                     <dd>string, name of the result stored variable; optional</dd>
                 </dl>
-                }. You can pass it via =`...` notation as per http://selite.github.io/EnhancedSelenese.
+                }. You can pass it via =&lt;&gt;...&lt;&gt; notation as per http://selite.github.io/EnhancedSelenese.
             </li>
         </ul>
     </param>
@@ -164,7 +164,7 @@ Xml-stylesheet (whether remote or even local) didn't load up when you open this 
                     <li>excludeFirst: true - Whether to exclude the first option, optional</li>
                     <li>excludeLast: true - Whether to exclude the last option, optional</li>
                     <li>store: string  - name of the stored variable to store the selected value, it may include field or sub(sub...)field e.g. <code>variableName.fieldName, variableName.fieldName.subfieldName</code>...</li>
-                </ul>}. You can pass it via =`...` notation as per http://selite.github.io/EnhancedSelenese.
+                </ul>}. You can pass it via =&lt;&gt;...&lt;&gt; notation as per http://selite.github.io/EnhancedSelenese.
             </li>
         </ul>
     </param>
@@ -234,7 +234,7 @@ Xml-stylesheet (whether remote or even local) didn't load up when you open this 
                     <dd>string name of the stored variable to store the selected value, it may include field or sub(sub...)field e.g. <code>variableName.fieldName, variableName.fieldName.subfieldName</code>...
                     </dd>
                 </dl>
-                }. You can pass it via =`...` notation as per http://selite.github.io/EnhancedSelenese.
+                }. You can pass it via =&lt;&gt;...&lt;&gt; notation as per http://selite.github.io/EnhancedSelenese.
             </li>
         </ul>
     </param>
@@ -257,7 +257,7 @@ Xml-stylesheet (whether remote or even local) didn't load up when you open this 
                     <dt>maxLength</dt>
                     <dd>int as described for typeRandom action (i.e. doTypeRandom function), optional</dd>
                 </dl>
-               }. You can pass it via =`...` notation as per http://selite.github.io/EnhancedSelenese.
+               }. You can pass it via =&lt;&gt;...&lt;&gt; notation as per http://selite.github.io/EnhancedSelenese.
             </li>
         </ul>
     </param>
