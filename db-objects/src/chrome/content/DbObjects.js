@@ -22,13 +22,18 @@ Components.utils.import('chrome://selite-db-objects/content/Db.js');
 
 //var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
 
+SeLiteData.narrowByPrefix= function narrowByPrefix( fieldOrAlias, narrowByValue ) {
+    return fieldOrAlias+ " LIKE '" +narrowByValue+ "%' ";//@TODO escape
+};
+
 /** @constructs SeLiteData.Db
  *  @param {SeLiteData.Storage} storage Underlying lower-level storage object.
  *  @param {string} [tableNamePrefix] optional prefix, which will be applied to all tables (except for tables that have noNamePrefix=true when constructed). If not set, then storage.tableNamePrefix is used (if any).
  *  @param {boolean} [generateInsertKey=false] Whether all tables with single-column primary key should have the key values generated (based on the maximum existing key) on insert. SeLiteData.Table constructor can override this on per-table basis.
- *  @param {string} narrowMethod Default narrow method. It will apply to all tables, except for ones that have their own narrowMethod.
+ *  @param {function} narrowMethod Default narrow method (string fieldOrAlias, string narrowByValue) => string SQL condition. It will apply to all tables, except for ones that have their own narrowMethod. It escapes special characters.
  **/
-SeLiteData.Db= function Db( storage, tableNamePrefix, generateInsertKey=false, narrowMethod="prefix" ) {
+//@TODO check that ESDoc generates optional parameter flag for narrowMethod, even though it's not maekred as optional in the comment
+SeLiteData.Db= function Db( storage, tableNamePrefix, generateInsertKey=false, narrowMethod=SeLiteData.narrowByPrefix ) {
     /** @type {SeLiteData.Storage} storage*/
     this.storage= storage;
     /** @type {string} tableNamePrefix*/
@@ -409,7 +414,7 @@ RecordHolder.prototype.remove= function remove() {
  *              of objects {
                     table: table object;
                     alias: string table alias, optional;
-                    type: string type 'INNER LEFT' etc.; optional
+                    type: string type 'left' or ''; optional
                     on: string join condition
                 }
             ]
@@ -681,7 +686,7 @@ RecordSetHolder.prototype.storage= function storage() {
  * */
 RecordSetHolder.prototype.select= function select() {
     SeLiteMisc.objectDeleteFields( this.recordSet );
-    /** @type {SeLiteMisc.Formula} */
+    /** @type {SeLiteData.RecordSetFormula} */
     var formula= this.formula;
 
     var columns= {};
@@ -827,7 +832,33 @@ RecordSetHolder.prototype.select= function select() {
             delete parameters[param];
         }
     }
-    var conditions= unnamedParamFilters; // @TODO use unnamedParamFilters.slice() as a protective copy, once we factor the above into constructor
+    
+    var conditions= unnamedParamFilters.slice(); // @TODO using unnamedParamFilters.slice() as a protective copy -> factor the above into constructor
+    var settings= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
+    var narrowBy= settings.getField( 'narrowBy' ).getDownToFolder();
+    if( narrowBy!==undefined ) {
+        let hasNarrowColumn= false;
+        if( formula.table.narrowColumn ) {
+            let alias= formula.alias || formula.table.nameWithPrefix();
+            conditions.push( formula.table.narrowMethod(alias, narrowBy) );
+            hasNarrowColumn= true;
+        }
+        for( var join of joins ) {
+            if( join.table.narrowColumn ) {
+                let alias= join.alias || join.table.nameWithPrefix();
+                let condition= join.table.narrowMethod( alias, narrowBy );
+                if( join.type && join.type.toLowerCase().startsWith('left') ) {
+                    condition= '( ' +condition+ " OR " +alias+ " IS NULL )";
+                }
+                conditions.push( condition );
+                hasNarrowColumn= true;
+            }
+        }
+        if( !hasNarrowColumn ) {
+            SeLiteMisc.fail( "You're expecting narrowing down the matches, but there's no column to narrow down." );
+        }
+    }
+
     formula.fetchCondition===null || conditions.splice( 0, 0, formula.fetchCondition );
     condition===null || conditions.splice( 0, 0, condition );
     var data= this.storage().getRecords( {
@@ -838,7 +869,7 @@ RecordSetHolder.prototype.select= function select() {
         joins: joins,
         columns: columns,
         matching: matching,
-        condition: this.storage().sqlAnd.apply( null, conditions ),
+        condition: this.storage().sqlAnd( ...conditions ),
         parameters: parameters,
         parameterNames: formula.parameterNames,
         sort: formula.sort,
