@@ -20,8 +20,11 @@ var passwordField= new SeLiteSettings.Field.String('passwordField', /*multivalue
  * */
 var roles= new SeLiteSettings.Field.FixedMap.String( 'roles', undefined, undefined, "Test roles, as defined by the framework. Enter usernames for those roles." );
 
+var narrowBy= new SeLiteSettings.Field.String( 'narrowBy' );
+var alwaysTestGeneratingKeys= new SeLiteSettings.Field.Boolean( 'alwaysTestGeneratingKeys' );
+
 var settingsModule= new SeLiteSettings.Module( 'extensions.selite-settings.common',
-    [appDB, testDB, vanillaDB, roles, webRoot, usernameField, passwordField],
+    [appDB, testDB, vanillaDB, roles, webRoot, usernameField, passwordField, narrowBy, alwaysTestGeneratingKeys],
     /*allowSets:*/true,
     /*defaultSetName:*/undefined,
     /*associatesWithFolders:*/true,

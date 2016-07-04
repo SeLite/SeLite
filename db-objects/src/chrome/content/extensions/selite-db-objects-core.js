@@ -61,3 +61,23 @@ Selenium.prototype.doInsertRecord= function doInsertRecord( recordObject, table)
         recordObject[ table.primary ]= storedVars.insertedRecordKey= record[table.primary];
     }
 };
+
+/** @param {string|function} recordKeyAttributeLocator
+ *  @param {object} compound { object record, SeLiteData.Table table}
+ * */
+Selenium.prototype.doInsertCaptureKey= function doInsertCaptureKey( recordKeyAttributeLocator, compound ) {
+    !( compound.table.primary in compound.record ) || SeLiteMisc.fail( "Expected to generate or capture primary key for table " +compound.table.name+ ", but it was already set to a " +compound.record[compound.table.primary]+ '.' );
+    var capturedPrimaryValue= typeof recordKeyLocator==="string"
+        ? this.browserbot.findAttribute( recordKeyLocator )
+        : recordKeyLocator( this );
+    var settings= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
+    var narrowBy= settings.getField( 'narrowBy' ).getDownToFolder();
+    var alwaysTestGeneratingKeys= settings.getField( 'alwaysTestGeneratingKeys' ).getDownToFolder();
+    if( narrowBy && !alwaysTestGeneratingKeys ) {
+        compound.record[ compound.table.primary ]= capturedPrimaryValue;
+    }
+    this.doInsertRecord( compound.record, compound.table ); // That sets compound.record[ compound.table.primary ], if it was not set already.
+    if( !narrowBy || alwaysTestGeneratingKeys ) {
+        capturedPrimaryValue===compound.record[ compound.table.primary ] || SeLiteMisc.fail( "Captured primary key value for table " +compound.table.name+ ": " +capturedPrimaryValue+ " differs to generated value: " +compound.record[ compound.table.primary ] );
+    }
+};
