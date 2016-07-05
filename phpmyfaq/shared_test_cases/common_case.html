@@ -129,22 +129,22 @@
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>user_name</td>
-	<td>=&lt;&gt;{maxLength:128, store:'login', characters:/[a-zA-Z1-9_-]/}&lt;&gt;</td>
+	<td>=&lt;&gt;({ maxLength:128, store:'login', characters:/[a-zA-Z1-9_-]/ })&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>user_realname</td>
-	<td>=&lt;&gt;{maxLength:128, store:'display_name'}&lt;&gt;</td>
+	<td>=&lt;&gt;({ maxLength:128, store:'display_name' })&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>user_email</td>
-	<td>=&lt;&gt;{maxLength:128, store:'email', type:'email' }&lt;&gt;</td>
+	<td>=&lt;&gt;({ maxLength:128, store:'email', type:'email' })&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>password</td>
-	<td>=&lt;&gt;{type: 'password', store: 'pass'}&lt;&gt;</td>
+	<td>=&lt;&gt;({ type: 'password', store: 'pass' })&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
@@ -158,7 +158,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
-	<td>=&lt;&gt;{ login: $login}&lt;&gt;</td>
+	<td>=&lt;&gt;({ login: $login })&lt;&gt;</td>
 	<td>=&lt;&gt;phpMyFAQ.tables.user&lt;&gt;</td>
 </tr>
 <tr>
@@ -169,7 +169,7 @@
 <!--    -->
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
-	<td>=&lt;&gt;{ login: $login, pass:$pass}&lt;&gt;</td>
+	<td>=&lt;&gt;({ login: $login, pass:$pass })&lt;&gt;</td>
 	<td>=&lt;&gt;phpMyFAQ.tables.userlogin&lt;&gt;</td>
 </tr>
 <tr>
@@ -179,12 +179,12 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeReadRecord</td>
-	<td>=&lt;&gt;{ formula: phpMyFAQ.formulas.user, login: $login}&lt;&gt;</td>
+	<td>=&lt;&gt;({ formula: phpMyFAQ.formulas.user, login: $login })&lt;&gt;</td>
 	<td>user</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
-	<td>=&lt;&gt;{ user_id: $user_id, display_name:$display_name, email:$email}&lt;&gt;</td>
+	<td>=&lt;&gt;({ user_id: $user_id, display_name:$display_name, email:$email })&lt;&gt;</td>
 	<td>=&lt;&gt;phpMyFAQ.tables.userdata&lt;&gt;</td>
 </tr>
 <tr>
@@ -206,7 +206,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;storeReadRecord</td>
-	<td>=&lt;&gt;{ formula: phpMyFAQ.formulas.userlogin, login: $login }&lt;&gt;</td>
+	<td>=&lt;&gt;({ formula: phpMyFAQ.formulas.userlogin, login: $login })&lt;&gt;</td>
 	<td>userlogin</td>
 </tr>
 <tr>
@@ -401,7 +401,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
-	<td>=&lt;&gt;{ lang:'en', parent_id:0, name: $name, description:$description, user_id:1}&lt;&gt;</td>
+	<td>=&lt;&gt;({ lang:'en', parent_id:0, name: $name, description:$description, user_id:1 })&lt;&gt;</td>
 	<td>=&lt;&gt;phpMyFAQ.tables.categories&lt;&gt;</td>
 </tr>
 <tr>

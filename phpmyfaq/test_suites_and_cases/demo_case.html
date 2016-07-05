@@ -63,12 +63,6 @@
 	<td>storedVars._result</td>
 	<td>createdUser</td>
 </tr>
-<!--TODO remove the following once https://github.com/thorsten/phpMyFAQ/issues/1015 is fixed-->
-<tr>
-	<td>ensureUnderWebRoot</td>
-	<td>&lt;&gt; true &lt;&gt;</td>
-	<td></td>
-</tr>
 <tr>
 	<td>call</td>
 	<td>logOut</td>
@@ -83,6 +77,11 @@
 	<td>call</td>
 	<td>logIn</td>
 	<td>loginOrAmpRole=$createdUser.login</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>alert( $createdUser )</td>
+	<td></td>
 </tr>
 <!---->
 <!--TODO Documen or report to Se HQ: When definition of UI element fails to be loaded, Selenium IDE highlighs the command in red, but it doesn't increase Failures!-->
