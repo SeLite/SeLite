@@ -1,0 +1,11 @@
+extensions.selite-settings.common.narrowBy 0001
+
+extensions.selite-settings.common.bootstrappedCoreExtensions SELITE_THIS_MANIFEST_FOLDER/phpmyfaq-framework.js
+extensions.selite-settings.common.bootstrappedCoreExtensions SELITE_THIS_MANIFEST_FOLDER/phpmyfaq-ui_elements.js
+extensions.selite-settings.common.autoCheckAssert true
+extensions.selite-settings.common.maxTimeDifference 5
+
+extensions.selite-settings.common.usernameField faqusername
+extensions.selite-settings.common.passwordField faqpassword
+
+#extensions.selite-settings.common.roles:editor Paul

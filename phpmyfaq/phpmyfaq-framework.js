@@ -29,12 +29,12 @@ SeLiteMisc.registerOrExtendFramework(
         /*if( commonSettings.getField('exitConfirmationCheckerMode') ) {
             //commonSettings.getField('exitConfirmationCheckerMode').setDefaultKey( 'skipRevertedChanges' );
         }/**/
-        phpMyFAQ.selectUserByLogin= function selectUserByLogin( givenLogin ) {
-            phpMyFAQ.selectedUser= phpMyFAQ.formulas.userwithdata.selectOne( {login: givenLogin} );
+        phpMyFAQ.selectUserByLogin= function selectUserByLogin( givenLogin, dontNarrow ) {
+            phpMyFAQ.selectedUser= phpMyFAQ.formulas.userwithdata.selectOne( {login: givenLogin}, dontNarrow );
             // Try login manager first. That helps when userlogin record in the test DB comes from the (initial) app DB, with encrypted password(s) rather than plain text ones.
             phpMyFAQ.selectedUser.pass= SeLiteMisc.loginManagerPassword( givenLogin );
             if( phpMyFAQ.selectedUser.pass===undefined ) {
-                phpMyFAQ.selectedUser.pass= phpMyFAQ.formulas.userlogin.selectOne( {login: givenLogin} ).pass;
+                phpMyFAQ.selectedUser.pass= phpMyFAQ.formulas.userlogin.selectOne( {login: givenLogin}, dontNarrow ).pass;
             }
             phpMyFAQ.selectedUser.pass!==undefined && phpMyFAQ.selectedUser.pass!=='' || SeLiteMisc.fail( "No password known for user login " +givenLogin );
         };
@@ -52,46 +52,45 @@ SeLiteMisc.registerOrExtendFramework(
         phpMyFAQ.tables= {};
         phpMyFAQ.tables.user= new SeLiteData.Table( {
            db:  phpMyFAQ.db,
-           name: 'user',
-           columns: ['user_id', 'login', 'session_id', 'session_timestamp', 'ip', 'account_status', 'last_login', 'auth_source', 'member_since', 'remember_me', 'success'
-           ],
-           primary: 'user_id' // However, for purpose of matching users I usually use 'login'
+           name: 'faquser',
+           columns: ['user_id', 'login', 'session_id', 'session_timestamp', 'ip', 'account_status', 'last_login', 'auth_source', 'member_since', 'remember_me', 'success'],
+           primary: 'user_id', // However, for purpose of matching users I usually use 'login'
+           narrowColumn: 'login'
         });
         phpMyFAQ.tables.userdata= new SeLiteData.Table( {
            db:  phpMyFAQ.db,
-           name: 'userdata',
-           columns: ['user_id', 'last_modified', 'display_name', 'email'
-           ],
-           primary: 'user_id'
+           name: 'faquserdata',
+           columns: ['user_id', 'last_modified', 'display_name', 'email'],
+           primary: 'user_id',
+           narrowColumn: 'display_name'
         });
         phpMyFAQ.tables.userlogin= new SeLiteData.Table( {
            db:  phpMyFAQ.db,
-           name: 'userlogin',
-           columns: ['login', 'pass'
-           ],
+           name: 'faquserlogin',
+           columns: ['login', 'pass'],
            primary: 'login'
         });
         phpMyFAQ.tables.user_group= new SeLiteData.Table( {
            db:  phpMyFAQ.db,
-           name: 'user_group',
+           name: 'faquser_group',
            columns: ['user_id', 'group_id'],
            primary: ['user_id', 'group_id']//@TODO implement?
         });
         phpMyFAQ.tables.user_right= new SeLiteData.Table( {
            db:  phpMyFAQ.db,
-           name: 'user_right',
+           name: 'faquser_right',
            columns: ['user_id', 'right_id'],
            primary: ['user_id', 'right_id']
         });
         phpMyFAQ.tables.visits= new SeLiteData.Table( {
            db:  phpMyFAQ.db,
-           name: 'visits',
+           name: 'faqvisits',
            columns: ['id', 'lang', 'visits', 'last_visit'],
            primary: ['id', 'login']
         });
         phpMyFAQ.tables.categories= new SeLiteData.Table( {
            db:  phpMyFAQ.db,
-           name: 'categories',
+           name: 'faqcategories',
            columns: ['id', 'lang', 'parent_id', 'name', 'description', 'user_id', 'active'],
            primary: 'id'
         });
@@ -111,7 +110,7 @@ SeLiteMisc.registerOrExtendFramework(
                 joins: [{
                     table: phpMyFAQ.tables.userdata,
                     alias: 'userdata',
-                    on: phpMyFAQ.tables.user.name+ '.user_id=userdata.user_id'
+                    on: 'user.user_id=userdata.user_id'
                 }]
             }
             ),

@@ -19,11 +19,12 @@
 Components.utils.import( 'chrome://selite-misc/content/SeLiteMisc.js' );
 Components.utils.import('chrome://selite-db-objects/content/DbStorage.js');
 Components.utils.import('chrome://selite-db-objects/content/Db.js');
+Components.utils.import( 'chrome://selite-settings/content/SeLiteSettings.js' );
 
 //var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
 
-SeLiteData.narrowByPrefix= function narrowByPrefix( fieldOrAlias, narrowByValue ) {
-    return fieldOrAlias+ " LIKE '" +narrowByValue+ "%' ";//@TODO escape
+SeLiteData.narrowByPrefix= function narrowByPrefix( table, tableOrJoinAlias, narrowByValue ) {
+    return tableOrJoinAlias+ "." +table.narrowColumn+ " LIKE '" +narrowByValue+ "%' ";//@TODO escape
 };
 
 /** @constructs SeLiteData.Db
@@ -77,8 +78,8 @@ SeLiteData.Table= function Table( prototype ) {
     this.generateInsertKey= SeLiteMisc.field( prototype, 'generateInsertKey', this.db.generateInsertKey );
     this.generateInsertKey= this.generateInsertKey || false;
     this.narrowColumn= SeLiteMisc.field( prototype, 'narrowColumn' );
-    this.narrowMaxWidth= SeLiteMisc.field( prototype, 'narrowMaxWidth' );
-    this.narrowMethod= SeLiteMisc.field( prototype, this.db.narrowMethod );
+    this.narrowMaxWidth= SeLiteMisc.field( prototype, 'narrowMaxWidth' ); //@TODO use<- pass table object to narrowMethod()
+    this.narrowMethod= SeLiteMisc.field( prototype, 'narrowMethod', this.db.narrowMethod );
 };
 
 SeLiteData.Table.prototype.nameWithPrefix= function nameWithPrefix() {
@@ -286,9 +287,9 @@ RecordHolder.prototype.setOriginalAndWatchEntries= function setOriginalAndWatchE
     }
 };
 
-RecordHolder.prototype.select= function select() { throw new Error( "@TODO. In the meantimes, use RecordSetHolder.select() or SeLiteData.RecordSetFormula.select()."); };
+RecordHolder.prototype.select= function select( dontNarrow ) { throw new Error( "@TODO. In the meantimes, use RecordSetHolder.select() or SeLiteData.RecordSetFormula.select()."); };
 
-RecordHolder.prototype.selectOne= function selectOne() { throw new Error( "@TODO. In the meantime, use RecordSetHolder.selectOne() or SeLiteData.RecordSetFormula.selectOne()."); };
+RecordHolder.prototype.selectOne= function selectOne( dontNarrow ) { throw new Error( "@TODO. In the meantime, use RecordSetHolder.selectOne() or SeLiteData.RecordSetFormula.selectOne()."); };
 
 // @TODO Consider: RecordHolder.insert() which is linked to an existing RecordSetHolder, and it adds itself to that recordSetHolder. - But then the recordSetHolder may not match its formula anymore - have a flag/handler for that?
 /** This saves this.record into main table of the formula. As defined by RecordHolder() constructor,
@@ -601,15 +602,15 @@ SeLiteData.RecordSetFormula.prototype.allAliasesToSource= function allAliasesToS
 /** This returns SeLiteData.RecordSet object, i.e. the records themselves.
  *  @see RecordSetHolder.select().
  **/
-SeLiteData.RecordSetFormula.prototype.select= function select( parametersOrCondition ) {
-    return new RecordSetHolder(this, parametersOrCondition ).select();
+SeLiteData.RecordSetFormula.prototype.select= function select( parametersOrCondition, dontNarrow ) {
+    return new RecordSetHolder(this, parametersOrCondition ).select( dontNarrow );
 };
 
 /** This returns the SeLiteData.Record object, i.e. the record itself.
  *  @see RecordSetHolder.selectOne()
  **/
-SeLiteData.RecordSetFormula.prototype.selectOne= function selectOne( parametersOrCondition ) {
-    return new RecordSetHolder(this, parametersOrCondition ).selectOne();
+SeLiteData.RecordSetFormula.prototype.selectOne= function selectOne( parametersOrCondition, dontNarrow ) {
+    return new RecordSetHolder(this, parametersOrCondition ).selectOne( dontNarrow );
 };
 
 /** SeLiteData.RecordSet serves as an associative array, containing SeLiteData.Record object(s), indexed by SeLiteMisc.collectByColumn(records, [formula.indexBy] or formula.indexBy, formula.indexUnique)
@@ -682,9 +683,10 @@ RecordSetHolder.prototype.storage= function storage() {
     return this.formula.table.db.storage;
 };
 
-/** @return SeLiteData.RecordSet object
+/** @param {boolean} dontNarrow Whether not to narrow. Use e.g. for personal logins (other than logins created by the script).
+ *  @return {SeLiteData.RecordSet} object
  * */
-RecordSetHolder.prototype.select= function select() {
+RecordSetHolder.prototype.select= function select( dontNarrow ) {
     SeLiteMisc.objectDeleteFields( this.recordSet );
     /** @type {SeLiteData.RecordSetFormula} */
     var formula= this.formula;
@@ -835,27 +837,27 @@ RecordSetHolder.prototype.select= function select() {
     
     var conditions= unnamedParamFilters.slice(); // @TODO using unnamedParamFilters.slice() as a protective copy -> factor the above into constructor
     var settings= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
-    var narrowBy= settings.getField( 'narrowBy' ).getDownToFolder();
-    if( narrowBy!==undefined ) {
+    var narrowBy= settings.getField( 'narrowBy' ).getDownToFolder().entry;
+    if( narrowBy!==undefined && !dontNarrow ) {
         let hasNarrowColumn= false;
         if( formula.table.narrowColumn ) {
             let alias= formula.alias || formula.table.nameWithPrefix();
-            conditions.push( formula.table.narrowMethod(alias, narrowBy) );
+            conditions.push( formula.table.narrowMethod(formula.table, alias, narrowBy) );
             hasNarrowColumn= true;
         }
         for( var join of joins ) {
             if( join.table.narrowColumn ) {
                 let alias= join.alias || join.table.nameWithPrefix();
-                let condition= join.table.narrowMethod( alias, narrowBy );
+                let condition= join.table.narrowMethod( join.table, alias, narrowBy );
                 if( join.type && join.type.toLowerCase().startsWith('left') ) {
-                    condition= '( ' +condition+ " OR " +alias+ " IS NULL )";
+                    condition= '( ' +condition+ " OR " +alias+ "." +join.table.narrowColumn+ " IS NULL )";
                 }
                 conditions.push( condition );
                 hasNarrowColumn= true;
             }
         }
         if( !hasNarrowColumn ) {
-            SeLiteMisc.fail( "You're expecting narrowing down the matches, but there's no column to narrow down." );
+            SeLiteMisc.fail( "You're expecting narrowing down the matches, but there's no narrowColumn set." );
         }
     }
 
@@ -901,8 +903,8 @@ RecordSetHolder.prototype.select= function select() {
 /** This runs the query just like select(). Then it checks whether there was exactly 1 result row.
  *  If yes, it returns that row (SeLiteData.Record object). Otherwise it throws an exception.
  **/
-RecordSetHolder.prototype.selectOne= function selectOne() {
-    this.select();
+RecordSetHolder.prototype.selectOne= function selectOne( dontNarrow ) {
+    this.select( dontNarrow );
     var keys= Object.keys(this.recordSet);
     if( keys.length!==1 ) {
         throw new Error( "Expecting one record, but there was: " +keys.length+ " of them." );

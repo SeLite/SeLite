@@ -1,5 +1,5 @@
 /*
- *   Copyright 2015 Peter Kehl
+ *   Copyright 2015, 2016 Peter Kehl
 * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at http://mozilla.org/MPL/2.0/.*/
@@ -66,10 +66,10 @@
             }
        ],
        getLocator: function getLocator(args) {
-           return Object.keys(phpMyFAQ.uiMap.pagesets.allPages.uiElements.userOwnMenu.defaultLocators)[0]+ '/preceding::a/span'+ (
+           return Object.keys( phpMyFAQ.uiMap.pagesets.allPages.uiElements.userOwnMenu.defaultLocators )[0]+ '/preceding::a'+ (
                args.displayName!==undefined && args.displayName!==''
-               ? '[ contains(., ' +(''+args.displayName).quoteForXPath()+ ') ]'
-               : ''
+                 ? '[ contains(., ' +(''+args.displayName).quoteForXPath()+ ') ]'
+                 : '/b[ @class="caret" ]'
            );
        }
     } );
@@ -88,7 +88,7 @@
     phpMyFAQ.uiMap.addElement('nonAdminPages', {
         name: 'bootstrapMenu',
         description: '<div> for the Bootstrap menu. Only use through phpMyFAQ.bootstrapMenuLocator() to detect whether the menu is expanded; do not use to access menu items etc.',
-        locator: "//div[ @id='pmf-navbar-collapse' ]"
+        locator: '//ul[ @class="dropdown-menu" ]'
     } );
     
     phpMyFAQ.uiMap.addPageset({
@@ -379,7 +379,7 @@
     phpMyFAQ.uiMap.addElement('adminPages', {
         name: 'bootstrapMenu',
         description: '<span> for the Bootstrap menu. Only use through phpMyFAQ.bootstrapMenuLocator() to detect whether the menu is expanded; do not use to access menu items etc.',
-        locator: "//ul[ @id='side-menu' ]"
+        locator: '//ul[ @class="dropdown-menu" ]'
     } );
     
     /** @return {string} Locator of bootstrapMenuLocator, depending on current URL. It works for both admin and non-admin pages. Only use it to detect whether the bootstrap menu is expanded; do not use to access menu items etc.

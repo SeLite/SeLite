@@ -11,6 +11,11 @@
 <thead>
 <tr><td rowspan="1" colspan="3">common_case</td></tr>
 </thead><tbody>
+<tr>
+	<td>nop</td>
+	<td></td>
+	<td></td>
+</tr>
 <!--@param 'loginOrAmpRole' is a user login, or user role prefixed with &.-->
 <tr>
 	<td>function</td>
@@ -19,7 +24,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;getEval</td>
-	<td>phpMyFAQ.selectUserByLogin( SeLiteSettings.roleToUser( '${loginOrAmpRole}' ) )</td>
+	<td>phpMyFAQ.selectUserByLogin( SeLiteSettings.roleToUser('${loginOrAmpRole}'), /*dontNarrow*/true )</td>
 	<td></td>
 </tr>
 <tr>
@@ -44,14 +49,20 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;clickAndWait</td>
-	<td>//form//div[ @class=&quot;form-actions&quot; ]//button[ @type=&quot;submit&quot; ]</td>
+	<td>//div[ @class=&quot;panel-body&quot; ]//button[ @type=&quot;submit&quot; ]</td>
 	<td></td>
 </tr>
 <!--    The current page and its URL depends on whether we got here from an admin or non-admin screen-->
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;assertElementPresent</td>
+	<td>ui=allPages::userOwnMenuLoggedInName()</td>
+	<td></td>
+</tr>
+<!--    Keep a space between displayName= and <>phpMyFAQ.selectedUser.display_name<>, otherwise http://selite.github.io/EnhancedSelenese treats it specially:-->
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;assertElementPresent</td>
 	<td>ui=allPages::userOwnMenuLoggedInName( displayName= &lt;&gt;phpMyFAQ.selectedUser.display_name&lt;&gt; )</td>
-	<td>Comment: keep a space between displayName= and &lt;&gt;phpMyFAQ.selectedUser.display_name&lt;&gt;, otherwise http://selite.github.io/EnhancedSelenese treats it specially</td>
+	<td></td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;getEval</td>
@@ -258,15 +269,16 @@
 	<td></td>
 </tr>
 <!--  resizeTo(), innerWidth and innerHeight don't work in getEval with window, neither with this.browserbot.getCurrentWindow()-->
+<!--  Here I used to use window.opener.innerWidth. Why?-->
 <tr>
-	<td>&nbsp;&nbsp;getEval</td>
-	<td>javascript{ 'LOG.info( &quot;window.opener.width: &quot; +' +window.opener.innerWidth+ ')' }</td>
-	<td></td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;log</td>
+	<td>window.width: &lt;&gt;window.innerWidth&lt;&gt;</td>
+	<td>info</td>
 </tr>
 <!--  TODO Doc: the following innerWidth is different to value reported by console in Firebug or in Firefox's Web Developer > Toggle tools > console.-->
 <tr>
 	<td>&nbsp;&nbsp;if</td>
-	<td>javascript{ window.opener.innerWidth&lt;1024 }</td>
+	<td>window.innerWidth&lt;1024</td>
 	<td>In Firebug console it is 768</td>
 </tr>
 <tr>
@@ -373,7 +385,7 @@
 	<td>=&lt;&gt; {maxLength:255, store:'name'} &lt;&gt;</td>
 </tr>
 <tr>
-	<td>storeEval</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
 	<td>('Cat.Description ' +storedVars.name).substr(0, 255)</td>
 	<td>description</td>
 </tr>
