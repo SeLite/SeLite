@@ -135,6 +135,8 @@ SeLiteSettings.VALUE_PRESENT= 'SELITE_VALUE_PRESENT';
 SeLiteSettings.NULL= 'SELITE_NULL';
 // Used as a part of Field values in 'values' manifest. It gets replaced with the full path to the manifest folder.
 SeLiteSettings.SELITE_THIS_MANIFEST_FOLDER= 'SELITE_THIS_MANIFEST_FOLDER';
+SeLiteSettings.SELITE_LOCAL_NARROW_UUID= 'SELITE_LOCAL_NARROW_UUID';
+SeLiteSettings.SELITE_LOCAL_NARROW_UUID_HASH= 'SELITE_LOCAL_NARROW_UUID_HASH';
 
 // Following are used to generate 'properties' in columns 'Set' and 'Manifest', when viewing fields per folder
 SeLiteSettings.ASSOCIATED_SET= 'SELITE_ASSOCIATED_SET';
@@ -476,7 +478,7 @@ SeLiteSettings.Field.prototype.getDownToFolder= function getDownToFolder( folder
 // @TODO Move this line to http://selite.github.io/Javascript?: See also https://developer.mozilla.org/en/Introduction_to_Object-Oriented_JavaScript#Inheritance
 /** There's no parameter 'customValidate' for Bool.
  * */
-SeLiteSettings.Field.Boolean= function Bool( name, defaultKey, allowNull, description ) {
+SeLiteSettings.Field.Boolean= function Boolean( name, defaultKey, allowNull, description ) {
     SeLiteSettings.Field.NonChoice.call( this, name, false, defaultKey, allowNull, description );
 };
 SeLiteSettings.Field.Boolean.prototype= Object.create( SeLiteSettings.Field.NonChoice.prototype );
@@ -1338,7 +1340,7 @@ function readFile( fileName ) {
                   createInstance(Components.interfaces.nsIFileInputStream);
         var cstream = Components.classes["@mozilla.org/intl/converter-input-stream;1"].
                       createInstance(Components.interfaces.nsIConverterInputStream);
-        fstream.init(file, -1, -1, 0);
+        fstream.init(file, -1/*default*/, -1/*default*/, 0);
         cstream.init(fstream, "UTF-8", 0, 0);
     }
     catch( exception ) {
@@ -1445,7 +1447,7 @@ function manifestsDownToFolder( folderPath=SeLiteSettings.testSuiteFolder, dontC
             breadCrumb= breadCrumb.parent;
         }
         while( breadCrumb!==null );
-        folderNames= folderNames.reverse(); // Now they start from the root/drive folder
+        folderNames= folderNames.reverse(); // Array of full paths to each folder. Now they start from the top root/volume.
     }    
     var values= SeLiteMisc.sortedObject(true);
     var associations= SeLiteMisc.sortedObject(true);
@@ -1456,6 +1458,10 @@ function manifestsDownToFolder( folderPath=SeLiteSettings.testSuiteFolder, dontC
         if( contents!==false ) {
             var lines= removeCommentsGetLines(contents);
             for( var j=0; j<lines.length; j++ ) {
+                var line= lines[j];
+                if( commentLineRegex.test(line) || line.trim()==='' ) {
+                    continue;
+                }
                 var parts= valuesLineRegex.exec( lines[j] );
                 parts || SeLiteMisc.fail( "Values manifest " +fileName+ " at line " +(j+1)+ " is badly formatted: " +lines[j]  );
                 if( !(folder in values) ) {
