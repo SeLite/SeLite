@@ -23,15 +23,24 @@ Components.utils.import( 'chrome://selite-settings/content/SeLiteSettings.js' );
 
 //var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
 
-SeLiteData.narrowByPrefix= function narrowByPrefix( table, tableOrJoinAlias, narrowByValue ) {
-    return tableOrJoinAlias+ "." +table.narrowColumn+ " LIKE '" +narrowByValue+ "%' ";//@TODO escape
+SeLiteData.narrowByPrefix= {
+    filter: function narrowByPrefixFilter( table, tableOrJoinAlias, narrowByValue ) {
+        return tableOrJoinAlias+ "." +table.narrowColumn+ " LIKE '" +narrowByValue+ "%' ";//@TODO escape
+    },
+    inject: function narrowByPrefixInject( unfilteredValue, narrowByValue='' ) {
+        return narrowByValue+ unfilteredValue;
+    }
 };
 
 /** @constructs SeLiteData.Db
  *  @param {SeLiteData.Storage} storage Underlying lower-level storage object.
  *  @param {string} [tableNamePrefix] optional prefix, which will be applied to all tables (except for tables that have noNamePrefix=true when constructed). If not set, then storage.tableNamePrefix is used (if any).
  *  @param {boolean} [generateInsertKey=false] Whether all tables with single-column primary key should have the key values generated (based on the maximum existing key) on insert. SeLiteData.Table constructor can override this on per-table basis.
- *  @param {function} narrowMethod Default narrow method (string fieldOrAlias, string narrowByValue) => string SQL condition. It will apply to all tables, except for ones that have their own narrowMethod. It escapes special characters.
+ *  @param {object}  narrowMethod An anonymous object
+ *      {filter: function(string fieldOrAlias, string narrowByValue) => string SQL condition,
+ *       inject: function(string unfilteredValue, string narrowByValue) => string to insert to DB (unescaped)
+ *      }.
+ *      Default narrow method. It will apply to all tables, except for ones that have their own narrowMethod. It escapes special characters.
  **/
 //@TODO check that ESDoc generates optional parameter flag for narrowMethod, even though it's not maekred as optional in the comment
 SeLiteData.Db= function Db( storage, tableNamePrefix, generateInsertKey=false, narrowMethod=SeLiteData.narrowByPrefix ) {
@@ -61,7 +70,7 @@ SeLiteData.Db.prototype.tablePrefix= function tablePrefix() {
  *      generateInsertKey: boolean, like parameter generateInsertKey of SeLiteData.Db(). If specified and different to prototype.db.generateInsertKey, then prototype.generateInsertKey overrides it (even if db.generateInsertKey is true but here prototype.generateInsertKey is false).
  *      narrowColumn: string, optional. Name of column used to narrow down operating set or records.
  *      narrowMaxWidth: number, optional. Maximum number of characters when narrowing down. Applied to Settings field extensions.selite-settings.common.narrowBy.
- *      narrowMethod: string, optional. See SeLiteData.Db().
+ *      narrowMethod: object, optional. See SeLiteData.Db().
  */
 SeLiteData.Table= function Table( prototype ) {
     /** @type {SeLiteData.Db} */
@@ -842,13 +851,13 @@ RecordSetHolder.prototype.select= function select( dontNarrow ) {
         let hasNarrowColumn= false;
         if( formula.table.narrowColumn ) {
             let alias= formula.alias || formula.table.nameWithPrefix();
-            conditions.push( formula.table.narrowMethod(formula.table, alias, narrowBy) );
+            conditions.push( formula.table.narrowMethod.filter(formula.table, alias, narrowBy) );
             hasNarrowColumn= true;
         }
         for( var join of joins ) {
             if( join.table.narrowColumn ) {
                 let alias= join.alias || join.table.nameWithPrefix();
-                let condition= join.table.narrowMethod( join.table, alias, narrowBy );
+                let condition= join.table.narrowMethod.filter( join.table, alias, narrowBy );
                 if( join.type && join.type.toLowerCase().startsWith('left') ) {
                     condition= '( ' +condition+ " OR " +alias+ "." +join.table.narrowColumn+ " IS NULL )";
                 }
