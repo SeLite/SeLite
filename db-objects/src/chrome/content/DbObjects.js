@@ -61,7 +61,7 @@ SeLiteData.Db.prototype.tablePrefix= function tablePrefix() {
  *      generateInsertKey: boolean, like parameter generateInsertKey of SeLiteData.Db(). If specified and different to prototype.db.generateInsertKey, then prototype.generateInsertKey overrides it (even if db.generateInsertKey is true but here prototype.generateInsertKey is false).
  *      narrowColumn: string, optional. Name of column used to narrow down operating set or records.
  *      narrowMaxWidth: number, optional. Maximum number of characters when narrowing down. Applied to Settings field extensions.selite-settings.common.narrowBy.
- *      narrowMethod: string, optional. See SeLiteData.Db().
+ *      narrowMethod: function, optional. See SeLiteData.Db().
  */
 SeLiteData.Table= function Table( prototype ) {
     /** @type {SeLiteData.Db} */
@@ -665,7 +665,7 @@ SeLiteData.recordOrSetHolder= function recordOrSetHolder( recordOrSet ) {
  *   If parameter-name matches either a table column name/alias or a join name/alias, it must not match any entry in parameterNames - @TODO factor out a similar check from RecordSetHolder.prototype.select() - see unnamedParamFilters; then re-apply the check here. Such a parameter
  *   is then used as a subfilter, filtering by its respective column/alias, adding an 'AND' to the overall SQL WHERE part.
  *   Note that if parameter-name matches two or more columns with same name (from two or more tables), the condition will probably fail
- *   with an error - then use aliases.
+ *   with an error - then use aliases. TODO clarify
  **/
 function RecordSetHolder( formula, parametersOrCondition={} ) {
     RecordOrSetHolder.call( this );
@@ -683,7 +683,8 @@ RecordSetHolder.prototype.storage= function storage() {
     return this.formula.table.db.storage;
 };
 
-/** @param {boolean} dontNarrow Whether not to narrow. Use e.g. for personal logins (other than logins created by the script).
+/** This narrows down formula.table, OPTIONAL(TODO:) unless its primary key is present in either formula.fetchMatching or this.parametersOrCondition (if this.parametersOrCondition is an object, not a string). It doesn't check formula.fetchCondition, neither this.parametersOrCondition if it's a string. *  It doesn't narrow down any joins.
+ *  @param {boolean} dontNarrow Whether not to narrow. Use e.g. for personal logins (other than logins created by the script).
  *  @return {SeLiteData.RecordSet} object
  * */
 RecordSetHolder.prototype.select= function select( dontNarrow ) {
@@ -810,6 +811,7 @@ RecordSetHolder.prototype.select= function select( dontNarrow ) {
                 }
             }
         }
+        // don't use `else {`, because paramIsColumnOrAlias could have changed above.
         if( paramIsColumnOrAlias ) {
             // @TODO Move the following validation to SeLiteData.RecordSetFormula()? For that factor out the above logic that detemines paramIsColumn. Apply a similar validation to RecordSetHolder() constructor?
             !(param in this.formula.parameterNames ) || SeLiteMisc.fail( "RecordSetHolder.select() received a parameter " +param+ " which matches a column or alias, but it also matches one of parameterNames of SeLiteData.RecordSetFormula instance." );
@@ -835,27 +837,36 @@ RecordSetHolder.prototype.select= function select( dontNarrow ) {
         }
     }
     
-    var conditions= unnamedParamFilters.slice(); // @TODO using unnamedParamFilters.slice() as a protective copy -> factor the above into constructor
+    var conditions= unnamedParamFilters.slice(); // @TODO use unnamedParamFilters.slice() as a protective copy via SeLiteMisc.objectClone() -> factor the above into constructor
     var settings= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
     var narrowBy= settings.getField( 'narrowBy' ).getDownToFolder().entry;
     if( narrowBy!==undefined && !dontNarrow ) {
         let hasNarrowColumn= false;
+        // @TODO loop - once we support formula.tables array
         if( formula.table.narrowColumn ) {
+            // @TODO Optional: run the following only if formula.table.primary is not in formula.fetchMatching neither this.parametersOrCondition (as an object, not a string).
             let alias= formula.alias || formula.table.nameWithPrefix();
-            conditions.push( formula.table.narrowMethod(formula.table, alias, narrowBy) );
+            let narrowByShortened= formula.table.narrowMaxWidth
+                ? narrowBy.substr( 0, formula.table.narrowMaxWidth )
+                : narrowBy;
+            conditions.push( formula.table.narrowMethod(formula.table, alias, narrowByShortened) );
             hasNarrowColumn= true;
         }
+        /* TODO Should we narrow throguh joins?
         for( var join of joins ) {
             if( join.table.narrowColumn ) {
                 let alias= join.alias || join.table.nameWithPrefix();
-                let condition= join.table.narrowMethod( join.table, alias, narrowBy );
+                let narrowByShortened= join.table.narrowMaxWidth
+                    ? narrowBy.substr( 0, join.table.narrowMaxWidth )
+                    : narrowBy;
+                let narrowCondition= join.table.narrowMethod( join.table, alias, narrowBy );
                 if( join.type && join.type.toLowerCase().startsWith('left') ) {
-                    condition= '( ' +condition+ " OR " +alias+ "." +join.table.narrowColumn+ " IS NULL )";
+                    narrowCondition= '( ' +narrowCondition+ " OR " +alias+ "." +join.table.narrowColumn+ " IS NULL )";
                 }
-                conditions.push( condition );
+                conditions.push( narrowCondition );
                 hasNarrowColumn= true;
             }
-        }
+        }*/
         if( !hasNarrowColumn ) {
             SeLiteMisc.fail( "You're expecting narrowing down the matches, but there's no narrowColumn set." );
         }
