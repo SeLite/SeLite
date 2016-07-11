@@ -320,24 +320,24 @@ SeLiteData.Storage.prototype.getRecords= function getRecords( params ) {
     columnsList= this.fieldNames( columnsList );
     var query= "SELECT " +columnsString+ " FROM " +params.table;
 
-    if( params.joins!==undefined ) {
+    if( SeLiteMisc.field(params, 'joins')!==undefined ) {
         for( var i=0; i<params.joins.length; i++ ) {
             var join= params.joins[i];
-            if( join.type!==undefined ) {
+            if( SeLiteMisc.field(join, 'type')!==undefined ) {
                 query+= ' ' +join.type;
             }
             query+= ' JOIN ' +join.table;
-            if( join.alias!==undefined ) {
+            if( SeLiteMisc.field(join, 'alias')!==undefined ) {
                 query+= ' ' +join.alias;
             }
-            if( join.on!==undefined ) {
+            if( SeLiteMisc.field(join, 'on')!==undefined ) {
                 query+= " ON " +join.on;
             }
         }
     }
 
     var conditionParts= [];
-    if( params['matching']!==undefined && !SeLiteMisc.isEmptyObject(params['matching']) ) {
+    if( SeLiteMisc.field(params, 'matching')!==undefined && !SeLiteMisc.isEmptyObject(params['matching']) ) {
         for( var field in params.matching ) {
             var matchedValue= params.matching[field];
             matchedValue= typeof matchedValue==='string' && matchedValue.length>1
@@ -352,24 +352,24 @@ SeLiteData.Storage.prototype.getRecords= function getRecords( params ) {
             }
         }
     }
-    if( params['condition']!==undefined && params['condition']!=='' && params['condition']!=null ) {
+    if( SeLiteMisc.field(params, 'condition')/* not undefined, not '', not null*/ ) {
         conditionParts.push( '('+params.condition+')' );
     }
     if( conditionParts.length ) {
         query+= " WHERE " +conditionParts.join(' AND ');
     }
     if( typeof params['sort']!=='undefined' && params.sort ) {
-        var sortDirection= (params['sortDirection']===undefined || !params.sortDirection)
+        var sortDirection= ( SeLiteMisc.field(params, 'sortDirection')===undefined || !params.sortDirection )
             ? 'ASC'
             : params.sortDirection;
         query+= " ORDER BY " +params.sort+ ' ' +sortDirection;
     }
-    if( params.debugQuery!==undefined && params.debugQuery ) {
+    if( SeLiteMisc.field(params, 'debugQuery')!==undefined && params.debugQuery ) {
         console.log( query );
     }
 
     var result= this.select( query, params.parameters, columnsList );
-    if( params.debugResult!==undefined && params.debugResult ) {
+    if( SeLiteMisc.field(params, 'debugResult')!==undefined && params.debugResult ) {
         console.log( SeLiteMisc.rowsToString(result) );
     }
     return result;
@@ -395,9 +395,7 @@ SeLiteData.Storage.prototype.getRecords= function getRecords( params ) {
  * @throws an error on failure
  **/
 SeLiteData.Storage.prototype.updateRecords= function updateRecords( params ) {
-    var fieldsToProtect= params.fieldsToProtect!==undefined
-        ? params.fieldsToProtect
-        : [];
+    var fieldsToProtect= SeLiteMisc.fieldDefined( params, 'fieldsToProtect', [] );
         //@TODO use bindings instead of quoting?:
     var entries= this.quoteValues( params.entries, fieldsToProtect );
 
@@ -416,14 +414,14 @@ SeLiteData.Storage.prototype.updateRecords= function updateRecords( params ) {
             conditionParts.push( field+ '=' +this.quote( params.matching[field] ) );
         }
     }
-    if( params['condition']!==undefined && params['condition']!=='' && params['condition']!=null ) {
+    if( SeLiteMisc.field(params, 'condition')/* not undefined, not '', not null*/ ) {
         conditionParts.push( '('+params.condition+')' );
     }
     if( conditionParts.length ) {
         query+= " WHERE " +conditionParts.join(' AND ');
     }
 
-    if( params.debugQuery!==undefined && params.debugQuery ) {
+    if( SeLiteMisc.field(params, 'debugQuery') ) {
         console.log( query );
     }
     var stmt= this.connection().createStatement( query );
@@ -460,7 +458,7 @@ SeLiteData.Storage.prototype.updateRecordByPrimary= function updateRecordByPrima
         : primaryKey;
     copiedParams.matching= {};
     for( var column of primaryKeyColumns ) {
-        copiedParams.entries[column]!==undefined || SeLiteMisc.fail( "updateRecordByPrimary(): params.entries." +column+ " is not set." );
+        SeLiteMisc.field(copiedParams.entries, column)!==undefined || SeLiteMisc.fail( "updateRecordByPrimary(): params.entries." +column+ " is not set." );
         copiedParams.matching[column]= copiedParams.entries[column];
         delete copiedParams.entries[column];
     }
@@ -508,9 +506,7 @@ SeLiteData.Storage.prototype.removeRecordByPrimary= function removeRecordByPrima
  * @throws an error on failure
  */
 SeLiteData.Storage.prototype.insertRecord= function insertRecord( params ) {
-    var fieldsToProtect= params.fieldsToProtect!==undefined
-        ? params.fieldsToProtect
-        : [];
+    var fieldsToProtect= SeLiteMisc.fieldDefined( params, 'fieldsToProtect', [] );
     var entries= this.quoteValues( params.entries, fieldsToProtect );
     var columns= [];
     var values= [];
@@ -521,7 +517,7 @@ SeLiteData.Storage.prototype.insertRecord= function insertRecord( params ) {
     //@TODO re-do/merge with SeLiteData.Table.prototype.insert
     var query= 'INSERT INTO ' +params.table+ '(' +columns.join(', ')+ ') VALUES ('+
         values.join(', ')+ ')';
-    if( params.debugQuery!==undefined && params.debugQuery ) {
+    if( SeLiteMisc.field(params, 'debugQuery') ) {
         console.log( query );
     }
     var stmt= this.connection().createStatement( query );
@@ -663,8 +659,8 @@ StorageFromSettings.prototype.open= function open() {
         }
         else {
             var fields= this.tablePrefixField.module.getFieldsOfSet();
-            this.tablePrefixValue= fields[this.tablePrefixField.name] && fields[this.tablePrefixField.name].entry!==undefined
-                ? fields[this.tablePrefixField.name].entry
+            this.tablePrefixValue= this.tablePrefixField.name in fields
+                ? SeLiteMisc.fieldDefined(fields[this.tablePrefixField.name], 'entry', '')
                 : '';
         }
     }

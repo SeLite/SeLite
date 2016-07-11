@@ -57,7 +57,7 @@ Selenium.prototype.getReadRecord= function getReadRecord( info ) {
 Selenium.prototype.doInsertRecord= function doInsertRecord( recordObject, table) {
     var record= new SeLiteData.Record(recordObject);
     table.insert(record);
-    if( typeof table.primary==='string' && record[table.primary]!==undefined ) {
+    if( typeof table.primary==='string' && SeLiteMisc.field(record, table.primary)!==undefined ) {
         recordObject[ table.primary ]= storedVars.insertedRecordKey= record[table.primary];
     }
 };

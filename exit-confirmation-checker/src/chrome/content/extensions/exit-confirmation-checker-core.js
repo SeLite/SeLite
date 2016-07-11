@@ -120,7 +120,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
         global.Selenium.seLiteAfterCurrentCommand= function seLiteAfterCurrentCommand() {
             console.debug('SeLite ExitConfirmationChecker: seLiteAfterCurrentCommand');
             if( !this.result.failed ) { // See also comments in auto-check.js
-                if( SeLiteExitConfirmationChecker.modifiedInputValues!==undefined && SeLiteExitConfirmationChecker.appAskedToConfirm!==undefined ) {
+                if( SeLiteMisc.field(SeLiteExitConfirmationChecker, 'modifiedInputValues')!==undefined && SeLiteMisc.field(SeLiteExitConfirmationChecker, 'appAskedToConfirm')!==undefined ) {
                     var hadModifiedInputs= Object.keys( SeLiteExitConfirmationChecker.modifiedInputValues ).length>0;
                     var appAskedToConfirm= SeLiteExitConfirmationChecker.appAskedToConfirm;
                     SeLiteExitConfirmationChecker.appAskedToConfirm= undefined; // Clear it no matter whether the following if(..) condition is true or not
@@ -201,7 +201,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
             }
             var input= selenium.browserbot.findElement(locator);
             var inputIndex= inputToIndex(input, locator);
-            if( SeLiteExitConfirmationChecker.originalInputValues[inputIndex]===undefined ) {
+            if( SeLiteMisc.field(SeLiteExitConfirmationChecker.originalInputValues, inputIndex)===undefined ) {
                 SeLiteExitConfirmationChecker.originalInputValues[inputIndex]= elementValue( input, elementValueField );
             }
         };

@@ -46,9 +46,7 @@ SeLiteData.Db= function Db( storage, tableNamePrefix, generateInsertKey=false, n
 /** @return {string} Table prefix, or an empty string. It never returns undefined.
  * */
 SeLiteData.Db.prototype.tablePrefix= function tablePrefix() {
-    return this.tableNamePrefix!==undefined
-        ? this.tableNamePrefix
-        : this.storage.tablePrefix();
+    return SeLiteMisc.fieldDefined( this, 'tableNamePrefix', this.storage.tablePrefix() );
 };
 
 /** @constructs SeLiteData.Table
@@ -100,7 +98,7 @@ SeLiteData.Table.prototype.insert= function insert( originalRecord ) {
     var columns= [];
     var columnPlaceholders= []; // :columnName, or SeLiteData.SQLExpression literal
     var bindings= {};
-    if( this.generateInsertKey && record[this.primary]===undefined/* If the client provided a value for the primary key, don't generate it.*/ ) {
+    if( this.generateInsertKey && SeLiteMisc.field(record, this.primary)===undefined/* If the client provided a value for the primary key, don't generate it.*/ ) {
         //<editor-fold defaultstate="collapsed" desc="Ensure the table has single-value primary key.">
         typeof this.primary==='string' || SeLiteMisc.fail( "The table or DB has generateInsertKey set, but table " +this.name +" uses multi-column primary key: " +this.primary );
         //</editor-fold>
@@ -124,7 +122,7 @@ SeLiteData.Table.prototype.insert= function insert( originalRecord ) {
         'VALUES (' +columnPlaceholders.join(', ')+ ')';
     this.db.storage.execute( query, bindings );
     // Fetch the auto-generated primary one-column key, if applicable (whether it came from DB or from the expression injected above)
-    if( typeof this.primary==='string' && bindings[this.primary]===undefined ) {
+    if( typeof this.primary==='string' && SeLiteMisc.field(bindings, this.primary)===undefined ) {
         originalRecord[ this.primary ]= this.db.storage.lastInsertedRow( this.nameWithPrefix(), [this.primary] )[ this.primary ];
     }
 };
@@ -306,7 +304,7 @@ RecordHolder.prototype.insert= function insert() {
         this.record[ field ]= value;
     }
     var entries= this.ownEntries();
-    if( this.recordSetHolder.formula.generateInsertKey && entries[this.recordSetHolder.formula.table.primary]===undefined/* If the client provided a value for the primary key, don't generate it.*/ ) {
+    if( this.recordSetHolder.formula.generateInsertKey && SeLiteMisc.field( entries, this.recordSetHolder.formula.table.primary)===undefined/* If the client provided a value for the primary key, don't generate it.*/ ) {
         //<editor-fold defaultstate="collapsed" desc="Ensure the table has single-value primary key.">
         typeof this.recordSetHolder.formula.table.primary==='string' || SeLiteMisc.fail( "The formula, table or DB has generateInsertKey set, but table " +this.recordSetHolder.formula.table +" uses multi-column primary key: " +this.recordSetHolder.formula.table.primary );
         //</editor-fold>
@@ -326,7 +324,7 @@ RecordHolder.prototype.insert= function insert() {
     });
     // Fetch the auto-generated primary one-column key, if applicable (whether it came from DB or from the expression injected above)
     if( typeof this.recordSetHolder.formula.table.primary==='string'
-        && ( entries[this.recordSetHolder.formula.table.primary]===undefined || entries[this.recordSetHolder.formula.table.primary] instanceof SeLiteData.SqlExpression )
+        && ( SeLiteMisc.field(entries, this.recordSetHolder.formula.table.primary)===undefined || entries[this.recordSetHolder.formula.table.primary] instanceof SeLiteData.SqlExpression )
     ) {
         var primaryKeyValue= this.recordSetHolder.storage().lastInsertedRow( this.recordSetHolder.formula.table.nameWithPrefix(), [this.recordSetHolder.formula.table.primary] )[ this.recordSetHolder.formula.table.primary ];
         // This requires that the primary key is never aliased. @TODO use column alias, if present?
@@ -450,21 +448,16 @@ SeLiteData.RecordSetFormula= function RecordSetFormula( params, prototype ) {
             'onInsert', 'onUpdate' ],
         [], this );
     if( params.generateInsertKey!==undefined ) {
-        this.generateInsertKey= params.generateInsertKey || false;
-    }
-    else {
-        if( this.generateInsertKey===undefined ) {
-            this.generateInsertKey= this.table.generateInsertKey;
-        }
+        this.generateInsertKey= SeLiteMisc.fieldDefined( params, 'generateInsertKey', this.table.generateInsertKey );
     }
     if( !Array.isArray(this.joins) ) {
         throw new Error( "params.joins must be an array (of objects), if present." );
     }
 
     // The following doesn't apply to indexing of RecordSetHolder.originals.
-    if( this.indexBy===undefined && this.table && this.table.primary && typeof this.table.primary==='string' ) {
+    if( SeLiteMisc.field(this, 'indexBy')===undefined && this.table && this.table.primary && typeof this.table.primary==='string' ) {
         this.indexBy= this.table.primary;
-        this.indexUnique===undefined || this.indexUnique || SeLiteMisc.fail( 'Formula for table ' +this.table.name+ " doesn't specify indexBy field, therefore it should not specify indexUnique as false.");
+        SeLiteMisc.field(this, 'indexUnique')===undefined || this.indexUnique || SeLiteMisc.fail( 'Formula for table ' +this.table.name+ " doesn't specify indexBy field, therefore it should not specify indexUnique as false.");
         this.indexUnique= true;
     }
     if( this.indexBy && !Array.isArray(this.indexBy) ) {

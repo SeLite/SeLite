@@ -106,7 +106,7 @@
                             return accessor;
                     }
             }
-            return api[commandName]!==undefined
+            return commandName in api
                 ? api[commandName]
                 : null;
     };
@@ -330,7 +330,7 @@
                 
                 for (var v = start.value; v <= end.value; v++) {
                     var command = this.getCommand(v);
-                    var isCommandAndNotComment= command.command!==undefined;
+                    var isCommandAndNotComment= 'command' in command;
                     var commandOrComment= isCommandAndNotComment
                         ? command.command
                         : command.comment;

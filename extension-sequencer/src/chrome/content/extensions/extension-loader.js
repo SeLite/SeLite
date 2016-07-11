@@ -235,7 +235,7 @@ if( !SeLiteExtensionSequencer.processedAlready || typeof afterChecks==='function
                     }
                     var errorLines= ( ''+e ).split('\n'); 
                     Array.prototype.push.apply( problems, errorLines ); // See a comment for the same call above
-                    var hasSeparateDownloadPage= pluginInfo.downloadURL!==undefined/*<- @TODO remove once we don't support backwards */ && pluginInfo.downloadURL!==pluginInfo.infoURL;
+                    var hasSeparateDownloadPage= SeLiteMisc.field(pluginInfo, 'downloadURL')!==undefined/*<- @TODO remove once we don't support backwards */ && pluginInfo.downloadURL!==pluginInfo.infoURL;
                     problems.push( (
                             hasSeparateDownloadPage
                                 ? '<a href="' +pluginInfo.downloadURL+ '">Get its newest version</a>'

@@ -1738,7 +1738,7 @@ SeLiteSettings.Module.prototype.mergeSetsAndDefaults= function getFieldsDownToSe
     }
     // Fourth, for any fields with the value being undefined (not null or empty string), apply field defaults
     for( var fieldName in this.fields ) {
-        if( result[fieldName].entry===undefined ) {
+        if( SeLiteMisc.field( result[fieldName], 'entry' )===undefined ) {
             var field= this.fields[fieldName];
             var isChoice= field instanceof SeLiteSettings.Field.Choice;
             if( !field.multivalued && !isChoice ) {
