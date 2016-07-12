@@ -256,7 +256,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
             SeLiteExitConfirmationChecker.inputAfterChange( locator, undefined, true );
         };
         
-        if( Selenium.prototype.doTypeRandom ) { // SeLite Commands is present. So I override it here.
+        if( 'doTypeRandom' in Selenium.prototype ) { // SeLite Commands is present. So I override it here.
             var oldDoTypeRandom= Selenium.prototype.doTypeRandom;
             Selenium.prototype.doTypeRandom= function doTypeRandom( locator, paramsOrStore ) {
                 SeLiteExitConfirmationChecker.inputBeforeChange( locator, undefined, true );
