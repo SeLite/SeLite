@@ -113,7 +113,7 @@
 
     var indentedCommand= /^(\s+)(.*)/;
     // Opening commands, which indent the next new commands/comments to the right:
-    var openingCommands= ['if', 'elseIf', 'else', 'while', 'for', 'foreach', 'forXml', 'forJson', 'function', 'try', 'catch', 'finally'];
+    var openingCommands= ['if', 'elseIf', 'else', 'ifPromise', 'elseIfPromise', 'elsePromise', 'while', 'whilePromise', 'repeat', 'repeatPromise', 'for', 'forEach', 'forIterable', 'forIterator', 'forXml', 'forJson', 'function', 'try', 'catch', 'finally'];
     var newCommandOrCommentIndentation= function newCommandOrCommentIndentation( testCase, currentIndex ) {
         if( currentIndex>0 ) {
             var previousCommand= testCase.commands[currentIndex-1];
