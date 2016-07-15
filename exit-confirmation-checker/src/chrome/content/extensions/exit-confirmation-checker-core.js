@@ -200,6 +200,26 @@ if( SeLiteExitConfirmationChecker===undefined ) {
                 return;
             }
             var input= selenium.browserbot.findElement(locator);
+            var fieldsDownToFolder= settingsModule.getFieldsDownToFolder( /*folderPath:*/undefined, /*dontCache:*/true );
+            if( fieldsDownToFolder['exitConfirmationCheckerCheckedLocators'].entry && fieldsDownToFolder['exitConfirmationCheckerCheckedLocators'].entry.length>0 ) {
+                var matched= false;
+                for( var locator of fieldsDownToFolder['exitConfirmationCheckerCheckedLocators'].entry ) {
+                    if( input in this.browserbot.findElements(locator) ) {
+                        matched= true;
+                        break;
+                    }
+                }
+                if( !matched ) {
+                    return;
+                }
+            }
+            if( fieldsDownToFolder['exitConfirmationCheckerUnCheckedLocators'].entry && fieldsDownToFolder['exitConfirmationCheckerUnCheckedLocators'].entry.length>0 ) {
+                for( var locator of fieldsDownToFolder['exitConfirmationCheckerUnCheckedLocators'].entry ) {
+                    if( input in this.browserbot.findElements(locator) ) {
+                        return;
+                    }
+                }
+            }
             var inputIndex= inputToIndex(input, locator);
             if( SeLiteMisc.field(SeLiteExitConfirmationChecker.originalInputValues, inputIndex)===undefined ) {
                 SeLiteExitConfirmationChecker.originalInputValues[inputIndex]= elementValue( input, elementValueField );

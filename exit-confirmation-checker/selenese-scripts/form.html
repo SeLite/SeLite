@@ -7,13 +7,13 @@
         <script type="text/javascript">
             //<![CDATA[
             "use strict";
-            var performCorrectValidation;
+            var performCorrectValidation, ignoreFreetype;
             /** Side note: Do not call this function onbeforeunload, because that clashes with 'onbeforeunload' in windows object (which serves as the default scope for Javascript), and it causes the handler not to be invoked. */
             function onbeforeunloadHandler() {
                 var freetype= document.getElementById('freetype');
                 var select= document.getElementById('select');
                 
-                var someWereModified= freetype.value!=='' || select.selectedIndex>0;
+                var someWereModified= freetype.value!=='' && !ignoreFreetype || select.selectedIndex>0;
                 
                 // See https://developer.mozilla.org/en-US/docs/WindowEventHandlers.onbeforeunload
                 if( someWereModified===performCorrectValidation ) {
@@ -23,6 +23,7 @@
             
             function onloadHandler() {
                 performCorrectValidation= window.location.search.indexOf('performBrokenValidation')<=0;
+                ignoreFreetype= window.location.search.indexOf('ignoreFreetype')<=0;
                 window.onbeforeunload= onbeforeunloadHandler;
             }
             //]]>
