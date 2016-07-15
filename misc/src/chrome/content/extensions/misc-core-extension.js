@@ -30,32 +30,6 @@ if( loadedTimes===1 ) {
 // Anonymous function to prevent leaking into Selenium global namespace
 ( function() {
     var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
-    /** @param {string} locator If non-XPath locator, it must not match more than one element. If XPath locator, it can match multiple elements.
-     *  @param {Window} [win] Optional.
-     *  @return {Array} Array of elements (potentially empty). Each item can be compared to document.getElementById(elementId).
-     *  @TODO Consider applying implicit wait
-     * */
-    BrowserBot.prototype.findElements
- = MozillaBrowserBot.prototype.findElements
- = KonquerorBrowserBot.prototype.findElements
- = SafariBrowserBot.prototype.findElements
- = OperaBrowserBot.prototype.findElements
- = IEBrowserBot.prototype.findElements
- = function findElements( locator, win=undefined ) {
-        if( !win ) {
-            win= this.getCurrentWindow();
-        }
-        var locator = parse_locator(locator);
-        if( locator.type==='xpath' || locator.type==='implicit' && locator.string.startsWith('//') ) {
-            return this.locateElementsByXPath( locator.string, win.document );
-        }
-        else {debugger;
-            var element= this.findElementOrNull( locator.string, win );
-            return element
-                ? [ core.firefox.unwrap(element) ]
-                : [];
-        }
-    };
     //SeLiteExtensionSequencer.coreExtensionsLoadedTimes
     
     /* Not used. The only place that would use it for now is SeLite Misc ovOptions.js. However, it would need this function to match parameters that don't have part '=value', too.
