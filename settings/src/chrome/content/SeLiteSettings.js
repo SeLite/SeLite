@@ -1591,7 +1591,7 @@ SeLiteSettings.ModuleAndSetInformation= SeLiteMisc.proxyVerifyFields( SeLiteSett
  *  If undefined/null, then this uses the folder of test suite currently open in Selenium IDE. If there is none,
  *  it returns fields of the default set (or field default values).
  *  @param bool dontCache If true, then this doesn't cache manifest files (it doesn't use any
- *  previous manifests stored in the cache and it doesn't store current manifests in the cache). The actual preferences won't be cached no matter what dontCache. For use by GUI.
+ *  previous manifests stored in the cache and it doesn't store current manifests in the cache). The actual preferences won't be cached no matter what dontCache. For use by GUI. @TODO Empty the cache on Se debugger pause, breakPoint command or run end. Then remove passing dontCache=true from exit confirmation checker.
  *  @param {bool} [includeUndeclaredEntries] See same parameter of SeLiteSettings.Module.prototype.getFieldsOfSet().
  *  @return {Object<string,SeLiteSettings.FieldInformation>} An object with sorted keys, serving as an associative array. A bit similar to result of getFieldsOfset(),
  *  but with more information. 'entry' of each FieldInformation instances comes from either
@@ -1750,15 +1750,20 @@ SeLiteSettings.Module.prototype.mergeSetsAndDefaults= function getFieldsDownToSe
                     : SeLiteMisc.sortedObject( field.compareValues );
                 var keyOrKeys= field.getDefaultKey();
                 if( field.multivalued ) {
-                    for( var i=0; i<keyOrKeys.length; i++ ) { //@TODO use for.. of.. loop once NetBeans support it
-                        var key= keyOrKeys[i];
-                        entry[ key ]= isChoice
-                            ? field.choicePairs[key]
-                            : key;
+                    if( keyOrKeys!==undefined ) {
+                        for( var i=0; i<keyOrKeys.length; i++ ) { //@TODO use for.. of.. loop once NetBeans support it
+                            var key= keyOrKeys[i];
+                            entry[ key ]= isChoice
+                                ? field.choicePairs[key]
+                                : key;
+                        }
+                    }
+                    else {
+                        entry= undefined;
                     }
                 }
                 else {
-                    entry= isChoice
+                    entry= isChoice && keyOrKeys!==undefined
                         ? field.choicePairs[keyOrKeys]
                         : keyOrKeys; // This may be null or undefined
                 }
