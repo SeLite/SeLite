@@ -49,21 +49,21 @@
 <!--Don't store objects/DOM elements in storedVars, because they get transformed to text!-->
 <tr>
 	<td>getEval</td>
-	<td>topEnableDisable= this.browserbot.findElement( &quot;//td[@class='enableDisable']/a[1]&quot; )</td>
+	<td>$topEnableDisable= this.browserbot.findElement( &quot;//td[@class='enableDisable']/a[1]&quot; )</td>
 	<td></td>
 </tr>
 <tr>
 	<td>if</td>
-	<td>topEnableDisable.textContent!='enable'</td>
+	<td>$topEnableDisable.textContent!='enable'</td>
 	<td></td>
 </tr>
 <tr>
-	<td>click</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;click</td>
 	<td>//td[@class='enableDisable']/a[1]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>waitForElementPresent</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;waitForElementPresent</td>
 	<td>//td[@class='enableDisable']/a[1][text()='enable']</td>
 	<td>2000</td>
 </tr>

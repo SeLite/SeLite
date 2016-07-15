@@ -13,6 +13,11 @@
 </thead><tbody>
 <!--Beware that this was adjusted for <>..<> and \<>...<> as per  http://selite.github.io/EnhancedSelenese, but it wasn't tested -->
 <tr>
+	<td>open</td>
+	<td>file://&lt;&gt; SeLiteSettings.getTestSuiteFolder() &lt;&gt;/../web/index.html</td>
+	<td></td>
+</tr>
+<tr>
 	<td>storeEval</td>
 	<td>3</td>
 	<td>MAX_DISPLAYED_ITEMS</td>
@@ -60,87 +65,87 @@
 <!---->
 <tr>
 	<td>for</td>
-	<td>i=0; i&lt;storedVars.items.length; i++</td>
-	<td>i</td>
-</tr>
-<tr>
-	<td>if</td>
-	<td>${i}&gt;0 &amp;&amp; ${i}%${MAX_DISPLAYED_ITEMS}==0</td>
+	<td>$i=0; $i&lt;$items.length; $i++</td>
 	<td></td>
 </tr>
 <tr>
-	<td>assertElementPresent</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;if</td>
+	<td>$i&gt;0 &amp;&amp; $i%$MAX_DISPLAYED_ITEMS==0</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assertElementPresent</td>
 	<td>//table[@id='charities' and count(.//tr)=${MAX_DISPLAYED_ITEMS}+1 ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call</td>
 	<td>markPageAsCurrent</td>
 	<td></td>
 </tr>
 <tr>
-	<td>verifyElementPresent</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;verifyElementPresent</td>
 	<td>//span[@id='navigate-right-links' and contains(@style, 'display: inline') ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>click</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;click</td>
 	<td>navigate-right-next-page</td>
 	<td></td>
 </tr>
 <tr>
-	<td>call</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call</td>
 	<td>pauseUntilPageRefreshed</td>
 	<td></td>
 </tr>
 <tr>
-	<td>endIf</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
-	<td>storeEval</td>
-	<td>storedVars.items[${i}].getAttribute('name')</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
+	<td>storedVars.items[$i].getAttribute('name')</td>
 	<td>name</td>
 </tr>
 <tr>
-	<td>storeEval</td>
-	<td>storedVars.items[${i}].getAttribute('lastAmount')</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
+	<td>storedVars.items[$i].getAttribute('lastAmount')</td>
 	<td>lastAmount</td>
 </tr>
 <tr>
-	<td>storeEval</td>
-	<td>storedVars.items[${i}].getAttribute('totalAmount')</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
+	<td>storedVars.items[$i].getAttribute('totalAmount')</td>
 	<td>totalAmount</td>
 </tr>
 <tr>
-	<td>storeEval</td>
-	<td>storedVars.items[${i}].getAttribute('enabled')=='true' ? 'disable' : 'enable'</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
+	<td>storedVars.items[$i].getAttribute('enabled')=='true' ? 'disable' : 'enable'</td>
 	<td>enabled</td>
 </tr>
-<!--XPath  index to a collection of HTML elements starts at 1, not at 0. If I calculated this in XPath, then I use 'mod' instead of '%'-->
+<!--    XPath  index to a collection of HTML elements starts at 1, not at 0. If I calculated this in XPath, then I use 'mod' instead of '%'-->
 <tr>
-	<td>storeEval</td>
-	<td>${i}%${MAX_DISPLAYED_ITEMS} +2</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
+	<td>$i%$MAX_DISPLAYED_ITEMS +2</td>
 	<td>xpathRowIndex</td>
 </tr>
 <tr>
-	<td>verifyElementPresent</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;verifyElementPresent</td>
 	<td>xpath=( //table[@id='charities']//tr )[ &lt;&gt;$xpathRowIndex&lt;&gt; ]/td[@class='name' and text()= \&lt;&gt;SeLiteMisc.unescape_xml(storedVars.name)&lt;&gt; ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>verifyElementPresent</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;verifyElementPresent</td>
 	<td>xpath=( //table[@id='charities']//tr )[${xpathRowIndex}] /td[@class='lastAmount' and text()='${lastAmount}']</td>
 	<td></td>
 </tr>
 <tr>
-	<td>verifyElementPresent</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;verifyElementPresent</td>
 	<td>xpath=( //table[@id='charities']//tr )[${xpathRowIndex}] /td[@class='totalAmount' and text()='${totalAmount}']</td>
 	<td></td>
 </tr>
 <tr>
-	<td>verifyElementPresent</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;verifyElementPresent</td>
 	<td>xpath=( //table[@id='charities']//tr )[${xpathRowIndex}] /td[@class='enableDisable' and a/text()='${enabled}']</td>
 	<td></td>
 </tr>
