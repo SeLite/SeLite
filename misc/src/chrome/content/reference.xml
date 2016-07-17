@@ -7,9 +7,9 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
 -->
 <apidoc package-name="SeLite Miscellaneous">
 <function name="runJavascript">
-    <param name="fileURL">URL of the file to load and run. It must be a local chrome:, resource: or file: URL. If it's a file: URL, make it relative to location of the test suite, and use file://`SeLiteSettings.getTestSuiteFolder()`/relative/path/file.js (as per http://selite.github.io/PackagedScripts).</param>
+    <param name="fileURL">URL of the file to load and run. It must be a local <code>chrome:, resource:</code> or <code>file:</code> URL. If it's a <code>file:</code> URL, make it relative to location of the test suite, and use file://`SeLiteSettings.getTestSuiteFolder()`/relative/path/file.js (as per http://selite.github.io/PackagedScripts).</param>
     <param name="scope">Scope object. Optional. If present, it must an object passed through SelBlocksGlobal enhanced sytax =&lt;&gt;({ ... })&lt;&gt; (see http://selite.github.io/EnhancedSelenese).<br/>
-        If you'd like to the script to access 'document' object, use EhancedSelenese and pass <code>=&lt;&gt;({ document: selenium.browserbot.getDocument() })&lt;&gt;</code>.<br/>
+        If you'd like sthe script to access 'document' object, use EhancedSelenese and pass <code>=&lt;&gt;({ document: selenium.browserbot.getDocument() })&lt;&gt;</code>.<br/>
         If scope is not passed, the file is loaded into Selenium Core scope.
     </param>
     <comment>

@@ -200,17 +200,17 @@
 <tr>
 	<td>typeRandom</td>
 	<td>id=edit-name</td>
-	<td>=&lt;&gt;{maxLength:60, type:'word', store:'newUserName'}&lt;&gt;</td>
+	<td>=&lt;&gt;({ maxLength:60, type:'word', store:'newUserName' })&lt;&gt;</td>
 </tr>
 <tr>
 	<td>typeRandom</td>
 	<td>id=edit-mail</td>
-	<td>=&lt;&gt;{maxLength: 254, type:'email', store:'newUserEmail'}&lt;&gt;</td>
+	<td>=&lt;&gt;({ maxLength: 254, type:'email', store:'newUserEmail' })&lt;&gt;</td>
 </tr>
 <tr>
 	<td>typeRandom</td>
 	<td>id=edit-pass-pass1</td>
-	<td>=&lt;&gt;{type:'password', store:'newUserPassword'}&lt;&gt;</td>
+	<td>=&lt;&gt;({ type:'password', store:'newUserPassword' })&lt;&gt;</td>
 </tr>
 <tr>
 	<td>type</td>
@@ -224,7 +224,7 @@
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>=&lt;&gt;{name: $newUserName, mail: $newUserEmail, pass: $newUserPassword}&lt;&gt;</td>
+	<td>=&lt;&gt;({ name: $newUserName, mail: $newUserEmail, pass: $newUserPassword })&lt;&gt;</td>
 	<td>=&lt;&gt;Drupal.tables.users&lt;&gt;</td>
 </tr>
 <!--Login and verify-->
@@ -276,7 +276,7 @@
 </tr>
 <tr>
 	<td>storeReadRecord</td>
-	<td>=&lt;&gt;{ formula: Drupal.formulas.users, name: $userName }&lt;&gt;</td>
+	<td>=&lt;&gt;({ formula: Drupal.formulas.users, name: $userName })&lt;&gt;</td>
 	<td>user</td>
 </tr>
 <!--if the user is logged in already, log him out:-->
