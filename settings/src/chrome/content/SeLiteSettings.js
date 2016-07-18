@@ -920,7 +920,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
                     var query= "UPDATE " +tableNameWithPrefix+ " SET " +updateParts.join(', ')+ ' WHERE ' +tableDetails.key+ '=:' +tableDetails.key;
                     console.debug( query );
                     bindings[ tableDetails.key ]= keyValue;
-                    this.testStorage.execute( query, bindings );
+                    this.testStorage.execute( query, bindings, undefined, /*sync*/false );
                 }
             }
         }

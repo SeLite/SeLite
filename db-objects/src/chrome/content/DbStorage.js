@@ -1,4 +1,4 @@
-/*  Copyright 2011, 2012, 2013, 2014 Peter Kehl
+/*  Copyright 2011, 2012, 2013, 2014, 2016 Peter Kehl
     This file is part of SeLite Db Objects.
 
     This program is free software: you can redistribute it and/or modify
@@ -164,77 +164,116 @@ SeLiteData.Storage.prototype.sqlAnd= function sqlAnd( first, second, etc ) {
  *  - all required column names are listed, there's no *
  *  - none of the column names is string 'FROM' (case insensitive)
  *  - there are no sub-selects between SELECT...FROM
- *  @return array of objects, one per DB row, each having DB column names as fields; empty array if no matching rows
+ *  @param {boolean} sync Whether synchronised.
+ *  @return {Array|Promise} Array of objects, one per DB row, each having DB column names as fields; empty array if no matching rows
  *  @throws error on failure
  **/
-SeLiteData.Storage.prototype.select= function select( query, bindings={}, fields ) {
+SeLiteData.Storage.prototype.select= function select( query, bindings={}, fields=undefined, sync=false ) {
     if( !fields ) {
         fields= this.fieldNames( this.fieldParts( query ) );
     }
-    this.connection() || SeLiteMisc.fail( 'SeLiteData.Storage.connection() is not set. SQLite file name: ' +this.parameters.fileName );
-    //console.log( 'SeLite: ' +query );
-    var stmt= this.connection().createStatement( query );
-    for( var field in bindings ) {
-        try {
-            stmt.params[field]= bindings[field];
-        }
-        catch(e) {
-            throw 'select(): Cannot set field "' +field+ '" to value "' +bindings[field]+ '" - SQLite/schema limitation.';
-        }
-    }
-    var result= [];
-    try {
-        // MDN Docs on synchronous API are not detailed enough. If iterating over SELECT with stmt.executeStep()
-        // - you can't use: for( var field in stmt.row ) - so you need to know the list of columns
-        // - fields are accessbile via stmt.row.<column-name> only before you reset the statement!
-        while( stmt.executeStep() ) {
-            var resultRow= {};
-            for( var i=0; i<fields.length; i++ ) {
-                resultRow[ fields[i] ]= stmt.row[ fields[i] ];
-            }
-            result.push( resultRow );
-        }
-    }
-    finally {
-        stmt.finalize();
-    }
-    return result;
+    return this.execute( query, bindings, fields, sync );
 };
+
+/** Assert that there is exactly one row.
+ * @param {Array} rows
+ * @return {*} That one row.
+ */
+function expectOneRow( rows ) {
+    if( rows.length!==1 ) {
+        throw "Query \"" +query+"\" was supposed to return one result, but it returned " +rows.length+ " of them.";
+    }
+    return rows[0];
+}
 
 /** It selects 1 row from the DB. If there are no such rows, or more than one, then it throws an error.
  *  @param {string} query Full SQL query
  *  @param {object} bindings Object serving as an associative array, with bindings for named parameters; optional. see the same parameter of select(). When using the named parameter(s) in the query, prefix them it with a colon - e.g. access parameter xyz as :xyz. See https://developer.mozilla.org/en/Storage#Binding_One_Set_of_Parameters.
- *  @param array fields Optional (unless you use SELECT * etc.); optional - see the same parameter of select().
- *  @return Object (serving as an associative array) for the row.
+ *  @param {Array} fields Optional (unless you use SELECT * etc.); optional - see the same parameter of select().
+ *  @param {boolean} sync Whether to by synchronous.
+ *  @return Object (serving as an associative array) for the row, or a Promise for a row.
  *  @throws error on failure
  **/
-SeLiteData.Storage.prototype.selectOne= function selectOne( query, bindings, fields ) {
-    var rows= this.select( query, bindings, fields );
-    if( rows.length!=1 ) {
-        throw "Query \"" +query+"\" was supposed to return one result, but it returned " +rows.length+ " of them.";
+SeLiteData.Storage.prototype.selectOne= function selectOne( query, bindings, fields=undefined, sync=false ) {
+    var selected= this.select( query, bindings, fields, sync );
+    if( sync ) {
+        expectOneRow( selected );
+        return selected[0];
     }
-    return rows[0];
+    return selected.then( rows => expectOneRow(rows) );
 };
 
 /** @param string query SQL query
  *  @param object bindings Optional; see select()
- *  @return void
+ *  @param {Array} fields Names of fields (columns) to select, if any.
+ *  @param {boolean} sync Whether synchronous.
+ *  @return {undefined|Array|Promise} If an array, or a Promise of an array, it will be an array with anonymous objects, each having keys from <code>fields</code>.
  *  @throws error on failure
  **/
-SeLiteData.Storage.prototype.execute= function execute( query, bindings ) {
-    if( !bindings ) {
+SeLiteData.Storage.prototype.execute= function execute( query, bindings={}, fields=undefined, sync=false ) {
+    this.connection() || SeLiteMisc.fail( 'SeLiteData.Storage.connection() is not set. SQLite file name: ' +this.parameters.fileName );
+    if( !bindings && sync && !fields ) {
         this.connection().executeSimpleSQL( query );
     }
     else {
         var stmt= this.connection().createStatement( query );
         for( var field in bindings ) {
-            stmt.params[field]= bindings[field];
+            try {
+                stmt.params[field]= bindings[field];
+            }
+            catch(e) {
+                throw 'select(): Cannot set field "' +field+ '" to value "' +bindings[field]+ '" - SQLite/schema limitation.';
+            }
         }
-        try {
-            stmt.execute();
+
+        if( sync ) {
+            try {
+                if( !fields ) {
+                    stmt.execute();
+                }
+                else {
+                    var result= [];
+                    while( stmt.executeStep() ) {
+                        var resultRow= {};
+                        for( var i=0; i<fields.length; i++ ) {
+                            resultRow[ fields[i] ]= stmt.row[ fields[i] ];
+                        }
+                        result.push( resultRow );
+                    }
+                }
+            }
+            finally {
+                stmt.finalize();
+            }
         }
-        finally {
-            stmt.finalize();
+        else {
+            return new Promise( (resolve, reject)=>
+                statement.executeAsync({
+                    handleResult: function(aResultSet) {
+                        var result;
+                        if( fields ) {
+                            result= [];
+                            var row;
+                            while( row= aResultSet.getNextRow() ) {
+                                var resultRow= {};
+                                for( var i=0; i<fields.length; i++ ) {
+                                    resultRow[ fields[i] ]= row.getResultByName( fields[i] );
+                                }
+                                result.push( resultRow );
+                            }
+                        }
+                        resolve( result );
+                    },
+                    handleError: function(aError) {
+                        reject( aError );
+                    },
+                    handleCompletion: function(aReason) {
+                        if (aReason != Components.interfaces.mozIStorageStatementCallback.REASON_FINISHED) {
+                            reject( "Query canceled or aborted!");
+                        }
+                    }
+                })
+            );
         }
     }
 };
@@ -246,10 +285,10 @@ SeLiteData.Storage.prototype.execute= function execute( query, bindings ) {
  **/
 SeLiteData.Storage.prototype.getRecord= function getRecord( params ) {
     var records= this.getRecords( params );
-    if( records.length!=1 ) {
-        throw "Expected to find one matching record in DB, but found " +records.length+ " of them.";
+    if( params.sync ) {
+        return expectOneRow( records );
     }
-    return records[0];
+    return records.then( rows => expectOneRow(rows) );
 };
 
 /** Get (matching) records from the DB.
@@ -282,8 +321,10 @@ SeLiteData.Storage.prototype.getRecord= function getRecord( params ) {
  *   sort: optional, string column name to sort by
  *   sortDirection: optional, string direction to sort by; 'ASC' by default (if sorting)
  *   debugQuery: optional, use true if you'd like it to show the query in a popup
- *   debugResult: optional, use true if you'd like it to show the result in a popup
+ *   debugResult: optional, use true if you'd like it to show the result in a popup,
+ *   sync: optional, use true for synchronous
  * }
+ * @return {Array|Promise} Array of records (or empty), or a Promise.
  **/
 SeLiteData.Storage.prototype.getRecords= function getRecords( params ) {
     var parameterNames= params.parameterNames || {};
@@ -369,8 +410,13 @@ SeLiteData.Storage.prototype.getRecords= function getRecords( params ) {
     }
 
     var result= this.select( query, params.parameters, columnsList );
-    if( SeLiteMisc.field(params, 'debugResult')!==undefined && params.debugResult ) {
-        console.log( SeLiteMisc.rowsToString(result) );
+    if( SeLiteMisc.field(params, 'debugResult') ) {
+        if( parameters.sync ) {
+            console.log( SeLiteMisc.rowsToString(result) );
+        }
+        else {
+            result.then( rows=> console.log( SeLiteMisc.rowsToString(rows) ) );
+        }
     }
     return result;
 };
@@ -389,9 +435,10 @@ SeLiteData.Storage.prototype.getRecords= function getRecords( params ) {
  *   },
  *   condition: optional, string SQL condition, properly quoted. Both 'matching' and 'condition'
  *     may be used at the same time, then they are AND-ed.
- *   debugQuery: optional, use true if you'd like it to show the query in a popup
+ *   debugQuery: optional, use true if you'd like it to show the query in a popup,
+ *   sync: optional, use true if synchronised
  * }
- * @return void
+ * @return undefined or Promise
  * @throws an error on failure
  **/
 SeLiteData.Storage.prototype.updateRecords= function updateRecords( params ) {
@@ -411,7 +458,7 @@ SeLiteData.Storage.prototype.updateRecords= function updateRecords( params ) {
     var conditionParts= [];
     if( typeof params['matching'] !=='undefined' ) {
         for( var field in params.matching ) {
-            conditionParts.push( field+ '=' +this.quote( params.matching[field] ) );
+            conditionParts.push( field+ '=' +this.quote( params.matching[field] ) ); //If we used bound parameters, then field names can't contain a dot (e.g. tableName.columnName).
         }
     }
     if( SeLiteMisc.field(params, 'condition')/* not undefined, not '', not null*/ ) {
@@ -424,13 +471,7 @@ SeLiteData.Storage.prototype.updateRecords= function updateRecords( params ) {
     if( SeLiteMisc.field(params, 'debugQuery') ) {
         console.log( query );
     }
-    var stmt= this.connection().createStatement( query );
-    try {
-        stmt.execute();
-    }
-    finally {
-        stmt.finalize();
-    }
+    return this.execute( query, {}, undefined, params.sync );
 };
 
 /** Update a in the DB, matching it by 'id' field (i.e. params.entries.id).
@@ -444,13 +485,14 @@ SeLiteData.Storage.prototype.updateRecords= function updateRecords( params ) {
  *   entries must contain '<primary>' field(s), which will be matched in the DB (but, indeed, the primary field(s) won't be updated).
  *   fieldsToProtect: optional, array of strings, which are names of fields whose
  *       values won't be quoted. Use for SQL expressions or for values that were already securely quoted
- *   debugQuery: optional, use true if you'd like it to show the query in a popup
+ *   debugQuery: optional, use true if you'd like it to show the query in a popup,
+ *   sync: optional, true if synchronised
  *   }
- * @return void
+ * @return {undefined|Promise)
  * @throws an error on failure
  */
 SeLiteData.Storage.prototype.updateRecordByPrimary= function updateRecordByPrimary( params ) {
-    var copiedParams= SeLiteMisc.objectClone( params, ['table', 'entries', 'fieldsToProtect', 'debugQuery'], ['table', 'entries'] );
+    var copiedParams= SeLiteMisc.objectClone( params, ['table', 'entries', 'fieldsToProtect', 'debugQuery', 'sync'], ['table', 'entries'] );
     copiedParams.entries= SeLiteMisc.objectClone( copiedParams.entries );
     var primaryKey= params.primary;
     var primaryKeyColumns= typeof primaryKey==='string'
@@ -462,7 +504,7 @@ SeLiteData.Storage.prototype.updateRecordByPrimary= function updateRecordByPrima
         copiedParams.matching[column]= copiedParams.entries[column];
         delete copiedParams.entries[column];
     }
-    this.updateRecords( copiedParams );
+    return this.updateRecords( copiedParams );
 };
 
 /** Delete a record in the DB, matching it by the given field and its value.
@@ -470,10 +512,10 @@ SeLiteData.Storage.prototype.updateRecordByPrimary= function updateRecordByPrima
  * @param {string} tableName
  * @param {string|array} primaryKey
  * @param {object} record
- * @return void
+ * @return {undefined|Promise}
  * @throws an error on failure
  */
-SeLiteData.Storage.prototype.removeRecordByPrimary= function removeRecordByPrimary( tableName, primaryKey, record ) {
+SeLiteData.Storage.prototype.removeRecordByPrimary= function removeRecordByPrimary( tableName, primaryKey, record, sync=false ) {
     if( typeof primaryKey==='string' ) {
         primaryKey= [primaryKey];
     }
@@ -482,13 +524,7 @@ SeLiteData.Storage.prototype.removeRecordByPrimary= function removeRecordByPrima
         conditionParts.push( primaryKeyColumn+ '=' +this.quoteValues( record[primaryKeyColumn] ) );
     }
     var query= "DELETE FROM " +tableName+ " WHERE " +conditionParts.join( 'AND' );
-    var stmt= this.connection().createStatement( query );
-    try {
-        stmt.execute();
-    }
-    finally {
-        stmt.finalize();
-    }
+    return this.execute( query, {}, undefined, sync );
 };
 
 /**Insert the  record into the DB.
@@ -500,9 +536,10 @@ SeLiteData.Storage.prototype.removeRecordByPrimary= function removeRecordByPrima
  *       }. The values will be quoted.
  *   fieldsToProtect: optional, array of strings, which are names of fields whose
  *       values won't be quoted. Use for SQL expressions or for values that were already securely quoted
- *   debugQuery: optional; use true if you'd like to show the query in a popup
+ *   debugQuery: optional; use true if you'd like to show the query in a popup,
+ *   sync: true if synchronised
  * }
- * @return void
+ * @return {undefined|Promise}
  * @throws an error on failure
  */
 SeLiteData.Storage.prototype.insertRecord= function insertRecord( params ) {
@@ -520,13 +557,7 @@ SeLiteData.Storage.prototype.insertRecord= function insertRecord( params ) {
     if( SeLiteMisc.field(params, 'debugQuery') ) {
         console.log( query );
     }
-    var stmt= this.connection().createStatement( query );
-    try {
-        stmt.execute();
-    }
-    finally {
-        stmt.finalize();
-    }
+    return this.execute( query, {}, undefined, sync );
 };
 
 /** This returns the last successfully inserted record.
@@ -539,10 +570,9 @@ SeLiteData.Storage.prototype.insertRecord= function insertRecord( params ) {
  *  @param {(array)} columns Names of the columns to retrieve; optional - ['id'] by default
  *  @return {object} Record object with given column(s).
 */
-SeLiteData.Storage.prototype.lastInsertedRow= function lastInsertedRow( tableName, columns=['id'] ) {
+SeLiteData.Storage.prototype.lastInsertedRow= function lastInsertedRow( tableName, columns=['id'], sync=false ) {
     var query= "SELECT " +columns.join(',')+ " FROM " +tableName+ " WHERE rowid=last_insert_rowid()";
-    var record= this.selectOne( query, {}, columns );
-    return record;
+    return this.selectOne( query, {}, columns, sync );
 };
 
 /** This adds enclosing apostrophes and doubles any apostrophes in the given value, if it's a string.
