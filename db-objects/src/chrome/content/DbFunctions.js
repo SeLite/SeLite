@@ -10,20 +10,20 @@ SeLiteData.select= function select( recordOrSet ) {
     return SeLiteData.recordOrSetHolder(recordOrSet).select();
 };
 
-SeLiteData.selectOne= function selectOne( recordOrSet ) {
-    return SeLiteData.recordOrSetHolder(recordOrSet).selectOne();
+SeLiteData.selectOne= function selectOne( recordOrSet, sync=false ) {
+    return SeLiteData.recordOrSetHolder(recordOrSet).selectOne( sync );
 };
 
-SeLiteData.insert= function insert( recordOrSet ) {
-    return SeLiteData.recordOrSetHolder(recordOrSet).insert();
+SeLiteData.insert= function insert( recordOrSet, sync=false ) {
+    return SeLiteData.recordOrSetHolder(recordOrSet).insert( sync );
 }
 
-SeLiteData.update= function update( recordOrSet ) {
-    SeLiteData.recordOrSetHolder(recordOrSet).update();
+SeLiteData.update= function update( recordOrSet, sync=false ) {
+    SeLiteData.recordOrSetHolder(recordOrSet).update( sync );
 };
 
-SeLiteData.remove= function remove( recordOrSet ) {
-    SeLiteData.recordOrSetHolder(recordOrSet).remove();
+SeLiteData.remove= function remove( recordOrSet, sync=false ) {
+    SeLiteData.recordOrSetHolder(recordOrSet).remove( sync );
 };
 
 SeLiteData.randomRecord= function randomRecord( recordSet ) {
