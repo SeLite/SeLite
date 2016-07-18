@@ -322,7 +322,7 @@ SeLiteData.Storage.prototype.getRecord= function getRecord( params ) {
  *   sortDirection: optional, string direction to sort by; 'ASC' by default (if sorting)
  *   debugQuery: optional, use true if you'd like it to show the query in a popup
  *   debugResult: optional, use true if you'd like it to show the result in a popup,
- *   sync: optional, use true for synchronous
+ *   sync: use true for synchronous
  * }
  * @return {Array|Promise} Array of records (or empty), or a Promise.
  **/
@@ -409,7 +409,7 @@ SeLiteData.Storage.prototype.getRecords= function getRecords( params ) {
         console.log( query );
     }
 
-    var result= this.select( query, params.parameters, columnsList );
+    var result= this.select( query, params.parameters, columnsList, params.sync );
     if( SeLiteMisc.field(params, 'debugResult') ) {
         if( parameters.sync ) {
             console.log( SeLiteMisc.rowsToString(result) );
@@ -436,7 +436,7 @@ SeLiteData.Storage.prototype.getRecords= function getRecords( params ) {
  *   condition: optional, string SQL condition, properly quoted. Both 'matching' and 'condition'
  *     may be used at the same time, then they are AND-ed.
  *   debugQuery: optional, use true if you'd like it to show the query in a popup,
- *   sync: optional, use true if synchronised
+ *   sync: boolean, whether synchronised
  * }
  * @return undefined or Promise
  * @throws an error on failure
@@ -486,7 +486,7 @@ SeLiteData.Storage.prototype.updateRecords= function updateRecords( params ) {
  *   fieldsToProtect: optional, array of strings, which are names of fields whose
  *       values won't be quoted. Use for SQL expressions or for values that were already securely quoted
  *   debugQuery: optional, use true if you'd like it to show the query in a popup,
- *   sync: optional, true if synchronised
+ *   sync: boolean, whether synchronised
  *   }
  * @return {undefined|Promise)
  * @throws an error on failure
@@ -512,6 +512,7 @@ SeLiteData.Storage.prototype.updateRecordByPrimary= function updateRecordByPrima
  * @param {string} tableName
  * @param {string|array} primaryKey
  * @param {object} record
+ * @param {boolean} sync Whether synchronised.
  * @return {undefined|Promise}
  * @throws an error on failure
  */
@@ -537,7 +538,7 @@ SeLiteData.Storage.prototype.removeRecordByPrimary= function removeRecordByPrima
  *   fieldsToProtect: optional, array of strings, which are names of fields whose
  *       values won't be quoted. Use for SQL expressions or for values that were already securely quoted
  *   debugQuery: optional; use true if you'd like to show the query in a popup,
- *   sync: true if synchronised
+ *   sync: boolean, whether synchronised
  * }
  * @return {undefined|Promise}
  * @throws an error on failure
@@ -557,7 +558,7 @@ SeLiteData.Storage.prototype.insertRecord= function insertRecord( params ) {
     if( SeLiteMisc.field(params, 'debugQuery') ) {
         console.log( query );
     }
-    return this.execute( query, {}, undefined, sync );
+    return this.execute( query, {}, undefined, params.sync );
 };
 
 /** This returns the last successfully inserted record.
@@ -568,7 +569,8 @@ SeLiteData.Storage.prototype.insertRecord= function insertRecord( params ) {
  *  See http://sqlite.org/lang_corefunc.html and http://sqlite.org/lang_createtable.html#rowid
  *  @param {string} tableName Table name (including any prefix); it must be the table that was used with the last INSERT/UPDATE.
  *  @param {(array)} columns Names of the columns to retrieve; optional - ['id'] by default
- *  @return {object} Record object with given column(s).
+ *  @param {boolean} sync Whether synchronised.
+ *  @return {object|Promise} Record object with given column(s).
 */
 SeLiteData.Storage.prototype.lastInsertedRow= function lastInsertedRow( tableName, columns=['id'], sync=false ) {
     var query= "SELECT " +columns.join(',')+ " FROM " +tableName+ " WHERE rowid=last_insert_rowid()";
