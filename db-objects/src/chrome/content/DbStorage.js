@@ -176,14 +176,27 @@ SeLiteData.Storage.prototype.select= function select( query, bindings={}, fields
 };
 
 /** Assert that there is exactly one row.
- * @param {Array} rows
+ * @param {Array|Object} Array (used by DbStorage), or an object serving as an associative array (used by DbObjects), of rows.
+ * @param {string{ query
  * @return {*} That one row.
  */
-function expectOneRow( rows ) {
-    if( rows.length!==1 ) {
-        throw "Query \"" +query+"\" was supposed to return one result, but it returned " +rows.length+ " of them.";
+SeLiteData.Storage.expectOneRow= function expectOneRow( rows, query=undefined ) {
+    var keys;
+    if( !Array.isArray(rows) ) {
+        keys= Object.keys( rows );
     }
-    return rows[0];
+    var numberOfRows= keys!==undefined
+        ? keys.length
+        : rows.length;
+    if( numberOfRows!==1 ) {
+        throw (query
+                ? "Query \"" +query+"\" was supposed to return one result, but it returned "
+                : "Expected one result, but received "
+            )+numberOfRows+ " of them.";
+    }
+    return keys!==undefined
+        ? rows[ keys[0] ]
+        : rows[0];
 }
 
 /** It selects 1 row from the DB. If there are no such rows, or more than one, then it throws an error.
@@ -197,10 +210,10 @@ function expectOneRow( rows ) {
 SeLiteData.Storage.prototype.selectOne= function selectOne( query, bindings, fields=undefined, sync=false ) {
     var selected= this.select( query, bindings, fields, sync );
     if( sync ) {
-        expectOneRow( selected );
+        SeLiteData.Storage.expectOneRow( selected, query );
         return selected[0];
     }
-    return selected.then( rows => expectOneRow(rows) );
+    return selected.then( rows => SeLiteData.Storage.expectOneRow(rows, query) );
 };
 
 /** @param string query SQL query
@@ -286,9 +299,9 @@ SeLiteData.Storage.prototype.execute= function execute( query, bindings={}, fiel
 SeLiteData.Storage.prototype.getRecord= function getRecord( params ) {
     var records= this.getRecords( params );
     if( params.sync ) {
-        return expectOneRow( records );
+        return SeLiteData.Storage.expectOneRow( records );
     }
-    return records.then( rows => expectOneRow(rows) );
+    return records.then( rows => SeLiteData.Storage.expectOneRow(rows) );
 };
 
 /** Get (matching) records from the DB.
