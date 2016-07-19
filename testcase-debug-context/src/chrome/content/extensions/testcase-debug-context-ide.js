@@ -55,7 +55,7 @@ editor.testLoopResumeHandleFailedResult= function testLoopResumeHandleFailedResu
 
 /** This is called when there's an error caught in editor.testLoopResumeExecuteAndHandleErrors() - i.e. after a command failure or an assertion failure. */
 editor.testLoopResumeHandleError= function testLoopResumeHandleError(e) {
-    if (!this._handleCommandError(e)) {
+    if (!this._handleCommandError(e) && !('seLiteVerification' in e) ) {
         this.testComplete();
     } else {
         this.continueTest();
