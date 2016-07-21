@@ -261,7 +261,7 @@ SeLiteData.Storage.prototype.execute= function execute( query, bindings={}, fiel
         }
         else {
             return new Promise( (resolve, reject)=>
-                statement.executeAsync({
+                stmt.executeAsync({
                     handleResult: function(aResultSet) {
                         var result;
                         if( fields ) {

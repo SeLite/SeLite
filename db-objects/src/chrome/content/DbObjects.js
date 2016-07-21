@@ -305,9 +305,9 @@ RecordHolder.prototype.setOriginalAndWatchEntries= function setOriginalAndWatchE
     }
 };
 
-RecordHolder.prototype.select= function select( dontNarrow ) { throw new Error( "@TODO. In the meantimes, use RecordSetHolder.select() or SeLiteData.RecordSetFormula.select()."); };
+RecordHolder.prototype.select= function select( dontNarrow=false ) { throw new Error( "@TODO. In the meantimes, use RecordSetHolder.select() or SeLiteData.RecordSetFormula.select()."); };
 
-RecordHolder.prototype.selectOne= function selectOne( dontNarrow ) { throw new Error( "@TODO. In the meantime, use RecordSetHolder.selectOne() or SeLiteData.RecordSetFormula.selectOne()."); };
+RecordHolder.prototype.selectOne= function selectOne( dontNarrow=false ) { throw new Error( "@TODO. In the meantime, use RecordSetHolder.selectOne() or SeLiteData.RecordSetFormula.selectOne()."); };
 
 // @TODO Consider: RecordHolder.insert() which is linked to an existing RecordSetHolder, and it adds itself to that recordSetHolder. - But then the recordSetHolder may not match its formula anymore - have a flag/handler for that?
 /** This saves this.record into main table of the formula. As defined by RecordHolder() constructor,
@@ -635,7 +635,7 @@ SeLiteData.RecordSetFormula.prototype.allAliasesToSource= function allAliasesToS
  *  @see RecordSetHolder.select().
  *  @return {Array|Promise}
  **/
-SeLiteData.RecordSetFormula.prototype.select= function select( parametersOrCondition, dontNarrow, sync=false ) {
+SeLiteData.RecordSetFormula.prototype.select= function select( parametersOrCondition, dontNarrow=false, sync=false ) {
     return new RecordSetHolder(this, parametersOrCondition ).select( dontNarrow, sync );
 };
 
@@ -643,7 +643,7 @@ SeLiteData.RecordSetFormula.prototype.select= function select( parametersOrCondi
  *  @see RecordSetHolder.selectOne()
  *  @return {Object|Promise}
  **/
-SeLiteData.RecordSetFormula.prototype.selectOne= function selectOne( parametersOrCondition, dontNarrow, sync=false ) {
+SeLiteData.RecordSetFormula.prototype.selectOne= function selectOne( parametersOrCondition, dontNarrow=false, sync=false ) {
     return new RecordSetHolder(this, parametersOrCondition ).selectOne( dontNarrow, sync );
 };
 
@@ -721,7 +721,7 @@ RecordSetHolder.prototype.storage= function storage() {
  *  @param {boolean} dontNarrow Whether not to narrow. Use e.g. for personal logins (other than logins created by the script).
  *  @return {SeLiteData.RecordSet|Promise} object
  * */
-RecordSetHolder.prototype.select= function select( dontNarrow, sync=false ) {
+RecordSetHolder.prototype.select= function select( dontNarrow=false, sync=false ) {
     SeLiteMisc.objectDeleteFields( this.recordSet );
     /** @type {SeLiteData.RecordSetFormula} */
     var formula= this.formula;
@@ -958,7 +958,7 @@ RecordSetHolder.prototype._handleSelectResult= function _handleSelectResult( for
  *  If yes, it returns that row (SeLiteData.Record object). Otherwise it throws an exception.
  *  @return {
  **/
-RecordSetHolder.prototype.selectOne= function selectOne( dontNarrow, sync=false ) {
+RecordSetHolder.prototype.selectOne= function selectOne( dontNarrow=false, sync=false ) {
     var selecting= this.select( dontNarrow, sync );
     return sync
         ? SeLiteData.Storage.expectOneRow( this.recordSet )
