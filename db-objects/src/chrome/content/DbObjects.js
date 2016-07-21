@@ -124,12 +124,16 @@ SeLiteData.Table.prototype.insert= function insert( originalRecord, sync=false )
     if( typeof this.primary==='string' && SeLiteMisc.field(bindings, this.primary)===undefined ) {
         var lastInserted= sync
             ? this.db.storage.lastInsertedRow( this.nameWithPrefix(), [this.primary], true )
-            : execution.then( ignored => this.db.storage.lastInsertedRow( this.nameWithPrefix(), [this.primary] ) );
+            : execution.then(
+                ignored => this.db.storage.lastInsertedRow( this.nameWithPrefix(), [this.primary] )
+              );
         if( sync ) {
             this._injectInsertedPrimary( originalRecord, lastInserted );
         }
         else {
-            return lastInserted.then( lastInsertedKeyValue=> this._injectInsertedPrimary( originalRecord, lastInsertedKeyValue ) );
+            return lastInserted.then(
+                lastInsertedKeyValue=> this._injectInsertedPrimary( originalRecord, lastInsertedKeyValue )
+            );
         }
     }
     return execution;
