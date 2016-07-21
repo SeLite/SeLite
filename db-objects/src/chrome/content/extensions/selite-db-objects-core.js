@@ -76,7 +76,10 @@ Selenium.insertRecord= function insertRecord( recordObject, tableOrCompound ) {
     var sync= SeLiteMisc.field(tableOrCompound, 'sync', false);
     var inserting= table.insert( record, sync );
     inserting= Promise.resolve( inserting );
-    if( typeof table.primary==='string' && SeLiteMisc.field(record, table.primary)!==undefined ) {
+    if( typeof table.primary==='string'/*Primary key is 1 column, not an array*/
+        && SeLiteMisc.field(recordObject, table.primary)===undefined
+        && SeLiteMisc.field(record, table.primary)!==undefined
+    ) {
         inserting= inserting.then(
             ignored => {
                 recordObject[ table.primary ]= storedVars.insertedRecordKey= record[table.primary];
@@ -103,9 +106,11 @@ Selenium.prototype.doInsertRecordCaptureKey= function doInsertRecordCaptureKey( 
     var capturedPrimaryValue= typeof recordKeyAttributeLocator==="string"
         ? this.browserbot.findAttribute( recordKeyAttributeLocator )
         : recordKeyAttributeLocator( this );
+        
     var settings= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
     var narrowBy= settings.getField( 'narrowBy' ).getDownToFolder();
     var alwaysTestGeneratingKeys= settings.getField( 'alwaysTestGeneratingKeys' ).getDownToFolder();
+    
     var storeCapturedKey= narrowBy && !alwaysTestGeneratingKeys;
     if( storeCapturedKey ) {
         compound.record[ compound.table.primary ]= capturedPrimaryValue;
@@ -120,5 +125,5 @@ Selenium.prototype.doInsertRecordCaptureKey= function doInsertRecordCaptureKey( 
             capturedPrimaryValue===compound.record[ compound.table.primary ] || SeLiteMisc.fail( "Captured primary key value for table " +compound.table.name+ ": " +capturedPrimaryValue+ " differs to generated value: " +compound.record[ compound.table.primary ] )
         );
     }
-    this.handlePromise( inserting );
+    return this.handlePromise( inserting );
 };

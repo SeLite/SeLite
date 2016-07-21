@@ -119,7 +119,7 @@ SeLiteData.Table.prototype.insert= function insert( originalRecord, sync=false )
     }
     var query= 'INSERT INTO ' +this.nameWithPrefix()+ '('+ columns.join(', ')+ ') '+
         'VALUES (' +columnPlaceholders.join(', ')+ ')';
-    var execution= this.db.storage.execute( query, bindings, {}, sync );
+    var execution= this.db.storage.execute( query, bindings, {}, /*expectResult:*/false, sync );
     // Fetch the auto-generated primary one-column key (not a multi-column key), if applicable (whether it came from DB or from the expression injected above)
     if( typeof this.primary==='string' && SeLiteMisc.field(bindings, this.primary)===undefined ) {
         var lastInserted= sync

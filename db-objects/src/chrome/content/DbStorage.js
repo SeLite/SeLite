@@ -172,7 +172,7 @@ SeLiteData.Storage.prototype.select= function select( query, bindings={}, fields
     if( !fields ) {
         fields= this.fieldNames( this.fieldParts( query ) );
     }
-    return this.execute( query, bindings, fields, sync );
+    return this.execute( query, bindings, fields, /*expectResult:*/true, sync );
 };
 
 /** Assert that there is exactly one row.
@@ -219,11 +219,12 @@ SeLiteData.Storage.prototype.selectOne= function selectOne( query, bindings, fie
 /** @param string query SQL query
  *  @param object bindings Optional; see select()
  *  @param {Array} fields Names of fields (columns) to select, if any.
+ *  @param {boolean} expectResult Whether this expects a result (potentially no records). Pass true for SELECT.
  *  @param {boolean} sync Whether synchronous.
  *  @return {undefined|Array|Promise} Return an array, or a Promise of an array, if fields is set. If an array (or its Promise), it will be an array with anonymous objects, each having keys from <code>fields</code>. If fields is not set, return undefined or a Promise of undefined.
  *  @throws error on failure
  **/
-SeLiteData.Storage.prototype.execute= function execute( query, bindings={}, fields=undefined, sync=false ) {
+SeLiteData.Storage.prototype.execute= function execute( query, bindings={}, fields=undefined, expectResult=false, sync=false ) {
     this.connection() || SeLiteMisc.fail( 'SeLiteData.Storage.connection() is not set. SQLite file name: ' +this.parameters.fileName );
     if( !bindings && sync && !fields ) {
         this.connection().executeSimpleSQL( query );
@@ -263,7 +264,7 @@ SeLiteData.Storage.prototype.execute= function execute( query, bindings={}, fiel
         else {
             return new Promise( (resolve, reject)=>
                 stmt.executeAsync({
-                    handleResult: function(aResultSet) {
+                    handleResult: function(aResultSet) { // This does NOT get called for e.g. INSERT.
                         var result;
                         if( fields ) {
                             result= [];
@@ -275,14 +276,20 @@ SeLiteData.Storage.prototype.execute= function execute( query, bindings={}, fiel
                                 }
                                 result.push( resultRow );
                             }
-                        }
+                        }debugger;
                         resolve( result );
                     },
                     handleError: function(aError) {
                         reject( aError );
                     },
                     handleCompletion: function(aReason) {
-                        if (aReason != Components.interfaces.mozIStorageStatementCallback.REASON_FINISHED) {
+                        if( aReason===Components.interfaces.mozIStorageStatementCallback.REASON_FINISHED ) {
+                            /* This fires for SELECT queries - in addition to handleResult. Hence ignore it if we are expecting a result.*/
+                            if( !expectResult ) {
+                                resolve( undefined );
+                            }
+                        }
+                        else {
                             reject( "Query canceled or aborted!");
                         }
                     }
@@ -485,7 +492,7 @@ SeLiteData.Storage.prototype.updateRecords= function updateRecords( params ) {
     if( SeLiteMisc.field(params, 'debugQuery') ) {
         console.log( query );
     }
-    return this.execute( query, {}, undefined, params.sync );
+    return this.execute( query, {}, undefined, /*expectResult:*/false, params.sync );
 };
 
 /** Update a in the DB, matching it by 'id' field (i.e. params.entries.id).
@@ -539,7 +546,7 @@ SeLiteData.Storage.prototype.removeRecordByPrimary= function removeRecordByPrima
         conditionParts.push( primaryKeyColumn+ '=' +this.quoteValues( record[primaryKeyColumn] ) );
     }
     var query= "DELETE FROM " +tableName+ " WHERE " +conditionParts.join( 'AND' );
-    return this.execute( query, {}, undefined, sync );
+    return this.execute( query, {}, undefined, /*expectResult:*/false, sync );
 };
 
 /**Insert the  record into the DB.
@@ -572,7 +579,7 @@ SeLiteData.Storage.prototype.insertRecord= function insertRecord( params ) {
     if( SeLiteMisc.field(params, 'debugQuery') ) {
         console.log( query );
     }
-    return this.execute( query, {}, undefined, params.sync );
+    return this.execute( query, {}, undefined, /*expectResult:*/false, params.sync );
 };
 
 /** This returns the last successfully inserted record.
