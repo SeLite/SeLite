@@ -9,7 +9,7 @@ Components.utils.import( "chrome://selite-db-objects/content/DbFunctions.js" );
 /** @class */
 Selenium= Selenium;
 
-/** Promise-based. We can't imlement this as getReadRecord() - see Selenium.prototype.handlePotentialPromise().
+/** Async or sync read of a record and put in a stored variable. We can't imlement this as getReadRecord() for asynchronous - see Selenium.prototype.handlePotentialPromise().
  * This is not called doStoreRecord as it would be confusing/counter-intuitive: it could imply that it's storing something in the DB, while it would be retrieving a record from the DB and storing it in a stored variable.
  * */
 Selenium.prototype.doStoreReadRecord= function doStoreReadRecord( info, storedVariableName ) {
@@ -33,27 +33,34 @@ Selenium.prototype.doStoreReadRecord= function doStoreReadRecord( info, storedVa
     }
     info.dontNarrow= SeLiteMisc.field( info, 'dontNarrow', false );
     SeLiteMisc.ensureType( info.dontNarrow, 'boolean' );
+    info.sync= SeLiteMisc.field( info, 'sync', false );
+    SeLiteMisc.ensureType( info.sync, 'boolean' );
     /**@type {object}*/var matchingPairs= SeLiteMisc.objectClone(info, table.columns );
-    delete matchingPairs.info;
-    delete matchingPairs.formula;
+    //delete matchingPairs.info;
+    //delete matchingPairs.formula;
     // Following check depends on requirement that either info.table or info.formula is present, but not both.
-    Object.keys(matchingPairs).length===Object.keys(info).length-2 || SeLiteMisc.fail( 'There are some field(s) in info.matchingPairs that are not present in table/formula definition.' );
+    Object.keys(matchingPairs).length===Object.keys(info).length-3/*3 extra fields: (table or formula),sync,dontNarrow*/ || SeLiteMisc.fail( 'There are some field(s) in info.matchingPairs that are not present in table/formula definition.' );
 
-    var selecting= formula.select( matchingPairs, info.dontNarrow, /*sync:*/false );
-    var validating= selecting.then( records => {
-        var record= null;
-        for( var key in records ) { // Return the only record, if any:
-            if( record!==null ) {
-                throw new Error( 'There is more than one record.' );
+    return this.handlePotentialPromise(
+        formula.select( matchingPairs, info.dontNarrow, info.sync ),
+        records => {
+            var record= null;
+            // @TODO for(record of records):
+            for( var key in records ) { // Return the only record, if any:
+                if( record!==null ) {
+                    throw new Error( 'There is more than one record.' );
+                }
+                record= records[key];
+                LOG.debug( 'getReadRecord: ' +records );
+                LOG.debug( 'record: ' +SeLiteMisc.objectToString(record, 2) );
+                storedVars[storedVariableName]= record;
             }
-            record= records[key];
-            LOG.debug( 'getReadRecord: ' +records );
-            LOG.debug( 'record: ' +SeLiteMisc.objectToString(record, 2) );
-            storedVars[storedVariableName]= record;
-        }
-        throw new Error( "There are no records.");
-    } );
-    return this.handlePromise( validating );
+            if( ! record ) {
+                throw new Error( "There are no records.");
+            }
+        },
+        !info.sync
+    );
 };
 
 /** @param {object} recordObject
