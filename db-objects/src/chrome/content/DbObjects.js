@@ -132,7 +132,10 @@ SeLiteData.Table.prototype.insert= function insert( originalRecord, sync=false )
         }
         else {
             return lastInserted.then(
-                lastInsertedKeyValue=> this._injectInsertedPrimary( originalRecord, lastInsertedKeyValue )
+                lastInsertedKeyValue=> {
+                    this._injectInsertedPrimary( originalRecord, lastInsertedKeyValue );
+                    return undefined;
+                }
             );
         }
     }

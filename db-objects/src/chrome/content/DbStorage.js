@@ -220,7 +220,7 @@ SeLiteData.Storage.prototype.selectOne= function selectOne( query, bindings, fie
  *  @param object bindings Optional; see select()
  *  @param {Array} fields Names of fields (columns) to select, if any.
  *  @param {boolean} sync Whether synchronous.
- *  @return {undefined|Array|Promise} Return an array, or a Promise of an array, if fields is set. If an array (or its Promise), it will be an array with anonymous objects, each having keys from <code>fields</code>.
+ *  @return {undefined|Array|Promise} Return an array, or a Promise of an array, if fields is set. If an array (or its Promise), it will be an array with anonymous objects, each having keys from <code>fields</code>. If fields is not set, return undefined or a Promise of undefined.
  *  @throws error on failure
  **/
 SeLiteData.Storage.prototype.execute= function execute( query, bindings={}, fields=undefined, sync=false ) {
