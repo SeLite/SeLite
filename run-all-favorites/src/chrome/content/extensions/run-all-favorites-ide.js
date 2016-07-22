@@ -13,7 +13,9 @@ window.setTimeout( function() {
     // Se IDE loads this file twice, and with a different scope object! See https://github.com/SeleniumHQ/selenium/issues/1549 "Core extensions are loaded 2x"
     if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
         Favorites.interceptedBySeLiteRunAllFavorites= true;
-
+        
+        Components.utils.import("resource://gre/modules/osfile.jsm");
+        
         /** Get path parts (all parent folders and the leaf) of the given file/folder.
             @param nsIFile file File or folder
             @return array Array of strings, all folder parts of the path to file, starting with the root/volume, ending with the leaf
@@ -35,7 +37,7 @@ window.setTimeout( function() {
         
         /** Get a relative path for the given file, relative to the given folder, if possible. When testing on Windows: Windows > Run: cmd > run: echo %USERPROFILE%
          * @param {string} filePath Absolute file path.
-         * @returns {string} File path relative to user's home, if it is under user's home (in Unix notation - / for subfolder navigation). Otherwise return filePath unchanged.
+         * @returns {string} File path relative to user's home, if it is under user's home (with native \ or / for subfolder navigation). Otherwise return filePath unchanged.
          * @throws SuiteOutsideHomeFolderVolume If the given filePath is absolute and it's not on the same volume as home folder.
          */
         var getRelativePathToHome= function getRelativePathToHome( filePath ) {
@@ -51,14 +53,7 @@ window.setTimeout( function() {
                   return filePath;
               }
           }
-          var relativePath= '';
-          for( ; i<filePathParts.length; i++ ) {
-              if( relativePath!=='' ) {
-                  relativePath+= '/';
-              }
-              relativePath+= filePathParts[i];
-          }
-          return relativePath;
+          return OS.Path.join( ...filePathParts.slice(i) ); 
         };
 
         /** @param nsIFile baseFolder
@@ -66,7 +61,15 @@ window.setTimeout( function() {
             @return {string}
         */
         var applyRelativePath= function applyRelativePath( baseFolder, path ) {
-           var pathParts= path.split( '/');
+           /*var windowsVolumeMatch= /^([a-zA-Z]:\\\\)/.exec( path );
+           if( windowsVolumeMatch ) {
+               var windowsVolumePart= exec[1];
+               pathParts.push( windowsVolumePart );
+               path= path.substring( windowsVolumePart.length );
+           }
+           pathParts.push( ...path.split( /[\/\\]/ ) );
+           /**/
+           var pathParts= path.split( /[\/\\]/ );
            
            var file= baseFolder.clone(); // That's because the following code will modify file.
            for( var i=0; i<pathParts.length; i++ ) {

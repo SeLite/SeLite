@@ -1,4 +1,4 @@
-/*  Copyright 2011, 2012, 2013, 2014 Peter Kehl
+/*  Copyright 2011, 2012, 2013, 2014, 2016 Peter Kehl
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -186,25 +186,32 @@ function preloadCache( connection, errorHandler ) {
  *  @throws Error on failure */
 SQLiteConnectionInfo.prototype.open= function open() {
     console.log( 'SQLiteConnectionInfo.open(): Trying to open ' +this.parameters.fileName );
-    var file;
-    try {
-        file= FileUtils.getFile( "ProfD", [this.parameters.fileName] );
-    }
-    catch( error ) {
-        file= new FileUtils.File( this.parameters.fileName );
-    }
-    if( !file.exists() ) {
-        throw 'DB file ' +this.parameters.fileName+ " doesn't exist.";
-    }
     var connection;
-    connection= Services.storage.openDatabase( file );
-    // There's no need neither a way to 'close' file. See https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsIFile
+    debugger;
+    if( this.parameters.fileName==='memory' ) {
+        connection= Services.storage.openSpecialDatabase( "memory" );
+    }
+    else {
+        var file;
+        try {
+            file= FileUtils.getFile( "ProfD", [this.parameters.fileName] );
+        }
+        catch( error ) {
+            file= new FileUtils.File( this.parameters.fileName );
+        }
+        if( !file.exists() ) {
+            throw 'DB file ' +this.parameters.fileName+ " doesn't exist.";
+        }
+        connection= Services.storage.openDatabase( file );
+    }
+    // There's no need, neither a way, to 'close' file. See https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsIFile
     if( !connection.connectionReady ) {
         throw "Created the connection, but it wasn't ready.";
     }
     if( this.parameters.lockExclusive ) {
         connection.executeSimpleSQL( "PRAGMA locking_mode=EXCLUSIVE" );
     }
+    // @TODO Eliminate. See https://wiki.mozilla.org/Performance/Avoid_SQLite_In_Your_Next_Firefox_Feature#Unintended_Main-Thread_I.2FO
     if( this.parameters.cacheRatio!=null || this.parameters.cacheMin!=null || this.parameters.cacheMax!=null ) {
         
         var cacheSize= null; // By the end of this block, cacheSize will be the result cache size, in DB pages

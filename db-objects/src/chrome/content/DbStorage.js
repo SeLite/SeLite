@@ -780,7 +780,7 @@ function testSuiteFolderChangeHandler() {
         instance instanceof StorageFromSettings || fail();
         var newFileName= instance.dbField.getDownToFolder().entry;
         if( instance.con ) {
-            if( instance.parameters.fileName===newFileName ) {
+            if( instance.parameters.fileName===newFileName && newFileName!=='memory' ) {
                 continue;
             }
             instance.close( true, function callback() {

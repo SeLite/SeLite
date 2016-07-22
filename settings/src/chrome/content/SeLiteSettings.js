@@ -1332,7 +1332,7 @@ SeLiteSettings.Module.forName= function forName( moduleNameOrModule ) {
  * @param string fileName File name
  * @return string contents; false if no such file (compare the result strictly using ===false)
  * */
-function readFile( fileName ) {
+SeLiteSettings.readFile= function readFile( fileName ) {
     try {
         var file= new FileUtils.File( fileName ); // Object of class nsIFile
         //@TODO speed up: if file doesn't exist, return false, rather than fail and catch
@@ -1356,7 +1356,7 @@ function readFile( fileName ) {
     } while (read != 0);
     cstream.close(); // this closes fstream, too
     return contents;
-}
+};
 
 SeLiteSettings.VALUES_MANIFEST_FILENAME= 'SeLiteSettingsValues.txt'; // @TODO Make this 'const' once NetBeans supports it
 SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME= 'SeLiteSettingsAssociations.txt'; // @TODO Make this 'const' once NetBeans supports it
@@ -1454,7 +1454,7 @@ function manifestsDownToFolder( folderPath=SeLiteSettings.testSuiteFolder, dontC
     
     for( var folder of folderNames ) {
         var fileName= OS.Path.join(folder, SeLiteSettings.VALUES_MANIFEST_FILENAME);
-        var contents= readFile( fileName );
+        var contents= SeLiteSettings.readFile( fileName );
         if( contents!==false ) {
             var lines= removeCommentsGetLines(contents);
             for( var j=0; j<lines.length; j++ ) {
@@ -1473,7 +1473,7 @@ function manifestsDownToFolder( folderPath=SeLiteSettings.testSuiteFolder, dontC
         }
         
         fileName= OS.Path.join(folder, SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME);
-        var contents= readFile( fileName );
+        var contents= SeLiteSettings.readFile( fileName );
         if( contents!==false ) {
             var lines= removeCommentsGetLines(contents);
             for( var j=0; j<lines.length; j++ ) {
@@ -1622,7 +1622,7 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
                         // 1. replace / and \ in the value from manifest with the system's folder separator. I do that by splitting the value by a regex, and then using OS.Path.join().
                         // 2. replace SeLiteSettings.SELITE_THIS_MANIFEST_FOLDER with the full path to the manifest's folder
                         // Since I split the relative path by / and \, the following doesn't affect us: OS.Path.join('\\\\', 'server', 'folder') returned value of JS expression '\\\\server\folder'. I don't want two backslashes \\ anywhere else than the root of the path, because it's deemed absolute and then OS.Path.join() ignores any previous parameters (as is documented at MDN): OS.Path.join('any', 'path', '\\\\', 'subfolder') and also OS.Path.join('any', 'path', '\\', '\\', 'subfolder') return value of JS expression '\\\\subfolder'.
-                        var pathParts= manifest.value.split( /[/\\]/ );
+                        var pathParts= manifest.value.split( /[\/\\]/ );
                         manifest.value= OS.Path.join.apply( OS.Path, pathParts );
                         manifest.value= manifest.value.replace( SeLiteSettings.SELITE_THIS_MANIFEST_FOLDER, manifestFolder, 'g' );
                         manifest.value= OS.Path.normalize( manifest.value );

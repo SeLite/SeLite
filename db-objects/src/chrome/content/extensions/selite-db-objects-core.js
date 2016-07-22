@@ -70,10 +70,12 @@ Selenium.prototype.doStoreReadRecord= function doStoreReadRecord( info, storedVa
  * */
 Selenium.insertRecord= function insertRecord( recordObject, tableOrCompound ) {
     var record= new SeLiteData.Record(recordObject);
-    var table= 'table' in tableOrCompound
+    var passedCompound= 'table' in tableOrCompound;
+    var table= passedCompound
         ? tableOrCompound.table
         : tableOrCompound;
     var sync= SeLiteMisc.field(tableOrCompound, 'sync', false);
+    !sync || passedCompound || SeLiteMisc.fail( "Only set .sync on a compound object, not on the table object." );
     var inserting= table.insert( record, sync );
     inserting= Promise.resolve( inserting );
     if( typeof table.primary==='string'/*Primary key is 1 column, not an array*/
@@ -126,4 +128,14 @@ Selenium.prototype.doInsertRecordCaptureKey= function doInsertRecordCaptureKey( 
         );
     }
     return this.handlePromise( inserting );
+};
+
+Selenium.prototype.doExecuteSQL= function doExecuteSQL( SQL, bindings={} ) {
+    return this.handlePromise(
+        SeLiteData.getStorageFromSettings().execute( SQL, bindings )
+    );
+};
+
+Selenium.prototype.doExecuteSQLscript= function doExecuteSQLscript( filePath, bindings={} ) {
+    return this.doExecuteSQL( SeLiteSettings.readFile(filePath) , bindings );
 };
