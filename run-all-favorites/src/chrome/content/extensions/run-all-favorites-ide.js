@@ -10,91 +10,11 @@
  * Do not run Components.utils.import( "resource://gre/modules/FileUtils.jsm" ), because then we miss FileUtils.fileExists().
  */
 window.setTimeout( function() {
+    Components.utils.import( 'chrome://selite-misc/content/SeLiteMisc.js' );
+    
     // Se IDE loads this file twice, and with a different scope object! See https://github.com/SeleniumHQ/selenium/issues/1549 "Core extensions are loaded 2x"
     if( !Favorites.interceptedBySeLiteRunAllFavorites ) {
         Favorites.interceptedBySeLiteRunAllFavorites= true;
-        
-        Components.utils.import("resource://gre/modules/osfile.jsm");
-        
-        /** Get path parts (all parent folders and the leaf) of the given file/folder.
-            @param nsIFile file File or folder
-            @return array Array of strings, all folder parts of the path to file, starting with the root/volume, ending with the leaf
-        */
-        var pathParts= function pathParts( file ) {
-           var parts= [file.leafName];
-
-           var iterator= file;
-           while( iterator.parent ) {
-             iterator= iterator.parent;
-             parts.push( iterator.leafName );
-           }
-           parts.reverse();
-           return parts;
-        };
-        
-        var homeFolder= Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("Home", Components.interfaces.nsIFile); // nsFile instance
-        var homeFolderPathParts= pathParts(homeFolder);
-        
-        /** Get a relative path for the given file, relative to the given folder, if possible. When testing on Windows: Windows > Run: cmd > run: echo %USERPROFILE%
-         * @param {string} filePath Absolute file path.
-         * @returns {string} File path relative to user's home, if it is under user's home (with native \ or / for subfolder navigation). Otherwise return filePath unchanged.
-         * @throws SuiteOutsideHomeFolderVolume If the given filePath is absolute and it's not on the same volume as home folder.
-         */
-        var getRelativePathToHome= function getRelativePathToHome( filePath ) {
-          var file = Components.classes['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsILocalFile);
-          file.initWithPath(filePath);
-          var filePathParts= pathParts(file);
-          
-          if( homeFolderPathParts.length>filePathParts.length ) {
-              return filePath;
-          }
-          for( var i=0; i<homeFolderPathParts.length; i++ ) {
-              if( homeFolderPathParts[i]!==filePathParts[i] ) {
-                  return filePath;
-              }
-          }
-          return OS.Path.join( ...filePathParts.slice(i) ); 
-        };
-
-        /** @param nsIFile baseFolder
-            @param string path Relative path, e.g. result of relativePath(). It must not be an absolute path.
-            @return {string}
-        */
-        var applyRelativePath= function applyRelativePath( baseFolder, path ) {
-           /*var windowsVolumeMatch= /^([a-zA-Z]:\\\\)/.exec( path );
-           if( windowsVolumeMatch ) {
-               var windowsVolumePart= exec[1];
-               pathParts.push( windowsVolumePart );
-               path= path.substring( windowsVolumePart.length );
-           }
-           pathParts.push( ...path.split( /[\/\\]/ ) );
-           /**/
-           var pathParts= path.split( /[\/\\]/ );
-           
-           var file= baseFolder.clone(); // That's because the following code will modify file.
-           for( var i=0; i<pathParts.length; i++ ) {
-              // Following code modifies file by calling append(). Side note: To make it safe, Mozilla made file.parent resolve to a new object everytime it's used: file.parent!==file.parent.
-              file.append( pathParts[i] );
-           }
-           return file.path;
-        };
-
-        /** @param string path Relative path, e.g. result of relativePath(), or an absolute path.
-            @return nsIFile File for given path - either relative to user's home (if path is relative), or file for given path unchanged.
-        */
-        var applyRelativePathToHome= function applyRelativePathToHome( path ) {
-            if( pathIsAbsolute(path) ) {
-                return path;
-            }
-            return applyRelativePath( homeFolder, path );
-        };
-        
-        /** @param {string} path File.folder path
-         * @returns {boolean} Whether the path is absolute. True if the path starts with Windows-like drive name e.g. C:\, or with Unix root folder /. False if it's an empty string - then it's deemed to be a relative path for the user's home folder.
-        */
-        var pathIsAbsolute= function pathIsAbsolute( path ) {
-            return /^([a-zA-Z]:\\|\/)/.test(path);
-        };
         
         var makeFavoritesRelativeToHome= function makeFavoritesRelativeToHome() {
             // Update any old-style absolute path that are under user's home folder.
@@ -102,8 +22,8 @@ window.setTimeout( function() {
             var updatedSomePaths= false;
             for( var i=0; i<editor.favorites.favorites.length; i++ ) {
                 var favorite= editor.favorites.favorites[i];
-                if( pathIsAbsolute(favorite.path) ) {
-                    favorite.path= getRelativePathToHome(favorite.path);
+                if( SeLiteMisc.pathIsAbsolute(favorite.path) ) {
+                    favorite.path= SeLiteMisc.getRelativePathToHome(favorite.path);
                     updatedSomePaths= true;
                 }
             }
@@ -160,7 +80,7 @@ window.setTimeout( function() {
 
         // Copied from original Favorites + transforming absolute file path to relative
         Favorites.prototype.isFavorite = function isFavorite(suite) {
-          var suiteRelativePath= getRelativePathToHome(suite);
+          var suiteRelativePath= SeLiteMisc.getRelativePathToHome(suite);
           for( var i=0; i<this.favorites.length; i++ ) {
             if( this.favorites[i].path===suiteRelativePath ) {
               return true;
@@ -173,7 +93,7 @@ window.setTimeout( function() {
         Favorites.prototype.toggleSuiteFavorite = function toggleSuiteFavorite() {
           var curSuite = this.editor.app.getTestSuite();
           if (curSuite.file) {
-            var suiteRelativePath= getRelativePathToHome( curSuite.file.path, true );
+            var suiteRelativePath= SeLiteMisc.getRelativePathToHome( curSuite.file.path, true );
             if( !this.removeFavorite(suiteRelativePath) ) {
               var suiteName = curSuite.file.leafName;
               suiteName = suiteName.replace(/\.[^.]+$/, "");
@@ -219,7 +139,7 @@ window.setTimeout( function() {
           else {
             try {
                 var path = evt.target.value || evt.target.getAttribute('value');
-                path= applyRelativePathToHome(path);
+                path= SeLiteMisc.applyRelativePathToHome(path);
                 if (FileUtils.fileExists(path)) {
                   this.editor.loadRecentSuite(path);
                   if (evt.ctrlKey || evt.metaKey || this.meta) {
@@ -272,7 +192,7 @@ window.setTimeout( function() {
             */
             var loadAndPlayTestSuite= function loadAndPlayTestSuite( dontReset ) {
                 try {
-                    self.editor.loadRecentSuite( applyRelativePathToHome(self.favorites[testSuiteIndex].path) );
+                    self.editor.loadRecentSuite( SeLiteMisc.applyRelativePathToHome(self.favorites[testSuiteIndex].path) );
                 }
                 catch( e ) {
                     Favorites.alert( e.message, "SeLite Run All Favorites");

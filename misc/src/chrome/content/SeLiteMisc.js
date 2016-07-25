@@ -25,6 +25,8 @@ if( runningAsComponent ) {
 /** @namespace */
 var SeLiteMisc= {};
 
+Components.utils.import("resource://gre/modules/osfile.jsm");
+
 /** This throws the given error or a new error (containg the given message, if any). It also appends the stack trace to the message, which is useful since both Firefox Browser Console and Selenium IDE log don't report error stack trace. I do not log here to Browser Console, since that would polute logs when doing negative testing - when using try/catch to validate that incorrect invocation of functionality calls SeLiteMisc.fail().
  *  @param {*} [errorOrMessage] An underlying Error, or a message for a new error.
  *  @param {boolean} [excludeCommonBase] See the same parameter of SeLiteMisc.withStackInMessage().
@@ -2173,6 +2175,73 @@ var uuidGenerator = Components.classes["@mozilla.org/uuid-generator;1"].getServi
 SeLiteMisc.generateUUID= function generateUUID() {
     return uuidGenerator.generateUUID().toString();
     // e.g. {234c4d20-ea78-4892-b1d4-81ba77d939d8}
+};
+
+/** Get path parts (all parent folders and the leaf) of the given file/folder.
+    @param nsIFile file File or folder
+    @return array Array of strings, all folder parts of the path to file, starting with the root/volume, ending with the leaf
+*/
+function pathParts( file ) {
+   var parts= [file.leafName];
+
+   var iterator= file;
+   while( iterator.parent ) {
+     iterator= iterator.parent;
+     parts.push( iterator.leafName );
+   }
+   parts.reverse();
+   return parts;
+}
+
+var homeFolder= Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("Home", Components.interfaces.nsIFile); // nsFile instance
+var homeFolderPathParts= pathParts(homeFolder);
+var homeFolderPath= homeFolder.path;
+
+/** Get a relative path for the given file, relative to the given folder, if possible. When testing on Windows: Windows > Run: cmd > run: echo %USERPROFILE%
+ * @param {string} filePath Absolute file path.
+ * @returns {string} File path relative to user's home, if it is under user's home (with native \ or / for subfolder navigation). Otherwise return filePath unchanged.
+ * @throws SuiteOutsideHomeFolderVolume If the given filePath is absolute and it's not on the same volume as home folder.
+ */
+SeLiteMisc.getRelativePathToHome= function getRelativePathToHome( filePath ) {
+  var file = Components.classes['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsILocalFile);
+  file.initWithPath(filePath);
+  var filePathParts= pathParts(file);
+
+  if( homeFolderPathParts.length>filePathParts.length ) {
+      return filePath;
+  }
+  for( var i=0; i<homeFolderPathParts.length; i++ ) {
+      if( homeFolderPathParts[i]!==filePathParts[i] ) {
+          return filePath;
+      }
+  }
+  return OS.Path.join( ...filePathParts.slice(i) ); 
+};
+
+/** @param {string} baseFolderPath In the native format (with native folder separators).
+    @param {string} path Relative path, e.g. result of relativePath(), or an absolute path.
+    @return {string} Either full path (if given path is relative), or the given path unchanged.
+*/
+SeLiteMisc.applyRelativePath= function applyRelativePath( baseFolderPath, path ) {
+    if( SeLiteMisc.pathIsAbsolute(path) ) {
+        return path;
+    }
+   var pathSections= path.split( /[\/\\]/ );
+   return OS.Path.normalize( OS.Path.join( baseFolderPath, ...pathSections ) );
+};
+
+/** @param {string} path Relative path, e.g. result of relativePath(), or an absolute path.
+    @return {string} Either full path (if given path is relative), or the given path unchanged.
+*/
+SeLiteMisc.applyRelativePathToHome= function applyRelativePathToHome( path ) {
+    return SeLiteMisc.applyRelativePath( homeFolderPath, path );
+};
+
+/** @param {string} path File.folder path
+ * @returns {boolean} Whether the path is absolute. True if the path starts with Windows-like drive name e.g. C:\, or with Unix root folder /. False if it's an empty string - then it's deemed to be a relative path.
+*/
+SeLiteMisc.pathIsAbsolute= function pathIsAbsolute( path ) {
+    return /^([a-zA-Z]:\\|\/)/.test(path);
 };
 
 var EXPORTED_SYMBOLS= ['SeLiteMisc'];

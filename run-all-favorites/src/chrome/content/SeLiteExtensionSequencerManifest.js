@@ -6,6 +6,12 @@ SeLiteExtensionSequencer.registerPlugin( {
         'chrome://selite-run-all-favorites/content/extensions/run-all-favorites-ide.js'
     ],
     infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-run-all-favorites/',
+    requisitePlugins: {
+        'misc@selite.googlecode.com': {
+            name: 'SeLite Miscellaneous',
+            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-miscellaneous/'
+        }
+    },
     nonSequencedRequisitePlugins: {
         'favorites_selenium-ide@Samit.Badle': {
             name: 'Favorites (Selenium IDE)',
