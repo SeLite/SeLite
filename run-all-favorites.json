@@ -26,5 +26,9 @@
  {
   "name": "sel-blocks-global_suite",
   "path": "SelBlocksGlobal/selenese-scripts/various/sel-blocks-global_suite.html"
+ },
+ {
+  "name": "call_back_suite",
+  "path": "SelBlocksGlobal\\selenese-scripts\\call-back\\call_back_suite.html"
  }
 ]

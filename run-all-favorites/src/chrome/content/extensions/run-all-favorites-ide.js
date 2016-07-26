@@ -24,6 +24,7 @@ window.setTimeout( function() {
                 var favorite= editor.favorites.favorites[i];
                 if( SeLiteMisc.pathIsAbsolute(favorite.path) ) {
                     favorite.path= SeLiteMisc.getRelativePathToHome(favorite.path);
+                    favorite.path.replace( /\\/g, '/' );
                     updatedSomePaths= true;
                 }
             }
@@ -184,6 +185,7 @@ window.setTimeout( function() {
                 }
                 lastTestCaseRuns= givenRuns;
                 lastTestCaseTotal= givenTotal;
+                // TODO MINOR: If there was 'breakPoint' command in a test case, and I re-Run All Favorites, then the following caused an infinite recursion.
                 oldTestSuiteProgressUpdate.call( this, sumRuns+givenRuns, sumTotal+givenTotal, failure );
             };
             
