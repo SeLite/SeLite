@@ -12,15 +12,33 @@
 <tr><td rowspan="1" colspan="3">reuse-ids_case</td></tr>
 </thead><tbody>
 <tr>
-	<td>getEval</td>
-	<td>alert( '&lt;&gt;SeLiteSettings.getTestSuiteFolder()&lt;&gt;/schema.sql' )</td>
+	<td>executeSQLscript</td>
+	<td>&lt;&gt;SeLiteMisc.applyRelativePath( SeLiteSettings.getTestSuiteFolder(), 'schema.sql')&lt;&gt;</td>
 	<td></td>
 </tr>
 <tr>
-	<td>executeSQLscript</td>
-	<td>&lt;&gt;SeLiteSettings.getTestSuiteFolder()&lt;&gt;/schema.sql</td>
+	<td>executeSQL</td>
+	<td>INSERT INTO simple(value) VALUES('hello')</td>
 	<td></td>
 </tr>
+<!---->
+<tr>
+	<td>getEval</td>
+	<td>var db=new SeLiteData.Db( SeLiteData.getStorageFromSettings() ); $table= new SeLiteData.Table( {db:&nbsp;&nbsp;db, name: 'simple', columns: ['id', 'value'], primary: 'id'} ); </td>
+	<td></td>
+</tr>
+<tr>
+	<td>storeReadRecord</td>
+	<td>=&lt;&gt;({table: $table, value: 'hello'})&lt;&gt;</td>
+	<td>record</td>
+</tr>
+<!---->
+<tr>
+	<td>insertRecord</td>
+	<td>=&lt;&gt;({ value: 'hi'})&lt;&gt;</td>
+	<td>=&lt;&gt; ({table: $table, sync: false})&lt;&gt;</td>
+</tr>
+<!---->
 <tr>
 	<td>getEval</td>
 	<td>alert( SeLiteData.getStorageFromSettings().execute( &quot;SELECT * FROM simple WHERE id=:rowid&quot;, {'rowid': 1}, /*fields*/undefined, /*expectResult*/true, /*sync*/true ) )</td>

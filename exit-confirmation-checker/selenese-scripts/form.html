@@ -8,7 +8,8 @@
             //<![CDATA[
             "use strict";
             var performCorrectValidation, ignoreFreetype;
-            /** Side note: Do not call this function onbeforeunload, because that clashes with 'onbeforeunload' in windows object (which serves as the default scope for Javascript), and it causes the handler not to be invoked. */
+            
+            /** Side note: Do not call this function 'onbeforeunload', because that clashes with 'onbeforeunload' in 'window' object (which serves as the default scope for Javascript), and it causes the handler not to be invoked. */
             function onbeforeunloadHandler() {
                 var freetype= document.getElementById('freetype');
                 var select= document.getElementById('select');
@@ -22,8 +23,8 @@
             }
             
             function onloadHandler() {
-                performCorrectValidation= window.location.search.indexOf('performBrokenValidation')<=0;
-                ignoreFreetype= window.location.search.indexOf('ignoreFreetype')<=0;
+                performCorrectValidation= window.location.search.indexOf('performBrokenValidation')<0;
+                ignoreFreetype= window.location.search.indexOf('ignoreFreetype')>=0;
                 window.onbeforeunload= onbeforeunloadHandler;
             }
             //]]>
