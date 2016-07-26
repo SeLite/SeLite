@@ -55,9 +55,7 @@ SeLiteData.Db= function Db( storage, tableNamePrefix, generateInsertKey=false, n
 /** @return {string} Table prefix, or an empty string. It never returns undefined.
  * */
 SeLiteData.Db.prototype.tablePrefix= function tablePrefix() {
-    return this.tableNamePrefix!==undefined
-        ? this.tableNamePrefix
-        : this.storage.tablePrefix();
+    return SeLiteMisc.fieldDefined( this, 'tableNamePrefix', this.storage.tablePrefix() );
 };
 
 /** @constructs SeLiteData.Table
@@ -70,7 +68,7 @@ SeLiteData.Db.prototype.tablePrefix= function tablePrefix() {
  *      generateInsertKey: boolean, like parameter generateInsertKey of SeLiteData.Db(). If specified and different to prototype.db.generateInsertKey, then prototype.generateInsertKey overrides it (even if db.generateInsertKey is true but here prototype.generateInsertKey is false).
  *      narrowColumn: string, optional. Name of column used to narrow down operating set or records.
  *      narrowMaxWidth: number, optional. Maximum number of characters when narrowing down. Applied to Settings field extensions.selite-settings.common.narrowBy.
- *      narrowMethod: object, optional. See SeLiteData.Db().
+ *      narrowMethod: function, optional. See SeLiteData.Db().
  */
 SeLiteData.Table= function Table( prototype ) {
     /** @type {SeLiteData.Db} */
@@ -103,13 +101,12 @@ SeLiteData.Table.prototype.nameWithPrefix= function nameWithPrefix() {
  *  - save primary key, if auto-generated: table.db.storage.lastInsertedRow( table.nameWithPrefix(), [table.primary] )[ table.primary ];
  *  - if record is linked to a RecordHolder, update .originals
  * */
-SeLiteData.Table.prototype.insert= function insert( originalRecord ) {
+SeLiteData.Table.prototype.insert= function insert( originalRecord, sync=false ) {
     var record= SeLiteMisc.objectClone( originalRecord );
-    // I don't use asynchronous API, because I don't know how to use it with classic program control flow. Therefore I need to list all columns.
     var columns= [];
     var columnPlaceholders= []; // :columnName, or SeLiteData.SQLExpression literal
     var bindings= {};
-    if( this.generateInsertKey && record[this.primary]===undefined/* If the client provided a value for the primary key, don't generate it.*/ ) {
+    if( this.generateInsertKey && SeLiteMisc.field(record, this.primary)===undefined/* If the client provided a value for the primary key, don't generate it.*/ ) {
         //<editor-fold defaultstate="collapsed" desc="Ensure the table has single-value primary key.">
         typeof this.primary==='string' || SeLiteMisc.fail( "The table or DB has generateInsertKey set, but table " +this.name +" uses multi-column primary key: " +this.primary );
         //</editor-fold>
@@ -131,11 +128,35 @@ SeLiteData.Table.prototype.insert= function insert( originalRecord ) {
     }
     var query= 'INSERT INTO ' +this.nameWithPrefix()+ '('+ columns.join(', ')+ ') '+
         'VALUES (' +columnPlaceholders.join(', ')+ ')';
-    this.db.storage.execute( query, bindings );
-    // Fetch the auto-generated primary one-column key, if applicable (whether it came from DB or from the expression injected above)
-    if( typeof this.primary==='string' && bindings[this.primary]===undefined ) {
-        originalRecord[ this.primary ]= this.db.storage.lastInsertedRow( this.nameWithPrefix(), [this.primary] )[ this.primary ];
+    var execution= this.db.storage.execute( query, bindings, {}, /*expectResult:*/false, sync );
+    // Fetch the auto-generated primary one-column key (not a multi-column key), if applicable (whether it came from DB or from the expression injected above)
+    if( typeof this.primary==='string' && SeLiteMisc.field(bindings, this.primary)===undefined ) {
+        var lastInserted= sync
+            ? this.db.storage.lastInsertedRow( this.nameWithPrefix(), [this.primary], true )
+            : execution.then(
+                ignored => this.db.storage.lastInsertedRow( this.nameWithPrefix(), [this.primary] )
+              );
+        if( sync ) {
+            this._injectInsertedPrimary( originalRecord, lastInserted );
+        }
+        else {
+            return lastInserted.then(
+                lastInsertedKeyValue=> {
+                    this._injectInsertedPrimary( originalRecord, lastInsertedKeyValue );
+                    return undefined;
+                }
+            );
+        }
     }
+    return execution;
+};
+
+/** Set primary key in given originalRecord object to the primary key of the last inserted record.
+ *  @private
+ *  @return undefined
+ * */
+SeLiteData.Table.prototype._injectInsertedPrimary= function _injectInsertedPrimary( originalRecord, lastInsertedKeyValue ) {
+    originalRecord[ this.primary ]= [ this.primary ];
 };
 
 /** Create on-the-fly a new SeLiteData.RecordSetFormula instance. Do not store/cache it anywhere.
@@ -296,17 +317,18 @@ RecordHolder.prototype.setOriginalAndWatchEntries= function setOriginalAndWatchE
     }
 };
 
-RecordHolder.prototype.select= function select( dontNarrow ) { throw new Error( "@TODO. In the meantimes, use RecordSetHolder.select() or SeLiteData.RecordSetFormula.select()."); };
+RecordHolder.prototype.select= function select( dontNarrow=false ) { throw new Error( "@TODO. In the meantimes, use RecordSetHolder.select() or SeLiteData.RecordSetFormula.select()."); };
 
-RecordHolder.prototype.selectOne= function selectOne( dontNarrow ) { throw new Error( "@TODO. In the meantime, use RecordSetHolder.selectOne() or SeLiteData.RecordSetFormula.selectOne()."); };
+RecordHolder.prototype.selectOne= function selectOne( dontNarrow=false ) { throw new Error( "@TODO. In the meantime, use RecordSetHolder.selectOne() or SeLiteData.RecordSetFormula.selectOne()."); };
 
 // @TODO Consider: RecordHolder.insert() which is linked to an existing RecordSetHolder, and it adds itself to that recordSetHolder. - But then the recordSetHolder may not match its formula anymore - have a flag/handler for that?
 /** This saves this.record into main table of the formula. As defined by RecordHolder() constructor,
  *  keys/field names in this.record are the column aliases. This re-maps them to the DB columns before inserting.
  *  @TODO set/modify this.originals.
- *  @return {(number|string)} value of the primary key for the new record, if auto-generated (whether auto-generated by DB or by SeLite based on the maximum existing key) and if  it's a one column key; undefined otherwise.
+ *  @param {boolean} sync
+ *  @return {(number|string|Promise)} value of the primary key for the new record, if auto-generated (whether auto-generated by DB or by SeLite based on the maximum existing key) and if  it's a one column key; undefined otherwise.
  **/
-RecordHolder.prototype.insert= function insert() {
+RecordHolder.prototype.insert= function insert( sync=false ) {
     // Fields set in formula's onInsert{} override any fields with the same name in this.record
     for( var field in this.recordSetHolder.formula.onInsert ) {
         var value= typeof this.recordSetHolder.formula.onInsert[field]==='function'
@@ -315,7 +337,7 @@ RecordHolder.prototype.insert= function insert() {
         this.record[ field ]= value;
     }
     var entries= this.ownEntries();
-    if( this.recordSetHolder.formula.generateInsertKey && entries[this.recordSetHolder.formula.table.primary]===undefined/* If the client provided a value for the primary key, don't generate it.*/ ) {
+    if( this.recordSetHolder.formula.generateInsertKey && SeLiteMisc.field( entries, this.recordSetHolder.formula.table.primary)===undefined/* If the client provided a value for the primary key, don't generate it.*/ ) {
         //<editor-fold defaultstate="collapsed" desc="Ensure the table has single-value primary key.">
         typeof this.recordSetHolder.formula.table.primary==='string' || SeLiteMisc.fail( "The formula, table or DB has generateInsertKey set, but table " +this.recordSetHolder.formula.table +" uses multi-column primary key: " +this.recordSetHolder.formula.table.primary );
         //</editor-fold>
@@ -325,23 +347,30 @@ RecordHolder.prototype.insert= function insert() {
             entries
         );
     }
-    this.recordSetHolder.storage().insertRecord( {
+    var insertion= this.recordSetHolder.storage().insertRecord( {
         table: this.recordSetHolder.formula.table.nameWithPrefix(),
         entries: entries,
         fieldsToProtect: typeof this.recordSetHolder.formula.table.primary==='string'
             ? [this.recordSetHolder.formula.table.primary]
             : [], // We allow change of multi-column primary key columns, otherwise it would be impractical to update them
-        debugQuery: this.recordSetHolder.formula.debugQuery
+        debugQuery: this.recordSetHolder.formula.debugQuery,
+        sync: sync
     });
     // Fetch the auto-generated primary one-column key, if applicable (whether it came from DB or from the expression injected above)
     if( typeof this.recordSetHolder.formula.table.primary==='string'
-        && ( entries[this.recordSetHolder.formula.table.primary]===undefined || entries[this.recordSetHolder.formula.table.primary] instanceof SeLiteData.SqlExpression )
+        && ( SeLiteMisc.field(entries, this.recordSetHolder.formula.table.primary)===undefined || entries[this.recordSetHolder.formula.table.primary] instanceof SeLiteData.SqlExpression )
     ) {
-        var primaryKeyValue= this.recordSetHolder.storage().lastInsertedRow( this.recordSetHolder.formula.table.nameWithPrefix(), [this.recordSetHolder.formula.table.primary] )[ this.recordSetHolder.formula.table.primary ];
-        // This requires that the primary key is never aliased. @TODO use column alias, if present?
-        this.record[ this.recordSetHolder.formula.table.primary ]= primaryKeyValue;
-        return primaryKeyValue;
+        var lastInserted= sync
+            ? this.recordSetHolder.storage().lastInsertedRow( this.recordSetHolder.formula.table.nameWithPrefix(), [this.recordSetHolder.formula.table.primary], true )
+            : insertion.then( ignored => this.recordSetHolder.storage().lastInsertedRow( this.recordSetHolder.formula.table.nameWithPrefix(), [this.recordSetHolder.formula.table.primary] ) );
+        if( sync ) {
+            this.recordSetHolder.formula.table._injectInsertedPrimary( this.record, lastInserted );
+        }
+        else {
+            return lastInserted.then( lastInsertedKeyValue=> this.recordSetHolder.formula.table._injectInsertedPrimary( this.record, lastInsertedKeyValue ) );
+        }
     }
+    return insertion;
 };
 
 /** This generates a transformation of this.record, with any column alias names transformed to the original columns (as defined for the table). It serves when updating/inserting this.record that was previously loaded from the DB (potentially with column aliases).
@@ -367,9 +396,10 @@ RecordHolder.prototype.ownEntries= function ownEntries() {
 };
 
 /** Update the underlying record.
- *  @returns {void}
+ *  @param {boolean} sync
+ *  @returns {undefined|Promise}
  *  */
-RecordHolder.prototype.update= function update() {
+RecordHolder.prototype.update= function update( sync=false ) {
      // Fields set in formula's onUpdate{} override any fields with the same name in this.record
     for( var field in this.recordSetHolder.formula.onUpdate ) {
         var value= typeof this.recordSetHolder.formula.onUpdate[field]==='function'
@@ -378,17 +408,27 @@ RecordHolder.prototype.update= function update() {
         this.record[ field ]= value;
     }
     var entries= this.ownEntries();
-    this.recordSetHolder.storage().updateRecordByPrimary( {
+    var updating= this.recordSetHolder.storage().updateRecordByPrimary( {
         table: this.recordSetHolder.formula.table.name,
         primary: this.recordSetHolder.formula.table.primary,
         entries: entries,
-        debugQuery: this.recordSetHolder.formula.debugQuery
+        debugQuery: this.recordSetHolder.formula.debugQuery,
+        sync: sync
     });
-    this.setOriginalAndWatchEntries();
+    if( sync ) {
+        this.setOriginalAndWatchEntries();
+    }
+    else {
+        return updating.then( ignored => this.setOriginalAndWatchEntries() );
+    }
 };
 
-RecordHolder.prototype.remove= function remove() {
-    this.recordSetHolder.storage().removeRecordByPrimary( this.recordSetHolder.formula.table.nameWithPrefix(), this.recordSetHolder.formulate.table.primary, this.record );
+/** Remove the record.
+ *  @param {boolean} sync
+ *  @return {undefined|Promise}
+ * */
+RecordHolder.prototype.remove= function remove( sync=false ) {
+    return this.recordSetHolder.storage().removeRecordByPrimary( this.recordSetHolder.formula.table.nameWithPrefix(), this.recordSetHolder.formulate.table.primary, this.record, sync );
 };
 
 /** @constructs Constructor of formula objects.
@@ -459,21 +499,16 @@ SeLiteData.RecordSetFormula= function RecordSetFormula( params, prototype ) {
             'onInsert', 'onUpdate' ],
         [], this );
     if( params.generateInsertKey!==undefined ) {
-        this.generateInsertKey= params.generateInsertKey || false;
-    }
-    else {
-        if( this.generateInsertKey===undefined ) {
-            this.generateInsertKey= this.table.generateInsertKey;
-        }
+        this.generateInsertKey= SeLiteMisc.fieldDefined( params, 'generateInsertKey', this.table.generateInsertKey );
     }
     if( !Array.isArray(this.joins) ) {
         throw new Error( "params.joins must be an array (of objects), if present." );
     }
 
     // The following doesn't apply to indexing of RecordSetHolder.originals.
-    if( this.indexBy===undefined && this.table && this.table.primary && typeof this.table.primary==='string' ) {
+    if( SeLiteMisc.field(this, 'indexBy')===undefined && this.table && this.table.primary && typeof this.table.primary==='string' ) {
         this.indexBy= this.table.primary;
-        this.indexUnique===undefined || this.indexUnique || SeLiteMisc.fail( 'Formula for table ' +this.table.name+ " doesn't specify indexBy field, therefore it should not specify indexUnique as false.");
+        SeLiteMisc.field(this, 'indexUnique')===undefined || this.indexUnique || SeLiteMisc.fail( 'Formula for table ' +this.table.name+ " doesn't specify indexBy field, therefore it should not specify indexUnique as false.");
         this.indexUnique= true;
     }
     if( this.indexBy && !Array.isArray(this.indexBy) ) {
@@ -610,16 +645,18 @@ SeLiteData.RecordSetFormula.prototype.allAliasesToSource= function allAliasesToS
 
 /** This returns SeLiteData.RecordSet object, i.e. the records themselves.
  *  @see RecordSetHolder.select().
+ *  @return {Array|Promise}
  **/
-SeLiteData.RecordSetFormula.prototype.select= function select( parametersOrCondition, dontNarrow ) {
-    return new RecordSetHolder(this, parametersOrCondition ).select( dontNarrow );
+SeLiteData.RecordSetFormula.prototype.select= function select( parametersOrCondition, dontNarrow=false, sync=false ) {
+    return new RecordSetHolder(this, parametersOrCondition ).select( dontNarrow, sync );
 };
 
 /** This returns the SeLiteData.Record object, i.e. the record itself.
  *  @see RecordSetHolder.selectOne()
+ *  @return {Object|Promise}
  **/
-SeLiteData.RecordSetFormula.prototype.selectOne= function selectOne( parametersOrCondition, dontNarrow ) {
-    return new RecordSetHolder(this, parametersOrCondition ).selectOne( dontNarrow );
+SeLiteData.RecordSetFormula.prototype.selectOne= function selectOne( parametersOrCondition, dontNarrow=false, sync=false ) {
+    return new RecordSetHolder(this, parametersOrCondition ).selectOne( dontNarrow, sync );
 };
 
 /** SeLiteData.RecordSet serves as an associative array, containing SeLiteData.Record object(s), indexed by SeLiteMisc.collectByColumn(records, [formula.indexBy] or formula.indexBy, formula.indexUnique)
@@ -674,7 +711,7 @@ SeLiteData.recordOrSetHolder= function recordOrSetHolder( recordOrSet ) {
  *   If parameter-name matches either a table column name/alias or a join name/alias, it must not match any entry in parameterNames - @TODO factor out a similar check from RecordSetHolder.prototype.select() - see unnamedParamFilters; then re-apply the check here. Such a parameter
  *   is then used as a subfilter, filtering by its respective column/alias, adding an 'AND' to the overall SQL WHERE part.
  *   Note that if parameter-name matches two or more columns with same name (from two or more tables), the condition will probably fail
- *   with an error - then use aliases.
+ *   with an error - then use aliases. TODO clarify
  **/
 function RecordSetHolder( formula, parametersOrCondition={} ) {
     RecordOrSetHolder.call( this );
@@ -692,10 +729,11 @@ RecordSetHolder.prototype.storage= function storage() {
     return this.formula.table.db.storage;
 };
 
-/** @param {boolean} dontNarrow Whether not to narrow. Use e.g. for personal logins (other than logins created by the script).
- *  @return {SeLiteData.RecordSet} object
+/** This narrows down formula.table, OPTIONAL(TODO:) unless its primary key is present in either formula.fetchMatching or this.parametersOrCondition (if this.parametersOrCondition is an object, not a string). It doesn't check formula.fetchCondition, neither this.parametersOrCondition if it's a string. *  It doesn't narrow down any joins.
+ *  @param {boolean} dontNarrow Whether not to narrow. Use e.g. for personal logins (other than logins created by the script).
+ *  @return {SeLiteData.RecordSet|Promise} object
  * */
-RecordSetHolder.prototype.select= function select( dontNarrow ) {
+RecordSetHolder.prototype.select= function select( dontNarrow=false, sync=false ) {
     SeLiteMisc.objectDeleteFields( this.recordSet );
     /** @type {SeLiteData.RecordSetFormula} */
     var formula= this.formula;
@@ -819,6 +857,7 @@ RecordSetHolder.prototype.select= function select( dontNarrow ) {
                 }
             }
         }
+        // don't use `else {`, because paramIsColumnOrAlias could have changed above.
         if( paramIsColumnOrAlias ) {
             // @TODO Move the following validation to SeLiteData.RecordSetFormula()? For that factor out the above logic that detemines paramIsColumn. Apply a similar validation to RecordSetHolder() constructor?
             !(param in this.formula.parameterNames ) || SeLiteMisc.fail( "RecordSetHolder.select() received a parameter " +param+ " which matches a column or alias, but it also matches one of parameterNames of SeLiteData.RecordSetFormula instance." );
@@ -844,27 +883,36 @@ RecordSetHolder.prototype.select= function select( dontNarrow ) {
         }
     }
     
-    var conditions= unnamedParamFilters.slice(); // @TODO using unnamedParamFilters.slice() as a protective copy -> factor the above into constructor
+    var conditions= unnamedParamFilters.slice(); // @TODO use unnamedParamFilters.slice() as a protective copy via SeLiteMisc.objectClone() -> factor the above into constructor
     var settings= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
     var narrowBy= settings.getField( 'narrowBy' ).getDownToFolder().entry;
     if( narrowBy!==undefined && !dontNarrow ) {
         let hasNarrowColumn= false;
+        // @TODO loop - once we support formula.tables array
         if( formula.table.narrowColumn ) {
+            // @TODO Optional: run the following only if formula.table.primary is not in formula.fetchMatching neither this.parametersOrCondition (as an object, not a string).
             let alias= formula.alias || formula.table.nameWithPrefix();
-            conditions.push( formula.table.narrowMethod.filter(formula.table, alias, narrowBy) );
+            let narrowByShortened= formula.table.narrowMaxWidth
+                ? narrowBy.substr( 0, formula.table.narrowMaxWidth )
+                : narrowBy;
+            conditions.push( formula.table.narrowMethod(formula.table, alias, narrowByShortened) );
             hasNarrowColumn= true;
         }
+        /* TODO Should we narrow throguh joins?
         for( var join of joins ) {
             if( join.table.narrowColumn ) {
                 let alias= join.alias || join.table.nameWithPrefix();
-                let condition= join.table.narrowMethod.filter( join.table, alias, narrowBy );
+                let narrowByShortened= join.table.narrowMaxWidth
+                    ? narrowBy.substr( 0, join.table.narrowMaxWidth )
+                    : narrowBy;
+                let narrowCondition= join.table.narrowMethod( join.table, alias, narrowBy );
                 if( join.type && join.type.toLowerCase().startsWith('left') ) {
-                    condition= '( ' +condition+ " OR " +alias+ "." +join.table.narrowColumn+ " IS NULL )";
+                    narrowCondition= '( ' +narrowCondition+ " OR " +alias+ "." +join.table.narrowColumn+ " IS NULL )";
                 }
-                conditions.push( condition );
+                conditions.push( narrowCondition );
                 hasNarrowColumn= true;
             }
-        }
+        }*/
         if( !hasNarrowColumn ) {
             SeLiteMisc.fail( "You're expecting narrowing down the matches, but there's no narrowColumn set." );
         }
@@ -872,7 +920,7 @@ RecordSetHolder.prototype.select= function select( dontNarrow ) {
 
     formula.fetchCondition===null || conditions.splice( 0, 0, formula.fetchCondition );
     condition===null || conditions.splice( 0, 0, condition );
-    var data= this.storage().getRecords( {
+    var selected= this.storage().getRecords( {
         table: formula.table.nameWithPrefix()+
             (formula.alias
             ? ' ' +formula.alias
@@ -886,9 +934,18 @@ RecordSetHolder.prototype.select= function select( dontNarrow ) {
         sort: formula.sort,
         sortDirection: formula.sortDirection,
         debugQuery: formula.debugQuery,
-        debugResult: formula.debugResult
+        debugResult: formula.debugResult,
+        sync: sync
     } );
+    if( sync ) {
+        return this._handleSelectResult( formula, selected );
+    }
+    else {
+        return selected.then( data => this._handleSelectResult( formula, data ) );
+    }
+};
 
+RecordSetHolder.prototype._handleSelectResult= function _handleSelectResult( formula, data ) {
     var unindexedRecords= [];
     this.originals= {};
     for( var j=0; j<data.length; j++ ) {
@@ -911,23 +968,27 @@ RecordSetHolder.prototype.select= function select( dontNarrow ) {
 
 /** This runs the query just like select(). Then it checks whether there was exactly 1 result row.
  *  If yes, it returns that row (SeLiteData.Record object). Otherwise it throws an exception.
+ *  @return {
  **/
-RecordSetHolder.prototype.selectOne= function selectOne( dontNarrow ) {
-    this.select( dontNarrow );
-    var keys= Object.keys(this.recordSet);
-    if( keys.length!==1 ) {
-        throw new Error( "Expecting one record, but there was: " +keys.length+ " of them." );
-    }
-    return this.recordSet[ keys[0] ];
+RecordSetHolder.prototype.selectOne= function selectOne( dontNarrow=false, sync=false ) {
+    var selecting= this.select( dontNarrow, sync );
+    return sync
+        ? SeLiteData.Storage.expectOneRow( this.recordSet )
+        : selecting.then( recordSetIgnored => SeLiteData.Storage.expectOneRow( this.recordSet ) );
 };
 
 RecordSetHolder.prototype.insert= function insert() { throw new Error( "@TODO if need be" );
 }
 
-RecordSetHolder.prototype.update= function update() {
+/** Update the underlying record.
+ *  @param {boolean} sync
+ *  @returns {undefined|Promise}
+ *  */
+RecordSetHolder.prototype.update= function update( sync ) {
         for( var i=0; i<this.holders.length; i++ ) {
-        /** @type {RecordHolder} */var recordHolder= this.holders[i];
-        recordHolder.update();
+        /** @type {RecordHolder} */
+        var recordHolder= this.holders[i];
+        return recordHolder.update( sync );
     }
 };
 

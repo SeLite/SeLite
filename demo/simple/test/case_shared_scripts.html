@@ -13,17 +13,17 @@
 </thead><tbody>
 <!--This marks the current page as current, so that later you can call script pauseUntilPageRefreshed-->
 <tr>
-	<td>script</td>
+	<td>function</td>
 	<td>markPageAsCurrent</td>
 	<td></td>
 </tr>
 <tr>
-	<td>store</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;store</td>
 	<td>javascript{ this.browserbot.findElement( &quot;//td[@class='rename']/a[1]&quot; ).href }</td>
 	<td>renameLink</td>
 </tr>
 <tr>
-	<td>endScript</td>
+	<td>endFunction</td>
 	<td></td>
 	<td></td>
 </tr>
@@ -34,10 +34,10 @@
 	<td>pauseUntilPageRefreshed</td>
 	<td></td>
 </tr>
-<!--Don't use waitForCondition selenium.browserbot.findElement( "//td[@class='rename']/a[1]" ).href!=storedVars['renameLink']-->
-<!--because selenium.browserbot.findElement() may return null while the page is reloaded, and then your expression fails-->
+<!--    Don't use waitForCondition selenium.browserbot.findElement( "//td[@class='rename']/a[1]" ).href!=storedVars['renameLink']-->
+<!--    because selenium.browserbot.findElement() may return null while the page is reloaded, and then your expression fails-->
 <tr>
-	<td>waitForElementPresent</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;waitForElementPresent</td>
 	<td>//td[@class='rename']/a[1][@href!='${renameLink}']</td>
 	<td>4000</td>
 </tr>

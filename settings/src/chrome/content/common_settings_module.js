@@ -20,8 +20,8 @@ var passwordField= new SeLiteSettings.Field.String('passwordField', /*multivalue
  * */
 var roles= new SeLiteSettings.Field.FixedMap.String( 'roles', undefined, undefined, "Test roles, as defined by the framework. Enter usernames for those roles." );
 
-var narrowBy= new SeLiteSettings.Field.String( 'narrowBy' );
-var alwaysTestGeneratingKeys= new SeLiteSettings.Field.Boolean( 'alwaysTestGeneratingKeys' );
+var narrowBy= new SeLiteSettings.Field.String( 'narrowBy', /*multivalued*/false, /*default*/undefined, /*allowNull*/false, "String to put into any new records (where applicable) and to filter/narrow records by it when searching/navigating." );
+var alwaysTestGeneratingKeys= new SeLiteSettings.Field.Boolean( 'alwaysTestGeneratingKeys', /*default*/undefined, /*allowNull*/false, "Whether Selenese command insertCaptureKey (from DbObjects) should always let SQLite generate a primary key, but also capture it from the application and test thei equivalence." );
 
 var settingsModule= new SeLiteSettings.Module( 'extensions.selite-settings.common',
     [appDB, testDB, vanillaDB, roles, webRoot, usernameField, passwordField, narrowBy, alwaysTestGeneratingKeys],

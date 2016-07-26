@@ -270,7 +270,7 @@
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>id=user_id</td>
-	<td>=&lt;&gt;{characters: /[a-z0-9]/i, minLength: 2}&lt;&gt;</td>
+	<td>=&lt;&gt;({ characters: /[a-z0-9]/i, minLength: 2 }&lt;&gt;</td>
 </tr>
 <!--    Because of the following, the test only works for standard English installation.-->
 <tr>
@@ -312,17 +312,17 @@
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>id=edit-name</td>
-	<td>=&lt;&gt;{maxLength:60, type:'word', store:'newUserId'}&lt;&gt;</td>
+	<td>=&lt;&gt;({ maxLength:60, type:'word', store:'newUserId' })&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>id=edit-mail</td>
-	<td>=&lt;&gt;{maxLength: 254, type:'email', store:'newUserEmail'}&lt;&gt;</td>
+	<td>=&lt;&gt;({ maxLength: 254, type:'email', store:'newUserEmail' })&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
 	<td>id=edit-pass-pass1</td>
-	<td>=&lt;&gt;{type:'password', store:'newUserPassword'}&lt;&gt;</td>
+	<td>=&lt;&gt;({ type:'password', store:'newUserPassword' })&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
@@ -336,7 +336,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
-	<td>=&lt;&gt;{name: $newUserId, mail: $newUserEmail, pass: $newUserPassword}&lt;&gt;</td>
+	<td>=&lt;&gt;({ name: $newUserId, mail: $newUserEmail, pass: $newUserPassword })&lt;&gt;</td>
 	<td>=&lt;&gt;Dotclear.tables.user&lt;&gt;</td>
 </tr>
 <!--    Login and verify-->
@@ -388,7 +388,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeReadRecord</td>
-	<td>=&lt;&gt;{ formula: Dotclear.formulas.user, name: $userId }&lt;&gt;</td>
+	<td>=&lt;&gt;({ formula: Dotclear.formulas.user, name: $userId })&lt;&gt;</td>
 	<td>user</td>
 </tr>
 <!--    if the user is logged in already, log him out:-->

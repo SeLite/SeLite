@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://lmsdev.racp.edu.au" />
+<title>reuse-ids_case</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">reuse-ids_case</td></tr>
+</thead><tbody>
+<tr>
+	<td>getEval</td>
+	<td>alert( '&lt;&gt;SeLiteSettings.getTestSuiteFolder()&lt;&gt;/schema.sql' )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>executeSQLscript</td>
+	<td>&lt;&gt;SeLiteSettings.getTestSuiteFolder()&lt;&gt;/schema.sql</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>alert( SeLiteData.getStorageFromSettings().execute( &quot;SELECT * FROM simple WHERE id=:rowid&quot;, {'rowid': 1}, /*fields*/undefined, /*expectResult*/true, /*sync*/true ) )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>alert( SeLiteData.getStorageFromSettings().execute( &quot;SELECT * FROM simple WHERE id=:rowid&quot;, {'rowid': 1}, /*fields*/undefined, /*expectResult*/true ) )</td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>storeReadRecord</td>
+	<td>=&lt;&gt;var db=new SeLiteData.Db( SeLiteData.getStorageFromSettings() ); var table= new SeLiteData.Table( {db:&nbsp;&nbsp;db, name: 'simple', columns: ['id', 'name'], primary: 'id'} ); ({table: table, name: 'hello'})&lt;&gt;</td>
+	<td>record</td>
+</tr>
+<tr>
+	<td>storeReadRecord</td>
+	<td>=&lt;&gt;var db=new SeLiteData.Db( SeLiteData.getStorageFromSettings() ); var table= new SeLiteData.Table( {db:&nbsp;&nbsp;db, name: 'simple', columns: ['id', 'name'], primary: 'id'} ); ({table: table, name: 'hello', sync:true})&lt;&gt;</td>
+	<td>record</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>alert( $record.id===null )</td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>insertRecord</td>
+	<td>=&lt;&gt;({ name: 'hi'})&lt;&gt;</td>
+	<td>=&lt;&gt;var db=new SeLiteData.Db( SeLiteData.getStorageFromSettings() ); var table= new SeLiteData.Table( {db:&nbsp;&nbsp;db, name: 'simple', columns: ['id', 'name'], primary: 'id'} ); ({table: table, sync: false})&lt;&gt;</td>
+</tr>
+<tr>
+	<td>insertRecord</td>
+	<td>=&lt;&gt;({id: 3, name: 'hi'})&lt;&gt;</td>
+	<td>=&lt;&gt;var db=new SeLiteData.Db( SeLiteData.getStorageFromSettings() ); var table= new SeLiteData.Table( {db:&nbsp;&nbsp;db, name: 'simple', columns: ['id', 'name'], primary: 'id'} ); ({table: table, sync: false})&lt;&gt;</td>
+</tr>
+<tr>
+	<td>insertRecord</td>
+	<td>=&lt;&gt;({id: 2, name: 'ho'})&lt;&gt;</td>
+	<td>=&lt;&gt;var db=new SeLiteData.Db( SeLiteData.getStorageFromSettings() ); var table= new SeLiteData.Table( {db:&nbsp;&nbsp;db, name: 'simple', columns: ['id', 'name'], primary: 'id'} ); ({table: table, sync: true})&lt;&gt;</td>
+</tr>
+<!---->
+<tr>
+	<td>insertRecordCaptureKey</td>
+	<td>=&lt;&gt;(sel)=&gt;4&lt;&gt;</td>
+	<td>=&lt;&gt;var db=new SeLiteData.Db( SeLiteData.getStorageFromSettings() ); var table= new SeLiteData.Table( {db:&nbsp;&nbsp;db, name: 'simple', columns: ['id', 'name'], primary: 'id'} ); ({table: table, record: { name: 'capt'}, sync: false})&lt;&gt;</td>
+</tr>
+<tr>
+	<td>insertRecordCaptureKey</td>
+	<td>=&lt;&gt;(sel)=&gt;4&lt;&gt;</td>
+	<td>=&lt;&gt;var db=new SeLiteData.Db( SeLiteData.getStorageFromSettings() ); var table= new SeLiteData.Table( {db:&nbsp;&nbsp;db, name: 'simple', columns: ['id', 'name'], primary: 'id'} ); ({table: table, record: { name: 'capt'}, sync: true})&lt;&gt;</td>
+</tr>
+<!---->
+<!---->
+</tbody></table>
+</body>
+</html>

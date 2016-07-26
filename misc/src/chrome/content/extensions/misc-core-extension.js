@@ -30,7 +30,6 @@ if( loadedTimes===1 ) {
 // Anonymous function to prevent leaking into Selenium global namespace
 ( function() {
     var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
-
     //SeLiteExtensionSequencer.coreExtensionsLoadedTimes
     
     /* Not used. The only place that would use it for now is SeLite Misc ovOptions.js. However, it would need this function to match parameters that don't have part '=value', too.

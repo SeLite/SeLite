@@ -121,9 +121,7 @@ Selenium= Selenium;
      **/
     Selenium.prototype.timestampComparesTo= function timestampComparesTo( locator, timestampInMilliseconds, displayPrecisionInMilliseconds, validatePrecision, timezoneTODO ) {
         var element= this.browserbot.findElement(locator);
-        var displayedTimeString= element.value!==undefined
-            ? element.value
-            : element.textContent;
+        var displayedTimeString= SeLiteMisc.fieldDefined( element, 'value', element.textContent );
         var displayedTime= Date.parse( displayedTimeString );
         var maxDifference= maxTimeDifference()+ Number(this.defaultTimeout)+ displayPrecisionInMilliseconds;
         LOG.debug( 'timestampInMilliseconds: ' +timestampInMilliseconds+ '; DisplayedTimeString: ' +displayedTimeString+ ' is timestamp '
@@ -243,7 +241,7 @@ Selenium= Selenium;
         if( typeof columnOrDetails==='object' ) {
             indexBy= columnOrDetails.indexBy;
             valuesUnique= columnOrDetails.valuesUnique;
-            if( columnOrDetails.store===undefined ) {
+            if( SeLiteMisc.field(columnOrDetails, 'store')===undefined ) {
                 resultVariableName= columnOrDetails.store;
             }
         }
@@ -560,7 +558,7 @@ Selenium= Selenium;
                 else {
                     var actualScale= 0;
                 }
-                if( params.min!==undefined || params.max ) {
+                if( SeLiteMisc.field(params, 'min')!==undefined || params.max ) {
                     // Ignore minLength, maxLength, totalLength
                     var min= params.min || 0;
                     result= min+ Math.random()*( params.max-min ); // That excludes params.max. Therefore I'll do a rounding transformation in the next step
@@ -616,14 +614,12 @@ Selenium= Selenium;
             var name= params;
         }
         else {
-            if( params.from!==undefined ) {
+            if( SeLiteMisc.field(params, 'from')!==undefined ) {
                 var fromElement= this.browserbot.findElement( params.from );
-                var name= fromElement.value!==undefined
-                        ? fromElement.value
-                        : fromElement.textContent;
+                var name= SeLiteMisc.fieldDefined( fromElement, 'value', fromElement.textContent );
             }
             else
-            if( params.name===undefined ) {
+            if( SeLiteMisc.field(params, 'name')===undefined ) {
                 var name= params.name;
             }
             else {

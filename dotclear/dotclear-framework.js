@@ -76,7 +76,7 @@ SeLiteMisc.registerOrExtendFramework(
             Dotclear.db.storage.execute( query, {
                 user_id: Dotclear.selectedUserId,
                 user_options: JSON.stringify(options)
-            } );
+            }, undefined, /*sync*/false );
         };
 
         /** This updates the given option within existing user.user_options. If value is undefined, then it removes that option.
@@ -109,7 +109,7 @@ SeLiteMisc.registerOrExtendFramework(
             if( forUser ) {
                 bindings.selectedUserId= Dotclear.selectedUserId;
             }
-            Dotclear.db.storage.execute( query, bindings );
+            Dotclear.db.storage.execute( query, bindings, undefined, /*sync*/false );
         };
 
         SeLiteSettings.setTestDbKeeper( 

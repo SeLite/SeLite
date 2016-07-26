@@ -72,7 +72,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
             
             var window= selenium.browserbot.getCurrentWindow(true);
             var originalOnBeforeUnload= window.onbeforeunload;
-            if( originalOnBeforeUnload && originalOnBeforeUnload.overridenBySeLite ) {
+            if( originalOnBeforeUnload && 'overridenBySeLite' in originalOnBeforeUnload ) {
                 console.warn( 'SeLite ExitConfirmationChecker already overrode current window.onbeforeunload(). Have you called SeLiteExitConfirmationChecker.overrideOnBeforeUnload() where it is not needed?' );
                 return;
             }
@@ -109,9 +109,9 @@ if( SeLiteExitConfirmationChecker===undefined ) {
         var originalSeLiteBeforeCurrentCommand= global.Selenium.seLiteBeforeCurrentCommand;
         global.Selenium.seLiteBeforeCurrentCommand= function seLiteBeforeCurrentCommand() {
             // BrowserBot's recordPageLoad() overloaded above sets SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload *after* a command opened a new page. If the next command modifies an input, I need to perform the following *before* that next command - hence global.seLiteBeforeCurrentCommand. But I also need to raise an error (if appropriate) *after* that next command - hence global.seLiteAfterCurrentCommand.
-            if( SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload ) {
+            if( 'shouldOverrideOnBeforeUnload' in SeLiteExitConfirmationChecker ) {
                 SeLiteExitConfirmationChecker.overrideOnBeforeUnload();
-                SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload= false;
+                delete SeLiteExitConfirmationChecker.shouldOverrideOnBeforeUnload;
             }
             originalSeLiteBeforeCurrentCommand.call( this );
         };
@@ -120,7 +120,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
         global.Selenium.seLiteAfterCurrentCommand= function seLiteAfterCurrentCommand() {
             console.debug('SeLite ExitConfirmationChecker: seLiteAfterCurrentCommand');
             if( !this.result.failed ) { // See also comments in auto-check.js
-                if( SeLiteExitConfirmationChecker.modifiedInputValues!==undefined && SeLiteExitConfirmationChecker.appAskedToConfirm!==undefined ) {
+                if( SeLiteMisc.field(SeLiteExitConfirmationChecker, 'modifiedInputValues')!==undefined && SeLiteMisc.field(SeLiteExitConfirmationChecker, 'appAskedToConfirm')!==undefined ) {
                     var hadModifiedInputs= Object.keys( SeLiteExitConfirmationChecker.modifiedInputValues ).length>0;
                     var appAskedToConfirm= SeLiteExitConfirmationChecker.appAskedToConfirm;
                     SeLiteExitConfirmationChecker.appAskedToConfirm= undefined; // Clear it no matter whether the following if(..) condition is true or not
@@ -200,8 +200,28 @@ if( SeLiteExitConfirmationChecker===undefined ) {
                 return;
             }
             var input= selenium.browserbot.findElement(locator);
+            var fieldsDownToFolder= settingsModule.getFieldsDownToFolder( /*folderPath:*/undefined, /*dontCache:*/true );
+            if( fieldsDownToFolder['exitConfirmationCheckerCheckedLocators'].entry && fieldsDownToFolder['exitConfirmationCheckerCheckedLocators'].entry.length>0 ) {
+                var matched= false;
+                for( var locator of fieldsDownToFolder['exitConfirmationCheckerCheckedLocators'].entry ) {
+                    if( input in this.browserbot.findElements(locator) ) {
+                        matched= true;
+                        break;
+                    }
+                }
+                if( !matched ) {
+                    return;
+                }
+            }
+            if( fieldsDownToFolder['exitConfirmationCheckerUnCheckedLocators'].entry && fieldsDownToFolder['exitConfirmationCheckerUnCheckedLocators'].entry.length>0 ) {
+                for( var locator of fieldsDownToFolder['exitConfirmationCheckerUnCheckedLocators'].entry ) {
+                    if( input in this.browserbot.findElements(locator) ) {
+                        return;
+                    }
+                }
+            }
             var inputIndex= inputToIndex(input, locator);
-            if( SeLiteExitConfirmationChecker.originalInputValues[inputIndex]===undefined ) {
+            if( SeLiteMisc.field(SeLiteExitConfirmationChecker.originalInputValues, inputIndex)===undefined ) {
                 SeLiteExitConfirmationChecker.originalInputValues[inputIndex]= elementValue( input, elementValueField );
             }
         };
@@ -256,7 +276,7 @@ if( SeLiteExitConfirmationChecker===undefined ) {
             SeLiteExitConfirmationChecker.inputAfterChange( locator, undefined, true );
         };
         
-        if( Selenium.prototype.doTypeRandom ) { // SeLite Commands is present. So I override it here.
+        if( 'doTypeRandom' in Selenium.prototype ) { // SeLite Commands is present. So I override it here.
             var oldDoTypeRandom= Selenium.prototype.doTypeRandom;
             Selenium.prototype.doTypeRandom= function doTypeRandom( locator, paramsOrStore ) {
                 SeLiteExitConfirmationChecker.inputBeforeChange( locator, undefined, true );

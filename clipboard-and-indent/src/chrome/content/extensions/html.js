@@ -169,7 +169,7 @@ function parseCommandsAndHeader( doc ) {
 function parse(testCase, source) {
 	var doc = source;
         var commandsAndHeader= parseCommandsAndHeader( doc );
-        if( commandsAndHeader.header!==undefined ) {
+        if( 'header' in commandsAndHeader ) {
             testCase.header= commandsAndHeader.header;
         }
 	if (commandsAndHeader.commands.length > 0) {

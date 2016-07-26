@@ -73,8 +73,8 @@ function indentationStep() { // If this turns out to be a bottleneck, then creat
     }
 }
         
-// Commands (other than ones starting with 'end') that suggest indentation to the left: decrease of indentation as compared to the previous command. Some of them are also 'opening' commands - see ide-extension.js
-var closingCommands= ['else', 'elseIf', 'catch', 'finally'];
+// Commands (other than ones starting with 'end') that suggest indentation to the left: decrease of indentation as compared to the previous command. Some of them are also 'opening' commands - see chrome/content/extensions/clipboard-and-indent-ide.js
+var closingCommands= ['else', 'elseIf', 'until', 'untilPromise', 'catch', 'finally'];
 
 function AutoCompleteResult(search, candidates) {
     this.search = search;

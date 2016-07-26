@@ -673,6 +673,12 @@ SeLiteMisc.field= function field( object, fieldName, defaultValue=undefined ) {
         : defaultValue;
 };
 
+SeLiteMisc.fieldDefined= function fieldDefined( object, fieldName, defaultValue=undefined ) {
+    return fieldName in object && object[fieldName]!==undefined
+        ? object[fieldName]
+        : defaultValue;
+};
+
 /** @param {(object|Array)} [arrayOrItem]
  *  @param {boolean} [encloseInArrayEvenIfUndefined]
  *  @return {Array} arrayOrItem if it's an array; [arrayOrItem] if arrayOrItem is defined but not an array, or it's undefined but encloseInArrayEvenIfUndefined is true; an empty array otherwise.
@@ -823,7 +829,7 @@ SeLiteMisc.itemGeneric= function itemGeneric( containerAndFields, nullReplacemen
             item= item[field];
         }
         else
-        if( typeof item==='object' && item[field]!==undefined ) {
+        if( typeof item==='object' && field in item && item[field]!==undefined ) {
             item= item[field];
         }
         else {

@@ -81,7 +81,7 @@ ImplicitWait.prototype = {
 };
 
 
-/** 
+/** This doesn't make findElement() wait. Instead, when it fails, it throws a custom error. That error is caught in loopFindElement() and the Selenese command is re-tried. @TODO Consider Promise chains, if Selenium IDE ever uses them.
  * Overriding for BrowserBot.prototype.findElement: function(locator, win) in selenium-browserbot.js line 1524
  * @param {String} locator
  * @param {Object} win

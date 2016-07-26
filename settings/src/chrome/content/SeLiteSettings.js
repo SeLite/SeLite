@@ -920,7 +920,7 @@ SeLiteSettings.TestDbKeeper.Columns.prototype.store= function store() {
                     var query= "UPDATE " +tableNameWithPrefix+ " SET " +updateParts.join(', ')+ ' WHERE ' +tableDetails.key+ '=:' +tableDetails.key;
                     console.debug( query );
                     bindings[ tableDetails.key ]= keyValue;
-                    this.testStorage.execute( query, bindings );
+                    this.testStorage.execute( query, bindings, undefined, /*sync*/false );
                 }
             }
         }
@@ -1332,7 +1332,7 @@ SeLiteSettings.Module.forName= function forName( moduleNameOrModule ) {
  * @param string fileName File name
  * @return string contents; false if no such file (compare the result strictly using ===false)
  * */
-function readFile( fileName ) {
+SeLiteSettings.readFile= function readFile( fileName ) {
     try {
         var file= new FileUtils.File( fileName ); // Object of class nsIFile
         //@TODO speed up: if file doesn't exist, return false, rather than fail and catch
@@ -1356,7 +1356,7 @@ function readFile( fileName ) {
     } while (read != 0);
     cstream.close(); // this closes fstream, too
     return contents;
-}
+};
 
 SeLiteSettings.VALUES_MANIFEST_FILENAME= 'SeLiteSettingsValues.txt'; // @TODO Make this 'const' once NetBeans supports it
 SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME= 'SeLiteSettingsAssociations.txt'; // @TODO Make this 'const' once NetBeans supports it
@@ -1454,7 +1454,7 @@ function manifestsDownToFolder( folderPath=SeLiteSettings.testSuiteFolder, dontC
     
     for( var folder of folderNames ) {
         var fileName= OS.Path.join(folder, SeLiteSettings.VALUES_MANIFEST_FILENAME);
-        var contents= readFile( fileName );
+        var contents= SeLiteSettings.readFile( fileName );
         if( contents!==false ) {
             var lines= removeCommentsGetLines(contents);
             for( var j=0; j<lines.length; j++ ) {
@@ -1473,7 +1473,7 @@ function manifestsDownToFolder( folderPath=SeLiteSettings.testSuiteFolder, dontC
         }
         
         fileName= OS.Path.join(folder, SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME);
-        var contents= readFile( fileName );
+        var contents= SeLiteSettings.readFile( fileName );
         if( contents!==false ) {
             var lines= removeCommentsGetLines(contents);
             for( var j=0; j<lines.length; j++ ) {
@@ -1591,7 +1591,7 @@ SeLiteSettings.ModuleAndSetInformation= SeLiteMisc.proxyVerifyFields( SeLiteSett
  *  If undefined/null, then this uses the folder of test suite currently open in Selenium IDE. If there is none,
  *  it returns fields of the default set (or field default values).
  *  @param bool dontCache If true, then this doesn't cache manifest files (it doesn't use any
- *  previous manifests stored in the cache and it doesn't store current manifests in the cache). The actual preferences won't be cached no matter what dontCache. For use by GUI.
+ *  previous manifests stored in the cache and it doesn't store current manifests in the cache). The actual preferences won't be cached no matter what dontCache. For use by GUI. @TODO Empty the cache on Se debugger pause, breakPoint command or run end. Then remove passing dontCache=true from exit confirmation checker.
  *  @param {bool} [includeUndeclaredEntries] See same parameter of SeLiteSettings.Module.prototype.getFieldsOfSet().
  *  @return {Object<string,SeLiteSettings.FieldInformation>} An object with sorted keys, serving as an associative array. A bit similar to result of getFieldsOfset(),
  *  but with more information. 'entry' of each FieldInformation instances comes from either
@@ -1622,7 +1622,7 @@ SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToF
                         // 1. replace / and \ in the value from manifest with the system's folder separator. I do that by splitting the value by a regex, and then using OS.Path.join().
                         // 2. replace SeLiteSettings.SELITE_THIS_MANIFEST_FOLDER with the full path to the manifest's folder
                         // Since I split the relative path by / and \, the following doesn't affect us: OS.Path.join('\\\\', 'server', 'folder') returned value of JS expression '\\\\server\folder'. I don't want two backslashes \\ anywhere else than the root of the path, because it's deemed absolute and then OS.Path.join() ignores any previous parameters (as is documented at MDN): OS.Path.join('any', 'path', '\\\\', 'subfolder') and also OS.Path.join('any', 'path', '\\', '\\', 'subfolder') return value of JS expression '\\\\subfolder'.
-                        var pathParts= manifest.value.split( /[/\\]/ );
+                        var pathParts= manifest.value.split( /[\/\\]/ );
                         manifest.value= OS.Path.join.apply( OS.Path, pathParts );
                         manifest.value= manifest.value.replace( SeLiteSettings.SELITE_THIS_MANIFEST_FOLDER, manifestFolder, 'g' );
                         manifest.value= OS.Path.normalize( manifest.value );
@@ -1738,7 +1738,7 @@ SeLiteSettings.Module.prototype.mergeSetsAndDefaults= function getFieldsDownToSe
     }
     // Fourth, for any fields with the value being undefined (not null or empty string), apply field defaults
     for( var fieldName in this.fields ) {
-        if( result[fieldName].entry===undefined ) {
+        if( SeLiteMisc.field( result[fieldName], 'entry' )===undefined ) {
             var field= this.fields[fieldName];
             var isChoice= field instanceof SeLiteSettings.Field.Choice;
             if( !field.multivalued && !isChoice ) {
@@ -1750,15 +1750,20 @@ SeLiteSettings.Module.prototype.mergeSetsAndDefaults= function getFieldsDownToSe
                     : SeLiteMisc.sortedObject( field.compareValues );
                 var keyOrKeys= field.getDefaultKey();
                 if( field.multivalued ) {
-                    for( var i=0; i<keyOrKeys.length; i++ ) { //@TODO use for.. of.. loop once NetBeans support it
-                        var key= keyOrKeys[i];
-                        entry[ key ]= isChoice
-                            ? field.choicePairs[key]
-                            : key;
+                    if( keyOrKeys!==undefined ) {
+                        for( var i=0; i<keyOrKeys.length; i++ ) { //@TODO use for.. of.. loop once NetBeans support it
+                            var key= keyOrKeys[i];
+                            entry[ key ]= isChoice
+                                ? field.choicePairs[key]
+                                : key;
+                        }
+                    }
+                    else {
+                        entry= undefined;
                     }
                 }
                 else {
-                    entry= isChoice
+                    entry= isChoice && keyOrKeys!==undefined
                         ? field.choicePairs[keyOrKeys]
                         : keyOrKeys; // This may be null or undefined
                 }

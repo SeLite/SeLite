@@ -102,7 +102,7 @@ SeLiteMisc.registerOrExtendFramework(
                 if( forUser ) {
                     bindings.selectedUsername= Serendipity.selectedUsername;
                 }
-                Serendipity.db.storage.execute( query, bindings );
+                Serendipity.db.storage.execute( query, bindings, undefined,  /*sync*/false );
             };
 
             /** @param {string} name Name of the config field (i.e. matching column serendipity_config.name).

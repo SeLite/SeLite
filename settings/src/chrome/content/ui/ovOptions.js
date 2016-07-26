@@ -466,7 +466,7 @@ else {
             }
             !('value' in this) || SeLiteMisc.ensureType( this.value, ['string', 'number', 'boolean', 'undefined', 'null'], 'value' );
         }
-        if( showingPerFolder() && 'valueCompound' in this && this.valueCompound!==undefined ) {
+        if( showingPerFolder() && SeLiteMisc.field(this, 'valueCompound')!==undefined ) {
             if( this.valueCompound.fromPreferences ) {
                 /** @var {(ValueSource|undefined)} Location of the module definition or 'values' manifest where the value comes from. Only in per-folder mode. */
                 this.source= this.valueCompound.setName!==this.module.getDefaultSetName()//old?!: valueCompound.folderPath!==''
@@ -592,11 +592,11 @@ else {
         }
         else if( column===Column.VALUE ) {
             if( 'key' in this && this.key!==SeLiteSettings.NEW_VALUE_ROW ) {
-                if( this.rowLevel===RowLevel.FIELD && (this.valueCompound.entry===null || this.valueCompound.entry===undefined) ) {
+                if( this.rowLevel===RowLevel.FIELD && SeLiteMisc.fieldDefined(this.valueCompound, 'entry', null)===null/*this also covers undefined*/ ) {
                     return SeLiteSettings.FIELD_NULL_OR_UNDEFINED;
                 }
                 if( this.rowLevel===RowLevel.OPTION ) {
-                    if( this.field instanceof SeLiteSettings.Field.FixedMap && (!this.valueCompound.entry || this.valueCompound.entry[this.key]===undefined) ) {
+                    if( this.field instanceof SeLiteSettings.Field.FixedMap && SeLiteMisc.field(this.valueCompound, 'entry')===undefined ) {
                         return SeLiteSettings.FIELD_NULL_OR_UNDEFINED;
                     }
                 }
@@ -646,14 +646,14 @@ else {
         }
         if( this.rowLevel===RowLevel.OPTION ) {
             // FixedMap is always multivalued, hence it doesn't allow null
-            return this.field instanceof SeLiteSettings.Field.FixedMap && 'value' in this && this.value!==undefined
+            return this.field instanceof SeLiteSettings.Field.FixedMap && SeLiteMisc.field(this, 'value')!==undefined
                 ? 'Undefine'
                 : '';
         }
         else if( this.field && !this.field.multivalued ) {
             return this.valueCompound.entry!==null && this.field.allowNull
                 ? 'Null'
-                : (this.valueCompound.entry!==undefined
+                : ( SeLiteMisc.field(this.valueCompound, 'entry')!==undefined
                     ? 'Undefine'
                     : ''
                   );
@@ -688,7 +688,7 @@ else {
             }
             if( this.rowLevel===RowLevel.FIELD ) {
                 if( this.valueCompound.entry===null //single-valued fields
-                 || this.valueCompound.entry===undefined //single/multi-valued
+                 || SeLiteMisc.field(this.valueCompound, 'entry')===undefined //single/multi-valued
                  || typeof this.valueCompound.entry!=='object' // single-valued fields
                 ) {
                     return ''+this.valueCompound.entry;
@@ -828,7 +828,7 @@ else {
                 moduleName+' '+this.setName,
                 moduleName+' '+this.setName+' '+fieldName,
                 (function() {
-                    this.key!==undefined && this.key!==null || SeLiteMisc.fail();
+                    SeLiteMisc.fieldDefined(this, 'key', null)!==null/* this also covers undefined */ || SeLiteMisc.fail();
                     return moduleName+' '+this.setName+' '+fieldName
                         +(this.field.multivalued || this.field instanceof SeLiteSettings.Field.Choice || this.field instanceof SeLiteSettings.Field.FixedMap
                             ? ' ' +this.key
@@ -933,7 +933,7 @@ else {
                             : valueCompound.entry;
 
                         for( var key in pairsToList ) {////@TODO low: potential IterableArray
-                            isChoice || valueCompound.entry===undefined || typeof(valueCompound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value of type ' +typeof valueCompound.entry+ ': ' +valueCompound.entry );
+                            isChoice || SeLiteMisc.field(valueCompound, 'entry')===undefined || typeof(valueCompound.entry)==='object' || SeLiteMisc.fail( 'field ' +field.name+ ' has value of type ' +typeof valueCompound.entry+ ': ' +valueCompound.entry );
                             var optionItem= new RowInfo( module, setName, RowLevel.OPTION, field, key, valueCompound ).generateTreeItem();
                             fieldChildren.appendChild( optionItem );
                         }
@@ -1621,7 +1621,7 @@ else {
                     }
                 }
                 else {
-                    !field.multivalued || compound.entry!==undefined && Object.keys(compound.entry).length===0 || SeLiteMisc.fail("Multivalued field " +field.name+ " has one or more entries, therefore keyOrValue must not be undefined.");
+                    !field.multivalued || SeLiteMisc.field(compound, 'entry')!==undefined && Object.keys(compound.entry).length===0 || SeLiteMisc.fail("Multivalued field " +field.name+ " has one or more entries, therefore keyOrValue must not be undefined.");
                     if( field.module.prefsBranch.prefHasUserValue(setNameDot+field.name) ) {
                         field.module.prefsBranch.clearUserPref(setNameDot+field.name);
                     }

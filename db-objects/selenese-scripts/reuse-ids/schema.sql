@@ -1,0 +1,1 @@
+CREATE TABLE simple( id INTEGER PRIMARY KEY, value TEXT)

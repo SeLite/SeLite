@@ -35,7 +35,9 @@ SeLiteExtensionSequencer.registerPlugin( {
                 "How to handle exit confirmation popups."
         );
         var exitConfirmationCheckerAssert= new SeLiteSettings.Field.Boolean( 'exitConfirmationCheckerAssert', false, false, "Whether exit confirmation popups should be checked as assert. Otherwise they're checked as validation only." );
-        settingsModule.addFields( [exitConfirmationCheckerMode, exitConfirmationCheckerAssert] );
+        var checkedLocators= new SeLiteSettings.Field.String( 'exitConfirmationCheckerCheckedLocators', true, undefined, false, 'Locators of elements to check. If specified, no other elements will be checked. Locators other than XPath must not match more than one element each. XPath locators can match multiple elements each.' );
+        var unCheckedLocators= new SeLiteSettings.Field.String( 'exitConfirmationCheckerUnCheckedLocators', true, undefined, false, 'Locators of elements not to check. If specified, those elements will not be checked. Locators other than XPath must not match more than one element each. XPath locators can match multiple elements each.' );
+        settingsModule.addFields( [exitConfirmationCheckerMode, exitConfirmationCheckerAssert, checkedLocators, unCheckedLocators] );
     }
     
 } );

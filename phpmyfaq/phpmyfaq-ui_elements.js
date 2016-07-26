@@ -67,7 +67,7 @@
        ],
        getLocator: function getLocator(args) {
            return Object.keys( phpMyFAQ.uiMap.pagesets.allPages.uiElements.userOwnMenu.defaultLocators )[0]+ '/preceding::a'+ (
-               args.displayName!==undefined && args.displayName!==''
+               SeLiteMisc.field(args, 'displayName', '')!==''
                  ? '[ contains(., ' +(''+args.displayName).quoteForXPath()+ ') ]'
                  : '/b[ @class="caret" ]'
            );

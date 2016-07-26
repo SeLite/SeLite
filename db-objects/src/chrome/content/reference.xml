@@ -44,13 +44,17 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
         <br/>
         It inserts the <code>record</code> and sets <code>insertedRecordKey</code> just like <code>insertRecord</code>.
         The record's primary key will have value:
-        <ul>
+        <ol>
             <li>from <code>record</code>, if present</li>
-            <li>generated in script database, if not using narrowing</li>
-            <li>captured from the application, if using narrowing.</li>
-        </ul>
+            <li>generated in script database, if config field <code>narrowBy</code> is not set (i.e. exclusive access)</li>
+            <li>captured from the application, if config field <code>narrowBy</code> is set (i.e. shared access).</li>
+        </ol>
         <br/>
-        For the second case (when not narrowing), also capture its value from the application and assert its equality to the generated value.
+        This captures primary the primary key through `recordKeyAttributeLocator` and it asserts its equality to the generated primary key in
+        <ul>
+            <li>case #2 above</li>
+            <li>case #3 above, but only if config field `alwaysTestGeneratingKeys` is `true`.</li>
+        </ul>
         <br/>
         This command is a part of SeLite DB Objects.
     </comment>
