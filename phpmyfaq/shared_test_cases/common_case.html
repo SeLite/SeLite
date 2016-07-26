@@ -100,6 +100,12 @@
 	<td></td>
 	<td></td>
 </tr>
+<!--  If the user was an admin, 'Logout' leaves her at /admin/index.php?action=logout. That doesn't have bootstrap menu. Hence reload webroot:-->
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;ensureUnderWebRoot</td>
+	<td>&lt;&gt; true &lt;&gt;</td>
+	<td></td>
+</tr>
 <tr>
 	<td>&nbsp;&nbsp;assertElementPresent</td>
 	<td>ui=allPages::userOwnMenuItem( item=Login )</td>

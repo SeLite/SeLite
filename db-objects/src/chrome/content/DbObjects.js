@@ -23,15 +23,24 @@ Components.utils.import( 'chrome://selite-settings/content/SeLiteSettings.js' );
 
 //var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
 
-SeLiteData.narrowByPrefix= function narrowByPrefix( table, tableOrJoinAlias, narrowByValue ) {
-    return tableOrJoinAlias+ "." +table.narrowColumn+ " LIKE '" +narrowByValue+ "%' ";//@TODO escape
+SeLiteData.narrowByPrefix= {
+    filter: function narrowByPrefixFilter( table, tableOrJoinAlias, narrowByValue ) {
+        return tableOrJoinAlias+ "." +table.narrowColumn+ " LIKE '" +narrowByValue+ "%' ";//@TODO escape
+    },
+    inject: function narrowByPrefixInject( unfilteredValue, narrowByValue='' ) {
+        return narrowByValue+ unfilteredValue;
+    }
 };
 
 /** @constructs SeLiteData.Db
  *  @param {SeLiteData.Storage} storage Underlying lower-level storage object.
  *  @param {string} [tableNamePrefix] optional prefix, which will be applied to all tables (except for tables that have noNamePrefix=true when constructed). If not set, then storage.tableNamePrefix is used (if any).
  *  @param {boolean} [generateInsertKey=false] Whether all tables with single-column primary key should have the key values generated (based on the maximum existing key) on insert. SeLiteData.Table constructor can override this on per-table basis.
- *  @param {function} narrowMethod Default narrow method (string fieldOrAlias, string narrowByValue) => string SQL condition. It will apply to all tables, except for ones that have their own narrowMethod. It escapes special characters.
+ *  @param {object}  narrowMethod An anonymous object
+ *      {filter: function(string fieldOrAlias, string narrowByValue) => string SQL condition,
+ *       inject: function(string unfilteredValue, string narrowByValue) => string to insert to DB (unescaped)
+ *      }.
+ *      Default narrow method. It will apply to all tables, except for ones that have their own narrowMethod. It escapes special characters.
  **/
 //@TODO check that ESDoc generates optional parameter flag for narrowMethod, even though it's not maekred as optional in the comment
 SeLiteData.Db= function Db( storage, tableNamePrefix, generateInsertKey=false, narrowMethod=SeLiteData.narrowByPrefix ) {
