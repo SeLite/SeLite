@@ -47,7 +47,7 @@ Selenium.prototype.doStoreReadRecord= function doStoreReadRecord( info, storedVa
             var record;
             // @TODO for(record of records):
             for( var key in records ) { // Return the only record, if any:
-                if( record ) {
+                if( record ) {debugger;
                     throw new Error( 'There is more than one record.' );
                 }
                 record= records[key];
@@ -96,8 +96,8 @@ Selenium.insertRecord= function insertRecord( recordObject, tableOrCompound ) {
  *  @param {object} recordObject
  *  @param {SeLiteData.Table} table
  */
-Selenium.prototype.doInsertRecord= function doInsertRecord( recordObject, table) {
-    return this.handlePromise( Selenium.insertRecord(recordObject, table) );
+Selenium.prototype.doInsertRecord= function doInsertRecord( recordObject, tableOrCompound) {
+    return this.handlePromise( Selenium.insertRecord(recordObject, tableOrCompound) );
 };
 
 /** @param {string|function} recordKeyAttributeLocator An attribute locator (ending with @attributeName), or a function(selenium) that returns an attribute value - for element that represents a primary key for this record.

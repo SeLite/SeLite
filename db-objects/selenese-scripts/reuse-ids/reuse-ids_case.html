@@ -18,7 +18,12 @@
 </tr>
 <tr>
 	<td>executeSQL</td>
-	<td>INSERT INTO simple(value) VALUES('hello')</td>
+	<td>DELETE FROM simple</td>
+	<td></td>
+</tr>
+<tr>
+	<td>executeSQL</td>
+	<td>INSERT INTO simple(value) VALUES('one')</td>
 	<td></td>
 </tr>
 <!---->
@@ -29,68 +34,69 @@
 </tr>
 <tr>
 	<td>storeReadRecord</td>
-	<td>=&lt;&gt;({table: $table, value: 'hello'})&lt;&gt;</td>
+	<td>=&lt;&gt;({table: $table, value: 'one'})&lt;&gt;</td>
 	<td>record</td>
 </tr>
 <!---->
 <tr>
 	<td>insertRecord</td>
-	<td>=&lt;&gt;({ value: 'hi'})&lt;&gt;</td>
+	<td>=&lt;&gt;({ value: 'two'})&lt;&gt;</td>
 	<td>=&lt;&gt; ({table: $table, sync: false})&lt;&gt;</td>
 </tr>
 <!---->
 <tr>
 	<td>getEval</td>
-	<td>alert( SeLiteData.getStorageFromSettings().execute( &quot;SELECT * FROM simple WHERE id=:rowid&quot;, {'rowid': 1}, /*fields*/undefined, /*expectResult*/true, /*sync*/true ) )</td>
+	<td>SeLiteData.getStorageFromSettings().execute( &quot;SELECT * FROM simple WHERE id=:rowid&quot;, {'rowid': 1}, /*fields*/undefined, /*expectResult*/true, /*sync*/true )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>getEval</td>
-	<td>alert( SeLiteData.getStorageFromSettings().execute( &quot;SELECT * FROM simple WHERE id=:rowid&quot;, {'rowid': 1}, /*fields*/undefined, /*expectResult*/true ) )</td>
+	<td>promise</td>
+	<td>SeLiteData.getStorageFromSettings().execute( &quot;SELECT * FROM simple WHERE id=:rowid&quot;, {'rowid': 1}, /*fields*/undefined, /*expectResult*/true )</td>
 	<td></td>
 </tr>
 <!---->
 <tr>
 	<td>storeReadRecord</td>
-	<td>=&lt;&gt;var db=new SeLiteData.Db( SeLiteData.getStorageFromSettings() ); var table= new SeLiteData.Table( {db:&nbsp;&nbsp;db, name: 'simple', columns: ['id', 'name'], primary: 'id'} ); ({table: table, name: 'hello'})&lt;&gt;</td>
+	<td>=&lt;&gt;({table: $table, value: 'one'})&lt;&gt;</td>
 	<td>record</td>
 </tr>
 <tr>
 	<td>storeReadRecord</td>
-	<td>=&lt;&gt;var db=new SeLiteData.Db( SeLiteData.getStorageFromSettings() ); var table= new SeLiteData.Table( {db:&nbsp;&nbsp;db, name: 'simple', columns: ['id', 'name'], primary: 'id'} ); ({table: table, name: 'hello', sync:true})&lt;&gt;</td>
+	<td>=&lt;&gt;({table: $table, value: 'two', sync:true})&lt;&gt;</td>
 	<td>record</td>
 </tr>
 <tr>
-	<td>getEval</td>
-	<td>alert( $record.id===null )</td>
-	<td></td>
+	<td>assertEval</td>
+	<td>$record.id===2</td>
+	<td>true</td>
 </tr>
 <!---->
 <tr>
 	<td>insertRecord</td>
-	<td>=&lt;&gt;({ name: 'hi'})&lt;&gt;</td>
-	<td>=&lt;&gt;var db=new SeLiteData.Db( SeLiteData.getStorageFromSettings() ); var table= new SeLiteData.Table( {db:&nbsp;&nbsp;db, name: 'simple', columns: ['id', 'name'], primary: 'id'} ); ({table: table, sync: false})&lt;&gt;</td>
+	<td>=&lt;&gt;({ value: 'three'})&lt;&gt;</td>
+	<td>=&lt;&gt;({table: $table, sync: false})&lt;&gt;</td>
 </tr>
 <tr>
 	<td>insertRecord</td>
-	<td>=&lt;&gt;({id: 3, name: 'hi'})&lt;&gt;</td>
-	<td>=&lt;&gt;var db=new SeLiteData.Db( SeLiteData.getStorageFromSettings() ); var table= new SeLiteData.Table( {db:&nbsp;&nbsp;db, name: 'simple', columns: ['id', 'name'], primary: 'id'} ); ({table: table, sync: false})&lt;&gt;</td>
+	<td>=&lt;&gt;({id: 4, value: 'four'})&lt;&gt;</td>
+	<td>=&lt;&gt;({table: $table, sync: false})&lt;&gt;</td>
 </tr>
+<!--Following should fail-->
 <tr>
 	<td>insertRecord</td>
-	<td>=&lt;&gt;({id: 2, name: 'ho'})&lt;&gt;</td>
-	<td>=&lt;&gt;var db=new SeLiteData.Db( SeLiteData.getStorageFromSettings() ); var table= new SeLiteData.Table( {db:&nbsp;&nbsp;db, name: 'simple', columns: ['id', 'name'], primary: 'id'} ); ({table: table, sync: true})&lt;&gt;</td>
+	<td>=&lt;&gt;({id: 4, value: 'four again'})&lt;&gt;</td>
+	<td>=&lt;&gt;({table: $table, sync: true})&lt;&gt;</td>
 </tr>
 <!---->
 <tr>
 	<td>insertRecordCaptureKey</td>
-	<td>=&lt;&gt;(sel)=&gt;4&lt;&gt;</td>
-	<td>=&lt;&gt;var db=new SeLiteData.Db( SeLiteData.getStorageFromSettings() ); var table= new SeLiteData.Table( {db:&nbsp;&nbsp;db, name: 'simple', columns: ['id', 'name'], primary: 'id'} ); ({table: table, record: { name: 'capt'}, sync: false})&lt;&gt;</td>
+	<td>=&lt;&gt;(sel)=&gt;5&lt;&gt;</td>
+	<td>=&lt;&gt;({table: $table, record: {value: 'capt'}, sync: false})&lt;&gt;</td>
 </tr>
 <tr>
 	<td>insertRecordCaptureKey</td>
 	<td>=&lt;&gt;(sel)=&gt;4&lt;&gt;</td>
-	<td>=&lt;&gt;var db=new SeLiteData.Db( SeLiteData.getStorageFromSettings() ); var table= new SeLiteData.Table( {db:&nbsp;&nbsp;db, name: 'simple', columns: ['id', 'name'], primary: 'id'} ); ({table: table, record: { name: 'capt'}, sync: true})&lt;&gt;</td>
+	<td>=&lt;&gt;({table: table, record: {value: 'capt'}, sync: true})&lt;&gt;</td>
 </tr>
 <!---->
 <!---->

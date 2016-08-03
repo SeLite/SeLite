@@ -8,10 +8,6 @@ SeLiteExtensionSequencer.registerPlugin( {
             name: 'SeLite Commands',
             infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-commands/'
         },
-        'sqlite-connection-manager@selite.googlecode.com': {
-            name: 'SeLite SQLite Connection Manager',
-            infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-sqlite-connection-mg/'
-        },
         'misc@selite.googlecode.com': {
             name: 'SeLite Miscellaneous',
             infoURL: 'https://addons.mozilla.org/en-US/firefox/addon/selite-miscellaneous/'

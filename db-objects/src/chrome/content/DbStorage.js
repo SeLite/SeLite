@@ -17,8 +17,8 @@
 
 "use strict";
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import( 'chrome://selite-misc/content/SeLiteMisc.js' );
-Components.utils.import("chrome://selite-sqlite-connection-manager/content/SqliteConnectionManager.js");
 Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
 Components.utils.import( 'chrome://selite-db-objects/content/Db.js' );
 var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
@@ -28,10 +28,8 @@ var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).c
  *  have name clashes with functions in other files. See SeLite DB Objects for OOP layer on top of this.
  **/
 SeLiteData.Storage= function Storage() {
-    /** @type {SQLiteConnectionParameters} */
-    this.parameters= new SQLiteConnectionParameters();
-    this.parameters.errorHandler= console.error;
     this.con= null; // This will be the actual connection - result of Services.storage.openDatabase(file)
+    this.fileName= undefined;
 };
 
 /** @return SQLite connection or null */
@@ -51,8 +49,27 @@ SeLiteData.Storage.prototype.tablePrefix= function tablePrefix() { return ''; };
  * @return the new connection
  */
 SeLiteData.Storage.prototype.open= function open() {
-    !this.con || SeLiteMisc.fail( "Already connected to " +this.parameters.fileName );
-    this.con= this.parameters.connect();
+    !this.con || SeLiteMisc.fail( "Already connected to " +this.fileName );
+    if( this.fileName==='memory' ) {
+        this.con= Services.storage.openSpecialDatabase( "memory" );
+    }
+    else {
+        var file;
+        try {
+            file= FileUtils.getFile( "ProfD", [this.fileName] );
+        }
+        catch( error ) {
+            file= new FileUtils.File( this.fileName );
+        }
+        if( !file.exists() ) {
+            throw 'DB file ' +this.fileName+ " doesn't exist.";
+        }
+        this.con= Services.storage.openDatabase( file );
+    }
+    // There's no need, neither a way, to 'close' file. See https://developer.mozilla.org/en/XPCOM_Interface_Reference/nsIFile
+    if( !this.con.connectionReady ) {
+        throw "Created the connection, but it wasn't ready.";
+    }
 };
 
 /** Close the connection.
@@ -61,8 +78,15 @@ SeLiteData.Storage.prototype.open= function open() {
  *  @TODO check: If you have used any asynchronous (?!) statements, pass true. See same comment in SQLiteConnectionInfo.close()
  * */
 SeLiteData.Storage.prototype.close= function close( synchronous, callback ) {
-    this.parameters.close( synchronous, callback );
-    this.con= null;
+    var connection= this.con;
+    this.con= null;debugger;
+    if( synchronous ) {
+        connection.close();
+        !callback || callback();
+    }
+    else {
+        connection.asyncClose( callback );
+    }
 };
 
 /** This gets the list of result column names (e.g. names after the last space, if present; otherwise after the last dot, if present)
@@ -225,7 +249,7 @@ SeLiteData.Storage.prototype.selectOne= function selectOne( query, bindings, fie
  *  @throws error on failure
  **/
 SeLiteData.Storage.prototype.execute= function execute( query, bindings={}, fields=undefined, expectResult=false, sync=false ) {
-    this.connection() || SeLiteMisc.fail( 'SeLiteData.Storage.connection() is not set. SQLite file name: ' +this.parameters.fileName );
+    this.connection() || SeLiteMisc.fail( 'SeLiteData.Storage.connection() is not set. SQLite file name: ' +this.fileName );
     if( !bindings && sync && !fields ) {
         this.connection().executeSimpleSQL( query );
     }
@@ -276,7 +300,7 @@ SeLiteData.Storage.prototype.execute= function execute( query, bindings={}, fiel
                                 }
                                 result.push( resultRow );
                             }
-                        }debugger;
+                        }
                         resolve( result );
                     },
                     handleError: function(aError) {
@@ -684,7 +708,7 @@ StorageFromSettings.instances= {};
 StorageFromSettings.prototype.connection= function connection() {
     if( !this.con ) {
         try { this.open(); }
-        catch( e ) { console.debug( "Couldn't open SQLite DB " +this.parameters.fileName ); }
+        catch( e ) { console.debug( "Couldn't open SQLite DB " +this.fileName ); }
     }
     return this.con;
 };
@@ -693,13 +717,13 @@ StorageFromSettings.prototype.open= function open() {
     if( SeLiteSettings.getTestSuiteFolder() ) {//@TODO here and below: should it just use folder-based configuration, and not default-based configuration?
         var newFileName= this.dbField.getDownToFolder().entry;
         if( newFileName ) {
-            this.parameters.fileName= newFileName;
+            this.fileName= newFileName;
         }
     }
     else {
         var fields= this.dbField.module.getFieldsOfSet();
         if( fields[this.dbField.name] && fields[this.dbField.name].entry ) {
-            this.parameters.fileName= fields[this.dbField.name].entry;
+            this.fileName= fields[this.dbField.name].entry;
         }
     }
     SeLiteData.Storage.prototype.open.call( this );
@@ -780,13 +804,13 @@ function testSuiteFolderChangeHandler() {
         instance instanceof StorageFromSettings || fail();
         var newFileName= instance.dbField.getDownToFolder().entry;
         if( instance.con ) {
-            if( instance.parameters.fileName===newFileName && newFileName!=='memory' ) {
+            if( instance.fileName===newFileName && newFileName!=='memory' ) {
                 continue;
             }
             instance.close( true, function callback() {
-                instance.parameters.fileName= null;
+                instance.fileName= null;
                 if( newFileName ) {
-                    instance.parameters.fileName= newFileName;
+                    instance.fileName= newFileName;
                     instance.open();
                 }
             });
