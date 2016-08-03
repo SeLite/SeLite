@@ -18,6 +18,7 @@
 "use strict";
 
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/FileUtils.jsm");
 Components.utils.import( 'chrome://selite-misc/content/SeLiteMisc.js' );
 Components.utils.import("chrome://selite-settings/content/SeLiteSettings.js" );
 Components.utils.import( 'chrome://selite-db-objects/content/Db.js' );
@@ -55,14 +56,15 @@ SeLiteData.Storage.prototype.open= function open() {
     }
     else {
         var file;
-        try {
+        if( !SeLiteMisc.pathIsAbsolute(this.fileName) ) {
             file= FileUtils.getFile( "ProfD", [this.fileName] );
         }
-        catch( error ) {
+        else {
             file= new FileUtils.File( this.fileName );
         }
         if( !file.exists() ) {
-            throw 'DB file ' +this.fileName+ " doesn't exist.";
+            file.create( /*NORMAL_FILE_TYPE*/0, /*u=rw g=rw o=r*/Number.parseInt( "662", 8) );
+            //throw 'DB file ' +this.fileName+ " doesn't exist.";
         }
         this.con= Services.storage.openDatabase( file );
     }

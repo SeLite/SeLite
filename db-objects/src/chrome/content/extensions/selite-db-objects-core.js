@@ -78,9 +78,11 @@ Selenium.insertRecord= function insertRecord( recordObject, tableOrCompound ) {
     !sync || passedCompound || SeLiteMisc.fail( "Only set .sync on a compound object, not on the table object." );
     var inserting= table.insert( record, sync );
     inserting= Promise.resolve( inserting );
+    
     if( typeof table.primary==='string'/*Primary key is 1 column, not an array*/
         && SeLiteMisc.field(recordObject, table.primary)===undefined
-        && SeLiteMisc.field(record, table.primary)!==undefined
+        // @TODO move the following as a validation to the promise .then() below?
+        //&& SeLiteMisc.field(record, table.primary)!==undefined
     ) {
         inserting= inserting.then(
             ignored => {
@@ -117,9 +119,8 @@ Selenium.prototype.doInsertRecordCaptureKey= function doInsertRecordCaptureKey( 
     if( storeCapturedKey ) {
         compound.record[ compound.table.primary ]= capturedPrimaryValue;
     }
-    // The following sets compound.record[ compound.table.primary ], if it was not set already.
-    var passedTable= {table: compound.table, sync: SeLiteMisc.field(compound, 'sync', false)};
-    var inserting= Selenium.insertRecord( compound.record, passedTable );
+    // Once successful, the following sets compound.record[ compound.table.primary ] (unless it was set already).
+    var inserting= Selenium.insertRecord( compound.record, {table: compound.table, sync: SeLiteMisc.field(compound, 'sync', false)} );
     
     if( !storeCapturedKey ) {
         inserting= inserting.then(

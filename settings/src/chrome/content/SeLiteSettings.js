@@ -1362,11 +1362,12 @@ SeLiteSettings.VALUES_MANIFEST_FILENAME= 'SeLiteSettingsValues.txt'; // @TODO Ma
 SeLiteSettings.ASSOCIATIONS_MANIFEST_FILENAME= 'SeLiteSettingsAssociations.txt'; // @TODO Make this 'const' once NetBeans supports it
 
 var commentLineRegex= /^[ \t]*#.*$/;
+var newLineSeparator= /[\n|\r]/;
 /** @param string contents
  *  @return array Line(s) without those that were purely comments, or empty lines.
  * */
 function removeCommentsGetLines( contents ) {
-    var lines= contents.split("\n");
+    var lines= contents.split( newLineSeparator );
     var result= [];
     for( var j=0; j<lines.length; j++ ) {
         var line= lines[j];
@@ -1462,8 +1463,8 @@ function manifestsDownToFolder( folderPath=SeLiteSettings.testSuiteFolder, dontC
                 if( commentLineRegex.test(line) || line.trim()==='' ) {
                     continue;
                 }
-                var parts= valuesLineRegex.exec( lines[j] );
-                parts || SeLiteMisc.fail( "Values manifest " +fileName+ " at line " +(j+1)+ " is badly formatted: " +lines[j]  );
+                var parts= valuesLineRegex.exec( line );
+                parts || SeLiteMisc.fail( "Values manifest " +fileName+ " at line " +(j+1)+ " is badly formatted: " +line  );
                 if( !(folder in values) ) {
                     values[folder]= [];
                 }

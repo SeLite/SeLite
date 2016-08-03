@@ -12,8 +12,18 @@
 <tr><td rowspan="1" colspan="3">reuse-ids_case</td></tr>
 </thead><tbody>
 <tr>
-	<td>executeSQLscript</td>
+	<td>if</td>
+	<td>false</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;executeSQLscript</td>
 	<td>&lt;&gt;SeLiteMisc.applyRelativePath( SeLiteSettings.getTestSuiteFolder(), 'schema.sql')&lt;&gt;</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
+	<td></td>
 	<td></td>
 </tr>
 <tr>
@@ -83,9 +93,24 @@
 </tr>
 <!--Following should fail-->
 <tr>
-	<td>insertRecord</td>
+	<td>try</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
 	<td>=&lt;&gt;({id: 4, value: 'four again'})&lt;&gt;</td>
 	<td>=&lt;&gt;({table: $table, sync: true})&lt;&gt;</td>
+</tr>
+<tr>
+	<td>catch</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>endTry</td>
+	<td></td>
+	<td></td>
 </tr>
 <!---->
 <tr>
@@ -95,8 +120,8 @@
 </tr>
 <tr>
 	<td>insertRecordCaptureKey</td>
-	<td>=&lt;&gt;(sel)=&gt;4&lt;&gt;</td>
-	<td>=&lt;&gt;({table: table, record: {value: 'capt'}, sync: true})&lt;&gt;</td>
+	<td>=&lt;&gt;(sel)=&gt;6&lt;&gt;</td>
+	<td>=&lt;&gt;({table: $table, record: {value: 'capt'}, sync: true})&lt;&gt;</td>
 </tr>
 <!---->
 <!---->

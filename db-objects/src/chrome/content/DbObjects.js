@@ -131,18 +131,18 @@ SeLiteData.Table.prototype.insert= function insert( originalRecord, sync=false )
     var execution= this.db.storage.execute( query, bindings, {}, /*expectResult:*/false, sync );
     // Fetch the auto-generated primary one-column key (not a multi-column key), if applicable (whether it came from DB or from the expression injected above)
     if( typeof this.primary==='string' && SeLiteMisc.field(bindings, this.primary)===undefined ) {
-        var lastInserted= sync
+        var lastInsertedRow= sync
             ? this.db.storage.lastInsertedRow( this.nameWithPrefix(), [this.primary], true )
             : execution.then(
                 ignored => this.db.storage.lastInsertedRow( this.nameWithPrefix(), [this.primary] )
               );
         if( sync ) {
-            this._injectInsertedPrimary( originalRecord, lastInserted );
+            this._injectInsertedPrimary( originalRecord, lastInsertedRow );
         }
         else {
-            return lastInserted.then(
-                lastInsertedKeyValue=> {
-                    this._injectInsertedPrimary( originalRecord, lastInsertedKeyValue );
+            return lastInsertedRow.then(
+                lastInsertedRowValue=> {
+                    this._injectInsertedPrimary( originalRecord, lastInsertedRowValue );
                     return undefined;
                 }
             );
@@ -153,10 +153,12 @@ SeLiteData.Table.prototype.insert= function insert( originalRecord, sync=false )
 
 /** Set primary key in given originalRecord object to the primary key of the last inserted record.
  *  @private
+ *  @param {object} originalRecord Record object to set the primary key in.
+ *  @param {object} lastInsertedRow
  *  @return undefined
  * */
-SeLiteData.Table.prototype._injectInsertedPrimary= function _injectInsertedPrimary( originalRecord, lastInsertedKeyValue ) {
-    originalRecord[ this.primary ]= [ this.primary ];
+SeLiteData.Table.prototype._injectInsertedPrimary= function _injectInsertedPrimary( originalRecord, lastInsertedRow ) {
+    originalRecord[ this.primary ]= lastInsertedRow[ this.primary ];
 };
 
 /** Create on-the-fly a new SeLiteData.RecordSetFormula instance. Do not store/cache it anywhere.
