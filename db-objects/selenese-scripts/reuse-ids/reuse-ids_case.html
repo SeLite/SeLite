@@ -124,6 +124,61 @@
 	<td>=&lt;&gt;({table: $table, record: {value: 'capt'}, sync: true})&lt;&gt;</td>
 </tr>
 <!---->
+<tr>
+	<td>open</td>
+	<td>file://&lt;&gt; SeLiteSettings.getTestSuiteFolder() &lt;&gt;/../form.html</td>
+	<td></td>
+</tr>
+<!--Following fails-->
+<tr>
+	<td>storeAttribute</td>
+	<td>id=link@href</td>
+	<td>url</td>
+</tr>
+<tr>
+	<td>setAttribute</td>
+	<td>id=link@href</td>
+	<td>about:blank</td>
+</tr>
+<!---->
+<tr>
+	<td>storeAttribute</td>
+	<td>id=freetype@value</td>
+	<td>freetype</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.document.getElementById( 'freetype' ).value= 'hi'</td>
+	<td></td>
+</tr>
+<!---->
+<tr>
+	<td>setAttribute</td>
+	<td>id=button@value</td>
+	<td>Tiny Button</td>
+</tr>
+<!---->
+<tr>
+	<td>getEval</td>
+	<td>window.document.getElementById( 'div' ).innerText= 6</td>
+	<td></td>
+</tr>
+<tr>
+	<td>setAttribute</td>
+	<td>id=div@innerText</td>
+	<td>6</td>
+</tr>
+<tr>
+	<td>assertAttribute</td>
+	<td>div@innerText</td>
+	<td>6</td>
+</tr>
+<tr>
+	<td>insertRecordCaptureKey</td>
+	<td>=&lt;&gt;(sel)=&gt;6&lt;&gt;</td>
+	<td>=&lt;&gt;({table: $table, record: {value: 'capt'}, sync: true})&lt;&gt;</td>
+</tr>
+<!---->
 <!---->
 </tbody></table>
 </body>

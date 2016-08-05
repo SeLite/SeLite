@@ -321,4 +321,15 @@ Xml-stylesheet (whether remote or even local) didn't load up when you open this 
         This command is a part of SeLite Commands.
     </comment>
 </function>
+<function name="setAttribute">
+    <param name="attributeLocator">Atribute locator, as per <code>getAttribute</code>: element locator, followed by @ and an attribute name. For example <code>id=link@href</code>.
+    </param>
+    <param name="value">Value to set.
+    </param>
+    <comment>
+        Set an attribute on an element to a given value.
+        <br/>
+        This command is a part of SeLite Commands.
+    </comment>
+</function>
 </apidoc>

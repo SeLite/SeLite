@@ -742,5 +742,39 @@ Selenium= Selenium;
         // Based on https://developer.mozilla.org/en-US/Add-ons/Code_snippets/Tabbed_browser#From_a_dialog
         return Components.classes["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow("navigator:browser");
     };
+    
+    Selenium.prototype.getAttribute = function(attributeLocator) {
+       var locatorParts= attributeLocatorParts( attributeLocator );
+       if( locatorParts.attribute==='value' || locatorParts.attribute==='innerText' ) {
+           var element= this.browserbot.findElement( locatorParts.elementLocator );
+           return element[locatorParts.attribute];
+       }
+       // Following is from Selenium IDE
+       var result = this.browserbot.findAttribute(attributeLocator);
+       if (result == null) {//@TODO should this be === instead?
+               throw new SeleniumError("Could not find element attribute: " + attributeLocator);
+        }
+        return result;
+    };
+    
+    var attributeLocatorParts= function attributeLocatorParts( attributeLocator ) {
+        var lastIndexOfAt= attributeLocator.lastIndexOf('@');
+        lastIndexOfAt>0 && lastIndexOfAt<attributeLocator.length-1 || SeLiteMisc.fail( "Parameter attributeLocator is incorrect: " +attributeLocator );
+        return {
+            elementLocator: attributeLocator.substr( 0, lastIndexOfAt ),
+            attribute: attributeLocator.substr( lastIndexOfAt+1 )
+        };
+    };
+    
+    Selenium.prototype.doSetAttribute= function doSetAttribute( attributeLocator, value ) {
+        var locatorParts= attributeLocatorParts( attributeLocator );
+        var element= this.browserbot.findElement( locatorParts.elementLocator );
+        if( locatorParts.attribute==='value' || locatorParts.attribute==='innerText' ) {
+            element[locatorParts.attribute]= value;
+        }
+        else {
+            element.setAttribute( locatorParts.attribute, value );
+        }
+    };
   }
 )();
