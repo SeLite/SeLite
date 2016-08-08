@@ -149,9 +149,10 @@ setTimeout( //waits until all the sub-scripts are loaded. Only then it can overl
             var orig_handleCommandError= this.runner.TestLoop.prototype._handleCommandError; //TestLoop.prototype._handleCommandError;
             // This could also apply to HtmlRunnerTestLoop and RemoteRunner
             this.runner.IDETestLoop.prototype._handleCommandError= this.runner.TestLoop.prototype._handleCommandError= function(e) {
-                e= SeLiteMisc.withStackInMessage( e, true );
-                // Setting isSeleniumError makes Se Core log it via error() instead of exception(). If it called exception(), which uses describe(), it would double stack trace in the result log. See SeleniumError() in chrome/content/selenium-core/scripts/html.js.
-                e.isSeleniumError = true;
+                if( !SeLiteMisc.field(e, 'isSeleniumError') ) {
+                    e= SeLiteMisc.withStackInMessage( e, true );
+                }
+                //e.isSeleniumError = true;
                 return orig_handleCommandError.call( this, e );
             };
         }

@@ -136,7 +136,7 @@ Selenium.prototype.doExecuteSQL= function doExecuteSQL( SQL, bindings={} ) {
         SeLiteData.getStorageFromSettings().execute( SQL, bindings )
     );
 };
-
+/* Not used, because it executed the first command only. If need be, then use https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/mozIStorageConnection#executeAsync().
 Selenium.prototype.doExecuteSQLscript= function doExecuteSQLscript( filePath, bindings={} ) {
     return this.doExecuteSQL( SeLiteSettings.readFile(filePath) , bindings );
-};
+};*/

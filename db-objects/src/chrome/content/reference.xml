@@ -72,6 +72,7 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
         This command is a part of SeLite DB Objects.
     </comment>
 </function>
+<!--
 <function name="executeSQLscript">
     <param name="filePath">
         File path to an SQL file to run. The command(s) can contain parameters (placeholders) starting with a colon, for example <code>WHERE value=:passedValue</code>.
@@ -84,5 +85,5 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
         <br/>
         This command is a part of SeLite DB Objects.
     </comment>
-</function>
+</function>-->
 </apidoc>

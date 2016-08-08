@@ -1,4 +1,6 @@
 #extensions.selite-settings.common.testDB memory
+
 # TODO Document: Mozilla\Firefox\Profiles\<profileCode.profileName>\
 #extensions.selite-settings.common.testDB simple.data
+
 extensions.selite-settings.common.testDB SELITE_THIS_MANIFEST_FOLDER/simple.data

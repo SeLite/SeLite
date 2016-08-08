@@ -341,4 +341,22 @@ Xml-stylesheet (whether remote or even local) didn't load up when you open this 
         This command is a part of SeLite Commands.
     </comment>
 </function>
+<function name="assertTrue">
+    <param name="expression">Javascript expression to evaluate.
+    </param>
+    <comment>
+        Assert the given <code>expression</code> to be <code>true</code> (compared strictly).
+        <br/>
+        This command is a part of SeLite Commands.
+    </comment>
+</function>
+<function name="verifyTrue">
+    <param name="expression">Javascript expression to evaluate.
+    </param>
+    <comment>
+        Verify the given <code>expression</code> to be <code>true</code> (compared strictly).
+        <br/>
+        This command is a part of SeLite Commands.
+    </comment>
+</function>
 </apidoc>

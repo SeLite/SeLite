@@ -4,14 +4,13 @@
 <head profile="http://selenium-ide.openqa.org/profiles/test-case">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <link rel="selenium.base" href="http://lmsdev.racp.edu.au" />
-<title>reuse-ids_case</title>
+<title>unique-ids_case</title>
 </head>
 <body>
 <table cellpadding="1" cellspacing="1" border="1">
 <thead>
-<tr><td rowspan="1" colspan="3">reuse-ids_case</td></tr>
+<tr><td rowspan="1" colspan="3">unique-ids_case</td></tr>
 </thead><tbody>
-<!--TODO anchor link to HandlingData > which schema-->
 <!--This test requires SelBlocks Global. However, DB Objects itself doesn't require SelBlocks   Global.-->
 <tr>
 	<td>executeSQL</td>
@@ -20,7 +19,7 @@
 </tr>
 <tr>
 	<td>executeSQL</td>
-	<td>CREATE TABLE simple( id INTEGER PRIMARY KEY, value TEXT)</td>
+	<td>CREATE TABLE simple( id INTEGER PRIMARY KEY AUTOINCREMENT, value TEXT)</td>
 	<td></td>
 </tr>
 <tr>
@@ -85,11 +84,6 @@
 </tr>
 <!--Following should fail-->
 <tr>
-	<td>$hasFailed= false</td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
 	<td>try</td>
 	<td></td>
 	<td></td>
@@ -105,19 +99,9 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;getEval</td>
-	<td>$hasFailed= true</td>
-	<td></td>
-</tr>
-<tr>
 	<td>endTry</td>
 	<td></td>
 	<td></td>
-</tr>
-<tr>
-	<td>assertTrue</td>
-	<td>$hasFailed</td>
-	<td>true</td>
 </tr>
 <!---->
 <tr>

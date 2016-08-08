@@ -776,5 +776,27 @@ Selenium= Selenium;
             element.setAttribute( locatorParts.attribute, value );
         }
     };
+    
+    Selenium.prototype.failAssertOrVerifyTrue= function failAssertOrVerifyTrue( asAssert=false ) {
+        var error= new Error( "Expression " +expression+ " didn't evaluate to exact true, but to " +typeof value+ ": " +value );
+        if( !asAssert ) {
+            error.seLiteVerification= true;
+        }
+        throw error;
+    };
+    
+    Selenium.prototype.doAssertTrue= function doAssertTrue( expression ) {
+        var value= this.getEval( expression );
+        if( value!==true ) {
+            this.failAssertOrVerifyTrue( true );
+        }
+    };
+    
+    Selenium.prototype.doVerifyTrue= function doVerifyTrue( expression ) {
+        var value= this.getEval( expression );
+        if( value!==true ) {
+            this.failAssertOrVerifyTrue();
+        }
+    };
   }
 )();
