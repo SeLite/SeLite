@@ -1,2 +1,4 @@
 /nbproject/private/
 *.data
+multi-package/build
+xpi

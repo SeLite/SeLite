@@ -187,7 +187,6 @@ function preloadCache( connection, errorHandler ) {
 SQLiteConnectionInfo.prototype.open= function open() {
     console.log( 'SQLiteConnectionInfo.open(): Trying to open ' +this.parameters.fileName );
     var connection;
-    debugger;
     if( this.parameters.fileName==='memory' ) {
         connection= Services.storage.openSpecialDatabase( "memory" );
     }

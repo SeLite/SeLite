@@ -187,7 +187,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;storeReadRecord</td>
-	<td>=&lt;&gt;{ formula: Serendipity.formulas.authors, username: $login }&lt;&gt;</td>
+	<td>=&lt;&gt; ({ formula: Serendipity.formulas.authors, username: $login }) &lt;&gt;</td>
 	<td>user</td>
 </tr>
 <tr>
@@ -237,7 +237,7 @@
 <tr>
 	<td>&nbsp;&nbsp;typeRandom</td>
 	<td>id=entryTitle</td>
-	<td>=&lt;&gt;{store: 'title'}&lt;&gt;</td>
+	<td>=&lt;&gt;({ store: 'title' })&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;pause</td>
@@ -264,7 +264,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;storeEval</td>
-	<td>=&lt;&gt;{ title:$title, timestamp:Math.round( Date.now()/1000), body:$body, extended:$extended, exflag:1, author:Serendipity.selectedUsername, authorid:Serendipity.selectedAuthor().authorid, isdraft:'false', allow_comments:'true', last_modified:Math.round( Date.now()/1000), moderate_comments:'false'}&lt;&gt;</td>
+	<td>=&lt;&gt;({ title:$title, timestamp:Math.round( Date.now()/1000), body:$body, extended:$extended, exflag:1, author:Serendipity.selectedUsername, authorid:Serendipity.selectedAuthor().authorid, isdraft:'false', allow_comments:'true', last_modified:Math.round( Date.now()/1000), moderate_comments:'false' })&lt;&gt;</td>
 	<td>entry</td>
 </tr>
 <!---->
@@ -557,7 +557,7 @@
 <tr>
 	<td>&nbsp;&nbsp;typeRandom</td>
 	<td>//input[ @name='password' ]</td>
-	<td>=&lt;&gt;{type: 'password', store: 'password'}&lt;&gt;</td>
+	<td>=&lt;&gt;({ type: 'password', store: 'password' })&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;type</td>
@@ -582,7 +582,7 @@
 <tr>
 	<td>&nbsp;&nbsp;typeRandom</td>
 	<td>//input[ @name='email' ]</td>
-	<td>=&lt;&gt;{type:'email', store:'email' }&lt;&gt;</td>
+	<td>=&lt;&gt;({ type:'email', store:'email' })&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;selectRandom</td>
@@ -623,7 +623,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=&lt;&gt;{ realname: $realname, username:$username, password:$password, email:$email, userlevel:$userlevel, right_publish:1 }&lt;&gt;</td>
+	<td>=&lt;&gt;({ realname: $realname, username:$username, password:$password, email:$email, userlevel:$userlevel, right_publish:1 })&lt;&gt;</td>
 	<td>=&lt;&gt;Serendipity.tables.authors&lt;&gt;</td>
 </tr>
 <tr>
@@ -633,58 +633,58 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=&lt;&gt;{groupid:$access, authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;({ groupid:$access, authorid:$authorid })&lt;&gt;</td>
 	<td>=&lt;&gt;Serendipity.tables.authorgroups&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=&lt;&gt;{name:'lang', value:$lang, authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;({ name:'lang', value:$lang, authorid:$authorid })&lt;&gt;</td>
 	<td>=&lt;&gt;Serendipity.tables.config&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=&lt;&gt;{name:'wysiwyg', value:$wysiwyg, authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;({ name:'wysiwyg', value:$wysiwyg, authorid:$authorid })&lt;&gt;</td>
 	<td>=&lt;&gt;Serendipity.tables.config&lt;&gt;</td>
 </tr>
 <!--Use string constants 'true', 'false', not Javascript boolean constants true, false. See http://selite.github.io/SQLiteSpecifics -->
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=&lt;&gt;{name:'eyecandy', value:'true', authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;({ name:'eyecandy', value:'true', authorid:$authorid })&lt;&gt;</td>
 	<td>=&lt;&gt;Serendipity.tables.config&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=&lt;&gt;{name:'mail_comments', value:$mail_comments, authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;({ name:'mail_comments', value:$mail_comments, authorid:$authorid })&lt;&gt;</td>
 	<td>=&lt;&gt;Serendipity.tables.config&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=&lt;&gt;{name:'mail_trackbacks', value:$mail_trackbacks, authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;({ name:'mail_trackbacks', value:$mail_trackbacks, authorid:$authorid })&lt;&gt;</td>
 	<td>=&lt;&gt;Serendipity.tables.config&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=&lt;&gt;{name:'no_create', value:'false', authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;({ name:'no_create', value:'false', authorid:$authorid })&lt;&gt;</td>
 	<td>=&lt;&gt;Serendipity.tables.config&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=&lt;&gt;{name:'right_publish', value:'true', authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;({ name:'right_publish', value:'true', authorid:$authorid })&lt;&gt;</td>
 	<td>=&lt;&gt;Serendipity.tables.config&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=&lt;&gt;{name:'moderateCommentsDefault', value:$moderateCommentsDefault, authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;({ name:'moderateCommentsDefault', value:$moderateCommentsDefault, authorid:$authorid })&lt;&gt;</td>
 	<td>=&lt;&gt;Serendipity.tables.config&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=&lt;&gt;{name:'allowCommentsDefault', value:$allowCommentsDefault, authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;({ name:'allowCommentsDefault', value:$allowCommentsDefault, authorid:$authorid })&lt;&gt;</td>
 	<td>=&lt;&gt;Serendipity.tables.config&lt;&gt;</td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;insertRecord</td>
-	<td>=&lt;&gt;{name:'showMediaToolbar', value:$showMediaToolbar, authorid:$authorid}&lt;&gt;</td>
+	<td>=&lt;&gt;({ name:'showMediaToolbar', value:$showMediaToolbar, authorid:$authorid })&lt;&gt;</td>
 	<td>=&lt;&gt;Serendipity.tables.config&lt;&gt;</td>
 </tr>
 <tr>

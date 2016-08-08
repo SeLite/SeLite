@@ -58,12 +58,6 @@ if defined p (
       cd ..\..
     )
 
-    if not exist "!e!\sqlite-connection-manager@selite.googlecode.com.xpi" (
-      cd sqlite-connection-manager\src
-      cd > "!e!\sqlite-connection-manager@selite.googlecode.com"
-      cd ..\..
-    )
-
     if not exist "!e!\testcase-debug-context@selite.googlecode.com.xpi" (
       cd testcase-debug-context\src
       cd > "!e!\testcase-debug-context@selite.googlecode.com"

@@ -74,13 +74,6 @@ then
       cd ../..
     fi
 
-    if [ ! -e "$EXTENSION_FOLDER"/sqlite-connection-manager\@selite.googlecode.com.xpi ]
-    then
-      cd sqlite-connection-manager/src
-      pwd > "$EXTENSION_FOLDER"/sqlite-connection-manager@selite.googlecode.com
-      cd ../..
-    fi
-
     if [ ! -e "$EXTENSION_FOLDER"/testcase-debug-context\@selite.googlecode.com.xpi ]
     then
       cd testcase-debug-context/src

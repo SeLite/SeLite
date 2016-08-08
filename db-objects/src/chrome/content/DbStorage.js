@@ -81,8 +81,8 @@ SeLiteData.Storage.prototype.open= function open() {
  * */
 SeLiteData.Storage.prototype.close= function close( synchronous, callback ) {
     var connection= this.con;
-    this.con= null;debugger;
-    if( synchronous ) {
+    this.con= null;
+    if( synchronous ) { //@TODO simplify once we use async close only
         connection.close();
         !callback || callback();
     }
@@ -749,7 +749,7 @@ StorageFromSettings.prototype.open= function open() {
 };
 
 StorageFromSettings.prototype.close= function close( synchronous ) {
-    SeLiteData.Storage.prototype.close.call( this, synchronous );
+    SeLiteData.Storage.prototype.close.call( this, synchronous ); //@TODO simplify once we use async close only
     this.tablePrefixValue= undefined;
     this.dbField.name in StorageFromSettings.instances || SeLiteMisc.fail( 'StorageFromSettings.close() for field ' +this.dbField.name+ " couldn't find a connection for dbField." );
 };
@@ -809,7 +809,7 @@ function testSuiteFolderChangeHandler() {
             if( instance.fileName===newFileName && newFileName!=='memory' ) {
                 continue;
             }
-            instance.close( true, function callback() {
+            instance.close( false, function callback() { //@TODO simplify once we use async close only
                 instance.fileName= null;
                 if( newFileName ) {
                     instance.fileName= newFileName;

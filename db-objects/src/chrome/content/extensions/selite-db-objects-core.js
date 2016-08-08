@@ -47,7 +47,7 @@ Selenium.prototype.doStoreReadRecord= function doStoreReadRecord( info, storedVa
             var record;
             // @TODO for(record of records):
             for( var key in records ) { // Return the only record, if any:
-                if( record ) {debugger;
+                if( record ) {
                     throw new Error( 'There is more than one record.' );
                 }
                 record= records[key];
@@ -108,7 +108,7 @@ Selenium.prototype.doInsertRecord= function doInsertRecord( recordObject, tableO
 Selenium.prototype.doInsertRecordCaptureKey= function doInsertRecordCaptureKey( recordKeyAttributeLocator, compound ) {
     !( compound.table.primary in compound.record ) || SeLiteMisc.fail( "Expected to generate or capture primary key for table " +compound.table.name+ ", but it was already set to a " +compound.record[compound.table.primary]+ '.' );
     var capturedPrimaryValue= typeof recordKeyAttributeLocator==="string"
-        ? this.browserbot.findAttribute( recordKeyAttributeLocator )
+        ? this.getAttribute( recordKeyAttributeLocator )
         : recordKeyAttributeLocator( this );
         
     var settings= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
@@ -125,7 +125,7 @@ Selenium.prototype.doInsertRecordCaptureKey= function doInsertRecordCaptureKey( 
     if( !storeCapturedKey ) {
         inserting= inserting.then(
             ignored =>
-            capturedPrimaryValue===compound.record[ compound.table.primary ] || SeLiteMisc.fail( "Captured primary key value for table " +compound.table.name+ ": " +capturedPrimaryValue+ " differs to generated value: " +compound.record[ compound.table.primary ] )
+            ''+capturedPrimaryValue===''+compound.record[ compound.table.primary ] || SeLiteMisc.fail( "Captured primary key value for table " +compound.table.name+ ": " +capturedPrimaryValue+ " differs to generated value: " +compound.record[ compound.table.primary ] )
         );
     }
     return this.handlePromise( inserting );

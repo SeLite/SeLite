@@ -11,19 +11,10 @@
 <thead>
 <tr><td rowspan="1" colspan="3">reuse-ids_case</td></tr>
 </thead><tbody>
+<!--This test requires SelBlocks Global. However, DB Objects itself doesn't require SelBlocks   Global.-->
 <tr>
-	<td>if</td>
-	<td>false</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;executeSQLscript</td>
+	<td>executeSQLscript</td>
 	<td>&lt;&gt;SeLiteMisc.applyRelativePath( SeLiteSettings.getTestSuiteFolder(), 'schema.sql')&lt;&gt;</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
-	<td></td>
 	<td></td>
 </tr>
 <tr>
@@ -166,16 +157,16 @@
 <tr>
 	<td>setAttribute</td>
 	<td>id=div@innerText</td>
-	<td>6</td>
+	<td>7</td>
 </tr>
 <tr>
 	<td>assertAttribute</td>
 	<td>div@innerText</td>
-	<td>6</td>
+	<td>7</td>
 </tr>
 <tr>
 	<td>insertRecordCaptureKey</td>
-	<td>=&lt;&gt;(sel)=&gt;6&lt;&gt;</td>
+	<td>id=div@innerText</td>
 	<td>=&lt;&gt;({table: $table, record: {value: 'capt'}, sync: true})&lt;&gt;</td>
 </tr>
 <!---->
