@@ -743,18 +743,22 @@ Selenium= Selenium;
         return Components.classes["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow("navigator:browser");
     };
     
-    Selenium.prototype.getAttribute = function(attributeLocator) {
+    /** I don't overload Selenium.prototype.getAttribute(). It wasn't called (at least not for storeAttribute).
+     * */
+    var oldFindAttribute= BrowserBot.prototype.findAttribute;
+    BrowserBot.prototype.findAttribute
+= MozillaBrowserBot.prototype.findAttribute
+= KonquerorBrowserBot.prototype.findAttribute
+= SafariBrowserBot.prototype.findAttribute
+= OperaBrowserBot.prototype.findAttribute
+= IEBrowserBot.prototype.findAttribute
+= function findAttribute(attributeLocator) {
        var locatorParts= attributeLocatorParts( attributeLocator );
        if( locatorParts.attribute==='value' || locatorParts.attribute==='innerText' ) {
-           var element= this.browserbot.findElement( locatorParts.elementLocator );
+           var element= this.findElement( locatorParts.elementLocator );
            return element[locatorParts.attribute];
        }
-       // Following is from Selenium IDE
-       var result = this.browserbot.findAttribute(attributeLocator);
-       if (result == null) {//@TODO should this be === instead?
-               throw new SeleniumError("Could not find element attribute: " + attributeLocator);
-        }
-        return result;
+       return oldFindAttribute.call( this, attributeLocator);
     };
     
     var attributeLocatorParts= function attributeLocatorParts( attributeLocator ) {

@@ -85,11 +85,6 @@
 </tr>
 <!--Following should fail-->
 <tr>
-	<td>$hasFailed= false</td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
 	<td>try</td>
 	<td></td>
 	<td></td>
@@ -126,11 +121,21 @@
 	<td>=&lt;&gt;({table: $table, record: {value: 'capt'}, sync: false})&lt;&gt;</td>
 </tr>
 <tr>
+	<td>executeSQL</td>
+	<td>DELETE FROM simple WHERE id=5</td>
+	<td></td>
+</tr>
+<tr>
 	<td>insertRecordCaptureKey</td>
-	<td>=&lt;&gt;(sel)=&gt;6&lt;&gt;</td>
+	<td>=&lt;&gt;(sel)=&gt;5&lt;&gt;</td>
 	<td>=&lt;&gt;({table: $table, record: {value: 'capt'}, sync: true})&lt;&gt;</td>
 </tr>
 <!---->
+<tr>
+	<td>executeSQL</td>
+	<td>DELETE FROM simple WHERE id&lt;5</td>
+	<td></td>
+</tr>
 <tr>
 	<td>open</td>
 	<td>file://&lt;&gt; SeLiteSettings.getTestSuiteFolder() &lt;&gt;/../form.html</td>
@@ -166,19 +171,9 @@
 </tr>
 <!---->
 <tr>
-	<td>getEval</td>
-	<td>window.document.getElementById( 'div' ).innerText= 6</td>
-	<td></td>
-</tr>
-<tr>
 	<td>setAttribute</td>
 	<td>id=div@innerText</td>
-	<td>7</td>
-</tr>
-<tr>
-	<td>assertAttribute</td>
-	<td>div@innerText</td>
-	<td>7</td>
+	<td>6</td>
 </tr>
 <tr>
 	<td>insertRecordCaptureKey</td>
