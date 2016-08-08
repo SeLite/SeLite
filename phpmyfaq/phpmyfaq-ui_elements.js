@@ -76,7 +76,7 @@
     phpMyFAQ.uiMap.addElement('allPages', {
         name: 'bootstrapMenuToggle',
         description: '<button> for the Bootstrap menu toggle button. Visible in mobile mode only.',
-        locator: "//button[ @class='navbar-toggle' ]"
+        locator: '//a[ contains(@data-target, ".navbar-collapse" )]' // "//button[ @class='navbar-toggle' ]"
     } );
     
     // --------
