@@ -76,7 +76,17 @@
     phpMyFAQ.uiMap.addElement('allPages', {
         name: 'bootstrapMenuToggle',
         description: '<button> for the Bootstrap menu toggle button. Visible in mobile mode only.',
-        locator: '//a[ contains(@data-target, ".navbar-collapse" )]' // "//button[ @class='navbar-toggle' ]"
+        args: [
+            {name: 'admin',
+             description: 'Whether you want the admin menu (on admin pages)',
+             defaultValues: [false]
+            }
+        ],
+        getLocator: function getLocator(args) {
+            return SeLiteMisc.field(args, 'admin')==='true' // It's passed as a string, not a bool
+                ? "//div[ @class='navbar-header' ]/button[ @class='navbar-toggle' ]"
+                : "//div[ @id='mobile-nav-toggle' ]/a";
+        }
     } );
     
     // --------
@@ -88,7 +98,7 @@
     phpMyFAQ.uiMap.addElement('nonAdminPages', {
         name: 'bootstrapMenu',
         description: '<div> for the Bootstrap menu. Only use through phpMyFAQ.bootstrapMenuLocator() to detect whether the menu is expanded; do not use to access menu items etc.',
-        locator: '//ul[ @class="dropdown-menu" ]'
+        locator: '//li[ @class="dropdown" ]'
     } );
     
     phpMyFAQ.uiMap.addPageset({

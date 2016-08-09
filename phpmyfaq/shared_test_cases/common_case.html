@@ -23,7 +23,7 @@
 	<td>loginOrAmpRole</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;getEval</td>
+	<td>&nbsp;&nbsp;promise</td>
 	<td>phpMyFAQ.selectUserByLogin( SeLiteSettings.roleToUser('${loginOrAmpRole}'), /*dontNarrow*/true )</td>
 	<td></td>
 </tr>
@@ -72,6 +72,11 @@
 <tr>
 	<td>endFunction</td>
 	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>false &amp;&amp; alert( phpMyFAQ.selectedUser )</td>
 	<td></td>
 </tr>
 <!---->
@@ -272,7 +277,13 @@
 <tr>
 	<td>function</td>
 	<td>openBootstrapMenuIfCollapsed</td>
-	<td></td>
+	<td>$admin</td>
+</tr>
+<!--    TODO Document: Selenium IDE (its replaceVariables()) doesn't replace ${variableName} if storedVars.variableName is set to false/0/null. Hence:-->
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
+	<td>$admin ? true : false</td>
+	<td>admin</td>
 </tr>
 <!--  resizeTo(), innerWidth and innerHeight don't work in getEval with window, neither with this.browserbot.getCurrentWindow()-->
 <!--  Here I used to use window.opener.innerWidth. Why?-->
@@ -284,7 +295,7 @@
 <!--  TODO Doc: In Firefox c.a. 36, the following innerWidth was different to value reported by console in Firebug or in Firefox's Web Developer > Toggle tools > console. Fixed in Firefox 47.-->
 <tr>
 	<td>&nbsp;&nbsp;getEval</td>
-	<td>alert( window.innerWidth )</td>
+	<td>false &amp;&amp; alert( window.innerWidth )</td>
 	<td></td>
 </tr>
 <tr>
@@ -294,7 +305,7 @@
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;click</td>
-	<td>ui=allPages::bootstrapMenuToggle()</td>
+	<td>ui=allPages::bootstrapMenuToggle( admin=${admin} )</td>
 	<td></td>
 </tr>
 <tr>

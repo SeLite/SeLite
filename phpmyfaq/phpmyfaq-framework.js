@@ -30,15 +30,21 @@ SeLiteMisc.registerOrExtendFramework(
             //commonSettings.getField('exitConfirmationCheckerMode').setDefaultKey( 'skipRevertedChanges' );
         }/**/
         phpMyFAQ.selectUserByLogin= function selectUserByLogin( givenLogin, dontNarrow ) {
-            phpMyFAQ.selectedUser= phpMyFAQ.formulas.userwithdata.selectOne( {login: givenLogin}, dontNarrow );
-            // Try login manager first. That helps when userlogin record in the test DB comes from the (initial) app DB, with encrypted password(s) rather than plain text ones.
-            phpMyFAQ.selectedUser.pass= SeLiteMisc.loginManagerPassword( givenLogin );
-            if( phpMyFAQ.selectedUser.pass===undefined ) {
-                phpMyFAQ.selectedUser.pass= phpMyFAQ.formulas.userlogin.selectOne( {login: givenLogin}, dontNarrow ).pass;
-            }
-            phpMyFAQ.selectedUser.pass!==undefined && phpMyFAQ.selectedUser.pass!=='' || SeLiteMisc.fail( "No password known for user login " +givenLogin );
+            return phpMyFAQ.formulas.userwithdata.selectOne( {login: givenLogin}, dontNarrow )
+            .then( user => {
+                phpMyFAQ.selectedUser= user;
+                // Try login manager first. That helps when userlogin record in the test DB comes from the (initial) app DB, with encrypted password(s) rather than plain text ones.
+                phpMyFAQ.selectedUser.pass= SeLiteMisc.loginManagerPassword( givenLogin );
+                return phpMyFAQ.selectedUser.pass===undefined
+                    ? phpMyFAQ.formulas.userlogin.selectOne( {login: givenLogin}, dontNarrow ).pass
+                    : phpMyFAQ.selectedUser.pass;
+            } )
+            .then( pass => {
+                phpMyFAQ.selectedUser.pass= pass;
+                pass!==undefined && pass!=='' || SeLiteMisc.fail( "No password known for user login " +givenLogin );
+            } );
         };
-
+        
         SeLiteSettings.setTestDbKeeper( 
             new SeLiteSettings.TestDbKeeper.Columns( {
                 userlogin: {

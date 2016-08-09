@@ -40,7 +40,7 @@
 <tr>
 	<td>call</td>
 	<td>openBootstrapMenuIfCollapsed</td>
-	<td></td>
+	<td>admin=true</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
@@ -80,10 +80,11 @@
 </tr>
 <!---->
 <!--TODO Documen or report to Se HQ: When definition of UI element fails to be loaded, Selenium IDE highlighs the command in red, but it doesn't increase Failures!-->
+<!--Keep a space between displayName= and <>phpMyFAQ.selectedUser.display_name<>, otherwise http://selite.github.io/EnhancedSelenese treats it specially:-->
 <tr>
 	<td>assertElementPresent</td>
 	<td>ui=allPages::userOwnMenuLoggedInName( displayName= &lt;&gt;phpMyFAQ.selectedUser.display_name&lt;&gt; )</td>
-	<td>Comment: keep a space between displayName= and &lt;&gt;phpMyFAQ.selectedUser.display_name&lt;&gt;, otherwise http://selite.github.io/EnhancedSelenese treats it specially</td>
+	<td></td>
 </tr>
 <tr>
 	<td>call</td>
