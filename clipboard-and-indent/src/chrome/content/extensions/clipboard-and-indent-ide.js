@@ -21,7 +21,7 @@
 "use strict";
 
 (function() { // Anonymous function to make the variables local
-    // Identical to indentationStep() in SelBlocksGlobal
+    // Similar to setIndentationStep() in SelBlocksGlobal
     var indentationStep= function indentationStep() {
         if( typeof SeLiteSettings!==undefined ) {
             var settingsModule= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
