@@ -1194,7 +1194,7 @@ SeLiteSettings.Module.prototype.setDefaultSetName= function setDefaultSetName( s
  *  It doesn't inject any field defaults (from the module configuration). If setName is not empty and it differs to name of the default set, this doesn't inject any values from default set. If you'd like the values of the given set to merge with values of default set (if any) or with field defaults, use getFieldsDownToSet() instead. This ignores any manifests.
  *  @private For SeLite internal use only.
  * */
-SeLiteSettings.Module.prototype.getFieldsOfSet= function getFieldsOfSet( setName, includeUndeclaredEntries ) {
+SeLiteSettings.Module.prototype.getFieldsOfSet= function getFieldsOfSet( setName=undefined, includeUndeclaredEntries=undefined ) {
     var result= SeLiteMisc.sortedObject(true);
     for( var fieldName in this.fields ) {
         result[ fieldName ]= this.getFieldOfSet( setName, fieldName );
@@ -1601,7 +1601,7 @@ SeLiteSettings.ModuleAndSetInformation= SeLiteMisc.proxyVerifyFields( SeLiteSett
  *  - default key (value) of the field.
  *  The structure of the result is mostly similar to result of SeLiteSettings.Module.prototype.getFieldsOfSet().
 * */
-SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToFolder( folderPath, dontCache=false, includeUndeclaredEntries ) {
+SeLiteSettings.Module.prototype.getFieldsDownToFolder= function getFieldsDownToFolder( folderPath=undefined, dontCache=false, includeUndeclaredEntries=undefined ) {
     folderPath= folderPath || SeLiteSettings.testSuiteFolder;
     this.associatesWithFolders || SeLiteMisc.fail( "SeLiteSettings.Module.getFieldsDownToFolder() requires module.associatesWithFolders to be true, but it was called for module " +this.name );
     
@@ -1720,7 +1720,7 @@ SeLiteSettings.Module.prototype.getFieldsDownToSet= function getFieldsDownToSet(
  * @param {bool} [includeUndeclaredEntries] Like the same parameter of SeLiteSettings.Module.prototype.getFieldsOfSet().
  * @return {object} like result of getFieldsDownToFolder()
  * */
-SeLiteSettings.Module.prototype.mergeSetsAndDefaults= function getFieldsDownToSet( applicableSets, result, dontCache, includeUndeclaredEntries ) {
+SeLiteSettings.Module.prototype.mergeSetsAndDefaults= function getFieldsDownToSet( applicableSets, result=undefined, dontCache=undefined, includeUndeclaredEntries=undefined ) {
     result= result || SeLiteMisc.sortedObject(true);
     for( var folderOrSetName in applicableSets ) {
         for( var i=0; i<applicableSets[folderOrSetName].length; i++ ) {
