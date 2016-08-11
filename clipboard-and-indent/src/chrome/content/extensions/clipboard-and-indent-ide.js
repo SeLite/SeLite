@@ -21,7 +21,8 @@
 "use strict";
 
 (function() { // Anonymous function to make the variables local
-    var indentationStep= function indentationStep() { // If this turns out to be a bottleneck, then create a suite-change handler, retrieve indentationStep from there and cache it
+    // Identical to indentationStep() in SelBlocksGlobal
+    var indentationStep= function indentationStep() {
         if( typeof SeLiteSettings!==undefined ) {
             var settingsModule= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' );
             var fieldsDownToFolder= settingsModule.getFieldsDownToFolder();
