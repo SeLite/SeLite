@@ -23,7 +23,7 @@
 	<td>loginOrAmpRole</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;getEval</td>
+	<td>&nbsp;&nbsp;promise</td>
 	<td>phpMyFAQ.selectUserByLogin( SeLiteSettings.roleToUser('${loginOrAmpRole}'), /*dontNarrow*/true )</td>
 	<td></td>
 </tr>
@@ -72,6 +72,11 @@
 <tr>
 	<td>endFunction</td>
 	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>false &amp;&amp; alert( phpMyFAQ.selectedUser )</td>
 	<td></td>
 </tr>
 <!---->
@@ -267,12 +272,18 @@
 	<td></td>
 </tr>
 <!---->
-<!--Expand Bootstrap menu, if in mobile mode (and if not expanded already). Only for non-admin pages.-->
+<!--Expand Bootstrap menu, if in mobile mode (and if not expanded already). Then expand 'Login' menu (regardless of mobile mode). Only for non-admin pages.-->
 <!--Don't use directly. Use function goToAdministration instead.-->
 <tr>
 	<td>function</td>
 	<td>openBootstrapMenuIfCollapsed</td>
-	<td></td>
+	<td>$admin</td>
+</tr>
+<!--    TODO Document: Selenium IDE (its replaceVariables()) doesn't replace ${variableName} if storedVars.variableName is set to false/0/null. Hence:-->
+<tr>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
+	<td>$admin ? true : false</td>
+	<td>admin</td>
 </tr>
 <!--  resizeTo(), innerWidth and innerHeight don't work in getEval with window, neither with this.browserbot.getCurrentWindow()-->
 <!--  Here I used to use window.opener.innerWidth. Why?-->
@@ -281,20 +292,20 @@
 	<td>window.width: &lt;&gt;window.innerWidth&lt;&gt;</td>
 	<td>info</td>
 </tr>
-<!--  TODO Doc: the following innerWidth is different to value reported by console in Firebug or in Firefox's Web Developer > Toggle tools > console.-->
+<!--  TODO Doc: In Firefox c.a. 36, the following innerWidth was different to value reported by console in Firebug or in Firefox's Web Developer > Toggle tools > console. Fixed in Firefox 47.-->
 <tr>
-	<td>&nbsp;&nbsp;if</td>
-	<td>window.innerWidth&lt;1024</td>
-	<td>In Firebug console it is 768</td>
+	<td>&nbsp;&nbsp;getEval</td>
+	<td>false &amp;&amp; alert( window.innerWidth )</td>
+	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;if</td>
-	<td>!selenium.isVisible( phpMyFAQ.bootstrapMenuLocator() )</td>
+	<td>&nbsp;&nbsp;if</td>
+	<td>window.innerWidth&lt;768 &amp;&amp; !selenium.isVisible( phpMyFAQ.bootstrapMenuLocator() )</td>
 	<td></td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;click</td>
-	<td>ui=allPages::bootstrapMenuToggle()</td>
+	<td>ui=allPages::bootstrapMenuToggle( admin=${admin} )</td>
 	<td></td>
 </tr>
 <tr>
@@ -303,18 +314,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
+	<td>&nbsp;&nbsp;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;assertVisible</td>
 	<td>&lt;&gt; phpMyFAQ.bootstrapMenuLocator() &lt;&gt;</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;endIf</td>
-	<td></td>
 	<td></td>
 </tr>
 <tr>
