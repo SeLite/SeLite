@@ -66,7 +66,7 @@ function decodeText(text) {
 	return text;
 }
 
-function encodeText(text) {
+function encodeText(text, asComment=false ) {
     if (text == null) return "";
     // & -> &amp;
     // &amp; -> &amp;amp;
@@ -81,6 +81,7 @@ function encodeText(text) {
                 throw "Failed to encode entity: " + c;
             }
         });
+    if( !asComment ) { // Following is not indented, to keep it comparable to original Selenium IDE code
     text = text.replace(/ {2,}/g, function(str) { // convert multiple spaces to XML non-breakable space &#160;
             var result = '';
             for (var i = 0; i < str.length; i++) {
@@ -95,7 +96,8 @@ function encodeText(text) {
 		text = text.replace(/^\$\{/g, '\\${'); // replace ^${...} with \${...}
 		text = text.replace(/\$\$\{/g, '${'); // replace $${...} with ${...}
 	}
-    text = text.replace(/\n/g, "<br />");
+    }
+    text = text.replace(/\n/g, "<br />"); // Not sure how this can happen, since Selenium IDE 2.9.1.1 doesn't allow to enter (or paste from clipboard) text with new lines.
 	return text;
 }
 
@@ -276,6 +278,7 @@ function getSourceForCommand(commandObj) {
 		template = options.commandTemplate;
 	} else if (commandObj.type == 'comment') {
 		comment = commandObj;
+        comment.comment= encodeText( comment.comment, true );
 		template = options.commentTemplate;
 	}
 	var result;
@@ -367,7 +370,7 @@ this.options = {
 	"<!--([\\d\\D]*?)-->\\s*",
 
 	commentLoadScript:
-	"comment.comment = result[1];\n",
+	"comment.comment = result[1]!=='' ? result[1] : result[2];\n",
 
 	testTemplate:
     '<?xml version="1.0" encoding="${encoding}"?>\n' +
@@ -404,7 +407,7 @@ this.options = {
 	defaultExtension: "html"
 };
 
-/*** Unless you install SeLite and Selenium IDE at the exact same time, Selenium IDE stores the 'default' formatter options in Firefox preferences. Then commandLoadPattern from the above won't have effect, even though this file (later) overrides Selenium IDE's html.js (as it was in version 2.9.1.1). Hence here we change that Firefox preference, but only if it was equal to the old value from Selenium IDE's html.js (and not if it were changed by the user).
+/*** Unless you install SeLite and Selenium IDE at the exact same time, Selenium IDE stores the 'default' formatter options in Firefox preferences. Then commandLoadPattern and commentLoadPattern from the above won't have effect, even though this file (later) overrides Selenium IDE's html.js (as it was in version 2.9.1.1). Hence here we change that Firefox preference, but only if it was equal to the old value from Selenium IDE's html.js (and not if it were changed by the user).
  * <br/>The following doesn't use Selenium API, because it was impractical/impossible.
  * <br/>When this is being processed, Selenium IDE already loaded preferences. Therefore this will only have an effect after you restart Selenium IDE.
  */
