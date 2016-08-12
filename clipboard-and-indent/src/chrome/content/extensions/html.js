@@ -404,6 +404,28 @@ this.options = {
 	defaultExtension: "html"
 };
 
+/*** Unless you install SeLite and Selenium IDE at the exact same time, Selenium IDE stores the 'default' formatter options in Firefox preferences. Then commandLoadPattern from the above won't have effect, even though this file (later) overrides Selenium IDE's html.js (as it was in version 2.9.1.1). Hence here we change that Firefox preference, but only if it was equal to the old value from Selenium IDE's html.js (and not if it were changed by the user).
+ * <br/>The following doesn't use Selenium API, because it was impractical/impossible.
+ * <br/>When this is being processed, Selenium IDE already loaded preferences. Therefore this will only have an effect after you restart Selenium IDE.
+ */
+( ()=>{ // closure to keep prefs local
+    debugger;
+    var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService); // -> instance of nsIPrefBranch
+    var prefsBranch= prefs.getBranch( 'extensions.selenium-ide.formats.default.' );
+    if( prefsBranch.prefHasUserValue('commandLoadPattern') ) {
+        if( prefsBranch.getCharPref( 'commandLoadPattern' )===
+    // Following is from Selenium IDE's content/formats/html.js
+    "<tr\s*[^>]*>" +
+	"\\s*(<!--[\\d\\D]*?-->)?" +
+	"\\s*<td\s*[^>]*>\\s*([\\w]*?)\\s*</td>" +
+	"\\s*<td\s*[^>]*>([\\d\\D]*?)</td>" +
+	"\\s*(<td\s*/>|<td\s*[^>]*>([\\d\\D]*?)</td>)" +
+	"\\s*</tr>\\s*" ) {
+            prefsBranch.setCharPref( 'commandLoadPattern', this.options.commandLoadPattern );
+        }
+    }
+} ) ();
+
 /*
  * Optional: XUL XML String for the UI of the options dialog
  */
