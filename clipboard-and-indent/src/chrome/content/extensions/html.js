@@ -367,10 +367,10 @@ this.options = {
 	"command.value = result[5] || '';\n",
 
 	commentLoadPattern:
-	"<!--([\\d\\D]*?)-->\\s*",
+	'(?:<!--([\\d\\D]*?)-->|<tr><td colspan="3" class="comment">([\\d\\D]*?)</td></tr>)\\s*',
 
 	commentLoadScript:
-	"comment.comment = result[1]!=='' ? result[1] : result[2];\n",
+	"comment.comment = result[1]!==undefined ? result[1] : result[2];\n",
 
 	testTemplate:
     '<?xml version="1.0" encoding="${encoding}"?>\n' +
@@ -399,7 +399,7 @@ this.options = {
 	"</tr>\n",
 
 	commentTemplate:
-	"<!--${comment.comment}-->\n",
+	'<tr><td colspan="3" class="comment">${comment.comment}</td></tr>\n',
 	
 	escapeDollar:
 	"false",
@@ -408,23 +408,30 @@ this.options = {
 };
 
 /*** Unless you install SeLite and Selenium IDE at the exact same time, Selenium IDE stores the 'default' formatter options in Firefox preferences. Then commandLoadPattern and commentLoadPattern from the above won't have effect, even though this file (later) overrides Selenium IDE's html.js (as it was in version 2.9.1.1). Hence here we change that Firefox preference, but only if it was equal to the old value from Selenium IDE's html.js (and not if it were changed by the user).
- * <br/>The following doesn't use Selenium API, because it was impractical/impossible.
+ * <br/>This doesn't compare the preferences to original default options of the Selenium IDE current installed. Instead, it compares it to values used in Selenium IDE 2.9.1.1 (copied as hard-coded here). If the current Selenium IDE has different default values, re-assess this.
+ * <br/>This doesn't use Selenium API, because it was impractical/impossible.
  * <br/>When this is being processed, Selenium IDE already loaded preferences. Therefore this will only have an effect after you restart Selenium IDE.
  */
 ( ()=>{ // closure to keep prefs local
     debugger;
     var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService); // -> instance of nsIPrefBranch
     var prefsBranch= prefs.getBranch( 'extensions.selenium-ide.formats.default.' );
-    if( prefsBranch.prefHasUserValue('commandLoadPattern') ) {
-        if( prefsBranch.getCharPref( 'commandLoadPattern' )===
-    // Following is from Selenium IDE's content/formats/html.js
+    var originalValues= {
+    // Following values are from Selenium IDE's content/formats/html.js, with exact same indentation
+    // Selenium IDE 2.9.1.1 doesn't save commentXyz options, hence no need to modify them. If it does so in the future, then here list its originals for: commentLoadPattern, commentLoadScript and commentTemplate
+    commandLoadPattern:
     "<tr\s*[^>]*>" +
 	"\\s*(<!--[\\d\\D]*?-->)?" +
 	"\\s*<td\s*[^>]*>\\s*([\\w]*?)\\s*</td>" +
 	"\\s*<td\s*[^>]*>([\\d\\D]*?)</td>" +
 	"\\s*(<td\s*/>|<td\s*[^>]*>([\\d\\D]*?)</td>)" +
-	"\\s*</tr>\\s*" ) {
-            prefsBranch.setCharPref( 'commandLoadPattern', this.options.commandLoadPattern );
+	"\\s*</tr>\\s*"
+    };
+    for( var optionName in originalValues ) {
+        if( prefsBranch.prefHasUserValue(optionName) ) {
+            if( prefsBranch.getCharPref( optionName )===originalValues[optionName] ) {
+                prefsBranch.setCharPref( optionName, this.options[optionName] );
+            }
         }
     }
 } ) ();
