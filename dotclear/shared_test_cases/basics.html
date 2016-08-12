@@ -19,17 +19,17 @@
 	<td>path, forceReload</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;if</td>
+	<td>&#160;&#160;&#160;&#160;if</td>
 	<td>!window.location.href.startsWith( '&lt;&gt;SeLiteSettings.webURL(storedVars.path)&lt;&gt;' ) || storedVars.forceReload</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;open</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;open</td>
 	<td>&lt;&gt;SeLiteSettings.webURL(storedVars.path)&lt;&gt;</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
+	<td>&#160;&#160;&#160;&#160;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
@@ -45,27 +45,27 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;call</td>
+	<td>&#160;&#160;&#160;&#160;call</td>
 	<td>ensureUnderWebRoot</td>
 	<td>forceReload=true, path='admin'</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeElementPresent</td>
+	<td>&#160;&#160;&#160;&#160;storeElementPresent</td>
 	<td>//a[ contains(@href, 'index.php?logout=1' ) ]</td>
 	<td>userLoggedIn</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;if</td>
+	<td>&#160;&#160;&#160;&#160;if</td>
 	<td>$userLoggedIn</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;clickAndWait</td>
 	<td>//a[ contains(@href, 'index.php?logout=1' ) ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
+	<td>&#160;&#160;&#160;&#160;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
@@ -82,42 +82,42 @@
 </tr>
 <!--    if the user is logged in already, log him out:-->
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;call</td>
+	<td>&#160;&#160;&#160;&#160;call</td>
 	<td>logOut</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
+	<td>&#160;&#160;&#160;&#160;storeEval</td>
 	<td>SeLiteSettings.roleToUser( '${userIdOrAmpersandRole}' )</td>
 	<td>userId</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
+	<td>&#160;&#160;&#160;&#160;type</td>
 	<td>id=user_id</td>
 	<td>${userId}</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
+	<td>&#160;&#160;&#160;&#160;storeEval</td>
 	<td>SeLiteMisc.loginManagerPassword( '${userId}' )</td>
 	<td>password</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
+	<td>&#160;&#160;&#160;&#160;type</td>
 	<td>id=user_pwd</td>
 	<td>${password}</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;&#160;&#160;clickAndWait</td>
 	<td>//form[ @id='login-screen' ]//input[ @type='submit' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;verifyElementPresent</td>
+	<td>&#160;&#160;&#160;&#160;verifyElementPresent</td>
 	<td>//a[ contains(@href, 'index.php?logout=1' ) ]</td>
 	<td>Verify that we are logged in</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;getEval</td>
+	<td>&#160;&#160;&#160;&#160;getEval</td>
 	<td>Dotclear.selectUserId( storedVars.userId )</td>
 	<td></td>
 </tr>
@@ -135,109 +135,109 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;call</td>
+	<td>&#160;&#160;&#160;&#160;call</td>
 	<td>ensureUnderWebRoot</td>
 	<td>forceReload=true, path='admin'</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;&#160;&#160;clickAndWait</td>
 	<td>//div[ @id='favorites-menu' ]//a[ @href='preferences.php' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;click</td>
+	<td>&#160;&#160;&#160;&#160;click</td>
 	<td>//a[ @href='#user-options' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;pause</td>
+	<td>&#160;&#160;&#160;&#160;pause</td>
 	<td>100</td>
 	<td>Wait for the tab to switch</td>
 </tr>
 <!--    -->
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;getEval</td>
+	<td>&#160;&#160;&#160;&#160;getEval</td>
 	<td>storedVars.optionNames= Object.keys( storedVars.options )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;for</td>
+	<td>&#160;&#160;&#160;&#160;for</td>
 	<td>$optionIndex=0; $optionIndex&lt;$optionNames.length; $optionIndex++</td>
 	<td>optionIndex</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;storeEval</td>
 	<td>storedVars.optionNames[storedVars.optionIndex]</td>
 	<td>optionName</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;storeEval</td>
 	<td>storedVars.options[storedVars.optionName]</td>
 	<td>optionValue</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;getEval</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;getEval</td>
 	<td>LOG.error( 'optionIndex:' +storedVars.optionIndex+ ', optionName: ' +storedVars.optionName+ ', optionValue: ' +storedVars.optionValue+ ', typeof optionValue: ' +typeof storedVars.optionValue )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;if</td>
 	<td>$optionName==='post_format'</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;select</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;select</td>
 	<td>id=user_post_format</td>
 	<td>value=${optionValue}</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elseIf</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;elseIf</td>
 	<td>$optionName==='enable_wysiwyg'</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;if</td>
 	<td>$optionValue</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;check</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;check</td>
 	<td>id=user_wysiwyg</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;else</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;uncheck</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;uncheck</td>
 	<td>id=user_wysiwyg</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;endFor</td>
+	<td>&#160;&#160;&#160;&#160;endFor</td>
 	<td></td>
 	<td></td>
 </tr>
 <!--    -->
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
-	<td>css=#opts-forms&nbsp;&nbsp;input[type=&quot;submit&quot;]</td>
+	<td>&#160;&#160;&#160;&#160;clickAndWait</td>
+	<td>css=#opts-forms&#160;&#160;input[type=&quot;submit&quot;]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;getEval</td>
+	<td>&#160;&#160;&#160;&#160;getEval</td>
 	<td>Dotclear.updateUserOptions( storedVars.options )</td>
 	<td></td>
 </tr>
@@ -253,119 +253,119 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;call</td>
+	<td>&#160;&#160;&#160;&#160;call</td>
 	<td>ensureUnderWebRoot</td>
 	<td>forceReload=true, path='admin'</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;&#160;&#160;clickAndWait</td>
 	<td>//a[ @href='users.php' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;&#160;&#160;clickAndWait</td>
 	<td>//a[ @href='user.php' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
+	<td>&#160;&#160;&#160;&#160;typeRandom</td>
 	<td>id=user_id</td>
 	<td>=&lt;&gt;({ characters: /[a-z0-9]/i, minLength: 2 }&lt;&gt;</td>
 </tr>
 <!--    Because of the following, the test only works for standard English installation.-->
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;waitForElementPresent</td>
+	<td>&#160;&#160;&#160;&#160;waitForElementPresent</td>
 	<td>//iframe[contains(@title, 'People dialog')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;selectTopFrameAnd</td>
+	<td>&#160;&#160;&#160;&#160;selectTopFrameAnd</td>
 	<td>//iframe[contains(@title, 'People dialog')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;if</td>
+	<td>&#160;&#160;&#160;&#160;if</td>
 	<td>false</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;selectTopFrameAnd</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;selectTopFrameAnd</td>
 	<td>//iframe[contains(@title, 'People dialog')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
+	<td>&#160;&#160;&#160;&#160;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;&#160;&#160;clickAndWait</td>
 	<td>//div[ @id='content' ]//ul/li/a[ contains(@href, '/?q=admin/people/create') ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;selectTopFrameAnd</td>
+	<td>&#160;&#160;&#160;&#160;selectTopFrameAnd</td>
 	<td>//iframe[contains(@title, 'People dialog')]</td>
 	<td></td>
 </tr>
 <!--    -->
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
+	<td>&#160;&#160;&#160;&#160;typeRandom</td>
 	<td>id=edit-name</td>
 	<td>=&lt;&gt;({ maxLength:60, type:'word', store:'newUserId' })&lt;&gt;</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
+	<td>&#160;&#160;&#160;&#160;typeRandom</td>
 	<td>id=edit-mail</td>
 	<td>=&lt;&gt;({ maxLength: 254, type:'email', store:'newUserEmail' })&lt;&gt;</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
+	<td>&#160;&#160;&#160;&#160;typeRandom</td>
 	<td>id=edit-pass-pass1</td>
 	<td>=&lt;&gt;({ type:'password', store:'newUserPassword' })&lt;&gt;</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
+	<td>&#160;&#160;&#160;&#160;type</td>
 	<td>id=edit-pass-pass2</td>
 	<td>=&lt;&gt;$newUserPassword&lt;&gt;</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;&#160;&#160;clickAndWait</td>
 	<td>id=edit-submit</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
+	<td>&#160;&#160;&#160;&#160;insertRecord</td>
 	<td>=&lt;&gt;({ name: $newUserId, mail: $newUserEmail, pass: $newUserPassword })&lt;&gt;</td>
 	<td>=&lt;&gt;Dotclear.tables.user&lt;&gt;</td>
 </tr>
 <!--    Login and verify-->
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;call</td>
+	<td>&#160;&#160;&#160;&#160;call</td>
 	<td>logInAsStoredUser</td>
 	<td>UserId=$newUserId</td>
 </tr>
 <!--    If you'd like the following XPaths to be simpler, vote for http://selite.github.io/ThirdPartyIssues > Support XPath 2.0-->
 <!--    Click at 'My account'.-->
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;&#160;&#160;clickAndWait</td>
 	<td>//ul/li/a[ contains(@href, '/?q=user') and substring-after(@href, '/?q=user')='' ]</td>
 	<td></td>
 </tr>
 <!--    TODO CHECK THIS COMMENT: Check the userId. (Xpath must use contains(), if Dotclear adds extra whitespace.)-->
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;verifyElementPresent</td>
+	<td>&#160;&#160;&#160;&#160;verifyElementPresent</td>
 	<td>//div[ @id='content' ]//h1[ @id='page-title' and contains(., '${newUserId}') ]</td>
 	<td></td>
 </tr>
 <!--    Click at 'Edit' tab-->
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;&#160;&#160;clickAndWait</td>
 	<td>//div[ @class='tabs' ]/ul/li/a[ contains(@href, '?q=user/') and translate( substring-after(@href, '?q=user/'), '0123456789', '')='/edit' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;verifyElementPresent</td>
+	<td>&#160;&#160;&#160;&#160;verifyElementPresent</td>
 	<td>//input[ @id='edit-mail' and @value='${newUserEmail}' ]</td>
 	<td></td>
 </tr>
@@ -382,76 +382,76 @@
 	<td>UserId</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;selectTopFrameAnd</td>
+	<td>&#160;&#160;&#160;&#160;selectTopFrameAnd</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeReadRecord</td>
+	<td>&#160;&#160;&#160;&#160;storeReadRecord</td>
 	<td>=&lt;&gt;({ formula: Dotclear.formulas.user, name: $userId })&lt;&gt;</td>
 	<td>user</td>
 </tr>
 <!--    if the user is logged in already, log him out:-->
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeElementPresent</td>
+	<td>&#160;&#160;&#160;&#160;storeElementPresent</td>
 	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
 	<td>userLoggedIn</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;if</td>
+	<td>&#160;&#160;&#160;&#160;if</td>
 	<td>$userLoggedIn</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;clickAndWait</td>
 	<td>//li[ contains(@class, 'logout') ]/a</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
+	<td>&#160;&#160;&#160;&#160;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
 <!--    make sure we're at login screen-->
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeElementPresent</td>
+	<td>&#160;&#160;&#160;&#160;storeElementPresent</td>
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
 	<td>userIdPresent</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;if</td>
+	<td>&#160;&#160;&#160;&#160;if</td>
 	<td>$userIdPresent</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;open</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;open</td>
 	<td>&lt;&gt;SeLiteSettings.webRoot()&lt;&gt;</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
+	<td>&#160;&#160;&#160;&#160;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
 <!--    Verify that we can log in-->
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
+	<td>&#160;&#160;&#160;&#160;type</td>
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
 	<td>${userId}</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
+	<td>&#160;&#160;&#160;&#160;type</td>
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-pass' ]</td>
 	<td>&lt;&gt;$user.pass&lt;&gt;</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;&#160;&#160;clickAndWait</td>
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-submit' ]</td>
 	<td></td>
 </tr>
 <!--    -->
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;verifyElementPresent</td>
+	<td>&#160;&#160;&#160;&#160;verifyElementPresent</td>
 	<td>//ul/li/a[ contains(@href, '/?q=user/logout') ]</td>
 	<td>Verify that we are logged in</td>
 </tr>

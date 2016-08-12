@@ -23,49 +23,49 @@
 	<td>loginOrAmpRole</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;promise</td>
+	<td>&#160;&#160;promise</td>
 	<td>phpMyFAQ.selectUserByLogin( SeLiteSettings.roleToUser('${loginOrAmpRole}'), /*dontNarrow*/true )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;call</td>
+	<td>&#160;&#160;call</td>
 	<td>openUserOwnMenuIfCollapsed</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;clickAndWait</td>
 	<td>ui=allPages::userOwnMenuItem( item=Login )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
+	<td>&#160;&#160;&#160;&#160;type</td>
 	<td>id=faqusername</td>
 	<td>&lt;&gt;phpMyFAQ.selectedUser.login&lt;&gt;</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
+	<td>&#160;&#160;&#160;&#160;type</td>
 	<td>id=faqpassword</td>
 	<td>&lt;&gt;phpMyFAQ.selectedUser.pass&lt;&gt;</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;clickAndWait</td>
 	<td>//div[ @class=&quot;panel-body&quot; ]//button[ @type=&quot;submit&quot; ]</td>
 	<td></td>
 </tr>
 <!--    The current page and its URL depends on whether we got here from an admin or non-admin screen-->
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;assertElementPresent</td>
+	<td>&#160;&#160;&#160;&#160;assertElementPresent</td>
 	<td>ui=allPages::userOwnMenuLoggedInName()</td>
 	<td></td>
 </tr>
 <!--    Keep a space between displayName= and <>phpMyFAQ.selectedUser.display_name<>, otherwise http://selite.github.io/EnhancedSelenese treats it specially:-->
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;assertElementPresent</td>
+	<td>&#160;&#160;&#160;&#160;assertElementPresent</td>
 	<td>ui=allPages::userOwnMenuLoggedInName( displayName= &lt;&gt;phpMyFAQ.selectedUser.display_name&lt;&gt; )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;getEval</td>
+	<td>&#160;&#160;getEval</td>
 	<td>LOG.debug( SeLiteMisc.objectToString(phpMyFAQ.selectedUser, 3) )</td>
 	<td></td>
 </tr>
@@ -86,38 +86,38 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;call</td>
+	<td>&#160;&#160;call</td>
 	<td>openUserOwnMenuIfCollapsed</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;if</td>
+	<td>&#160;&#160;if</td>
 	<td>selenium.isElementPresent( 'ui=allPages::userOwnMenuItem( item=Logout )' )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;&#160;&#160;clickAndWait</td>
 	<td>ui=allPages::userOwnMenuItem( item=Logout )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;endIf</td>
+	<td>&#160;&#160;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
 <!--  If the user was an admin, 'Logout' leaves her at /admin/index.php?action=logout. That doesn't have bootstrap menu. Hence reload webroot:-->
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;ensureUnderWebRoot</td>
+	<td>&#160;&#160;&#160;&#160;ensureUnderWebRoot</td>
 	<td>&lt;&gt; true &lt;&gt;</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;assertElementPresent</td>
+	<td>&#160;&#160;assertElementPresent</td>
 	<td>ui=allPages::userOwnMenuItem( item=Login )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;assertLocation</td>
+	<td>&#160;&#160;assertLocation</td>
 	<td>regexp:</td>
 	<td></td>
 </tr>
@@ -133,73 +133,73 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;clickAndWait</td>
 	<td>//a[ @href='?action=user&amp;user_action=add' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
+	<td>&#160;&#160;&#160;&#160;typeRandom</td>
 	<td>user_name</td>
 	<td>=&lt;&gt;({ maxLength:128, store:'login', characters:/[a-zA-Z1-9_-]/ })&lt;&gt;</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
+	<td>&#160;&#160;&#160;&#160;typeRandom</td>
 	<td>user_realname</td>
 	<td>=&lt;&gt;({ maxLength:128, store:'display_name' })&lt;&gt;</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
+	<td>&#160;&#160;&#160;&#160;typeRandom</td>
 	<td>user_email</td>
 	<td>=&lt;&gt;({ maxLength:128, store:'email', type:'email' })&lt;&gt;</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
+	<td>&#160;&#160;&#160;&#160;typeRandom</td>
 	<td>password</td>
 	<td>=&lt;&gt;({ type: 'password', store: 'pass' })&lt;&gt;</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
+	<td>&#160;&#160;&#160;&#160;type</td>
 	<td>password_confirm</td>
 	<td>${pass}</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;clickAndWait</td>
 	<td>//button[ @type='submit' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
+	<td>&#160;&#160;&#160;&#160;insertRecord</td>
 	<td>=&lt;&gt;({ login: $login })&lt;&gt;</td>
 	<td>=&lt;&gt;phpMyFAQ.tables.user&lt;&gt;</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
+	<td>&#160;&#160;&#160;&#160;storeEval</td>
 	<td>storedVars.insertedRecordKey</td>
 	<td>user_id</td>
 </tr>
 <!--    -->
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
+	<td>&#160;&#160;&#160;&#160;insertRecord</td>
 	<td>=&lt;&gt;({ login: $login, pass:$pass })&lt;&gt;</td>
 	<td>=&lt;&gt;phpMyFAQ.tables.userlogin&lt;&gt;</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;getEval</td>
+	<td>&#160;&#160;&#160;&#160;getEval</td>
 	<td>LOG.error( 'login ' +storedVars.login )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeReadRecord</td>
+	<td>&#160;&#160;&#160;&#160;storeReadRecord</td>
 	<td>=&lt;&gt;({ formula: phpMyFAQ.formulas.user, login: $login })&lt;&gt;</td>
 	<td>user</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
+	<td>&#160;&#160;&#160;&#160;insertRecord</td>
 	<td>=&lt;&gt;({ user_id: $user_id, display_name:$display_name, email:$email })&lt;&gt;</td>
 	<td>=&lt;&gt;phpMyFAQ.tables.userdata&lt;&gt;</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;return</td>
+	<td>&#160;&#160;return</td>
 	<td>=&lt;&gt;$user&lt;&gt;</td>
 	<td></td>
 </tr>
@@ -216,12 +216,12 @@
 	<td>login</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;storeReadRecord</td>
+	<td>&#160;&#160;storeReadRecord</td>
 	<td>=&lt;&gt;({ formula: phpMyFAQ.formulas.userlogin, login: $login })&lt;&gt;</td>
 	<td>userlogin</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;call</td>
+	<td>&#160;&#160;call</td>
 	<td>logIn</td>
 	<td>loginOrAmpRole=$login, passwd=$user.password</td>
 </tr>
@@ -237,32 +237,32 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;if</td>
+	<td>&#160;&#160;if</td>
 	<td>!SeLiteSettings.appPath().startsWith('/admin/')</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;call</td>
+	<td>&#160;&#160;&#160;&#160;call</td>
 	<td>openUserOwnMenuIfCollapsed</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;&#160;&#160;clickAndWait</td>
 	<td>ui=allPages::userOwnMenuItem( item=Administration )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;endIf</td>
+	<td>&#160;&#160;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;call</td>
+	<td>&#160;&#160;call</td>
 	<td>openBootstrapMenuIfCollapsed</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;assertVisible</td>
+	<td>&#160;&#160;assertVisible</td>
 	<td>ui=adminPages::topNavigation(section=Dashboard)</td>
 	<td></td>
 </tr>
@@ -281,45 +281,45 @@
 </tr>
 <!--    TODO Document: Selenium IDE (its replaceVariables()) doesn't replace ${variableName} if storedVars.variableName is set to false/0/null. Hence:-->
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
+	<td>&#160;&#160;&#160;&#160;storeEval</td>
 	<td>$admin ? true : false</td>
 	<td>admin</td>
 </tr>
 <!--  resizeTo(), innerWidth and innerHeight don't work in getEval with window, neither with this.browserbot.getCurrentWindow()-->
 <!--  Here I used to use window.opener.innerWidth. Why?-->
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;log</td>
+	<td>&#160;&#160;&#160;&#160;log</td>
 	<td>window.width: &lt;&gt;window.innerWidth&lt;&gt;</td>
 	<td>info</td>
 </tr>
 <!--  TODO Doc: In Firefox c.a. 36, the following innerWidth was different to value reported by console in Firebug or in Firefox's Web Developer > Toggle tools > console. Fixed in Firefox 47.-->
 <tr>
-	<td>&nbsp;&nbsp;getEval</td>
+	<td>&#160;&#160;getEval</td>
 	<td>false &amp;&amp; alert( window.innerWidth )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;if</td>
+	<td>&#160;&#160;if</td>
 	<td>window.innerWidth&lt;768 &amp;&amp; !selenium.isVisible( phpMyFAQ.bootstrapMenuLocator() )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;click</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;click</td>
 	<td>ui=allPages::bootstrapMenuToggle( admin=${admin} )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pause</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;pause</td>
 	<td>150</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;endIf</td>
+	<td>&#160;&#160;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;assertVisible</td>
+	<td>&#160;&#160;&#160;&#160;assertVisible</td>
 	<td>&lt;&gt; phpMyFAQ.bootstrapMenuLocator() &lt;&gt;</td>
 	<td></td>
 </tr>
@@ -336,42 +336,42 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;if</td>
+	<td>&#160;&#160;&#160;&#160;if</td>
 	<td>false</td>
 	<td>Following probably not needed</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;call</td>
 	<td>openBootstrapMenuIfCollapsed</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;endIf</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;if</td>
+	<td>&#160;&#160;if</td>
 	<td>!selenium.isVisible( 'ui=allPages::userOwnMenu()' )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;click</td>
+	<td>&#160;&#160;&#160;&#160;click</td>
 	<td>ui=allPages::userOwnMenuToggle()</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;pause</td>
+	<td>&#160;&#160;&#160;&#160;pause</td>
 	<td>150</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;endIf</td>
+	<td>&#160;&#160;endIf</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;assertVisible</td>
+	<td>&#160;&#160;assertVisible</td>
 	<td>ui=allPages::userOwnMenu()</td>
 	<td></td>
 </tr>
@@ -387,42 +387,42 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;clickAndWait</td>
 	<td>ui=adminPages::topNavigation(section=Content)</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;clickAndWait</td>
 	<td>ui=adminPages::secondNavigation(section=Content, item=FAQ Categories)</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;clickAndWait</td>
 	<td>//a[ @href='?action=addcategory' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;typeRandom</td>
+	<td>&#160;&#160;&#160;&#160;typeRandom</td>
 	<td>id=name</td>
 	<td>=&lt;&gt; ({ maxLength:255, store:'name' }) &lt;&gt;</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;storeEval</td>
+	<td>&#160;&#160;&#160;&#160;storeEval</td>
 	<td>('Cat.Description ' +storedVars.name).substr(0, 255)</td>
 	<td>description</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;type</td>
+	<td>&#160;&#160;&#160;&#160;type</td>
 	<td>id=description</td>
 	<td>$description</td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;clickAndWait</td>
+	<td>&#160;&#160;clickAndWait</td>
 	<td>//button[ @type='submit' ]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;insertRecord</td>
+	<td>&#160;&#160;&#160;&#160;insertRecord</td>
 	<td>=&lt;&gt;({ lang:'en', parent_id:0, name: $name, description:$description, user_id:1 })&lt;&gt;</td>
 	<td>=&lt;&gt;phpMyFAQ.tables.categories&lt;&gt;</td>
 </tr>
