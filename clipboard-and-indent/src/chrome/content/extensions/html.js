@@ -152,6 +152,7 @@ function parseCommandsAndHeader( doc ) {
                             comment.index = docResult.index;
                             var result = commentRegexp.exec(doc.substring(lastIndex));
                             eval(options.commentLoadScript);
+                            comment.comment= decodeText( comment.comment );
                             commands.push(comment);
                     }
             } else {
