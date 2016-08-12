@@ -1,6 +1,6 @@
 /*
  * Copyright 2005 Shinya Kasatani and/or Selenium IDE team
- * Copyright 2015 Peter Kehl
+ * Copyright 2015, 2016 Peter Kehl
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ function decodeText(text) {
                 return str;
             }
         });
+    // Following has to replace '&#160;' (XML for non-breakable space). Otherwise &#160; showed up in Selenium IDE 'Table' mode/tab (rather than just in 'Source' mode/tab).
     text = text.replace(/&#(\d+);/g, function(str, p1) { 
             return String.fromCharCode(parseInt(p1));
         });
@@ -56,7 +57,7 @@ function decodeText(text) {
             return String.fromCharCode(parseInt(p1, 16));
         });
     text = text.replace(/ +/g, " "); // truncate multiple spaces to single space
-    text = text.replace(/\xA0/g, " "); // treat nbsp as space
+    text = text.replace(/\xA0/g, " "); // treat nbsp as space (A0 is hexadecimal of 160 - unicode for nbsp)
 	if ('true' == options.escapeDollar) {
 		text = text.replace(/([^\\])\$\{/g, '$1$$$${'); // replace [^\]${...} with $${...}
 		text = text.replace(/^\$\{/g, '$$$${'); // replace ^${...} with $${...}
@@ -70,7 +71,7 @@ function encodeText(text) {
     // & -> &amp;
     // &amp; -> &amp;amp;
     // &quot; -> &amp;quot;
-    // \xA0 -> &nbsp;
+    // \xA0 -> &#160; (which is XML hexadecimal for &nbsp;)
     text = text.replace(new RegExp(XhtmlEntityChars, "g"),
                         function(c) {
             var entity = XhtmlEntityFromChars[c.charCodeAt(c)];
@@ -80,13 +81,15 @@ function encodeText(text) {
                 throw "Failed to encode entity: " + c;
             }
         });
-    text = text.replace(/ {2,}/g, function(str) {
+    text = text.replace(/ {2,}/g, function(str) { // convert multiple spaces to XML non-breakable space &#160;
             var result = '';
             for (var i = 0; i < str.length; i++) {
-                result += '&nbsp;';
+                result += '&#160;';
             }
             return result;
-        }); // convert multiple spaces to nbsp
+        });
+    text = text.replace( /&nbsp;/g, '&#160;' ); // To make existing non-XML files XML-compliant.
+    
 	if ('true' == options.escapeDollar) {
 		text = text.replace(/([^\$])\$\{/g, '$1\\${'); // replace [^$]${...} with \${...}
 		text = text.replace(/^\$\{/g, '\\${'); // replace ^${...} with \${...}
@@ -350,7 +353,7 @@ this.options = {
 	commandLoadPattern:
 	"<tr\\s*[^>]*>" +
 	"\\s*(<!--[\\d\\D]*?-->)?" +
-	"\\s*<td\\s*[^>]*>\\s*((?:&nbsp;)*[\\w]*?)\\s*</td>" +
+	"\\s*<td\\s*[^>]*>\\s*((?:&#160;|&#xA0;|&nbsp;)*[\\w]*?)\\s*</td>" +
 	"\\s*<td\\s*[^>]*>([\\d\\D]*?)</td>" +
 	"\\s*(<td\\s*/>|<td\\s*[^>]*>([\\d\\D]*?)</td>)" +
 	"\\s*</tr>\\s*",

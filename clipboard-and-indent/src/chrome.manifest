@@ -3,7 +3,11 @@ skin selite-clipboard-and-indent classic chrome/skin/classic/
 
 overlay chrome://browser/content/browser.xul chrome://selite-clipboard-and-indent/content/extensions/browser.xul
 
+# The intention of the following was to access the original format, even after I overrode chrome://selenium-ide/content/formats/html.js. However, it didn't work - it accessed the override instead.
+# resource original-selenium-ide-format-html.js chrome://selenium-ide/content/formats/html.js
+
 # An XPI can override chrome:// URI from another XPI. Also, 'override' works even if the overriden URI (the first parameter) is not registered at all (e.g. chrome://non-existing-package/content/non-existing-file). So, overriding between XPIs works, no matter in what order the XPIs are loaded (as far as there is maximum of one override per URI).
+
 override chrome://selenium-ide/content/formats/html.js chrome://selite-clipboard-and-indent/content/extensions/html.js
 
 overlay chrome://selenium-ide/content/selenium-ide.xul chrome://selite-clipboard-and-indent/content/ui/ovIDEorSidebar.xul
