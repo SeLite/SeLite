@@ -166,6 +166,60 @@ function parseCommandsAndHeader( doc ) {
     };
 }
 
+var originalValues= {
+    // Following values are from Selenium IDE's content/formats/html.js, with exact same indentation.
+    // Selenium IDE 2.9.1.1 doesn't save commentXyz options, hence no need to modify them. If it does so in the future, then here list its originals for: commentLoadPattern, commentLoadScript and commentTemplate
+    commandLoadPattern:
+    "<tr\s*[^>]*>" +
+	"\\s*(<!--[\\d\\D]*?-->)?" +
+	"\\s*<td\s*[^>]*>\\s*([\\w]*?)\\s*</td>" +
+	"\\s*<td\s*[^>]*>([\\d\\D]*?)</td>" +
+	"\\s*(<td\s*/>|<td\s*[^>]*>([\\d\\D]*?)</td>)" +
+	"\\s*</tr>\\s*",
+    
+	testTemplate:
+    '<?xml version="1.0" encoding="${encoding}"?>\n' +
+    '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">\n' +
+	'<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">\n' +
+	'<head profile="http://selenium-ide.openqa.org/profiles/test-case">\n' +
+	'<meta http-equiv="Content-Type" content="text/html; charset=${encoding}" />\n' +
+    '<link rel="selenium.base" href="${baseURL}" />\n' +
+	"<title>${name}</title>\n" +
+	"</head>\n" +
+	"<body>\n" +
+	'<table cellpadding="1" cellspacing="1" border="1">\n'+
+	'<thead>\n' +
+	'<tr><td rowspan="1" colspan="3">${name}</td></tr>\n' +
+	"</thead><tbody>\n" +
+	"${commands}\n" +
+	"</tbody></table>\n" +
+	"</body>\n" +
+	"</html>\n"
+};
+
+function replaceTraditionalHeader( testCase ) {
+    var template= originalValues.testTemplate;
+    var tbodyStart= template.indexOf( '<tbody>');
+    if( tbodyStart>=0 ) {
+        template= template.substring( 0, tbodyStart );
+        template= template.replace( /\$\{[a-zA-Z]+\}/g, '(.*)' );
+        var regexp= new RegExp( template );
+        debugger;
+        var match= regexp.exec( testCase.header );
+        if( match ) {
+            var startOfCommands= this.options.testTemplate.indexOf( '${commands}' );
+            testCase.header= this.options.testTemplate.substr( 0, startOfCommands );
+            
+            testCase.header= testCase.header.replace( '${encoding}', match[1] );
+            testCase.header= testCase.header.replace( '${encoding}', match[2] );
+            testCase.header= testCase.header.replace( '${baseURL}', match[3] );
+            testCase.header= testCase.header.replace( '${name}', match[4] );
+            testCase.header= testCase.header.replace( '${name}', match[5] );
+            log.debug("replaced traditional header");
+        }
+    }
+}
+
 /**
  * Parse source and update TestCase. Throw an exception if any error occurs.
  *
@@ -174,11 +228,11 @@ function parseCommandsAndHeader( doc ) {
  */
 function parse(testCase, source) {
 	var doc = source;
-        var commandsAndHeader= parseCommandsAndHeader( doc );
-        if( 'header' in commandsAndHeader ) {
-            testCase.header= commandsAndHeader.header;
-        }
+    var commandsAndHeader= parseCommandsAndHeader( doc );
+    // Removed old condition: if( 'header' in commandsAndHeader ), because it is always true (commandsAndHeader.header is always set, even though it can be undefined).
+    testCase.header= commandsAndHeader.header;
 	if (commandsAndHeader.commands.length > 0) {
+        replaceTraditionalHeader( testCase );
 		testCase.footer = doc.substring(commandsAndHeader.lastIndex);
 		log.debug("header=" + testCase.header);
 		log.debug("footer=" + testCase.footer);
@@ -199,6 +253,7 @@ function parse(testCase, source) {
 			}
 			if (templateVars["commands"]) {
 				testCase.header = doc.substring(0, templateVars["commands"][1]);
+                replaceTraditionalHeader( testCase );
 				testCase.footer = doc.substring(templateVars["commands"][1]);
 				log.debug("header=" + testCase.header);
 				log.debug("footer=" + testCase.footer);
@@ -381,6 +436,7 @@ this.options = {
 	'<meta http-equiv="Content-Type" content="text/html; charset=${encoding}" />\n' +
     '<link rel="selenium.base" href="${baseURL}" />\n' +
 	"<title>${name}</title>\n" +
+    '<style type="text/css">.comment {color: #AA33AA}</style>'+ // From chrome/skin/classic/selenium-ide.css: treechildren::-moz-tree-cell-text(comment)
 	"</head>\n" +
 	"<body>\n" +
 	'<table cellpadding="1" cellspacing="1" border="1">\n'+
@@ -414,20 +470,9 @@ this.options = {
  * <br/>When this is being processed, Selenium IDE already loaded preferences. Therefore this will only have an effect after you restart Selenium IDE.
  */
 ( ()=>{ // closure to keep prefs local
-    debugger;
     var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService); // -> instance of nsIPrefBranch
     var prefsBranch= prefs.getBranch( 'extensions.selenium-ide.formats.default.' );
-    var originalValues= {
-    // Following values are from Selenium IDE's content/formats/html.js, with exact same indentation
-    // Selenium IDE 2.9.1.1 doesn't save commentXyz options, hence no need to modify them. If it does so in the future, then here list its originals for: commentLoadPattern, commentLoadScript and commentTemplate
-    commandLoadPattern:
-    "<tr\s*[^>]*>" +
-	"\\s*(<!--[\\d\\D]*?-->)?" +
-	"\\s*<td\s*[^>]*>\\s*([\\w]*?)\\s*</td>" +
-	"\\s*<td\s*[^>]*>([\\d\\D]*?)</td>" +
-	"\\s*(<td\s*/>|<td\s*[^>]*>([\\d\\D]*?)</td>)" +
-	"\\s*</tr>\\s*"
-    };
+    // @TODO retest - is originalValues, or it is this.originalValues? if this.originalValues, then don't use an arrow function, but a classic function.
     for( var optionName in originalValues ) {
         if( prefsBranch.prefHasUserValue(optionName) ) {
             if( prefsBranch.getCharPref( optionName )===originalValues[optionName] ) {

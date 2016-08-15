@@ -1,18 +1,18 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head profile="http://selenium-ide.openqa.org/profiles/test-case">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <link rel="selenium.base" href="http://change-this-to-the-site-you-are-testing/" />
 <title>basics</title>
-</head>
+<style type="text/css">.comment {color: #AA33AA}</style></head>
 <body>
 <table cellpadding="1" cellspacing="1" border="1">
 <thead>
 <tr><td rowspan="1" colspan="3">basics</td></tr>
 </thead><tbody>
-<!--@param forceReload optional-->
-<!--@param path optional. If specified, it must be an absolute URL path relative to webroot. It can start with '/' or without it (then it's added).-->
+<tr><td colspan="3" class="comment">@param forceReload optional</td></tr>
+<tr><td colspan="3" class="comment">@param path optional. If specified, it must be an absolute URL path relative to webroot. It can start with '/' or without it (then it's added).</td></tr>
 <tr>
 	<td>function</td>
 	<td>ensureUnderWebRoot</td>
@@ -38,7 +38,7 @@
 	<td></td>
 	<td></td>
 </tr>
-<!---------------------->
+<tr><td colspan="3" class="comment"></td></tr>
 <tr>
 	<td>function</td>
 	<td>logOut</td>
@@ -74,13 +74,13 @@
 	<td></td>
 	<td></td>
 </tr>
-<!----------------->
+<tr><td colspan="3" class="comment"></td></tr>
 <tr>
 	<td>function</td>
 	<td>logIn</td>
 	<td>userIdOrAmpersandRole</td>
 </tr>
-<!--    if the user is logged in already, log him out:-->
+<tr><td colspan="3" class="comment"> if the user is logged in already, log him out:</td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;call</td>
 	<td>logOut</td>
@@ -126,9 +126,9 @@
 	<td></td>
 	<td></td>
 </tr>
-<!----------------->
-<!--Update zero, one or more given options of the user.-->
-<!--@param options An object with any options to update. See Dotclear.userOptions() for option names. Any other  options will be left unchanged.-->
+<tr><td colspan="3" class="comment"></td></tr>
+<tr><td colspan="3" class="comment">Update zero, one or more given options of the user.</td></tr>
+<tr><td colspan="3" class="comment">@param options An object with any options to update. See Dotclear.userOptions() for option names. Any other options will be left unchanged.</td></tr>
 <tr>
 	<td>function</td>
 	<td>updateUserOptions</td>
@@ -154,7 +154,7 @@
 	<td>100</td>
 	<td>Wait for the tab to switch</td>
 </tr>
-<!--    -->
+<tr><td colspan="3" class="comment"> </td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;getEval</td>
 	<td>storedVars.optionNames= Object.keys( storedVars.options )</td>
@@ -230,7 +230,7 @@
 	<td></td>
 	<td></td>
 </tr>
-<!--    -->
+<tr><td colspan="3" class="comment"> </td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;clickAndWait</td>
 	<td>css=#opts-forms&#160;&#160;input[type=&quot;submit&quot;]</td>
@@ -246,7 +246,7 @@
 	<td></td>
 	<td></td>
 </tr>
-<!----------------->
+<tr><td colspan="3" class="comment"></td></tr>
 <tr>
 	<td>function</td>
 	<td>createUser</td>
@@ -272,7 +272,7 @@
 	<td>id=user_id</td>
 	<td>=&lt;&gt;({ characters: /[a-z0-9]/i, minLength: 2 }&lt;&gt;</td>
 </tr>
-<!--    Because of the following, the test only works for standard English installation.-->
+<tr><td colspan="3" class="comment">     Because of the following, the test only works for standard English installation.</td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;waitForElementPresent</td>
 	<td>//iframe[contains(@title, 'People dialog')]</td>
@@ -308,7 +308,7 @@
 	<td>//iframe[contains(@title, 'People dialog')]</td>
 	<td></td>
 </tr>
-<!--    -->
+<tr><td colspan="3" class="comment"> </td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;typeRandom</td>
 	<td>id=edit-name</td>
@@ -339,26 +339,26 @@
 	<td>=&lt;&gt;({ name: $newUserId, mail: $newUserEmail, pass: $newUserPassword })&lt;&gt;</td>
 	<td>=&lt;&gt;Dotclear.tables.user&lt;&gt;</td>
 </tr>
-<!--    Login and verify-->
+<tr><td colspan="3" class="comment"> Login and verify</td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;call</td>
 	<td>logInAsStoredUser</td>
 	<td>UserId=$newUserId</td>
 </tr>
-<!--    If you'd like the following XPaths to be simpler, vote for http://selite.github.io/ThirdPartyIssues > Support XPath 2.0-->
-<!--    Click at 'My account'.-->
+<tr><td colspan="3" class="comment"> If you'd like the following XPaths to be simpler, vote for http://selite.github.io/ThirdPartyIssues &amp;amp;amp;amp;amp;gt; Support XPath 2.0</td></tr>
+<tr><td colspan="3" class="comment"> Click at 'My account'.</td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;clickAndWait</td>
 	<td>//ul/li/a[ contains(@href, '/?q=user') and substring-after(@href, '/?q=user')='' ]</td>
 	<td></td>
 </tr>
-<!--    TODO CHECK THIS COMMENT: Check the userId. (Xpath must use contains(), if Dotclear adds extra whitespace.)-->
+<tr><td colspan="3" class="comment"> TODO CHECK THIS COMMENT: Check the userId. (Xpath must use contains(), if Dotclear adds extra whitespace.)</td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;verifyElementPresent</td>
 	<td>//div[ @id='content' ]//h1[ @id='page-title' and contains(., '${newUserId}') ]</td>
 	<td></td>
 </tr>
-<!--    Click at 'Edit' tab-->
+<tr><td colspan="3" class="comment"> Click at 'Edit' tab</td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;clickAndWait</td>
 	<td>//div[ @class='tabs' ]/ul/li/a[ contains(@href, '?q=user/') and translate( substring-after(@href, '?q=user/'), '0123456789', '')='/edit' ]</td>
@@ -374,8 +374,8 @@
 	<td></td>
 	<td></td>
 </tr>
-<!----------------->
-<!--This requires the password to be stored in the test DB in plain text. Like for accounts created by script createUser.-->
+<tr><td colspan="3" class="comment">-------------</td></tr>
+<tr><td colspan="3" class="comment">This requires the password to be stored in the test DB in plain text. Like for accounts created by script createUser.</td></tr>
 <tr>
 	<td>function</td>
 	<td>logInAsStoredUser</td>
@@ -391,7 +391,7 @@
 	<td>=&lt;&gt;({ formula: Dotclear.formulas.user, name: $userId })&lt;&gt;</td>
 	<td>user</td>
 </tr>
-<!--    if the user is logged in already, log him out:-->
+<tr><td colspan="3" class="comment"> if the user is logged in already, log him out:</td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;storeElementPresent</td>
 	<td>//ul[ @id='toolbar-user' ]/li[ contains(@class, 'logout' ) ]</td>
@@ -412,7 +412,7 @@
 	<td></td>
 	<td></td>
 </tr>
-<!--    make sure we're at login screen-->
+<tr><td colspan="3" class="comment"> make sure we're at login screen</td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;storeElementPresent</td>
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
@@ -433,7 +433,7 @@
 	<td></td>
 	<td></td>
 </tr>
-<!--    Verify that we can log in-->
+<tr><td colspan="3" class="comment"> Verify that we can log in</td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;type</td>
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-name' ]</td>
@@ -449,7 +449,7 @@
 	<td>//form[ @id='user-login-form' ]//input[ @id='edit-submit' ]</td>
 	<td></td>
 </tr>
-<!--    -->
+<tr><td colspan="3" class="comment"> </td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;verifyElementPresent</td>
 	<td>//ul/li/a[ contains(@href, '/?q=user/logout') ]</td>
@@ -460,7 +460,7 @@
 	<td></td>
 	<td></td>
 </tr>
-<!----------------->
+<tr><td colspan="3" class="comment">-------------</td></tr>
 </tbody></table>
 </body>
 </html>
