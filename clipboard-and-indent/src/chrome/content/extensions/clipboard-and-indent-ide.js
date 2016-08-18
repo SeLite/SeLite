@@ -80,6 +80,51 @@
         }
     };
 
+// Identical to Selenium IDE 2.9.1 chrome/content/editor.js, except for 'dontSwitch' parameter. Keeping original indentation.
+// @param {bool} [dontSwitch] If true, then do update the reference, but don't switch to it. That saves user's effort when the user is inspecting logs.
+Editor.prototype.showReference = function (command, dontSwitch=false ) {
+  if (command.type == 'command') {
+    var def = command.getDefinition();
+    if (def) {
+      dontSwitch || this.infoPanel.switchView(this.infoPanel.helpView);
+      this.log.debug("showReference: " + def.name);
+      this.reference.show(def, command);
+    }
+  }
+};
+    // 'editor' is an instance of either StandaloneEditor or SidebarEditor. Those classes don't refer to Editor.prototype, but they have copies of all functions from Editor.prototype (copied via objectExtend()).
+    SidebarEditor.prototype.showReference= StandaloneEditor.prototype.showReference= Editor.prototype.showReference;
+
+    // Identical to Selenium IDE 2.9.1 chrome/content/treeView.js, except for passing true for 'dontSwitch' to showReference()
+    TreeView.prototype.selectCommand= function selectCommand() {
+            if (this.tree.currentIndex >= 0) {
+                var command = this.getCommand(this.tree.currentIndex);
+                this.currentCommand = command;
+                if (command.type == 'command') {
+                    this.updateTextBox("commandAction", command.command, false, true);
+                    this.updateSeleniumTargets();
+                    this.updateTextBox("commandValue", this.encodeText(command.value), false);
+                } else if (command.type == 'comment') {
+                    this.updateTextBox("commandAction", command.comment, false, false);
+                    this.updateTarget('', true);
+                    this.updateTextBox("commandValue", '', true);
+                }
+
+                this.selectRecordIndex(this.tree.currentIndex);
+                if (command.type == 'command') {
+                    this.editor.showReference(command, /*dontSwitch*/true );
+                    this.editor.showUIReference(command.target);
+                    this.editor.showRollupReference(command);
+                }
+            } else {
+                this.updateTextBox("commandAction", '', true);
+                this.updateTarget('', true);
+                this.updateTextBox("commandValue", '', true);
+                this.currentCommand = null;
+            }
+            window.updateCommands('select');
+    };
+    
     // For indentation - https://github.com/SeleniumHQ/selenium/issues/1546:
 
     /** The body is identical to original getDefinition(), but this adds trimLeft() for indented commands. */
@@ -248,7 +293,7 @@
         this.timeoutID = setTimeout("editor.clearLastCommand()", 300);
       }
     };
-    // 'editor' is an instance of either StandaloneEditor or SidebarEditor. Those classes don't refer to Editor.prototype, but they have copies of all functions from Editor.prototype (copied via objectExtend()).
+    // See a comment for showReference(...) above
     SidebarEditor.prototype.addCommand= StandaloneEditor.prototype.addCommand= Editor.prototype.addCommand;
 // end of addCommand()
 
