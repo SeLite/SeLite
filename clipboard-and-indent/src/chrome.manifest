@@ -10,9 +10,14 @@ overlay chrome://browser/content/browser.xul chrome://selite-clipboard-and-inden
 
 override chrome://selenium-ide/content/formats/html.js chrome://selite-clipboard-and-indent/content/extensions/html.js
 
+# Following is an override, not an overlay. With an overlay, it couldn't replace existing <iframe> elements.
+override chrome://selenium-ide/content/selenium-ide-common.xul chrome://selite-clipboard-and-indent/content/ui/selenium-ide-common-override.xul
+
 overlay chrome://selenium-ide/content/selenium-ide.xul chrome://selite-clipboard-and-indent/content/ui/ovIDEorSidebar.xul
 
 overlay chrome://selenium-ide/content/selenium-ide-sidebar.xul chrome://selite-clipboard-and-indent/content/ui/ovIDEorSidebar.xul
+
+#override chrome://sidestoredvarsviewer/content/ui/ovIDE.xul chrome://selite-clipboard-and-indent/content/ui/storedVariables-ide-common-override.xul
 
 # Following lines are for a modified version of original SeleniumIDEGenericAutoCompleteSearch - to support indentation. I don't need to have 'interface' line here, so I don't need to duplicate components/SeleniumIDEGenericAutoCompleteSearch.xpt from Selenium IDE
 

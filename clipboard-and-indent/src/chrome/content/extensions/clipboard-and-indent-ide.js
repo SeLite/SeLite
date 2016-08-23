@@ -448,4 +448,8 @@ Editor.prototype.showReference = function (command, dontSwitch=false ) {
             selectRightFromIndent( event );
         }
     };
+    
+    // Disabling traditional tab-like handlers. They were conflicting with tab behaviour: the traditional implementation would show/hide the iframes, which caused their scrolling down.
+    Editor.InfoView.prototype.show= function show() {};
+    Editor.InfoView.prototype.hide= function hide() {};
 })();
