@@ -436,7 +436,7 @@ this.options = {
 	'<meta http-equiv="Content-Type" content="text/html; charset=${encoding}" />\n' +
     '<link rel="selenium.base" href="${baseURL}" />\n' +
 	"<title>${name}</title>\n" +
-    '<style type="text/css">.comment {color: #AA33AA}</style>'+ // From chrome/skin/classic/selenium-ide.css: treechildren::-moz-tree-cell-text(comment)
+    '<style type="text/css">.comment {color: #AA33AA; height: 1em}</style>'+ // From chrome/skin/classic/selenium-ide.css: treechildren::-moz-tree-cell-text(comment)
 	"</head>\n" +
 	"<body>\n" +
 	'<table cellpadding="1" cellspacing="1" border="1">\n'+
