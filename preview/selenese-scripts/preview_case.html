@@ -34,7 +34,6 @@
 	<td></td>
 </tr>
 <tr><td colspan="3" class="comment"></td></tr>
-<tr><td colspan="3" class="comment">Passing data via default encoding, but receiving data in base64 - therefore the following can't use the passed data!</td></tr>
 <tr>
 	<td>getEval</td>
 	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_base64_inject.html&quot;, ['hi', 'mate'] )</td>
@@ -45,6 +44,9 @@
 	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_base64_inject.html&quot;, ['hi', 'mate'], {urlEncodeContent:true} )</td>
 	<td>preview</td>
 </tr>
+<tr><td colspan="3" class="comment"></td></tr>
+<tr><td colspan="3" class="comment">Passing data via default encoding, but receiving data in base64 - therefore the following can't use the passed data!</td></tr>
+<tr><td colspan="3" class="comment">TODO</td></tr>
 <tr><td colspan="3" class="comment"></td></tr>
 <tr><td colspan="3" class="comment">following doesn't have .html file</td></tr>
 <tr>
@@ -79,6 +81,7 @@
 	<td>selenium.encodeFileRecursively( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/favicon-32x32.png&quot;, true )</td>
 	<td>fetched</td>
 </tr>
+<tr><td colspan="3" class="comment">following doesn't have .html file</td></tr>
 <tr>
 	<td>storePromised</td>
 	<td>selenium.encodeFileRecursively( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot; )</td>

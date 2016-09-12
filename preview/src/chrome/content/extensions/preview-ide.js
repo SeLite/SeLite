@@ -41,34 +41,24 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
                 ? Promise.resolve( urlOrPromise )
                 : urlOrPromise;
             
-            'dataInHash' in config || (config.dataInHash=false);
-            'urlEncodeData' in config || (config.urlEncodeData=false);
-            'dataPlaceholder' in config || config.dataInHash || (config.dataPlaceholder='ENCODED_JSON_DATA_PLACEHOLDER');
-            //@TODO validate
-            
-            /** Side research on passing data via #hash part of URL:
-                   JSON.stringify( {hi: 'you & i'} ) -> '{"hi":"you & i"}'
-                however:
-                   window.open( someURL + '#' +JSON.stringify( {hi: 'you & i'} ) )
-                   opens a window with URL ending with #{"hi":"you%20&%20i"}
-                   Firefox adds transformation of spaces to %20. When Javascript from that loaded page
-                   uses its location.hash, it is '#{"hi":"you%20&%20i"}'. However, that doesn't feel robust.
-                Anyway, let's url-encode or base64-encode the hash as per RFC on URI http://tools.ietf.org/html/rfc3986#section-3.5.
-           */
-
-            var json= JSON.stringify( data );
-            var encoded= config.dataInHash
-                ? (config.urlEncodeData
-                    ? encodeURIComponent(json)
-                    : btoa(json)
-                  )
-                : json;
-            
             return promise.then(
                 url => {
                     debugger;
-                    if( config.dataInHash ) {
+                    if( dataForHash!==undefined ) {
+                        var json= JSON.stringify( data );
+                        var encoded= urlEncodeData
+                            ? encodeURIComponent(json)
+                            : btoa(json);
                         url+= '#' +encoded;
+                        /** Side research on passing data via #hash part of URL:
+                               JSON.stringify( {hi: 'you & i'} ) -> '{"hi":"you & i"}'
+                            however:
+                               window.open( someURL + '#' +JSON.stringify( {hi: 'you & i'} ) )
+                               opens a window with URL ending with #{"hi":"you%20&%20i"}
+                               Firefox adds transformation of spaces to %20. When Javascript from that loaded page
+                               uses its location.hash, it is '#{"hi":"you%20&%20i"}'. However, that doesn't feel robust.
+                            Anyway, let's url-encode or base64-encode the hash as per RFC on URI http://tools.ietf.org/html/rfc3986#section-3.5.
+                       */
                     }
                     var win= window.open( url, /*@TODO parameters - remove toolbar...*/'resizable=1');
                     // Using https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Language_Bindings/Components.utils.exportFunction
@@ -116,20 +106,30 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
          *      urlEncodeData: boolean, whether to url-encode the data, instead of base64-encode. False by default.
          *      urlEncodeContent: *, It indicates whether to use URL encoding for content, instead of base64 encoding. This doesn't affect the Javascript and how it receives the data. Undefined by default, which means automatic. See Selenium.prototype.encodeFile().
          *  }
-         * @param {object} config Similar to Editor.prototype.openPreview(), but here it accepts one more optional field: urlEncodeContent of mixed type. It indicates whether to use URL encoding for content, instead of base64 encoding. This doesn't affect the Javascript and how it receives the data. Undefined by default, which means automatic. See Selenium.prototype.encodeFile().
          * @return {Promise}
          */
         Editor.prototype.openPreviewEncode= function openPreviewEncode( urlOrPromise, data={}, config={}, filter=undefined ) {
+            'dataInHash' in config || (config.dataInHash=false);
+            'urlEncodeData' in config || (config.urlEncodeData=false);
+            'dataPlaceholder' in config || config.dataInHash || (config.dataPlaceholder='ENCODED_JSON_DATA_PLACEHOLDER');
+            'urlEncodeContent' in config || (config.urlEncodeContent=undefined);
+            //@TODO validate
             var promise= !(urlOrPromise instanceof Promise)
                 ? Promise.resolve( urlOrPromise )
                 : urlOrPromise;
             'urlEncodeContent' in config || (config.urlEncodeContent= undefined);
             var selenium= this.selDebugger.runner.selenium;
-            var Selenium= selenium.constructor;debugger;
+            var Selenium= selenium.constructor;
             return promise.then(
                 url => {
                     url.indexOf('#')<0 || SeLiteMisc.fail( 'Parameter filePathOrURL must not contain a #hash (fragment): ' +filePathOrURL );
-                    return this.openPreview( selenium.encodeFileRecursively(url, config.urlEncodeContent, filter, data, config), data, config );
+                    return this.openPreview(
+                        selenium.encodeFileRecursively(url, config.urlEncodeContent, filter, data, config.dataPlaceholder),
+                        config.dataInHash
+                            ? data
+                            : undefined,
+                        config.urlEncodeData
+                    );
                 },
                 failure => {
                     throw new Error(failure);

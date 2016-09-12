@@ -83,17 +83,16 @@ Selenium= Selenium;
      *  @param {function} [contentHandler=undefined] Function(content) => Promise of a string (the handled content). Used for deep/recursive handling. Parameter url is used only for resolving relative URLs for documents that are handled recursively.
      *  @return {Promise} Promise that resolves to encoded content (and handled, if contentHandler is passed); it rejects on error or on timeout. On success it resolves to string, which is a data: URI for content of given documentURL, including content of images/scripts/stylesheets through data: URIs, too.
      * */
-    Selenium.prototype.encodeFile= function encodeFile( url, useURLencoding=undefined, contentHandler=undefined, data=undefined, config={} ) {
+    Selenium.prototype.encodeFile= function encodeFile( url, useURLencoding=undefined, contentHandler=undefined, data=undefined, dataPlaceholder=undefined ) {
         var uri= Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService).newURI( url, null, null);
         var mime= nsIMIMEService.getTypeFromURI( uri );
-        var contentIsBinary= !mime.startsWith('text/')/*->that covers text/html and text/xml*/ && mime!=='application/xhtml+xml';
+        var contentIsBinary= !mime.startsWith('text/')/*->This covers text/html, text/xml, text/css and text/javascript.*/ && mime!=='application/xhtml+xml';
         
         return this.loadFile( url,  contentIsBinary ).then(
             contentWithoutData => {
                 debugger;
-                var json= JSON.stringify( data );
-                return 'dataPlaceholder' in config && config.dataPlaceholder
-                    ? contentWithoutData.replace( new RegExp(config.dataPlaceholder, 'g'), json )
+                return dataPlaceholder!==undefined
+                    ? contentWithoutData.replace( new RegExp(dataPlaceholder, 'g'), JSON.stringify(data) )
                     : contentWithoutData;
                 }
             ).then(
@@ -123,19 +122,19 @@ Selenium= Selenium;
      * @param {function} [handler] Function (fetchFilter, useURLencoding, contentURL, content) => Promise.
      * @return {Promise} Promise of a string content.
      * */
-    Selenium.prototype.encodeFileWithHandler= function encodeFileWithHandler( filePathOrURL, useURLencoding=undefined, fetchFilter=undefined, handler=undefined, data=undefined, config={} ) {
+    Selenium.prototype.encodeFileWithHandler= function encodeFileWithHandler( filePathOrURL, useURLencoding=undefined, fetchFilter=undefined, handler=undefined, data=undefined, dataPlaceholder=undefined ) {
         var url= Selenium.urlFor( filePathOrURL, true ); // if a filepath, this translates it to a URL
         
         return this.encodeFile( url, useURLencoding,
             handler
                 ? handler.bind(undefined, fetchFilter, useURLencoding, url)
                 : undefined,
-            data, config
+            data, dataPlaceholder
         );
     };
     
-    Selenium.prototype.encodeFileRecursively= function encodeFileRecursively( filePathOrURL, useURLencoding=undefined, fetchFilter=undefined, data=undefined, config={} ) {
-        return this.encodeFileWithHandler( filePathOrURL, useURLencoding, fetchFilter, Selenium.prototype.encodeFileRecursiveHandler.bind(this), data, config );
+    Selenium.prototype.encodeFileRecursively= function encodeFileRecursively( filePathOrURL, useURLencoding=undefined, fetchFilter=undefined, data=undefined, dataPlaceholder=undefined ) {
+        return this.encodeFileWithHandler( filePathOrURL, useURLencoding, fetchFilter, Selenium.prototype.encodeFileRecursiveHandler.bind(this), data, dataPlaceholder );
     };
     
     /*var indentIndex= 0;
