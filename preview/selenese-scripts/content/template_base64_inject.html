@@ -40,9 +40,12 @@ Don't use raw.githubusercontent.com with MS IE 10 and Firefox 51, since it fails
                 dataInJSONandEncoded= injectedDataInJSONandEncoded;
             }
             if( dataInJSONandEncoded!==undefined ) {
-                var dataInJSON= 'urlEncodeData' in config && config.urlEncodeData
-                    ? decodeURIComponent(dataInJSONandEncoded)
-                    : atob(dataInJSONandEncoded);
+                var dataInJSON= config.dataInHash
+                    ? ( 'urlEncodeData' in config && config.urlEncodeData
+                        ? decodeURIComponent(dataInJSONandEncoded)
+                        : atob(dataInJSONandEncoded)
+                      )
+                    : dataInJSONandEncoded;
                 var data= JSON.parse(dataInJSON);
                 
                 // The whole data will be an array of (primitive) strings. Use those strings for both text and URL of <a> elements:

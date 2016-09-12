@@ -92,12 +92,8 @@ Selenium= Selenium;
             contentWithoutData => {
                 debugger;
                 var json= JSON.stringify( data );
-                debugger;
-                var encoded= config.urlEncodeData
-                    ? encodeURIComponent(json)
-                    : btoa(json);
-               return 'dataPlaceholder' in config && config.dataPlaceholder
-                    ? contentWithoutData.replace( new RegExp(config.dataPlaceholder, 'g'), encoded )
+                return 'dataPlaceholder' in config && config.dataPlaceholder
+                    ? contentWithoutData.replace( new RegExp(config.dataPlaceholder, 'g'), json )
                     : contentWithoutData;
                 }
             ).then(
