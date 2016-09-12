@@ -126,7 +126,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
             var Selenium= selenium.constructor;
             return promise.then(
                 url => {
-                    // Add a timestamp to make the query unique
+                    // TODO remove Add a timestamp to make the query unique
                     if( 'addTimestamp' in config && config.addTimestamp ) {
                         url+= ( url.indexOf('?')<0
                             ? '?'

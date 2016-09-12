@@ -14,7 +14,7 @@ Don't use raw.githubusercontent.com with MS IE 10 and Firefox 51, since it fails
       //<![CDATA[
       "use strict";
       // We can't pass the data via query string (?param1=value2&param2=value2...) due to https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs#Common_problems.
-      var config= { // This and string 'ENCODED_JSON_DATA_PLACEHOLDER' has to reflect config object passed to editor.openPreview( url, data, config ) in Selenium IDE.
+      var config= { // This and string below similar to 'ENCODED_JSON...DATA_PLACEHOLDER' has to reflect config object passed to editor.openPreview( url, data, config ) in Selenium IDE.
           dataInHash: false,
           urlEncodeData: false
       };
@@ -23,15 +23,13 @@ Don't use raw.githubusercontent.com with MS IE 10 and Firefox 51, since it fails
        document.onreadystatechange= function() {
           if (document.readyState==="complete") {
             
-            var hashNonEmpty= location.hash.length>0;
-            var parameterMatchInSearch;debugger;
-            if( 'dataParameterName' in config ) {
-                var parameterRegex= new RegExp( '[&?]' +config.dataParameterName+ '=([^&]*)(?:&|$)' );
-                parameterMatchInSearch= parameterRegex.exec( location.search );
-            }
-            !( config.dataInHash && 'dataParameterName' in config && config.dataParameterName!='' ) || console.warn( "Set either config.dataInHash or config.dataParameterName, but not both." );
-            !( hashNonEmpty && parameterMatchInSearch ) || console.warn( "Unless you use anchor links, check: you're using both a hash and query parameter in the URL." );
-            config.dataInHash || config.dataParameterName || console.warn( "None of config.dataInHash or config.dataParameterName is set. Do set exactly one." );
+            var hashEmpty= location.hash.length===0;
+            // Following has to be within apostrophes, not within quotes.
+            var injectedDataInJSONandEncoded= 'ENCODED_JSON_DATA_PLACEHOLDER';
+            var injected= injectedDataInJSONandEncoded!== 'ENCODED_JSON'+'_DATA_PLACEHOLDER';
+            hashEmpty || !injected || console.warn( "Unless you use anchor links, check: you're using both a hash and injected data." );
+            config.dataInHash==!injected || alert( "config.dataInHash is " +config.dataInHash+ ", but injected is " +injected+ ". Use exactly one of those two." );
+            
             var dataInJSONandEncoded;
             if( config.dataInHash ) {
                 if( hashNonEmpty ) {
@@ -39,11 +37,7 @@ Don't use raw.githubusercontent.com with MS IE 10 and Firefox 51, since it fails
                 }
             }
             else {
-                var parameterRegex= new RegExp( '[&?]' +config.dataParameterName+ '=([^&]*)(?:&|$)' );
-                var match= parameterRegex.exec( location.search );
-                if( match ) {
-                    dataInJSONandEncoded= match[1];
-                }
+                dataInJSONandEncoded= injectedDataInJSONandEncoded;
             }
             if( dataInJSONandEncoded!==undefined ) {
                 var dataInJSON= 'urlEncodeData' in config && config.urlEncodeData
