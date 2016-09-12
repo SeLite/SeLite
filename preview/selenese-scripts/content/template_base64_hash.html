@@ -1,0 +1,86 @@
+<html>
+<head>
+  <meta charset="utf-8"></meta>
+  <title>Simple</title>
+  <!-- As of March 2016, PURE is the easiest engine listed on https://developer.mozilla.org/en-US/docs/JavaScript_templates -->
+  <!-- For development only use https://rawgit.com/pure/pure/master/libs/pure.js. For production apply https://selite.github.io/DocumentationStandard#generating-cdnrawgitcom-based-urls -->
+  <script type="text/javascript" src="https://cdn.rawgit.com/pure/pure/d00b1240bfa4a40a0e9235448cd4a4342385f32b/libs/pure.js"></script>
+  <script type="text/javascript" src="local.js"></script>
+  <link rel="stylesheet" type="text/css" href="style.css" />
+  <!--
+Don't use raw.githubusercontent.com with MS IE 10 and Firefox 51, since it fails with SEC7112: Script from https://raw.githubusercontent.com/pure/pure/master/libs/pure.js was blocked due to mime type mismatch
+ -->
+  <script type="text/javascript">
+      //<![CDATA[
+      "use strict";
+      // We can't pass the data via query string (?param1=value2&param2=value2...) due to https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs#Common_problems.
+      var config= { // This and string 'ENCODED_JSON_DATA_PLACEHOLDER' has to reflect config object passed to editor.openPreview( url, data, config ) in Selenium IDE.
+          dataInHash: false,
+          urlEncodeData: false
+      };
+      
+      var selenium;
+       document.onreadystatechange= function() {
+          if (document.readyState==="complete") {
+            
+            var hashNonEmpty= location.hash.length>0;
+            var parameterMatchInSearch;debugger;
+            if( 'dataParameterName' in config ) {
+                var parameterRegex= new RegExp( '[&?]' +config.dataParameterName+ '=([^&]*)(?:&|$)' );
+                parameterMatchInSearch= parameterRegex.exec( location.search );
+            }
+            !( config.dataInHash && 'dataParameterName' in config && config.dataParameterName!='' ) || console.warn( "Set either config.dataInHash or config.dataParameterName, but not both." );
+            !( hashNonEmpty && parameterMatchInSearch ) || console.warn( "Unless you use anchor links, check: you're using both a hash and query parameter in the URL." );
+            config.dataInHash || config.dataParameterName || console.warn( "None of config.dataInHash or config.dataParameterName is set. Do set exactly one." );
+            var dataInJSONandEncoded;
+            if( config.dataInHash ) {
+                if( hashNonEmpty ) {
+                    dataInJSONandEncoded= location.hash.substring(1);
+                }
+            }
+            else {
+                var parameterRegex= new RegExp( '[&?]' +config.dataParameterName+ '=([^&]*)(?:&|$)' );
+                var match= parameterRegex.exec( location.search );
+                if( match ) {
+                    dataInJSONandEncoded= match[1];
+                }
+            }
+            if( dataInJSONandEncoded!==undefined ) {
+                var dataInJSON= 'urlEncodeData' in config && config.urlEncodeData
+                    ? decodeURIComponent(dataInJSONandEncoded)
+                    : atob(dataInJSONandEncoded);
+                var data= JSON.parse(dataInJSON);
+                
+                // The whole data will be an array of (primitive) strings. Use those strings for both text and URL of <a> elements:
+                // See https://beebole.com/pure/
+                var directive = {
+                    'li':{
+                        'data<-':{
+                            'a': 'data',
+                            'a@href': 'data'
+                        }
+                    }
+                };
+                // As per https://groups.google.com/forum/#!searchin/Pure-Unobtrusive-Rendering-Engine/pure$20without$20jquery/pure-unobtrusive-rendering-engine/Cmt1bqfsZLg/rhGP8ZqfliAJ
+                $p('#results').render( data, directive );
+
+                var results= document.getElementById('results');
+            }
+          }
+        };
+      //]]>
+  </script>
+</head>
+<body>
+    <a href="javascript:simple('Hi')">call a function from a local JS file</a><br/>
+    <a href="javascript:callBackOutFlow( 'sayHello' )">call back Selenium</a>
+    <br/>
+    <div id="results">
+        <ul class="image-decorated">
+          <li>
+              <a data-mood="happy" href=""></a>
+          </li>
+        </ul>
+    </div>
+</body>
+</html>

@@ -86,7 +86,7 @@ win.document.head.appendChild( script );
 
 var request = new XMLHttpRequest();
 //request.open('GET', "data:text/html," +encodeURIComponent('<html><head><script type="javascript">alert("hi");</script></head><body onload="alert(\'onload\')">bod</body></html>'), false);  // `false` makes the request synchronous
-request.open('GET', 'file:///D:/localdata/pkehl/selite/preview/demo/simple.xml', false );
+request.open('GET', 'file:///D:/localdata/pkehl/selite/preview/demo/template.xml', false );
 request.send(null);
 if (request.status === 200) {
   //alert( request.responseText );

@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <link rel="selenium.base" href="http://change-this-to-the-site-you-are-testing/" />
 <title>preview_case</title>
-</head>
+<style type="text/css">.comment {color: #AA33AA; height: 1em}</style></head>
 <body>
 <table cellpadding="1" cellspacing="1" border="1">
 <thead>
@@ -13,86 +13,87 @@
 </thead><tbody>
 <tr>
 	<td>getEval</td>
-	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simpler.html&quot;, ['hi', 'mate'], {base64ForData: true} )</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/static_calls_local_js_file.html&quot;, ['hi', 'mate'], {urlEncodeData: false} )</td>
 	<td></td>
 </tr>
-<!---->
+<tr><td colspan="3" class="comment"></td></tr>
+<tr><td colspan="3" class="comment">API default : {urlEncodeData: false, urlEncodeContent: true}</td></tr>
+<tr>
+	<td>storePromised</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_base64_hash.html?dataInJSON=bu&quot;, ['hi', 'mate'], {urlEncodeData: false} )</td>
+	<td>promise</td>
+</tr>
+<tr>
+	<td>storePromised</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_base64_hash.html&quot;, ['hi', 'mate'], {urlEncodeData: false, urlEncodeContent: false} )</td>
+	<td>promise</td>
+</tr>
+<tr>
+	<td>breakPoint</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr><td colspan="3" class="comment"></td></tr>
+<tr><td colspan="3" class="comment">Passing data via default encoding, but receiving data in base64 - therefore the following can't use the passed data!</td></tr>
 <tr>
 	<td>getEval</td>
-	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot;, ['hi', 'mate'] )</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_base64_hash.html&quot;, ['hi', 'mate'] )</td>
 	<td></td>
 </tr>
 <tr>
-	<td>storePromiseValue</td>
-	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot;, ['hi', 'mate'], {urlEncodingForContent:true} )</td>
+	<td>storePromised</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_base64_hash.html&quot;, ['hi', 'mate'], {urlEncodeContent:true} )</td>
 	<td>preview</td>
 </tr>
+<tr><td colspan="3" class="comment"></td></tr>
+<tr><td colspan="3" class="comment">following doesn't have .html file</td></tr>
 <tr>
-	<td>storePromiseValue</td>
-	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot;, ['hi', 'mate'], {base64ForData: true} )</td>
-	<td>promise</td>
-</tr>
-<tr>
-	<td>storePromiseValue</td>
-	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot;, ['hi', 'mate'], {base64ForData: true, urlEncodingForContent: true} )</td>
-	<td>promise</td>
-</tr>
-<tr>
-	<td>storePromiseValue</td>
-	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/with_simple_css.html&quot;, ['hi', 'mate'], {base64: true} )</td>
+	<td>storePromised</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/with_simple_css.html&quot;, ['hi', 'mate'] )</td>
 	<td>promise</td>
 </tr>
 <tr>
 	<td>getEval</td>
-	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot;, ['hi', 'mate'], {base64: true} )</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_base64_hash.html&quot;, ['hi', 'mate'] )</td>
 	<td>promise</td>
 </tr>
-<!---->
+<tr><td colspan="3" class="comment"></td></tr>
 <tr>
-	<td>storePromiseValue</td>
+	<td>storePromised</td>
 	<td>editor.openPreviewEncode( &quot;file:///E:/mine/tmp/small_1x1.png&quot;, true )</td>
 	<td>fetched</td>
 </tr>
 <tr>
-	<td>storePromiseValue</td>
+	<td>storePromised</td>
 	<td>selenium.encodeFileRecursively( &quot;file:///E:/mine/tmp/small_1x1.png&quot;, true )</td>
 	<td>fetched</td>
 </tr>
 <tr>
-	<td>storePromiseValue</td>
+	<td>storePromised</td>
 	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/favicon-32x32.png&quot;, true )</td>
 	<td>fetched</td>
 </tr>
+<tr><td colspan="3" class="comment">No visual, encoding only:</td></tr>
 <tr>
-	<td>storePromiseValue</td>
+	<td>storePromised</td>
 	<td>selenium.encodeFileRecursively( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/favicon-32x32.png&quot;, true )</td>
 	<td>fetched</td>
 </tr>
 <tr>
-	<td>storePromiseValue</td>
+	<td>storePromised</td>
 	<td>selenium.encodeFileRecursively( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot; )</td>
 	<td>fetched</td>
 </tr>
 <tr>
-	<td>storePromiseValue</td>
+	<td>storePromised</td>
 	<td>selenium.encodeFileRecursively( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/simple.html&quot;, true )</td>
 	<td>fetched</td>
 </tr>
-<tr>
-	<td>getEval</td>
-	<td>$preview.selenium= selenium</td>
-	<td></td>
-</tr>
-<!---->
-<!--following is called back from the above Preview-->
+<tr><td colspan="3" class="comment"></td></tr>
+<tr><td colspan="3" class="comment">following is called back from the above Preview</td></tr>
 <tr>
 	<td>function</td>
 	<td>sayHello</td>
-	<td></td>
-</tr>
-<tr>
-	<td>&nbsp;&nbsp;&nbsp;&nbsp;getEval</td>
-	<td>alert( &quot;Hello&quot; )</td>
 	<td></td>
 </tr>
 <tr>
