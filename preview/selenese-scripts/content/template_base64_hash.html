@@ -24,11 +24,11 @@ Don't use raw.githubusercontent.com with MS IE 10 and Firefox 51, since it fails
           if (document.readyState==="complete") {
             
             var hashEmpty= location.hash.length===0;
-            // Following has to be within apostrophes, not within quotes.
+            // Following has to be within apostrophes, not within quotes. The value reflects config.dataPlaceholder for selenium.encode*() functions.
             var injectedDataInJSONandEncoded= 'ENCODED_JSON_DATA_PLACEHOLDER';
             var injected= injectedDataInJSONandEncoded!== 'ENCODED_JSON'+'_DATA_PLACEHOLDER';
             hashEmpty || !injected || console.warn( "Unless you use anchor links, check: you're using both a hash and injected data." );
-            config.dataInHash==!injected || alert( "config.dataInHash is " +config.dataInHash+ ", but injected is " +injected+ ". Use exactly one of those two." );
+            config.dataInHash==!injected || alert( "config.dataInHash is " +config.dataInHash+ ", but presence of injected data is " +injected+ ". Use exactly one of those two." );
             
             var dataInJSONandEncoded;
             if( config.dataInHash ) {
