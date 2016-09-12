@@ -5,6 +5,11 @@
   <!-- As of March 2016, PURE is the easiest engine listed on https://developer.mozilla.org/en-US/docs/JavaScript_templates -->
   <!-- For development only use https://rawgit.com/pure/pure/master/libs/pure.js. For production apply https://selite.github.io/DocumentationStandard#generating-cdnrawgitcom-based-urls -->
   <script type="text/javascript" src="https://cdn.rawgit.com/pure/pure/d00b1240bfa4a40a0e9235448cd4a4342385f32b/libs/pure.js"></script>
+  <script type="text/javascript">
+      function inHTMLalert(message) {
+          alert( message );
+      }
+  </script>
   <script type="text/javascript" src="local.js"></script>
   <link rel="stylesheet" type="text/css" href="style.css" />
   <!--
@@ -70,6 +75,7 @@ Don't use raw.githubusercontent.com with MS IE 10 and Firefox 51, since it fails
 </head>
 <body>
     <a href="javascript:simple('Hi')">call a function from a local JS file</a><br/>
+    <a href="javascript:inHTMLalert('inHTMLalert()')">call a function defined in inline JS in the (original) HTML</a><br/>
     <a href="javascript:callBackOutFlow( 'sayHello' )">call back Selenium</a>
     <br/>
     <div id="results">

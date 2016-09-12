@@ -104,7 +104,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
          *      dataInHash: Whether passing data through URL hash (fragment, anchor).
          *      dataPlaceholder: string, whose occurrence(s) in the top-level (HTML) file will be replaced with JSON-encoded data. Set it only when not setting dataInHash.
          *      urlEncodeData: boolean, whether to url-encode the data, instead of base64-encode. False by default.
-         *      urlEncodeContent: *, It indicates whether to use URL encoding for content, instead of base64 encoding. This doesn't affect the Javascript and how it receives the data. Undefined by default, which means automatic. See Selenium.prototype.encodeFile().
+         *      urlEncodeContent: *, It indicates whether to use URL encoding for content, instead of base64 encoding. This doesn't affect the Javascript and how it receives the data. False by default. See Selenium.prototype.encodeFile().
          *  }
          * @return {Promise}
          */
@@ -112,12 +112,15 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
             'dataInHash' in config || (config.dataInHash=false);
             'urlEncodeData' in config || (config.urlEncodeData=false);
             'dataPlaceholder' in config || config.dataInHash || (config.dataPlaceholder='ENCODED_JSON_DATA_PLACEHOLDER');
-            'urlEncodeContent' in config || (config.urlEncodeContent=undefined);
-            //@TODO validate
+            'urlEncodeContent' in config || (config.urlEncodeContent=false);
+            
+            config.dataInHash==(config.dataPlaceholder==undefined) || SeLiteMisc.fail( "Set exactly one of: config.dataInHash or config.dataPlaceholder." );
+            !config.urlEncodeData || config.dataInHash || SeLiteMisc.fail( "Set config.urlEncodeData only if also setting config.dataInHash." );
+            // @TODO if dataInHash, inject a promise handler that alerts if the content contains anchor links <a ... name=...> or links <a ... href="#..."> (or with apostrophes).
+            
             var promise= !(urlOrPromise instanceof Promise)
                 ? Promise.resolve( urlOrPromise )
                 : urlOrPromise;
-            'urlEncodeContent' in config || (config.urlEncodeContent= undefined);
             var selenium= this.selDebugger.runner.selenium;
             var Selenium= selenium.constructor;
             return promise.then(
