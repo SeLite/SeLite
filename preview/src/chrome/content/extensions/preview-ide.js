@@ -69,12 +69,6 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
                     if( config.dataInHash ) {
                         url+= '#' +encoded;
                     }
-                    else {
-                        url+= url.indexOf('?')>0
-                            ? '&'
-                            : '?';
-                        url+= config.dataParameterName+ '=' +encoded;
-                    }
                     var win= window.open( url, /*@TODO parameters - remove toolbar...*/'resizable=1');
                     // Using https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Language_Bindings/Components.utils.exportFunction
                     // For details see https://developer.mozilla.org/en-US/docs/Mozilla/Gecko/Script_security
