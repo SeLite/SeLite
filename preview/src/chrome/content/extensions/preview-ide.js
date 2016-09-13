@@ -19,7 +19,7 @@
 // For initialisation mechanism, see ide-extension.js of SeLiteMisc.
 if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
     ( function() {
-        // This is defined on Editor.prototype, rather than on Selenium.prototype. This way it can access 'editor' object, and through it 'selenium' object, too. Selenese getEval command and custom Selenese commands (defined on Selenium.prototype) can access 'editor' object in order to call editor.openPreview().
+        // openPreview() and openPreviewEncode() are defined on Editor.prototype, rather than on Selenium.prototype. This way they can access 'editor' object, and through it 'selenium' object, too. Selenese getEval command and custom Selenese commands (defined on Selenium.prototype) can access 'editor' object in order to call editor.openPreview().
         /** Goals:
          *  - Bookmarkable (except for the connection back to Selenium IDE, and except for any secure data)
          *  - Can access files relative to the template (whether via http://, https:// or file://). However, in order to access local file://, the topmost URL must not use 'data:' meta-protocol. We could have a file that would have an iframe that would use data:. However, that adds an unnecessary layer. Hence we use query or hash part of URL - which works with both http://, https:// and file://. The user can still pass a data: URL, if it contains any images and CSS that it needs. Then the user can pass/bookmark the result URL without any files. TODO refer to a separate add-on to generate those.
@@ -31,6 +31,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
          *  The JSON string won't be URL-encoded neither base64-encoded.
          *  - If config.dataInHash is true, then use the hash (anchor/fragment) part of the location (except for leading '#') instead. If you set config.dataInHash, then you can't use anchor links.
          *  2. If there is any such part, apply decodeURIComponent() if config.urlEncodeData is true or atob() (for base64-encoded data, which is the default). Then apply JSON.parse().
+         *  Similar to Editor.prototype.openPreview(), but this doesn't fetch the document (it doesn't encode it as a data: URL).
          *  @param {string} filePathOrURL File path or URL of the HTML/XML preview file/template. If it's a file path, you can use either / or \ as directory separators (they will get translated for the current system). To make it portable, specify it as a relative path and pass it appended to result of SeLiteSettings.getTestSuiteFolder(). It must not contain a #hash/fragment part.
          *  @param {*} [data] Usually an anonymous object or an array. The template must not rely on any class membership or on any fields that are functions.
          *  @return {Promise} Promise that resolves to Window object.
@@ -99,7 +100,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
             );
         };
         
-        /** Similar to Editor.prototype.openPreview(), but this doesn't fetch the document (it doesn't encode it as a data: URL).
+        /** Similar to Editor.prototype.openPreview(), but this fetches the document and encodes it as a data: URL.
          * @param {object} [config] Configuration with any of fields: {
          *      dataInHash: Whether passing data through URL hash (fragment, anchor).
          *      dataPlaceholder: string, whose occurrence(s) in the top-level (HTML) file will be replaced with JSON-encoded data. Set it only when not setting dataInHash.

@@ -34,7 +34,7 @@ Selenium= Selenium;
     Selenium.prototype.loadFile= function loadFile( url, binary=false ) {
         // Refuse data: URL. That's because even though XMLHttpRequest supports 'data:' URLs, then its responseXML is null. See https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
         if( url.indexOf( 'data:' )===0 ) {
-            throw new Error( "Parameter documentURL must not ba a data: URL: " +url );
+            throw new Error( "Parameter url must not be a 'data:' URL: " +url );
         }
         return new Promise( (resolve, reject)=> {
             var request = new XMLHttpRequest();
@@ -144,25 +144,25 @@ Selenium= Selenium;
     var handledLink= /(src=|href=)['"]([^'"]+)['"]|url\( *['"]?([^'"]+)['"] *\)/g;
     var urlRoot= /^((?:file:\/\/\/|[a-z]:\/\/)[^/]+)/;
     
-    /** @param {string|array|RegExp|function|undefined} filter See Selenium.prototype.encodeFileRecursively().
+    /** @param {string|array|RegExp|function|undefined} fetchFilter See Selenium.prototype.encodeFileRecursively().
      * */
-    Selenium.prototype.encodeFileRecursiveHandler= function encodeFileRecursiveHandler( filter, useURLencoding, contentURL, content ) {
-        if( filter===undefined ) {
+    Selenium.prototype.encodeFileRecursiveHandler= function encodeFileRecursiveHandler( fetchFilter, useURLencoding, contentURL, content ) {
+        if( fetchFilterv===undefined ) {
             var contentRootMatch= urlRoot.exec(contentURL);
             if( contentRootMatch ) {
-                filter= contentRootMatch[0];
+                fetchFilter= contentRootMatch[0];
             }
             else {
-                return Promise.reject( "There was no filter, and given contentURL seems invalid: " +contentURL );
+                return Promise.reject( "There was no fetchFilter, and given contentURL seems invalid: " +contentURL );
             }
         }
-        if( typeof filter==='string' ) {
-            filter= [filter];
+        if( typeof fetchFilter==='string' ) {
+            fetchFilter= [fetchFilter];
         }
-        if( Array.isArray(filter) ) {
-            filter= new RegExp( '^(' +filter.join('|')+ ')' );
+        if( Array.isArray(fetchFilter) ) {
+            fetchFilter= new RegExp( '^(' +fetchFilter.join('|')+ ')' );
         }
-        SeLiteMisc.ensureInstance( filter, [RegExp, Function], 'filter' );
+        SeLiteMisc.ensureInstance( fetchFilter, [RegExp, Function], 'fetchFilter' );
                 
         var result= Promise.resolve('');
         var lastMatchLastIndex= 0;
@@ -189,10 +189,11 @@ Selenium= Selenium;
                         //Convert relative URL to absolute (based on the document being currently processed). If url is absolute, the following leaves it as it was.
                         var convertedURL= new URL( url, contentURL ).href; // Based on https://developer.mozilla.org/en-US/docs/Web/API/URL/URL
                         
-                        // The following automatically excludes URLs with data: or javascript: scheme.
-                        var shouldFetch= SeLiteMisc.isInstance(filter, RegExp )
-                            ? filter.test( convertedURL )
-                            : filter( convertedURL );// filter is a function
+                        var shouldFetch= !convertedURL.startsWith('data:') && !convertedURL.startsWith('javascript:')
+                            && (SeLiteMisc.isInstance(fetchFilter, RegExp )
+                                    ? fetchFilter.test( convertedURL )
+                                    : fetchFilter( convertedURL )
+                                );// fetchFilter is a function
                         if( !shouldFetch ) {
                             return previous+ sincePreviousMatch+ wholeMatch;
                         }
@@ -201,7 +202,7 @@ Selenium= Selenium;
                             ? Selenium.prototype.encodeFileRecursiveHandler.bind(this) // recursive - to fetch any images referenced from this CSS file
                             : undefined; // this file is a leaf, no deeper recursion
                         
-                        return this.encodeFileWithHandler( convertedURL, useURLencoding, filter, contentHandler ).then(
+                        return this.encodeFileWithHandler( convertedURL, useURLencoding, fetchFilter, contentHandler ).then(
                             processed => 
                                 previous+ sincePreviousMatch+ beforeUrl+ processed+ afterUrl
                         );
