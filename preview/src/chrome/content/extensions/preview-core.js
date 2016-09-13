@@ -147,7 +147,7 @@ Selenium= Selenium;
     /** @param {string|array|RegExp|function|undefined} fetchFilter See Selenium.prototype.encodeFileRecursively().
      * */
     Selenium.prototype.encodeFileRecursiveHandler= function encodeFileRecursiveHandler( fetchFilter, useURLencoding, contentURL, content ) {
-        if( fetchFilterv===undefined ) {
+        if( fetchFilter===undefined ) {
             var contentRootMatch= urlRoot.exec(contentURL);
             if( contentRootMatch ) {
                 fetchFilter= contentRootMatch[0];

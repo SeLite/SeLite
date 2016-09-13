@@ -31,7 +31,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
          *  The JSON string won't be URL-encoded neither base64-encoded.
          *  - If config.dataInHash is true, then use the hash (anchor/fragment) part of the location (except for leading '#') instead. If you set config.dataInHash, then you can't use anchor links.
          *  2. If there is any such part, apply decodeURIComponent() if config.urlEncodeData is true or atob() (for base64-encoded data, which is the default). Then apply JSON.parse().
-         *  Similar to Editor.prototype.openPreview(), but this doesn't fetch the document (it doesn't encode it as a data: URL).
+         *  Similar to Editor.prototype.openPreviewEncode(), but this doesn't fetch the document (it doesn't encode it as a data: URL). If you want to fetch a document and open it as a bookmarkable 'data:' url, use editor.openPreviewEncode() instead.
          *  @param {string} filePathOrURL File path or URL of the HTML/XML preview file/template. If it's a file path, you can use either / or \ as directory separators (they will get translated for the current system). To make it portable, specify it as a relative path and pass it appended to result of SeLiteSettings.getTestSuiteFolder(). It must not contain a #hash/fragment part.
          *  @param {*} [data] Usually an anonymous object or an array. The template must not rely on any class membership or on any fields that are functions.
          *  @return {Promise} Promise that resolves to Window object.
@@ -46,6 +46,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
                 url => {
                     debugger;
                     if( dataForHash!==undefined ) {
+                        url.indexOf('#')<0 || SeLiteMisc.fail( "You set param dataForHash, but param urlOrPromise (once resolved) contained a #hash (anchor fragment): " +url );
                         var json= JSON.stringify( data );
                         var encoded= urlEncodeData
                             ? encodeURIComponent(json)
@@ -109,7 +110,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
          *  }
          * @return {Promise}
          */
-        Editor.prototype.openPreviewEncode= function openPreviewEncode( urlOrPromise, data={}, config={}, filter=undefined ) {
+        Editor.prototype.openPreviewEncode= function openPreviewEncode( urlOrPromise, data={}, config={}, fetchFilter=undefined ) {
             'dataInHash' in config || (config.dataInHash=false);
             'urlEncodeData' in config || (config.urlEncodeData=false);
             'dataPlaceholder' in config || config.dataInHash || (config.dataPlaceholder='ENCODED_JSON_DATA_PLACEHOLDER');
@@ -126,9 +127,8 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
             var Selenium= selenium.constructor;
             return promise.then(
                 url => {
-                    url.indexOf('#')<0 || SeLiteMisc.fail( 'Parameter filePathOrURL must not contain a #hash (fragment): ' +filePathOrURL );
                     return this.openPreview(
-                        selenium.encodeFileRecursively(url, config.urlEncodeContent, filter, data, config.dataPlaceholder),
+                        selenium.encodeFileRecursively(url, config.urlEncodeContent, fetchFilter, data, config.dataPlaceholder),
                         config.dataInHash
                             ? data
                             : undefined,
