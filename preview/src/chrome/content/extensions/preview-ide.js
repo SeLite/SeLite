@@ -47,7 +47,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
                     debugger;
                     if( dataForHash!==undefined ) {
                         url.indexOf('#')<0 || SeLiteMisc.fail( "You set param dataForHash, but param urlOrPromise (once resolved) contained a #hash (anchor fragment): " +url );
-                        var json= JSON.stringify( data );
+                        var json= JSON.stringify( dataForHash );
                         var encoded= urlEncodeData
                             ? encodeURIComponent(json)
                             : btoa(json);
@@ -118,7 +118,6 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
             
             config.dataInHash==(config.dataPlaceholder==undefined) || SeLiteMisc.fail( "Set exactly one of: config.dataInHash or config.dataPlaceholder." );
             !config.urlEncodeData || config.dataInHash || SeLiteMisc.fail( "Set config.urlEncodeData only if also setting config.dataInHash." );
-            // @TODO if dataInHash, inject a promise handler that alerts if the content contains anchor links <a ... name=...> or links <a ... href="#..."> (or with apostrophes).
             
             var promise= !(urlOrPromise instanceof Promise)
                 ? Promise.resolve( urlOrPromise )

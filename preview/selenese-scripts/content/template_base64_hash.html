@@ -17,13 +17,11 @@
       "use strict";
       // Values of the following three variables must reflect config object passed to editor.openPreview( url, data, config ) in Selenium IDE.
       var config= {
-          dataInHash: false,
+          dataInHash: true,
           urlEncodeData: false
       };
-      var injectedDataInJSONandEncoded= 'ENCODED_JSON_DATA_PLACEHOLDER'; // The value will get replaced if injecting data.
-      var injectionPlaceholderLiteralValue= 'ENCODED_JSON'+'_DATA_PLACEHOLDER'; // The value won't get replaced if injecting data.
       
-      document.onreadystatechange= useData.bind( undefined/*this*/, config, injectedDataInJSONandEncoded, injectionPlaceholderLiteralValue );
+      document.onreadystatechange= useData.bind( undefined/*this*/, config );
       //]]>
   </script>
 </head>

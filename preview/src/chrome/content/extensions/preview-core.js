@@ -146,9 +146,9 @@ Selenium= Selenium;
                             processedContent => {
                                 // Report any <a href="#.."> or <a name="...">.
                                 // processedContent may contain processed 'data:' URLs. Those are either URL-encoded or base64-encoded. Either won't contain a hash  '#', hence those 'data:' URLs won't upset the following validation.
-                                var anchorsOrLocalLinks= /<a[^>]+href=['"]#|<a[^>]+name=['"]/g;
+                                var anchorsOrLocalLinks= /<a[^>]+href=['"]#[^'"]*|<a[^>]+name=['"][^'"]*/g;
                                 var match= anchorsOrLocalLinks.exec( processedContent );
-                                !match || SeLiteMisc.log.warn( "selenium.encodeFileRecursively(): You set param data and not param dataPlaceholder. That means passing the data via URL # hash (anchor fragment). However, fetched content (with data:-encoded resources, if any) contains a local # hash-based link, or an anchor link: " +processedContent[0] );
+                                !match || SeLiteMisc.log().warn( "selenium.encodeFileRecursively(): You set param data and not param dataPlaceholder. That means passing the data via URL # hash (anchor fragment). However, fetched content (with data:-encoded resources, if any) contains a local # hash-based link, or an anchor link: " +match[0] );
                                 return processedContent;
                             }
                         );
@@ -156,16 +156,16 @@ Selenium= Selenium;
         return this.encodeFileWithHandler( filePathOrURL, useURLencoding, fetchFilter, contentHandlerWithParamsForRecursion, data, dataPlaceholder );
     };
     
-    /*var indentIndex= 0;
-    function indent( indentation, str ) { return str.replace( /\n/g, "\n" +indentation+(++indentIndex)+indentation ); }*/
-    // Don't match url() case insensitively, because URL(...) is a standard class in Javascript files
-    var handledLink= /(src=|href=)['"]([^'"]+)['"]|url\( *['"]?([^'"]+)['"] *\)/g;
+    // Case sensitive matching. Can't match string 'url()' case insensitively, because URL(...) is a standard class in Javascript files.
+    // Don't replace anchor links #anchor-fragment.
+    var handledLink= /(src=|href=)['"]([^'"#][^'"]*)['"]|url\( *['"]?([^'"#][^'"]*)['"] *\)/g;
     var urlRoot= /^((?:file:\/\/\/|[a-z]:\/\/)[^/]+)/;
     
     /** @param {string|array|RegExp|function|undefined} fetchFilter See Selenium.prototype.encodeFileRecursively().
      * */
     Selenium.prototype.encodeFileRecursiveHandler= function encodeFileRecursiveHandler( fetchFilter, useURLencoding, contentURL, content ) {
         if( fetchFilter===undefined ) {
+            // Match any file under the same domain.
             var contentRootMatch= urlRoot.exec(contentURL);
             if( contentRootMatch ) {
                 fetchFilter= contentRootMatch[0];
