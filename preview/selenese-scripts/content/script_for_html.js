@@ -1,5 +1,5 @@
 "use strict";
-function localJSalert( message ) {
+function alertFromJSfile( message ) {
     alert( message );
 }
 
@@ -52,8 +52,8 @@ function useData( config, injectedDataInJSONandEncoded, injectionPlaceholderLite
 
 function contentHTML() {
     return `
-    <a href="javascript:localJSalert('Hi')">call a function from a local JS file</a><br/>
-    <a href="javascript:inHTMLalert('inHTMLalert()')">call a function defined in inline JS in the (original) HTML</a><br/>
+    <a href="javascript:alertFromJSfile('alertFromJSfile()')">call a function from a local JS file</a><br/>
+    <a href="javascript:alertFromInlineJS('alertFromInlineJS()')">call a function defined in inline JS in the (original) HTML</a><br/>
     <a href="javascript:callBackOutFlow( 'sayHello' )">call back Selenium</a>
     <br/>
     <div id="results">

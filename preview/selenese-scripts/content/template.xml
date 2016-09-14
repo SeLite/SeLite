@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding="UTF-8"?>
+<xhtml:html xml:lang="ee" dir="ltr" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+<head>
+  <!-- As of March 2016, PURE is the easiest engine listed on https://developer.mozilla.org/en-US/docs/JavaScript_templates -->
+  <!-- For development only use https://rawgit.com/pure/pure/master/libs/pure.js. For production apply https://selite.github.io/DocumentationStandard#generating-cdnrawgitcom-based-urls -->
+  <xhtml:script type="text/javascript" src="https://cdn.rawgit.com/pure/pure/d00b1240bfa4a40a0e9235448cd4a4342385f32b/libs/pure.js"></xhtml:script>
+    <xhtml:script type="text/javascript">
+      //<![CDATA[
+      "use strict";
+      // don't use window's onload handler for XML
+       document.onreadystatechange= function() {
+          if (document.readyState==="complete") {
+                alert( location.hash );
+                return;
+              if (document.readyState==="complete") {
+                // See https://beebole.com/pure/
+                var directive = {
+                    entry: {
+                        'data<-':{
+                            '.': 'data',
+                            '@data-text': 'data'
+                        }
+                    }
+                };
+                // As per https://groups.google.com/forum/#!searchin/Pure-Unobtrusive-Rendering-Engine/pure$20without$20jquery/pure-unobtrusive-rendering-engine/Cmt1bqfsZLg/rhGP8ZqfliAJ
+
+                $p('#results').render( ['hi', 'mate'], directive );
+
+                var results= document.getElementById('results');
+                var exportXML= results.innerHTML;
+                var exportURL= 'data:text/xml,' +encodeURIComponent( '<?xml version="1.0" encoding="UTF-8"?>' +exportXML );
+                location.href= exportURL;
+              }
+           }
+        };
+      //]]>
+  </xhtml:script>
+</head>
+<xhtml:body>
+    <xhtml:span style="display: none;">
+    <div id="results">
+        <entries>
+          <entry happy="yes"/>
+        </entries>
+    </div>
+    </xhtml:span>
+</xhtml:body>
+</xhtml:html>
