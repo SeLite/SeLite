@@ -120,14 +120,14 @@ Selenium= Selenium;
      * - RegExp matching any URLs to fetch.
      * - Function(url) that returns whether to fetch a URL.
      * - undefined to fetch any URLs on the same server (or under same top folder/Windows volume).
-     * @param {function} [handler] Function (fetchFilter, useURLencoding, contentURL, content) => Promise.
+     * @param {function} [handler] Function (fetchFilter, useURLencoding, contentURL, content) => Promise. It will be bound to undefined (i.e. keyword 'this' will be undefined).
      * @return {Promise} Promise of a string content.
      * */
     Selenium.prototype.encodeFileWithHandler= function encodeFileWithHandler( filePathOrURL, useURLencoding=false, fetchFilter=undefined, handler=undefined, data=undefined, dataPlaceholder=undefined ) {
         var url= Selenium.urlFor( filePathOrURL, true ); // if a filepath, this translates it to a URL
         
         return this.encodeFile( url, useURLencoding,
-            handler
+            handler//@TODO rename to contentHandlerWithParamsForRecursion
                 ? handler.bind(undefined, fetchFilter, useURLencoding, url)
                 : undefined,
             data, dataPlaceholder
@@ -135,7 +135,25 @@ Selenium= Selenium;
     };
     
     Selenium.prototype.encodeFileRecursively= function encodeFileRecursively( filePathOrURL, useURLencoding=false, fetchFilter=undefined, data=undefined, dataPlaceholder=undefined ) {
-        return this.encodeFileWithHandler( filePathOrURL, useURLencoding, fetchFilter, Selenium.prototype.encodeFileRecursiveHandler.bind(this), data, dataPlaceholder );
+        var recursiveHandler= Selenium.prototype.encodeFileRecursiveHandler.bind(this);
+        var contentHandlerWithParamsForRecursion=
+            data===undefined || dataPlaceholder!==undefined
+                ? recursiveHandler
+                : (fetchFilter, useURLencoding, contentURL, content) =>
+                    {
+                        var recursiveHandlerPromise= recursiveHandler( fetchFilter, useURLencoding, contentURL, content );
+                        return recursiveHandlerPromise.then(
+                            processedContent => {
+                                // Report any <a href="#.."> or <a name="...">.
+                                // processedContent may contain processed 'data:' URLs. Those are either URL-encoded or base64-encoded. Either won't contain a hash  '#', hence those 'data:' URLs won't upset the following validation.
+                                var anchorsOrLocalLinks= /<a[^>]+href=['"]#|<a[^>]+name=['"]/g;
+                                var match= anchorsOrLocalLinks.exec( processedContent );
+                                !match || SeLiteMisc.log.warn( "selenium.encodeFileRecursively(): You set param data and not param dataPlaceholder. That means passing the data via URL # hash (anchor fragment). However, fetched content (with data:-encoded resources, if any) contains a local # hash-based link, or an anchor link: " +processedContent[0] );
+                                return processedContent;
+                            }
+                        );
+                    };
+        return this.encodeFileWithHandler( filePathOrURL, useURLencoding, fetchFilter, contentHandlerWithParamsForRecursion, data, dataPlaceholder );
     };
     
     /*var indentIndex= 0;
