@@ -2,8 +2,8 @@
 
 /** In standard use, code of the this function be would simpler, only with functionality relevant to how you pass the data, normally. Here are all alternatives only for reuse be several HTML files.
  * @param {object} config
- * @param {string} injectedDataInJSONandEncoded
- * @param {string} injectionPlaceholderLiteralValue
+ * @param {(string|undefined)} injectedDataInJSONandEncoded
+ * @param {(string|undefined)} injectionPlaceholderLiteralValue
  * @returns {*} Undefined if no data.
  */
 function extractData( config, injectedDataInJSONandEncoded, injectionPlaceholderLiteralValue ) {

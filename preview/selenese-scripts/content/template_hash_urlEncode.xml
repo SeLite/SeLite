@@ -11,7 +11,7 @@
       // The following must reflect config object passed to editor.openPreview( url, data, config ) in Selenium IDE.
       var config= {
           dataInHash: true,
-          urlEncodeData: false
+          urlEncodeData: true
       };
       
       document.onreadystatechange= useData.bind( undefined/*this*/, config );

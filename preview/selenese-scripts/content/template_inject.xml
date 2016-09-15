@@ -8,13 +8,15 @@
     <xhtml:script type="text/javascript">
       //<![CDATA[
       "use strict";
-      // The following must reflect config object passed to editor.openPreview( url, data, config ) in Selenium IDE.
+      // Following variables must reflect config object passed to editor.openPreview( url, data, config ) in Selenium IDE.
       var config= {
-          dataInHash: true,
+          dataInHash: false,
           urlEncodeData: false
       };
+      var injectedDataInJSONandEncoded= 'ENCODED_JSON_DATA_PLACEHOLDER'; // The value will get replaced if injecting data.
+      var injectionPlaceholderLiteralValue= 'ENCODED_JSON'+'_DATA_PLACEHOLDER'; // The value won't get replaced if injecting data.
       
-      document.onreadystatechange= useData.bind( undefined/*this*/, config );
+      document.onreadystatechange= useData.bind( undefined/*this*/, config, injectedDataInJSONandEncoded, injectionPlaceholderLiteralValue );
       //]]>
   </xhtml:script>
 </xhtml:head>

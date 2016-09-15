@@ -17,24 +17,13 @@
 	<td></td>
 </tr>
 <tr><td colspan="3" class="comment"></td></tr>
-<tr><td colspan="3" class="comment">API default : {urlEncodeData: false, urlEncodeContent: true}</td></tr>
-<tr>
-	<td>storePromised</td>
-	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_inject.html&quot;, ['hi', 'mate'], {urlEncodeData: false} )</td>
-	<td>promise</td>
-</tr>
-<tr>
-	<td>storePromised</td>
-	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_inject.html&quot;, ['hi', 'mate'], {urlEncodeData: false, urlEncodeContent: false} )</td>
-	<td>promise</td>
-</tr>
 <tr>
 	<td>breakPoint</td>
 	<td></td>
 	<td></td>
 </tr>
 <tr><td colspan="3" class="comment"></td></tr>
-<tr><td colspan="3" class="comment">base64 (default) encoding of data</td></tr>
+<tr><td colspan="3" class="comment">API default : inject data, don't url-encode (i.e. base64-encode) for data</td></tr>
 <tr>
 	<td>getEval</td>
 	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_inject.html&quot;, ['hi', 'mate'] )</td>
@@ -44,6 +33,18 @@
 	<td>storePromised</td>
 	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_inject.html&quot;, ['hi', 'mate'], {urlEncodeContent:true} )</td>
 	<td>preview</td>
+</tr>
+<tr><td colspan="3" class="comment"></td></tr>
+<tr><td colspan="3" class="comment">urlEncode data</td></tr>
+<tr>
+	<td>storePromised</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_inject.html&quot;, ['hi', 'mate'], {urlEncodeData: false} )</td>
+	<td>promise</td>
+</tr>
+<tr>
+	<td>storePromised</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_inject.html&quot;, ['hi', 'mate'], {urlEncodeData: false, urlEncodeContent: false} )</td>
+	<td>promise</td>
 </tr>
 <tr><td colspan="3" class="comment"></td></tr>
 <tr>
@@ -76,7 +77,17 @@
 <tr><td colspan="3" class="comment">XML</td></tr>
 <tr>
 	<td>getEval</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_inject.xml&quot;, ['hi', 'mate'] )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
 	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_hash.xml&quot;, ['hi', 'mate'], {dataInHash: true} )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_hash.xml&quot;, ['hi', 'mate'], {dataInHash: true,&#160;&#160;urlEncodeContent: false} )</td>
 	<td></td>
 </tr>
 <tr><td colspan="3" class="comment"></td></tr>
