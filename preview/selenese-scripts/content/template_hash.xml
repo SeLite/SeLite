@@ -1,28 +1,25 @@
 <?xml version='1.0' encoding="UTF-8"?>
 <xhtml:html xml:lang="ee" dir="ltr" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-<head>
-  <!-- As of March 2016, PURE is the easiest engine listed on https://developer.mozilla.org/en-US/docs/JavaScript_templates -->
+<xhtml:head>
   <!-- For development only use https://rawgit.com/pure/pure/master/libs/pure.js. For production apply https://selite.github.io/DocumentationStandard#generating-cdnrawgitcom-based-urls -->
   <xhtml:script type="text/javascript" src="https://cdn.rawgit.com/pure/pure/d00b1240bfa4a40a0e9235448cd4a4342385f32b/libs/pure.js"></xhtml:script>
+  <xhtml:script type="text/javascript" src="script_for_html_and_xml.js"></xhtml:script>
+  <xhtml:script type="text/javascript" src="script_for_xml.js"></xhtml:script>
     <xhtml:script type="text/javascript">
       //<![CDATA[
       "use strict";
+      // Values of the following three variables must reflect config object passed to editor.openPreview( url, data, config ) in Selenium IDE.
+      var config= {
+          dataInHash: true,
+          urlEncodeData: false
+      };
+      
+      document.onreadystatechange= useData.bind( undefined/*this*/, config );
+      
       // don't use window's onload handler for XML
-       document.onreadystatechange= function() {
+       if(false) document.onreadystatechange= function() {
           if (document.readyState==="complete") {
-                alert( location.hash );
-                return;
-              if (document.readyState==="complete") {
-                // See https://beebole.com/pure/
-                var directive = {
-                    entry: {
-                        'data<-':{
-                            '.': 'data',
-                            '@data-text': 'data'
-                        }
-                    }
-                };
-                // As per https://groups.google.com/forum/#!searchin/Pure-Unobtrusive-Rendering-Engine/pure$20without$20jquery/pure-unobtrusive-rendering-engine/Cmt1bqfsZLg/rhGP8ZqfliAJ
+            //document.getElementById('results').innerHTML
 
                 $p('#results').render( ['hi', 'mate'], directive );
 
@@ -30,18 +27,15 @@
                 var exportXML= results.innerHTML;
                 var exportURL= 'data:text/xml,' +encodeURIComponent( '<?xml version="1.0" encoding="UTF-8"?>' +exportXML );
                 location.href= exportURL;
-              }
            }
         };
       //]]>
   </xhtml:script>
-</head>
+</xhtml:head>
 <xhtml:body>
     <xhtml:span style="display: none;">
-    <div id="results">
-        <entries>
-          <entry happy="yes"/>
-        </entries>
+    <!-- Don't use xhtml namespace in the following if you want Firefox to show XML structure. -->
+    <div id="content">
     </div>
     </xhtml:span>
 </xhtml:body>

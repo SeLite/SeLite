@@ -15,30 +15,30 @@ function useData( config, injectedDataInJSONandEncoded, injectionPlaceholderLite
         // The whole data will be an array of (primitive) strings. Use those strings for both text and URL of <a> elements:
         // See https://beebole.com/pure/
         var directive = {
-            'li':{
+            entry:{
                 'data<-':{
-                    'a': 'data',
-                    'a@href': 'data'
+                    '.': 'data',
+                    '@data-text': 'data'
                 }
             }
         };
         // As per https://groups.google.com/forum/#!searchin/Pure-Unobtrusive-Rendering-Engine/pure$20without$20jquery/pure-unobtrusive-rendering-engine/Cmt1bqfsZLg/rhGP8ZqfliAJ
         $p('#results').render( data, directive );
+        
+        var results= document.getElementById('results');
+        var exportXML= results.innerHTML;
+        var exportURL= 'data:text/xml,' +encodeURIComponent( '<?xml version="1.0" encoding="UTF-8"?>' +exportXML );
+        location.href= exportURL;
     }
   }
 }
 
 function contentHTML() {
     return `
-    <a href="javascript:alertFromJSfile('alertFromJSfile()')">call a function from a local JS file</a><br/>
-    <a href="javascript:alertFromInlineJS('alertFromInlineJS()')">call a function defined in inline JS in the (original) HTML</a><br/>
-    <a href="javascript:callBackOutFlow( 'sayHello' )">call back Selenium</a>
-    <br/>
     <div id="results">
-        <ul class="image-decorated">
-          <li>
-              <a data-mood="happy" href=""></a>
-          </li>
-        </ul>
+        <entries>
+          <entry happy="yes"/>
+        </entries>
     </div>`;
 }
+
