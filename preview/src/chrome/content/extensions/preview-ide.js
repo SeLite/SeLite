@@ -44,7 +44,6 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
             
             return promise.then(
                 url => {
-                    debugger;
                     if( dataForHash!==undefined ) {
                         url.indexOf('#')<0 || SeLiteMisc.fail( "You set param dataForHash, but param urlOrPromise (once resolved) contained a #hash (anchor fragment): " +url );
                         var json= JSON.stringify( dataForHash );
@@ -63,6 +62,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
                        */
                     }
                     var win= window.open( url, /*@TODO parameters - remove toolbar...*/'resizable=1');
+                    win.bySeLitePreview= true;
                     // Using https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Language_Bindings/Components.utils.exportFunction
                     // For details see https://developer.mozilla.org/en-US/docs/Mozilla/Gecko/Script_security
                     // Following exported the function, but the preview couldn't access selenium().callBackOutFlow()

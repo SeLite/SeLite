@@ -91,7 +91,6 @@ Selenium= Selenium;
         
         return this.loadFile( url,  contentIsBinary ).then(
             contentWithoutData => {
-                debugger;
                 return dataPlaceholder!==undefined
                     ? contentWithoutData.replace( new RegExp(dataPlaceholder, 'g'), JSON.stringify(data) )
                     : contentWithoutData;
@@ -306,4 +305,19 @@ Selenium= Selenium;
                 : ';base64'
             ) + ',' + encoded;
     };
+    
+    var old_modifyWindow= BrowserBot.prototype._modifyWindow; // From selenium-core/scripts/selenium-browser.js
+    BrowserBot.prototype._modifyWindow
+= MozillaBrowserBot.prototype._modifyWindow
+= KonquerorBrowserBot.prototype._modifyWindow
+= SafariBrowserBot.prototype._modifyWindow
+= OperaBrowserBot.prototype._modifyWindow
+= IEBrowserBot.prototype._modifyWindow
+= function _modifyWindow( win ) {
+    if( !('bySeLitePreview' in win) || !win.bySeLitePreview ) {
+        old_modifyWindow.call( this, win );
+    }
+    // No need to return anything - existing calls to _modifyWindow() don't use the return value.
+ };
+
 }) ();

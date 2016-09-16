@@ -204,7 +204,6 @@ function replaceTraditionalHeader( testCase ) {
         template= template.substring( 0, tbodyStart );
         template= template.replace( /\$\{[a-zA-Z]+\}/g, '(.*)' );
         var regexp= new RegExp( template );
-        debugger;
         var match= regexp.exec( testCase.header );
         if( match ) {
             var startOfCommands= this.options.testTemplate.indexOf( '${commands}' );

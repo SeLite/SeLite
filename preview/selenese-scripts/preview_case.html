@@ -35,15 +35,11 @@
 	<td>preview</td>
 </tr>
 <tr><td colspan="3" class="comment"></td></tr>
-<tr><td colspan="3" class="comment">urlEncode data</td></tr>
+<tr><td colspan="3" class="comment">urlEncode data ignored &amp;amp;amp;amp;amp; warned with injection</td></tr>
+<tr><td colspan="3" class="comment">TODO validate that following fails</td></tr>
 <tr>
 	<td>storePromised</td>
-	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_inject.html&quot;, ['hi', 'mate'], {urlEncodeData: false} )</td>
-	<td>promise</td>
-</tr>
-<tr>
-	<td>storePromised</td>
-	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_inject.html&quot;, ['hi', 'mate'], {urlEncodeData: false, urlEncodeContent: false} )</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_inject.html&quot;, ['hi', 'mate'], {urlEncodeData: true} )</td>
 	<td>promise</td>
 </tr>
 <tr><td colspan="3" class="comment"></td></tr>
@@ -67,7 +63,7 @@
 <tr><td colspan="3" class="comment">urlEncoding of data (for hash passed-data only, not for injection)</td></tr>
 <tr>
 	<td>storePromised</td>
-	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_hash_urlEncode.html&quot;, ['hi', 'mate'], {urlEncodeData:true, dataInHash:true} )</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_hash_urlEncode.html&quot;, ['hi', 'mate'], {dataInHash:true, urlEncodeData:true} )</td>
 	<td>preview</td>
 </tr>
 <tr><td colspan="3" class="comment"></td></tr>
@@ -82,12 +78,29 @@
 </tr>
 <tr>
 	<td>getEval</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_inject.xml&quot;, ['hi', 'mate'], {urlEncodeContent: true} )</td>
+	<td></td>
+</tr>
+<tr><td colspan="3" class="comment"></td></tr>
+<tr>
+	<td>getEval</td>
 	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_hash.xml&quot;, ['hi', 'mate'], {dataInHash: true} )</td>
 	<td></td>
 </tr>
 <tr>
 	<td>getEval</td>
-	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_hash.xml&quot;, ['hi', 'mate'], {dataInHash: true,&#160;&#160;urlEncodeContent: false} )</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_hash.xml&quot;, ['hi', 'mate'], {dataInHash: true,&#160;&#160;urlEncodeContent: true} )</td>
+	<td></td>
+</tr>
+<tr><td colspan="3" class="comment"></td></tr>
+<tr>
+	<td>getEval</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_hash_urlEncode.xml&quot;, ['hi', 'mate'], {dataInHash: true,&#160;&#160;urlEncodeData:true} )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_hash_urlEncode.xml&quot;, ['hi', 'mate'], {dataInHash: true,&#160;&#160;urlEncodeData:true, urlEncodeContent: false} )</td>
 	<td></td>
 </tr>
 <tr><td colspan="3" class="comment"></td></tr>
