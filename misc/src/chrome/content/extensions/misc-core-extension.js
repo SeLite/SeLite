@@ -171,6 +171,13 @@ if( loadedTimes===1 ) {
             // doRunJavascript@chrome://selite-misc/content/extensions/core-extension.js
         }
     };
+    
+    Selenium.prototype.getLastLog= function getLastLog( level ) {
+        var entries= SeLiteMisc.logEntries( level );
+        return entries.length
+            ? entries[ entries.length-1 ].message
+            : ''; // Don't return undefined, because Selenium IDE transforms it into string 'undefined'
+    };
 }) ();
 }
 SeLiteExtensionSequencer.coreExtensionsLoadedTimes['SeLiteMisc']= loadedTimes+1;

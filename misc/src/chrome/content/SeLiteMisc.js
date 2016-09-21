@@ -2152,6 +2152,14 @@ SeLiteMisc.log= function log() {
     return SeLiteMisc.LOG;
 };
 
+/** Get all available past log entries for given level.
+ * @param {string} level One of ["log","debug","info","warn","error"], case sensitive.
+ * @return {Array} Array of entry objects, as created by Logger.log() in Selenium IDE's content/selenium-runner.js
+ * */
+SeLiteMisc.logEntries= function logEntries( level ) {
+    return SeLiteMisc.LOG.entries.filter( entry => entry.level===level );
+};
+
 // Same as 2**32, which is Ecmascript7-only (i.e. in Firefox 50+)
 var singleHashLimit= 256*256*256*256;
 

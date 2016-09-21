@@ -18,4 +18,12 @@ Xml-stylesheet (whether remote or even local) didn't load up work when you open 
         This command is a part of SeLite Miscellaneous.
     </comment>
 </function>   
+<function name="getLastLog">
+    <param name="level">Level of the log message. One of ["log","debug","info","warn","error"], case sensitive.</param>
+    <comment>
+        This returns the most recent log message (if any) for given log level. Empty string if no such message.
+        <br/>
+        This command is a part of SeLite Miscellaneous.
+    </comment>
+</function>   
 </apidoc>
