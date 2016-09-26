@@ -117,8 +117,28 @@
 <tr><td colspan="3" class="comment"></td></tr>
 <tr><td colspan="3" class="comment">base64 messes up UTF-8 of special characters:</td></tr>
 <tr>
+	<td>breakPoint</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
 	<td>storePromised</td>
 	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/../preview.html&quot;, $collected, {urlEncodeContent:true} )</td>
+	<td>result</td>
+</tr>
+<tr>
+	<td>storePromised</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/../preview.html&quot;, $collected, {urlEncodeContent:false} )</td>
+	<td>result</td>
+</tr>
+<tr>
+	<td>storePromised</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/../preview.html&quot;, $collected, {urlEncodeContent:'shortest'} )</td>
+	<td>result</td>
+</tr>
+<tr>
+	<td>storePromised</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/../preview.html&quot;, $collected, {urlEncodeContent:'readable'} )</td>
 	<td>result</td>
 </tr>
 <tr>

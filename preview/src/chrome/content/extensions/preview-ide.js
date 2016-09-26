@@ -114,7 +114,7 @@ if( window.location.href==='chrome://selenium-ide/content/selenium-ide.xul' ) {
             'dataInHash' in config || (config.dataInHash=false);
             'urlEncodeData' in config || (config.urlEncodeData=false);
             'dataPlaceholder' in config || config.dataInHash || (config.dataPlaceholder='ENCODED_JSON_DATA_PLACEHOLDER');
-            'urlEncodeContent' in config || (config.urlEncodeContent=false);
+            'urlEncodeContent' in config || (config.urlEncodeContent="readable");
             
             config.dataInHash==(config.dataPlaceholder==undefined) || SeLiteMisc.fail( "Set exactly one of: config.dataInHash or config.dataPlaceholder." );
             !config.urlEncodeData || config.dataInHash || SeLiteMisc.fail( "Set config.urlEncodeData only if also setting config.dataInHash." );
