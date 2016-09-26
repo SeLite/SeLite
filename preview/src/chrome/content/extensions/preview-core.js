@@ -78,7 +78,8 @@ Selenium= Selenium;
      *  -If true, then this always uses URL encoding. (However, if the file is binary, the result may not work with decodeURIComponent(). See also https://tools.ietf.org/html/rfc3986#page-12. It seems to work for binry files in main browsers, evne though Firefox generates a warning in Browser Console.)
      *  -If undefined, then it's automatic: URL encoding for text files (whose MIME starts with "text/" and for .xhtml files) and base 64 for the rest.
      *  -If false, then this always uses base 64 encoding.
-     *  -If string "automatic" (case-sensitive), then use URL encoding for text files, base64 encoding for
+     *  -If string "readable" (case-sensitive), then use URL encoding for text files, base64 encoding for the rest
+     *  -If string "shortest" (case-sensitive), then use the shorter of URL and base64 encoding (including ';base64')
      *  -If a string, an array, a regex: matching MIME prefix for files to URL encode, in addition to the above automatic rule.
      *  -If a function, then useURLencoding(mimeString) determines whether to use URL encoding, in addition to the above automatic rule.
      *  @param {function} [contentHandler=undefined] Function(content) => Promise of a string (the handled content). Used for deep/recursive handling. Parameter url is used only for resolving relative URLs for documents that are handled recursively.
@@ -258,16 +259,17 @@ Selenium= Selenium;
     Selenium.encodeContent= function encodeContent( content, mime, contentIsBinary=false, useURLencoding=false ) {
         (typeof content==="object") === SeLiteMisc.isInstance( content, ArrayBuffer ) || SeLiteMisc.fail( "Parameter content must be a primitive string, or an ArrayBuffer.");
         (typeof content==="object") === contentIsBinary || SeLiteMisc.fail( "Parameter content was " +typeof content+ ", but parameter contentIsBinary was " +contentIsBinary );
-
-            //@TODO var body= doc.getElementsByTagNameNS( "http://www.w3.org/1999/xhtml", 'body')[0]; // this works even if the document's MIME is text/html rather than text/xml
-        var doURLencoding;
-        if( useURLencoding==="automatic" ) {
+        
+        var useShortestEncoding= useURLencoding==='shortest';
+        if( useURLencoding==="readable" ) {
             useURLencoding= !contentIsBinary;
         }
+        var doURLencoding;
         if( typeof useURLencoding==='boolean' ) {
             doURLencoding= useURLencoding;
         }
-        else {
+        else
+        if( !useShortestEncoding ) {
             if( typeof useURLencoding==='string' ) {
                 useURLencoding= [useURLencoding];
             }
@@ -290,23 +292,31 @@ Selenium= Selenium;
             }
         }
         
-        var encoded= contentIsBinary
-            ? (doURLencoding
+        var urlEncoded= doURLencoding || useShortestEncoding
+            ? (contentIsBinary
                 ? stringViewToUrlEncode( new StringView( content, 'ASCII') ) // Not fully standard
-                : new StringView( content, 'ASCII').toBase64( true )
+                : encodeURIComponent(content)
               )
-            : (doURLencoding
-                ? encodeURIComponent(content)
+            : undefined;
+        
+        var b64Encoded= !doURLencoding || useShortestEncoding
+            ? (contentIsBinary
+                ? new StringView( content, 'ASCII').toBase64( true )
                 : new StringView( content,'UTF-8').toBase64( true )// Do not use btoa(content), neither StringView with 'ASCII'. They don't handle Unicode well. See https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#The_Unicode_Problem.
-              );
+              )
+            : undefined;
+        
+        if( useShortestEncoding ) {
+            doURLencoding= urlEncoded.length<=b64Encoded.length+7;
+        }
+        var encoded= doURLencoding
+            ? ',' +urlEncoded
+            : ';base64,' +b64Encoded;
+        
         var charset= contentIsBinary
             ? 'US-ASCII'
             : 'UTF-8';
-        return 'data:' +mime+ ';charset=' +charset+
-            (doURLencoding
-                ? ''
-                : ';base64'
-            ) + ',' + encoded;
+        return 'data:' +mime+ ';charset=' +charset+ encoded;
     };
     
     var old_modifyWindow= BrowserBot.prototype._modifyWindow; // From selenium-core/scripts/selenium-browser.js

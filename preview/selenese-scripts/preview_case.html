@@ -34,8 +34,23 @@
 	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_inject.html&quot;, ['hi', 'mate'], {urlEncodeContent:true} )</td>
 	<td>preview</td>
 </tr>
+<tr>
+	<td>storePromised</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_inject.html&quot;, ['hi', 'mate'], {urlEncodeContent:false} )</td>
+	<td>preview</td>
+</tr>
+<tr>
+	<td>storePromised</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_inject.html&quot;, ['hi', 'mate'], {urlEncodeContent:'shortest'} )</td>
+	<td>preview</td>
+</tr>
+<tr>
+	<td>storePromised</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/content/template_inject.html&quot;, ['hi', 'mate'], {urlEncodeContent:'readable'} )</td>
+	<td>preview</td>
+</tr>
 <tr><td colspan="3" class="comment"></td></tr>
-<tr><td colspan="3" class="comment">urlEncode data ignored &amp;amp;amp;amp;amp;amp;amp; warned with injection</td></tr>
+<tr><td colspan="3" class="comment">urlEncode data ignored &amp;amp;amp;amp;amp;amp;amp;amp;amp;amp; warned with injection</td></tr>
 <tr><td colspan="3" class="comment">TODO validate that following fails</td></tr>
 <tr>
 	<td>storePromised</td>
