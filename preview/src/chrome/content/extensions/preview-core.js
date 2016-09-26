@@ -96,13 +96,13 @@ Selenium= Selenium;
                     : contentWithoutData;
                 }
             ).then(
-                unprocessedContent => {
+                unprocessedContent => {debugger;
                     var contentHandlerPromise= !contentIsBinary && contentHandler
                         ? contentHandler( unprocessedContent )
                         : Promise.resolve( unprocessedContent );
 
                     return contentHandlerPromise.then(
-                        processedContent => {
+                        processedContent => {debugger;
                             return Selenium.encodeContent( processedContent, mime, contentIsBinary, useURLencoding );
                         }
                     );
@@ -297,9 +297,12 @@ Selenium= Selenium;
               )
             : (doURLencoding
                 ? encodeURIComponent(content)
-                : btoa(content)
+                : new StringView( content,'UTF-8').toBase64( true )// Do not use btoa(content), neither StringView with 'ASCII'. They don't handle Unicode well. See https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#The_Unicode_Problem.
               );
-        return 'data:' +mime+
+        var charset= contentIsBinary
+            ? 'US-ASCII'
+            : 'UTF-8';
+        return 'data:' +mime+ ';charset=' +charset+
             (doURLencoding
                 ? ''
                 : ';base64'

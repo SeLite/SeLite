@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://change-this-to-the-site-you-are-testing/" />
+<title>case</title>
+<style type="text/css">.comment {color: #AA33AA; height: 1em}</style></head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">case</td></tr>
+</thead><tbody>
+<tr>
+	<td>function</td>
+	<td>sayHello</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&#160;&#160;&#160;&#160;getEval</td>
+	<td>alert('Hello')</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr><td colspan="3" class="comment"> </td></tr>
+<tr>
+	<td>function</td>
+	<td>collectAttributes</td>
+	<td>@param xpath, @param attribute </td>
+</tr>
+<tr>
+	<td>&#160;&#160;&#160;&#160;storeXpathCount</td>
+	<td>&lt;&gt;$xpath&lt;&gt;</td>
+	<td>numElements</td>
+</tr>
+<tr>
+	<td>&#160;&#160;&#160;&#160;storeEval</td>
+	<td>[]</td>
+	<td>values</td>
+</tr>
+<tr>
+	<td>&#160;&#160;&#160;&#160;for</td>
+	<td>$i=1; $i&lt;=$numElements; $i++</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;getEval</td>
+	<td>$values.push( selenium.getAttribute( 'xpath=( ' +$xpath+ ' )[' +$i+ ']@' +$attribute ) )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&#160;&#160;&#160;&#160;endFor</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>&#160;&#160;&#160;&#160;return</td>
+	<td>$values</td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFunction</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr><td colspan="3" class="comment"> </td></tr>
+<tr>
+	<td>call</td>
+	<td>collectAttributes</td>
+	<td>xpath=&quot;//a[ starts-with(@href, 'https://github.com/' ) and ( contains(@href, '/issues/') or contains(@href, '/pull/') ) ]&quot;, attribute=&quot;href&quot;</td>
+</tr>
+<tr><td colspan="3" class="comment"> </td></tr>
+<tr>
+	<td>storeEval</td>
+	<td>$_result</td>
+	<td>urls</td>
+</tr>
+<tr>
+	<td>storeEval</td>
+	<td>( {} )</td>
+	<td>collected</td>
+</tr>
+<tr>
+	<td>for</td>
+	<td>$i=0; $i&lt;$urls.length; $i++</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&#160;&#160;&#160;&#160;open</td>
+	<td>&lt;&gt;$urls[ $i ]&lt;&gt;</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&#160;&#160;&#160;&#160;if</td>
+	<td>!selenium.isElementPresent( &quot;//div[ contains(@class, 'state-open' ) ]&quot; )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;getEval</td>
+	<td>$collected[ selenium.getTitle() ]= $urls[$i]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&#160;&#160;&#160;&#160;endIf</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>endFor</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr><td colspan="3" class="comment"></td></tr>
+<tr><td colspan="3" class="comment">base64 messes up UTF-8 of special characters:</td></tr>
+<tr>
+	<td>storePromised</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/../preview.html&quot;, $collected, {urlEncodeContent:true} )</td>
+	<td>result</td>
+</tr>
+<tr>
+	<td>storePromised</td>
+	<td>editor.openPreviewEncode( SeLiteSettings.getTestSuiteFolder()+ &quot;/../preview.html&quot;, $collected )</td>
+	<td>result</td>
+</tr>
+<tr>
+	<td>breakPoint</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>var msg= ''; for( var i in $collected ) msg+= i+', '; alert(msg)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>var msg= ''; for( var i in $collected ) msg+= $collected[i]+', '; alert(msg)</td>
+	<td></td>
+</tr>
+</tbody></table>
+</body>
+</html>
