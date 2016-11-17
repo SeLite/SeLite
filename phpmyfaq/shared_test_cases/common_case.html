@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <link rel="selenium.base" href="http://change-this-to-the-site-you-are-testing/" />
 <title>common_case</title>
-</head>
+<style type="text/css">.comment {color: #AA33AA; height: 1em}</style></head>
 <body>
 <table cellpadding="1" cellspacing="1" border="1">
 <thead>
@@ -16,11 +16,26 @@
 	<td></td>
 	<td></td>
 </tr>
-<!--@param 'loginOrAmpRole' is a user login, or user role prefixed with &.-->
+<tr><td colspan="3" class="comment">@param 'loginOrAmpRole' is a user login, or user role prefixed with &amp;amp;amp;.</td></tr>
 <tr>
 	<td>function</td>
 	<td>logIn</td>
 	<td>loginOrAmpRole</td>
+</tr>
+<tr>
+	<td>&#160;&#160;&#160;&#160;if</td>
+	<td>false</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;promise</td>
+	<td>phpMyFAQ.db.storage.execute( &quot;SELECT * FROM pmf_faquser&quot; )</td>
+	<td></td>
+</tr>
+<tr>
+	<td>&#160;&#160;endIf</td>
+	<td></td>
+	<td></td>
 </tr>
 <tr>
 	<td>&#160;&#160;promise</td>
@@ -52,13 +67,13 @@
 	<td>//div[ @class=&quot;panel-body&quot; ]//button[ @type=&quot;submit&quot; ]</td>
 	<td></td>
 </tr>
-<!--    The current page and its URL depends on whether we got here from an admin or non-admin screen-->
+<tr><td colspan="3" class="comment"> The current page and its URL depends on whether we got here from an admin or non-admin screen</td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;assertElementPresent</td>
 	<td>ui=allPages::userOwnMenuLoggedInName()</td>
 	<td></td>
 </tr>
-<!--    Keep a space between displayName= and <>phpMyFAQ.selectedUser.display_name<>, otherwise http://selite.github.io/EnhancedSelenese treats it specially:-->
+<tr><td colspan="3" class="comment"> Keep a space between displayName= and &amp;amp;lt;&amp;amp;gt;phpMyFAQ.selectedUser.display_name&amp;amp;lt;&amp;amp;gt;, otherwise http://selite.github.io/EnhancedSelenese treats it specially:</td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;assertElementPresent</td>
 	<td>ui=allPages::userOwnMenuLoggedInName( displayName= &lt;&gt;phpMyFAQ.selectedUser.display_name&lt;&gt; )</td>
@@ -79,7 +94,7 @@
 	<td>false &amp;&amp; alert( phpMyFAQ.selectedUser )</td>
 	<td></td>
 </tr>
-<!---->
+<tr><td colspan="3" class="comment"></td></tr>
 <tr>
 	<td>function</td>
 	<td>logOut</td>
@@ -105,7 +120,7 @@
 	<td></td>
 	<td></td>
 </tr>
-<!--  If the user was an admin, 'Logout' leaves her at /admin/index.php?action=logout. That doesn't have bootstrap menu. Hence reload webroot:-->
+<tr><td colspan="3" class="comment"> If the user was an admin, 'Logout' leaves her at /admin/index.php?action=logout. That doesn't have bootstrap menu. Hence reload webroot:</td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;ensureUnderWebRoot</td>
 	<td>&lt;&gt; true &lt;&gt;</td>
@@ -126,7 +141,7 @@
 	<td></td>
 	<td></td>
 </tr>
-<!---->
+<tr><td colspan="3" class="comment"></td></tr>
 <tr>
 	<td>function</td>
 	<td>createUser</td>
@@ -177,7 +192,7 @@
 	<td>storedVars.insertedRecordKey</td>
 	<td>user_id</td>
 </tr>
-<!--    -->
+<tr><td colspan="3" class="comment"> </td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;insertRecord</td>
 	<td>=&lt;&gt;({ login: $login, pass:$pass })&lt;&gt;</td>
@@ -208,8 +223,8 @@
 	<td></td>
 	<td></td>
 </tr>
-<!--  -->
-<!--This requires the password to be stored in the test DB in plain text. Like for accounts created by function createUser.-->
+<tr><td colspan="3" class="comment"> </td></tr>
+<tr><td colspan="3" class="comment">This requires the password to be stored in the test DB in plain text. Like for accounts created by function createUser.</td></tr>
 <tr>
 	<td>function</td>
 	<td>logInAsStoredUser</td>
@@ -230,7 +245,7 @@
 	<td></td>
 	<td></td>
 </tr>
-<!---->
+<tr><td colspan="3" class="comment"></td></tr>
 <tr>
 	<td>function</td>
 	<td>goToAdministration</td>
@@ -246,6 +261,7 @@
 	<td>openUserOwnMenuIfCollapsed</td>
 	<td></td>
 </tr>
+<tr><td colspan="3" class="comment">    TODO Following fails</td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;clickAndWait</td>
 	<td>ui=allPages::userOwnMenuItem( item=Administration )</td>
@@ -271,28 +287,28 @@
 	<td></td>
 	<td></td>
 </tr>
-<!---->
-<!--Expand Bootstrap menu, if in mobile mode (and if not expanded already). Then expand 'Login' menu (regardless of mobile mode). Only for non-admin pages.-->
-<!--Don't use directly. Use function goToAdministration instead.-->
+<tr><td colspan="3" class="comment"></td></tr>
+<tr><td colspan="3" class="comment">Expand Bootstrap menu, if in mobile mode (and if not expanded already). Then expand 'Login' menu (regardless of mobile mode). Only for non-admin pages.</td></tr>
+<tr><td colspan="3" class="comment">Don't use directly. Use function goToAdministration instead.</td></tr>
 <tr>
 	<td>function</td>
 	<td>openBootstrapMenuIfCollapsed</td>
 	<td>$admin</td>
 </tr>
-<!--    TODO Document: Selenium IDE (its replaceVariables()) doesn't replace ${variableName} if storedVars.variableName is set to false/0/null. Hence:-->
+<tr><td colspan="3" class="comment"> TODO Document: Selenium IDE (its replaceVariables()) doesn't replace ${variableName} if storedVars.variableName is set to false/0/null. Hence:</td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;storeEval</td>
 	<td>$admin ? true : false</td>
 	<td>admin</td>
 </tr>
-<!--  resizeTo(), innerWidth and innerHeight don't work in getEval with window, neither with this.browserbot.getCurrentWindow()-->
-<!--  Here I used to use window.opener.innerWidth. Why?-->
+<tr><td colspan="3" class="comment"> resizeTo(), innerWidth and innerHeight don't work in getEval with window, neither with this.browserbot.getCurrentWindow()</td></tr>
+<tr><td colspan="3" class="comment"> Here I used to use window.opener.innerWidth. Why?</td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;log</td>
 	<td>window.width: &lt;&gt;window.innerWidth&lt;&gt;</td>
 	<td>info</td>
 </tr>
-<!--  TODO Doc: In Firefox c.a. 36, the following innerWidth was different to value reported by console in Firebug or in Firefox's Web Developer > Toggle tools > console. Fixed in Firefox 47.-->
+<tr><td colspan="3" class="comment"> TODO Doc: In Firefox c.a. 36, the following innerWidth was different to value reported by console in Firebug or in Firefox's Web Developer &amp;amp;gt; Toggle tools &amp;amp;gt; console. Fixed in Firefox 47.</td></tr>
 <tr>
 	<td>&#160;&#160;getEval</td>
 	<td>false &amp;&amp; alert( window.innerWidth )</td>
@@ -328,8 +344,8 @@
 	<td></td>
 	<td></td>
 </tr>
-<!---->
-<!--Expand user's own menu (if  not expanded already). It also calls openBootstrapMenuIfCollapsed. For both non-admin and admin  pages.-->
+<tr><td colspan="3" class="comment"></td></tr>
+<tr><td colspan="3" class="comment">Expand user's own menu (if not expanded already). It also calls openBootstrapMenuIfCollapsed. For both non-admin and admin pages.</td></tr>
 <tr>
 	<td>function</td>
 	<td>openUserOwnMenuIfCollapsed</td>
@@ -380,7 +396,7 @@
 	<td></td>
 	<td></td>
 </tr>
-<!---->
+<tr><td colspan="3" class="comment"></td></tr>
 <tr>
 	<td>function</td>
 	<td>addCategory</td>

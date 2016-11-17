@@ -63,6 +63,7 @@ SeLiteData.Storage.prototype.open= function open() {
             file= new FileUtils.File( this.fileName );
         }
         if( !file.exists() ) {
+            throw "DB file " +this.fileName+ " doesn't exist.";
             file.create( /*NORMAL_FILE_TYPE*/0, /*u=rw g=rw o=r*/Number.parseInt( "662", 8) );
             //throw 'DB file ' +this.fileName+ " doesn't exist.";
         }
@@ -709,8 +710,7 @@ StorageFromSettings.instances= {};
 /** Create connection on demand, if it wasn't created already. See Storage.prototype.connection(). */
 StorageFromSettings.prototype.connection= function connection() {
     if( !this.con ) {
-        try { this.open(); }
-        catch( e ) { console.debug( "Couldn't open SQLite DB " +this.fileName ); }
+        this.open();
     }
     return this.con;
 };
