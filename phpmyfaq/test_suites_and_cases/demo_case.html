@@ -1,11 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head profile="http://selenium-ide.openqa.org/profiles/test-case">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <link rel="selenium.base" href="http://change-this-to-the-site-you-are-testing/" />
 <title>demo_case</title>
-</head>
+<style type="text/css">.comment {color: #AA33AA; height: 1em}</style></head>
 <body>
 <table cellpadding="1" cellspacing="1" border="1">
 <thead>
@@ -31,7 +31,7 @@
 	<td>logIn</td>
 	<td>loginOrAmpRole='&amp;admin'</td>
 </tr>
-<!---->
+<tr><td colspan="3" class="comment"></td></tr>
 <tr>
 	<td>call</td>
 	<td>goToAdministration</td>
@@ -52,7 +52,7 @@
 	<td>ui=adminPages::secondNavigation(section=Users,item=Change Password)</td>
 	<td></td>
 </tr>
-<!---->
+<tr><td colspan="3" class="comment"></td></tr>
 <tr>
 	<td>call</td>
 	<td>createUser</td>
@@ -78,9 +78,9 @@
 	<td>logIn</td>
 	<td>loginOrAmpRole=$createdUser.login</td>
 </tr>
-<!---->
-<!--TODO Documen or report to Se HQ: When definition of UI element fails to be loaded, Selenium IDE highlighs the command in red, but it doesn't increase Failures!-->
-<!--Keep a space between displayName= and <>phpMyFAQ.selectedUser.display_name<>, otherwise http://selite.github.io/EnhancedSelenese treats it specially:-->
+<tr><td colspan="3" class="comment"></td></tr>
+<tr><td colspan="3" class="comment">TODO Documen or report to Se HQ: When definition of UI element fails to be loaded, Selenium IDE highlighs the command in red, but it doesn't increase Failures!</td></tr>
+<tr><td colspan="3" class="comment">Keep a space between displayName= and &lt;&gt;phpMyFAQ.selectedUser.display_name&lt;&gt;, otherwise http://selite.github.io/EnhancedSelenese treats it specially:</td></tr>
 <tr>
 	<td>assertElementPresent</td>
 	<td>ui=allPages::userOwnMenuLoggedInName( displayName= &lt;&gt;phpMyFAQ.selectedUser.display_name&lt;&gt; )</td>
@@ -91,8 +91,8 @@
 	<td>openBootstrapMenuIfCollapsed</td>
 	<td></td>
 </tr>
-<!--TODO DOC Somehow, within javascript{...}, window.opener.outerWidth==window.opener.innerWidth, regardless of vertical scrollbars-->
-<!--TODO DOC window.opener is not available in getEval(). It's not available in http://selite.github.io/EnhancedSelenese <>...<> either, but there it is null.-->
+<tr><td colspan="3" class="comment">TODO DOC Somehow, within javascript{...}, window.opener.outerWidth==window.opener.innerWidth, regardless of vertical scrollbars</td></tr>
+<tr><td colspan="3" class="comment">TODO DOC window.opener is not available in getEval(). It's not available in http://selite.github.io/EnhancedSelenese &lt;&gt;...&lt;&gt; either, but there it is null.</td></tr>
 <tr>
 	<td>nop</td>
 	<td>javascript{ /*alert( window.opener.outerWidth-window.opener.innerWidth);*/}</td>
