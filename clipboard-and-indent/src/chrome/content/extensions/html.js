@@ -170,11 +170,11 @@ var originalValues= {
     // Following values are from Selenium IDE's content/formats/html.js, with exact same indentation.
     // Selenium IDE 2.9.1.1 doesn't save commentXyz options, hence no need to modify them. If it does so in the future, then here list its originals for: commentLoadPattern, commentLoadScript and commentTemplate
     commandLoadPattern:
-    "<tr\s*[^>]*>" +
+    "<tr\\s*[^>]*>" +
 	"\\s*(<!--[\\d\\D]*?-->)?" +
-	"\\s*<td\s*[^>]*>\\s*([\\w]*?)\\s*</td>" +
-	"\\s*<td\s*[^>]*>([\\d\\D]*?)</td>" +
-	"\\s*(<td\s*/>|<td\s*[^>]*>([\\d\\D]*?)</td>)" +
+	"\\s*<td\\s*[^>]*>\\s*([\\w]*?)\\s*</td>" +
+	"\\s*<td\\s*[^>]*>([\\d\\D]*?)</td>" +
+	"\\s*(<td\\s*/>|<td\\s*[^>]*>([\\d\\D]*?)</td>)" +
 	"\\s*</tr>\\s*",
     
 	testTemplate:
@@ -471,7 +471,6 @@ this.options = {
 ( ()=>{ // closure to keep prefs local
     var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService); // -> instance of nsIPrefBranch
     var prefsBranch= prefs.getBranch( 'extensions.selenium-ide.formats.default.' );
-    // @TODO retest - is originalValues, or it is this.originalValues? if this.originalValues, then don't use an arrow function, but a classic function.
     for( var optionName in originalValues ) {
         if( prefsBranch.prefHasUserValue(optionName) ) {
             if( prefsBranch.getCharPref( optionName )===originalValues[optionName] ) {
