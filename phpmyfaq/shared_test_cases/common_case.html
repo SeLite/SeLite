@@ -16,7 +16,7 @@
 	<td></td>
 	<td></td>
 </tr>
-<tr><td colspan="3" class="comment">@param 'loginOrAmpRole' is a user login, or user role prefixed with &amp;amp;amp;.</td></tr>
+<tr><td colspan="3" class="comment">@param 'loginOrAmpRole' is a user login, or user role prefixed with &amp;</td></tr>
 <tr>
 	<td>function</td>
 	<td>logIn</td>
@@ -73,7 +73,7 @@
 	<td>ui=allPages::userOwnMenuLoggedInName()</td>
 	<td></td>
 </tr>
-<tr><td colspan="3" class="comment"> Keep a space between displayName= and &amp;amp;lt;&amp;amp;gt;phpMyFAQ.selectedUser.display_name&amp;amp;lt;&amp;amp;gt;, otherwise http://selite.github.io/EnhancedSelenese treats it specially:</td></tr>
+<tr><td colspan="3" class="comment"> Keep a space between displayName= and &lt;&gt;phpMyFAQ.selectedUser.display_name&lt;&gt;, otherwise http://selite.github.io/EnhancedSelenese treats it specially:</td></tr>
 <tr>
 	<td>&#160;&#160;&#160;&#160;assertElementPresent</td>
 	<td>ui=allPages::userOwnMenuLoggedInName( displayName= &lt;&gt;phpMyFAQ.selectedUser.display_name&lt;&gt; )</td>
@@ -257,14 +257,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>&#160;&#160;&#160;&#160;call</td>
-	<td>openUserOwnMenuIfCollapsed</td>
-	<td></td>
-</tr>
-<tr><td colspan="3" class="comment">    TODO Following fails</td></tr>
-<tr>
-	<td>&#160;&#160;&#160;&#160;clickAndWait</td>
-	<td>ui=allPages::userOwnMenuItem( item=Administration )</td>
+	<td>&#160;&#160;&#160;&#160;&#160;&#160;open</td>
+	<td>&lt;&gt;SeLiteSettings.webURL( '/admin' ) &lt;&gt;</td>
 	<td></td>
 </tr>
 <tr>
@@ -308,7 +302,7 @@
 	<td>window.width: &lt;&gt;window.innerWidth&lt;&gt;</td>
 	<td>info</td>
 </tr>
-<tr><td colspan="3" class="comment"> TODO Doc: In Firefox c.a. 36, the following innerWidth was different to value reported by console in Firebug or in Firefox's Web Developer &amp;amp;gt; Toggle tools &amp;amp;gt; console. Fixed in Firefox 47.</td></tr>
+<tr><td colspan="3" class="comment"> TODO Doc: In Firefox c.a. 36, the following innerWidth was different to value reported by console in Firebug or in Firefox's Web Developer &gt; Toggle tools &gt; console. Fixed in Firefox 47.</td></tr>
 <tr>
 	<td>&#160;&#160;getEval</td>
 	<td>false &amp;&amp; alert( window.innerWidth )</td>

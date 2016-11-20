@@ -36,7 +36,6 @@
             'Login': '?action=login',
             // Only shown when logged on, and if applicable:
             'User Control Panel': '?action=ucp',
-            'Administration': '/admin/index.php',
         // Admin pages only:
             'Change Password': 'index.php?action=passwd',
         // Both non-admin and admin pages:
