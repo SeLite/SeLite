@@ -38,7 +38,7 @@ for (var code in XhtmlEntityFromChars) {
 }
 XhtmlEntityChars += "]";
 
-function decodeText(text) {
+function decodeText( text, asComment=false ) {
     if (text == null) return "";
 	text = text.replace(/<br\s*\/?>/gi, "\n");
     text = text.replace(/&(\w+);/g, function(str, p1) {
@@ -58,7 +58,7 @@ function decodeText(text) {
         });
     text = text.replace(/ +/g, " "); // truncate multiple spaces to single space
     text = text.replace(/\xA0/g, " "); // treat nbsp as space (A0 is hexadecimal of 160 - unicode for nbsp)
-	if ('true' == options.escapeDollar) {
+	if (!asComment && 'true' == options.escapeDollar) {
 		text = text.replace(/([^\\])\$\{/g, '$1$$$${'); // replace [^\]${...} with $${...}
 		text = text.replace(/^\$\{/g, '$$$${'); // replace ^${...} with $${...}
 		text = text.replace(/\\\$\{/g, '$${'); // replace \${...} with ${...}
@@ -81,7 +81,6 @@ function encodeText(text, asComment=false ) {
                 throw "Failed to encode entity: " + c;
             }
         });
-    if( !asComment ) { // Following is not indented, to keep it comparable to original Selenium IDE code
     text = text.replace(/ {2,}/g, function(str) { // convert multiple spaces to XML non-breakable space &#160;
             var result = '';
             for (var i = 0; i < str.length; i++) {
@@ -91,12 +90,11 @@ function encodeText(text, asComment=false ) {
         });
     text = text.replace( /&nbsp;/g, '&#160;' ); // To make existing non-XML files XML-compliant.
     
-	if ('true' == options.escapeDollar) {
+	if (!asComment && 'true' == options.escapeDollar) {
 		text = text.replace(/([^\$])\$\{/g, '$1\\${'); // replace [^$]${...} with \${...}
 		text = text.replace(/^\$\{/g, '\\${'); // replace ^${...} with \${...}
 		text = text.replace(/\$\$\{/g, '${'); // replace $${...} with ${...}
 	}
-    }
     text = text.replace(/\n/g, "<br />"); // Not sure how this can happen, since Selenium IDE 2.9.1.1 doesn't allow to enter (or paste from clipboard) text with new lines.
 	return text;
 }
@@ -152,7 +150,7 @@ function parseCommandsAndHeader( doc ) {
                             comment.index = docResult.index;
                             var result = commentRegexp.exec(doc.substring(lastIndex));
                             eval(options.commentLoadScript);
-                            comment.comment= decodeText( comment.comment );
+                            comment.comment= decodeText( comment.comment, true );
                             commands.push(comment);
                     }
             } else {
@@ -327,13 +325,12 @@ function getSourceForCommand(commandObj) {
 	var comment = null;
 	var template = '';
 	if (commandObj.type == 'command') {
-		command = commandObj;
-		command = command.createCopy();
+		command = commandObj.createCopy();
 		convertText(command, this.encodeText);
 		template = options.commandTemplate;
 	} else if (commandObj.type == 'comment') {
-		comment = commandObj;
-        comment.comment= encodeText( comment.comment, true );
+		comment = commandObj.createCopy();
+                comment.comment= encodeText( comment.comment, true );
 		template = options.commentTemplate;
 	}
 	var result;
