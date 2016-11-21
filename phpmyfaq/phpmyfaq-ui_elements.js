@@ -388,7 +388,7 @@
     phpMyFAQ.uiMap.addElement('adminPages', {
         name: 'bootstrapMenu',
         description: '<span> for the Bootstrap menu. Only use through phpMyFAQ.bootstrapMenuLocator() to detect whether the menu is expanded; do not use to access menu items etc.',
-        locator: '//ul[ @class="dropdown-menu" ]'
+        locator: '//a[ @class="dropdown-toggle" ]'
     } );
     
     /** @return {string} Locator of bootstrapMenuLocator, depending on current URL. It works for both admin and non-admin pages. Only use it to detect whether the bootstrap menu is expanded; do not use to access menu items etc.

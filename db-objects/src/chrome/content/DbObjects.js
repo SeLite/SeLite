@@ -22,7 +22,11 @@ Components.utils.import('chrome://selite-db-objects/content/Db.js');
 Components.utils.import( 'chrome://selite-settings/content/SeLiteSettings.js' );
 
 //var console= Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
-
+/** The default way of narrowing data. An object {
+        filter: function(SeLiteData.Table table, string fieldOrAlias, string narrowByValue) => string SQL condition. It serves as an SQL filter condition (potentially in an AND with existing condition(s)). It narrows down the dataset to records relevant for given narrowByValue. narrowByValue represents a script session. This allows storing multiple session data in the same DB.
+ *       inject: function(string unfilteredValue, string narrowByValue) => string to insert to DB (unescaped). It serves to generate a new value to enter, both in forms and in the DB. See also SeLiteData.Table's narrowMaxWidth.
+ *      }
+ */
 SeLiteData.narrowByPrefix= {
     filter: function narrowByPrefixFilter( table, tableOrJoinAlias, narrowByValue ) {
         return tableOrJoinAlias+ "." +table.narrowColumn+ " LIKE '" +narrowByValue+ "%' ";//@TODO escape
@@ -36,20 +40,17 @@ SeLiteData.narrowByPrefix= {
  *  @param {SeLiteData.Storage} storage Underlying lower-level storage object.
  *  @param {string} [tableNamePrefix] optional prefix, which will be applied to all tables (except for tables that have noNamePrefix=true when constructed). If not set, then storage.tableNamePrefix is used (if any).
  *  @param {boolean} [generateInsertKey=false] Whether all tables with single-column primary key should have the key values generated (based on the maximum existing key) on insert. SeLiteData.Table constructor can override this on per-table basis.
- *  @param {object}  narrowMethod An anonymous object
- *      {filter: function(string fieldOrAlias, string narrowByValue) => string SQL condition,
- *       inject: function(string unfilteredValue, string narrowByValue) => string to insert to DB (unescaped)
- *      }.
- *      Default narrow method. It will apply to all tables, except for ones that have their own narrowMethod. It escapes special characters.
+ *  @param {object}  narrower An anonymous object with structure like SeLiteData.narrowByPrefix.
+ *      Default narrower. It will apply to all tables, except for ones that have their own narrower. It escapes special characters.
  **/
-//@TODO check that ESDoc generates optional parameter flag for narrowMethod, even though it's not maekred as optional in the comment
-SeLiteData.Db= function Db( storage, tableNamePrefix, generateInsertKey=false, narrowMethod=SeLiteData.narrowByPrefix ) {
+//@TODO check that ESDoc generates optional parameter flag for narrower, even though it's not marked as optional in the comment
+SeLiteData.Db= function Db( storage, tableNamePrefix, generateInsertKey=false, narrower=SeLiteData.narrowByPrefix ) {
     /** @type {SeLiteData.Storage} storage*/
     this.storage= storage;
     /** @type {string} tableNamePrefix*/
     this.tableNamePrefix= tableNamePrefix;
     this.generateInsertKey= generateInsertKey;
-    this.narrowMethod= narrowMethod;
+    this.narrower= narrower;
 };
 
 /** @return {string} Table prefix, or an empty string. It never returns undefined.
@@ -68,7 +69,7 @@ SeLiteData.Db.prototype.tablePrefix= function tablePrefix() {
  *      generateInsertKey: boolean, like parameter generateInsertKey of SeLiteData.Db(). If specified and different to prototype.db.generateInsertKey, then prototype.generateInsertKey overrides it (even if db.generateInsertKey is true but here prototype.generateInsertKey is false).
  *      narrowColumn: string, optional. Name of column used to narrow down operating set or records.
  *      narrowMaxWidth: number, optional. Maximum number of characters when narrowing down. Applied to Settings field extensions.selite-settings.common.narrowBy.
- *      narrowMethod: function, optional. See SeLiteData.Db().
+ *      narrower: function, optional. See SeLiteData.Db().
  */
 SeLiteData.Table= function Table( prototype ) {
     /** @type {SeLiteData.Db} */
@@ -85,8 +86,8 @@ SeLiteData.Table= function Table( prototype ) {
     this.generateInsertKey= SeLiteMisc.field( prototype, 'generateInsertKey', this.db.generateInsertKey );
     this.generateInsertKey= this.generateInsertKey || false;
     this.narrowColumn= SeLiteMisc.field( prototype, 'narrowColumn' );
-    this.narrowMaxWidth= SeLiteMisc.field( prototype, 'narrowMaxWidth' ); //@TODO use<- pass table object to narrowMethod()
-    this.narrowMethod= SeLiteMisc.field( prototype, 'narrowMethod', this.db.narrowMethod );
+    this.narrowMaxWidth= SeLiteMisc.field( prototype, 'narrowMaxWidth' ); //@TODO use<- pass table object to narrower
+    this.narrower= SeLiteMisc.field( prototype, 'narrower', this.db.narrower );
 };
 
 SeLiteData.Table.prototype.nameWithPrefix= function nameWithPrefix() {
@@ -897,7 +898,7 @@ RecordSetHolder.prototype.select= function select( dontNarrow=false, sync=false 
             let narrowByShortened= formula.table.narrowMaxWidth
                 ? narrowBy.substr( 0, formula.table.narrowMaxWidth )
                 : narrowBy;
-            conditions.push( formula.table.narrowMethod(formula.table, alias, narrowByShortened) );
+            conditions.push( formula.table.narrower.filter(formula.table, alias, narrowByShortened) );
             hasNarrowColumn= true;
         }
         /* TODO Should we narrow throguh joins?
@@ -907,7 +908,7 @@ RecordSetHolder.prototype.select= function select( dontNarrow=false, sync=false 
                 let narrowByShortened= join.table.narrowMaxWidth
                     ? narrowBy.substr( 0, join.table.narrowMaxWidth )
                     : narrowBy;
-                let narrowCondition= join.table.narrowMethod( join.table, alias, narrowBy );
+                let narrowCondition= join.table.narrower( join.table, alias, narrowBy );
                 if( join.type && join.type.toLowerCase().startsWith('left') ) {
                     narrowCondition= '( ' +narrowCondition+ " OR " +alias+ "." +join.table.narrowColumn+ " IS NULL )";
                 }
