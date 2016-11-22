@@ -122,8 +122,8 @@ if( loadedTimes===1 ) {
         SeLiteMisc.ensureType( formActionOrUserBaseURL, ['string', 'boolean', 'undefined'], 'formActionOrUserBaseURL' );
         var loginInfo= Components.classes["@mozilla.org/login-manager/loginInfo;1"]
                     .createInstance(Components.interfaces.nsILoginInfo);
-        loginInfo.hostname= extractHostname( hostnameOrUseBaseURL );
-        loginInfo.formSubmitURL= extractHostname( formActionOrUserBaseURL );
+        loginInfo.hostname= extractHostname( hostnameOrUseBaseURL ); // including the protocol, see https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsILoginInfo
+        loginInfo.formSubmitURL= extractHostname( formActionOrUserBaseURL ); // Most likely equal to hostname, see https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsILoginInfo
         loginInfo.httpRealm= null;
         loginInfo.username= username;
         loginInfo.password= password;
