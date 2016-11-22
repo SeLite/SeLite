@@ -86,8 +86,11 @@ SeLiteData.Table= function Table( prototype ) {
     this.generateInsertKey= SeLiteMisc.field( prototype, 'generateInsertKey', this.db.generateInsertKey );
     this.generateInsertKey= this.generateInsertKey || false;
     this.narrowColumn= SeLiteMisc.field( prototype, 'narrowColumn' );
-    this.narrowMaxWidth= SeLiteMisc.field( prototype, 'narrowMaxWidth' ); //@TODO use<- pass table object to narrower
-    this.narrower= SeLiteMisc.field( prototype, 'narrower', this.db.narrower );
+    this.narrowMaxWidth= SeLiteMisc.field( prototype, 'narrowMaxWidth' );
+    // Only use DB's narrower, if this table uses narrowing:
+    this.narrower= SeLiteMisc.field( prototype, 'narrower', this.narrowColumn ? this.db.narrower : undefined );
+    ( this.narrowColumn!==undefined )===( this.narrower!==undefined ) || SeLiteMisc.fail( "Use narrowColumn and narrower only together." );
+    this.narrowMaxWidth===undefined || this.narrowColumn!==undefined || SeLiteMisc.fail( "Use narrowMaxWith only with narrowColumn." );
 };
 
 SeLiteData.Table.prototype.nameWithPrefix= function nameWithPrefix() {
@@ -97,7 +100,7 @@ SeLiteData.Table.prototype.nameWithPrefix= function nameWithPrefix() {
 };
 
 /** Insert the given record to the DB.
- *  @param {SeLiteData.Record} record
+ *  @param {SeLiteData.Record} record. For narrowing, see action insertRecordCaptureKey instead.
  *  @TODO
  *  - save primary key, if auto-generated: table.db.storage.lastInsertedRow( table.nameWithPrefix(), [table.primary] )[ table.primary ];
  *  - if record is linked to a RecordHolder, update .originals
@@ -150,6 +153,42 @@ SeLiteData.Table.prototype.insert= function insert( originalRecord, sync=false )
         }
     }
     return execution;
+};
+
+/** Inject an instance-specific narrowing value into narrowed column (if any, and if narrowing).
+ * @param {(object|string)} valueOrRecord Either a string value, or a record (anonymous) object. If narrowing down, then:
+ * - if valueOrRecord is an object, its column identified by this.narrowColumn will be modified. This function returns the object.
+ * - if valueOrRecord is a string, then it can't be modified (it's a Javascript primitive), but this function returns the modified string.
+ * In both cases it modifies the column's value by injecting a narrowing value of the current script run (from SeLite Settings).
+ * @return {(object|string)} Modified valueOrRecord.
+ * */
+SeLiteData.Table.prototype.injectIfNarrowing= function injectIfNarrowing( valueOrRecord ) {
+    this.narrowColumn || SeLiteMisc.fail( "Table " +this.name+ " doesn't use narrowColumn." );
+    var narrowBy= settings.getField( 'narrowBy' ).getDownToFolder();
+    if( narrowBy===undefined ) {
+        return valueOrRecord;
+    }
+    let narrowByShortened= this.narrowMaxWidth
+        ? narrowBy.substr( 0, this.narrowMaxWidth )
+        : narrowBy;
+        
+    let value;
+    if( typeof valueOrRecord==='object' ) {
+        value= valueOrRecord[this.narrowColumn];
+    }
+    else {
+        SeLiteMisc.ensureType( valueOrRecord, 'string', 'valueOrRecord' );
+        value= valueOrRecord;
+    }
+    
+    value= this.narrower.inject( value, narrowByShortened );
+    if( typeof valueOrRecord==='object' ) {
+        valueOrRecord[this.narrowColumn]= value;
+    }
+    else {
+        valueOrRecord= value;
+    }
+    return valueOrRecord;
 };
 
 /** Set primary key in given originalRecord object to the primary key of the last inserted record.
