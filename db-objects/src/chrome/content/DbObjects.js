@@ -164,7 +164,7 @@ SeLiteData.Table.prototype.insert= function insert( originalRecord, sync=false )
  * */
 SeLiteData.Table.prototype.injectIfNarrowing= function injectIfNarrowing( valueOrRecord ) {
     this.narrowColumn || SeLiteMisc.fail( "Table " +this.name+ " doesn't use narrowColumn." );
-    var narrowBy= settings.getField( 'narrowBy' ).getDownToFolder();
+    var narrowBy= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' ).getField( 'narrowBy' ).getDownToFolder().entry;
     if( narrowBy===undefined ) {
         return valueOrRecord;
     }

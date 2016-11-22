@@ -233,6 +233,8 @@ Xml-stylesheet (whether remote or even local) didn't load up when you open this 
                     <dt>store</dt>
                     <dd>string name of the stored variable to store the selected value, it may include field or sub(sub...)field e.g. <code>variableName.fieldName, variableName.fieldName.subfieldName</code>...
                     </dd>
+                    <dt>table</dt>
+                    <dd>If set, it must be an SeLiteData.Table instance. Then this narrows down the value by current narrowBy config in SeLite Settings (if set). It uses that narrowBy regardless of any length and type restrictions of the field passed through <code>paramsOrStore</code>! Only set <code>table</code> for a field that should be narrowed.
                 </dl>
                 }. You can pass it via =&lt;&gt;...&lt;&gt; notation as per http://selite.github.io/EnhancedSelenese.
             </li>

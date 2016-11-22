@@ -356,10 +356,10 @@ Selenium= Selenium;
        because it's not intended to be run as Selenium command/getter.
        Return a random text, restricted by params, and fit for an input element identified by locator. It always returns at least 1 character.
      * @parameter {object} params object, see parameter paramsOrStore of function doTypeRandom() in ../reference.xml - except that here it has to be an object, it can't be a string.
-     * @parameter {object} extraParams Currently only used with type 'email', to generate an email address based on
+     * @parameter {object} extraParams Currently only used with type 'email' and 'table'. It generates an email address based on
      * a given name (first/last/full). Then pass an object {
      *     baseOnName: string human-name; the email address part left of '@' will be based on this string
-     * }
+     * }.
      * @parameter {string} [locator] Locator of the text input. Used to get max. length of the generated input.
      * @return string as speficied in doTypeRandom()
      */
@@ -375,13 +375,34 @@ Selenium= Selenium;
         var elementMaxLength= locator
             ? parseInt( this.browserbot.findElement(locator).getAttribute('maxlength') )
             : undefined;
-
+        
+        var narrowBy= undefined;
+        if( 'table' in params ) {
+            narrowBy= SeLiteSettings.Module.forName( 'extensions.selite-settings.common' ).getField( 'narrowBy' ).getDownToFolder().entry;
+            narrowBy===undefined || narrowBy.length>0 || SeLiteMisc.fail( "narrowBy config must be undefined, or a non-empty string." );
+        }
+        
         var minLength= params.minLength || 1;
         minLength= Math.max( minLength, 1 );
         if( type==='email' ) {
+            // At least 'a@pq.xy':
             minLength= Math.max( minLength, 7 );
+            
+            if( narrowBy!==undefined ) {
+                // For inject left of the email.
+                // Leave at least 6 letters for the part after username: '@pq.xy'
+                minLength= Math.max( minLength-narrowBy.length, 6 );
+            }
+        }
+        else {
+            if( narrowBy!==undefined ) {
+                minLength= Math.max( minLength-narrowBy.length, 1 );
+            }
         }
         var maxLength= params.maxLength || elementMaxLength || 255;
+        if( narrowBy!==undefined ) {
+            maxLength-= narrowBy.length;
+        }
         maxLength= Math.max( minLength, maxLength );
         
         /** @type {string} */var charRange= ''; // We'll use ASCII characters from within this range
@@ -424,7 +445,7 @@ Selenium= Selenium;
         
         var result= '';
         if( type==='name' ) {
-            result= SeLiteMisc.randomItem( this.randomFirstNames )+ ' ' +SeLiteMisc.randomItem( this.randomSurnames );
+            result+= SeLiteMisc.randomItem( this.randomFirstNames )+ ' ' +SeLiteMisc.randomItem( this.randomSurnames );
 
             // Append random name-like string, min. randomThirdNameMinLength letters, max. randomThirdNameMaxLength letters,
             // plust a leading space, e.g. ' Xu...'
@@ -483,7 +504,7 @@ Selenium= Selenium;
 
             }
             midDomain= midDomain.substr(0, maxMidDomainLength );
-            result= name+ '@'+ midDomain+ '.' +topDomain;
+            result+= name+ '@'+ midDomain+ '.' +topDomain;
         }
         else
         if( !type || ['word', 'text', 'html', 'password', 'ugly', 'number'].indexOf(type)>=0 || params.characters ) {
@@ -524,7 +545,7 @@ Selenium= Selenium;
                         entries.push( SeLiteMisc.randomString(acceptableChars, minLength-lengthOfEntries) );
                     }
                 }
-                result= entries.join(' ');
+                result+= entries.join(' ');
             }
             else if( type==='password' ) {
                 var capitals= SeLiteMisc.acceptableCharacters( new RegExp( '[A-Z]' ) );
@@ -539,7 +560,7 @@ Selenium= Selenium;
             else if( type==='ugly' ) {
                 // Typing as many unique ugly characters as possible
                 var numFirstUglies= Math.min( maxLength, acceptableChars.length );
-                result= acceptableChars.substr(0, numFirstUglies);
+                result+= acceptableChars.substr(0, numFirstUglies);
                 // Typing the rest (still, ugly ones)
                 result+= SeLiteMisc.randomString(acceptableChars, totalLength-numFirstUglies);
             }
@@ -561,28 +582,28 @@ Selenium= Selenium;
                 if( SeLiteMisc.field(params, 'min')!==undefined || params.max ) {
                     // Ignore minLength, maxLength, totalLength
                     var min= params.min || 0;
-                    result= min+ Math.random()*( params.max-min ); // That excludes params.max. Therefore I'll do a rounding transformation in the next step
+                    result+= min+ Math.random()*( params.max-min ); // That excludes params.max. Therefore I'll do a rounding transformation in the next step
                     // Here I'll shift the decimal point maxScale digits to the right; then I round it; then I shift the decimal point back.
                     // This way the result range will include params.max as its maximum (if not decimal, or if actualScale==maxScale)
                     var scaleMultiplier= Math.pow( 10, actualScale );
-                    result= ''+ Math.round( result*scaleMultiplier )/scaleMultiplier;
+                    result+= ''+ Math.round( result*scaleMultiplier )/scaleMultiplier;
                 }
                 else
                 if( params.decimal ) {
                     // We generate a number with totalLength digits. Then we replace one by the decimal point
-                    result= SeLiteMisc.randomString(acceptableChars, totalLength);
+                    result+= SeLiteMisc.randomString(acceptableChars, totalLength);
                     var decimalPointPosition= totalLength-actualScale-1;
-                    result= result.substring( 0, decimalPointPosition )+ '.' +result.substring(decimalPointPosition+1);
+                    result+= result.substring( 0, decimalPointPosition )+ '.' +result.substring(decimalPointPosition+1);
                     if( result[totalLength-1]=='0' ) {
-                        result= result.substring( 0, result.length-1 )+ '1';
+                        result+= result.substring( 0, result.length-1 )+ '1';
                     }
                 }
                 else {
-                    result= '' +Math.round( Math.random()*Math.floor(params.max) );
+                    result+= '' +Math.round( Math.random()*Math.floor(params.max) );
                 }
             }
             else {
-                result= SeLiteMisc.randomString(acceptableChars, totalLength);
+                result+= SeLiteMisc.randomString(acceptableChars, totalLength);
             }
         }
         else {
@@ -590,6 +611,9 @@ Selenium= Selenium;
         }
         if( params.store ) {
             SeLiteMisc.setFields( storedVars, params.store, result );
+        }
+        if( narrowBy!==undefined ) {
+            result= params.table.injectIfNarrowing( result );
         }
         return result;
     };

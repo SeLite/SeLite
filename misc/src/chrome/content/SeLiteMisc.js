@@ -663,7 +663,7 @@ SeLiteMisc.setFieldsPairs= function setFieldsPairs( object, ...fieldValuePairs )
     return object;
 }; 
 
-/** Used to streamline the code when accessing optional fields on objects that are a result of SeLiteMisc.proxyVerifyFieldsOnRead() or SeLiteMisc.proxyVerifyFields(). That's instead of object.fieldName || defaultValue, which fails for such objects. Also, if fieldName is not set in object, Firefox since about version 48 raises a warning for expression object.fieldName.
+/** Used to streamline the code when accessing optional fields on objects that are a result of SeLiteMisc.proxyVerifyFieldsOnRead() or SeLiteMisc.proxyVerifyFields(). That's instead of object.fieldName || defaultValue, which fails for such objects; also when the object doesn't have fieldName set (which raises a warning for expression object.fieldName).
  * @param {object} object
  * @param {string} fieldName
  * @param {*} defaultValue
