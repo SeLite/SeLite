@@ -1,7 +1,7 @@
 @ECHO OFF
 echo Run download_all_selite_components_suite.html in Selenium IDE, if you did not already.
 
-@MKDIR build 1>nul 2>&1
+REM This doesn't create build\ folder, since that must exist before you run download_all_selite_components_suite.html
 SET script_folder=%~dp0
 cd %script_folder:~0,-1%
 

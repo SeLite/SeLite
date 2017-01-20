@@ -16,6 +16,7 @@
         <em:maxVersion>50.*</em:maxVersion>
       </Description>
     </em:targetApplication>
+    <em:multiprocessCompatible>false</em:multiprocessCompatible>
     <em:iconURL>chrome://selite-extension-sequencer/skin/favicon-32x32.png</em:iconURL>
     <em:icon64URL>chrome://selite-extension-sequencer/skin/favicon-64x64.png</em:icon64URL>
   </Description>
