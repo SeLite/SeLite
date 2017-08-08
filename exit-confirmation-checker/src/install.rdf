@@ -4,7 +4,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>exit-confirmation-checker@selite.googlecode.com</em:id>
     <em:name>SeLite Exit Confirmation Checker</em:name>
-    <em:version>0.15</em:version>
+    <em:version>0.16</em:version>
     <em:creator>Peter Kehl</em:creator>
     <em:homepageURL>http://selite.github.io/</em:homepageURL>
     <em:description>Validation of confirmation when leaving an unsubmitted form etc.</em:description>
@@ -13,7 +13,7 @@
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id> <!-- Firefox -->
         <em:minVersion>44.0</em:minVersion>
-        <em:maxVersion>50.*</em:maxVersion>
+        <em:maxVersion>56.*</em:maxVersion>
       </Description>
     </em:targetApplication>
     <em:iconURL>chrome://selite-exit-confirmation-checker/skin/favicon-32x32.png</em:iconURL>
