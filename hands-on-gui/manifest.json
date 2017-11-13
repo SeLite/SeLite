@@ -7,14 +7,15 @@
 
   "applications": {
     "gecko": {
-      "id": "hands-on-gui@selite.googlecode.com"
+      "id": "hands-on-gui@selite.googlecode.com",
+      "strict_min_version": "57"
     }
   },
   
 "description": "It makes Selenium IDE GUI better.",
 
 "background": {
-  "scripts": ["scripts/background.js"]
+  "scripts": ["shared/migrating_to_webextensions.js", "scripts/background.js"]
 },
 
 "permissions": [

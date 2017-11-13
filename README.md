@@ -1,3 +1,7 @@
+Work in progress: Migrating to WebExtensions (new API by Mozilla).
+
+Develop this on Linux/Mac OS. Otherwise, if cloning to filesystems that don't support symlinks, beware that add-ons share shared/old_addon_versions.js via a symlink.
+
 [SeLite](http://selite.github.io/) (Selenium+SQLite) automates database-driven navigation of web applications. It
 * allows database-driven operation
 * serves for functional testing, with test data isolated from the tested application
