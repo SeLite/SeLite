@@ -1,0 +1,28 @@
+{
+
+  "manifest_version": 2,
+  "name": "SeLite SQLite Connections Manager",
+  "homepage_url": "http://selite.github.io/",
+  "version": "0.79",
+
+  "applications": {
+    "gecko": {
+      "id": "sqlite-connection-manager@selite.googlecode.com"
+    }
+  },
+  
+  "description": "It caches and manages SQLite connections.",
+
+    "background": {
+      "scripts": ["shared/migrating_to_webextensions.js", "shared/background.js"]
+    },
+
+    "permissions": [
+      "management", "storage"
+    ],
+
+    "icons": {
+      "32": "shared/favicon32x32.png",
+      "64": "shared/favicon64x64.png"
+    }
+}
