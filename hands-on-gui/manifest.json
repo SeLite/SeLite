@@ -3,12 +3,11 @@
   "manifest_version": 2,
   "name": "SeLite Hands-on GUI",
   "homepage_url": "http://selite.github.io/",
-  "version": "0.09",
+  "version": "0.14",
 
   "applications": {
     "gecko": {
-      "id": "hands-on-gui@selite.googlecode.com",
-      "strict_min_version": "57"
+      "id": "hands-on-gui@selite.googlecode.com"
     }
   },
   

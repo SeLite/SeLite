@@ -4,36 +4,39 @@
 const ALREADY_NOTIFIED_SELITE_MIGRATING_TO_WEB_EXTENSIONS= "ALREADY_NOTIFIED_SELITE_MIGRATING_TO_WEB_EXTENSIONS";
 
 function addListenerForUpdate() {
-    // Using runtime.onInstalled() instead of management.onInstalled(), because only runtime.onInstalled() indicates whether it's an install or an update. See https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/runtime/onInstalled
+    // When debugging with 'web-ext run', the following was triggered with details.reason==='update'. Triggered twice in Firefox 56.0 (for the same start), but only once in Firefox 57.0b14.
+    // I used runtime.onInstalled() instead of management.onInstalled(), because only runtime.onInstalled() indicates whether the change is an install or an update. See https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/runtime/onInstalled
     browser.runtime.onInstalled.addListener( details => {
-        //// Unsure what would trigger first: management.getSelf() or runtime.onInstalled event. To be safe, handle runtime.onInstalled first.
-        // browser.management.getSelf().then( currentExtension => {...} );
-        
-        // Following is simpler than https://developer.mozilla.org/en-US/docs/Toolkit_version_format#Comparing_versions, since SeLite doesn't use string version parts ("alpha", "beta", "a"...).
-        // However, due to possible multi-digit version parts (e.g. 10.xyz), it uses https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare#Using_options > numeric
         if( details.reason==="update" && upgradedToWebExtensions(browser.runtime.id, details.previousVersion) || details.reason==="install" ) {
-            browser.storage.sync.get(ALREADY_NOTIFIED_SELITE_MIGRATING_TO_WEB_EXTENSIONS).catch( rejection => {
-                browser.management.getAll( extensionInfos => {
-                    for( var extension of extensionInfos ) {
-                        if( extension.id!==browser.runtime.id
-                            && upgradedToWebExtensions(extension.id, extension.version)
-                        ) {
-                            browser.storage.sync.set(ALREADY_NOTIFIED_SELITE_MIGRATING_TO_WEB_EXTENSIONS, true);
-                            return;
-                        }
+            browser.storage.sync.get(ALREADY_NOTIFIED_SELITE_MIGRATING_TO_WEB_EXTENSIONS).then(
+                alreadyStoredValues => {
+                    if( !(ALREADY_NOTIFIED_SELITE_MIGRATING_TO_WEB_EXTENSIONS in alreadyStoredValues) ) {
+                        browser.management.getAll( extensionInfos => {
+                            for( var extension of extensionInfos ) {
+                                if( extension.id!==browser.runtime.id
+                                    && upgradedToWebExtensions(extension.id, extension.version)
+                                ) {
+                                    browser.storage.sync.set(ALREADY_NOTIFIED_SELITE_MIGRATING_TO_WEB_EXTENSIONS, true);
+                                    return;
+                                }
+                            }
+                            openTab( "/shared/migrating_to_webextensions-"
+                                    +(details.reason==="update"
+                                        ? "update.html"
+                                        : "install.html"
+                                    )
+                            ).then( success=> {
+                                var storeKeyToValue= {};
+                                storeKeyToValue[ALREADY_NOTIFIED_SELITE_MIGRATING_TO_WEB_EXTENSIONS]= true;
+                                browser.storage.sync.set(storeKeyToValue);
+                            });
+                        });
                     }
-                    browser.tabs.create( {
-                        url: "/shared/migrating_to_webextensions-update-"
-                        +(details.reason==="update"
-                            ? "update.html"
-                            : "install.html"
-                        )
-                    }).then( success=> {//@TODO test with a global variable & alert: If I remove these curly {}, will it store before or after Promise succeeds?!
-                         browser.storage.sync.set(ALREADY_NOTIFIED_SELITE_MIGRATING_TO_WEB_EXTENSIONS, true); } );
+                },
+                rejection => {
+                    openTab( "about:blank#SeLite_storage_get_failed:"+rejection );
                 });
-            });
         }
-        else {browser.tabs.create( {url: "about:blank#no-upgrade"});}
     });
 }
 
@@ -41,6 +44,16 @@ function upgradedToWebExtensions( seLiteComponentExtensionID, previousInstalledV
     var lastObsoleteVersion= lastObsoleteAddOnVersions[seLiteComponentExtensionID];
     return lastObsoleteVersion!==undefined
         && previousInstalledVersion.localeCompare(lastObsoleteVersion, undefined, {numeric:true})<=0;
+}
+
+function openTab( url ) {
+    return browser.windows.getCurrent().then( window => {
+        //@TODO how do I chain the following to the overall result Promise?
+        return browser.tabs.create( {
+            url: url,
+            windowId: window.id
+        });
+    });
 }
 
 // We need this, since in 2017 Mozilla API doesn't indicate whether other extensions are compatible with multi-process/WebExtensions.
