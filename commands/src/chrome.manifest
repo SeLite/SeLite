@@ -1,5 +1,0 @@
-content selite-commands chrome/content/
-skin selite-commands classic chrome/skin/classic/
-
-# custom extension(s)
-overlay chrome://browser/content/browser.xul chrome://selite-commands/content/extensions/browser.xul
