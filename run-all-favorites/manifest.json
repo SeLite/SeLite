@@ -1,0 +1,28 @@
+{
+
+  "manifest_version": 2,
+  "name": "SeLite Run All Favorites",
+  "homepage_url": "http://selite.github.io/",
+  "version": "0.18",
+
+  "applications": {
+    "gecko": {
+      "id": "run-all-favorites@selite.googlecode.com"
+    }
+  },
+  
+  "description": "It runs all favorites from 'Favorites (Selenium IDE)'. They are stored relative to user's home folder. It lets the user to import and export favorites through the menu.  ",
+
+    "background": {
+      "scripts": ["shared/migrating_to_webextensions.js", "shared/background.js"]
+    },
+
+    "permissions": [
+      "management", "storage"
+    ],
+
+    "icons": {
+      "32": "shared/favicon-32x32.png",
+      "64": "shared/favicon-64x64.png"
+    }
+}
