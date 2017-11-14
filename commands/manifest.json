@@ -1,0 +1,28 @@
+{
+
+  "manifest_version": 2,
+  "name": "SeLite Commands",
+  "homepage_url": "http://selite.github.io/",
+  "version": "1.1",
+
+  "applications": {
+    "gecko": {
+      "id": "commands@selite.googlecode.com"
+    }
+  },
+  
+  "description": "SeLite Test Script Commands - Selenium IDE Core extension",
+
+    "background": {
+      "scripts": ["shared/migrating_to_webextensions.js", "shared/background.js"]
+    },
+
+    "permissions": [
+      "management", "storage"
+    ],
+
+    "icons": {
+      "32": "shared/favicon-32x32.png",
+      "64": "shared/favicon-64x64.png"
+    }
+}

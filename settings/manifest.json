@@ -1,0 +1,28 @@
+{
+
+  "manifest_version": 2,
+  "name": "SeLite Settings",
+  "homepage_url": "http://selite.github.io/",
+  "version": "0.67",
+
+  "applications": {
+    "gecko": {
+      "id": "settings@selite.googlecode.com"
+    }
+  },
+  
+  "description": "Template/module-based user interface to Firefox preferences - mostly for Firefox addons.",
+
+    "background": {
+      "scripts": ["shared/migrating_to_webextensions.js", "shared/background.js"]
+    },
+
+    "permissions": [
+      "management", "storage"
+    ],
+
+    "icons": {
+      "32": "shared/favicon-32x32.png",
+      "64": "shared/favicon-64x64.png"
+    }
+}
