@@ -1,0 +1,28 @@
+{
+
+  "manifest_version": 2,
+  "name": "SeLite TestCase Debug Context",
+  "homepage_url": "http://selite.github.io/",
+  "version": "0.83",
+
+  "applications": {
+    "gecko": {
+      "id": "testcase-debug-context@selite.googlecode.com"
+    }
+  },
+  
+  "description": "It serves SeLite SelBlocks Global and SeLite Bootstrap. It works in Selenium IDE.",
+
+    "background": {
+      "scripts": ["shared/migrating_to_webextensions.js", "shared/background.js"]
+    },
+
+    "permissions": [
+      "management", "storage"
+    ],
+
+    "icons": {
+      "32": "shared/favicon-32x32.png",
+      "64": "shared/favicon-64x64.png"
+    }
+}
