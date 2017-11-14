@@ -1,4 +1,0 @@
-content selite-misc chrome/content/
-skin selite-misc classic chrome/skin/classic/
-
-overlay chrome://selenium-ide/content/optionsDialog.xul chrome://selite-misc/content/optionsDialog.xul

@@ -48,7 +48,6 @@ function upgradedToWebExtensions( seLiteComponentExtensionID, previousInstalledV
 
 function openTab( url ) {
     return browser.windows.getCurrent().then( window => {
-        //@TODO how do I chain the following to the overall result Promise?
         return browser.tabs.create( {
             url: url,
             windowId: window.id

@@ -1,17 +1,17 @@
 {
 
   "manifest_version": 2,
-  "name": "SeLite Hands-on GUI",
+  "name": "SeLite Extension Sequencer",
   "homepage_url": "http://selite.github.io/",
-  "version": "0.14",
+  "version": "0.55",
 
   "applications": {
     "gecko": {
-      "id": "hands-on-gui@selite.googlecode.com"
+      "id": "extension-sequencer@selite.googlecode.com"
     }
   },
   
-  "description": "It makes Selenium IDE GUI better.",
+    "description": "It loads user Core or IDE extensions to Selenium IDE in an order reflecting dependancies",
 
     "background": {
       "scripts": ["shared/migrating_to_webextensions.js", "shared/background.js"]

@@ -1,6 +1,0 @@
-content selite-extension-sequencer chrome/content/
-skin selite-extension-sequencer classic chrome/skin/classic/
-
-# custom extension(s)
-overlay chrome://selenium-ide/content/selenium-ide-overlay.xul chrome://selite-extension-sequencer/content/extensions/extension-loader.xul
-overlay chrome://browser/content/browser.xul chrome://selite-extension-sequencer/content/extensions/browser-overlay.xul

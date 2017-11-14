@@ -1,17 +1,17 @@
 {
 
   "manifest_version": 2,
-  "name": "SeLite Hands-on GUI",
+  "name": "SeLite Miscellaneous",
   "homepage_url": "http://selite.github.io/",
-  "version": "0.14",
+  "version": "1.11",
 
   "applications": {
     "gecko": {
-      "id": "hands-on-gui@selite.googlecode.com"
+      "id": "misc@selite.googlecode.com"
     }
   },
   
-  "description": "It makes Selenium IDE GUI better.",
+  "description": "Miscellaneous classes for SeLite components",
 
     "background": {
       "scripts": ["shared/migrating_to_webextensions.js", "shared/background.js"]
