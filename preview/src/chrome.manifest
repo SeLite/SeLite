@@ -1,4 +1,0 @@
-content selite-preview chrome/content/
-skin selite-preview classic chrome/skin/classic/
-
-overlay chrome://browser/content/browser.xul chrome://selite-preview/content/extensions/browser.xul
