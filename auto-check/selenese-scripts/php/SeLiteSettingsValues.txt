@@ -1,1 +1,0 @@
-extensions.selite-settings.common.autoCheckDetector SeLiteAutoCheck.DetectorPHP

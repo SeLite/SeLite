@@ -1,5 +1,0 @@
-content selite-auto-check chrome/content/
-skin selite-auto-check classic chrome/skin/classic/
-
-# custom extension(s)
-overlay chrome://browser/content/browser.xul chrome://selite-auto-check/content/extensions/browser.xul
