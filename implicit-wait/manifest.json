@@ -1,0 +1,28 @@
+{
+
+  "manifest_version": 2,
+  "name": "SeLite Implicit Wait",
+  "homepage_url": "http://selite.github.io/",
+  "version": "0.1",
+
+  "applications": {
+    "gecko": {
+      "id": "implicit-wait@selite.googlecode.com"
+    }
+  },
+  
+  "description": "Implicit wait for Selenese actions",
+
+    "background": {
+      "scripts": ["shared/migrating_to_webextensions.js", "shared/background.js"]
+    },
+
+    "permissions": [
+      "management", "storage"
+    ],
+
+    "icons": {
+      "32": "shared/favicon32x32.png",
+      "64": "shared/favicon64x64.png"
+    }
+}

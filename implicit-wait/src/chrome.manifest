@@ -1,7 +1,0 @@
-content implicit-wait chrome/content/
-skin implicit-wait classic chrome/skin/classic/
-
-locale implicit-wait en-US chrome/locale/en-US/
-
-overlay chrome://selenium-ide/content/selenium-ide-common.xul chrome://implicit-wait/content/view/selenium-ide-overlay-iw.xul
-overlay chrome://browser/content/browser.xul chrome://implicit-wait/content/extensions/browser.xul

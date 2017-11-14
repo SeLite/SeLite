@@ -68,6 +68,7 @@ var lastObsoleteAddOnVersions= {
     "exit-confirmation-checker@selite.googlecode.com": "0.16",
     "extension-sequencer@selite.googlecode.com": "0.54",
     "hands-on-gui@selite.googlecode.com": "0.08",
+    "implicit-wait@selite.googlecode.com": "0",
     "misc@selite.googlecode.com": "1.10",
     "preview@selite.googlecode.com": "0.13",
     "run-all-favorites@selite.googlecode.com": "0.17",
