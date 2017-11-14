@@ -22,7 +22,7 @@
     ],
 
     "icons": {
-      "32": "shared/favicon32x32.png",
-      "64": "shared/favicon64x64.png"
+      "32": "shared/favicon-32x32.png",
+      "64": "shared/favicon-64x64.png"
     }
 }
