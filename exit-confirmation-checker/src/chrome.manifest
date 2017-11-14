@@ -1,4 +1,0 @@
-content selite-exit-confirmation-checker chrome/content/
-skin selite-exit-confirmation-checker classic chrome/skin/classic/
-
-overlay chrome://browser/content/browser.xul chrome://selite-exit-confirmation-checker/content/extensions/browser.xul
