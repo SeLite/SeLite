@@ -1,0 +1,27 @@
+{
+
+  "manifest_version": 2,
+  "name": "Extension Sequencer Client (test)",
+  "homepage_url": "http://selite.github.io/",
+  "version": "0.1",
+
+  "applications": {
+    "gecko": {
+      "id": "extension-sequencer-client@selite.googlecode.com",
+      "strict_min_version": "57.0a1"
+    }
+  },
+  
+  "description": "SeLite Extension Sequencer Client (test)",
+
+    "background": {
+      "page": "background.html"
+    },
+
+    "permissions": [
+      "management"
+    ],
+    
+    "content_security_policy": "default-src 'self'; script-src 'self' blob:; connect-src 'self' moz-extension:"
+
+}
