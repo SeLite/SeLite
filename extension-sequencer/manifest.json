@@ -7,7 +7,8 @@
 
   "applications": {
     "gecko": {
-      "id": "extension-sequencer@selite.googlecode.com"
+      "id": "extension-sequencer@selite.googlecode.com",
+      "strict_min_version": "57.0a1"
     }
   },
   
@@ -18,11 +19,15 @@
     },
 
     "permissions": [
-      "management", "storage"
+      "management", "storage",
+      
+      "idle"
     ],
 
     "icons": {
       "32": "shared/favicon-32x32.png",
       "64": "shared/favicon-64x64.png"
-    }
+    },
+  
+  "content_security_policy": "default-src 'self'; script-src 'self' blob:; object-src 'self'"
 }
